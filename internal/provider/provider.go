@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -134,7 +135,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewJMESPathCheckResource,
+		DeviceManagementScript,
 	}
 }
 
