@@ -188,8 +188,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	if data.Token.IsUnknown() {
 		resp.Diagnostics.AddWarning(
-			"M365 provider configuration error",
-			"Cannot use unknown value as token",
+			"M365 Provider Configuration Warning",
+			"The token value is unknown in the provider configuration. "+
+				"Please ensure that the token value is correctly set in the provider configuration.",
 		)
 		return
 	}
@@ -198,8 +199,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		token := os.Getenv("M365_API_TOKEN")
 		if token == "" {
 			resp.Diagnostics.AddError(
-				"M365 provider configuration error",
-				"Token cannot be an empty string",
+				"M365 Provider Configuration Error",
+				"The token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
+					"Please provide a valid token either through the provider configuration or by setting the 'M365_API_TOKEN' environment variable.",
 			)
 			return
 		}
@@ -210,8 +212,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		proxyUrlParsed, err := url.Parse(proxyURL)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Invalid proxy URL",
-				"Error parsing proxy URL: "+err.Error(),
+				"Invalid Proxy URL",
+				fmt.Sprintf("Failed to parse the provided proxy URL '%s': %s. "+
+					"Ensure the URL is correctly formatted.", proxyURL, err.Error()),
 			)
 			return
 		}
@@ -256,8 +259,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		certFile, err := os.Open(certificatePath)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to open certificate file",
-				"Error opening certificate file: "+err.Error(),
+				"Error Opening Certificate File",
+				fmt.Sprintf("Failed to open the certificate file at path '%s': %s. "+
+					"Ensure the file path is correct and the file is accessible.", certificatePath, err.Error()),
 			)
 			return
 		}
@@ -266,8 +270,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		info, err := certFile.Stat()
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to stat certificate file",
-				"Error stating certificate file: "+err.Error(),
+				"Error Accessing Certificate File",
+				fmt.Sprintf("Failed to retrieve file information: %s. "+
+					"Ensure the file exists and is accessible.", err.Error()),
 			)
 			return
 		}
@@ -276,8 +281,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		_, err = certFile.Read(certBytes)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to read certificate file",
-				"Error reading certificate file: "+err.Error(),
+				"Error Reading Certificate File",
+				fmt.Sprintf("Failed to read the certificate file: %s. "+
+					"Ensure the file is accessible and not corrupted.", err.Error()),
 			)
 			return
 		}
@@ -285,8 +291,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		certs, key, err := azidentity.ParseCertificates(certBytes, nil)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to parse certificates",
-				"Error parsing certificates: "+err.Error(),
+				"Error Parsing Certificates",
+				fmt.Sprintf("Failed to parse certificates from the provided file: %s. "+
+					"Ensure the file contains valid certificate data and is correctly formatted.", err.Error()),
 			)
 			return
 		}
@@ -325,7 +332,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create credentials",
-			"Error creating credentials: "+err.Error(),
+			fmt.Sprintf("An error occurred while attempting to create the credentials using the provided authentication method '%s'. "+
+				"This may be due to incorrect or missing credentials, misconfigured client options, or issues with the underlying authentication library. "+
+				"Please verify the authentication method and credentials configuration. Detailed error: %s", authMethod, err.Error()),
 		)
 		return
 	}
@@ -334,7 +343,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create authentication provider",
-			"Error creating authentication provider: "+err.Error(),
+			fmt.Sprintf("An error occurred while attempting to create the authentication provider using the provided credentials. "+
+				"This may be due to misconfigured client options, incorrect credentials, or issues with the underlying authentication library. "+
+				"Please verify your client options and credentials configuration. Detailed error: %s", err.Error()),
 		)
 		return
 	}
