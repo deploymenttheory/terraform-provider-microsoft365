@@ -18,6 +18,7 @@ import (
 	khttp "github.com/microsoft/kiota-http-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
+	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
 )
 
@@ -152,7 +153,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	tokenEndpoint := data.TokenEndpoint.ValueString()
 	serviceRoot := data.ServiceRoot.ValueString()
 
-	var cred azidentity.TokenCredential
+	var cred azcore.TokenCredential
 	var err error
 
 	if data.Token.IsUnknown() {
@@ -174,7 +175,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		}
 	}
 
-	httpClient := &http.Client{}
+	var transport *http.Transport
 	if useProxy {
 		proxyUrlParsed, err := url.Parse(proxyURL)
 		if err != nil {
@@ -184,15 +185,18 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 			return
 		}
-
-		httpClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrlParsed),
-			},
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyUrlParsed),
 		}
+	} else {
+		transport = &http.Transport{}
 	}
 
-	clientOptions := azcore.ClientOptions{}
+	clientOptions := azcore.ClientOptions{
+		Transport: azcore.TransportFunc(func(req *http.Request) (*http.Response, error) {
+			return transport.RoundTrip(req)
+		}),
+	}
 	if tokenEndpoint != "" {
 		clientOptions.Cloud = cloud.Configuration{
 			ActiveDirectoryAuthorityHost: tokenEndpoint,
@@ -303,14 +307,15 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	clientOptions = graph.GetDefaultClientOptions()
-	middleware := graphcore.GetDefaultMiddlewaresWithOptions(&clientOptions)
+	clientOptionsGraph := msgraphgocore.GraphClientOptions{}
+	middleware := graphcore.GetDefaultMiddlewaresWithOptions(&clientOptionsGraph)
 
 	if enableChaos {
 		chaosHandler := khttp.NewChaosHandler()
 		middleware = append(middleware, chaosHandler)
 	}
 
+	httpClient := khttp.GetDefaultClient(middleware...)
 	if useProxy {
 		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, middleware...)
 		if err != nil {
@@ -320,11 +325,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 			return
 		}
-	} else {
-		httpClient = khttp.GetDefaultClient(middleware...)
 	}
 
-	adapter, err := graph.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+	adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
 		authProvider, nil, nil, httpClient)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -350,13 +353,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		deviceManagementScript,
+		// Add your resource functions here
 	}
 }
 
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// TODO
+		// Add your datasource functions here
 	}
 }
 
