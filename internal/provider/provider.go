@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -14,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	khttp "github.com/microsoft/kiota-http-go"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
-	"github.com/microsoftgraph/deploymenttheory/terraform-provider-m365/internal/resources/deviceManagementScript"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -79,20 +77,20 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Required for client certificate authentication.",
 			},
 			"user_assertion": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
 				Description: "The user assertion for on-behalf-of authentication.",
 			},
 			"username": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
 				Description: "The username for username/password authentication.",
 			},
 			"password": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Optional:    true,
+				Sensitive:   true,
 				Description: "The password for username/password authentication.",
 			},
 			"redirect_url": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
 				Description: "The redirect URL for interactive browser authentication.",
 			},
 			"token": schema.StringAttribute{
@@ -118,7 +116,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "Enable chaos handler for simulating specific scenarios.",
 			},
 			"auth_method": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
 				Description: "The authentication method to use. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
 					"'interactive_browser', 'username_password'.",
@@ -269,9 +267,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	case "interactive_browser":
 		redirectURL := data.RedirectURL.ValueString()
 		cred, err = azidentity.NewInteractiveBrowserCredential(&azidentity.InteractiveBrowserCredentialOptions{
-			TenantID:    tenantID,
-			ClientID:    clientID,
-			RedirectURL: redirectURL,
+			TenantID:      tenantID,
+			ClientID:      clientID,
+			RedirectURL:   redirectURL,
 			ClientOptions: clientOptions,
 		})
 	case "username_password":
@@ -358,7 +356,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Define your data sources here
+		// TODO
 	}
 }
 
