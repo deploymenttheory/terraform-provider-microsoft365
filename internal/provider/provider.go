@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	khttp "github.com/microsoft/kiota-http-go"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
@@ -31,22 +33,23 @@ type M365Provider struct {
 
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
-	TenantID        types.String `tfsdk:"tenant_id"`
-	ClientID        types.String `tfsdk:"client_id"`
-	ClientSecret    types.String `tfsdk:"client_secret"`
-	CertificatePath types.String `tfsdk:"certificate_path"`
-	UserAssertion   types.String `tfsdk:"user_assertion"`
-	Username        types.String `tfsdk:"username"`
-	Password        types.String `tfsdk:"password"`
-	RedirectURL     types.String `tfsdk:"redirect_url"`
-	Token           types.String `tfsdk:"token"`
-	UseBeta         types.Bool   `tfsdk:"use_beta"`
-	UseProxy        types.Bool   `tfsdk:"use_proxy"`
-	ProxyURL        types.String `tfsdk:"proxy_url"`
-	EnableChaos     types.Bool   `tfsdk:"enable_chaos"`
-	AuthMethod      types.String `tfsdk:"auth_method"`
-	TokenEndpoint   types.String `tfsdk:"token_endpoint"`
-	ServiceRoot     types.String `tfsdk:"service_root"`
+	TenantID                             types.String `tfsdk:"tenant_id"`
+	ClientID                             types.String `tfsdk:"client_id"`
+	ClientSecret                         types.String `tfsdk:"client_secret"`
+	CertificatePath                      types.String `tfsdk:"certificate_path"`
+	UserAssertion                        types.String `tfsdk:"user_assertion"`
+	Username                             types.String `tfsdk:"username"`
+	Password                             types.String `tfsdk:"password"`
+	RedirectURL                          types.String `tfsdk:"redirect_url"`
+	Token                                types.String `tfsdk:"token"`
+	UseBeta                              types.Bool   `tfsdk:"use_beta"`
+	UseProxy                             types.Bool   `tfsdk:"use_proxy"`
+	ProxyURL                             types.String `tfsdk:"proxy_url"`
+	EnableChaos                          types.Bool   `tfsdk:"enable_chaos"`
+	AuthMethod                           types.String `tfsdk:"auth_method"`
+	NationalCloudDeployment              types.Bool   `tfsdk:"national_cloud_deployment"`
+	NationalCloudDeploymentTokenEndpoint types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
+	NationalCloudDeploymentServiceRoot   types.String `tfsdk:"national_cloud_deployment_service_root"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -60,10 +63,16 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"tenant_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The tenant ID for the Azure AD application.",
+				Validators: []validator.String{
+					validateGUID(),
+				},
 			},
 			"client_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The client ID for the Azure AD application.",
+				Validators: []validator.String{
+					validateGUID(),
+				},
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:  true,
@@ -92,6 +101,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"redirect_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "The redirect URL for interactive browser authentication.",
+				Validators: []validator.String{
+					validateURL(),
+				},
 			},
 			"token": schema.StringAttribute{
 				Optional:  true,
@@ -110,6 +122,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"proxy_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "The URL of the HTTP proxy.",
+				Validators: []validator.String{
+					validateURL(),
+				},
 			},
 			"enable_chaos": schema.BoolAttribute{
 				Optional:    true,
@@ -120,14 +135,29 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "The authentication method to use. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
 					"'interactive_browser', 'username_password'.",
+				Validators: []validator.String{
+					validateAuthMethod(),
+				},
 			},
-			"token_endpoint": schema.StringAttribute{
+			"national_cloud_deployment": schema.BoolAttribute{
 				Optional:    true,
-				Description: "The token endpoint for the national cloud deployment.",
+				Description: "Set to true if connecting to Microsoft Graph national cloud deployments. (Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.)",
 			},
-			"service_root": schema.StringAttribute{
+			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Microsoft Graph service root endpoint for the national cloud deployment.",
+				Description: "By default, the provider is configured to access data in the Microsoft Graph global service, using the https://graph.microsoft.com root URL to access the Microsoft Graph REST API. This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+				Validators: []validator.String{
+					validateURL(),
+					validateNationalCloudDeployment(),
+				},
+			},
+			"national_cloud_deployment_service_root": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Microsoft Graph service root endpoint for the national cloud deployment. Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 / https://graph.microsoft.com/beta).This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+				Validators: []validator.String{
+					validateURL(),
+					validateNationalCloudDeployment(),
+				},
 			},
 		},
 	}
@@ -149,8 +179,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	proxyURL := data.ProxyURL.ValueString()
 	enableChaos := data.EnableChaos.ValueBool()
 	authMethod := data.AuthMethod.ValueString()
-	tokenEndpoint := data.TokenEndpoint.ValueString()
-	serviceRoot := data.ServiceRoot.ValueString()
+	nationalCloudDeployment := data.NationalCloudDeployment.ValueBool()
+	nationalCloudDeploymentTokenEndpoint := data.NationalCloudDeploymentTokenEndpoint.ValueString()
+	nationalCloudDeploymentServiceRoot := data.NationalCloudDeploymentServiceRoot.ValueString()
 
 	var cred azcore.TokenCredential
 	var err error
@@ -199,8 +230,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		Transport: authClient,
 	}
 
-	if tokenEndpoint != "" {
-		clientOptions.Cloud.ActiveDirectoryAuthorityHost = tokenEndpoint
+	// Set cloud configuration for national cloud deployments
+	if nationalCloudDeployment && nationalCloudDeploymentTokenEndpoint != "" {
+		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint
 	}
 
 	switch authMethod {
@@ -315,40 +347,67 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		middleware = append(middleware, chaosHandler)
 	}
 
-	httpClient := khttp.GetDefaultClient(middleware...)
+	var httpClient *http.Client
 	if useProxy {
 		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, middleware...)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create HTTP client with proxy settings",
-				"Error creating HTTP client with proxy settings: "+err.Error(),
+				fmt.Sprintf("An error occurred while attempting to create the HTTP client with the provided proxy settings. "+
+					"This might be due to an invalid proxy URL, issues with the proxy server, or other network-related problems. "+
+					"Please verify the proxy URL and your network connection. Detailed error: %s", err.Error()),
+			)
+			return
+		}
+	} else {
+		httpClient = khttp.GetDefaultClient(middleware...)
+	}
+
+	var stableAdapter *msgraphsdk.GraphRequestAdapter
+	var betaAdapter *msgraphbetasdk.GraphRequestAdapter
+
+	if useBeta {
+		betaAdapter, err = msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+			authProvider, nil, nil, httpClient)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Failed to create Microsoft Graph Beta SDK Adapter",
+				fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Beta SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
+			)
+			return
+		}
+	} else {
+		stableAdapter, err = msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+			authProvider, nil, nil, httpClient)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Failed to create Microsoft Graph Stable SDK Adapter",
+				fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Stable SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
 			)
 			return
 		}
 	}
 
-	adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
-		authProvider, nil, nil, httpClient)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to create adapter",
-			"Error creating adapter: "+err.Error(),
-		)
-		return
+	// Set the service root for national cloud deployments
+	if nationalCloudDeployment && nationalCloudDeploymentServiceRoot != "" {
+		if useBeta {
+			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
+		} else {
+			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
+		}
 	}
 
-	if serviceRoot != "" {
-		adapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", serviceRoot))
-	} else if useBeta {
-		adapter.SetBaseUrl("https://graph.microsoft.com/beta")
+	var client interface{}
+
+	if useBeta {
+		client = msgraphbetasdk.NewGraphServiceClient(betaAdapter)
 	} else {
-		adapter.SetBaseUrl("https://graph.microsoft.com/v1.0")
+		client = msgraphsdk.NewGraphServiceClient(stableAdapter)
 	}
-
-	client := msgraphsdk.NewGraphServiceClient(adapter)
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
 }
 
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
