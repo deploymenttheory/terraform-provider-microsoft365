@@ -61,15 +61,19 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"tenant_id": schema.StringAttribute{
-				Required:    true,
-				Description: "The tenant ID for the Azure AD application.",
+				Required: true,
+				Description: "The M365 tenant ID for the Azure AD application. " +
+					"This ID uniquely identifies your Azure Active Directory (AAD) instance. " +
+					"It can be found in the Azure portal under Azure Active Directory > Properties.",
 				Validators: []validator.String{
 					validateGUID(),
 				},
 			},
 			"client_id": schema.StringAttribute{
-				Required:    true,
-				Description: "The client ID for the Azure AD application.",
+				Required: true,
+				Description: "The client ID for the Entra ID application. " +
+					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
+					"and can be found under App registrations > YourApp > Overview.",
 				Validators: []validator.String{
 					validateGUID(),
 				},
@@ -77,7 +81,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_secret": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Description: "The client secret for the Azure AD application. " +
+				Description: "The client secret for the Entra ID application. " +
+					"This secret is generated in the Entra ID (Azure AD) and is required for " +
+					"authentication flows such as client credentials and on-behalf-of flows. " +
+					"It can be found under App registrations > YourApp > Certificates & secrets. " +
 					"Required for client credentials and on-behalf-of flows.",
 			},
 			"certificate_path": schema.StringAttribute{
@@ -190,9 +197,21 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		resp.Diagnostics.AddWarning(
 			"M365 Provider Configuration Warning",
 			"The token value is unknown in the provider configuration. "+
-				"Please ensure that the token value is correctly set in the provider configuration.",
+				"The token will be obtained from the credentials provided by the associated authentication provider.",
 		)
-		return
+	}
+
+	if data.Token.IsNull() {
+		token := os.Getenv("M365_API_TOKEN")
+		if token == "" {
+			resp.Diagnostics.AddError(
+				"M365 Provider Configuration Error",
+				"The token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
+					"A token is required for authentication. Please provide a valid token either through the provider configuration or by setting the 'M365_API_TOKEN' environment variable. "+
+					"Alternatively, ensure that the credentials provided can obtain a token dynamically.",
+			)
+			return
+		}
 	}
 
 	if data.Token.IsNull() {
