@@ -34,6 +34,7 @@ type M365Provider struct {
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
 	TenantID                             types.String `tfsdk:"tenant_id"`
+	AuthMethod                           types.String `tfsdk:"auth_method"`
 	ClientID                             types.String `tfsdk:"client_id"`
 	ClientSecret                         types.String `tfsdk:"client_secret"`
 	CertificatePath                      types.String `tfsdk:"certificate_path"`
@@ -46,7 +47,6 @@ type M365ProviderModel struct {
 	UseProxy                             types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                             types.String `tfsdk:"proxy_url"`
 	EnableChaos                          types.Bool   `tfsdk:"enable_chaos"`
-	AuthMethod                           types.String `tfsdk:"auth_method"`
 	NationalCloudDeployment              types.Bool   `tfsdk:"national_cloud_deployment"`
 	NationalCloudDeploymentTokenEndpoint types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
 	NationalCloudDeploymentServiceRoot   types.String `tfsdk:"national_cloud_deployment_service_root"`
@@ -134,8 +134,13 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"enable_chaos": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Enable chaos handler for simulating specific scenarios.",
+				Optional: true,
+				Description: "Enable the chaos handler for testing purposes. " +
+					"When enabled, the chaos handler can simulate specific failure scenarios " +
+					"and random errors in API responses to help test the robustness and resilience " +
+					"of the terraform provider against intermittent issues. This is particularly useful " +
+					"for testing how the provider handles various error conditions and ensures " +
+					"it can recover gracefully. Use with caution in production environments.",
 			},
 			"auth_method": schema.StringAttribute{
 				Optional: true,
@@ -197,7 +202,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		resp.Diagnostics.AddWarning(
 			"M365 Provider Configuration Warning",
 			"The token value is unknown in the provider configuration. "+
-				"The token will be obtained from the credentials provided by the associated authentication provider.",
+				"The token will be obtained from the credentials provided using the associated MS Graph authentication provider.",
 		)
 	}
 
