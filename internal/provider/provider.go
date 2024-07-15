@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -175,7 +175,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		}
 	}
 
-	var transport *http.Transport
+	var authClient *http.Client
 	if useProxy {
 		proxyUrlParsed, err := url.Parse(proxyURL)
 		if err != nil {
@@ -185,22 +185,23 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 			return
 		}
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyUrlParsed),
+		authClient = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyUrlParsed),
+			},
 		}
 	} else {
-		transport = &http.Transport{}
+		authClient = &http.Client{
+			Transport: &http.Transport{},
+		}
 	}
 
-	clientOptions := azcore.ClientOptions{
-		Transport: azcore.TransportFunc(func(req *http.Request) (*http.Response, error) {
-			return transport.RoundTrip(req)
-		}),
+	clientOptions := policy.ClientOptions{
+		Transport: authClient.Transport,
 	}
+
 	if tokenEndpoint != "" {
-		clientOptions.Cloud = cloud.Configuration{
-			ActiveDirectoryAuthorityHost: tokenEndpoint,
-		}
+		clientOptions.Cloud.ActiveDirectoryAuthorityHost = tokenEndpoint
 	}
 
 	switch authMethod {
