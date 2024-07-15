@@ -1,4 +1,4 @@
-package DeviceManagementScript
+package deviceManagementScript
 
 import (
 	"context"
@@ -6,13 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -205,18 +204,18 @@ func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req re
 
 func deviceManagementScriptForState(dms models.DeviceManagementScriptable) *deviceManagementScript {
 	return &deviceManagementScript{
-		ID:              types.StringValue(dms.GetId()),
-		Name:            types.StringValue(dms.GetName()),
-		Description:     types.StringValue(dms.GetDescription()),
-		ScriptContent:   types.StringValue(dms.GetScriptContent()),
-		RunAsAccount:    types.StringValue(dms.GetRunAsAccount()),
+		ID:            types.StringValue(dms.GetId()),
+		Name:          types.StringValue(dms.GetName()),
+		Description:   types.StringValue(dms.GetDescription()),
+		ScriptContent: types.StringValue(dms.GetScriptContent()),
+		RunAsAccount:  types.StringValue(dms.GetRunAsAccount()),
 	}
 }
 
 type deviceManagementScript struct {
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	Description     types.String `tfsdk:"description"`
-	ScriptContent   types.String `tfsdk:"script_content"`
-	RunAsAccount    types.String `tfsdk:"run_as_account"`
+	ID            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	Description   types.String `tfsdk:"description"`
+	ScriptContent types.String `tfsdk:"script_content"`
+	RunAsAccount  types.String `tfsdk:"run_as_account"`
 }
