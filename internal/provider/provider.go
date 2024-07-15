@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	khttp "github.com/microsoft/kiota-http-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
-	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
 )
@@ -175,7 +174,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		}
 	}
 
-	var authClient *http.Client
+	var transport *http.Transport
 	if useProxy {
 		proxyUrlParsed, err := url.Parse(proxyURL)
 		if err != nil {
@@ -185,19 +184,19 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 			return
 		}
-		authClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrlParsed),
-			},
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyUrlParsed),
 		}
 	} else {
-		authClient = &http.Client{
-			Transport: &http.Transport{},
-		}
+		transport = &http.Transport{}
+	}
+
+	authClient := &http.Client{
+		Transport: transport,
 	}
 
 	clientOptions := policy.ClientOptions{
-		Transport: authClient.Transport,
+		Transport: authClient,
 	}
 
 	if tokenEndpoint != "" {
@@ -309,7 +308,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	clientOptionsGraph := msgraphgocore.GraphClientOptions{}
-	middleware := graphcore.GetDefaultMiddlewaresWithOptions(&clientOptionsGraph)
+	middleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&clientOptionsGraph)
 
 	if enableChaos {
 		chaosHandler := khttp.NewChaosHandler()
