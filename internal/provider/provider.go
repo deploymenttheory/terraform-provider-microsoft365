@@ -42,7 +42,7 @@ type M365ProviderModel struct {
 	Password                             types.String `tfsdk:"password"`
 	RedirectURL                          types.String `tfsdk:"redirect_url"`
 	Token                                types.String `tfsdk:"token"`
-	UseBeta                              types.Bool   `tfsdk:"use_beta"`
+	UseGraphBeta                         types.Bool   `tfsdk:"use_graph_beta"`
 	UseProxy                             types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                             types.String `tfsdk:"proxy_url"`
 	EnableChaos                          types.Bool   `tfsdk:"enable_chaos"`
@@ -111,9 +111,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "The token for the Azure AD application. " +
 					"Can also be set using the `M365_API_TOKEN` environment variable.",
 			},
-			"use_beta": schema.BoolAttribute{
+			"use_graph_beta": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Use the beta version of the Microsoft Graph API.",
+				Description: "When set to true, the provider will use the beta version of the Microsoft Graph API (https://graph.microsoft.com/beta). When set to false or not set, the provider will use the stable version of the Microsoft Graph API (https://graph.microsoft.com/v1.0).",
 			},
 			"use_proxy": schema.BoolAttribute{
 				Optional:    true,
@@ -174,7 +174,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	tenantID := data.TenantID.ValueString()
 	clientID := data.ClientID.ValueString()
-	useBeta := data.UseBeta.ValueBool()
+	useGraphBeta := data.UseGraphBeta.ValueBool()
 	useProxy := data.UseProxy.ValueBool()
 	proxyURL := data.ProxyURL.ValueString()
 	enableChaos := data.EnableChaos.ValueBool()
@@ -366,7 +366,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	var stableAdapter *msgraphsdk.GraphRequestAdapter
 	var betaAdapter *msgraphbetasdk.GraphRequestAdapter
 
-	if useBeta {
+	if useGraphBeta {
 		betaAdapter, err = msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
 			authProvider, nil, nil, httpClient)
 		if err != nil {
@@ -390,7 +390,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	// Set the service root for national cloud deployments
 	if nationalCloudDeployment && nationalCloudDeploymentServiceRoot != "" {
-		if useBeta {
+		if useGraphBeta {
 			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
 		} else {
 			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
@@ -399,7 +399,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	var client interface{}
 
-	if useBeta {
+	if useGraphBeta {
 		client = msgraphbetasdk.NewGraphServiceClient(betaAdapter)
 	} else {
 		client = msgraphsdk.NewGraphServiceClient(stableAdapter)
