@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.deviceHealthScriptAssignment",
+  "id": "String (identifier)",
+  "target": {
+    "@odata.type": "microsoft.graph.configurationManagerCollectionAssignmentTarget",
+    "deviceAndAppManagementAssignmentFilterId": "String",
+    "deviceAndAppManagementAssignmentFilterType": "String",
+    "collectionId": "String"
+  },
+  "runRemediationScript": true,
+  "runSchedule": {
+    "@odata.type": "microsoft.graph.deviceHealthScriptDailySchedule",
+    "interval": 1024,
+    "useUtc": true,
+    "time": "String (time of day)"
+  }
+}

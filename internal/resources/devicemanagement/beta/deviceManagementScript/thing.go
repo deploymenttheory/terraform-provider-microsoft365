@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -29,6 +30,52 @@ func NewDeviceManagementScriptResource() resource.Resource {
 type DeviceManagementScriptResource struct {
 	client      *devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilder
 	assignments *devicemanagement.DeviceManagementScriptsItemAssignmentsRequestBuilder
+}
+
+// deviceManagementScriptData is the model for the device management script resource.
+type deviceManagementScriptData struct {
+	ID                          types.String `tfsdk:"id"`
+	Name                        types.String `tfsdk:"name"`
+	Description                 types.String `tfsdk:"description"`
+	DetectionScriptContent      types.String `tfsdk:"detection_script_content"`
+	RemediationScriptContent    types.String `tfsdk:"remediation_script_content"`
+	CreatedDateTime             types.String `tfsdk:"created_date_time"`
+	LastModifiedDateTime        types.String `tfsdk:"last_modified_date_time"`
+	RunAsAccount                types.String `tfsdk:"run_as_account"`
+	EnforceSignatureCheck       types.Bool   `tfsdk:"enforce_signature_check"`
+	RunAs32Bit                  types.Bool   `tfsdk:"run_as_32_bit"`
+	RoleScopeTagIds             types.List   `tfsdk:"role_scope_tag_ids"`
+	IsGlobalScript              types.Bool   `tfsdk:"is_global_script"`
+	HighestAvailableVersion     types.String `tfsdk:"highest_available_version"`
+	DeviceHealthScriptType      types.String `tfsdk:"device_health_script_type"`
+	DetectionScriptParameters   types.List   `tfsdk:"detection_script_parameters"`
+	RemediationScriptParameters types.List   `tfsdk:"remediation_script_parameters"`
+	Assignments                 types.List   `tfsdk:"assignments"`
+	DeviceRunStates             types.List   `tfsdk:"device_run_states"`
+	UserRunStates               types.List   `tfsdk:"user_run_states"`
+	RunSummary                  types.Object `tfsdk:"run_summary"`
+	Publisher                   types.String `tfsdk:"publisher"`
+}
+
+type deviceHealthScriptParameter struct {
+	Name                             types.String `tfsdk:"name"`
+	Description                      types.String `tfsdk:"description"`
+	IsRequired                       types.Bool   `tfsdk:"is_required"`
+	ApplyDefaultValueWhenNotAssigned types.Bool   `tfsdk:"apply_default_value_when_not_assigned"`
+	DefaultValue                     types.String `tfsdk:"default_value"`
+}
+
+// deviceManagementScriptAssignmentData is the model for the device management script assignment resource.
+type deviceManagementScriptAssignmentData struct {
+	TargetGroupID        types.String `tfsdk:"target_group_id"`
+	RunRemediationScript types.Bool   `tfsdk:"run_remediation_script"`
+	RunSchedule          types.Object `tfsdk:"run_schedule"`
+}
+
+type runSchedule struct {
+	Interval types.Int64  `tfsdk:"interval"`
+	Time     types.String `tfsdk:"time"`
+	UseUtc   types.Bool   `tfsdk:"use_utc"`
 }
 
 func (r *DeviceManagementScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -92,42 +139,62 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
+			"is_global_script": schema.BoolAttribute{
+				Description:         "Indicates if the script is a global script.",
+				MarkdownDescription: "Indicates if the script is a global script.",
+				Optional:            true,
+			},
+			"highest_available_version": schema.StringAttribute{
+				Description:         "The highest available version of the script.",
+				MarkdownDescription: "The highest available version of the script.",
+				Optional:            true,
+			},
+			"device_health_script_type": schema.StringAttribute{
+				Description:         "The type of device health script.",
+				MarkdownDescription: "The type of device health script.",
+				Optional:            true,
+			},
+			"detection_script_parameters": schema.ListAttribute{
+				Description:         "The parameters for the detection script.",
+				MarkdownDescription: "The parameters for the detection script.",
+				Optional:            true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":                                  types.StringType,
+						"description":                           types.StringType,
+						"is_required":                           types.BoolType,
+						"apply_default_value_when_not_assigned": types.BoolType,
+						"default_value":                         types.StringType,
+					},
+				},
+			},
+			"remediation_script_parameters": schema.ListAttribute{
+				Description:         "The parameters for the remediation script.",
+				MarkdownDescription: "The parameters for the remediation script.",
+				Optional:            true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":                                  types.StringType,
+						"description":                           types.StringType,
+						"is_required":                           types.BoolType,
+						"apply_default_value_when_not_assigned": types.BoolType,
+						"default_value":                         types.StringType,
+					},
+				},
+			},
 			"assignments": schema.ListAttribute{
 				Description:         "Assignments for the device management script.",
 				MarkdownDescription: "Assignments for the device management script.",
 				Optional:            true,
 				ElementType: types.ObjectType{
-					AttrTypes: map[string]schema.Attribute{
-						"target_group_id": schema.StringAttribute{
-							Description:         "The target Azure AD group ID for the assignment.",
-							MarkdownDescription: "The target Azure AD group ID for the assignment.",
-							Required:            true,
-						},
-						"run_remediation_script": schema.BoolAttribute{
-							Description:         "Whether to run the remediation script.",
-							MarkdownDescription: "Whether to run the remediation script.",
-							Required:            true,
-						},
-						"run_schedule": schema.ObjectAttribute{
-							Description:         "The schedule for running the script.",
-							MarkdownDescription: "The schedule for running the script.",
-							Required:            true,
-							AttrTypes: map[string]schema.Attribute{
-								"interval": schema.IntAttribute{
-									Description:         "The interval in days.",
-									MarkdownDescription: "The interval in days.",
-									Required:            true,
-								},
-								"time": schema.StringAttribute{
-									Description:         "The time to run the script.",
-									MarkdownDescription: "The time to run the script.",
-									Required:            true,
-								},
-								"use_utc": schema.BoolAttribute{
-									Description:         "Whether to use UTC time.",
-									MarkdownDescription: "Whether to use UTC time.",
-									Required:            true,
-								},
+					AttrTypes: map[string]attr.Type{
+						"target_group_id":        types.StringType,
+						"run_remediation_script": types.BoolType,
+						"run_schedule": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"interval": types.Int64Type,
+								"time":     types.StringType,
+								"use_utc":  types.BoolType,
 							},
 						},
 					},
@@ -135,25 +202,6 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 			},
 		},
 	}
-}
-
-type deviceManagementScript struct {
-	ID                    types.String `tfsdk:"id"`
-	Name                  types.String `tfsdk:"name"`
-	Description           types.String `tfsdk:"description"`
-	ScriptContent         types.String `tfsdk:"script_content"`
-	RunAsAccount          types.String `tfsdk:"run_as_account"`
-	CreatedDateTime       types.String `tfsdk:"created_date_time"`
-	LastModifiedDateTime  types.String `tfsdk:"last_modified_date_time"`
-	RoleScopeTagIds       types.List   `tfsdk:"role_scope_tag_ids"`
-	RunAs32Bit            types.Bool   `tfsdk:"run_as_32_bit"`
-	EnforceSignatureCheck types.Bool   `tfsdk:"enforce_signature_check"`
-	FileName              types.String `tfsdk:"file_name"`
-	Assignments           types.List   `tfsdk:"assignments"`
-	DeviceRunStates       types.List   `tfsdk:"device_run_states"`
-	UserRunStates         types.List   `tfsdk:"user_run_states"`
-	RunSummary            types.Object `tfsdk:"run_summary"`
-	Publisher             types.String `tfsdk:"publisher"`
 }
 
 func (r *DeviceManagementScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -169,99 +217,25 @@ func (r *DeviceManagementScriptResource) Configure(ctx context.Context, req reso
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilder, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
 
 	r.client = client
-}
 
-func objectConstruction(data deviceManagementScript) (*models.DeviceHealthScript, error) {
-	// Initialize a new device health script
-	script := models.NewDeviceHealthScript()
-	displayName := data.Name.ValueString()
-	script.SetDisplayName(&displayName)
-
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		script.SetDescription(&description)
+	// Initialize the assignments builder
+	assignmentsBuilder := client.Assignments()
+	if assignmentsBuilder == nil {
+		resp.Diagnostics.AddError(
+			"Failed to Initialize Assignments Builder",
+			"Unable to initialize the assignments builder from the device management script client.",
+		)
+		return
 	}
-
-	detectionScriptContent := []byte(data.ScriptContent.ValueString())
-	script.SetDetectionScriptContent(detectionScriptContent)
-
-	remediationScriptContent := []byte(data.ScriptContent.ValueString())
-	script.SetRemediationScriptContent(remediationScriptContent)
-
-	if !data.Publisher.IsNull() {
-		publisher := data.Publisher.ValueString()
-		script.SetPublisher(&publisher)
-	}
-
-	if !data.RunAsAccount.IsNull() {
-		runAsAccount, err := models.ParseRunAsAccountType(data.RunAsAccount.ValueString())
-		if err != nil || runAsAccount == nil {
-			return nil, fmt.Errorf("invalid RunAsAccount value: got %q, should be one of %q or %q", data.RunAsAccount.ValueString(), models.SYSTEM_RUNASACCOUNTTYPE.String(), models.USER_RUNASACCOUNTTYPE.String())
-		}
-		script.SetRunAsAccount(runAsAccount.(*models.RunAsAccountType))
-	}
-
-	if !data.RoleScopeTagIds.IsNull() {
-		script.SetRoleScopeTagIds(expandStringList(data.RoleScopeTagIds))
-	}
-
-	if !data.RunAs32Bit.IsNull() {
-		runAs32Bit := data.RunAs32Bit.ValueBool()
-		script.SetRunAs32Bit(&runAs32Bit)
-	}
-
-	if !data.EnforceSignatureCheck.IsNull() {
-		enforceSignatureCheck := data.EnforceSignatureCheck.ValueBool()
-		script.SetEnforceSignatureCheck(&enforceSignatureCheck)
-	}
-
-	return script, nil
-}
-
-func assignmentObjectConstruction(data deviceManagementScript) ([]models.DeviceHealthScriptAssignmentable, error) {
-	if data.Assignments.IsNull() || len(data.Assignments.Elements()) == 0 {
-		return nil, nil
-	}
-
-	var assignments []models.DeviceHealthScriptAssignmentable
-	for _, assignment := range data.Assignments.Elements() {
-		assignmentMap := assignment.(map[string]types.Value)
-		deviceHealthScriptAssignment := models.NewDeviceHealthScriptAssignment()
-
-		// Set target
-		targetGroupID := assignmentMap["target_group_id"].(types.String)
-		target := models.NewGroupAssignmentTarget()
-		target.SetGroupId(targetGroupID.ValueString())
-		deviceHealthScriptAssignment.SetTarget(target)
-
-		// Set runRemediationScript
-		runRemediationScript := assignmentMap["run_remediation_script"].(types.Bool)
-		deviceHealthScriptAssignment.SetRunRemediationScript(&runRemediationScript.ValueBool())
-
-		// Set runSchedule
-		scheduleMap := assignmentMap["run_schedule"].(types.Object).Attrs
-		runSchedule := models.NewDeviceHealthScriptDailySchedule()
-		interval := scheduleMap["interval"].(types.Int).ValueInt()
-		runSchedule.SetInterval(&interval)
-		time := scheduleMap["time"].(types.String).ValueString()
-		runSchedule.SetTime(&time)
-		useUtc := scheduleMap["use_utc"].(types.Bool).ValueBool()
-		runSchedule.SetUseUtc(&useUtc)
-		deviceHealthScriptAssignment.SetRunSchedule(runSchedule)
-
-		assignments = append(assignments, deviceHealthScriptAssignment)
-	}
-
-	return assignments, nil
+	r.assignments = assignmentsBuilder
 }
 
 func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data deviceManagementScript
+	var data deviceManagementScriptData
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -319,11 +293,11 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, deviceManagementScriptForState(result))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, resourcedeviceManagementScriptForState(result))...)
 }
 
 func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data deviceManagementScript
+	var data deviceManagementScriptData
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -349,11 +323,11 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 
 	tflog.Trace(ctx, "read a device management script")
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, deviceManagementScriptForState(result))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, resourcedeviceManagementScriptForState(result))...)
 }
 
 func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data deviceManagementScript
+	var data deviceManagementScriptData
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -394,11 +368,11 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	tflog.Trace(ctx, "updated a device management script")
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, deviceManagementScriptForState(result))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, resourcedeviceManagementScriptForState(result))...)
 }
 
 func (r *DeviceManagementScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data deviceManagementScript
+	var data deviceManagementScriptData
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -423,8 +397,8 @@ func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req re
 	resourceImportStatePassthroughID(ctx, "device_management_script", req, resp)
 }
 
-func deviceManagementScriptForState(dms models.DeviceManagementScriptable) *deviceManagementScript {
-	return &deviceManagementScript{
+func resourcedeviceManagementScriptForState(dms models.DeviceManagementScriptable) *deviceManagementScriptData {
+	return &deviceManagementScriptData{
 		ID:                    types.StringValue(dms.GetId()),
 		Name:                  types.StringValue(dms.GetDisplayName()),
 		Description:           types.StringValue(dms.GetDescription()),
