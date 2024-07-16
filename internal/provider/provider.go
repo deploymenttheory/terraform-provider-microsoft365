@@ -62,15 +62,24 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 		Attributes: map[string]schema.Attribute{
 			"tenant_id": schema.StringAttribute{
 				Required: true,
-				Description: "The M365 tenant ID for the Azure AD application. " +
-					"This ID uniquely identifies your Azure Active Directory (AAD) instance. " +
-					"It can be found in the Azure portal under Azure Active Directory > Properties.",
+				Description: "The M365 tenant ID for the Entra ID application. " +
+					"This ID uniquely identifies your Entra ID (EID) instance. " +
+					"It can be found in the Azure portal under Entra ID > Properties.",
 				Validators: []validator.String{
 					validateGUID(),
 				},
 			},
+			"auth_method": schema.StringAttribute{
+				Optional: true,
+				Description: "The authentication method to use. " +
+					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
+					"'interactive_browser', 'username_password'.",
+				Validators: []validator.String{
+					validateAuthMethod(),
+				},
+			},
 			"client_id": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Description: "The client ID for the Entra ID application. " +
 					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
 					"and can be found under App registrations > YourApp > Overview.",
@@ -119,20 +128,28 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_API_TOKEN` environment variable.",
 			},
 			"use_graph_beta": schema.BoolAttribute{
-				Optional:    true,
-				Description: "When set to true, the provider will use the beta version of the Microsoft Graph API (https://graph.microsoft.com/beta). When set to false or not set, the provider will use the stable version of the Microsoft Graph API (https://graph.microsoft.com/v1.0).",
+				Optional: true,
+				Description: "When set to true, the provider will use the beta version of the Microsoft Graph API " +
+					"(https://graph.microsoft.com/beta). When set to false or not set, the provider will use the stable " +
+					"version of the Microsoft Graph API (https://graph.microsoft.com/v1.0).",
 			},
 			"use_proxy": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Enable the use of an HTTP proxy.",
+				Optional: true,
+				Description: "Enables the use of an HTTP proxy for network requests. When set to true, the provider will " +
+					"route all HTTP requests through the specified proxy server. This can be useful for environments that " +
+					"require proxy access for internet connectivity or for monitoring and logging HTTP traffic.",
 			},
 			"proxy_url": schema.StringAttribute{
-				Optional:    true,
-				Description: "The URL of the HTTP proxy.",
+				Optional: true,
+				Description: "Specifies the URL of the HTTP proxy server. This URL should be in a valid URL format " +
+					"(e.g., 'http://proxy.example.com:8080'). When 'use_proxy' is enabled, this URL is used to configure the " +
+					"HTTP client to route requests through the proxy. Ensure the proxy server is reachable and correctly " +
+					"configured to handle the network traffic.",
 				Validators: []validator.String{
 					validateURL(),
 				},
 			},
+
 			"enable_chaos": schema.BoolAttribute{
 				Optional: true,
 				Description: "Enable the chaos handler for testing purposes. " +
@@ -141,15 +158,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"of the terraform provider against intermittent issues. This is particularly useful " +
 					"for testing how the provider handles various error conditions and ensures " +
 					"it can recover gracefully. Use with caution in production environments.",
-			},
-			"auth_method": schema.StringAttribute{
-				Optional: true,
-				Description: "The authentication method to use. " +
-					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
-					"'interactive_browser', 'username_password'.",
-				Validators: []validator.String{
-					validateAuthMethod(),
-				},
 			},
 			"national_cloud_deployment": schema.BoolAttribute{
 				Optional:    true,
@@ -184,8 +192,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	tenantID := data.TenantID.ValueString()
-	clientID := data.ClientID.ValueString()
+	tenantID := getEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
+	clientID := getEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
+	clientSecret := getEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
 	useGraphBeta := data.UseGraphBeta.ValueBool()
 	useProxy := data.UseProxy.ValueBool()
 	proxyURL := data.ProxyURL.ValueString()
@@ -214,18 +223,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 				"The token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
 					"A token is required for authentication. Please provide a valid token either through the provider configuration or by setting the 'M365_API_TOKEN' environment variable. "+
 					"Alternatively, ensure that the credentials provided can obtain a token dynamically.",
-			)
-			return
-		}
-	}
-
-	if data.Token.IsNull() {
-		token := os.Getenv("M365_API_TOKEN")
-		if token == "" {
-			resp.Diagnostics.AddError(
-				"M365 Provider Configuration Error",
-				"The token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
-					"Please provide a valid token either through the provider configuration or by setting the 'M365_API_TOKEN' environment variable.",
 			)
 			return
 		}
@@ -274,7 +271,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			ClientOptions: clientOptions,
 		})
 	case "client_secret":
-		clientSecret := data.ClientSecret.ValueString()
 		cred, err = azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret, &azidentity.ClientSecretCredentialOptions{
 			ClientOptions: clientOptions,
 		})
@@ -326,7 +322,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			ClientOptions: clientOptions,
 		})
 	case "on_behalf_of":
-		clientSecret := data.ClientSecret.ValueString()
 		userAssertion := data.UserAssertion.ValueString()
 		cred, err = azidentity.NewOnBehalfOfCredentialWithSecret(tenantID, clientID, userAssertion, clientSecret, &azidentity.OnBehalfOfCredentialOptions{
 			ClientOptions: clientOptions,
