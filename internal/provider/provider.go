@@ -138,6 +138,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "Enables the use of an HTTP proxy for network requests. When set to true, the provider will " +
 					"route all HTTP requests through the specified proxy server. This can be useful for environments that " +
 					"require proxy access for internet connectivity or for monitoring and logging HTTP traffic.",
+				Validators: []validator.Bool{
+					validateUseProxy(),
+				},
 			},
 			"proxy_url": schema.StringAttribute{
 				Optional: true,
@@ -149,7 +152,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					validateURL(),
 				},
 			},
-
 			"enable_chaos": schema.BoolAttribute{
 				Optional: true,
 				Description: "Enable the chaos handler for testing purposes. " +

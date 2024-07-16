@@ -125,6 +125,43 @@ func (v guidValidator) ValidateString(ctx context.Context, request validator.Str
 	}
 }
 
+/* use_proxy schema validator */
+
+type useProxyValidator struct{}
+
+func (v useProxyValidator) Description(ctx context.Context) string {
+	return "Ensures that proxy_url is set if use_proxy is true."
+}
+
+func (v useProxyValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that proxy_url is set if use_proxy is true."
+}
+
+func validateUseProxy() validator.Bool {
+	return useProxyValidator{}
+}
+
+func (v useProxyValidator) ValidateBool(ctx context.Context, request validator.BoolRequest, response *validator.BoolResponse) {
+	var useProxy types.Bool
+	if diags := request.Config.GetAttribute(ctx, path.Root("use_proxy"), &useProxy); diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	var proxyURL types.String
+	if diags := request.Config.GetAttribute(ctx, path.Root("proxy_url"), &proxyURL); diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	if useProxy.ValueBool() && (proxyURL.IsNull() || proxyURL.IsUnknown() || proxyURL.ValueString() == "") {
+		response.Diagnostics.AddError(
+			"Invalid Configuration",
+			"The 'proxy_url' attribute must be set when 'use_proxy' is true.",
+		)
+	}
+}
+
 /* redirect_url, proxy_url, token_endpoint schema validator */
 
 type urlValidator struct{}
