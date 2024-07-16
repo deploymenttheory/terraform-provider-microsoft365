@@ -64,7 +64,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Required: true,
 				Description: "The M365 tenant ID for the Entra ID application. " +
 					"This ID uniquely identifies your Entra ID (EID) instance. " +
-					"It can be found in the Azure portal under Entra ID > Properties.",
+					"It can be found in the Azure portal under Entra ID > Properties. " +
+					"Can also be set using the `M365_TENANT_ID` environment variable.",
 				Validators: []validator.String{
 					validateGUID(),
 				},
@@ -82,7 +83,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional: true,
 				Description: "The client ID for the Entra ID application. " +
 					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
-					"and can be found under App registrations > YourApp > Overview.",
+					"and can be found under App registrations > YourApp > Overview. " +
+					"Can also be set using the `M365_CLIENT_ID` environment variable.",
 				Validators: []validator.String{
 					validateGUID(),
 				},
@@ -94,7 +96,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"This secret is generated in the Entra ID (Azure AD) and is required for " +
 					"authentication flows such as client credentials and on-behalf-of flows. " +
 					"It can be found under App registrations > YourApp > Certificates & secrets. " +
-					"Required for client credentials and on-behalf-of flows.",
+					"Required for client credentials and on-behalf-of flows. " +
+					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"certificate_path": schema.StringAttribute{
 				Optional: true,
@@ -195,13 +198,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	tenantID := getEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
+	authMethod := data.AuthMethod.ValueString()
 	clientID := getEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
 	clientSecret := getEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
 	useGraphBeta := data.UseGraphBeta.ValueBool()
 	useProxy := data.UseProxy.ValueBool()
 	proxyURL := data.ProxyURL.ValueString()
 	enableChaos := data.EnableChaos.ValueBool()
-	authMethod := data.AuthMethod.ValueString()
 	nationalCloudDeployment := data.NationalCloudDeployment.ValueBool()
 	nationalCloudDeploymentTokenEndpoint := data.NationalCloudDeploymentTokenEndpoint.ValueString()
 	nationalCloudDeploymentServiceRoot := data.NationalCloudDeploymentServiceRoot.ValueString()
