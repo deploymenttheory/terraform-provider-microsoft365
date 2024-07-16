@@ -72,7 +72,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			},
 			"auth_method": schema.StringAttribute{
 				Optional: true,
-				Description: "The authentication method to use. " +
+				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
 					"'interactive_browser', 'username_password'.",
 				Validators: []validator.String{
@@ -190,6 +190,33 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 	}
 }
 
+// Configure configures the M365Provider with the given settings. It reads
+// the configuration data from the provided request, applies defaults and
+// environment variable overrides as necessary, and sets up authentication
+// and client options based on the configuration. If any required configuration
+// is missing or invalid, it appends appropriate diagnostics to the response.
+//
+// The function supports various authentication methods including device code,
+// client secret, client certificate, on-behalf-of, interactive browser, and
+// username/password. It also handles optional proxy settings and national cloud
+// deployments.
+//
+// Parameters:
+//   - ctx: The context for the configure request.
+//   - req: The configure request containing the provider configuration.
+//   - resp: The configure response used to store any diagnostics and the
+//     configured client.
+//
+// The function performs the following steps:
+//  1. Extracts configuration data from the request.
+//  2. Retrieves values from environment variables if not set in the configuration.
+//  3. Handles token retrieval from configuration or environment.
+//  4. Configures HTTP client transport for proxy if specified.
+//  5. Sets up authentication using the specified method.
+//  6. Creates a Microsoft Graph client with the configured authentication provider.
+//
+// If any errors occur during these steps, appropriate diagnostics are added
+// to the response.
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data M365ProviderModel
 
