@@ -128,7 +128,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional:  true,
 				Sensitive: true,
 				Description: "The token for the Azure AD application. " +
-					"Can also be set using the `M365_API_TOKEN` environment variable.",
+					"Can also be set using the `M365_API_TOKEN` environment variable." +
+					"This allows users to either provide a token directly through the" +
+					"configuration or omit it if they prefer dynamic token acquisition.",
 			},
 			"use_graph_beta": schema.BoolAttribute{
 				Optional: true,
@@ -212,24 +214,16 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	var cred azcore.TokenCredential
 	var err error
 
-	if data.Token.IsUnknown() {
-		resp.Diagnostics.AddWarning(
-			"M365 Provider Configuration Warning",
-			"The token value is unknown in the provider configuration. "+
-				"The token will be obtained from the credentials provided using the associated MS Graph authentication provider.",
-		)
-	}
-
-	if data.Token.IsNull() {
+	if data.Token.IsUnknown() || data.Token.IsNull() {
 		token := os.Getenv("M365_API_TOKEN")
-		if token == "" {
-			resp.Diagnostics.AddError(
-				"M365 Provider Configuration Error",
-				"The token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
-					"A token is required for authentication. Please provide a valid token either through the provider configuration or by setting the 'M365_API_TOKEN' environment variable. "+
-					"Alternatively, ensure that the credentials provided can obtain a token dynamically.",
+		if token != "" {
+			data.Token = types.StringValue(token)
+		} else {
+			resp.Diagnostics.AddWarning(
+				"M365 Provider Configuration Warning",
+				"The API token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
+					"The provider will attempt to obtain a token dynamically using the provided credentials.",
 			)
-			return
 		}
 	}
 
