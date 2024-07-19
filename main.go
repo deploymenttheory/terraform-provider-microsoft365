@@ -5,8 +5,8 @@ import (
 	"flag"
 	"log"
 
+	"github.com/deploymenttheory/terraform-provider-m365/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/deploymenttheory/terraform-provider-m365/provider"
 )
 
 var (
