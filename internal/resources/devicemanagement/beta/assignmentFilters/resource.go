@@ -53,7 +53,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Required:    true,
 				Description: "The platform for the assignment filter.",
 				Validators: []validator.String{
-					platformValidator(),
+					platformValidator{},
 				},
 			},
 			"rule": schema.StringAttribute{

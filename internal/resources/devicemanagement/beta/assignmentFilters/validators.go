@@ -11,8 +11,8 @@ import (
 // platformValidator is the custom validator type
 type platformValidator struct{}
 
-// Validate performs the validation.
-func (v platformValidator) Validate(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+// ValidateString performs the validation.
+func (v platformValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
