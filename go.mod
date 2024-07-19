@@ -3,16 +3,19 @@ module github.com/deploymenttheory/terraform-provider-m365
 go 1.22.5
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-framework v1.10.0
+	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
+	github.com/hashicorp/terraform-plugin-log v0.9.0
+	github.com/microsoft/kiota-http-go v1.3.1
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.106.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.46.0
-	github.com/zentralopensource/terraform-provider-zentral v0.1.49
+	github.com/microsoftgraph/msgraph-sdk-go-core v1.1.0
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.9.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
@@ -33,7 +36,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -47,9 +49,7 @@ require (
 	github.com/hashicorp/hc-install v0.7.0 // indirect
 	github.com/hashicorp/terraform-exec v0.21.0 // indirect
 	github.com/hashicorp/terraform-json v0.22.1 // indirect
-	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.23.0 // indirect
-	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.3 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
@@ -61,12 +61,10 @@ require (
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/microsoft/kiota-abstractions-go v1.6.1 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.2 // indirect
-	github.com/microsoft/kiota-http-go v1.3.1 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-json-go v1.0.7 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-text-go v1.0.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v1.1.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -83,7 +81,6 @@ require (
 	github.com/yuin/goldmark v1.7.1 // indirect
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
-	github.com/zentralopensource/goztl v0.1.50 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
