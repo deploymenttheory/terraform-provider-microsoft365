@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-m365/internal/resources/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -24,6 +26,11 @@ type AssignmentFilterResourceModel struct {
 	Description types.String `tfsdk:"description"`
 	Platform    types.String `tfsdk:"platform"`
 	Rule        types.String `tfsdk:"rule"`
+}
+
+// Metadata returns the resource type name.
+func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_device_and_app_management_assignment_filter"
 }
 
 // Schema returns the schema for the resource.
@@ -70,13 +77,20 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	description := data.Description.ValueString()
 	requestBody.SetDescription(&description)
 
-	platform := data.Platform.ValueString()
+	platform, err := helpers.StringToDevicePlatformType(data.Platform.ValueString(), supportedPlatformTypes)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating assignment filter",
+			fmt.Sprintf("Invalid platform: %s", err.Error()),
+		)
+		return
+	}
 	requestBody.SetPlatform(&platform)
 
 	rule := data.Rule.ValueString()
 	requestBody.SetRule(&rule)
 
-	roleScopeTags := []string{"0"} // Adjust if necessary
+	roleScopeTags := []string{"0"}
 	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
@@ -116,7 +130,6 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data AssignmentFilterResourceModel
@@ -132,7 +145,14 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	description := data.Description.ValueString()
 	requestBody.SetDescription(&description)
 
-	platform := data.Platform.ValueString()
+	platform, err := helpers.StringToInt(data.Platform.ValueString(), supportedPlatformTypes)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating assignment filter",
+			fmt.Sprintf("Invalid platform: %s", err.Error()),
+		)
+		return
+	}
 	requestBody.SetPlatform(&platform)
 
 	rule := data.Rule.ValueString()
@@ -141,7 +161,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	roleScopeTags := []string{"0"} // Adjust if necessary
 	requestBody.SetRoleScopeTags(roleScopeTags)
 
-	_, err := r.client.DeviceManagement().AssignmentFilters().ById(data.ID.ValueString()).Update(ctx, requestBody, nil)
+	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating assignment filter",
@@ -161,7 +181,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	err := r.client.DeviceManagement().AssignmentFilters().ById(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting assignment filter",
