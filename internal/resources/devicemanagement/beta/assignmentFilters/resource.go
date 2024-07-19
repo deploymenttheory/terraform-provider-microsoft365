@@ -3,7 +3,9 @@ package assignmentFilter
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -14,6 +16,7 @@ import (
 )
 
 var _ resource.Resource = &AssignmentFilterResource{}
+var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
 type AssignmentFilterResource struct {
 	client *msgraphbetasdk.GraphServiceClient
@@ -30,6 +33,11 @@ type AssignmentFilterResourceModel struct {
 // Metadata returns the resource type name.
 func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_device_and_app_management_assignment_filter"
+}
+
+// ImportState imports the resource state.
+func (r *AssignmentFilterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
@@ -65,6 +73,9 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+
 	var data AssignmentFilterResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -110,6 +121,9 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 
 // Read handles the Read operation.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
 	var data AssignmentFilterResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -142,6 +156,9 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
 	var data AssignmentFilterResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -186,6 +203,9 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 // Delete handles the Delete operation.
 func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
 	var data AssignmentFilterResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
