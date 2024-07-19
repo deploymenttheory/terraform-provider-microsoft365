@@ -1,4 +1,4 @@
-package provider
+package assignmentFilter
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -99,7 +100,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	filter, err := r.client.DeviceManagement().AssignmentFilters().ById(data.ID.ValueString()).Get(ctx, nil)
+	filter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading assignment filter",
@@ -114,6 +115,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	data.Rule = types.StringValue(*filter.GetRule())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
+
 
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -169,9 +171,4 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 
 	resp.State.RemoveResource(ctx)
-}
-
-// NewAssignmentFilterResource creates a new instance of the resource.
-func NewAssignmentFilterResource() resource.Resource {
-	return &AssignmentFilterResource{}
 }
