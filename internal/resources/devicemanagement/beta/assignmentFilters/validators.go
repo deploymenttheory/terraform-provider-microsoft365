@@ -1,41 +1,63 @@
 package assignmentFilter
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Define supported platform types
-var supportedPlatformTypes = map[string]int{
-	"IOS":     1, // Assuming 1 is the integer value for IOS_DEVICEPLATFORMTYPE
-	"Android": 2, // Assuming 2 is the integer value for ANDROID_DEVICEPLATFORMTYPE
-	"Windows": 3, // Assuming 3 is the integer value for WINDOWS_DEVICEPLATFORMTYPE
-	// Add other supported platform types here with their corresponding int values
-}
+// platformValidator is the custom validator type
+type platformValidator struct{}
 
-// Custom validator for platform types
-// Custom validator for platform types
-func validatePlatform() validator.String {
-	return validator.StringFunc(func(value types.String) (warns []string, errs []error) {
-		if value.IsUnknown() || value.IsNull() {
-			return
-		}
-
-		if _, exists := supportedPlatformTypes[value.ValueString()]; !exists {
-			errs = append(errs, fmt.Errorf("invalid device platform type: %s. Supported types: %v", value.ValueString(), supportedPlatformTypes))
-		}
+// Validate performs the validation.
+func (v platformValidator) Validate(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
-	})
+	}
+
+	_, err := models.ParseDevicePlatformType(req.ConfigValue.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Device Platform Type",
+			fmt.Sprintf("The platform type '%s' is not valid. Supported types: %v", req.ConfigValue.ValueString(), getAllPlatformStrings()),
+		)
+	}
 }
 
-// DevicePlatformType is the type for supported platform types.
-type DevicePlatformType int
+// Description describes the validation in plain text.
+func (v platformValidator) Description(ctx context.Context) string {
+	return "must be a valid device platform type"
+}
 
-// StringToDevicePlatformType converts a string to DevicePlatformType based on a provided map.
-func StringToDevicePlatformType(str string, mapping map[string]DevicePlatformType) (DevicePlatformType, error) {
-	if val, exists := mapping[str]; exists {
-		return val, nil
+// MarkdownDescription describes the validation in Markdown.
+func (v platformValidator) MarkdownDescription(ctx context.Context) string {
+	return "must be a valid device platform type"
+}
+
+// getAllPlatformStrings returns all the valid platform strings
+func getAllPlatformStrings() []string {
+	platformTypes := []models.DevicePlatformType{
+		models.ANDROID_DEVICEPLATFORMTYPE,
+		models.ANDROIDFORWORK_DEVICEPLATFORMTYPE,
+		models.IOS_DEVICEPLATFORMTYPE,
+		models.MACOS_DEVICEPLATFORMTYPE,
+		models.WINDOWSPHONE81_DEVICEPLATFORMTYPE,
+		models.WINDOWS81ANDLATER_DEVICEPLATFORMTYPE,
+		models.WINDOWS10ANDLATER_DEVICEPLATFORMTYPE,
+		models.ANDROIDWORKPROFILE_DEVICEPLATFORMTYPE,
+		models.UNKNOWN_DEVICEPLATFORMTYPE,
+		models.ANDROIDAOSP_DEVICEPLATFORMTYPE,
+		models.ANDROIDMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
+		models.IOSMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
+		models.UNKNOWNFUTUREVALUE_DEVICEPLATFORMTYPE,
+		models.WINDOWSMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
 	}
-	return -1, fmt.Errorf("invalid string: %s. Supported strings: %v", str, mapping)
+
+	var platformStrings []string
+	for _, platform := range platformTypes {
+		platformStrings = append(platformStrings, platform.String())
+	}
+	return platformStrings
 }
