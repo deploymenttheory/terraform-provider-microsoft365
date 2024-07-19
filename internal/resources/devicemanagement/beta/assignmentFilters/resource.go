@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-m365/internal/resources/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -79,7 +78,8 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	description := data.Description.ValueString()
 	requestBody.SetDescription(&description)
 
-	platform, err := helpers.StringToDevicePlatformType(data.Platform.ValueString(), supportedPlatformTypes)
+	platformStr := data.Platform.ValueString()
+	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating assignment filter",
@@ -87,7 +87,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
-	requestBody.SetPlatform(&platform)
+	requestBody.SetPlatform(platform)
 
 	rule := data.Rule.ValueString()
 	requestBody.SetRule(&rule)
@@ -127,7 +127,15 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	data.DisplayName = types.StringValue(*filter.GetDisplayName())
 	data.Description = types.StringValue(*filter.GetDescription())
-	data.Platform = types.StringValue(*filter.GetPlatform())
+	platformStr, err := DevicePlatformTypeToString(filter.GetPlatform())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading assignment filter",
+			fmt.Sprintf("Could not convert platform: %s", err.Error()),
+		)
+		return
+	}
+	data.Platform = types.StringValue(platformStr)
 	data.Rule = types.StringValue(*filter.GetRule())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -147,15 +155,16 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	description := data.Description.ValueString()
 	requestBody.SetDescription(&description)
 
-	platform, err := helpers.StringToInt(data.Platform.ValueString(), supportedPlatformTypes)
+	platformStr := data.Platform.ValueString()
+	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating assignment filter",
+			"Error creating assignment filter",
 			fmt.Sprintf("Invalid platform: %s", err.Error()),
 		)
 		return
 	}
-	requestBody.SetPlatform(&platform)
+	requestBody.SetPlatform(platform)
 
 	rule := data.Rule.ValueString()
 	requestBody.SetRule(&rule)
