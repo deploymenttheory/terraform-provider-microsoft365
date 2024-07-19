@@ -204,36 +204,6 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 	}
 }
 
-func (r *DeviceManagementScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilder)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilder, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	r.client = client
-
-	// Initialize the assignments builder
-	assignmentsBuilder := client.Assignments()
-	if assignmentsBuilder == nil {
-		resp.Diagnostics.AddError(
-			"Failed to Initialize Assignments Builder",
-			"Unable to initialize the assignments builder from the device management script client.",
-		)
-		return
-	}
-	r.assignments = assignmentsBuilder
-}
-
 func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data deviceManagementScriptData
 
@@ -244,7 +214,7 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// Construct the device health script object
+	// Construct the device management script object
 	script, err := objectConstruction(data)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -280,9 +250,12 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 	}
 
 	if assignments != nil {
+		// Create AssignPostRequestBody and set assignments
 		assignRequestBody := devicemanagement.NewAssignPostRequestBody()
-		assignRequestBody.SetDeviceHealthScriptAssignments(assignments)
-		_, err = r.client.ByDeviceHealthScriptId(result.GetId()).Assign().Post(ctx, assignRequestBody, nil)
+		assignRequestBody.SetDeviceManagementScriptAssignments(assignments)
+
+		// Make the API call to assign the device management script
+		_, err = r.client.ByDeviceManagementScriptId(result.GetId()).Assign().Post(ctx, assignRequestBody, nil)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Assignment Error",
