@@ -1,3 +1,11 @@
+package deviceManagementScript
+
+import (
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-m365/internal/resources/helpers"
+)
+
 // objectConstruction creates a new DeviceManagementScript object from the provided data.
 func objectConstruction(data deviceManagementScriptData) (*models.DeviceManagementScript, error) {
 	script := models.NewDeviceManagementScript()
