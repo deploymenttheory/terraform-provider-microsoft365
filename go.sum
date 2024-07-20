@@ -144,8 +144,8 @@ github.com/microsoft/kiota-abstractions-go v1.6.1 h1:NXK50S3BwJn9Wj6bO0YFuAig7y2
 github.com/microsoft/kiota-abstractions-go v1.6.1/go.mod h1:FI1I2OHg0E7bK5t8DPnw+9C/CHVyLP6XeqDBT+95pTE=
 github.com/microsoft/kiota-authentication-azure-go v1.0.2 h1:tClGeyFZJ+4Bakf8u0euPM4wqy4ethycdOgx3jyH3pI=
 github.com/microsoft/kiota-authentication-azure-go v1.0.2/go.mod h1:aTcti0bUJEcq7kBfQG4Sr4ElvRNuaalXcFEu4iEyQ6M=
-github.com/microsoft/kiota-http-go v1.3.1 h1:S+ZDxE7Pc/Z06hbfqpFHkoq5xiC8/7d12iNovcgl+7o=
-github.com/microsoft/kiota-http-go v1.3.1/go.mod h1:4QjB+as08swnZXZLx5I+ZHZ8U/tVy7Zu49RNTmWgw48=
+github.com/microsoft/kiota-http-go v1.4.1 h1:zR54JahUOcu8h9C5z00fcQChzX8d01+BwhkTS8H16Ro=
+github.com/microsoft/kiota-http-go v1.4.1/go.mod h1:Kup5nMDD3a9sjdgRKHCqZWqtrv3FbprjcPaGjLR6FzM=
 github.com/microsoft/kiota-serialization-form-go v1.0.0 h1:UNdrkMnLFqUCccQZerKjblsyVgifS11b3WCx+eFEsAI=
 github.com/microsoft/kiota-serialization-form-go v1.0.0/go.mod h1:h4mQOO6KVTNciMF6azi1J9QB19ujSw3ULKcSNyXXOMA=
 github.com/microsoft/kiota-serialization-json-go v1.0.7 h1:yMbckSTPrjZdM4EMXgzLZSA3CtDaUBI350u0VoYRz7Y=
@@ -158,8 +158,8 @@ github.com/microsoftgraph/msgraph-beta-sdk-go v0.106.0 h1:Yq8FA7WzdV7emo4iJkxp1A
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.106.0/go.mod h1:sXA7gMkVvnnPpRAUlIwn7CNz5m2HPj9eA+4YkPz1QJI=
 github.com/microsoftgraph/msgraph-sdk-go v1.46.0 h1:5AT0FZkPFTiLZ9nZym1TLUFlcHFVhAAvqNb9B52Xvn0=
 github.com/microsoftgraph/msgraph-sdk-go v1.46.0/go.mod h1:Rf2aiCdmTvY325XfhxnUiRIuIyj66SYdszaovW091S0=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.1.0 h1:NB7c/n4Knj+TLaLfjsahhSqoUqoN/CtyNB0XIe/nJnM=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.1.0/go.mod h1:M3w/5IFJ1u/DpwOyjsjNSVEA43y1rLOeX58suyfBhGk=
+github.com/microsoftgraph/msgraph-sdk-go-core v1.2.0 h1:vHvUKVnk0FkLSJv+aUvxIsM5kLNqWlu/WzUM8S4XOy4=
+github.com/microsoftgraph/msgraph-sdk-go-core v1.2.0/go.mod h1:armKxoJybX70GBpd748K2e+1AySPYRbhvYW7EBplujw=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=
 github.com/mitchellh/copystructure v1.2.0 h1:vpKXTN4ewci03Vljg/q9QvCGUDttBOGBIa15WveJJGw=
 github.com/mitchellh/copystructure v1.2.0/go.mod h1:qLl+cE2AmVv+CoeAwDPye/v+N2HKCj9FbZEVFJRxO9s=
