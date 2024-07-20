@@ -10,10 +10,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	khttp "github.com/microsoft/kiota-http-go"
@@ -53,7 +51,7 @@ type M365ProviderModel struct {
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "M365"
+	resp.TypeName = "Microsoft365"
 	resp.Version = p.version
 }
 
@@ -464,18 +462,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
-}
-
-func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		// Add your resource functions here
-	}
-}
-
-func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		// Add your datasource functions here
-	}
 }
 
 func New(version string) func() provider.Provider {
