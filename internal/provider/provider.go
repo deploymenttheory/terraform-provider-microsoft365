@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -264,26 +265,26 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	tenantID := getEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
-	authMethod := getEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
-	clientID := getEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
-	clientSecret := getEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
-	clientCertificate := getEnvOrDefault(data.ClientCertificate.ValueString(), "M365_CLIENT_CERTIFICATE")
-	clientCertificateFilePath := getEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
-	clientCertificatePassword := getEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
-	userAssertion := getEnvOrDefault(data.UserAssertion.ValueString(), "M365_USER_ASSERTION")
-	username := getEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
-	password := getEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
-	redirectURL := getEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
-	token := getEnvOrDefault(data.Token.ValueString(), "M365_API_TOKEN")
-	useGraphBeta := getEnvOrDefaultBool(data.UseGraphBeta.ValueBool(), "M365_USE_GRAPH_BETA")
-	useProxy := getEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
-	proxyURL := getEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
-	enableChaos := getEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
-	cloud := getEnvOrDefault(data.Cloud.ValueString(), "M365_CLOUD")
-	nationalCloudDeployment := getEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
-	nationalCloudDeploymentTokenEndpoint := getEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
-	nationalCloudDeploymentServiceEndpointRoot := getEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
+	tenantID := helpers.GetEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
+	authMethod := helpers.GetEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
+	clientID := helpers.GetEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
+	clientSecret := helpers.GetEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
+	clientCertificate := helpers.GetEnvOrDefault(data.ClientCertificate.ValueString(), "M365_CLIENT_CERTIFICATE")
+	clientCertificateFilePath := helpers.GetEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
+	clientCertificatePassword := helpers.GetEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
+	userAssertion := helpers.GetEnvOrDefault(data.UserAssertion.ValueString(), "M365_USER_ASSERTION")
+	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
+	password := helpers.GetEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
+	redirectURL := helpers.GetEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
+	token := helpers.GetEnvOrDefault(data.Token.ValueString(), "M365_API_TOKEN")
+	useGraphBeta := helpers.GetEnvOrDefaultBool(data.UseGraphBeta.ValueBool(), "M365_USE_GRAPH_BETA")
+	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
+	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
+	enableChaos := helpers.GetEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
+	cloud := helpers.GetEnvOrDefault(data.Cloud.ValueString(), "M365_CLOUD")
+	nationalCloudDeployment := helpers.GetEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
+	nationalCloudDeploymentTokenEndpoint := helpers.GetEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
+	nationalCloudDeploymentServiceEndpointRoot := helpers.GetEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
 
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
 	ctx = tflog.SetField(ctx, "use_graph_beta", useGraphBeta)
