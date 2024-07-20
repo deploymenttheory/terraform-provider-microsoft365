@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-m365/internal/provider"
+	"github.com/deploymenttheory/terraform-provider-microsof365/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/deploymenttheory/m365",
+		Address: "registry.terraform.io/deploymenttheory/microsoft365",
 		Debug:   debug,
 	}
 

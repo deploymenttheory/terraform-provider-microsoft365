@@ -1,3 +1,9 @@
+# Terraform Provider for Microsoft 365
+
+## Disclaimer
+
+**This project is under active development, and new releases for specific resource types may introduce changes that are not backward compatible with previous release versions. Users should be aware that older implementations may break with updates. We recommend thoroughly reviewing release notes and testing new versions in a staging environment before deploying to production.**
+
 # To-Do List
 
 ## Exchange
