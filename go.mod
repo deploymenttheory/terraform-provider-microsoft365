@@ -1,4 +1,4 @@
-module github.com/deploymenttheory/terraform-provider-m365
+module github.com/deploymenttheory/terraform-provider-microsoft365
 
 go 1.22.5
 

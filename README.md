@@ -1,3 +1,131 @@
+# To-Do List
+
+## Exchange
+
+- [ ] AddressBookPolicy
+- [ ] AddressList
+- [ ] AdminAuditLogConfig
+- [ ] Application access policies
+- [ ] Availability address spaces
+- [ ] Availability config
+- [ ] CAS mailbox plan
+- [ ] Client access rules
+- [ ] DomainKeys identified mail signing config
+- [ ] Dynamic Distribution Groups
+- [ ] Email address policies
+- [ ] GlobalAddressList
+- [ ] Inbound connectors
+- [ ] Inbound IntraOrganizationConnectors
+- [ ] Journal Rules
+- [ ] Mail flow
+- [ ] Accepted Domains
+- [ ] Remote Domains
+- [ ] Mailboxes
+- [ ] MailboxPlans
+- [ ] MalwareFilterPolicies
+- [ ] ManagementRole
+- [ ] Mobile device access
+- [ ] Device Access Rules
+- [ ] MobileDeviceMailboxPolicies
+- [ ] Modern authentication
+- [ ] OfflineAddressBook
+- [ ] On-Premises Organizations
+- [ ] Organization Relationship
+- [ ] OrganizationConfig
+- [ ] Outbound connectors
+- [ ] Outlook Web App policies
+- [ ] Partner Applications
+- [ ] PolicyTipConfig
+- [ ] Role Assignment Policies
+- [ ] Transport Rules
+
+## Security & Compliance
+
+- [ ] Audit configuration policy
+- [ ] Case hold policies
+- [ ] Case hold rules
+- [ ] Compliance cases
+- [ ] ComplianceTags
+- [ ] Content search actions
+- [ ] Content searches
+- [ ] Device conditional access policies
+- [ ] Device configuration policies
+- [ ] DLP compliance policies
+- [ ] DLP senstitive information types
+- [ ] File plan property authorities
+- [ ] File plan property categories
+- [ ] File plan property citations
+- [ ] File plan property departments
+- [ ] File plan property reference ids
+- [ ] File plan property reference sub categories
+- [ ] Hosted connection filter policies
+- [ ] Hosted content filter policies
+- [ ] Hosted content filter rules
+- [ ] Hosted outbound spam filter policies
+- [ ] Hosted outbound spam filter rules
+- [ ] Information governance
+- [ ] Compliance Retention Event Types
+- [ ] Retention
+- [ ] Label Policy
+- [ ] Labels
+- [ ] Threat management
+- [ ] Policy
+- [ ] ATP Anti-Phishing
+- [ ] ATP Safe Attachments
+- [ ] ATP Safe Links
+- [ ] Global Settings
+- [ ] Quarantine Policies
+
+## Teams
+- [ ] Apps
+- [ ] Permission policies
+- [ ] Meetings
+- [ ] Meeting policies
+- [ ] Meeting settings
+- [ ] Messaging policies
+- [ ] Org-wide settings
+- [ ] Teams settings
+- [ ] Voice
+- [ ] Calling policies
+
+## Intune
+
+### Apps
+
+- [ ] App configuration policies
+- [ ] App protection policies (Platform = Android)
+- [ ] App protection policies (Platform = iOS/iPadOS)
+- [ ] App protection policies (Platform = Windows 10)
+- [ ] Diagnostic settings
+- [ ] Endpoint security
+- [ ] Mobile Threat Defense
+- [ ] Policy Sets
+
+### Devices
+
+- [ ] Compliance policies
+- [ ] Compliance policy settings
+- [ ] Locations
+- [ ] Notifications
+- [ ] Configuration profiles
+- [ ] Configuration profiles (Profile Type = Administrative Templates)
+- [ ] Configuration profiles (Settings Catalog)
+- [ ] Device clean-up rules
+- [ ] Enrollment restrictions
+- [ ] Scripts
+- [ ] Windows Autopilot deployment profiles
+- [ ] Quality updates for Windows 10 and later
+- [ ] Feature updates for Windows 10 and later
+
+### Reports
+
+- [ ] Endpoint analytics
+- [ ] Proactive Remediations
+
+### Tenant administration
+
+- [ ] Filters
+
 # Template
 
 This repository serves as a **Default Template Repository** according official [GitHub Contributing Guidelines][ProjectSetup] for healthy contributions. It brings you clean default Templates for several areas:
