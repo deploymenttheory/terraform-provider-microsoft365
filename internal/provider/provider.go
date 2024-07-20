@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -283,9 +284,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	nationalCloudDeploymentTokenEndpoint := getEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
 	nationalCloudDeploymentServiceEndpointRoot := getEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
 
-	ctx = tflog.SetField(ctx, "tenant_id", tenantID)
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
-	ctx = tflog.SetField(ctx, "client_id", clientID)
 	ctx = tflog.SetField(ctx, "use_graph_beta", useGraphBeta)
 	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
 	ctx = tflog.SetField(ctx, "proxy_url", proxyURL)
@@ -293,6 +292,25 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "national_cloud_deployment", nationalCloudDeployment)
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_token_endpoint", nationalCloudDeploymentTokenEndpoint)
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_service_endpoint_root", nationalCloudDeploymentServiceEndpointRoot)
+
+	ctx = tflog.SetField(ctx, "client_certificate", clientCertificate)
+	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
+	ctx = tflog.SetField(ctx, "client_certificate_password", clientCertificatePassword)
+	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate`))
+
+	ctx = tflog.SetField(ctx, "username", username)
+	ctx = tflog.SetField(ctx, "password", password)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
+
+	ctx = tflog.SetField(ctx, "token", token)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "token")
+
+	ctx = tflog.SetField(ctx, "tenant_id", tenantID)
+	ctx = tflog.SetField(ctx, "client_id", clientID)
+	ctx = tflog.SetField(ctx, "client_secret", clientSecret)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "tenant_id")
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
 	var cred azcore.TokenCredential
 	var err error
