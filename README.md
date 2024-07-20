@@ -1,8 +1,12 @@
-# Terraform Provider for Microsoft 365
+# Community Terraform Provider for Microsoft 365
 
-## Disclaimer
+The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Intune](https://intune.microsoft.com/) , [Office365](https://www.office.com/
+), [MicrosoftTeams](https://teams.microsoft.com/
+) and [MicrosoftSecurity](https://security.microsoft.com/
+).
 
-**This project is under active development, and new releases for specific resource types may introduce changes that are not backward compatible with previous release versions. Users should be aware that older implementations may break with updates. We recommend thoroughly reviewing release notes and testing new versions in a staging environment before deploying to production.**
+> [!WARNING]
+> This code is experimental and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, and no guarantees or support is provided. By using this code, you acknowledge and agree to these conditions. Consult the documentation or contact the maintainer if you have questions or concerns.
 
 # To-Do List
 

@@ -10,10 +10,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	khttp "github.com/microsoft/kiota-http-go"
@@ -33,27 +31,27 @@ type M365Provider struct {
 
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
-	TenantID                             types.String `tfsdk:"tenant_id"`
-	AuthMethod                           types.String `tfsdk:"auth_method"`
-	ClientID                             types.String `tfsdk:"client_id"`
-	ClientSecret                         types.String `tfsdk:"client_secret"`
-	CertificatePath                      types.String `tfsdk:"certificate_path"`
-	UserAssertion                        types.String `tfsdk:"user_assertion"`
-	Username                             types.String `tfsdk:"username"`
-	Password                             types.String `tfsdk:"password"`
-	RedirectURL                          types.String `tfsdk:"redirect_url"`
-	Token                                types.String `tfsdk:"token"`
-	UseGraphBeta                         types.Bool   `tfsdk:"use_graph_beta"`
-	UseProxy                             types.Bool   `tfsdk:"use_proxy"`
-	ProxyURL                             types.String `tfsdk:"proxy_url"`
-	EnableChaos                          types.Bool   `tfsdk:"enable_chaos"`
-	NationalCloudDeployment              types.Bool   `tfsdk:"national_cloud_deployment"`
-	NationalCloudDeploymentTokenEndpoint types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
-	NationalCloudDeploymentServiceRoot   types.String `tfsdk:"national_cloud_deployment_service_root"`
+	TenantID                                   types.String `tfsdk:"tenant_id"`
+	AuthMethod                                 types.String `tfsdk:"auth_method"`
+	ClientID                                   types.String `tfsdk:"client_id"`
+	ClientSecret                               types.String `tfsdk:"client_secret"`
+	CertificatePath                            types.String `tfsdk:"certificate_path"`
+	UserAssertion                              types.String `tfsdk:"user_assertion"`
+	Username                                   types.String `tfsdk:"username"`
+	Password                                   types.String `tfsdk:"password"`
+	RedirectURL                                types.String `tfsdk:"redirect_url"`
+	Token                                      types.String `tfsdk:"token"`
+	UseGraphBeta                               types.Bool   `tfsdk:"use_graph_beta"`
+	UseProxy                                   types.Bool   `tfsdk:"use_proxy"`
+	ProxyURL                                   types.String `tfsdk:"proxy_url"`
+	EnableChaos                                types.Bool   `tfsdk:"enable_chaos"`
+	NationalCloudDeployment                    types.Bool   `tfsdk:"national_cloud_deployment"`
+	NationalCloudDeploymentTokenEndpoint       types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
+	NationalCloudDeploymentServiceEndpointRoot types.String `tfsdk:"national_cloud_deployment_service_endpoint_root"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "M365"
+	resp.TypeName = "Microsoft365"
 	resp.Version = p.version
 }
 
@@ -172,13 +170,13 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			},
 			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "By default, the provider is configured to access data in the Microsoft Graph global service, using the https://graph.microsoft.com root URL to access the Microsoft Graph REST API. This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+				Description: "By default, the provider is configured to access data in the Microsoft Graph global service, using the https://login.microsoftonline.com root URL to access the Microsoft Graph REST API. This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
 				Validators: []validator.String{
 					validateURL(),
 					validateNationalCloudDeployment(),
 				},
 			},
-			"national_cloud_deployment_service_root": schema.StringAttribute{
+			"national_cloud_deployment_service_endpoint_root": schema.StringAttribute{
 				Optional:    true,
 				Description: "The Microsoft Graph service root endpoint for the national cloud deployment. Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 / https://graph.microsoft.com/beta).This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
 				Validators: []validator.String{
@@ -236,7 +234,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	enableChaos := data.EnableChaos.ValueBool()
 	nationalCloudDeployment := data.NationalCloudDeployment.ValueBool()
 	nationalCloudDeploymentTokenEndpoint := data.NationalCloudDeploymentTokenEndpoint.ValueString()
-	nationalCloudDeploymentServiceRoot := data.NationalCloudDeploymentServiceRoot.ValueString()
+	NationalCloudDeploymentServiceEndpointRoot := data.NationalCloudDeploymentServiceEndpointRoot.ValueString()
 
 	var cred azcore.TokenCredential
 	var err error
@@ -445,11 +443,11 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	// Set the service root for national cloud deployments
-	if nationalCloudDeployment && nationalCloudDeploymentServiceRoot != "" {
+	if nationalCloudDeployment && NationalCloudDeploymentServiceEndpointRoot != "" {
 		if useGraphBeta {
-			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
+			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", NationalCloudDeploymentServiceEndpointRoot))
 		} else {
-			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceRoot))
+			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", NationalCloudDeploymentServiceEndpointRoot))
 		}
 	}
 
@@ -464,18 +462,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
-}
-
-func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		// Add your resource functions here
-	}
-}
-
-func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		// Add your datasource functions here
-	}
 }
 
 func New(version string) func() provider.Provider {
