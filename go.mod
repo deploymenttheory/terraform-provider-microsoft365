@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-framework v1.10.0
-	github.com/microsoft/kiota-http-go v1.4.1
+	github.com/microsoft/kiota-http-go v1.4.2
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.106.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.46.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.0
