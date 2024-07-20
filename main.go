@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-microsof365/internal/provider"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
