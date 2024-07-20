@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	khttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
@@ -254,6 +255,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data M365ProviderModel
 
+	tflog.Debug(ctx, "Configure request received")
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -261,16 +264,35 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	tenantID := getEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
-	authMethod := data.AuthMethod.ValueString()
+	authMethod := getEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
 	clientID := getEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
 	clientSecret := getEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
-	useGraphBeta := data.UseGraphBeta.ValueBool()
-	useProxy := data.UseProxy.ValueBool()
-	proxyURL := data.ProxyURL.ValueString()
-	enableChaos := data.EnableChaos.ValueBool()
-	nationalCloudDeployment := data.NationalCloudDeployment.ValueBool()
-	nationalCloudDeploymentTokenEndpoint := data.NationalCloudDeploymentTokenEndpoint.ValueString()
-	NationalCloudDeploymentServiceEndpointRoot := data.NationalCloudDeploymentServiceEndpointRoot.ValueString()
+	clientCertificate := getEnvOrDefault(data.ClientCertificate.ValueString(), "M365_CLIENT_CERTIFICATE")
+	clientCertificateFilePath := getEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
+	clientCertificatePassword := getEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
+	userAssertion := getEnvOrDefault(data.UserAssertion.ValueString(), "M365_USER_ASSERTION")
+	username := getEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
+	password := getEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
+	redirectURL := getEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
+	token := getEnvOrDefault(data.Token.ValueString(), "M365_API_TOKEN")
+	useGraphBeta := getEnvOrDefaultBool(data.UseGraphBeta.ValueBool(), "M365_USE_GRAPH_BETA")
+	useProxy := getEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
+	proxyURL := getEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
+	enableChaos := getEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
+	nationalCloudDeployment := getEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
+	nationalCloudDeploymentTokenEndpoint := getEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
+	nationalCloudDeploymentServiceEndpointRoot := getEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
+
+	ctx = tflog.SetField(ctx, "tenant_id", tenantID)
+	ctx = tflog.SetField(ctx, "auth_method", authMethod)
+	ctx = tflog.SetField(ctx, "client_id", clientID)
+	ctx = tflog.SetField(ctx, "use_graph_beta", useGraphBeta)
+	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
+	ctx = tflog.SetField(ctx, "proxy_url", proxyURL)
+	ctx = tflog.SetField(ctx, "enable_chaos", enableChaos)
+	ctx = tflog.SetField(ctx, "national_cloud_deployment", nationalCloudDeployment)
+	ctx = tflog.SetField(ctx, "national_cloud_deployment_token_endpoint", nationalCloudDeploymentTokenEndpoint)
+	ctx = tflog.SetField(ctx, "national_cloud_deployment_service_endpoint_root", nationalCloudDeploymentServiceEndpointRoot)
 
 	var cred azcore.TokenCredential
 	var err error
@@ -479,11 +501,11 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	// Set the service root for national cloud deployments
-	if nationalCloudDeployment && NationalCloudDeploymentServiceEndpointRoot != "" {
+	if nationalCloudDeployment && nationalCloudDeploymentServiceEndpointRoot != "" {
 		if useGraphBeta {
-			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", NationalCloudDeploymentServiceEndpointRoot))
+			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
 		} else {
-			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", NationalCloudDeploymentServiceEndpointRoot))
+			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
 		}
 	}
 
