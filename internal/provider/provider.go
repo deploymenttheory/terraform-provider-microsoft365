@@ -31,11 +31,14 @@ type M365Provider struct {
 
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
+	UseCli                                     types.Bool   `tfsdk:"use_cli"`
 	TenantID                                   types.String `tfsdk:"tenant_id"`
 	AuthMethod                                 types.String `tfsdk:"auth_method"`
 	ClientID                                   types.String `tfsdk:"client_id"`
 	ClientSecret                               types.String `tfsdk:"client_secret"`
-	CertificatePath                            types.String `tfsdk:"certificate_path"`
+	ClientCertificate                          types.String `tfsdk:"client_certificate"`
+	ClientCertificateFilePath                  types.String `tfsdk:"client_certificate_file_path"`
+	ClientCertificatePassword                  types.String `tfsdk:"client_certificate_password"`
 	UserAssertion                              types.String `tfsdk:"user_assertion"`
 	Username                                   types.String `tfsdk:"username"`
 	Password                                   types.String `tfsdk:"password"`
@@ -44,10 +47,12 @@ type M365ProviderModel struct {
 	UseGraphBeta                               types.Bool   `tfsdk:"use_graph_beta"`
 	UseProxy                                   types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                                   types.String `tfsdk:"proxy_url"`
-	EnableChaos                                types.Bool   `tfsdk:"enable_chaos"`
+	Cloud                                      types.String `tfsdk:"cloud"`
 	NationalCloudDeployment                    types.Bool   `tfsdk:"national_cloud_deployment"`
 	NationalCloudDeploymentTokenEndpoint       types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
 	NationalCloudDeploymentServiceEndpointRoot types.String `tfsdk:"national_cloud_deployment_service_endpoint_root"`
+	EnableChaos                                types.Bool   `tfsdk:"enable_chaos"`
+	TelemetryOptout                            types.Bool   `tfsdk:"telemetry_optout"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -58,6 +63,11 @@ func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataReques
 func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"use_cli": schema.BoolAttribute{
+				Description:         "Flag to indicate whether to use the CLI for authentication",
+				MarkdownDescription: "Flag to indicate whether to use the CLI for authentication. ",
+				Optional:            true,
+			},
 			"tenant_id": schema.StringAttribute{
 				Required: true,
 				Description: "The M365 tenant ID for the Entra ID application. " +
@@ -97,10 +107,19 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Required for client credentials and on-behalf-of flows. " +
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
-			"certificate_path": schema.StringAttribute{
-				Optional: true,
-				Description: "Path to the client certificate file. " +
-					"Required for client certificate authentication.",
+			"client_certificate": schema.StringAttribute{
+				MarkdownDescription: "Base64 encoded PKCS#12 certificate bundle. For use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:            true,
+				Sensitive:           true,
+			},
+			"client_certificate_file_path": schema.StringAttribute{
+				MarkdownDescription: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:            true,
+			},
+			"client_certificate_password": schema.StringAttribute{
+				MarkdownDescription: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
+				Optional:            true,
+				Sensitive:           true,
 			},
 			"user_assertion": schema.StringAttribute{
 				Optional:    true,
@@ -155,6 +174,39 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					validateURL(),
 				},
 			},
+			"cloud": schema.StringAttribute{
+				Description:         "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+				Optional:            true,
+			},
+			"national_cloud_deployment": schema.BoolAttribute{
+				Optional: true,
+				Description: "Set to true if connecting to Microsoft Graph national cloud deployments. (Microsoft" +
+					"Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.)",
+			},
+			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
+				Optional: true,
+				Description: "By default, the provider is configured to access data in the Microsoft Graph" +
+					"global service, using the https://login.microsoftonline.com root URL to access the Microsoft" +
+					"Graph REST API. This field overrides this configuration to connect to Microsoft Graph national" +
+					"cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+				Validators: []validator.String{
+					validateURL(),
+					validateNationalCloudDeployment(),
+				},
+			},
+			"national_cloud_deployment_service_endpoint_root": schema.StringAttribute{
+				Optional: true,
+				Description: "The Microsoft Graph service root endpoint for the national cloud deployment." +
+					"Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 /" +
+					"https://graph.microsoft.com/beta).This field overrides this configuration to connect to " +
+					"Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft" +
+					"Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+				Validators: []validator.String{
+					validateURL(),
+					validateNationalCloudDeployment(),
+				},
+			},
 			"enable_chaos": schema.BoolAttribute{
 				Optional: true,
 				Description: "Enable the chaos handler for testing purposes. " +
@@ -163,26 +215,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"of the terraform provider against intermittent issues. This is particularly useful " +
 					"for testing how the provider handles various error conditions and ensures " +
 					"it can recover gracefully. Use with caution in production environments.",
-			},
-			"national_cloud_deployment": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Set to true if connecting to Microsoft Graph national cloud deployments. (Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.)",
-			},
-			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
-				Optional:    true,
-				Description: "By default, the provider is configured to access data in the Microsoft Graph global service, using the https://login.microsoftonline.com root URL to access the Microsoft Graph REST API. This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
-				Validators: []validator.String{
-					validateURL(),
-					validateNationalCloudDeployment(),
-				},
-			},
-			"national_cloud_deployment_service_endpoint_root": schema.StringAttribute{
-				Optional:    true,
-				Description: "The Microsoft Graph service root endpoint for the national cloud deployment. Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 / https://graph.microsoft.com/beta).This field overrides this configuration to connect to Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
-				Validators: []validator.String{
-					validateURL(),
-					validateNationalCloudDeployment(),
-				},
+			}, "telemetry_optout": schema.BoolAttribute{
+				Description:         "Flag to indicate whether to opt out of telemetry. Default is `false`",
+				MarkdownDescription: "Flag to indicate whether to opt out of telemetry. Default is `false`",
+				Optional:            true,
 			},
 		},
 	}
@@ -299,7 +335,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			ClientOptions: clientOptions,
 		})
 	case "client_certificate":
-		certificatePath := data.CertificatePath.ValueString()
+		certificatePath := data.ClientCertificateFilePath.ValueString()
 		certFile, err := os.Open(certificatePath)
 		if err != nil {
 			resp.Diagnostics.AddError(
