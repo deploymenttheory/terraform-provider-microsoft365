@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -18,8 +19,17 @@ import (
 var _ resource.Resource = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
+func NewUserResource() resource.Resource {
+	return &AssignmentFilterResource{
+		ProviderTypeName: "microsoft365",
+		TypeName:         "_device_and_app_management_assignment_filter",
+	}
+}
+
 type AssignmentFilterResource struct {
-	client *msgraphbetasdk.GraphServiceClient
+	client           *msgraphbetasdk.GraphServiceClient
+	ProviderTypeName string
+	TypeName         string
 }
 
 type AssignmentFilterResourceModel struct {
@@ -207,6 +217,9 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -214,12 +227,11 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 
 	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting assignment filter",
-			fmt.Sprintf("Could not delete assignment filter: %s", err.Error()),
-		)
+		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Completed deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.State.RemoveResource(ctx)
 }
