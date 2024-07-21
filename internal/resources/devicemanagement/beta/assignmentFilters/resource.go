@@ -87,6 +87,9 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -126,7 +129,10 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	data.ID = types.StringValue(*assignmentFilter.GetId())
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Read handles the Read operation.
