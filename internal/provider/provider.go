@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
-	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -118,6 +117,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_certificate_file_path": schema.StringAttribute{
 				MarkdownDescription: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
 				Optional:            true,
+				Sensitive:           true,
 			},
 			"client_certificate_password": schema.StringAttribute{
 				MarkdownDescription: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
@@ -181,6 +181,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description:         "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
 				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
 				Optional:            true,
+				Validators: []validator.String{
+					validateCloud(),
+				},
 			},
 			"national_cloud_deployment": schema.BoolAttribute{
 				Optional: true,
@@ -365,101 +368,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint
 	}
 
-	switch authMethod {
-	case "device_code":
-		cred, err = azidentity.NewDeviceCodeCredential(&azidentity.DeviceCodeCredentialOptions{
-			TenantID: tenantID,
-			ClientID: clientID,
-			UserPrompt: func(ctx context.Context, message azidentity.DeviceCodeMessage) error {
-				fmt.Println(message.Message)
-				return nil
-			},
-			ClientOptions: clientOptions,
-		})
-	case "client_secret":
-		cred, err = azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret, &azidentity.ClientSecretCredentialOptions{
-			ClientOptions: clientOptions,
-		})
-	case "client_certificate":
-		certificatePath := data.ClientCertificateFilePath.ValueString()
-		certFile, err := os.Open(certificatePath)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Opening Certificate File",
-				fmt.Sprintf("Failed to open the certificate file at path '%s': %s. "+
-					"Ensure the file path is correct and the file is accessible.", certificatePath, err.Error()),
-			)
-			return
-		}
-		defer certFile.Close()
-
-		info, err := certFile.Stat()
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Accessing Certificate File",
-				fmt.Sprintf("Failed to retrieve file information: %s. "+
-					"Ensure the file exists and is accessible.", err.Error()),
-			)
-			return
-		}
-
-		certBytes := make([]byte, info.Size())
-		_, err = certFile.Read(certBytes)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Certificate File",
-				fmt.Sprintf("Failed to read the certificate file: %s. "+
-					"Ensure the file is accessible and not corrupted.", err.Error()),
-			)
-			return
-		}
-
-		certs, key, err := azidentity.ParseCertificates(certBytes, nil)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Parsing Certificates",
-				fmt.Sprintf("Failed to parse certificates from the provided file: %s. "+
-					"Ensure the file contains valid certificate data and is correctly formatted.", err.Error()),
-			)
-			return
-		}
-
-		cred, err = azidentity.NewClientCertificateCredential(tenantID, clientID, certs, key, &azidentity.ClientCertificateCredentialOptions{
-			ClientOptions: clientOptions,
-		})
-	case "on_behalf_of":
-		userAssertion := data.UserAssertion.ValueString()
-		cred, err = azidentity.NewOnBehalfOfCredentialWithSecret(tenantID, clientID, userAssertion, clientSecret, &azidentity.OnBehalfOfCredentialOptions{
-			ClientOptions: clientOptions,
-		})
-	case "interactive_browser":
-		redirectURL := data.RedirectURL.ValueString()
-		cred, err = azidentity.NewInteractiveBrowserCredential(&azidentity.InteractiveBrowserCredentialOptions{
-			TenantID:      tenantID,
-			ClientID:      clientID,
-			RedirectURL:   redirectURL,
-			ClientOptions: clientOptions,
-		})
-	case "username_password":
-		username := data.Username.ValueString()
-		password := data.Password.ValueString()
-		cred, err = azidentity.NewUsernamePasswordCredential(tenantID, clientID, username, password, &azidentity.UsernamePasswordCredentialOptions{
-			ClientOptions: clientOptions,
-		})
-	default:
-		resp.Diagnostics.AddError(
-			"Unsupported authentication method",
-			fmt.Sprintf("The authentication method '%s' is not supported.", authMethod),
-		)
-		return
-	}
-
+	cred, err = createCredential(ctx, data, clientOptions)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create credentials",
 			fmt.Sprintf("An error occurred while attempting to create the credentials using the provided authentication method '%s'. "+
 				"This may be due to incorrect or missing credentials, misconfigured client options, or issues with the underlying authentication library. "+
-				"Please verify the authentication method and credentials configuration. Detailed error: %s", authMethod, err.Error()),
+				"Please verify the authentication method and credentials configuration. Detailed error: %s", data.AuthMethod.ValueString(), err.Error()),
 		)
 		return
 	}
