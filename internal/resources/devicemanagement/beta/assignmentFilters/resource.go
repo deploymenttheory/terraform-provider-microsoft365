@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -33,16 +34,17 @@ type AssignmentFilterResource struct {
 }
 
 type AssignmentFilterResourceModel struct {
-	ID                             types.String `tfsdk:"id"`
-	DisplayName                    types.String `tfsdk:"display_name"`
-	Description                    types.String `tfsdk:"description"`
-	Platform                       types.String `tfsdk:"platform"`
-	Rule                           types.String `tfsdk:"rule"`
-	AssignmentFilterManagementType types.String `tfsdk:"assignment_filter_management_type"`
-	CreatedDateTime                types.String `tfsdk:"created_date_time"`
-	LastModifiedDateTime           types.String `tfsdk:"last_modified_date_time"`
-	RoleScopeTags                  types.List   `tfsdk:"role_scope_tags"`
-	Payloads                       types.List   `tfsdk:"payloads"`
+	ID                             types.String   `tfsdk:"id"`
+	DisplayName                    types.String   `tfsdk:"display_name"`
+	Description                    types.String   `tfsdk:"description"`
+	Platform                       types.String   `tfsdk:"platform"`
+	Rule                           types.String   `tfsdk:"rule"`
+	AssignmentFilterManagementType types.String   `tfsdk:"assignment_filter_management_type"`
+	CreatedDateTime                types.String   `tfsdk:"created_date_time"`
+	LastModifiedDateTime           types.String   `tfsdk:"last_modified_date_time"`
+	RoleScopeTags                  types.List     `tfsdk:"role_scope_tags"`
+	Payloads                       types.List     `tfsdk:"payloads"`
+	Timeouts                       timeouts.Value `tfsdk:"timeouts"`
 }
 
 // Metadata returns the resource type name.
@@ -130,15 +132,18 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Read:   true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -147,6 +152,15 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	createTimeout, diags := data.Timeouts.Create(ctx, 30*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, createTimeout)
+	defer cancel()
 
 	requestBody, err := constructResource(&data)
 
@@ -174,18 +188,24 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
+// Read handles the read operation and stating.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	readTimeout, diags := data.Timeouts.Read(ctx, 30*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
 
 	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
@@ -197,19 +217,11 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	mapRemoteStateToTerraform(&data, remoteResource)
-
-	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -218,6 +230,15 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	updateTimeout, diags := data.Timeouts.Update(ctx, 30*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
 
 	requestBody, err := constructResource(&data)
 
@@ -245,9 +266,6 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 // Delete handles the Delete operation.
 func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -256,6 +274,15 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	deleteTimeout, diags := data.Timeouts.Delete(ctx, 30*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
+	defer cancel()
 
 	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
