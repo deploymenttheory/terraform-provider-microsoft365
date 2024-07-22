@@ -146,29 +146,14 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
-
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
-
-	platformStr := data.Platform.ValueString()
-	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
+	requestBody, err := constructResource(&data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating assignment filter",
-			fmt.Sprintf("Invalid platform: %s", err.Error()),
+			err.Error(),
 		)
 		return
 	}
-	requestBody.SetPlatform(platform)
-
-	rule := data.Rule.ValueString()
-	requestBody.SetRule(&rule)
-
-	roleScopeTags := []string{"0"}
-	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
 	if err != nil {
