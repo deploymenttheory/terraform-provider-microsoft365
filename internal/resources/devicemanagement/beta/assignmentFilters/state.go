@@ -2,22 +2,22 @@ package assignmentFilter
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func setTerraformState(data *AssignmentFilterResourceModel, filter models.DeviceAndAppManagementAssignmentFilterable, resp *resource.ReadResponse) {
-	data.DisplayName = types.StringValue(*filter.GetDisplayName())
-	data.Description = types.StringValue(*filter.GetDescription())
-	data.Platform = types.StringValue(filter.GetPlatform().String())
-	data.Rule = types.StringValue(*filter.GetRule())
-	data.AssignmentFilterManagementType = types.StringValue(filter.GetAssignmentFilterManagementType().String())
-	data.CreatedDateTime = types.StringValue(filter.GetCreatedDateTime().String())
-	data.LastModifiedDateTime = types.StringValue(filter.GetLastModifiedDateTime().String())
+// mapRemoteStateToTerraform
+func mapRemoteStateToTerraform(data *AssignmentFilterResourceModel, remoteResource models.DeviceAndAppManagementAssignmentFilterable) {
+	data.DisplayName = types.StringValue(*remoteResource.GetDisplayName())
+	data.Description = types.StringValue(*remoteResource.GetDescription())
+	data.Platform = types.StringValue(remoteResource.GetPlatform().String())
+	data.Rule = types.StringValue(*remoteResource.GetRule())
+	data.AssignmentFilterManagementType = types.StringValue(remoteResource.GetAssignmentFilterManagementType().String())
+	data.CreatedDateTime = types.StringValue(remoteResource.GetCreatedDateTime().String())
+	data.LastModifiedDateTime = types.StringValue(remoteResource.GetLastModifiedDateTime().String())
 
 	// Set RoleScopeTags
-	roleScopeTags := filter.GetRoleScopeTags()
+	roleScopeTags := remoteResource.GetRoleScopeTags()
 	if roleScopeTags != nil {
 		tagList := make([]attr.Value, len(roleScopeTags))
 		for i, tag := range roleScopeTags {
@@ -31,41 +31,41 @@ func setTerraformState(data *AssignmentFilterResourceModel, filter models.Device
 	}
 
 	// Set Payloads
-	payloads := filter.GetPayloads()
+	payloads := remoteResource.GetPayloads()
 	if payloads != nil {
 		payloadList := make([]attr.Value, len(payloads))
 		for i, payload := range payloads {
-			payloadType := string(*payload.GetPayloadType())
-			assignmentFilterType := string(*payload.GetAssignmentFilterType())
+			payloadType := payload.GetPayloadType().String()
+			assignmentFilterType := payload.GetAssignmentFilterType().String()
 			payloadMap := map[string]attr.Value{
-				"payload_id":             types.StringValue(*payload.GetPayloadId()),
-				"payload_type":           types.StringValue(payloadType),
-				"group_id":               types.StringValue(*payload.GetGroupId()),
-				"assignment_filter_type": types.StringValue(assignmentFilterType),
+				"payload_id":                     types.StringValue(*payload.GetPayloadId()),
+				"payload_type":                   types.StringValue(payloadType),
+				"group_id":                       types.StringValue(*payload.GetGroupId()),
+				"assignment_remoteResource_type": types.StringValue(assignmentFilterType),
 			}
 			payloadList[i] = types.ObjectValueMust(map[string]attr.Type{
-				"payload_id":             types.StringType,
-				"payload_type":           types.StringType,
-				"group_id":               types.StringType,
-				"assignment_filter_type": types.StringType,
+				"payload_id":                     types.StringType,
+				"payload_type":                   types.StringType,
+				"group_id":                       types.StringType,
+				"assignment_remoteResource_type": types.StringType,
 			}, payloadMap)
 		}
 		payloadsList := types.ListValueMust(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"payload_id":             types.StringType,
-				"payload_type":           types.StringType,
-				"group_id":               types.StringType,
-				"assignment_filter_type": types.StringType,
+				"payload_id":                     types.StringType,
+				"payload_type":                   types.StringType,
+				"group_id":                       types.StringType,
+				"assignment_remoteResource_type": types.StringType,
 			},
 		}, payloadList)
 		data.Payloads = payloadsList
 	} else {
 		payloadsList := types.ListValueMust(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"payload_id":             types.StringType,
-				"payload_type":           types.StringType,
-				"group_id":               types.StringType,
-				"assignment_filter_type": types.StringType,
+				"payload_id":                     types.StringType,
+				"payload_type":                   types.StringType,
+				"group_id":                       types.StringType,
+				"assignment_remoteResource_type": types.StringType,
 			},
 		}, []attr.Value{})
 		data.Payloads = payloadsList

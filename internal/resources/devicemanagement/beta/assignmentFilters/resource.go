@@ -187,7 +187,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	filter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
+	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading assignment filter",
@@ -196,7 +196,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	setTerraformState(&data, filter, resp)
+	mapRemoteStateToTerraform(&data, remoteResource)
 
 	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
 
