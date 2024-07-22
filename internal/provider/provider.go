@@ -117,6 +117,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_certificate_file_path": schema.StringAttribute{
 				MarkdownDescription: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
 				Optional:            true,
+				Sensitive:           true,
 			},
 			"client_certificate_password": schema.StringAttribute{
 				MarkdownDescription: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",

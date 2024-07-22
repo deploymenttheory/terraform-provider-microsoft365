@@ -6,9 +6,29 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+func (p *M365Provider) ValidateConfig(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
+	var data M365ProviderModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Check if both client_certificate and client_certificate_file_path are provided.
+	if !data.ClientCertificate.IsNull() && !data.ClientCertificate.IsUnknown() &&
+		!data.ClientCertificateFilePath.IsNull() && !data.ClientCertificateFilePath.IsUnknown() {
+		resp.Diagnostics.AddError(
+			"Conflicting Configuration",
+			"Only one of 'client_certificate' or 'client_certificate_file_path' can be provided. Please choose one.",
+		)
+	}
+}
 
 /* auth_method schema validator */
 

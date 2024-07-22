@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -38,14 +39,26 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 		})
 	case "client_certificate":
 		tflog.Debug(ctx, "Creating ClientCertificateCredential", map[string]interface{}{
-			"tenant_id":        data.TenantID.ValueString(),
-			"client_id":        data.ClientID.ValueString(),
-			"certificate_path": data.ClientCertificateFilePath.ValueString(),
+			"tenant_id": data.TenantID.ValueString(),
+			"client_id": data.ClientID.ValueString(),
 		})
 
-		certs, key, err := helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateFilePath.ValueString(), data.ClientCertificatePassword.ValueString())
+		var certs []*x509.Certificate
+		var key interface{}
+		var err error
+
+		if !data.ClientCertificate.IsNull() {
+			tflog.Debug(ctx, "Using base64 encoded client certificate")
+			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificate.ValueString(), data.ClientCertificatePassword.ValueString())
+		} else if !data.ClientCertificateFilePath.IsNull() {
+			tflog.Debug(ctx, "Using client certificate file path")
+			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateFilePath.ValueString(), data.ClientCertificatePassword.ValueString())
+		} else {
+			return nil, fmt.Errorf("either 'client_certificate' or 'client_certificate_file_path' must be provided for client_certificate authentication")
+		}
+
 		if err != nil {
-			return nil, fmt.Errorf("failed to get certificates and key from path '%s': %s", data.ClientCertificateFilePath.ValueString(), err.Error())
+			return nil, fmt.Errorf("failed to get certificates and key: %s", err.Error())
 		}
 
 		return azidentity.NewClientCertificateCredential(data.TenantID.ValueString(), data.ClientID.ValueString(), certs, key, &azidentity.ClientCertificateCredentialOptions{
