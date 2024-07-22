@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 
@@ -336,36 +335,19 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 		}
 	}
-
-	var transport *http.Transport
-	if useProxy {
-		proxyUrlParsed, err := url.Parse(proxyURL)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Proxy URL",
-				fmt.Sprintf("Failed to parse the provided proxy URL '%s': %s. "+
-					"Ensure the URL is correctly formatted.", proxyURL, err.Error()),
-			)
-			return
-		}
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyUrlParsed),
-		}
-	} else {
-		transport = &http.Transport{}
-	}
-
-	authClient := &http.Client{
-		Transport: transport,
+	// TODO fix this and put in logic for use_proxy is true and proxy_url is not null
+	authClient := configureProxy(useProxy, proxyURL, &resp.Diagnostics)
+	if authClient == nil {
+		return
 	}
 
 	clientOptions := policy.ClientOptions{
-		Transport: authClient,
+		Transport: authClient.Transport,
 	}
 
 	// Set cloud configuration for national cloud deployments
 	if nationalCloudDeployment && nationalCloudDeploymentTokenEndpoint != "" {
-		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint
+		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint // TODO implement approach for all clouds types.
 	}
 
 	cred, err = createCredential(ctx, data, clientOptions)
@@ -379,7 +361,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"}) // TODO use consts to set the scope based upon the cloud type.
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create authentication provider",
