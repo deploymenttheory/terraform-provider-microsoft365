@@ -2,7 +2,7 @@ package assignmentFilter
 
 import (
 	"fmt"
-	"go/types"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -53,7 +53,7 @@ func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAp
 	if !data.RoleScopeTags.IsNull() {
 		var roleScopeTags []string
 		for _, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags = append(roleScopeTags, tag.(String).Value)
+			roleScopeTags = append(roleScopeTags, tag.(types.String).Value)
 		}
 		requestBody.SetRoleScopeTags(roleScopeTags)
 	}

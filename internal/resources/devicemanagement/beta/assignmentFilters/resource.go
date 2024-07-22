@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 var _ resource.Resource = &AssignmentFilterResource{}
@@ -229,29 +228,15 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	requestBody, err := constructResource(&data)
 
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
-
-	platformStr := data.Platform.ValueString()
-	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating assignment filter",
-			fmt.Sprintf("Invalid platform: %s", err.Error()),
+			"Error constructing assignment filter",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
-	requestBody.SetPlatform(platform)
-
-	rule := data.Rule.ValueString()
-	requestBody.SetRule(&rule)
-
-	roleScopeTags := []string{"0"} // Adjust if necessary
-	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
