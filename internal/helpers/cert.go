@@ -10,34 +10,34 @@ import (
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 )
 
-// GetRawCertificateFromCertOrFilePath takes either a DER-encoded certificate
-// or a file path to a DER-encoded PKCS#12 file, decodes it, and returns the raw certificate.
-func GetRawCertificateFromCertOrFilePath(certOrFilePath string, password string) (*x509.Certificate, error) {
+// GetCertificatesAndKeyFromCertOrFilePath takes either a base64-encoded certificate or a file path to a PKCS#12 file,
+// decodes it, and returns the certificates and private key.
+func GetCertificatesAndKeyFromCertOrFilePath(certOrFilePath string, password string) ([]*x509.Certificate, interface{}, error) {
 	certData, err := base64.StdEncoding.DecodeString(certOrFilePath)
 	if err == nil {
-		cert, err := x509.ParseCertificate(certData)
+		key, cert, err := pkcs12.Decode(certData, password)
 		if err == nil {
-			return cert, nil
+			return []*x509.Certificate{cert}, key, nil
 		}
 	}
 
 	file, err := os.Open(certOrFilePath)
 	if err != nil {
-		return nil, errors.New("could not open file or decode base64 input")
+		return nil, nil, errors.New("could not open file or decode base64 input")
 	}
 	defer file.Close()
 
 	pfxData, err := io.ReadAll(file)
 	if err != nil {
-		return nil, errors.New("could not read file content")
+		return nil, nil, errors.New("could not read file content")
 	}
 
-	_, cert, err := pkcs12.Decode(pfxData, password)
+	key, cert, err := pkcs12.Decode(pfxData, password)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return cert, nil
+	return []*x509.Certificate{cert}, key, nil
 }
 
 // ConvertBase64ToCert takes a base64 encoded PKCS#12 file, decodes it, and returns the certificate.
