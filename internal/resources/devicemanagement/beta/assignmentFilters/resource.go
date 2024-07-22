@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta
 package assignmentFilter
 
 import (
@@ -33,11 +34,16 @@ type AssignmentFilterResource struct {
 }
 
 type AssignmentFilterResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Description types.String `tfsdk:"description"`
-	Platform    types.String `tfsdk:"platform"`
-	Rule        types.String `tfsdk:"rule"`
+	ID                             types.String `tfsdk:"id"`
+	DisplayName                    types.String `tfsdk:"display_name"`
+	Description                    types.String `tfsdk:"description"`
+	Platform                       types.String `tfsdk:"platform"`
+	Rule                           types.String `tfsdk:"rule"`
+	AssignmentFilterManagementType types.String `tfsdk:"assignment_filter_management_type"`
+	CreatedDateTime                types.String `tfsdk:"created_date_time"`
+	LastModifiedDateTime           types.String `tfsdk:"last_modified_date_time"`
+	RoleScopeTags                  types.List   `tfsdk:"role_scope_tags"`
+	Payloads                       types.List   `tfsdk:"payloads"`
 }
 
 // Metadata returns the resource type name.
@@ -64,18 +70,63 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
-				Description: "The description of the assignment filter.",
+				Description: "The optional description of the assignment filter.",
 			},
 			"platform": schema.StringAttribute{
 				Required:    true,
-				Description: "The platform for the assignment filter.",
+				Description: fmt.Sprintf("The Intune device management type (platform) for the assignment filter. Supported types: %v", getAllPlatformStrings()),
 				Validators: []validator.String{
 					platformValidator{},
 				},
 			},
 			"rule": schema.StringAttribute{
 				Required:    true,
-				Description: "The rule for the assignment filter.",
+				Description: "Rule definition of the assignment filter.",
+			},
+			"assignment_filter_management_type": schema.StringAttribute{
+				Optional:    true,
+				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %v. Default filter will be applied to 'devices'.", getAllManagementTypeStrings()),
+				Validators: []validator.String{
+					assignmentFilterManagementTypeValidator{},
+				},
+			},
+
+			"created_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The creation time of the assignment filter.",
+			},
+			"last_modified_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "Last modified time of the assignment filter.",
+			},
+			"role_scope_tags": schema.ListAttribute{
+				Optional:    true,
+				Description: "Indicates role scope tags assigned for the assignment filter.",
+				ElementType: types.StringType,
+			},
+			"payloads": schema.ListNestedAttribute{
+				Optional:    true,
+				Description: "Indicates associated assignments for a specific filter.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"payload_id": schema.StringAttribute{
+							Required:    true,
+							Description: "The ID of the payload.",
+						},
+						"payload_type": schema.StringAttribute{
+							Required:    true,
+							Description: "The type of the payload.",
+						},
+						"group_id": schema.StringAttribute{
+							Required:    true,
+							Description: "The group ID associated with the payload.",
+						},
+						"assignment_filter_type": schema.StringAttribute{
+							Required:    true,
+							Description: "The assignment filter type.",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -83,7 +134,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
@@ -141,6 +192,9 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -167,7 +221,12 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	data.Platform = types.StringValue(platformStr)
 	data.Rule = types.StringValue(*filter.GetRule())
+
+	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
@@ -176,6 +235,9 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -215,6 +277,8 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete handles the Delete operation.
