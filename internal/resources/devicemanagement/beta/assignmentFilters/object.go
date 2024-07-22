@@ -2,8 +2,8 @@ package assignmentFilter
 
 import (
 	"fmt"
-	"go/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -53,28 +53,28 @@ func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAp
 	if !data.RoleScopeTags.IsNull() {
 		var roleScopeTags []string
 		for _, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags = append(roleScopeTags, tag.(types.String).ValueString())
+			roleScopeTags = append(roleScopeTags, tag.(types.String).Value)
 		}
 		requestBody.SetRoleScopeTags(roleScopeTags)
 	}
 
 	// Set Payloads
 	if !data.Payloads.IsNull() {
-		var payloads []models.AssignmentFilterPayload
+		var payloads []models.Payload
 		for _, payloadElement := range data.Payloads.Elements() {
 			payload := payloadElement.(types.Object)
-			payloadID := payload.Attrs["payload_id"].(types.String).ValueString()
-			payloadType := payload.Attrs["payload_type"].(types.String).ValueString()
-			groupID := payload.Attrs["group_id"].(types.String).ValueString()
-			assignmentFilterType := payload.Attrs["assignment_filter_type"].(types.String).ValueString()
+			payloadID := payload.Attributes["payload_id"].(types.String).ValueString()
+			payloadType := payload.Attributes["payload_type"].(types.String).ValueString()
+			groupID := payload.Attributes["group_id"].(types.String).ValueString()
+			assignmentFilterType := payload.Attributes["assignment_filter_type"].(types.String).ValueString()
 
-			p := models.NewAssignmentFilterPayload()
-			p.SetPayloadId(&payloadID)
-			p.SetPayloadType(&payloadType)
-			p.SetGroupId(&groupID)
-			p.SetAssignmentFilterType(&assignmentFilterType)
+			payloadModel := models.NewPayload()
+			payloadModel.SetPayloadId(&payloadID)
+			payloadModel.SetPayloadType(&payloadType)
+			payloadModel.SetGroupId(&groupID)
+			payloadModel.SetAssignmentFilterType(&assignmentFilterType)
 
-			payloads = append(payloads, p)
+			payloads = append(payloads, payloadModel)
 		}
 		requestBody.SetPayloads(payloads)
 	}

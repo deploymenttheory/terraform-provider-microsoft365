@@ -147,10 +147,11 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	requestBody, err := constructResource(&data)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating assignment filter",
-			err.Error(),
+			"Error constructing assignment filter",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
