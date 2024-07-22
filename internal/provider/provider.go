@@ -181,6 +181,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description:         "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
 				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
 				Optional:            true,
+				Validators: []validator.String{
+					validateCloud(),
+				},
 			},
 			"national_cloud_deployment": schema.BoolAttribute{
 				Optional: true,

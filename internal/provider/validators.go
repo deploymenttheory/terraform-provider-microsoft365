@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"regexp"
 
@@ -145,7 +146,7 @@ func (v guidValidator) ValidateString(ctx context.Context, request validator.Str
 	}
 }
 
-/* use_proxy schema validator */
+/* use_proxy field schema validator */
 
 type useProxyValidator struct{}
 
@@ -182,7 +183,7 @@ func (v useProxyValidator) ValidateBool(ctx context.Context, request validator.B
 	}
 }
 
-/* redirect_url, proxy_url, token_endpoint schema validator */
+/* redirect_url, proxy_url, token_endpoint fields schema validator */
 
 type urlValidator struct{}
 
@@ -208,7 +209,7 @@ func (v urlValidator) ValidateString(ctx context.Context, request validator.Stri
 	}
 }
 
-/* national cloud deployment schema validator */
+/* national cloud deployment field schema validator */
 type nationalCloudDeploymentValidator struct{}
 
 func (v nationalCloudDeploymentValidator) Description(ctx context.Context) string {
@@ -236,4 +237,38 @@ func (v nationalCloudDeploymentValidator) ValidateString(ctx context.Context, re
 			"The field can only be set if 'national_cloud_deployment' is true.",
 		)
 	}
+}
+
+/* cloud field schema validator */
+
+// cloudValidator is a custom validator for the "cloud" attribute.
+type cloudValidator struct{}
+
+// Description returns a plain text description of the validator's behavior.
+func (v cloudValidator) Description(ctx context.Context) string {
+	return "Ensures the cloud attribute is one of 'public', 'gcc', 'gcchigh', 'china', 'dod', 'ex', or 'rx'."
+}
+
+// MarkdownDescription returns a markdown description of the validator's behavior.
+func (v cloudValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures the cloud attribute is one of `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, or `rx`."
+}
+
+// ValidateString validates the "cloud" attribute.
+func (v cloudValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	validClouds := []string{"public", "gcc", "gcchigh", "china", "dod", "ex", "rx"}
+	for _, validCloud := range validClouds {
+		if request.ConfigValue.ValueString() == validCloud {
+			return
+		}
+	}
+	response.Diagnostics.AddError(
+		"Invalid Cloud Value",
+		fmt.Sprintf("The 'cloud' attribute must be one of 'public', 'gcc', 'gcchigh', 'china', 'dod', 'ex', or 'rx'. Got: %s", request.ConfigValue.ValueString()),
+	)
+}
+
+// validateCloud returns an instance of the cloudValidator.
+func validateCloud() validator.String {
+	return cloudValidator{}
 }
