@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 
@@ -177,9 +178,11 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"cloud": schema.StringAttribute{
-				Description:         "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
-				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
-				Optional:            true,
+				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests." +
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+				Optional: true,
 				Validators: []validator.String{
 					validateCloud(),
 				},
@@ -336,18 +339,25 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		}
 	}
 	// TODO fix this and put in logic for use_proxy is true and proxy_url is not null
-	authClient := configureProxy(useProxy, proxyURL, &resp.Diagnostics)
-	if authClient == nil {
-		return
-	}
+	clientOptions := policy.ClientOptions{}
+	if useProxy && proxyURL != "" {
+		proxyURLParsed, err := url.Parse(proxyURL)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Proxy URL",
+				fmt.Sprintf("Failed to parse the provided proxy URL '%s': %s. "+
+					"Ensure the URL is correctly formatted.", proxyURL, err.Error()),
+			)
+			return
+		}
 
-	clientOptions := policy.ClientOptions{
-		Transport: authClient.Transport,
-	}
+		authClient := &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURLParsed),
+			},
+		}
 
-	// Set cloud configuration for national cloud deployments
-	if nationalCloudDeployment && nationalCloudDeploymentTokenEndpoint != "" {
-		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint // TODO implement approach for all clouds types.
+		clientOptions.Transport = authClient
 	}
 
 	cred, err = createCredential(ctx, data, clientOptions)
@@ -372,17 +382,17 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	clientOptionsGraph := msgraphgocore.GraphClientOptions{}
-	middleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&clientOptionsGraph)
+	defaultClientOptions := msgraphsdk.GetDefaultClientOptions()
+	defaultMiddleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&defaultClientOptions)
 
 	if enableChaos {
 		chaosHandler := khttp.NewChaosHandler()
-		middleware = append(middleware, chaosHandler)
+		defaultMiddleware = append(defaultMiddleware, chaosHandler)
 	}
 
 	var httpClient *http.Client
-	if useProxy {
-		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, middleware...)
+	if useProxy && proxyURL != "" {
+		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, defaultMiddleware...)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create HTTP client with proxy settings",
@@ -393,7 +403,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			return
 		}
 	} else {
-		httpClient = khttp.GetDefaultClient(middleware...)
+		httpClient = khttp.GetDefaultClient(defaultMiddleware...)
 	}
 
 	var stableAdapter *msgraphsdk.GraphRequestAdapter
