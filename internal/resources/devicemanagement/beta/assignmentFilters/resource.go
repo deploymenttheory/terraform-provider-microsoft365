@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -130,15 +131,18 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Read:   true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -147,6 +151,15 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	createTimeout, diags := data.timeouts.Create(ctx, 1*time.Minute)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, createTimeout)
+	defer cancel()
 
 	requestBody, err := constructResource(&data)
 
@@ -175,17 +188,22 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 }
 
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
-
 	var data AssignmentFilterResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	readTimeout, diags := data.Timeouts.Read(ctx, 1*time.Minute)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
 
 	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
@@ -197,12 +215,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	mapRemoteStateToTerraform(&data, remoteResource)
-
-	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
