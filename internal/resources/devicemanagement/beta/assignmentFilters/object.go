@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -12,17 +13,14 @@ import (
 func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
 	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
 
-	// Set DisplayName
 	displayName := data.DisplayName.ValueString()
 	requestBody.SetDisplayName(&displayName)
 
-	// Set Description
 	if !data.Description.IsNull() {
 		description := data.Description.ValueString()
 		requestBody.SetDescription(&description)
 	}
 
-	// Set Platform
 	if !data.Platform.IsNull() {
 		platformStr := data.Platform.ValueString()
 		platform, err := models.ParseDevicePlatformType(platformStr)
@@ -34,11 +32,9 @@ func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAp
 		}
 	}
 
-	// Set Rule
 	rule := data.Rule.ValueString()
 	requestBody.SetRule(&rule)
 
-	// Set AssignmentFilterManagementType
 	if !data.AssignmentFilterManagementType.IsNull() {
 		assignmentFilterManagementTypeStr := data.AssignmentFilterManagementType.ValueString()
 		assignmentFilterManagementType, err := models.ParseAssignmentFilterManagementType(assignmentFilterManagementTypeStr)
@@ -50,35 +46,50 @@ func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAp
 		}
 	}
 
-	// Set RoleScopeTags
-	if !data.RoleScopeTags.IsNull() {
-		var roleScopeTags []string
-		for _, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags = append(roleScopeTags, tag.(types.String).Value)
+	if !data.RoleScopeTags.IsNull() && len(data.RoleScopeTags.Elements()) > 0 {
+		roleScopeTags := make([]string, len(data.RoleScopeTags.Elements()))
+		for i, tag := range data.RoleScopeTags.Elements() {
+			roleScopeTags[i] = tag.(types.String).ValueString()
 		}
 		requestBody.SetRoleScopeTags(roleScopeTags)
 	}
 
-	// Set Payloads
-	if !data.Payloads.IsNull() {
-		var payloads []models.PayloadByFilterable
-		for _, payloadElement := range data.Payloads.Elements() {
-			payload := payloadElement.(types.Object)
-			payloadID := payload.Attributes["payload_id"].(types.String).ValueString()
-			payloadType := payload.Attributes["payload_type"].(types.String).ValueString()
-			groupID := payload.Attributes["group_id"].(types.String).ValueString()
-			assignmentFilterType := payload.Attributes["assignment_filter_type"].(types.String).ValueString()
-
-			payloadModel := models.NewPayloadCompatibleAssignmentFilter()
-			payloadModel.SetPayloadId(&payloadID)
-			payloadModel.SetPayloadType(&payloadType)
-			payloadModel.SetGroupId(&groupID)
-			payloadModel.SetAssignmentFilterType(&assignmentFilterType)
-
-			payloads = append(payloads, payloadModel)
-		}
+	payloads, err := convertPayloads(data.Payloads)
+	if err != nil {
+		return nil, err
+	}
+	if payloads != nil {
 		requestBody.SetPayloads(payloads)
 	}
 
 	return requestBody, nil
+}
+
+// convertPayloads
+func convertPayloads(payloads types.List) ([]models.PayloadByFilterable, error) {
+	if payloads.IsNull() || len(payloads.Elements()) == 0 {
+		return nil, nil
+	}
+
+	result := make([]models.PayloadByFilterable, len(payloads.Elements()))
+	for i, elem := range payloads.Elements() {
+		payloadElem := elem.(types.Object)
+		payload := models.NewPayloadByFilter()
+
+		common.SetStringValueFromAttributes(payloadElem.Attributes(), "payload_id", payload.SetPayloadId)
+		if err := common.SetParsedValueFromAttributes(payloadElem.Attributes(), "payload_type", func(val *models.AssociatedAssignmentPayloadType) {
+			payload.SetPayloadType(val)
+		}, models.ParseAssociatedAssignmentPayloadType); err != nil {
+			return nil, fmt.Errorf("invalid payload type: %s", err)
+		}
+		common.SetStringValueFromAttributes(payloadElem.Attributes(), "group_id", payload.SetGroupId)
+		if err := common.SetParsedValueFromAttributes(payloadElem.Attributes(), "assignment_filter_type", func(val *models.DeviceAndAppManagementAssignmentFilterType) {
+			payload.SetAssignmentFilterType(val)
+		}, models.ParseAssociatedAssignmentPayloadType); err != nil {
+			return nil, fmt.Errorf("invalid assignment filter type: %s", err)
+		}
+
+		result[i] = payload
+	}
+	return result, nil
 }
