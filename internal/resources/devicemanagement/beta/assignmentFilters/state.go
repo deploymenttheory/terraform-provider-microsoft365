@@ -30,4 +30,45 @@ func setTerraformState(data *AssignmentFilterResourceModel, filter models.Device
 		data.RoleScopeTags = roleScopeTagsList
 	}
 
+	// Set Payloads
+	payloads := filter.GetPayloads()
+	if payloads != nil {
+		payloadList := make([]attr.Value, len(payloads))
+		for i, payload := range payloads {
+			payloadType := string(*payload.GetPayloadType())
+			assignmentFilterType := string(*payload.GetAssignmentFilterType())
+			payloadMap := map[string]attr.Value{
+				"payload_id":             types.StringValue(*payload.GetPayloadId()),
+				"payload_type":           types.StringValue(payloadType),
+				"group_id":               types.StringValue(*payload.GetGroupId()),
+				"assignment_filter_type": types.StringValue(assignmentFilterType),
+			}
+			payloadList[i] = types.ObjectValueMust(map[string]attr.Type{
+				"payload_id":             types.StringType,
+				"payload_type":           types.StringType,
+				"group_id":               types.StringType,
+				"assignment_filter_type": types.StringType,
+			}, payloadMap)
+		}
+		payloadsList := types.ListValueMust(types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"payload_id":             types.StringType,
+				"payload_type":           types.StringType,
+				"group_id":               types.StringType,
+				"assignment_filter_type": types.StringType,
+			},
+		}, payloadList)
+		data.Payloads = payloadsList
+	} else {
+		payloadsList := types.ListValueMust(types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"payload_id":             types.StringType,
+				"payload_type":           types.StringType,
+				"group_id":               types.StringType,
+				"assignment_filter_type": types.StringType,
+			},
+		}, []attr.Value{})
+		data.Payloads = payloadsList
+	}
+
 }

@@ -122,7 +122,10 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 						},
 						"assignment_filter_type": schema.StringAttribute{
 							Required:    true,
-							Description: "The assignment filter type.",
+							Description: fmt.Sprintf("The assignment filter type. Supported types: %v", getAllAssignmentFilterTypes()),
+							Validators: []validator.String{
+								assignmentFilterTypeValidator{},
+							},
 						},
 					},
 				},
