@@ -171,7 +171,6 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
@@ -194,18 +193,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	data.DisplayName = types.StringValue(*filter.GetDisplayName())
-	data.Description = types.StringValue(*filter.GetDescription())
-	platformStr, err := DevicePlatformTypeToString(filter.GetPlatform())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not convert platform: %s", err.Error()),
-		)
-		return
-	}
-	data.Platform = types.StringValue(platformStr)
-	data.Rule = types.StringValue(*filter.GetRule())
+	setTerraformState(&data, filter, resp)
 
 	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
 

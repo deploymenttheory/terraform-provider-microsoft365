@@ -2,6 +2,7 @@ package assignmentFilter
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
