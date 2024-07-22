@@ -61,3 +61,41 @@ func getAllPlatformStrings() []string {
 	}
 	return platformStrings
 }
+
+// assignmentFilterManagementTypeValidator is the custom validator type
+type assignmentFilterManagementTypeValidator struct{}
+
+// ValidateString performs the validation.
+func (v assignmentFilterManagementTypeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+
+	validTypes := getAllManagementTypeStrings()
+	value := req.ConfigValue.ValueString()
+	for _, validType := range validTypes {
+		if value == validType {
+			return
+		}
+	}
+
+	resp.Diagnostics.AddError(
+		"Invalid Assignment Filter Management Type",
+		fmt.Sprintf("The management type '%s' is not valid. Supported types: %v", value, validTypes),
+	)
+}
+
+// Description describes the validation in plain text.
+func (v assignmentFilterManagementTypeValidator) Description(ctx context.Context) string {
+	return "must be a valid assignment filter management type"
+}
+
+// MarkdownDescription describes the validation in Markdown.
+func (v assignmentFilterManagementTypeValidator) MarkdownDescription(ctx context.Context) string {
+	return "must be a valid assignment filter management type"
+}
+
+// getAllManagementTypeStrings returns all the valid management type strings
+func getAllManagementTypeStrings() []string {
+	return []string{"devices", "apps", "unknownFutureValue"}
+}

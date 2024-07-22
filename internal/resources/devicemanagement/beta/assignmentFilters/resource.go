@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta
 package assignmentFilter
 
 import (
@@ -10,24 +11,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 var _ resource.Resource = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
+func NewUserResource() resource.Resource {
+	return &AssignmentFilterResource{
+		ProviderTypeName: "microsoft365",
+		TypeName:         "_device_and_app_management_assignment_filter",
+	}
+}
+
 type AssignmentFilterResource struct {
-	client *msgraphbetasdk.GraphServiceClient
+	client           *msgraphbetasdk.GraphServiceClient
+	ProviderTypeName string
+	TypeName         string
 }
 
 type AssignmentFilterResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	DisplayName types.String `tfsdk:"display_name"`
-	Description types.String `tfsdk:"description"`
-	Platform    types.String `tfsdk:"platform"`
-	Rule        types.String `tfsdk:"rule"`
+	ID                             types.String `tfsdk:"id"`
+	DisplayName                    types.String `tfsdk:"display_name"`
+	Description                    types.String `tfsdk:"description"`
+	Platform                       types.String `tfsdk:"platform"`
+	Rule                           types.String `tfsdk:"rule"`
+	AssignmentFilterManagementType types.String `tfsdk:"assignment_filter_management_type"`
+	CreatedDateTime                types.String `tfsdk:"created_date_time"`
+	LastModifiedDateTime           types.String `tfsdk:"last_modified_date_time"`
+	RoleScopeTags                  types.List   `tfsdk:"role_scope_tags"`
+	Payloads                       types.List   `tfsdk:"payloads"`
 }
 
 // Metadata returns the resource type name.
@@ -54,18 +69,63 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
-				Description: "The description of the assignment filter.",
+				Description: "The optional description of the assignment filter.",
 			},
 			"platform": schema.StringAttribute{
 				Required:    true,
-				Description: "The platform for the assignment filter.",
+				Description: fmt.Sprintf("The Intune device management type (platform) for the assignment filter. Supported types: %v", getAllPlatformStrings()),
 				Validators: []validator.String{
 					platformValidator{},
 				},
 			},
 			"rule": schema.StringAttribute{
 				Required:    true,
-				Description: "The rule for the assignment filter.",
+				Description: "Rule definition of the assignment filter.",
+			},
+			"assignment_filter_management_type": schema.StringAttribute{
+				Optional:    true,
+				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %v. Default filter will be applied to 'devices'.", getAllManagementTypeStrings()),
+				Validators: []validator.String{
+					assignmentFilterManagementTypeValidator{},
+				},
+			},
+
+			"created_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The creation time of the assignment filter.",
+			},
+			"last_modified_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "Last modified time of the assignment filter.",
+			},
+			"role_scope_tags": schema.ListAttribute{
+				Optional:    true,
+				Description: "Indicates role scope tags assigned for the assignment filter.",
+				ElementType: types.StringType,
+			},
+			"payloads": schema.ListNestedAttribute{
+				Optional:    true,
+				Description: "Indicates associated assignments for a specific filter.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"payload_id": schema.StringAttribute{
+							Required:    true,
+							Description: "The ID of the payload.",
+						},
+						"payload_type": schema.StringAttribute{
+							Required:    true,
+							Description: "The type of the payload.",
+						},
+						"group_id": schema.StringAttribute{
+							Required:    true,
+							Description: "The group ID associated with the payload.",
+						},
+						"assignment_filter_type": schema.StringAttribute{
+							Required:    true,
+							Description: "The assignment filter type.",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -73,38 +133,27 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	requestBody, err := constructResource(&data)
 
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
-
-	platformStr := data.Platform.ValueString()
-	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating assignment filter",
-			fmt.Sprintf("Invalid platform: %s", err.Error()),
+			"Error constructing assignment filter",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
-	requestBody.SetPlatform(platform)
-
-	rule := data.Rule.ValueString()
-	requestBody.SetRule(&rule)
-
-	roleScopeTags := []string{"0"}
-	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
 	if err != nil {
@@ -116,15 +165,20 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	data.ID = types.StringValue(*assignmentFilter.GetId())
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -139,19 +193,13 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	data.DisplayName = types.StringValue(*filter.GetDisplayName())
-	data.Description = types.StringValue(*filter.GetDescription())
-	platformStr, err := DevicePlatformTypeToString(filter.GetPlatform())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not convert platform: %s", err.Error()),
-		)
-		return
-	}
-	data.Platform = types.StringValue(platformStr)
-	data.Rule = types.StringValue(*filter.GetRule())
+	setTerraformState(&data, filter, resp)
+
+	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with id %s", r.ProviderTypeName, data.ID.ValueString()))
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished read of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
@@ -160,34 +208,23 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	requestBody, err := constructResource(&data)
 
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
-
-	platformStr := data.Platform.ValueString()
-	platform, err := StringToDevicePlatformType(platformStr, supportedPlatformTypes)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating assignment filter",
-			fmt.Sprintf("Invalid platform: %s", err.Error()),
+			"Error constructing assignment filter",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
-	requestBody.SetPlatform(platform)
-
-	rule := data.Rule.ValueString()
-	requestBody.SetRule(&rule)
-
-	roleScopeTags := []string{"0"} // Adjust if necessary
-	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
@@ -199,6 +236,8 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete handles the Delete operation.
@@ -207,6 +246,9 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	defer cancel()
 
 	var data AssignmentFilterResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -214,12 +256,11 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 
 	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting assignment filter",
-			fmt.Sprintf("Could not delete assignment filter: %s", err.Error()),
-		)
+		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Completed deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.State.RemoveResource(ctx)
 }
