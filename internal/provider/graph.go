@@ -12,20 +12,19 @@ import (
 )
 
 // configureGraphClientOptions sets up the client options for the Microsoft Graph SDK.
+// It configures the HTTP client with the default middlewares and optionally adds a chaos handler.
+// If useProxy is true, it configures the HTTP client with the provided proxy URL.
 func configureGraphClientOptions(ctx context.Context, useProxy bool, proxyURL string, enableChaos bool) (*http.Client, error) {
 	tflog.Debug(ctx, "Configuring Graph client options")
 
-	// Get default client options
 	defaultClientOptions := msgraphsdk.GetDefaultClientOptions()
 	defaultMiddleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&defaultClientOptions)
 
-	// Add chaos handler if enabled
 	if enableChaos {
 		chaosHandler := khttp.NewChaosHandler()
 		defaultMiddleware = append(defaultMiddleware, chaosHandler)
 	}
 
-	// Configure HTTP client with or without proxy settings
 	var httpClient *http.Client
 	var err error
 	if useProxy && proxyURL != "" {
