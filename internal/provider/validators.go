@@ -22,11 +22,11 @@ func (p *M365Provider) ValidateConfig(ctx context.Context, req provider.Validate
 	}
 
 	// Check if both client_certificate and client_certificate_file_path are provided.
-	if !data.ClientCertificate.IsNull() && !data.ClientCertificate.IsUnknown() &&
+	if !data.ClientCertificateBase64.IsNull() && !data.ClientCertificateBase64.IsUnknown() &&
 		!data.ClientCertificateFilePath.IsNull() && !data.ClientCertificateFilePath.IsUnknown() {
 		resp.Diagnostics.AddError(
 			"Conflicting Configuration",
-			"Only one of 'client_certificate' or 'client_certificate_file_path' can be provided. Please choose one.",
+			"Only one of 'client_certificate_base64' or 'client_certificate_file_path' can be provided. Please choose one.",
 		)
 	}
 }
@@ -87,10 +87,16 @@ func (v authMethodValidator) ValidateString(ctx context.Context, request validat
 			)
 		}
 	case "client_certificate":
-		if !isSet("certificate_path") {
+		if !isSet("client_certificate") && !isSet("client_certificate_file_path") {
 			response.Diagnostics.AddError(
 				"Invalid Configuration",
-				"The 'certificate_path' attribute must be set when 'auth_method' is 'client_certificate'.",
+				"Either 'client_certificate' or 'client_certificate_file_path' must be set when 'auth_method' is 'client_certificate'.",
+			)
+		}
+		if isSet("client_certificate") && isSet("client_certificate_file_path") {
+			response.Diagnostics.AddError(
+				"Invalid Configuration",
+				"Only one of 'client_certificate' or 'client_certificate_file_path' can be set when 'auth_method' is 'client_certificate'.",
 			)
 		}
 	case "interactive_browser":

@@ -37,7 +37,7 @@ type M365ProviderModel struct {
 	AuthMethod                                 types.String `tfsdk:"auth_method"`
 	ClientID                                   types.String `tfsdk:"client_id"`
 	ClientSecret                               types.String `tfsdk:"client_secret"`
-	ClientCertificate                          types.String `tfsdk:"client_certificate"`
+	ClientCertificateBase64                    types.String `tfsdk:"client_certificate_base64"`
 	ClientCertificateFilePath                  types.String `tfsdk:"client_certificate_file_path"`
 	ClientCertificatePassword                  types.String `tfsdk:"client_certificate_password"`
 	Username                                   types.String `tfsdk:"username"`
@@ -117,7 +117,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Required for client credentials and on-behalf-of flows. " +
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
-			"client_certificate": schema.StringAttribute{
+			"client_certificate_base64": schema.StringAttribute{
 				MarkdownDescription: "Base64 encoded PKCS#12 certificate bundle. For use when authenticating as a Service Principal using a Client Certificate.",
 				Optional:            true,
 				Sensitive:           true,
@@ -254,7 +254,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	authMethod := helpers.GetEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
 	clientID := helpers.GetEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
 	clientSecret := helpers.GetEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
-	clientCertificate := helpers.GetEnvOrDefault(data.ClientCertificate.ValueString(), "M365_CLIENT_CERTIFICATE")
+	clientCertificateBase64 := helpers.GetEnvOrDefault(data.ClientCertificateBase64.ValueString(), "M365_CLIENT_CERTIFICATE_BASE64")
 	clientCertificateFilePath := helpers.GetEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
 	clientCertificatePassword := helpers.GetEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
 	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
@@ -280,10 +280,10 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_token_endpoint", nationalCloudDeploymentTokenEndpoint)
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_service_endpoint_root", nationalCloudDeploymentServiceEndpointRoot)
 
-	ctx = tflog.SetField(ctx, "client_certificate", clientCertificate)
+	ctx = tflog.SetField(ctx, "client_certificate_base64", clientCertificateBase64)
 	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
 	ctx = tflog.SetField(ctx, "client_certificate_password", clientCertificatePassword)
-	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate`))
+	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate_base64`))
 
 	ctx = tflog.SetField(ctx, "username", username)
 	ctx = tflog.SetField(ctx, "password", password)

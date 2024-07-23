@@ -110,9 +110,9 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 		var key interface{}
 		var err error
 
-		if !data.ClientCertificate.IsNull() {
+		if !data.ClientCertificateBase64.IsNull() {
 			tflog.Debug(ctx, "Using base64 encoded client certificate")
-			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificate.ValueString(), data.ClientCertificatePassword.ValueString())
+			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateBase64.ValueString(), data.ClientCertificatePassword.ValueString())
 		} else if !data.ClientCertificateFilePath.IsNull() {
 			tflog.Debug(ctx, "Using client certificate file path")
 			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateFilePath.ValueString(), data.ClientCertificatePassword.ValueString())
