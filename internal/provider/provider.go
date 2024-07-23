@@ -68,9 +68,11 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			}, // TODO
 			"cloud": schema.StringAttribute{
 				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
-					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
+					"Can also be set using the `M365_CLOUD` environment variable.",
 				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests." +
-					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
+					"Can also be set using the `M365_CLOUD` environment variable.",
 				Required: true,
 				Validators: []validator.String{
 					validateCloud(),
@@ -79,8 +81,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"auth_method": schema.StringAttribute{
 				Optional: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
-					"Options: 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', " +
-					"'interactive_browser', 'username_password'.",
+					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
+					"'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					validateAuthMethod(),
 				},
@@ -118,32 +120,41 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"client_certificate_base64": schema.StringAttribute{
-				MarkdownDescription: "Base64 encoded PKCS#12 certificate bundle. For use when authenticating as a Service Principal using a Client Certificate.",
-				Optional:            true,
-				Sensitive:           true,
+				MarkdownDescription: "Base64 encoded PKCS#12 certificate bundle. For use when" +
+					"authenticating as a Service Principal using a Client Certificate. Can also be" +
+					"set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable.",
+				Optional:  true,
+				Sensitive: true,
 			},
 			"client_certificate_file_path": schema.StringAttribute{
-				MarkdownDescription: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
-				Optional:            true,
-				Sensitive:           true,
+				MarkdownDescription: "The path to the Client Certificate associated with the Service" +
+					"Principal for use when authenticating as a Service Principal using a Client Certificate." +
+					"Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
+				Optional:  true,
+				Sensitive: true,
 			},
 			"client_certificate_password": schema.StringAttribute{
-				MarkdownDescription: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
-				Optional:            true,
-				Sensitive:           true,
+				MarkdownDescription: "The password associated with the Client Certificate. For use when" +
+					"authenticating as a Service Principal using a Client Certificate. Can also be set using" +
+					"the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
+				Optional:  true,
+				Sensitive: true,
 			},
 			"username": schema.StringAttribute{
-				Optional:    true,
-				Description: "The username for username/password authentication.",
+				Optional: true,
+				Description: "The username for username/password authentication. Can also be set using the" +
+					"`M365_USERNAME` environment variable.",
 			},
 			"password": schema.StringAttribute{
-				Optional:    true,
-				Sensitive:   true,
-				Description: "The password for username/password authentication.",
+				Optional:  true,
+				Sensitive: true,
+				Description: "The password for username/password authentication. Can also be set using the" +
+					"`M365_PASSWORD` environment variable.",
 			},
 			"redirect_url": schema.StringAttribute{
-				Optional:    true,
-				Description: "The redirect URL for interactive browser authentication.",
+				Optional: true,
+				Description: "The redirect URL for interactive browser authentication. Can also be set using" +
+					"the `M365_REDIRECT_URL` environment variable.",
 				Validators: []validator.String{
 					validateURL(),
 				},
@@ -152,7 +163,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional: true,
 				Description: "Enables the use of an HTTP proxy for network requests. When set to true, the provider will " +
 					"route all HTTP requests through the specified proxy server. This can be useful for environments that " +
-					"require proxy access for internet connectivity or for monitoring and logging HTTP traffic.",
+					"require proxy access for internet connectivity or for monitoring and logging HTTP traffic. Can also be " +
+					"set using the `M365_USE_PROXY` environment variable.",
 				Validators: []validator.Bool{
 					validateUseProxy(),
 				},
@@ -162,7 +174,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "Specifies the URL of the HTTP proxy server. This URL should be in a valid URL format " +
 					"(e.g., 'http://proxy.example.com:8080'). When 'use_proxy' is enabled, this URL is used to configure the " +
 					"HTTP client to route requests through the proxy. Ensure the proxy server is reachable and correctly " +
-					"configured to handle the network traffic.",
+					"configured to handle the network traffic. Can also be set using the `M365_PROXY_URL` environment variable.",
 				Validators: []validator.String{
 					validateURL(),
 				},
@@ -170,14 +182,17 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"national_cloud_deployment": schema.BoolAttribute{
 				Optional: true,
 				Description: "Set to true if connecting to Microsoft Graph national cloud deployments. (Microsoft" +
-					"Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.)",
+					"Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.) " +
+					"Can also be set using the `M365_NATIONAL_CLOUD_DEPLOYMENT` environment variable.",
 			},
 			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
 				Optional: true,
 				Description: "By default, the provider is configured to access data in the Microsoft Graph" +
 					"global service, using the https://login.microsoftonline.com root URL to access the Microsoft" +
 					"Graph REST API. This field overrides this configuration to connect to Microsoft Graph national" +
-					"cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+					"cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 " +
+					"operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments. Can also be " +
+					"set using the `M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT` environment variable.",
 				Validators: []validator.String{
 					validateURL(),
 					validateNationalCloudDeployment(),
@@ -189,7 +204,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 /" +
 					"https://graph.microsoft.com/beta).This field overrides this configuration to connect to " +
 					"Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft" +
-					"Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments",
+					"Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments." +
+					"Can also be set using the `M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT` environment variable.",
 				Validators: []validator.String{
 					validateURL(),
 					validateNationalCloudDeployment(),
@@ -202,11 +218,14 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"and random errors in API responses to help test the robustness and resilience " +
 					"of the terraform provider against intermittent issues. This is particularly useful " +
 					"for testing how the provider handles various error conditions and ensures " +
-					"it can recover gracefully. Use with caution in production environments.",
+					"it can recover gracefully. Use with caution in production environments. " +
+					"Can also be set using the `M365_ENABLE_CHAOS` environment variable.",
 			}, "telemetry_optout": schema.BoolAttribute{
-				Description:         "Flag to indicate whether to opt out of telemetry. Default is `false`",
-				MarkdownDescription: "Flag to indicate whether to opt out of telemetry. Default is `false`",
-				Optional:            true,
+				Description: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
+					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
+				MarkdownDescription: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
+					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
+				Optional: true,
 			},
 		},
 	}
