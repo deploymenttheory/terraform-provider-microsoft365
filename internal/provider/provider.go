@@ -409,3 +409,13 @@ func New(version string) func() provider.Provider {
 		}
 	}
 }
+
+// Helper method to extract GraphClients from the provider data.
+func (p *M365Provider) getClients(ctx context.Context) (*GraphClients, bool) {
+	if p.clients == nil {
+		tflog.Error(ctx, "Clients are not initialized in the provider")
+		return nil, false
+	}
+	tflog.Debug(ctx, "Clients retrieved successfully from the provider")
+	return p.clients, true
+}
