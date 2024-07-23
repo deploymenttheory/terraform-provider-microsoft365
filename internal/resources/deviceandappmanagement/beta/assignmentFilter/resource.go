@@ -20,10 +20,13 @@ import (
 var _ resource.Resource = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
-func NewUserResource() resource.Resource {
-	return &AssignmentFilterResource{
-		ProviderTypeName: "microsoft365",
-		TypeName:         "_device_and_app_management_assignment_filter",
+func NewAssignmentFilterResource(betaClient *msgraphbetasdk.GraphServiceClient) func() resource.Resource {
+	return func() resource.Resource {
+		return &AssignmentFilterResource{
+			client:           betaClient,
+			ProviderTypeName: "microsoft365",
+			TypeName:         "device_and_app_management_assignment_filter",
+		}
 	}
 }
 

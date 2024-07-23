@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -17,7 +18,13 @@ import (
 //
 //	[]func() resource.Resource: A slice of functions, each returning a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
+	clients, ok := p.getClients(ctx)
+	if !ok {
+		return nil
+	}
+
 	return []func() resource.Resource{
-		// Add microsoft 365 provider resources here
+		assignmentFilter.NewAssignmentFilterResource(clients.BetaClient),
+		// Add other Microsoft 365 provider resources here, using the appropriate client.
 	}
 }
