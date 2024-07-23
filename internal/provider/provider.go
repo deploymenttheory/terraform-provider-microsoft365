@@ -40,12 +40,9 @@ type M365ProviderModel struct {
 	ClientCertificate                          types.String `tfsdk:"client_certificate"`
 	ClientCertificateFilePath                  types.String `tfsdk:"client_certificate_file_path"`
 	ClientCertificatePassword                  types.String `tfsdk:"client_certificate_password"`
-	UserAssertion                              types.String `tfsdk:"user_assertion"`
 	Username                                   types.String `tfsdk:"username"`
 	Password                                   types.String `tfsdk:"password"`
 	RedirectURL                                types.String `tfsdk:"redirect_url"`
-	Token                                      types.String `tfsdk:"token"`
-	UseGraphBeta                               types.Bool   `tfsdk:"use_graph_beta"`
 	UseProxy                                   types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                                   types.String `tfsdk:"proxy_url"`
 	Cloud                                      types.String `tfsdk:"cloud"`
@@ -150,12 +147,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Validators: []validator.String{
 					validateURL(),
 				},
-			},
-			"use_graph_beta": schema.BoolAttribute{
-				Optional: true,
-				Description: "When set to true, the provider will use the beta version of the Microsoft Graph API " +
-					"(https://graph.microsoft.com/beta). When set to false or not set, the provider will use the stable " +
-					"version of the Microsoft Graph API (https://graph.microsoft.com/v1.0).",
 			},
 			"use_proxy": schema.BoolAttribute{
 				Optional: true,
@@ -269,7 +260,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
 	password := helpers.GetEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
 	redirectURL := helpers.GetEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
-	useGraphBeta := helpers.GetEnvOrDefaultBool(data.UseGraphBeta.ValueBool(), "M365_USE_GRAPH_BETA")
 	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
 	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
 	enableChaos := helpers.GetEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
@@ -280,7 +270,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	telemetryOptout := helpers.GetEnvOrDefaultBool(data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
 
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
-	ctx = tflog.SetField(ctx, "use_graph_beta", useGraphBeta)
 	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
 	ctx = tflog.SetField(ctx, "redirect_url", redirectURL)
 	ctx = tflog.SetField(ctx, "cloud", cloud)
