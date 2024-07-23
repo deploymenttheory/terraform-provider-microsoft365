@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -12,10 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	khttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
-	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
 )
 
@@ -364,28 +361,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	defaultClientOptions := msgraphsdk.GetDefaultClientOptions()
-	defaultMiddleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&defaultClientOptions)
-
-	if enableChaos {
-		chaosHandler := khttp.NewChaosHandler()
-		defaultMiddleware = append(defaultMiddleware, chaosHandler)
-	}
-
-	var httpClient *http.Client
-	if useProxy && proxyURL != "" {
-		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, defaultMiddleware...)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to create HTTP client with proxy settings",
-				fmt.Sprintf("An error occurred while attempting to create the HTTP client with the provided proxy settings. "+
-					"This might be due to an invalid proxy URL, issues with the proxy server, or other network-related problems. "+
-					"Please verify the proxy URL and your network connection. Detailed error: %s", err.Error()),
-			)
-			return
-		}
-	} else {
-		httpClient = khttp.GetDefaultClient(defaultMiddleware...)
+	httpClient, err := configureGraphClientOptions(ctx, useProxy, proxyURL, enableChaos)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to configure Graph client options",
+			fmt.Sprintf("An error occurred while attempting to configure the Microsoft Graph client options. Detailed error: %s", err.Error()),
+		)
+		return
 	}
 
 	var stableAdapter *msgraphsdk.GraphRequestAdapter
