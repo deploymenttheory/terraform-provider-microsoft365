@@ -58,7 +58,6 @@ func (v authMethodValidator) ValidateString(ctx context.Context, request validat
 		"device_code":         true,
 		"client_secret":       true,
 		"client_certificate":  true,
-		"on_behalf_of":        true,
 		"interactive_browser": true,
 		"username_password":   true,
 	}
@@ -66,7 +65,7 @@ func (v authMethodValidator) ValidateString(ctx context.Context, request validat
 	if _, valid := validAuthMethods[authMethod.ValueString()]; !valid {
 		response.Diagnostics.AddError(
 			"Invalid Authentication Method",
-			"The 'auth_method' must be one of 'device_code', 'client_secret', 'client_certificate', 'on_behalf_of', 'interactive_browser', 'username_password'.",
+			"The 'auth_method' must be one of 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'username_password'.",
 		)
 		return
 	}
@@ -92,13 +91,6 @@ func (v authMethodValidator) ValidateString(ctx context.Context, request validat
 			response.Diagnostics.AddError(
 				"Invalid Configuration",
 				"The 'certificate_path' attribute must be set when 'auth_method' is 'client_certificate'.",
-			)
-		}
-	case "on_behalf_of":
-		if !isSet("client_secret") || !isSet("user_assertion") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"The 'client_secret' and 'user_assertion' attributes must be set when 'auth_method' is 'on_behalf_of'.",
 			)
 		}
 	case "interactive_browser":

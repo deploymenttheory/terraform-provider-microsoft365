@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=go#on-behalf-of-provider
 package provider
 
 import (
@@ -124,15 +125,6 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 		}
 
 		return azidentity.NewClientCertificateCredential(data.TenantID.ValueString(), data.ClientID.ValueString(), certs, key, &azidentity.ClientCertificateCredentialOptions{
-			ClientOptions: clientOptions,
-		})
-	case "on_behalf_of":
-		tflog.Debug(ctx, "Obtaining OnBehalfOf Credential With Secret", map[string]interface{}{
-			"tenant_id": data.TenantID.ValueString(),
-			"client_id": data.ClientID.ValueString(),
-		})
-		userAssertion := data.UserAssertion.ValueString()
-		return azidentity.NewOnBehalfOfCredentialWithSecret(data.TenantID.ValueString(), data.ClientID.ValueString(), userAssertion, data.ClientSecret.ValueString(), &azidentity.OnBehalfOfCredentialOptions{
 			ClientOptions: clientOptions,
 		})
 	case "interactive_browser":

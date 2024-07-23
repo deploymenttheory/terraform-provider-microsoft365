@@ -68,7 +68,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description:         "Flag to indicate whether to use the CLI for authentication",
 				MarkdownDescription: "Flag to indicate whether to use the CLI for authentication. ",
 				Optional:            true,
-			},
+			}, // TODO
 			"cloud": schema.StringAttribute{
 				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
 					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
@@ -134,10 +134,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				MarkdownDescription: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate.",
 				Optional:            true,
 				Sensitive:           true,
-			},
-			"user_assertion": schema.StringAttribute{
-				Optional:    true,
-				Description: "The user assertion for on-behalf-of authentication.",
 			},
 			"username": schema.StringAttribute{
 				Optional:    true,
@@ -270,7 +266,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	clientCertificate := helpers.GetEnvOrDefault(data.ClientCertificate.ValueString(), "M365_CLIENT_CERTIFICATE")
 	clientCertificateFilePath := helpers.GetEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
 	clientCertificatePassword := helpers.GetEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
-	userAssertion := helpers.GetEnvOrDefault(data.UserAssertion.ValueString(), "M365_USER_ASSERTION")
 	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
 	password := helpers.GetEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
 	redirectURL := helpers.GetEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
@@ -296,7 +291,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_token_endpoint", nationalCloudDeploymentTokenEndpoint)
 	ctx = tflog.SetField(ctx, "national_cloud_deployment_service_endpoint_root", nationalCloudDeploymentServiceEndpointRoot)
 
-	ctx = tflog.SetField(ctx, "user_assertion", userAssertion)
 	ctx = tflog.SetField(ctx, "client_certificate", clientCertificate)
 	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
 	ctx = tflog.SetField(ctx, "client_certificate_password", clientCertificatePassword)
