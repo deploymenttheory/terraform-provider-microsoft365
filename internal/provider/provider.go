@@ -89,7 +89,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"tenant_id": schema.StringAttribute{
-				Required: true,
+				Required:  true,
+				Sensitive: true,
 				Description: "The M365 tenant ID for the Entra ID application. " +
 					"This ID uniquely identifies your Entra ID (EID) instance. " +
 					"It can be found in the Azure portal under Entra ID > Properties. " +
@@ -99,7 +100,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"client_id": schema.StringAttribute{
-				Optional: true,
+				Optional:  true,
+				Sensitive: true,
 				Description: "The client ID for the Entra ID application. " +
 					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
 					"and can be found under App registrations > YourApp > Overview. " +
