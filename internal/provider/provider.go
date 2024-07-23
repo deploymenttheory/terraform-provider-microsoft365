@@ -320,11 +320,10 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
-	// set microsoft cloud specific constants
 	authorityURL, apiScope, err := setCloudConstants(cloud)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Invalid Cloud Type",
+			"Invalid Microsoft Cloud Type",
 			fmt.Sprintf("An error occurred while attempting to get cloud constants for cloud type '%s'. "+
 				"Please ensure the cloud type is valid. Detailed error: %s", cloud, err.Error()),
 		)
@@ -334,7 +333,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "authority_url", authorityURL)
 	ctx = tflog.SetField(ctx, "api_scope", apiScope)
 
-	clientOptions, err := configureEntraIDClientOptions(useProxy, proxyURL, authorityURL, telemetryOptout)
+	clientOptions, err := configureEntraIDClientOptions(ctx, useProxy, proxyURL, authorityURL, telemetryOptout)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to configure client options",

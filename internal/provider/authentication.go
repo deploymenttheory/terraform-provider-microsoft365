@@ -17,7 +17,9 @@ import (
 )
 
 // configureEntraIDClientOptions configures the client options for Entra ID
-func configureEntraIDClientOptions(useProxy bool, proxyURL string, authorityURL string, telemetryOptout bool) (policy.ClientOptions, error) {
+func configureEntraIDClientOptions(ctx context.Context, useProxy bool, proxyURL string, authorityURL string, telemetryOptout bool) (policy.ClientOptions, error) {
+	tflog.Debug(ctx, "Configuring Entra ID client options")
+
 	clientOptions := policy.ClientOptions{}
 
 	if useProxy && proxyURL != "" {
@@ -67,6 +69,7 @@ func configureEntraIDClientOptions(useProxy bool, proxyURL string, authorityURL 
 			http.StatusGatewayTimeout,
 		},
 	}
+	tflog.Debug(ctx, "Configured Entra ID client options")
 
 	return clientOptions, nil
 }
@@ -75,7 +78,7 @@ func configureEntraIDClientOptions(useProxy bool, proxyURL string, authorityURL 
 func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	switch data.AuthMethod.ValueString() {
 	case "device_code":
-		tflog.Debug(ctx, "Creating DeviceCodeCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Device Code Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -89,7 +92,7 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "client_secret":
-		tflog.Debug(ctx, "Creating ClientSecretCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Client Secret Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -97,7 +100,7 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "client_certificate":
-		tflog.Debug(ctx, "Creating ClientCertificateCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Client Certificate Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -124,7 +127,7 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "on_behalf_of":
-		tflog.Debug(ctx, "Creating OnBehalfOfCredentialWithSecret", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining OnBehalfOf Credential With Secret", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -133,7 +136,7 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "interactive_browser":
-		tflog.Debug(ctx, "Creating InteractiveBrowserCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Interactive Browser Credential", map[string]interface{}{
 			"tenant_id":    data.TenantID.ValueString(),
 			"client_id":    data.ClientID.ValueString(),
 			"redirect_url": data.RedirectURL.ValueString(),
@@ -146,7 +149,7 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "username_password":
-		tflog.Debug(ctx, "Creating UsernamePasswordCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Username / Password Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
