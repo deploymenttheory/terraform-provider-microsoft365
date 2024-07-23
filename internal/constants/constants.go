@@ -30,10 +30,14 @@ const (
 	CHINA_GRAPH_BETA_API_SERVICE_ROOT = "https://microsoftgraph.chinacloudapi.cn/beta"
 
 	// EagleX Cloud
-	EX_OAUTH_AUTHORITY_URL = "https://login.microsoftonline.eaglex.ic.gov/"
-	EX_GRAPH_API_SCOPE     = "https://graph.eaglex.ic.gov/.default"
+	EX_OAUTH_AUTHORITY_URL         = "https://login.microsoftonline.eaglex.ic.gov/"
+	EX_GRAPH_API_SCOPE             = "https://graph.eaglex.ic.gov/.default"
+	EX_GRAPH_API_SERVICE_ROOT      = "https://graph.eaglex.ic.gov/v1.0"
+	EX_GRAPH_BETA_API_SERVICE_ROOT = "https://graph.eaglex.ic.gov/beta"
 
 	// Secure Cloud (RX)
-	RX_OAUTH_AUTHORITY_URL = "https://login.microsoftonline.microsoft.scloud/"
-	RX_GRAPH_API_SCOPE     = "https://graph.microsoft.scloud/.default"
+	RX_OAUTH_AUTHORITY_URL         = "https://login.microsoftonline.microsoft.scloud/"
+	RX_GRAPH_API_SCOPE             = "https://graph.microsoft.scloud/.default"
+	RX_GRAPH_API_SERVICE_ROOT      = "https://graph.microsoft.scloud/v1.0"
+	RX_GRAPH_BETA_API_SERVICE_ROOT = "https://graph.microsoft.scloud/beta"
 )

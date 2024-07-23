@@ -207,36 +207,6 @@ func (v urlValidator) ValidateString(ctx context.Context, request validator.Stri
 	}
 }
 
-/* national cloud deployment field schema validator */
-type nationalCloudDeploymentValidator struct{}
-
-func (v nationalCloudDeploymentValidator) Description(ctx context.Context) string {
-	return "Validates that the fields are set only if national_cloud_deployment is true."
-}
-
-func (v nationalCloudDeploymentValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the fields are set only if national_cloud_deployment is true."
-}
-
-func validateNationalCloudDeployment() validator.String {
-	return nationalCloudDeploymentValidator{}
-}
-
-func (v nationalCloudDeploymentValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	var nationalCloudDeployment types.Bool
-	if diags := request.Config.GetAttribute(ctx, path.Root("national_cloud_deployment"), &nationalCloudDeployment); diags.HasError() {
-		response.Diagnostics.Append(diags...)
-		return
-	}
-
-	if !nationalCloudDeployment.ValueBool() && !request.ConfigValue.IsNull() && !request.ConfigValue.IsUnknown() {
-		response.Diagnostics.AddError(
-			"Invalid Configuration",
-			"The field can only be set if 'national_cloud_deployment' is true.",
-		)
-	}
-}
-
 /* cloud field schema validator */
 
 // cloudValidator is a custom validator for the "cloud" attribute.

@@ -32,24 +32,21 @@ type GraphClients struct {
 
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
-	TenantID                                   types.String `tfsdk:"tenant_id"`
-	AuthMethod                                 types.String `tfsdk:"auth_method"`
-	ClientID                                   types.String `tfsdk:"client_id"`
-	ClientSecret                               types.String `tfsdk:"client_secret"`
-	ClientCertificateBase64                    types.String `tfsdk:"client_certificate_base64"`
-	ClientCertificateFilePath                  types.String `tfsdk:"client_certificate_file_path"`
-	ClientCertificatePassword                  types.String `tfsdk:"client_certificate_password"`
-	Username                                   types.String `tfsdk:"username"`
-	Password                                   types.String `tfsdk:"password"`
-	RedirectURL                                types.String `tfsdk:"redirect_url"`
-	UseProxy                                   types.Bool   `tfsdk:"use_proxy"`
-	ProxyURL                                   types.String `tfsdk:"proxy_url"`
-	Cloud                                      types.String `tfsdk:"cloud"`
-	NationalCloudDeployment                    types.Bool   `tfsdk:"national_cloud_deployment"`
-	NationalCloudDeploymentTokenEndpoint       types.String `tfsdk:"national_cloud_deployment_token_endpoint"`
-	NationalCloudDeploymentServiceEndpointRoot types.String `tfsdk:"national_cloud_deployment_service_endpoint_root"`
-	EnableChaos                                types.Bool   `tfsdk:"enable_chaos"`
-	TelemetryOptout                            types.Bool   `tfsdk:"telemetry_optout"`
+	TenantID                  types.String `tfsdk:"tenant_id"`
+	AuthMethod                types.String `tfsdk:"auth_method"`
+	ClientID                  types.String `tfsdk:"client_id"`
+	ClientSecret              types.String `tfsdk:"client_secret"`
+	ClientCertificateBase64   types.String `tfsdk:"client_certificate_base64"`
+	ClientCertificateFilePath types.String `tfsdk:"client_certificate_file_path"`
+	ClientCertificatePassword types.String `tfsdk:"client_certificate_password"`
+	Username                  types.String `tfsdk:"username"`
+	Password                  types.String `tfsdk:"password"`
+	RedirectURL               types.String `tfsdk:"redirect_url"`
+	UseProxy                  types.Bool   `tfsdk:"use_proxy"`
+	ProxyURL                  types.String `tfsdk:"proxy_url"`
+	Cloud                     types.String `tfsdk:"cloud"`
+	EnableChaos               types.Bool   `tfsdk:"enable_chaos"`
+	TelemetryOptout           types.Bool   `tfsdk:"telemetry_optout"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -173,38 +170,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					validateURL(),
 				},
 			},
-			"national_cloud_deployment": schema.BoolAttribute{
-				Optional: true,
-				Description: "Set to true if connecting to Microsoft Graph national cloud deployments. (Microsoft" +
-					"Cloud for US Government and Microsoft Azure and Microsoft 365 operated by 21Vianet in China.) " +
-					"Can also be set using the `M365_NATIONAL_CLOUD_DEPLOYMENT` environment variable.",
-			},
-			"national_cloud_deployment_token_endpoint": schema.StringAttribute{
-				Optional: true,
-				Description: "By default, the provider is configured to access data in the Microsoft Graph" +
-					"global service, using the https://login.microsoftonline.com root URL to access the Microsoft" +
-					"Graph REST API. This field overrides this configuration to connect to Microsoft Graph national" +
-					"cloud deployments. Microsoft Cloud for US Government and Microsoft Azure and Microsoft 365 " +
-					"operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments. Can also be " +
-					"set using the `M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT` environment variable.",
-				Validators: []validator.String{
-					validateURL(),
-					validateNationalCloudDeployment(),
-				},
-			},
-			"national_cloud_deployment_service_endpoint_root": schema.StringAttribute{
-				Optional: true,
-				Description: "The Microsoft Graph service root endpoint for the national cloud deployment." +
-					"Overrides the default Microsoft Graph service root endpoint (https://graph.microsoft.com/v1.0 /" +
-					"https://graph.microsoft.com/beta).This field overrides this configuration to connect to " +
-					"Microsoft Graph national cloud deployments. Microsoft Cloud for US Government and Microsoft" +
-					"Azure and Microsoft 365 operated by 21Vianet in China. https://learn.microsoft.com/en-gb/graph/deployments." +
-					"Can also be set using the `M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT` environment variable.",
-				Validators: []validator.String{
-					validateURL(),
-					validateNationalCloudDeployment(),
-				},
-			},
 			"enable_chaos": schema.BoolAttribute{
 				Optional: true,
 				Description: "Enable the chaos handler for testing purposes. " +
@@ -277,21 +242,14 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
 	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
 	enableChaos := helpers.GetEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
-	nationalCloudDeployment := helpers.GetEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
-	nationalCloudDeploymentTokenEndpoint := helpers.GetEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
-	nationalCloudDeploymentServiceEndpointRoot := helpers.GetEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
 	telemetryOptout := helpers.GetEnvOrDefaultBool(data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
 
+	ctx = tflog.SetField(ctx, "cloud", cloud)
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
 	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
 	ctx = tflog.SetField(ctx, "redirect_url", redirectURL)
-	ctx = tflog.SetField(ctx, "cloud", cloud)
-
 	ctx = tflog.SetField(ctx, "proxy_url", proxyURL)
 	ctx = tflog.SetField(ctx, "enable_chaos", enableChaos)
-	ctx = tflog.SetField(ctx, "national_cloud_deployment", nationalCloudDeployment)
-	ctx = tflog.SetField(ctx, "national_cloud_deployment_token_endpoint", nationalCloudDeploymentTokenEndpoint)
-	ctx = tflog.SetField(ctx, "national_cloud_deployment_service_endpoint_root", nationalCloudDeploymentServiceEndpointRoot)
 
 	ctx = tflog.SetField(ctx, "client_certificate_base64", clientCertificateBase64)
 	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
@@ -309,7 +267,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
-	authorityURL, apiScope, err := setCloudConstants(cloud)
+	authorityURL, apiScope, graphServiceRoot, graphBetaServiceRoot, err := setCloudConstants(cloud)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Microsoft Cloud Type",
@@ -321,6 +279,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	ctx = tflog.SetField(ctx, "authority_url", authorityURL)
 	ctx = tflog.SetField(ctx, "api_scope", apiScope)
+	ctx = tflog.SetField(ctx, "graph_service_root", graphServiceRoot)
+	ctx = tflog.SetField(ctx, "graph_beta_service_root", graphBetaServiceRoot)
 
 	clientOptions, err := configureEntraIDClientOptions(ctx, useProxy, proxyURL, authorityURL, telemetryOptout)
 	if err != nil {
@@ -382,11 +342,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	// Set the service root for national cloud deployments
-	if nationalCloudDeployment && nationalCloudDeploymentServiceEndpointRoot != "" {
-		stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
-		betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
-	}
+	stableAdapter.SetBaseUrl(graphServiceRoot)
+	betaAdapter.SetBaseUrl(graphBetaServiceRoot)
 
 	clients := &GraphClients{
 		StableClient: msgraphsdk.NewGraphServiceClient(stableAdapter),
