@@ -25,7 +25,7 @@ func NewAssignmentFilterResource(betaClient *msgraphbetasdk.GraphServiceClient) 
 		return &AssignmentFilterResource{
 			client:           betaClient,
 			ProviderTypeName: "microsoft365",
-			TypeName:         "device_and_app_management_assignment_filter",
+			TypeName:         "graph_beta_device_and_app_management_assignment_filter",
 		}
 	}
 }
