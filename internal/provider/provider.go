@@ -263,8 +263,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	tenantID := helpers.GetEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
+	cloud := helpers.GetEnvOrDefault(data.Cloud.ValueString(), "M365_CLOUD")
 	authMethod := helpers.GetEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
+	tenantID := helpers.GetEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
 	clientID := helpers.GetEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
 	clientSecret := helpers.GetEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
 	clientCertificateBase64 := helpers.GetEnvOrDefault(data.ClientCertificateBase64.ValueString(), "M365_CLIENT_CERTIFICATE_BASE64")
@@ -276,7 +277,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
 	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
 	enableChaos := helpers.GetEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
-	cloud := helpers.GetEnvOrDefault(data.Cloud.ValueString(), "M365_CLOUD")
 	nationalCloudDeployment := helpers.GetEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
 	nationalCloudDeploymentTokenEndpoint := helpers.GetEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
 	nationalCloudDeploymentServiceEndpointRoot := helpers.GetEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
