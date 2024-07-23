@@ -27,8 +27,8 @@ func setCloudConstants(cloud string) (string, string, string, string, error) {
 	case "gcchigh":
 		return constants.USGOVHIGH_OAUTH_AUTHORITY_URL,
 			constants.USGOVHIGH_GRAPH_API_SCOPE,
-			constants.USGOV_GRAPH_API_SERVICE_ROOT,
-			constants.USGOV_GRAPH_BETA_API_SERVICE_ROOT, nil
+			constants.USGOVHIGH_GRAPH_API_SERVICE_ROOT,
+			constants.USGOVHIGH_GRAPH_BETA_API_SERVICE_ROOT, nil
 	case "china":
 		return constants.CHINA_OAUTH_AUTHORITY_URL,
 			constants.CHINA_GRAPH_API_SCOPE,

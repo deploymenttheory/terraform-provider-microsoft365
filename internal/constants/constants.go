@@ -20,8 +20,10 @@ const (
 	USGOV_GRAPH_BETA_API_SERVICE_ROOT = "https://graph.microsoft.us/beta"
 
 	// US Government High Cloud
-	USGOVHIGH_OAUTH_AUTHORITY_URL = "https://login.microsoftonline.us/"
-	USGOVHIGH_GRAPH_API_SCOPE     = "https://graph.microsoft.us/.default"
+	USGOVHIGH_OAUTH_AUTHORITY_URL         = "https://login.microsoftonline.us/"
+	USGOVHIGH_GRAPH_API_SCOPE             = "https://graph.microsoft.us/.default"
+	USGOVHIGH_GRAPH_API_SERVICE_ROOT      = "https://graph.microsoft.us/v1.0"
+	USGOVHIGH_GRAPH_BETA_API_SERVICE_ROOT = "https://graph.microsoft.us/beta"
 
 	// China Cloud - https://learn.microsoft.com/en-us/previous-versions/office/office-365-api/api/o365-china-endpoints
 	CHINA_OAUTH_AUTHORITY_URL         = "https://login.chinacloudapi.cn/"
