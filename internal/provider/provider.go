@@ -22,6 +22,12 @@ var _ provider.Provider = &M365Provider{}
 // M365Provider defines the provider implementation.
 type M365Provider struct {
 	version string
+	clients *GraphClients
+}
+
+type GraphClients struct {
+	StableClient *msgraphsdk.GraphServiceClient
+	BetaClient   *msgraphbetasdk.GraphServiceClient
 }
 
 // M365ProviderModel describes the provider data model.
@@ -48,11 +54,6 @@ type M365ProviderModel struct {
 	NationalCloudDeploymentServiceEndpointRoot types.String `tfsdk:"national_cloud_deployment_service_endpoint_root"`
 	EnableChaos                                types.Bool   `tfsdk:"enable_chaos"`
 	TelemetryOptout                            types.Bool   `tfsdk:"telemetry_optout"`
-}
-
-type GraphClients struct {
-	StableClient *msgraphsdk.GraphServiceClient
-	BetaClient   *msgraphbetasdk.GraphServiceClient
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -393,6 +394,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		StableClient: msgraphsdk.NewGraphServiceClient(stableAdapter),
 		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
 	}
+
+	p.clients = clients
 
 	resp.DataSourceData = clients
 	resp.ResourceData = clients
