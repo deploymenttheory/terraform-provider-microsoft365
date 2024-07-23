@@ -4,19 +4,81 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// createCredential creates an Azure credential based on the provider configuration.
-func createCredential(ctx context.Context, data M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+// configureEntraIDClientOptions configures the client options for Entra ID
+func configureEntraIDClientOptions(ctx context.Context, useProxy bool, proxyURL string, authorityURL string, telemetryOptout bool) (policy.ClientOptions, error) {
+	tflog.Debug(ctx, "Configuring Entra ID client options")
+
+	clientOptions := policy.ClientOptions{}
+
+	if useProxy && proxyURL != "" {
+		proxyURLParsed, err := url.Parse(proxyURL)
+		if err != nil {
+			return clientOptions, fmt.Errorf("failed to parse the provided proxy URL '%s': %s", proxyURL, err.Error())
+		}
+
+		authClient := &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURLParsed),
+			},
+		}
+
+		clientOptions.Transport = authClient
+	}
+
+	clientOptions.Cloud = cloud.Configuration{
+		ActiveDirectoryAuthorityHost: authorityURL,
+	}
+
+	if telemetryOptout {
+		clientOptions.Telemetry.Disabled = true
+	}
+
+	clientOptions.Logging = policy.LogOptions{
+		IncludeBody: true,
+		AllowedHeaders: []string{
+			"Content-Type",
+			"Authorization",
+		},
+		AllowedQueryParams: []string{
+			"api-version",
+		},
+	}
+
+	clientOptions.Retry = policy.RetryOptions{
+		MaxRetries:    5,
+		RetryDelay:    2 * time.Second,
+		MaxRetryDelay: 30 * time.Second,
+		StatusCodes: []int{
+			http.StatusRequestTimeout,
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusBadGateway,
+			http.StatusServiceUnavailable,
+			http.StatusGatewayTimeout,
+		},
+	}
+	tflog.Debug(ctx, "Configured Entra ID client options")
+
+	return clientOptions, nil
+}
+
+// obtainCredential creates an Azure credential based on the provider configuration.
+func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	switch data.AuthMethod.ValueString() {
 	case "device_code":
-		tflog.Debug(ctx, "Creating DeviceCodeCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Device Code Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -30,7 +92,7 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "client_secret":
-		tflog.Debug(ctx, "Creating ClientSecretCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Client Secret Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -38,7 +100,7 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "client_certificate":
-		tflog.Debug(ctx, "Creating ClientCertificateCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Client Certificate Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -65,7 +127,7 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "on_behalf_of":
-		tflog.Debug(ctx, "Creating OnBehalfOfCredentialWithSecret", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining OnBehalfOf Credential With Secret", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
@@ -74,7 +136,7 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "interactive_browser":
-		tflog.Debug(ctx, "Creating InteractiveBrowserCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Interactive Browser Credential", map[string]interface{}{
 			"tenant_id":    data.TenantID.ValueString(),
 			"client_id":    data.ClientID.ValueString(),
 			"redirect_url": data.RedirectURL.ValueString(),
@@ -87,7 +149,7 @@ func createCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			ClientOptions: clientOptions,
 		})
 	case "username_password":
-		tflog.Debug(ctx, "Creating UsernamePasswordCredential", map[string]interface{}{
+		tflog.Debug(ctx, "Obtaining Username / Password Credential", map[string]interface{}{
 			"tenant_id": data.TenantID.ValueString(),
 			"client_id": data.ClientID.ValueString(),
 		})
