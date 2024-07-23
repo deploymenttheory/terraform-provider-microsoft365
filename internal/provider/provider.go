@@ -32,7 +32,6 @@ type GraphClients struct {
 
 // M365ProviderModel describes the provider data model.
 type M365ProviderModel struct {
-	UseCli                                     types.Bool   `tfsdk:"use_cli"`
 	TenantID                                   types.String `tfsdk:"tenant_id"`
 	AuthMethod                                 types.String `tfsdk:"auth_method"`
 	ClientID                                   types.String `tfsdk:"client_id"`
@@ -61,11 +60,6 @@ func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataReques
 func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"use_cli": schema.BoolAttribute{
-				Description:         "Flag to indicate whether to use the CLI for authentication",
-				MarkdownDescription: "Flag to indicate whether to use the CLI for authentication. ",
-				Optional:            true,
-			}, // TODO
 			"cloud": schema.StringAttribute{
 				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
 					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
