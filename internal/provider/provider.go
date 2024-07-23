@@ -50,6 +50,11 @@ type M365ProviderModel struct {
 	TelemetryOptout                            types.Bool   `tfsdk:"telemetry_optout"`
 }
 
+type GraphClients struct {
+	StableClient *msgraphsdk.GraphServiceClient
+	BetaClient   *msgraphbetasdk.GraphServiceClient
+}
+
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "Microsoft365"
 	resp.Version = p.version
@@ -146,14 +151,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Validators: []validator.String{
 					validateURL(),
 				},
-			},
-			"token": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
-				Description: "The auth token for the Azure AD application. Used for debug scenarios." +
-					"This allows users to either provide a token directly through the" +
-					"configuration or omit it if they prefer dynamic token acquisition." +
-					"Can also be set using the `M365_API_TOKEN` environment variable.",
 			},
 			"use_graph_beta": schema.BoolAttribute{
 				Optional: true,
@@ -274,7 +271,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
 	password := helpers.GetEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
 	redirectURL := helpers.GetEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
-	token := helpers.GetEnvOrDefault(data.Token.ValueString(), "M365_API_TOKEN")
 	useGraphBeta := helpers.GetEnvOrDefaultBool(data.UseGraphBeta.ValueBool(), "M365_USE_GRAPH_BETA")
 	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
 	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
@@ -306,9 +302,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "username", username)
 	ctx = tflog.SetField(ctx, "password", password)
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
-
-	ctx = tflog.SetField(ctx, "token", token)
-	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "token")
 
 	ctx = tflog.SetField(ctx, "tenant_id", tenantID)
 	ctx = tflog.SetField(ctx, "client_id", clientID)
@@ -370,53 +363,42 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	var stableAdapter *msgraphsdk.GraphRequestAdapter
-	var betaAdapter *msgraphbetasdk.GraphRequestAdapter
+	stableAdapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+		authProvider, nil, nil, httpClient)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to create Microsoft Graph Stable SDK Adapter",
+			fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Stable SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
+		)
+		return
+	}
 
-	if useGraphBeta {
-		betaAdapter, err = msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
-			authProvider, nil, nil, httpClient)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to create Microsoft Graph Beta SDK Adapter",
-				fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Beta SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
-			)
-			return
-		}
-	} else {
-		stableAdapter, err = msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
-			authProvider, nil, nil, httpClient)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to create Microsoft Graph Stable SDK Adapter",
-				fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Stable SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
-			)
-			return
-		}
+	betaAdapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+		authProvider, nil, nil, httpClient)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to create Microsoft Graph Beta SDK Adapter",
+			fmt.Sprintf("An error occurred while attempting to create the Microsoft Graph Beta SDK adapter. This might be due to issues with the authentication provider, HTTP client setup, or the SDK's internal components. Detailed error: %s", err.Error()),
+		)
+		return
 	}
 
 	// Set the service root for national cloud deployments
 	if nationalCloudDeployment && nationalCloudDeploymentServiceEndpointRoot != "" {
-		if useGraphBeta {
-			betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
-		} else {
-			stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
-		}
+		stableAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
+		betaAdapter.SetBaseUrl(fmt.Sprintf("%s/v1.0", nationalCloudDeploymentServiceEndpointRoot))
 	}
 
-	var client interface{}
-
-	if useGraphBeta {
-		client = msgraphbetasdk.NewGraphServiceClient(betaAdapter)
-	} else {
-		client = msgraphsdk.NewGraphServiceClient(stableAdapter)
+	clients := &GraphClients{
+		StableClient: msgraphsdk.NewGraphServiceClient(stableAdapter),
+		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
 	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
-
+	resp.DataSourceData = clients
+	resp.ResourceData = clients
 }
 
+// New returns a new provider.Provider instance for the Microsoft365 provider.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &M365Provider{
