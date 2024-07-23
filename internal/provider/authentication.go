@@ -4,16 +4,75 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// createCredential creates an Azure credential based on the provider configuration.
-func createCredential(ctx context.Context, data M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+// configureEntraIDClientOptions configures the client options for Entra ID
+func configureEntraIDClientOptions(useProxy bool, proxyURL string, authorityURL string, telemetryOptout bool) (policy.ClientOptions, error) {
+	clientOptions := policy.ClientOptions{}
+
+	if useProxy && proxyURL != "" {
+		proxyURLParsed, err := url.Parse(proxyURL)
+		if err != nil {
+			return clientOptions, fmt.Errorf("failed to parse the provided proxy URL '%s': %s", proxyURL, err.Error())
+		}
+
+		authClient := &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURLParsed),
+			},
+		}
+
+		clientOptions.Transport = authClient
+	}
+
+	clientOptions.Cloud = cloud.Configuration{
+		ActiveDirectoryAuthorityHost: authorityURL,
+	}
+
+	if telemetryOptout {
+		clientOptions.Telemetry.Disabled = true
+	}
+
+	clientOptions.Logging = policy.LogOptions{
+		IncludeBody: true,
+		AllowedHeaders: []string{
+			"Content-Type",
+			"Authorization",
+		},
+		AllowedQueryParams: []string{
+			"api-version",
+		},
+	}
+
+	clientOptions.Retry = policy.RetryOptions{
+		MaxRetries:    5,
+		RetryDelay:    2 * time.Second,
+		MaxRetryDelay: 30 * time.Second,
+		StatusCodes: []int{
+			http.StatusRequestTimeout,
+			http.StatusTooManyRequests,
+			http.StatusInternalServerError,
+			http.StatusBadGateway,
+			http.StatusServiceUnavailable,
+			http.StatusGatewayTimeout,
+		},
+	}
+
+	return clientOptions, nil
+}
+
+// obtainCredential creates an Azure credential based on the provider configuration.
+func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	switch data.AuthMethod.ValueString() {
 	case "device_code":
 		tflog.Debug(ctx, "Creating DeviceCodeCredential", map[string]interface{}{

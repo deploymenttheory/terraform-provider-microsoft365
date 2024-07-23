@@ -4,12 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
-	"os"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -290,6 +286,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	nationalCloudDeployment := helpers.GetEnvOrDefaultBool(data.NationalCloudDeployment.ValueBool(), "M365_NATIONAL_CLOUD_DEPLOYMENT")
 	nationalCloudDeploymentTokenEndpoint := helpers.GetEnvOrDefault(data.NationalCloudDeploymentTokenEndpoint.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_TOKEN_ENDPOINT")
 	nationalCloudDeploymentServiceEndpointRoot := helpers.GetEnvOrDefault(data.NationalCloudDeploymentServiceEndpointRoot.ValueString(), "M365_NATIONAL_CLOUD_DEPLOYMENT_SERVICE_ENDPOINT_ROOT")
+	telemetryOptout := helpers.GetEnvOrDefaultBool(data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
 
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
 	ctx = tflog.SetField(ctx, "use_graph_beta", useGraphBeta)
@@ -323,7 +320,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
-	// set cloud-specific constants
+	// set microsoft cloud specific constants
 	authorityURL, apiScope, err := setCloudConstants(cloud)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -337,43 +334,16 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "authority_url", authorityURL)
 	ctx = tflog.SetField(ctx, "api_scope", apiScope)
 
-	var cred azcore.TokenCredential
-
-	if data.Token.IsUnknown() || data.Token.IsNull() {
-		token := os.Getenv("M365_API_TOKEN")
-		if token != "" {
-			data.Token = types.StringValue(token)
-		} else {
-			resp.Diagnostics.AddWarning(
-				"M365 Provider Configuration Warning",
-				"The API token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
-					"The provider will attempt to obtain a token dynamically using the provided credentials from Entra ID.",
-			)
-		}
-	}
-	// optionally set proxy
-	clientOptions := policy.ClientOptions{}
-	if useProxy && proxyURL != "" {
-		proxyURLParsed, err := url.Parse(proxyURL)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Invalid Proxy URL",
-				fmt.Sprintf("Failed to parse the provided proxy URL '%s': %s. "+
-					"Ensure the URL is correctly formatted.", proxyURL, err.Error()),
-			)
-			return
-		}
-
-		authClient := &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyURLParsed),
-			},
-		}
-
-		clientOptions.Transport = authClient
+	clientOptions, err := configureEntraIDClientOptions(useProxy, proxyURL, authorityURL, telemetryOptout)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to configure client options",
+			fmt.Sprintf("An error occurred while attempting to configure client options. Detailed error: %s", err.Error()),
+		)
+		return
 	}
 
-	cred, err = createCredential(ctx, data, clientOptions)
+	cred, err := obtainCredential(ctx, data, clientOptions)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create credentials",
