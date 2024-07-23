@@ -70,14 +70,14 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				MarkdownDescription: "Flag to indicate whether to use the CLI for authentication. ",
 				Optional:            true,
 			},
-			"tenant_id": schema.StringAttribute{
+			"cloud": schema.StringAttribute{
+				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
+				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests." +
+					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
 				Required: true,
-				Description: "The M365 tenant ID for the Entra ID application. " +
-					"This ID uniquely identifies your Entra ID (EID) instance. " +
-					"It can be found in the Azure portal under Entra ID > Properties. " +
-					"Can also be set using the `M365_TENANT_ID` environment variable.",
 				Validators: []validator.String{
-					validateGUID(),
+					validateCloud(),
 				},
 			},
 			"auth_method": schema.StringAttribute{
@@ -87,6 +87,16 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"'interactive_browser', 'username_password'.",
 				Validators: []validator.String{
 					validateAuthMethod(),
+				},
+			},
+			"tenant_id": schema.StringAttribute{
+				Required: true,
+				Description: "The M365 tenant ID for the Entra ID application. " +
+					"This ID uniquely identifies your Entra ID (EID) instance. " +
+					"It can be found in the Azure portal under Entra ID > Properties. " +
+					"Can also be set using the `M365_TENANT_ID` environment variable.",
+				Validators: []validator.String{
+					validateGUID(),
 				},
 			},
 			"client_id": schema.StringAttribute{
@@ -147,10 +157,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"token": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Description: "The token for the Azure AD application. " +
-					"Can also be set using the `M365_API_TOKEN` environment variable." +
+				Description: "The auth token for the Azure AD application. Used for debug scenarios." +
 					"This allows users to either provide a token directly through the" +
-					"configuration or omit it if they prefer dynamic token acquisition.",
+					"configuration or omit it if they prefer dynamic token acquisition." +
+					"Can also be set using the `M365_API_TOKEN` environment variable.",
 			},
 			"use_graph_beta": schema.BoolAttribute{
 				Optional: true,
@@ -175,14 +185,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"configured to handle the network traffic.",
 				Validators: []validator.String{
 					validateURL(),
-				},
-			},
-			"cloud": schema.StringAttribute{
-				Description:         "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
-				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`",
-				Optional:            true,
-				Validators: []validator.String{
-					validateCloud(),
 				},
 			},
 			"national_cloud_deployment": schema.BoolAttribute{
@@ -321,8 +323,21 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
+	// set cloud-specific constants
+	authorityURL, apiScope, err := setCloudConstants(cloud)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Cloud Type",
+			fmt.Sprintf("An error occurred while attempting to get cloud constants for cloud type '%s'. "+
+				"Please ensure the cloud type is valid. Detailed error: %s", cloud, err.Error()),
+		)
+		return
+	}
+
+	ctx = tflog.SetField(ctx, "authority_url", authorityURL)
+	ctx = tflog.SetField(ctx, "api_scope", apiScope)
+
 	var cred azcore.TokenCredential
-	var err error
 
 	if data.Token.IsUnknown() || data.Token.IsNull() {
 		token := os.Getenv("M365_API_TOKEN")
@@ -332,14 +347,14 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			resp.Diagnostics.AddWarning(
 				"M365 Provider Configuration Warning",
 				"The API token is not set in the provider configuration and the environment variable 'M365_API_TOKEN' is empty. "+
-					"The provider will attempt to obtain a token dynamically using the provided credentials.",
+					"The provider will attempt to obtain a token dynamically using the provided credentials from Entra ID.",
 			)
 		}
 	}
-
-	var transport *http.Transport
-	if useProxy {
-		proxyUrlParsed, err := url.Parse(proxyURL)
+	// optionally set proxy
+	clientOptions := policy.ClientOptions{}
+	if useProxy && proxyURL != "" {
+		proxyURLParsed, err := url.Parse(proxyURL)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Invalid Proxy URL",
@@ -348,24 +363,14 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			)
 			return
 		}
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyUrlParsed),
+
+		authClient := &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURLParsed),
+			},
 		}
-	} else {
-		transport = &http.Transport{}
-	}
 
-	authClient := &http.Client{
-		Transport: transport,
-	}
-
-	clientOptions := policy.ClientOptions{
-		Transport: authClient,
-	}
-
-	// Set cloud configuration for national cloud deployments
-	if nationalCloudDeployment && nationalCloudDeploymentTokenEndpoint != "" {
-		clientOptions.Cloud.ActiveDirectoryAuthorityHost = nationalCloudDeploymentTokenEndpoint
+		clientOptions.Transport = authClient
 	}
 
 	cred, err = createCredential(ctx, data, clientOptions)
@@ -379,7 +384,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{apiScope})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create authentication provider",
@@ -390,17 +395,17 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	clientOptionsGraph := msgraphgocore.GraphClientOptions{}
-	middleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&clientOptionsGraph)
+	defaultClientOptions := msgraphsdk.GetDefaultClientOptions()
+	defaultMiddleware := msgraphgocore.GetDefaultMiddlewaresWithOptions(&defaultClientOptions)
 
 	if enableChaos {
 		chaosHandler := khttp.NewChaosHandler()
-		middleware = append(middleware, chaosHandler)
+		defaultMiddleware = append(defaultMiddleware, chaosHandler)
 	}
 
 	var httpClient *http.Client
-	if useProxy {
-		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, middleware...)
+	if useProxy && proxyURL != "" {
+		httpClient, err = khttp.GetClientWithProxySettings(proxyURL, defaultMiddleware...)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create HTTP client with proxy settings",
@@ -411,7 +416,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 			return
 		}
 	} else {
-		httpClient = khttp.GetDefaultClient(middleware...)
+		httpClient = khttp.GetDefaultClient(defaultMiddleware...)
 	}
 
 	var stableAdapter *msgraphsdk.GraphRequestAdapter
