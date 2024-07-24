@@ -228,22 +228,40 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cloud := helpers.GetEnvOrDefault(data.Cloud.ValueString(), "M365_CLOUD")
-	authMethod := helpers.GetEnvOrDefault(data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
-	tenantID := helpers.GetEnvOrDefault(data.TenantID.ValueString(), "M365_TENANT_ID")
-	clientID := helpers.GetEnvOrDefault(data.ClientID.ValueString(), "M365_CLIENT_ID")
-	clientSecret := helpers.GetEnvOrDefault(data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
-	clientCertificateBase64 := helpers.GetEnvOrDefault(data.ClientCertificateBase64.ValueString(), "M365_CLIENT_CERTIFICATE_BASE64")
-	clientCertificateFilePath := helpers.GetEnvOrDefault(data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
-	clientCertificatePassword := helpers.GetEnvOrDefault(data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
-	username := helpers.GetEnvOrDefault(data.Username.ValueString(), "M365_USERNAME")
-	password := helpers.GetEnvOrDefault(data.Password.ValueString(), "M365_PASSWORD")
-	redirectURL := helpers.GetEnvOrDefault(data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
-	useProxy := helpers.GetEnvOrDefaultBool(data.UseProxy.ValueBool(), "M365_USE_PROXY")
-	proxyURL := helpers.GetEnvOrDefault(data.ProxyURL.ValueString(), "M365_PROXY_URL")
-	enableChaos := helpers.GetEnvOrDefaultBool(data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
-	telemetryOptout := helpers.GetEnvOrDefaultBool(data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
+	cloud := helpers.GetEnvOrDefault(ctx, data.Cloud.ValueString(), "M365_CLOUD")
+	authMethod := helpers.GetEnvOrDefault(ctx, data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
+	tenantID := helpers.GetEnvOrDefault(ctx, data.TenantID.ValueString(), "M365_TENANT_ID")
+	clientID := helpers.GetEnvOrDefault(ctx, data.ClientID.ValueString(), "M365_CLIENT_ID")
+	clientSecret := helpers.GetEnvOrDefault(ctx, data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
+	clientCertificateBase64 := helpers.GetEnvOrDefault(ctx, data.ClientCertificateBase64.ValueString(), "M365_CLIENT_CERTIFICATE_BASE64")
+	clientCertificateFilePath := helpers.GetEnvOrDefault(ctx, data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
+	clientCertificatePassword := helpers.GetEnvOrDefault(ctx, data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
+	username := helpers.GetEnvOrDefault(ctx, data.Username.ValueString(), "M365_USERNAME")
+	password := helpers.GetEnvOrDefault(ctx, data.Password.ValueString(), "M365_PASSWORD")
+	redirectURL := helpers.GetEnvOrDefault(ctx, data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
+	useProxy := helpers.GetEnvOrDefaultBool(ctx, data.UseProxy.ValueBool(), "M365_USE_PROXY")
+	proxyURL := helpers.GetEnvOrDefault(ctx, data.ProxyURL.ValueString(), "M365_PROXY_URL")
+	enableChaos := helpers.GetEnvOrDefaultBool(ctx, data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
+	telemetryOptout := helpers.GetEnvOrDefaultBool(ctx, data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
 
+	// Logging to verify environment variables are being used
+	tflog.Debug(ctx, "Configuration values", map[string]interface{}{
+		"cloud":                     cloud,
+		"authMethod":                authMethod,
+		"tenantID":                  tenantID,
+		"clientID":                  clientID,
+		"clientSecret":              clientSecret,
+		"clientCertificateBase64":   clientCertificateBase64,
+		"clientCertificateFilePath": clientCertificateFilePath,
+		"clientCertificatePassword": clientCertificatePassword,
+		"username":                  username,
+		"password":                  password,
+		"redirectURL":               redirectURL,
+		"useProxy":                  useProxy,
+		"proxyURL":                  proxyURL,
+		"enableChaos":               enableChaos,
+		"telemetryOptout":           telemetryOptout,
+	})
 	ctx = tflog.SetField(ctx, "cloud", cloud)
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
 	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
