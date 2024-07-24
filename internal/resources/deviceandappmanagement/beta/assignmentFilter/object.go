@@ -2,6 +2,7 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -64,7 +65,7 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		requestBody.SetPayloads(payloads)
 	}
 
-	tflog.Debug(ctx, "Constructed assignment filter resource", map[string]interface{}{
+	requestBodyJSON, err := json.MarshalIndent(map[string]interface{}{
 		"displayName":    requestBody.GetDisplayName(),
 		"description":    requestBody.GetDescription(),
 		"platform":       requestBody.GetPlatform(),
@@ -72,7 +73,12 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		"managementType": requestBody.GetAssignmentFilterManagementType(),
 		"roleScopeTags":  requestBody.GetRoleScopeTags(),
 		"payloads":       payloads,
-	})
+	}, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
+	}
+
+	tflog.Debug(ctx, "Constructed assignment filter resource:\n"+string(requestBodyJSON))
 
 	return requestBody, nil
 }
