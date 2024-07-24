@@ -5,19 +5,19 @@ import "os"
 // GetEnvOrDefault fetches an environment variable value or returns a default if not set.
 func GetEnvOrDefault(value, envKey string) string {
 	if value == "" {
-		return os.Getenv(envKey)
+		if envValue, exists := os.LookupEnv(envKey); exists {
+			return envValue
+		}
 	}
 	return value
 }
 
-// GetEnvOrDefaultInt fetches an environment variable value or returns a default if not set.
+// GetEnvOrDefaultBool fetches an environment variable value or returns a default if not set.
 func GetEnvOrDefaultBool(value bool, envKey string) bool {
-	if value {
-		return value
+	if !value {
+		if envValue, exists := os.LookupEnv(envKey); exists {
+			return envValue == "true"
+		}
 	}
-	envValue, exists := os.LookupEnv(envKey)
-	if exists && envValue == "true" {
-		return true
-	}
-	return false
+	return value
 }
