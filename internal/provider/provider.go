@@ -372,6 +372,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 // New returns a new provider.Provider instance for the Microsoft365 provider.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
+		tflog.Debug(context.Background(), "Initializing microsoft365 Provider")
 		return &M365Provider{
 			version: version,
 			clients: &client.GraphClients{},
