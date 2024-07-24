@@ -139,12 +139,14 @@ func (v guidValidator) ValidateString(ctx context.Context, request validator.Str
 		return
 	}
 
+	guid := request.ConfigValue.ValueString()
 	re := regexp.MustCompile(helpers.GuidRegex)
+	attributeName := request.Path.String()
 
-	if !re.MatchString(request.ConfigValue.ValueString()) {
+	if !re.MatchString(guid) {
 		response.Diagnostics.AddError(
 			"Invalid GUID",
-			"The value must be a valid GUID.",
+			fmt.Sprintf("The value of '%s' must be a valid GUID.", attributeName),
 		)
 	}
 }
