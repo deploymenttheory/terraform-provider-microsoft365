@@ -50,7 +50,7 @@ type M365ProviderModel struct {
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "Microsoft365"
+	resp.TypeName = "microsoft365"
 	resp.Version = p.version
 }
 
