@@ -365,8 +365,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
 	}
 
-	p.clients = clients
-
 	resp.DataSourceData = clients
 	resp.ResourceData = clients
 }
