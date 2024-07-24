@@ -361,6 +361,7 @@ func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &M365Provider{
 			version: version,
+			clients: &GraphClients{},
 		}
 	}
 }

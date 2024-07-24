@@ -5,6 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -17,7 +18,23 @@ import (
 // Returns:
 //
 //	[]func() resource.Resource: A slice of functions, each returning a resource.Resource.
+//
+// Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
+
+	tflog.Info(ctx, "Initializing Resources")
+
+	if p.clients == nil {
+		tflog.Warn(ctx, "Provider clients are not initialized.")
+		return []func() resource.Resource{}
+	}
+	if p.clients.BetaClient == nil {
+		tflog.Warn(ctx, "BetaClient is not initialized.")
+		return []func() resource.Resource{}
+	}
+
+	tflog.Info(ctx, "Provider is initialized successfully.")
+
 	return []func() resource.Resource{
 		assignmentFilter.NewAssignmentFilterResource(p.clients.BetaClient),
 		// Register other resources here
