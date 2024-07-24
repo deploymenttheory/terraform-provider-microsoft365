@@ -1,16 +1,19 @@
 package graphBetaAssignmentFilter
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
+func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
 	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
 
 	displayName := data.DisplayName.ValueString()
@@ -61,6 +64,21 @@ func constructResource(data *AssignmentFilterResourceModel) (*models.DeviceAndAp
 	if payloads != nil {
 		requestBody.SetPayloads(payloads)
 	}
+
+	requestBodyJSON, err := json.MarshalIndent(map[string]interface{}{
+		"displayName":    requestBody.GetDisplayName(),
+		"description":    requestBody.GetDescription(),
+		"platform":       requestBody.GetPlatform(),
+		"rule":           requestBody.GetRule(),
+		"managementType": requestBody.GetAssignmentFilterManagementType(),
+		"roleScopeTags":  requestBody.GetRoleScopeTags(),
+		"payloads":       payloads,
+	}, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
+	}
+
+	tflog.Debug(ctx, "Constructed assignment filter resource:\n"+string(requestBodyJSON))
 
 	return requestBody, nil
 }
