@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -132,9 +133,13 @@ func validateGUID() validator.String {
 	return guidValidator{}
 }
 
+// ValidateString validates the "tenant_id" or "client_id" attribute.
 func (v guidValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	guidRegex := `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`
-	re := regexp.MustCompile(guidRegex)
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	re := regexp.MustCompile(helpers.GuidRegex)
 
 	if !re.MatchString(request.ConfigValue.ValueString()) {
 		response.Diagnostics.AddError(
@@ -197,7 +202,22 @@ func validateURL() validator.String {
 	return urlValidator{}
 }
 
+// ValidateString validates the "redirect_url", "proxy_url", or any URL attribute.
 func (v urlValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	re := regexp.MustCompile(helpers.UrlValidStringRegex)
+
+	if !re.MatchString(request.ConfigValue.ValueString()) {
+		response.Diagnostics.AddError(
+			"Invalid URL",
+			"The value must be a valid URL.",
+		)
+		return
+	}
+
 	u, err := url.ParseRequestURI(request.ConfigValue.ValueString())
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		response.Diagnostics.AddError(
