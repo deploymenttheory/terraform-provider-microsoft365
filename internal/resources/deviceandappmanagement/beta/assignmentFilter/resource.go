@@ -23,9 +23,7 @@ var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 func NewAssignmentFilterResource(betaClient *msgraphbetasdk.GraphServiceClient) func() resource.Resource {
 	return func() resource.Resource {
 		return &AssignmentFilterResource{
-			client:           betaClient,
-			ProviderTypeName: "microsoft365",
-			TypeName:         "_graph_beta_device_and_app_management_assignment_filter",
+			client: betaClient,
 		}
 	}
 }
@@ -52,7 +50,7 @@ type AssignmentFilterResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_device_and_app_management_assignment_filter"
+	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_assignment_filter"
 }
 
 // ImportState imports the resource state.

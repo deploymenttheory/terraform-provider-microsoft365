@@ -1,4 +1,4 @@
-resource "microsoft365_device_and_app_management_assignment_filter" "example" {
+resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "example" {
   display_name                    = "Example Assignment Filter"
   description                     = "This is an example assignment filter"
   platform                        = "android"

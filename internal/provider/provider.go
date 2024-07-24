@@ -65,18 +65,18 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
 					"Can also be set using the `M365_CLOUD` environment variable.",
 				Required: true,
-				Validators: []validator.String{
-					validateCloud(),
-				},
+				// Validators: []validator.String{
+				// 	validateCloud(),
+				// },
 			},
 			"auth_method": schema.StringAttribute{
 				Required: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
 					"'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable.",
-				Validators: []validator.String{
-					validateAuthMethod(),
-				},
+				// Validators: []validator.String{
+				// 	validateAuthMethod(),
+				// },
 			},
 			"tenant_id": schema.StringAttribute{
 				Required:  true,
@@ -363,14 +363,4 @@ func New(version string) func() provider.Provider {
 			version: version,
 		}
 	}
-}
-
-// Helper method to extract GraphClients from the provider data.
-func (p *M365Provider) getClients(ctx context.Context) (*GraphClients, bool) {
-	if p.clients == nil {
-		tflog.Error(ctx, "Clients are not initialized in the provider")
-		return nil, false
-	}
-	tflog.Debug(ctx, "Clients retrieved successfully from the provider")
-	return p.clients, true
 }

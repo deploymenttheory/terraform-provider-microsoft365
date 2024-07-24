@@ -18,13 +18,8 @@ import (
 //
 //	[]func() resource.Resource: A slice of functions, each returning a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
-	clients, ok := p.getClients(ctx)
-	if !ok {
-		return nil
-	}
-
 	return []func() resource.Resource{
-		assignmentFilter.NewAssignmentFilterResource(clients.BetaClient),
-		// Add other Microsoft 365 provider resources here, using the appropriate client.
+		assignmentFilter.NewAssignmentFilterResource(p.clients.BetaClient),
+		// Register other resources here
 	}
 }
