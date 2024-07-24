@@ -159,7 +159,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	requestBody, err := constructResource(&data)
+	requestBody, err := constructResource(ctx, &data)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -237,7 +237,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	requestBody, err := constructResource(&data)
+	requestBody, err := constructResource(ctx, &data)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
