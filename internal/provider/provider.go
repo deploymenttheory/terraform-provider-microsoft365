@@ -70,7 +70,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"auth_method": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
 					"'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable.",
