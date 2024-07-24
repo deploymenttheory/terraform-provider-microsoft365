@@ -85,9 +85,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"This ID uniquely identifies your Entra ID (EID) instance. " +
 					"It can be found in the Azure portal under Entra ID > Properties. " +
 					"Can also be set using the `M365_TENANT_ID` environment variable.",
-				Validators: []validator.String{
-					validateGUID(),
-				},
+				// Validators: []validator.String{
+				// 	validateGUID(),
+				// },
 			},
 			"client_id": schema.StringAttribute{
 				Optional:  true,
@@ -96,9 +96,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
 					"and can be found under App registrations > YourApp > Overview. " +
 					"Can also be set using the `M365_CLIENT_ID` environment variable.",
-				Validators: []validator.String{
-					validateGUID(),
-				},
+				// Validators: []validator.String{
+				// 	validateGUID(),
+				// },
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:  true,
@@ -262,6 +262,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		"enableChaos":               enableChaos,
 		"telemetryOptout":           telemetryOptout,
 	})
+
 	ctx = tflog.SetField(ctx, "cloud", cloud)
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
 	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
