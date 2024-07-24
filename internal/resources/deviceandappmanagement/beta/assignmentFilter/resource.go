@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta
-package assignmentFilter
+package graphBetaAssignmentFilter
 
 import (
 	"context"
@@ -20,12 +20,8 @@ import (
 var _ resource.Resource = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
-func NewAssignmentFilterResource(betaClient *msgraphbetasdk.GraphServiceClient) func() resource.Resource {
-	return func() resource.Resource {
-		return &AssignmentFilterResource{
-			client: betaClient,
-		}
-	}
+func NewAssignmentFilterResource() resource.Resource {
+	return &AssignmentFilterResource{}
 }
 
 type AssignmentFilterResource struct {

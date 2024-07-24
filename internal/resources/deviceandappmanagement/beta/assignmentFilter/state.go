@@ -1,4 +1,4 @@
-package assignmentFilter
+package graphBetaAssignmentFilter
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"

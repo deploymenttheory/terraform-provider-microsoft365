@@ -1,4 +1,4 @@
-package assignmentFilter
+package graphBetaAssignmentFilter
 
 import (
 	"context"
