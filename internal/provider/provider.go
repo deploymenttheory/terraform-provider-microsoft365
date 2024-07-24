@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -22,12 +23,7 @@ var _ provider.Provider = &M365Provider{}
 // M365Provider defines the provider implementation.
 type M365Provider struct {
 	version string
-	clients *GraphClients
-}
-
-type GraphClients struct {
-	StableClient *msgraphsdk.GraphServiceClient
-	BetaClient   *msgraphbetasdk.GraphServiceClient
+	clients *client.GraphClients
 }
 
 // M365ProviderModel describes the provider data model.
@@ -364,7 +360,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	stableAdapter.SetBaseUrl(graphServiceRoot)
 	betaAdapter.SetBaseUrl(graphBetaServiceRoot)
 
-	clients := &GraphClients{
+	clients := &client.GraphClients{
 		StableClient: msgraphsdk.NewGraphServiceClient(stableAdapter),
 		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
 	}
@@ -380,7 +376,7 @@ func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &M365Provider{
 			version: version,
-			clients: &GraphClients{},
+			clients: &client.GraphClients{},
 		}
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,6 +19,7 @@ import (
 )
 
 var _ resource.Resource = &AssignmentFilterResource{}
+var _ resource.ResourceWithConfigure = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
 func NewAssignmentFilterResource() resource.Resource {
@@ -47,6 +49,28 @@ type AssignmentFilterResourceModel struct {
 // Metadata returns the resource type name.
 func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_assignment_filter"
+}
+
+// Configure sets the client for the resource.
+func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		resp.Diagnostics.AddError(
+			"Provider Data is nil",
+			"Cannot initialize the client because the provider data is nil. This likely indicates a configuration error.",
+		)
+		return
+	}
+
+	providerData, ok := req.ProviderData.(*client.GraphClients)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Provider Data Type",
+			fmt.Sprintf("Expected *GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	r.client = providerData.BetaClient
 }
 
 // ImportState imports the resource state.
@@ -147,6 +171,14 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if r.client == nil {
+		resp.Diagnostics.AddError(
+			"Client is not initialized",
+			"Cannot create assignment filter because the client is not initialized.",
+		)
 		return
 	}
 
