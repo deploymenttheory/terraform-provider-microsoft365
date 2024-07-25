@@ -13,16 +13,16 @@ import (
 
 // Create handles the Create operation.
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data AssignmentFilterResourceModel
+	var plan AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	createTimeout, diags := data.Timeouts.Create(ctx, 30*time.Second)
+	createTimeout, diags := plan.Timeouts.Create(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -30,7 +30,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &data)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment filter",
@@ -48,32 +48,36 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	data.ID = types.StringValue(*assignmentFilter.GetId())
+	plan.ID = types.StringValue(*assignmentFilter.GetId())
 
-	r.isCreate = true
+	mapRemoteStateToTerraform(ctx, &plan, assignmentFilter)
 
-	readResp := resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-
-	r.isCreate = false
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the read operation and stating.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data AssignmentFilterResourceModel
+	var state AssignmentFilterResourceModel
 
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	tflog.Debug(ctx, "Starting Read method for assignment filter")
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readTimeout, diags := data.Timeouts.Read(ctx, 30*time.Second)
+	if state.ID.IsNull() || state.ID.ValueString() == "" {
+		resp.Diagnostics.AddWarning(
+			"Unable to read assignment filter",
+			"Assignment filter ID is empty or null. Unable to read assignment filter.",
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with ID: %s", state.ID.ValueString()))
+
+	readTimeout, diags := state.Timeouts.Read(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -81,25 +85,28 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
+	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		if common.IsNotFoundError(err) && !r.isCreate {
+		if common.IsNotFoundError(err) {
 			resp.Diagnostics.AddWarning(
-				"Resource Not Found",
-				fmt.Sprintf("The resource: %s_%s with ID %s was not found and will be removed from the state.", r.ProviderTypeName, r.TypeName, data.ID.ValueString()),
+				"Assignment filter not found",
+				fmt.Sprintf("Assignment filter with ID %s was not found. Removing from state.", state.ID.ValueString()),
 			)
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading assignment filter",
-			fmt.Sprintf("Could not read resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not read assignment filter with ID %s: %s", state.ID.ValueString(), err.Error()),
 		)
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &data, remoteResource)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	mapRemoteStateToTerraform(ctx, &state, assignmentFilter)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
+	tflog.Debug(ctx, "Finished Read method for assignment filter")
 }
 
 // Update handles the Update operation.
