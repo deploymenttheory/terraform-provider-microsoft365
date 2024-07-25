@@ -3,64 +3,59 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// platformValidator is the custom validator type
-type platformValidator struct{}
+/* platform type validator */
+type platformTypeValidator struct{}
 
-// ValidateString performs the validation.
-func (v platformValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+func (v platformTypeValidator) Description(ctx context.Context) string {
+	return fmt.Sprintf("platform must be one of: %s", strings.Join(validPlatformTypes, ", "))
+}
+
+func (v platformTypeValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v platformTypeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	_, err := models.ParseDevicePlatformType(req.ConfigValue.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Device Platform Type",
-			fmt.Sprintf("The platform type '%s' is not valid. Supported types: %v", req.ConfigValue.ValueString(), getAllPlatformStrings()),
-		)
-	}
-}
-
-// Description describes the validation in plain text.
-func (v platformValidator) Description(ctx context.Context) string {
-	return "must be a valid device platform type"
-}
-
-// MarkdownDescription describes the validation in Markdown.
-func (v platformValidator) MarkdownDescription(ctx context.Context) string {
-	return "must be a valid device platform type"
-}
-
-// getAllPlatformStrings returns all the valid platform strings
-func getAllPlatformStrings() []string {
-	platformTypes := []models.DevicePlatformType{
-		models.ANDROID_DEVICEPLATFORMTYPE,
-		models.ANDROIDFORWORK_DEVICEPLATFORMTYPE,
-		models.IOS_DEVICEPLATFORMTYPE,
-		models.MACOS_DEVICEPLATFORMTYPE,
-		models.WINDOWSPHONE81_DEVICEPLATFORMTYPE,
-		models.WINDOWS81ANDLATER_DEVICEPLATFORMTYPE,
-		models.WINDOWS10ANDLATER_DEVICEPLATFORMTYPE,
-		models.ANDROIDWORKPROFILE_DEVICEPLATFORMTYPE,
-		models.UNKNOWN_DEVICEPLATFORMTYPE,
-		models.ANDROIDAOSP_DEVICEPLATFORMTYPE,
-		models.ANDROIDMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
-		models.IOSMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
-		models.UNKNOWNFUTUREVALUE_DEVICEPLATFORMTYPE,
-		models.WINDOWSMOBILEAPPLICATIONMANAGEMENT_DEVICEPLATFORMTYPE,
+	value := req.ConfigValue.ValueString()
+	for _, validType := range validPlatformTypes {
+		if value == validType {
+			return
+		}
 	}
 
-	var platformStrings []string
-	for _, platform := range platformTypes {
-		platformStrings = append(platformStrings, platform.String())
-	}
-	return platformStrings
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		"Invalid Platform Type",
+		fmt.Sprintf("Platform must be one of: %s", strings.Join(validPlatformTypes, ", ")),
+	)
 }
+
+var validPlatformTypes = []string{
+	"android",
+	"androidForWork",
+	"iOS",
+	"macOS",
+	"windowsPhone81",
+	"windows81AndLater",
+	"windows10AndLater",
+	"androidWorkProfile",
+	"unknown",
+	"androidAOSP",
+	"androidMobileApplicationManagement",
+	"iOSMobileApplicationManagement",
+	"windowsMobileApplicationManagement",
+}
+
+/* assignmentFilterManagement Type validator */
 
 // assignmentFilterManagementTypeValidator is the custom validator type
 type assignmentFilterManagementTypeValidator struct{}

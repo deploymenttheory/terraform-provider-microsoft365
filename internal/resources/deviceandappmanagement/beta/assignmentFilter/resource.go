@@ -4,10 +4,12 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -104,10 +106,14 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: "The optional description of the assignment filter.",
 			},
 			"platform": schema.StringAttribute{
-				Required:    true,
-				Description: fmt.Sprintf("The Intune device management type (platform) for the assignment filter. Supported types: %v", getAllPlatformStrings()),
+				Required: true,
+				Description: fmt.Sprintf(
+					"The Intune device management type (platform) for the assignment filter. "+
+						"Must be one of the following values: %s. "+
+						"This specifies the platform type for which the assignment filter will be applied.",
+					strings.Join(validPlatformTypes, ", ")),
 				Validators: []validator.String{
-					platformValidator{},
+					stringvalidator.OneOf(validPlatformTypes...),
 				},
 			},
 			"rule": schema.StringAttribute{
