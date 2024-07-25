@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -30,4 +32,25 @@ func SetParsedValueFromAttributes[T any](attrs map[string]attr.Value, key string
 		}
 	}
 	return nil
+}
+
+// safeDeref safely dereferences a string pointer.
+// It returns an empty string if the pointer is nil,
+// otherwise it returns the dereferenced string value.
+func SafeDeref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// safeEnumString safely converts an enum to its string representation.
+// It returns an empty string if the enum is nil,
+// otherwise it calls the String() method on the enum.
+// This function expects the input to implement the fmt.Stringer interface.
+func SafeEnumString(e fmt.Stringer) string {
+	if e == nil {
+		return ""
+	}
+	return e.String()
 }

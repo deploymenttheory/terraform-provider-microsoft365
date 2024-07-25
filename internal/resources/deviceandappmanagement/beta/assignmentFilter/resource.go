@@ -4,10 +4,11 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 	"fmt"
-	"time"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -30,6 +31,7 @@ type AssignmentFilterResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	isCreate         bool
 }
 
 type AssignmentFilterResourceModel struct {
@@ -104,10 +106,14 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: "The optional description of the assignment filter.",
 			},
 			"platform": schema.StringAttribute{
-				Required:    true,
-				Description: fmt.Sprintf("The Intune device management type (platform) for the assignment filter. Supported types: %v", getAllPlatformStrings()),
+				Required: true,
+				Description: fmt.Sprintf(
+					"The Intune device management type (platform) for the assignment filter. "+
+						"Must be one of the following values: %s. "+
+						"This specifies the OS platform type for which the assignment filter will be applied.",
+					strings.Join(validPlatformTypes, ", ")),
 				Validators: []validator.String{
-					platformValidator{},
+					stringvalidator.OneOf(validPlatformTypes...),
 				},
 			},
 			"rule": schema.StringAttribute{
@@ -116,12 +122,11 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"assignment_filter_management_type": schema.StringAttribute{
 				Optional:    true,
-				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %v. Default filter will be applied to 'devices'.", getAllManagementTypeStrings()),
+				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %s. Default filter will be applied to 'devices'.", strings.Join(validAssignmentFilterManagementTypes, ", ")),
 				Validators: []validator.String{
-					assignmentFilterManagementTypeValidator{},
+					stringvalidator.OneOf(validAssignmentFilterManagementTypes...),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed:    true,
 				Description: "The creation time of the assignment filter.",
@@ -153,10 +158,11 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 							Description: "The group ID associated with the payload.",
 						},
 						"assignment_filter_type": schema.StringAttribute{
-							Required:    true,
-							Description: fmt.Sprintf("The assignment filter type. Supported types: %v", getAllAssignmentFilterTypes()),
+							Required: true,
+							Description: fmt.Sprintf("The assignment filter type. Supported types: %s",
+								strings.Join(getValidAssignmentFilterTypes(), ", ")),
 							Validators: []validator.String{
-								assignmentFilterTypeValidator{},
+								stringvalidator.OneOf(getValidAssignmentFilterTypes()...),
 							},
 						},
 					},
@@ -170,165 +176,4 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			}),
 		},
 	}
-}
-
-// Create handles the Create operation.
-func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data AssignmentFilterResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if r.client == nil {
-		resp.Diagnostics.AddError(
-			"Client is not initialized",
-			"Cannot create assignment filter because the client is not initialized.",
-		)
-		return
-	}
-
-	createTimeout, diags := data.Timeouts.Create(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, createTimeout)
-	defer cancel()
-
-	requestBody, err := constructResource(ctx, &data)
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment filter",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
-	}
-
-	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating assignment filter",
-			fmt.Sprintf("Could not create assignment filter: %s", err.Error()),
-		)
-		return
-	}
-
-	data.ID = types.StringValue(*assignmentFilter.GetId())
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-}
-
-// Read handles the read operation and stating.
-func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data AssignmentFilterResourceModel
-
-	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	readTimeout, diags := data.Timeouts.Read(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, readTimeout)
-	defer cancel()
-
-	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not read assignment filter: %s", err.Error()),
-		)
-		return
-	}
-
-	mapRemoteStateToTerraform(&data, remoteResource)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-// Update handles the Update operation.
-func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data AssignmentFilterResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	updateTimeout, diags := data.Timeouts.Update(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
-	defer cancel()
-
-	requestBody, err := constructResource(ctx, &data)
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment filter",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
-	}
-
-	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating assignment filter",
-			fmt.Sprintf("Could not update assignment filter: %s", err.Error()),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-}
-
-// Delete handles the Delete operation.
-func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data AssignmentFilterResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	deleteTimeout, diags := data.Timeouts.Delete(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
-	defer cancel()
-
-	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Completed deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.State.RemoveResource(ctx)
 }
