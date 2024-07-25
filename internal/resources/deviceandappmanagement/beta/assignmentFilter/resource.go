@@ -31,7 +31,6 @@ type AssignmentFilterResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
-	isCreate         bool
 }
 
 type AssignmentFilterResourceModel struct {
@@ -44,8 +43,17 @@ type AssignmentFilterResourceModel struct {
 	CreatedDateTime                types.String   `tfsdk:"created_date_time"`
 	LastModifiedDateTime           types.String   `tfsdk:"last_modified_date_time"`
 	RoleScopeTags                  types.List     `tfsdk:"role_scope_tags"`
-	Payloads                       types.List     `tfsdk:"payloads"`
 	Timeouts                       timeouts.Value `tfsdk:"timeouts"`
+}
+
+// GetID returns the ID of a resource from the state model.
+func (s *AssignmentFilterResourceModel) GetID() string {
+	return s.ID.ValueString()
+}
+
+// GetTypeName returns the type name of the resource from the state model.
+func (r *AssignmentFilterResource) GetTypeName() string {
+	return r.TypeName
 }
 
 // Metadata returns the resource type name.
@@ -139,34 +147,6 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Optional:    true,
 				Description: "Indicates role scope tags assigned for the assignment filter.",
 				ElementType: types.StringType,
-			},
-			"payloads": schema.ListNestedAttribute{
-				Optional:    true,
-				Description: "Indicates associated assignments for a specific filter.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"payload_id": schema.StringAttribute{
-							Required:    true,
-							Description: "The ID of the payload.",
-						},
-						"payload_type": schema.StringAttribute{
-							Required:    true,
-							Description: "The type of the payload.",
-						},
-						"group_id": schema.StringAttribute{
-							Required:    true,
-							Description: "The group ID associated with the payload.",
-						},
-						"assignment_filter_type": schema.StringAttribute{
-							Required: true,
-							Description: fmt.Sprintf("The assignment filter type. Supported types: %s",
-								strings.Join(getValidAssignmentFilterTypes(), ", ")),
-							Validators: []validator.String{
-								stringvalidator.OneOf(getValidAssignmentFilterTypes()...),
-							},
-						},
-					},
-				},
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,

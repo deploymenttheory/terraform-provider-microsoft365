@@ -54,29 +54,21 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
+// Read handles the Read operation.
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state AssignmentFilterResourceModel
-
 	tflog.Debug(ctx, "Starting Read method for assignment filter")
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if state.ID.IsNull() || state.ID.ValueString() == "" {
-		resp.Diagnostics.AddWarning(
-			"Unable to read assignment filter",
-			"Assignment filter ID is empty or null. Unable to read assignment filter.",
-		)
-		return
-	}
-
 	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with ID: %s", state.ID.ValueString()))
-
 	readTimeout, diags := state.Timeouts.Read(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -87,40 +79,27 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		if common.IsNotFoundError(err) {
-			resp.Diagnostics.AddWarning(
-				"Assignment filter not found",
-				fmt.Sprintf("Assignment filter with ID %s was not found. Removing from state.", state.ID.ValueString()),
-			)
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not read assignment filter with ID %s: %s", state.ID.ValueString(), err.Error()),
-		)
+		common.HandleReadStateError(ctx, resp, r, &state, err)
 		return
 	}
 
 	mapRemoteStateToTerraform(ctx, &state, assignmentFilter)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-
-	tflog.Debug(ctx, "Finished Read method for assignment filter")
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data AssignmentFilterResourceModel
+	var plan AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateTimeout, diags := data.Timeouts.Update(ctx, 30*time.Second)
+	updateTimeout, diags := plan.Timeouts.Update(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,8 +107,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &data)
-
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment filter",
@@ -138,26 +116,15 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
+	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		if common.IsNotFoundError(err) && !r.isCreate {
-			resp.Diagnostics.AddWarning(
-				"Resource Not Found",
-				fmt.Sprintf("The resource: %s_%s with ID %s was not found and will be removed from the state.", r.ProviderTypeName, r.TypeName, data.ID.ValueString()),
-			)
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not update resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
+		common.HandleUpdateStateError(ctx, resp, r, &plan, err)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete handles the Delete operation.
@@ -185,7 +152,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Completed deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.State.RemoveResource(ctx)
 }

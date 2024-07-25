@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -49,21 +48,16 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		}
 	}
 
-	if !data.RoleScopeTags.IsNull() && len(data.RoleScopeTags.Elements()) > 0 {
-		roleScopeTags := make([]string, len(data.RoleScopeTags.Elements()))
-		for i, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags[i] = tag.(types.String).ValueString()
+	roleScopeTags := make([]string, 0)
+	if !data.RoleScopeTags.IsNull() {
+		for _, tag := range data.RoleScopeTags.Elements() {
+			tagValue := tag.(types.String).ValueString()
+			if tagValue != "0" {
+				roleScopeTags = append(roleScopeTags, tagValue)
+			}
 		}
-		requestBody.SetRoleScopeTags(roleScopeTags)
 	}
-
-	payloads, err := convertPayloads(data.Payloads)
-	if err != nil {
-		return nil, err
-	}
-	if payloads != nil {
-		requestBody.SetPayloads(payloads)
-	}
+	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	requestBodyJSON, err := json.MarshalIndent(map[string]interface{}{
 		"displayName":    requestBody.GetDisplayName(),
@@ -72,7 +66,6 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		"rule":           requestBody.GetRule(),
 		"managementType": requestBody.GetAssignmentFilterManagementType(),
 		"roleScopeTags":  requestBody.GetRoleScopeTags(),
-		"payloads":       payloads,
 	}, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
@@ -81,33 +74,4 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 	tflog.Debug(ctx, "Constructed assignment filter resource:\n"+string(requestBodyJSON))
 
 	return requestBody, nil
-}
-
-// convertPayloads
-func convertPayloads(payloads types.List) ([]models.PayloadByFilterable, error) {
-	if payloads.IsNull() || len(payloads.Elements()) == 0 {
-		return nil, nil
-	}
-
-	result := make([]models.PayloadByFilterable, len(payloads.Elements()))
-	for i, elem := range payloads.Elements() {
-		payloadElem := elem.(types.Object)
-		payload := models.NewPayloadByFilter()
-
-		common.SetStringValueFromAttributes(payloadElem.Attributes(), "payload_id", payload.SetPayloadId)
-		if err := common.SetParsedValueFromAttributes(payloadElem.Attributes(), "payload_type", func(val *models.AssociatedAssignmentPayloadType) {
-			payload.SetPayloadType(val)
-		}, models.ParseAssociatedAssignmentPayloadType); err != nil {
-			return nil, fmt.Errorf("invalid payload type: %s", err)
-		}
-		common.SetStringValueFromAttributes(payloadElem.Attributes(), "group_id", payload.SetGroupId)
-		if err := common.SetParsedValueFromAttributes(payloadElem.Attributes(), "assignment_filter_type", func(val *models.DeviceAndAppManagementAssignmentFilterType) {
-			payload.SetAssignmentFilterType(val)
-		}, models.ParseAssociatedAssignmentPayloadType); err != nil {
-			return nil, fmt.Errorf("invalid assignment filter type: %s", err)
-		}
-
-		result[i] = payload
-	}
-	return result, nil
 }
