@@ -52,7 +52,10 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 	roleScopeTags := make([]string, 0)
 	if !data.RoleScopeTags.IsNull() {
 		for _, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags = append(roleScopeTags, tag.(types.String).ValueString())
+			tagValue := tag.(types.String).ValueString()
+			if tagValue != "0" {
+				roleScopeTags = append(roleScopeTags, tagValue)
+			}
 		}
 	}
 	requestBody.SetRoleScopeTags(roleScopeTags)

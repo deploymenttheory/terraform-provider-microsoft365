@@ -56,13 +56,21 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	roleScopeTags := remoteResource.GetRoleScopeTags()
 	tflog.Debug(ctx, fmt.Sprintf("Received RoleScopeTags from API: %v", roleScopeTags))
 
-	if len(roleScopeTags) == 0 {
+	filteredRoleScopeTags := make([]string, 0)
+	for _, tag := range roleScopeTags {
+		if tag != "0" { // Ignore the "0" value
+			filteredRoleScopeTags = append(filteredRoleScopeTags, tag)
+		}
+	}
+
+	if len(filteredRoleScopeTags) == 0 {
 		data.RoleScopeTags = types.ListValueMust(types.StringType, []attr.Value{})
 	} else {
-		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(roleScopeTags))
+		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(filteredRoleScopeTags))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Mapped RoleScopeTags: %v", data.RoleScopeTags))
+
 	tflog.Debug(ctx, "Mapping Payloads")
 	if payloads := remoteResource.GetPayloads(); len(payloads) > 0 {
 		data.Payloads = types.ListValueMust(types.ObjectType{AttrTypes: payloadAttributeTypes()}, payloadsToValueSlice(payloads))
