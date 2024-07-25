@@ -182,6 +182,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
 				Optional: true,
 			},
+			"debug": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Enable debug mode for the provider.",
+			},
 		},
 	}
 }
@@ -365,13 +369,22 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
 	}
 
+	p.clients = clients
+
 	resp.DataSourceData = clients
 	resp.ResourceData = clients
+
+	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
+		"stable_client_set": p.clients.StableClient != nil,
+		"beta_client_set":   p.clients.BetaClient != nil,
+	})
 }
 
 // New returns a new provider.Provider instance for the Microsoft365 provider.
 func New(version string) func() provider.Provider {
+	tflog.Info(context.Background(), "New function called")
 	return func() provider.Provider {
+		tflog.Info(context.Background(), "Provider function called")
 		tflog.Debug(context.Background(), "Initializing microsoft365 Provider")
 		return &M365Provider{
 			version: version,

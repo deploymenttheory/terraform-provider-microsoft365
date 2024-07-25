@@ -53,6 +53,8 @@ func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.Me
 
 // Configure sets the client for the resource.
 func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	tflog.Debug(ctx, "Configuring AssignmentFilterResource")
+
 	if req.ProviderData == nil {
 		resp.Diagnostics.AddError(
 			"Provider not configured",
@@ -61,7 +63,7 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 		return
 	}
 
-	providerData, ok := req.ProviderData.(*client.GraphClients)
+	clients, ok := req.ProviderData.(*client.GraphClients)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Provider Data Type",
@@ -70,7 +72,7 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 		return
 	}
 
-	if providerData.BetaClient == nil {
+	if clients.BetaClient == nil {
 		resp.Diagnostics.AddError(
 			"BetaClient is nil",
 			"The BetaClient in the provider data is nil. This could indicate a configuration error in the provider. Please check your provider configuration and try again.",
@@ -78,7 +80,7 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 		return
 	}
 
-	r.client = providerData.BetaClient
+	r.client = clients.BetaClient
 	tflog.Debug(ctx, "Initialized graphBetaAssignmentFilter resource with BetaClient")
 }
 
