@@ -2,7 +2,6 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -52,9 +51,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 		data.LastModifiedDateTime = types.StringNull()
 	}
 
-	tflog.Debug(ctx, "Mapping RoleScopeTags")
 	roleScopeTags := remoteResource.GetRoleScopeTags()
-	tflog.Debug(ctx, fmt.Sprintf("Received RoleScopeTags from API: %v", roleScopeTags))
 
 	filteredRoleScopeTags := make([]string, 0)
 	for _, tag := range roleScopeTags {
@@ -69,15 +66,6 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(filteredRoleScopeTags))
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Mapped RoleScopeTags: %v", data.RoleScopeTags))
-
-	tflog.Debug(ctx, "Mapping Payloads")
-	if payloads := remoteResource.GetPayloads(); len(payloads) > 0 {
-		data.Payloads = types.ListValueMust(types.ObjectType{AttrTypes: payloadAttributeTypes()}, payloadsToValueSlice(payloads))
-	} else {
-		data.Payloads = types.ListNull(types.ObjectType{AttrTypes: payloadAttributeTypes()})
-	}
-
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform")
 }
 
@@ -89,47 +77,4 @@ func roleScopeTagsToValueSlice(roleScopeTags []string) []attr.Value {
 		values[i] = types.StringValue(tag)
 	}
 	return values
-}
-
-// payloadAttributeTypes returns a map of attribute names to their Terraform types for the Payload object.
-// This defines the structure of the Payload object in the Terraform resource model.
-func payloadAttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"payload_id":             types.StringType,
-		"payload_type":           types.StringType,
-		"group_id":               types.StringType,
-		"assignment_filter_type": types.StringType,
-	}
-}
-
-// payloadsToValueSlice converts a slice of PayloadByFilterable to a slice of Terraform attr.Value.
-// This is used to populate the Payloads field in the Terraform resource model.
-func payloadsToValueSlice(payloads []models.PayloadByFilterable) []attr.Value {
-	values := make([]attr.Value, len(payloads))
-	for i, payload := range payloads {
-		payloadMap := map[string]attr.Value{
-			"payload_id":             types.StringValue(helpers.StringPtrToString(payload.GetPayloadId())),
-			"payload_type":           types.StringValue(payloadTypeToString(payload.GetPayloadType())),
-			"group_id":               types.StringValue(helpers.StringPtrToString(payload.GetGroupId())),
-			"assignment_filter_type": types.StringValue(assignmentFilterTypeToString(payload.GetAssignmentFilterType())),
-		}
-		values[i] = types.ObjectValueMust(payloadAttributeTypes(), payloadMap)
-	}
-	return values
-}
-
-// payloadTypeToString converts AssociatedAssignmentPayloadType to its string representation.
-func payloadTypeToString(payloadType *models.AssociatedAssignmentPayloadType) string {
-	if payloadType == nil {
-		return ""
-	}
-	return (*payloadType).String()
-}
-
-// assignmentFilterTypeToString converts DeviceAndAppManagementAssignmentFilterType to its string representation.
-func assignmentFilterTypeToString(filterType *models.DeviceAndAppManagementAssignmentFilterType) string {
-	if filterType == nil {
-		return ""
-	}
-	return (*filterType).String()
 }

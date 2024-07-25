@@ -23,21 +23,3 @@ var validAssignmentFilterManagementTypes = []string{
 	"apps",
 	"unknownFutureValue",
 }
-
-func getValidAssignmentFilterTypes() []string {
-	// This reflects the order in the SDK's String() method
-	return []string{
-		"unknown",
-		"deviceConfigurationAndCompliance",
-		"application",
-		"androidEnterpriseApp",
-		"enrollmentConfiguration",
-		"groupPolicyConfiguration",
-		"zeroTouchDeploymentDeviceConfigProfile",
-		"androidEnterpriseConfiguration",
-		"deviceFirmwareConfigurationInterfacePolicy",
-		"resourceAccessPolicy",
-		"win32app",
-		"deviceManagmentConfigurationAndCompliancePolicy",
-	}
-}

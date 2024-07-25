@@ -139,34 +139,6 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: "Indicates role scope tags assigned for the assignment filter.",
 				ElementType: types.StringType,
 			},
-			"payloads": schema.ListNestedAttribute{
-				Optional:    true,
-				Description: "Indicates associated assignments for a specific filter.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"payload_id": schema.StringAttribute{
-							Required:    true,
-							Description: "The ID of the payload.",
-						},
-						"payload_type": schema.StringAttribute{
-							Required:    true,
-							Description: "The type of the payload.",
-						},
-						"group_id": schema.StringAttribute{
-							Required:    true,
-							Description: "The group ID associated with the payload.",
-						},
-						"assignment_filter_type": schema.StringAttribute{
-							Required: true,
-							Description: fmt.Sprintf("The assignment filter type. Supported types: %s",
-								strings.Join(getValidAssignmentFilterTypes(), ", ")),
-							Validators: []validator.String{
-								stringvalidator.OneOf(getValidAssignmentFilterTypes()...),
-							},
-						},
-					},
-				},
-			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Read:   true,
