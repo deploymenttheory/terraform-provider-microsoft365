@@ -16,44 +16,46 @@ func mapRemoteStateToTerraform(data *AssignmentFilterResourceModel, remoteResour
 		return
 	}
 
-	if id := remoteResource.GetId(); id != nil {
-		data.ID = types.StringValue(*id)
-	}
-
-	if displayName := remoteResource.GetDisplayName(); displayName != nil {
-		data.DisplayName = types.StringValue(*displayName)
-	}
-
-	if description := remoteResource.GetDescription(); description != nil {
-		data.Description = types.StringValue(*description)
-	}
+	data.ID = types.StringValue(common.StringPtrToString(remoteResource.GetId()))
+	data.DisplayName = types.StringValue(common.StringPtrToString(remoteResource.GetDisplayName()))
+	data.Description = types.StringValue(common.StringPtrToString(remoteResource.GetDescription()))
 
 	if platform := remoteResource.GetPlatform(); platform != nil {
 		data.Platform = types.StringValue(platform.String())
+	} else {
+		data.Platform = types.StringNull()
 	}
 
-	if rule := remoteResource.GetRule(); rule != nil {
-		data.Rule = types.StringValue(*rule)
-	}
+	data.Rule = types.StringValue(common.StringPtrToString(remoteResource.GetRule()))
 
 	if managementType := remoteResource.GetAssignmentFilterManagementType(); managementType != nil {
-		data.AssignmentFilterManagementType = types.StringValue((*managementType).String())
+		data.AssignmentFilterManagementType = types.StringValue(managementType.String())
+	} else {
+		data.AssignmentFilterManagementType = types.StringNull()
 	}
 
 	if createdDateTime := remoteResource.GetCreatedDateTime(); createdDateTime != nil {
 		data.CreatedDateTime = types.StringValue(createdDateTime.Format(time.RFC3339))
+	} else {
+		data.CreatedDateTime = types.StringNull()
 	}
 
 	if lastModifiedDateTime := remoteResource.GetLastModifiedDateTime(); lastModifiedDateTime != nil {
 		data.LastModifiedDateTime = types.StringValue(lastModifiedDateTime.Format(time.RFC3339))
+	} else {
+		data.LastModifiedDateTime = types.StringNull()
 	}
 
 	if roleScopeTags := remoteResource.GetRoleScopeTags(); roleScopeTags != nil {
 		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(roleScopeTags))
+	} else {
+		data.RoleScopeTags = types.ListNull(types.StringType)
 	}
 
 	if payloads := remoteResource.GetPayloads(); payloads != nil {
 		data.Payloads = types.ListValueMust(types.ObjectType{AttrTypes: payloadAttributeTypes()}, payloadsToValueSlice(payloads))
+	} else {
+		data.Payloads = types.ListNull(types.ObjectType{AttrTypes: payloadAttributeTypes()})
 	}
 }
 
@@ -85,11 +87,27 @@ func payloadsToValueSlice(payloads []models.PayloadByFilterable) []attr.Value {
 	for i, payload := range payloads {
 		payloadMap := map[string]attr.Value{
 			"payload_id":             types.StringValue(common.StringPtrToString(payload.GetPayloadId())),
-			"payload_type":           types.StringValue(string(*payload.GetPayloadType())),
+			"payload_type":           types.StringValue(payloadTypeToString(payload.GetPayloadType())),
 			"group_id":               types.StringValue(common.StringPtrToString(payload.GetGroupId())),
-			"assignment_filter_type": types.StringValue(string(*payload.GetAssignmentFilterType())),
+			"assignment_filter_type": types.StringValue(assignmentFilterTypeToString(payload.GetAssignmentFilterType())),
 		}
 		values[i] = types.ObjectValueMust(payloadAttributeTypes(), payloadMap)
 	}
 	return values
+}
+
+// payloadTypeToString converts AssociatedAssignmentPayloadType to its string representation.
+func payloadTypeToString(payloadType *models.AssociatedAssignmentPayloadType) string {
+	if payloadType == nil {
+		return ""
+	}
+	return (*payloadType).String()
+}
+
+// assignmentFilterTypeToString converts DeviceAndAppManagementAssignmentFilterType to its string representation.
+func assignmentFilterTypeToString(filterType *models.DeviceAndAppManagementAssignmentFilterType) string {
+	if filterType == nil {
+		return ""
+	}
+	return (*filterType).String()
 }
