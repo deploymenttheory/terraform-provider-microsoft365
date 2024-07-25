@@ -182,8 +182,15 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Description: "The display name of the operating system image that is used for provisioning. Supports $filter, $select, and $orderBy.",
 			},
 			"image_id": schema.StringAttribute{
-				Required:    true,
-				Description: "The unique identifier that represents an operating system image that is used for provisioning new Cloud PCs. Supports $filter, $select, and $orderBy.",
+				Required: true,
+				Description: "The unique identifier that represents an operating system image used for provisioning new Cloud PCs. " +
+					"The format for a gallery type image is: {publisherName_offerName_skuName}. " +
+					"Supported values: " +
+					"publisher: 'Microsoftwindowsdesktop', " +
+					"offer: 'windows-ent-cpc', " +
+					"sku: '21h1-ent-cpc-m365', '21h1-ent-cpc-os', '20h2-ent-cpc-m365', '20h2-ent-cpc-os', " +
+					"'20h1-ent-cpc-m365', '20h1-ent-cpc-os', '19h2-ent-cpc-m365', '19h2-ent-cpc-os'. " +
+					"Supports $filter, $select, and $orderBy.",
 			},
 			"image_type": schema.StringAttribute{
 				Required:    true,
