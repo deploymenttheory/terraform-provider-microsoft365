@@ -78,7 +78,7 @@ func (r *CloudPcProvisioningPolicyResource) GetTypeName() string {
 
 // Metadata returns the resource type name.
 func (r *CloudPcProvisioningPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_Cloud_Pc_provisioning_policy"
+	resp.TypeName = req.ProviderTypeName + "_graph_cloud_pc_provisioning_policy"
 }
 
 // Configure sets the client for the resource.
