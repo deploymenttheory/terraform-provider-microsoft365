@@ -60,14 +60,14 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	}
 
 	tflog.Debug(ctx, "Mapping RoleScopeTags")
-	if roleScopeTags := remoteResource.GetRoleScopeTags(); roleScopeTags != nil {
+	if roleScopeTags := remoteResource.GetRoleScopeTags(); len(roleScopeTags) > 0 {
 		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(roleScopeTags))
 	} else {
 		data.RoleScopeTags = types.ListNull(types.StringType)
 	}
 
 	tflog.Debug(ctx, "Mapping Payloads")
-	if payloads := remoteResource.GetPayloads(); payloads != nil {
+	if payloads := remoteResource.GetPayloads(); len(payloads) > 0 {
 		data.Payloads = types.ListValueMust(types.ObjectType{AttrTypes: payloadAttributeTypes()}, payloadsToValueSlice(payloads))
 	} else {
 		data.Payloads = types.ListNull(types.ObjectType{AttrTypes: payloadAttributeTypes()})
@@ -79,6 +79,9 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 // roleScopeTagsToValueSlice converts a slice of role scope tag strings to a slice of Terraform attr.Value.
 // This is used to populate the RoleScopeTags field in the Terraform resource model.
 func roleScopeTagsToValueSlice(roleScopeTags []string) []attr.Value {
+	if roleScopeTags == nil {
+		return []attr.Value{}
+	}
 	values := make([]attr.Value, len(roleScopeTags))
 	for i, tag := range roleScopeTags {
 		values[i] = types.StringValue(tag)
