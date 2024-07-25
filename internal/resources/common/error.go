@@ -41,22 +41,24 @@ func IsNotFoundError(err error) bool {
 
 	odataErr, ok := err.(*odataerrors.ODataError)
 	if !ok {
-		return false
+		// If it's not an ODataError, check the error string
+		return strings.Contains(strings.ToLower(err.Error()), "not found")
 	}
 
 	mainError := odataErr.GetErrorEscaped()
 	if mainError != nil {
 		if code := mainError.GetCode(); code != nil {
 			switch strings.ToLower(*code) {
-			case "request_resourcenotfound", "resourcenotfound":
+			case "request_resourcenotfound", "resourcenotfound", "notfound":
 				return true
 			}
 		}
 
 		if message := mainError.GetMessage(); message != nil {
-			if strings.Contains(strings.ToLower(*message), "not found") {
-				return true
-			}
+			lowerMessage := strings.ToLower(*message)
+			return strings.Contains(lowerMessage, "not found") ||
+				strings.Contains(lowerMessage, "could not be found") ||
+				strings.Contains(lowerMessage, "does not exist")
 		}
 	}
 
