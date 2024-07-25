@@ -85,13 +85,13 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		if common.IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
-			tflog.Warn(ctx, fmt.Sprintf("%s_%s with ID %s not found, removing from state", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", r.TypeName, state.ID.ValueString()))
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading assignment filter",
-			fmt.Sprintf("Could not read %s_%s with ID %s: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Could not update %s with ID %s: %s", r.TypeName, state.ID.ValueString(), err.Error()),
 		)
 		return
 	}
@@ -133,13 +133,13 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
 		if common.IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
-			tflog.Warn(ctx, fmt.Sprintf("%s_%s with ID %s not found, removing from state", r.ProviderTypeName, r.TypeName, plan.ID.ValueString()))
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", r.TypeName, plan.ID.ValueString()))
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading assignment filter",
-			fmt.Sprintf("Could not read %s_%s with ID %s: %s", r.ProviderTypeName, r.TypeName, plan.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Could not update %s with ID %s: %s", r.TypeName, plan.ID.ValueString(), err.Error()),
 		)
 		return
 	}
