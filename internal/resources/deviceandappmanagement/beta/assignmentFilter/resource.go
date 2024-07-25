@@ -55,8 +55,8 @@ func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.Me
 func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		resp.Diagnostics.AddError(
-			"Provider Data is nil",
-			"Cannot initialize the client because the provider data is nil. This likely indicates a configuration error.",
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. This leads to weird stuff happening, so we reject this. Please report this to the provider developers.",
 		)
 		return
 	}
@@ -65,12 +65,21 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Provider Data Type",
-			fmt.Sprintf("Expected *GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	if providerData.BetaClient == nil {
+		resp.Diagnostics.AddError(
+			"BetaClient is nil",
+			"The BetaClient in the provider data is nil. This could indicate a configuration error in the provider. Please check your provider configuration and try again.",
 		)
 		return
 	}
 
 	r.client = providerData.BetaClient
+	tflog.Debug(ctx, "Initialized graphBetaAssignmentFilter resource with BetaClient")
 }
 
 // ImportState imports the resource state.
