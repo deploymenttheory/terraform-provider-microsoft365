@@ -2,6 +2,7 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -19,40 +20,32 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 		return
 	}
 
-	tflog.Debug(ctx, "Mapping ID")
 	data.ID = types.StringValue(helpers.StringPtrToString(remoteResource.GetId()))
 
-	tflog.Debug(ctx, "Mapping DisplayName")
 	data.DisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetDisplayName()))
 
-	tflog.Debug(ctx, "Mapping Description")
 	data.Description = types.StringValue(helpers.StringPtrToString(remoteResource.GetDescription()))
 
-	tflog.Debug(ctx, "Mapping Platform")
 	if platform := remoteResource.GetPlatform(); platform != nil {
 		data.Platform = types.StringValue(platform.String())
 	} else {
 		data.Platform = types.StringNull()
 	}
 
-	tflog.Debug(ctx, "Mapping Rule")
 	data.Rule = types.StringValue(helpers.StringPtrToString(remoteResource.GetRule()))
 
-	tflog.Debug(ctx, "Mapping AssignmentFilterManagementType")
 	if managementType := remoteResource.GetAssignmentFilterManagementType(); managementType != nil {
 		data.AssignmentFilterManagementType = types.StringValue(managementType.String())
 	} else {
 		data.AssignmentFilterManagementType = types.StringNull()
 	}
 
-	tflog.Debug(ctx, "Mapping CreatedDateTime")
 	if createdDateTime := remoteResource.GetCreatedDateTime(); createdDateTime != nil {
 		data.CreatedDateTime = types.StringValue(createdDateTime.Format(time.RFC3339))
 	} else {
 		data.CreatedDateTime = types.StringNull()
 	}
 
-	tflog.Debug(ctx, "Mapping LastModifiedDateTime")
 	if lastModifiedDateTime := remoteResource.GetLastModifiedDateTime(); lastModifiedDateTime != nil {
 		data.LastModifiedDateTime = types.StringValue(lastModifiedDateTime.Format(time.RFC3339))
 	} else {
@@ -61,12 +54,15 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 
 	tflog.Debug(ctx, "Mapping RoleScopeTags")
 	roleScopeTags := remoteResource.GetRoleScopeTags()
-	if roleScopeTags != nil && len(roleScopeTags) > 0 {
-		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(roleScopeTags))
-	} else {
+	tflog.Debug(ctx, fmt.Sprintf("Received RoleScopeTags from API: %v", roleScopeTags))
+
+	if len(roleScopeTags) == 0 {
 		data.RoleScopeTags = types.ListValueMust(types.StringType, []attr.Value{})
+	} else {
+		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(roleScopeTags))
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Mapped RoleScopeTags: %v", data.RoleScopeTags))
 	tflog.Debug(ctx, "Mapping Payloads")
 	if payloads := remoteResource.GetPayloads(); len(payloads) > 0 {
 		data.Payloads = types.ListValueMust(types.ObjectType{AttrTypes: payloadAttributeTypes()}, payloadsToValueSlice(payloads))

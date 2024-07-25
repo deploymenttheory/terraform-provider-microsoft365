@@ -49,13 +49,13 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		}
 	}
 
-	if !data.RoleScopeTags.IsNull() && len(data.RoleScopeTags.Elements()) > 0 {
-		roleScopeTags := make([]string, len(data.RoleScopeTags.Elements()))
-		for i, tag := range data.RoleScopeTags.Elements() {
-			roleScopeTags[i] = tag.(types.String).ValueString()
+	roleScopeTags := make([]string, 0)
+	if !data.RoleScopeTags.IsNull() {
+		for _, tag := range data.RoleScopeTags.Elements() {
+			roleScopeTags = append(roleScopeTags, tag.(types.String).ValueString())
 		}
-		requestBody.SetRoleScopeTags(roleScopeTags)
 	}
+	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	payloads, err := convertPayloads(data.Payloads)
 	if err != nil {
