@@ -89,7 +89,7 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 	}
 
 	r.client = clients.BetaClient
-	tflog.Debug(ctx, "Initialized graphBetaAssignmentFilter resource with BetaClient")
+	tflog.Debug(ctx, "Initialized graphBetaAssignmentFilter resource with Graph Beta Client")
 }
 
 // ImportState imports the resource state.

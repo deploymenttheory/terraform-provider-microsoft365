@@ -4,6 +4,7 @@ import (
 	"context"
 
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
+	graphCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcProvisioningPolicy"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -22,5 +23,6 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		graphBetaAssignmentFilter.NewAssignmentFilterResource,
+		graphCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 	}
 }
