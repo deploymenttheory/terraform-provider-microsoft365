@@ -98,7 +98,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	mapRemoteStateToTerraform(&data, remoteResource)
+	mapRemoteStateToTerraform(ctx, &data, remoteResource)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
