@@ -3,13 +3,12 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 )
 
 // Create handles the Create operation.
@@ -84,7 +83,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	remoteResource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		if isNotFoundError(err) && !r.isCreate {
+		if common.IsNotFoundError(err) && !r.isCreate {
 			resp.Diagnostics.AddWarning(
 				"Resource Not Found",
 				fmt.Sprintf("The resource: %s_%s with ID %s was not found and will be removed from the state.", r.ProviderTypeName, r.TypeName, data.ID.ValueString()),
@@ -134,7 +133,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		if isNotFoundError(err) && !r.isCreate {
+		if common.IsNotFoundError(err) && !r.isCreate {
 			resp.Diagnostics.AddWarning(
 				"Resource Not Found",
 				fmt.Sprintf("The resource: %s_%s with ID %s was not found and will be removed from the state.", r.ProviderTypeName, r.TypeName, data.ID.ValueString()),
@@ -182,34 +181,4 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	tflog.Debug(ctx, fmt.Sprintf("Completed deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.State.RemoveResource(ctx)
-}
-
-// isNotFoundError checks if the error is a not found error.
-func isNotFoundError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	odataErr, ok := err.(*odataerrors.ODataError)
-	if !ok {
-		return false
-	}
-
-	mainError := odataErr.GetErrorEscaped()
-	if mainError != nil {
-		if code := mainError.GetCode(); code != nil {
-			switch strings.ToLower(*code) {
-			case "request_resourcenotfound", "resourcenotfound":
-				return true
-			}
-		}
-
-		if message := mainError.GetMessage(); message != nil {
-			if strings.Contains(strings.ToLower(*message), "not found") {
-				return true
-			}
-		}
-	}
-
-	return false
 }
