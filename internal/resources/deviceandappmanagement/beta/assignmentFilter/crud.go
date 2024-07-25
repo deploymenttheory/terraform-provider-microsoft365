@@ -3,7 +3,6 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
@@ -62,17 +61,13 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state AssignmentFilterResourceModel
 	tflog.Debug(ctx, "Starting Read method for assignment filter")
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if state.ID.IsNull() || state.ID.ValueString() == "" {
-		resp.Diagnostics.AddWarning(
-			"Unable to read assignment filter",
-			"Assignment filter ID is empty or null. Unable to read assignment filter.",
-		)
-		return
-	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with ID: %s", state.ID.ValueString()))
 	readTimeout, diags := state.Timeouts.Read(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
@@ -84,15 +79,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		if common.IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not update %s with ID %s: %s", r.TypeName, state.ID.ValueString(), err.Error()),
-		)
+		common.HandleReadStateError(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -121,7 +108,6 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	defer cancel()
 
 	requestBody, err := constructResource(ctx, &plan)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment filter",
@@ -132,15 +118,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		if common.IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error reading assignment filter",
-			fmt.Sprintf("Could not update %s with ID %s: %s", r.TypeName, plan.ID.ValueString(), err.Error()),
-		)
+		common.HandleUpdateStateError(ctx, resp, r, &plan, err)
 		return
 	}
 
