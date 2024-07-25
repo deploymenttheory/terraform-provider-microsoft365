@@ -110,7 +110,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: fmt.Sprintf(
 					"The Intune device management type (platform) for the assignment filter. "+
 						"Must be one of the following values: %s. "+
-						"This specifies the platform type for which the assignment filter will be applied.",
+						"This specifies the OS platform type for which the assignment filter will be applied.",
 					strings.Join(validPlatformTypes, ", ")),
 				Validators: []validator.String{
 					stringvalidator.OneOf(validPlatformTypes...),
@@ -122,12 +122,11 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"assignment_filter_management_type": schema.StringAttribute{
 				Optional:    true,
-				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %v. Default filter will be applied to 'devices'.", getAllManagementTypeStrings()),
+				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %s. Default filter will be applied to 'devices'.", strings.Join(validAssignmentFilterManagementTypes, ", ")),
 				Validators: []validator.String{
-					assignmentFilterManagementTypeValidator{},
+					stringvalidator.OneOf(validAssignmentFilterManagementTypes...),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed:    true,
 				Description: "The creation time of the assignment filter.",
@@ -159,10 +158,11 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 							Description: "The group ID associated with the payload.",
 						},
 						"assignment_filter_type": schema.StringAttribute{
-							Required:    true,
-							Description: fmt.Sprintf("The assignment filter type. Supported types: %v", getAllAssignmentFilterTypes()),
+							Required: true,
+							Description: fmt.Sprintf("The assignment filter type. Supported types: %s",
+								strings.Join(getValidAssignmentFilterTypes(), ", ")),
 							Validators: []validator.String{
-								assignmentFilterTypeValidator{},
+								stringvalidator.OneOf(getValidAssignmentFilterTypes()...),
 							},
 						},
 					},
@@ -189,25 +189,15 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	if r.client == nil {
-		resp.Diagnostics.AddError(
-			"Client is not initialized",
-			"Cannot create assignment filter because the client is not initialized.",
-		)
-		return
-	}
-
 	createTimeout, diags := data.Timeouts.Create(ctx, 30*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
 	requestBody, err := constructResource(ctx, &data)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment filter",

@@ -1,6 +1,7 @@
 package graphBetaAssignmentFilter
 
 import (
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -13,8 +14,18 @@ func mapRemoteStateToTerraform(data *AssignmentFilterResourceModel, remoteResour
 	data.Platform = types.StringValue(remoteResource.GetPlatform().String())
 	data.Rule = types.StringValue(*remoteResource.GetRule())
 	data.AssignmentFilterManagementType = types.StringValue(remoteResource.GetAssignmentFilterManagementType().String())
-	data.CreatedDateTime = types.StringValue(remoteResource.GetCreatedDateTime().String())
-	data.LastModifiedDateTime = types.StringValue(remoteResource.GetLastModifiedDateTime().String())
+
+	if createdDateTime := remoteResource.GetCreatedDateTime(); createdDateTime != nil {
+		data.CreatedDateTime = types.StringValue(createdDateTime.Format(helpers.TimeFormatRFC3339))
+	} else {
+		data.CreatedDateTime = types.StringNull()
+	}
+
+	if lastModifiedDateTime := remoteResource.GetLastModifiedDateTime(); lastModifiedDateTime != nil {
+		data.LastModifiedDateTime = types.StringValue(lastModifiedDateTime.Format(helpers.TimeFormatRFC3339))
+	} else {
+		data.LastModifiedDateTime = types.StringNull()
+	}
 
 	// Set RoleScopeTags
 	roleScopeTags := remoteResource.GetRoleScopeTags()
