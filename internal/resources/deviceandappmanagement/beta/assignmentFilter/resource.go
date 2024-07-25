@@ -31,6 +31,7 @@ type AssignmentFilterResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	isCreate         bool
 }
 
 type AssignmentFilterResourceModel struct {
