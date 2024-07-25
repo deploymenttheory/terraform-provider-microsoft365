@@ -43,6 +43,7 @@ type M365ProviderModel struct {
 	Cloud                     types.String `tfsdk:"cloud"`
 	EnableChaos               types.Bool   `tfsdk:"enable_chaos"`
 	TelemetryOptout           types.Bool   `tfsdk:"telemetry_optout"`
+	Debug                     types.Bool   `tfsdk:"debug"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -182,6 +183,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
 				Optional: true,
 			},
+			"debug": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Enable debug mode for the provider.",
+			},
 		},
 	}
 }
@@ -214,13 +219,14 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 // If any errors occur during these steps, appropriate diagnostics are added
 // to the response.
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring Microsoft365 Provider")
+
 	var data M365ProviderModel
-
-	tflog.Debug(ctx, "Configure request received")
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Error getting provider configuration", map[string]interface{}{
+			"diagnostics": resp.Diagnostics.ErrorsCount(),
+		})
 		return
 	}
 
@@ -369,14 +375,24 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	resp.DataSourceData = clients
 	resp.ResourceData = clients
+
+	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
+		"stable_client_set": p.clients.StableClient != nil,
+		"beta_client_set":   p.clients.BetaClient != nil,
+	})
 }
 
 // New returns a new provider.Provider instance for the Microsoft365 provider.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &M365Provider{
+		tflog.Info(context.Background(), "Initializing Microsoft365 Provider")
+		p := &M365Provider{
 			version: version,
 			clients: &client.GraphClients{},
 		}
+		tflog.Debug(context.Background(), "Created new provider instance", map[string]interface{}{
+			"provider": fmt.Sprintf("%+v", p),
+		})
+		return p
 	}
 }
