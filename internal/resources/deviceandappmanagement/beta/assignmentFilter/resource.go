@@ -56,15 +56,16 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 	tflog.Debug(ctx, "Configuring AssignmentFilterResource")
 
 	if req.ProviderData == nil {
-		resp.Diagnostics.AddError(
-			"Provider not configured",
-			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. This leads to weird stuff happening, so we reject this. Please report this to the provider developers.",
-		)
+		tflog.Warn(ctx, "Provider data is nil, skipping resource configuration")
 		return
 	}
 
 	clients, ok := req.ProviderData.(*client.GraphClients)
 	if !ok {
+		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]interface{}{
+			"expected": "*client.GraphClients",
+			"actual":   fmt.Sprintf("%T", req.ProviderData),
+		})
 		resp.Diagnostics.AddError(
 			"Unexpected Provider Data Type",
 			fmt.Sprintf("Expected *client.GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
@@ -73,10 +74,7 @@ func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.C
 	}
 
 	if clients.BetaClient == nil {
-		resp.Diagnostics.AddError(
-			"BetaClient is nil",
-			"The BetaClient in the provider data is nil. This could indicate a configuration error in the provider. Please check your provider configuration and try again.",
-		)
+		tflog.Warn(ctx, "BetaClient is nil, resource may not be fully configured")
 		return
 	}
 
