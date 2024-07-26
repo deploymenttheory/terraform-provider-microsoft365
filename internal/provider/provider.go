@@ -119,8 +119,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_certificate_file_path": schema.StringAttribute{
 				MarkdownDescription: "The path to the Client Certificate file associated with the Service " +
 					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
-					"Supports PEM and PKCS#12 (.pfx) file formats. For PEM, the file should contain the certificate " +
-					"and the unencrypted private key. For PKCS#12, use 'client_certificate_password' if the file is encrypted. " +
+					"Supports PKCS#12 (.pfx or .p12) file format. The file should contain the certificate, " +
+					"private key, and optionally a certificate chain. Use 'client_certificate_password' if the " +
+					"file is encrypted. This certificate should be associated with the application registered " +
+					"in Azure Active Directory. " +
 					"Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
 				Optional:  true,
 				Sensitive: true,
