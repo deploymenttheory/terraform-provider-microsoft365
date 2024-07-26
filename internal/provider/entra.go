@@ -3,10 +3,10 @@ package provider
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -106,27 +106,30 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			"client_id": data.ClientID.ValueString(),
 		})
 
-		var certs []*x509.Certificate
-		var key interface{}
-		var err error
-
-		if !data.ClientCertificateBase64.IsNull() {
-			tflog.Debug(ctx, "Using base64 encoded client certificate")
-			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateBase64.ValueString(), data.ClientCertificatePassword.ValueString())
-		} else if !data.ClientCertificateFilePath.IsNull() {
-			tflog.Debug(ctx, "Using client certificate file path")
-			certs, key, err = helpers.GetCertificatesAndKeyFromCertOrFilePath(data.ClientCertificateFilePath.ValueString(), data.ClientCertificatePassword.ValueString())
-		} else {
-			return nil, fmt.Errorf("either 'client_certificate' or 'client_certificate_file_path' must be provided for client_certificate authentication")
+		if data.ClientCertificateFilePath.IsNull() {
+			return nil, fmt.Errorf("'client_certificate_file_path' must be provided for client_certificate authentication")
 		}
 
+		tflog.Debug(ctx, "Using client certificate file path")
+		certData, err := os.ReadFile(data.ClientCertificateFilePath.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("failed to get certificates and key: %s", err.Error())
+			return nil, fmt.Errorf("failed to read certificate file: %v", err)
 		}
 
-		return azidentity.NewClientCertificateCredential(data.TenantID.ValueString(), data.ClientID.ValueString(), certs, key, &azidentity.ClientCertificateCredentialOptions{
-			ClientOptions: clientOptions,
-		})
+		password := []byte(data.ClientCertificatePassword.ValueString())
+		certs, key, err := helpers.ParseCertificateData(ctx, certData, password)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse certificates: %v", err)
+		}
+
+		return azidentity.NewClientCertificateCredential(
+			data.TenantID.ValueString(),
+			data.ClientID.ValueString(),
+			certs,
+			key,
+			&azidentity.ClientCertificateCredentialOptions{
+				ClientOptions: clientOptions,
+			})
 	case "interactive_browser":
 		tflog.Debug(ctx, "Obtaining Interactive Browser Credential", map[string]interface{}{
 			"tenant_id":    data.TenantID.ValueString(),

@@ -8,147 +8,54 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (p *M365Provider) ValidateConfig(ctx context.Context, req provider.ValidateConfigRequest, resp *provider.ValidateConfigResponse) {
-	var data M365ProviderModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Check if both client_certificate and client_certificate_file_path are provided.
-	if !data.ClientCertificateBase64.IsNull() && !data.ClientCertificateBase64.IsUnknown() &&
-		!data.ClientCertificateFilePath.IsNull() && !data.ClientCertificateFilePath.IsUnknown() {
-		resp.Diagnostics.AddError(
-			"Conflicting Configuration",
-			"Only one of 'client_certificate_base64' or 'client_certificate_file_path' can be provided. Please choose one.",
-		)
-	}
-}
-
-/* auth_method schema validator */
-
-type authMethodValidator struct{}
-
-func (v authMethodValidator) Description(ctx context.Context) string {
-	return "Validates that the necessary fields are set based on the authentication method"
-}
-
-func (v authMethodValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the necessary fields are set based on the authentication method"
-}
-
-func validateAuthMethod() validator.String {
-	return authMethodValidator{}
-}
-
-func (v authMethodValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	var authMethod types.String
-	if diags := request.Config.GetAttribute(ctx, path.Root("auth_method"), &authMethod); diags.HasError() {
-		response.Diagnostics.Append(diags...)
-		return
-	}
-
-	validAuthMethods := map[string]bool{
-		"device_code":         true,
-		"client_secret":       true,
-		"client_certificate":  true,
-		"interactive_browser": true,
-		"username_password":   true,
-	}
-
-	if _, valid := validAuthMethods[authMethod.ValueString()]; !valid {
-		response.Diagnostics.AddError(
-			"Invalid Authentication Method",
-			"The 'auth_method' must be one of 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'username_password'.",
-		)
-		return
-	}
-
-	isSet := func(attrName string) bool {
-		var attr types.String
-		if diags := request.Config.GetAttribute(ctx, path.Root(attrName), &attr); diags.HasError() {
-			return false
-		}
-		return !attr.IsNull() && !attr.IsUnknown()
-	}
-
-	switch authMethod.ValueString() {
-	case "client_secret":
-		if !isSet("client_secret") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"The 'client_secret' attribute must be set when 'auth_method' is 'client_secret'.",
-			)
-		}
-	case "client_certificate":
-		if !isSet("client_certificate") && !isSet("client_certificate_file_path") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"Either 'client_certificate' or 'client_certificate_file_path' must be set when 'auth_method' is 'client_certificate'.",
-			)
-		}
-		if isSet("client_certificate") && isSet("client_certificate_file_path") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"Only one of 'client_certificate' or 'client_certificate_file_path' can be set when 'auth_method' is 'client_certificate'.",
-			)
-		}
-	case "interactive_browser":
-		if !isSet("redirect_url") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"The 'redirect_url' attribute must be set when 'auth_method' is 'interactive_browser'.",
-			)
-		}
-	case "username_password":
-		if !isSet("username") || !isSet("password") {
-			response.Diagnostics.AddError(
-				"Invalid Configuration",
-				"The 'username' and 'password' attributes must be set when 'auth_method' is 'username_password'.",
-			)
-		}
-	}
-}
-
 /* tenant_id and client_id schema validator */
-
-type guidValidator struct{}
+type guidValidator struct {
+	attributeName string
+}
 
 func (v guidValidator) Description(ctx context.Context) string {
-	return "Validates that the value is a valid GUID."
+	return fmt.Sprintf("%s must be a valid GUID if provided", v.attributeName)
 }
 
 func (v guidValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the value is a valid GUID."
+	return fmt.Sprintf("%s must be a valid GUID if provided", v.attributeName)
 }
 
-func validateGUID() validator.String {
-	return guidValidator{}
-}
-
-// ValidateString validates the "tenant_id" or "client_id" attribute.
-func (v guidValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+func (v guidValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// If the value is null, unknown, or empty string, return without validation
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	guid := request.ConfigValue.ValueString()
-	re := regexp.MustCompile(helpers.GuidRegex)
-	attributePath := request.Path.String()
+	value := req.ConfigValue.ValueString()
+	if value == "" {
+		return
+	}
 
-	if !re.MatchString(guid) {
-		response.Diagnostics.AddError(
-			"Invalid GUID",
-			fmt.Sprintf("The value of '%s' must be a valid GUID. Got: %s", attributePath, guid),
+	// Proceed with GUID validation only if the string is non-empty
+	match, err := regexp.MatchString(helpers.GuidRegex, value)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Invalid %s format", v.attributeName),
+			fmt.Sprintf("Error matching GUID format for %s: %s", v.attributeName, err),
+		)
+		return
+	}
+
+	if !match {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Invalid %s format", v.attributeName),
+			fmt.Sprintf("The value %q for %s is not a valid GUID. It must match the format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", value, v.attributeName),
 		)
 	}
+}
+
+func validateGUID(attributeName string) validator.String {
+	return guidValidator{attributeName: attributeName}
 }
 
 /* use_proxy field schema validator */
@@ -188,77 +95,103 @@ func (v useProxyValidator) ValidateBool(ctx context.Context, request validator.B
 	}
 }
 
-/* redirect_url, proxy_url, token_endpoint fields schema validator */
+/* redirect_url field schema validator */
+type redirectURLValidator struct{}
 
-type urlValidator struct{}
-
-func (v urlValidator) Description(ctx context.Context) string {
-	return "Validates that the value is a valid URL."
+func (v redirectURLValidator) Description(ctx context.Context) string {
+	return "Ensures that redirect_url is a well-formed URL if provided."
 }
 
-func (v urlValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the value is a valid URL."
+func (v redirectURLValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that redirect_url is a well-formed URL if provided."
 }
 
-func validateURL() validator.String {
-	return urlValidator{}
-}
+func (v redirectURLValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 
-// ValidateString validates the "redirect_url", "proxy_url", or any URL attribute.
-func (v urlValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	re := regexp.MustCompile(helpers.UrlValidStringRegex)
+	redirectURL := req.ConfigValue.ValueString()
+	if redirectURL == "" {
+		return
+	}
 
-	if !re.MatchString(request.ConfigValue.ValueString()) {
-		response.Diagnostics.AddError(
-			"Invalid URL",
-			"The value must be a valid URL.",
+	parsedURL, err := url.Parse(redirectURL)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL",
+			fmt.Sprintf("The value %q for redirect_url is not a valid URL: %s", redirectURL, err),
 		)
 		return
 	}
 
-	u, err := url.ParseRequestURI(request.ConfigValue.ValueString())
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		response.Diagnostics.AddError(
-			"Invalid URL",
-			"The value must be a valid URL.",
+	if parsedURL.Scheme == "" || parsedURL.Host == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL",
+			fmt.Sprintf("The value %q for redirect_url must include a scheme and host (e.g., https://example.com)", redirectURL),
+		)
+		return
+	}
+
+	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, redirectURL)
+	if !match {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL Format",
+			fmt.Sprintf("The value %q for redirect_url contains invalid characters. It must match the format: [A-Za-z0-9-._~%%/:/?=]+", redirectURL),
 		)
 	}
 }
 
-/* cloud field schema validator */
-
-// cloudValidator is a custom validator for the "cloud" attribute.
-type cloudValidator struct{}
-
-// Description returns a plain text description of the validator's behavior.
-func (v cloudValidator) Description(ctx context.Context) string {
-	return "Ensures the cloud attribute is one of 'public', 'gcc', 'gcchigh', 'china', 'dod', 'ex', or 'rx'."
+func validateRedirectURL() validator.String {
+	return redirectURLValidator{}
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior.
-func (v cloudValidator) MarkdownDescription(ctx context.Context) string {
-	return "Ensures the cloud attribute is one of `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, or `rx`."
+/* proxy_url field schema validator */
+
+type proxyURLValidator struct{}
+
+func (v proxyURLValidator) Description(ctx context.Context) string {
+	return "Ensures that proxy_url is a well-formed URL if provided."
 }
 
-// ValidateString validates the "cloud" attribute.
-func (v cloudValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	validClouds := []string{"public", "gcc", "gcchigh", "china", "dod", "ex", "rx"}
-	for _, validCloud := range validClouds {
-		if request.ConfigValue.ValueString() == validCloud {
-			return
-		}
+func (v proxyURLValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that proxy_url is a well-formed URL if provided."
+}
+
+func (v proxyURLValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
 	}
-	response.Diagnostics.AddError(
-		"Invalid Cloud Value",
-		fmt.Sprintf("The 'cloud' attribute must be one of 'public', 'gcc', 'gcchigh', 'china', 'dod', 'ex', or 'rx'. Got: %s", request.ConfigValue.ValueString()),
-	)
+
+	proxyURL := req.ConfigValue.ValueString()
+	if proxyURL == "" {
+		return
+	}
+
+	_, err := url.Parse(proxyURL)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Proxy URL",
+			fmt.Sprintf("The value %q for proxy_url is not a valid URL: %s", proxyURL, err),
+		)
+		return
+	}
+
+	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, proxyURL)
+	if !match {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Proxy URL Format",
+			fmt.Sprintf("The value %q for proxy_url contains invalid characters. It must match the format: [A-Za-z0-9-._~%%/:/?=]+", proxyURL),
+		)
+	}
 }
 
-// validateCloud returns an instance of the cloudValidator.
-func validateCloud() validator.String {
-	return cloudValidator{}
+func validateProxyURL() validator.String {
+	return proxyURLValidator{}
 }
