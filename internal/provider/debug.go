@@ -4,68 +4,109 @@ import (
 	"context"
 	"fmt"
 	"os"
+
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func logDebugInfo(ctx context.Context, data M365ProviderModel) {
-	if data.DebugMode.ValueBool() {
-		fmt.Println("\n==== M365ProviderModel Debug Information ====")
-
-		fmt.Println("\n==== Environment Variables ====")
-		envVars := []string{
-			"M365_CLOUD", "M365_TENANT_ID", "M365_AUTH_METHOD", "M365_CLIENT_ID",
-			"M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_BASE64", "M365_CLIENT_CERTIFICATE_FILE_PATH",
-			"M365_CLIENT_CERTIFICATE_PASSWORD", "M365_USERNAME", "M365_PASSWORD",
-			"M365_REDIRECT_URL", "M365_USE_PROXY", "M365_PROXY_URL", "M365_ENABLE_CHAOS",
-			"M365_TELEMETRY_OPTOUT", "M365_DEBUG_MODE",
-		}
-
-		for _, env := range envVars {
-			value := os.Getenv(env)
-			if env == "M365_CLIENT_SECRET" || env == "M365_CLIENT_CERTIFICATE_BASE64" ||
-				env == "M365_CLIENT_CERTIFICATE_PASSWORD" || env == "M365_PASSWORD" {
-				if value != "" {
-					value = "[REDACTED]"
-				}
-			}
-			fmt.Printf("%s: %s\n", env, value)
-		}
-
-		fmt.Println("\n==== Values Set in Schema ====")
-		fmt.Printf("Tenant ID: %t\n", !data.TenantID.IsNull() && !data.TenantID.IsUnknown())
-		fmt.Printf("Auth Method: %t\n", !data.AuthMethod.IsNull() && !data.AuthMethod.IsUnknown())
-		fmt.Printf("Client ID: %t\n", !data.ClientID.IsNull() && !data.ClientID.IsUnknown())
-		fmt.Printf("Client Secret: %t\n", !data.ClientSecret.IsNull() && !data.ClientSecret.IsUnknown())
-		fmt.Printf("Client Certificate Base64: %t\n", !data.ClientCertificateBase64.IsNull() && !data.ClientCertificateBase64.IsUnknown())
-		fmt.Printf("Client Certificate File Path: %t\n", !data.ClientCertificateFilePath.IsNull() && !data.ClientCertificateFilePath.IsUnknown())
-		fmt.Printf("Client Certificate Password: %t\n", !data.ClientCertificatePassword.IsNull() && !data.ClientCertificatePassword.IsUnknown())
-		fmt.Printf("Username: %t\n", !data.Username.IsNull() && !data.Username.IsUnknown())
-		fmt.Printf("Password: %t\n", !data.Password.IsNull() && !data.Password.IsUnknown())
-		fmt.Printf("Redirect URL: %t\n", !data.RedirectURL.IsNull() && !data.RedirectURL.IsUnknown())
-		fmt.Printf("Use Proxy: %t\n", !data.UseProxy.IsNull() && !data.UseProxy.IsUnknown())
-		fmt.Printf("Proxy URL: %t\n", !data.ProxyURL.IsNull() && !data.ProxyURL.IsUnknown())
-		fmt.Printf("Cloud: %t\n", !data.Cloud.IsNull() && !data.Cloud.IsUnknown())
-		fmt.Printf("Enable Chaos: %t\n", !data.EnableChaos.IsNull() && !data.EnableChaos.IsUnknown())
-		fmt.Printf("Telemetry Optout: %t\n", !data.TelemetryOptout.IsNull() && !data.TelemetryOptout.IsUnknown())
-		fmt.Printf("Debug Mode: %t\n", !data.DebugMode.IsNull() && !data.DebugMode.IsUnknown())
-
-		fmt.Println("\n==== Values Mapped to Provider Data Model ====")
-		fmt.Printf("Tenant ID Length: %d\n", len(data.TenantID.ValueString()))
-		fmt.Printf("Auth Method: %s\n", data.AuthMethod.ValueString())
-		fmt.Printf("Client ID Length: %d\n", len(data.ClientID.ValueString()))
-		fmt.Printf("Client Secret Length: %d\n", len(data.ClientSecret.ValueString()))
-		fmt.Printf("Client Certificate Base64 Length: %d\n", len(data.ClientCertificateBase64.ValueString()))
-		fmt.Printf("Client Certificate File Path: %s\n", data.ClientCertificateFilePath.ValueString())
-		fmt.Printf("Client Certificate Password Set: %t\n", data.ClientCertificatePassword.ValueString() != "")
-		fmt.Printf("Username Set: %t\n", data.Username.ValueString() != "")
-		fmt.Printf("Password Set: %t\n", data.Password.ValueString() != "")
-		fmt.Printf("Redirect URL: %s\n", data.RedirectURL.ValueString())
-		fmt.Printf("Use Proxy: %t\n", data.UseProxy.ValueBool())
-		fmt.Printf("Proxy URL: %s\n", data.ProxyURL.ValueString())
-		fmt.Printf("Cloud: %s\n", data.Cloud.ValueString())
-		fmt.Printf("Enable Chaos: %t\n", data.EnableChaos.ValueBool())
-		fmt.Printf("Telemetry Optout: %t\n", data.TelemetryOptout.ValueBool())
-		fmt.Printf("Debug Mode: %t\n", data.DebugMode.ValueBool())
-
-		fmt.Println("========================================")
+func logDebugInfo(ctx context.Context, req provider.ConfigureRequest, data M365ProviderModel) {
+	if !data.DebugMode.ValueBool() {
+		return
 	}
+
+	tflog.Info(ctx, "==== M365ProviderModel Debug Information ====")
+
+	logEnvironmentVariables(ctx)
+	logSchemaValues(ctx, req)
+	logProviderDataModel(ctx, data)
+
+	tflog.Info(ctx, "========================================")
+}
+
+func logEnvironmentVariables(ctx context.Context) {
+	tflog.Info(ctx, "==== Environment Variables ====")
+	envVars := []string{
+		"M365_CLOUD", "M365_TENANT_ID", "M365_AUTH_METHOD", "M365_CLIENT_ID",
+		"M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_BASE64", "M365_CLIENT_CERTIFICATE_FILE_PATH",
+		"M365_CLIENT_CERTIFICATE_PASSWORD", "M365_USERNAME", "M365_PASSWORD",
+		"M365_REDIRECT_URL", "M365_USE_PROXY", "M365_PROXY_URL", "M365_ENABLE_CHAOS",
+		"M365_TELEMETRY_OPTOUT", "M365_DEBUG_MODE",
+	}
+
+	for _, env := range envVars {
+		value := os.Getenv(env)
+		if isSecretValue(env) && value != "" {
+			value = "[REDACTED]"
+		}
+		tflog.Info(ctx, fmt.Sprintf("%s: %s", env, value))
+	}
+}
+
+func logSchemaValues(ctx context.Context, req provider.ConfigureRequest) {
+	tflog.Info(ctx, "==== Values Set in Schema ====")
+	var config M365ProviderModel
+	diags := req.Config.Get(ctx, &config)
+	if diags.HasError() {
+		tflog.Error(ctx, "Error retrieving schema values", map[string]interface{}{"diagnostics": diags.Errors()})
+		return
+	}
+
+	logSchemaValue(ctx, "Tenant ID", config.TenantID)
+	logSchemaValue(ctx, "Auth Method", config.AuthMethod)
+	logSchemaValue(ctx, "Client ID", config.ClientID)
+	logSchemaValue(ctx, "Client Secret", config.ClientSecret)
+	logSchemaValue(ctx, "Client Certificate Base64", config.ClientCertificateBase64)
+	logSchemaValue(ctx, "Client Certificate File Path", config.ClientCertificateFilePath)
+	logSchemaValue(ctx, "Client Certificate Password", config.ClientCertificatePassword)
+	logSchemaValue(ctx, "Username", config.Username)
+	logSchemaValue(ctx, "Password", config.Password)
+	logSchemaValue(ctx, "Redirect URL", config.RedirectURL)
+	logSchemaValue(ctx, "Use Proxy", config.UseProxy)
+	logSchemaValue(ctx, "Proxy URL", config.ProxyURL)
+	logSchemaValue(ctx, "Cloud", config.Cloud)
+	logSchemaValue(ctx, "Enable Chaos", config.EnableChaos)
+	logSchemaValue(ctx, "Telemetry Optout", config.TelemetryOptout)
+	logSchemaValue(ctx, "Debug Mode", config.DebugMode)
+}
+
+func logProviderDataModel(ctx context.Context, data M365ProviderModel) {
+	tflog.Info(ctx, "==== Values Mapped to Provider Data Model ====")
+	tflog.Info(ctx, fmt.Sprintf("Tenant ID Length: %d", len(data.TenantID.ValueString())))
+	tflog.Info(ctx, fmt.Sprintf("Auth Method: %s", data.AuthMethod.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Client ID Length: %d", len(data.ClientID.ValueString())))
+	tflog.Info(ctx, fmt.Sprintf("Client Secret Length: %d", len(data.ClientSecret.ValueString())))
+	tflog.Info(ctx, fmt.Sprintf("Client Certificate Base64 Length: %d", len(data.ClientCertificateBase64.ValueString())))
+	tflog.Info(ctx, fmt.Sprintf("Client Certificate File Path: %s", data.ClientCertificateFilePath.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Client Certificate Password Set: %t", data.ClientCertificatePassword.ValueString() != ""))
+	tflog.Info(ctx, fmt.Sprintf("Username Set: %t", data.Username.ValueString() != ""))
+	tflog.Info(ctx, fmt.Sprintf("Password Set: %t", data.Password.ValueString() != ""))
+	tflog.Info(ctx, fmt.Sprintf("Redirect URL: %s", data.RedirectURL.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Use Proxy: %t", data.UseProxy.ValueBool()))
+	tflog.Info(ctx, fmt.Sprintf("Proxy URL: %s", data.ProxyURL.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Cloud: %s", data.Cloud.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Enable Chaos: %t", data.EnableChaos.ValueBool()))
+	tflog.Info(ctx, fmt.Sprintf("Telemetry Optout: %t", data.TelemetryOptout.ValueBool()))
+	tflog.Info(ctx, fmt.Sprintf("Debug Mode: %t", data.DebugMode.ValueBool()))
+}
+
+func logSchemaValue(ctx context.Context, name string, value interface{}) {
+	switch v := value.(type) {
+	case types.String:
+		tflog.Info(ctx, fmt.Sprintf("%s: %t", name, !v.IsNull() && !v.IsUnknown()))
+	case types.Bool:
+		tflog.Info(ctx, fmt.Sprintf("%s: %t", name, !v.IsNull() && !v.IsUnknown()))
+	default:
+		tflog.Info(ctx, fmt.Sprintf("%s: Unknown type", name))
+	}
+}
+
+func isSecretValue(envVar string) bool {
+	secretVars := []string{"M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_BASE64", "M365_CLIENT_CERTIFICATE_PASSWORD", "M365_PASSWORD"}
+	for _, secretVar := range secretVars {
+		if envVar == secretVar {
+			return true
+		}
+	}
+	return false
 }

@@ -214,8 +214,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring Microsoft365 Provider")
 
-	var data M365ProviderModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	var config M365ProviderModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "Error getting provider configuration", map[string]interface{}{
 			"diagnostics": resp.Diagnostics.ErrorsCount(),
@@ -223,75 +223,60 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cloud := helpers.GetValueOrEnv(ctx, data.Cloud, "M365_CLOUD")
-	authMethod := helpers.GetValueOrEnv(ctx, data.AuthMethod, "M365_AUTH_METHOD")
-	tenantID := helpers.GetValueOrEnv(ctx, data.TenantID, "M365_TENANT_ID")
-	clientID := helpers.GetValueOrEnv(ctx, data.ClientID, "M365_CLIENT_ID")
-	clientSecret := helpers.GetValueOrEnv(ctx, data.ClientSecret, "M365_CLIENT_SECRET")
-	clientCertificateBase64 := helpers.GetValueOrEnv(ctx, data.ClientCertificateBase64, "M365_CLIENT_CERTIFICATE_BASE64")
-	clientCertificateFilePath := helpers.GetValueOrEnv(ctx, data.ClientCertificateFilePath, "M365_CLIENT_CERTIFICATE_FILE_PATH")
-	clientCertificatePassword := helpers.GetValueOrEnv(ctx, data.ClientCertificatePassword, "M365_CLIENT_CERTIFICATE_PASSWORD")
-	username := helpers.GetValueOrEnv(ctx, data.Username, "M365_USERNAME")
-	password := helpers.GetValueOrEnv(ctx, data.Password, "M365_PASSWORD")
-	redirectURL := helpers.GetValueOrEnv(ctx, data.RedirectURL, "M365_REDIRECT_URL")
-	useProxy := helpers.GetValueOrEnvBool(ctx, data.UseProxy, "M365_USE_PROXY")
-	proxyURL := helpers.GetValueOrEnv(ctx, data.ProxyURL, "M365_PROXY_URL")
-	enableChaos := helpers.GetValueOrEnvBool(ctx, data.EnableChaos, "M365_ENABLE_CHAOS")
-	telemetryOptout := helpers.GetValueOrEnvBool(ctx, data.TelemetryOptout, "M365_TELEMETRY_OPTOUT")
-	debugMode := helpers.GetValueOrEnvBool(ctx, data.DebugMode, "M365_DEBUG_MODE")
-
-	data.TenantID = types.StringValue(tenantID)
-	data.AuthMethod = types.StringValue(authMethod)
-	data.ClientID = types.StringValue(clientID)
-	data.ClientSecret = types.StringValue(clientSecret)
-	data.ClientCertificateBase64 = types.StringValue(clientCertificateBase64)
-	data.ClientCertificateFilePath = types.StringValue(clientCertificateFilePath)
-	data.ClientCertificatePassword = types.StringValue(clientCertificatePassword)
-	data.Username = types.StringValue(username)
-	data.Password = types.StringValue(password)
-	data.RedirectURL = types.StringValue(redirectURL)
-	data.UseProxy = types.BoolValue(useProxy)
-	data.ProxyURL = types.StringValue(proxyURL)
-	data.Cloud = types.StringValue(cloud)
-	data.EnableChaos = types.BoolValue(enableChaos)
-	data.TelemetryOptout = types.BoolValue(telemetryOptout)
-	data.DebugMode = types.BoolValue(debugMode)
-
-	if debugMode {
-		logDebugInfo(ctx, data)
+	data := M365ProviderModel{
+		Cloud:                     types.StringValue(helpers.MultiEnvDefaultFunc([]string{"M365_CLOUD", "AZURE_CLOUD"}, config.Cloud.ValueString())),
+		TenantID:                  types.StringValue(helpers.EnvDefaultFunc("M365_TENANT_ID", config.TenantID.ValueString())),
+		AuthMethod:                types.StringValue(helpers.EnvDefaultFunc("M365_AUTH_METHOD", config.AuthMethod.ValueString())),
+		ClientID:                  types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ID", config.ClientID.ValueString())),
+		ClientSecret:              types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_SECRET", config.ClientSecret.ValueString())),
+		ClientCertificateBase64:   types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_BASE64", config.ClientCertificateBase64.ValueString())),
+		ClientCertificateFilePath: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_FILE_PATH", config.ClientCertificateFilePath.ValueString())),
+		ClientCertificatePassword: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_PASSWORD", config.ClientCertificatePassword.ValueString())),
+		Username:                  types.StringValue(helpers.EnvDefaultFunc("M365_USERNAME", config.Username.ValueString())),
+		Password:                  types.StringValue(helpers.EnvDefaultFunc("M365_PASSWORD", config.Password.ValueString())),
+		RedirectURL:               types.StringValue(helpers.EnvDefaultFunc("M365_REDIRECT_URL", config.RedirectURL.ValueString())),
+		UseProxy:                  types.BoolValue(helpers.EnvDefaultFuncBool("M365_USE_PROXY", config.UseProxy.ValueBool())),
+		ProxyURL:                  types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_URL", config.ProxyURL.ValueString())),
+		EnableChaos:               types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_CHAOS", config.EnableChaos.ValueBool())),
+		TelemetryOptout:           types.BoolValue(helpers.EnvDefaultFuncBool("M365_TELEMETRY_OPTOUT", config.TelemetryOptout.ValueBool())),
+		DebugMode:                 types.BoolValue(helpers.EnvDefaultFuncBool("M365_DEBUG_MODE", config.DebugMode.ValueBool())),
 	}
 
-	ctx = tflog.SetField(ctx, "cloud", cloud)
-	ctx = tflog.SetField(ctx, "auth_method", authMethod)
-	ctx = tflog.SetField(ctx, "use_proxy", useProxy)
-	ctx = tflog.SetField(ctx, "redirect_url", redirectURL)
-	ctx = tflog.SetField(ctx, "proxy_url", proxyURL)
-	ctx = tflog.SetField(ctx, "enable_chaos", enableChaos)
-	ctx = tflog.SetField(ctx, "telemetry_optout", telemetryOptout)
-	ctx = tflog.SetField(ctx, "debug_mode", debugMode)
+	if data.DebugMode.ValueBool() {
+		logDebugInfo(ctx, req, data)
+	}
 
-	ctx = tflog.SetField(ctx, "client_certificate_base64", clientCertificateBase64)
-	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
-	ctx = tflog.SetField(ctx, "client_certificate_password", clientCertificatePassword)
+	ctx = tflog.SetField(ctx, "cloud", data.Cloud.ValueString())
+	ctx = tflog.SetField(ctx, "auth_method", data.AuthMethod.ValueString())
+	ctx = tflog.SetField(ctx, "use_proxy", data.UseProxy.ValueBool())
+	ctx = tflog.SetField(ctx, "redirect_url", data.RedirectURL.ValueString())
+	ctx = tflog.SetField(ctx, "proxy_url", data.ProxyURL.ValueString())
+	ctx = tflog.SetField(ctx, "enable_chaos", data.EnableChaos.ValueBool())
+	ctx = tflog.SetField(ctx, "telemetry_optout", data.TelemetryOptout.ValueBool())
+	ctx = tflog.SetField(ctx, "debug_mode", data.DebugMode.ValueBool())
+
+	ctx = tflog.SetField(ctx, "client_certificate_base64", data.ClientCertificateBase64.ValueString())
+	ctx = tflog.SetField(ctx, "client_certificate_file_path", data.ClientCertificateFilePath.ValueString())
+	ctx = tflog.SetField(ctx, "client_certificate_password", data.ClientCertificatePassword.ValueString())
 	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate_base64`))
 
-	ctx = tflog.SetField(ctx, "username", username)
-	ctx = tflog.SetField(ctx, "password", password)
+	ctx = tflog.SetField(ctx, "username", data.Username.ValueString())
+	ctx = tflog.SetField(ctx, "password", data.Password.ValueString())
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
 
-	ctx = tflog.SetField(ctx, "tenant_id", tenantID)
-	ctx = tflog.SetField(ctx, "client_id", clientID)
-	ctx = tflog.SetField(ctx, "client_secret", clientSecret)
+	ctx = tflog.SetField(ctx, "tenant_id", data.TenantID.ValueString())
+	ctx = tflog.SetField(ctx, "client_id", data.ClientID.ValueString())
+	ctx = tflog.SetField(ctx, "client_secret", data.ClientSecret.ValueString())
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "tenant_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
-	authorityURL, apiScope, graphServiceRoot, graphBetaServiceRoot, err := setCloudConstants(cloud)
+	authorityURL, apiScope, graphServiceRoot, graphBetaServiceRoot, err := setCloudConstants(data.Cloud.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Microsoft Cloud Type",
 			fmt.Sprintf("An error occurred while attempting to get cloud constants for cloud type '%s'. "+
-				"Please ensure the cloud type is valid. Detailed error: %s", cloud, err.Error()),
+				"Please ensure the cloud type is valid. Detailed error: %s", data.Cloud.ValueString(), err.Error()),
 		)
 		return
 	}
@@ -301,7 +286,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "graph_service_root", graphServiceRoot)
 	ctx = tflog.SetField(ctx, "graph_beta_service_root", graphBetaServiceRoot)
 
-	clientOptions, err := configureEntraIDClientOptions(ctx, useProxy, proxyURL, authorityURL, telemetryOptout)
+	clientOptions, err := configureEntraIDClientOptions(
+		ctx,
+		data.UseProxy.ValueBool(),
+		data.ProxyURL.ValueString(),
+		authorityURL,
+		data.TelemetryOptout.ValueBool(),
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to configure client options",
@@ -310,7 +301,11 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cred, err := obtainCredential(ctx, data, clientOptions)
+	cred, err := obtainCredential(
+		ctx,
+		data,
+		clientOptions,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create credentials",
@@ -321,7 +316,10 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{apiScope})
+	authProvider, err := authentication.NewAzureIdentityAuthenticationProviderWithScopes(
+		cred,
+		[]string{apiScope},
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create authentication provider",
@@ -332,7 +330,12 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	httpClient, err := configureGraphClientOptions(ctx, useProxy, proxyURL, enableChaos)
+	httpClient, err := configureGraphClientOptions(
+		ctx,
+		data.UseProxy.ValueBool(),
+		data.ProxyURL.ValueString(),
+		data.EnableChaos.ValueBool(),
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to configure Graph client options",
