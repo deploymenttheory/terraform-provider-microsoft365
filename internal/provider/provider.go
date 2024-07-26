@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -62,18 +63,18 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
 					"Can also be set using the `M365_CLOUD` environment variable.",
 				Required: true,
-				// Validators: []validator.String{
-				// 	validateCloud(),
-				// },
+				Validators: []validator.String{
+					stringvalidator.OneOf("public", "gcc", "gcchigh", "china", "dod", "ex", "rx"),
+				},
 			},
 			"auth_method": schema.StringAttribute{
 				Required: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
 					"'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable.",
-				// Validators: []validator.String{
-				// 	validateAuthMethod(),
-				// },
+				Validators: []validator.String{
+					stringvalidator.OneOf("device_code", "client_secret", "client_certificate", "interactive_browser", "username_password"),
+				},
 			},
 			"tenant_id": schema.StringAttribute{
 				Required:  true,
@@ -82,9 +83,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"This ID uniquely identifies your Entra ID (EID) instance. " +
 					"It can be found in the Azure portal under Entra ID > Properties. " +
 					"Can also be set using the `M365_TENANT_ID` environment variable.",
-				// Validators: []validator.String{
-				// 	validateGUID(),
-				// },
+				Validators: []validator.String{
+					validateGUID("tenant_id"),
+				},
 			},
 			"client_id": schema.StringAttribute{
 				Optional:  true,
@@ -93,9 +94,9 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
 					"and can be found under App registrations > YourApp > Overview. " +
 					"Can also be set using the `M365_CLIENT_ID` environment variable.",
-				// Validators: []validator.String{
-				// 	validateGUID(),
-				// },
+				Validators: []validator.String{
+					validateGUID("client_id"),
+				},
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:  true,
@@ -177,44 +178,36 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"it can recover gracefully. Use with caution in production environments. " +
 					"Can also be set using the `M365_ENABLE_CHAOS` environment variable.",
 			}, "telemetry_optout": schema.BoolAttribute{
+				Optional: true,
 				Description: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
 					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
 				MarkdownDescription: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
 					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
-				Optional: true,
 			},
-			"debug": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Enable debug mode for the provider.",
+			"debug_mode": schema.BoolAttribute{
+				Optional: true,
+				Description: "Flag to enable debug mode for the provider." +
+					"Can also be set using the `M365_DEBUG_MODE` environment variable.",
+				MarkdownDescription: "Flag to enable debug mode for the provider." +
+					"Can also be set using the `M365_DEBUG_MODE` environment variable.",
 			},
 		},
 	}
 }
 
-// Configure configures the M365Provider with the given settings. It reads
-// the configuration data from the provided request, applies defaults and
-// environment variable overrides as necessary, and sets up authentication
-// and client options based on the configuration. If any required configuration
-// is missing or invalid, it appends appropriate diagnostics to the response.
+// Configure sets up the Microsoft365 provider with the given configuration.
+// It processes the provider schema, retrieves values from the configuration or
+// environment variables, sets up authentication, and initializes the Microsoft
+// Graph clients.
 //
-// The function supports various authentication methods including device code,
-// client secret, client certificate, on-behalf-of, interactive browser, and
-// username/password. It also handles optional proxy settings and national cloud
-// deployments.
-//
-// Parameters:
-//   - ctx: The context for the configure request.
-//   - req: The configure request containing the provider configuration.
-//   - resp: The configure response used to store any diagnostics and the
-//     configured client.
-//
-// The function performs the following steps:
-//  1. Extracts configuration data from the request.
-//  2. Retrieves values from environment variables if not set in the configuration.
-//  3. Handles token retrieval from configuration or environment.
-//  4. Configures HTTP client transport for proxy if specified.
-//  5. Sets up authentication using the specified method.
-//  6. Creates a Microsoft Graph client with the configured authentication provider.
+// The function supports various authentication methods, proxy settings, and
+// national cloud deployments. It performs the following main steps:
+//  1. Extracts and validates the configuration data.
+//  2. Sets up logging and context with relevant fields.
+//  3. Determines cloud-specific constants and endpoints.
+//  4. Configures the Entra ID client options.
+//  5. Obtains credentials based on the specified authentication method.
+//  6. Creates and configures the Microsoft Graph clients (stable and beta).
 //
 // If any errors occur during these steps, appropriate diagnostics are added
 // to the response.
@@ -230,39 +223,57 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cloud := helpers.GetEnvOrDefault(ctx, data.Cloud.ValueString(), "M365_CLOUD")
-	authMethod := helpers.GetEnvOrDefault(ctx, data.AuthMethod.ValueString(), "M365_AUTH_METHOD")
-	tenantID := helpers.GetEnvOrDefault(ctx, data.TenantID.ValueString(), "M365_TENANT_ID")
-	clientID := helpers.GetEnvOrDefault(ctx, data.ClientID.ValueString(), "M365_CLIENT_ID")
-	clientSecret := helpers.GetEnvOrDefault(ctx, data.ClientSecret.ValueString(), "M365_CLIENT_SECRET")
-	clientCertificateBase64 := helpers.GetEnvOrDefault(ctx, data.ClientCertificateBase64.ValueString(), "M365_CLIENT_CERTIFICATE_BASE64")
-	clientCertificateFilePath := helpers.GetEnvOrDefault(ctx, data.ClientCertificateFilePath.ValueString(), "M365_CLIENT_CERTIFICATE_FILE_PATH")
-	clientCertificatePassword := helpers.GetEnvOrDefault(ctx, data.ClientCertificatePassword.ValueString(), "M365_CLIENT_CERTIFICATE_PASSWORD")
-	username := helpers.GetEnvOrDefault(ctx, data.Username.ValueString(), "M365_USERNAME")
-	password := helpers.GetEnvOrDefault(ctx, data.Password.ValueString(), "M365_PASSWORD")
-	redirectURL := helpers.GetEnvOrDefault(ctx, data.RedirectURL.ValueString(), "M365_REDIRECT_URL")
-	useProxy := helpers.GetEnvOrDefaultBool(ctx, data.UseProxy.ValueBool(), "M365_USE_PROXY")
-	proxyURL := helpers.GetEnvOrDefault(ctx, data.ProxyURL.ValueString(), "M365_PROXY_URL")
-	enableChaos := helpers.GetEnvOrDefaultBool(ctx, data.EnableChaos.ValueBool(), "M365_ENABLE_CHAOS")
-	telemetryOptout := helpers.GetEnvOrDefaultBool(ctx, data.TelemetryOptout.ValueBool(), "M365_TELEMETRY_OPTOUT")
+	cloud := helpers.GetValueOrEnv(ctx, data.Cloud, "M365_CLOUD")
+	authMethod := helpers.GetValueOrEnv(ctx, data.AuthMethod, "M365_AUTH_METHOD")
+	tenantID := helpers.GetValueOrEnv(ctx, data.TenantID, "M365_TENANT_ID")
+	clientID := helpers.GetValueOrEnv(ctx, data.ClientID, "M365_CLIENT_ID")
+	clientSecret := helpers.GetValueOrEnv(ctx, data.ClientSecret, "M365_CLIENT_SECRET")
+	clientCertificateBase64 := helpers.GetValueOrEnv(ctx, data.ClientCertificateBase64, "M365_CLIENT_CERTIFICATE_BASE64")
+	clientCertificateFilePath := helpers.GetValueOrEnv(ctx, data.ClientCertificateFilePath, "M365_CLIENT_CERTIFICATE_FILE_PATH")
+	clientCertificatePassword := helpers.GetValueOrEnv(ctx, data.ClientCertificatePassword, "M365_CLIENT_CERTIFICATE_PASSWORD")
+	username := helpers.GetValueOrEnv(ctx, data.Username, "M365_USERNAME")
+	password := helpers.GetValueOrEnv(ctx, data.Password, "M365_PASSWORD")
+	redirectURL := helpers.GetValueOrEnv(ctx, data.RedirectURL, "M365_REDIRECT_URL")
+	useProxy := helpers.GetValueOrEnvBool(ctx, data.UseProxy, "M365_USE_PROXY")
+	proxyURL := helpers.GetValueOrEnv(ctx, data.ProxyURL, "M365_PROXY_URL")
+	enableChaos := helpers.GetValueOrEnvBool(ctx, data.EnableChaos, "M365_ENABLE_CHAOS")
+	telemetryOptout := helpers.GetValueOrEnvBool(ctx, data.TelemetryOptout, "M365_TELEMETRY_OPTOUT")
+	debugMode := helpers.GetValueOrEnvBool(ctx, data.Debug, "M365_DEBUG_MODE")
 
-	// Logging to verify environment variables are being used
-	tflog.Debug(ctx, "Configuration values", map[string]interface{}{
-		"cloud":                     cloud,
-		"authMethod":                authMethod,
-		"tenantID":                  tenantID,
-		"clientID":                  clientID,
-		"clientSecret":              clientSecret,
-		"clientCertificateBase64":   clientCertificateBase64,
-		"clientCertificateFilePath": clientCertificateFilePath,
-		"clientCertificatePassword": clientCertificatePassword,
-		"username":                  username,
-		"password":                  password,
-		"redirectURL":               redirectURL,
-		"useProxy":                  useProxy,
-		"proxyURL":                  proxyURL,
-		"enableChaos":               enableChaos,
-		"telemetryOptout":           telemetryOptout,
+	data.TenantID = types.StringValue(tenantID)
+	data.AuthMethod = types.StringValue(authMethod)
+	data.ClientID = types.StringValue(clientID)
+	data.ClientSecret = types.StringValue(clientSecret)
+	data.ClientCertificateBase64 = types.StringValue(clientCertificateBase64)
+	data.ClientCertificateFilePath = types.StringValue(clientCertificateFilePath)
+	data.ClientCertificatePassword = types.StringValue(clientCertificatePassword)
+	data.Username = types.StringValue(username)
+	data.Password = types.StringValue(password)
+	data.RedirectURL = types.StringValue(redirectURL)
+	data.UseProxy = types.BoolValue(useProxy)
+	data.ProxyURL = types.StringValue(proxyURL)
+	data.Cloud = types.StringValue(cloud)
+	data.EnableChaos = types.BoolValue(enableChaos)
+	data.TelemetryOptout = types.BoolValue(telemetryOptout)
+	data.Debug = types.BoolValue(debugMode)
+
+	tflog.Debug(ctx, "M365ProviderModel after population", map[string]interface{}{
+		"tenant_id_length":                 len(data.TenantID.ValueString()),
+		"auth_method":                      data.AuthMethod.ValueString(),
+		"client_id_length":                 len(data.ClientID.ValueString()),
+		"client_secret_length":             len(data.ClientSecret.ValueString()),
+		"client_certificate_base64_length": len(data.ClientCertificateBase64.ValueString()),
+		"client_certificate_file_path":     data.ClientCertificateFilePath.ValueString(),
+		"client_certificate_password_set":  data.ClientCertificatePassword.ValueString() != "",
+		"username_set":                     data.Username.ValueString() != "",
+		"password_set":                     data.Password.ValueString() != "",
+		"redirect_url":                     data.RedirectURL.ValueString(),
+		"use_proxy":                        data.UseProxy.ValueBool(),
+		"proxy_url":                        data.ProxyURL.ValueString(),
+		"cloud":                            data.Cloud.ValueString(),
+		"enable_chaos":                     data.EnableChaos.ValueBool(),
+		"telemetry_optout":                 data.TelemetryOptout.ValueBool(),
+		"debug_mode":                       data.Debug.ValueBool(),
 	})
 
 	ctx = tflog.SetField(ctx, "cloud", cloud)
@@ -271,6 +282,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "redirect_url", redirectURL)
 	ctx = tflog.SetField(ctx, "proxy_url", proxyURL)
 	ctx = tflog.SetField(ctx, "enable_chaos", enableChaos)
+	ctx = tflog.SetField(ctx, "telemetry_optout", telemetryOptout)
+	ctx = tflog.SetField(ctx, "debug_mode", debugMode)
 
 	ctx = tflog.SetField(ctx, "client_certificate_base64", clientCertificateBase64)
 	ctx = tflog.SetField(ctx, "client_certificate_file_path", clientCertificateFilePath)
@@ -377,8 +390,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.ResourceData = clients
 
 	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
-		"stable_client_set": p.clients.StableClient != nil,
-		"beta_client_set":   p.clients.BetaClient != nil,
+		"graph_client_set":      p.clients.StableClient != nil,
+		"graph_beta_client_set": p.clients.BetaClient != nil,
 	})
 }
 
