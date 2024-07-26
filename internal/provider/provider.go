@@ -44,7 +44,7 @@ type M365ProviderModel struct {
 	Cloud                     types.String `tfsdk:"cloud"`
 	EnableChaos               types.Bool   `tfsdk:"enable_chaos"`
 	TelemetryOptout           types.Bool   `tfsdk:"telemetry_optout"`
-	Debug                     types.Bool   `tfsdk:"debug"`
+	DebugMode                 types.Bool   `tfsdk:"debug_mode"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -238,7 +238,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	proxyURL := helpers.GetValueOrEnv(ctx, data.ProxyURL, "M365_PROXY_URL")
 	enableChaos := helpers.GetValueOrEnvBool(ctx, data.EnableChaos, "M365_ENABLE_CHAOS")
 	telemetryOptout := helpers.GetValueOrEnvBool(ctx, data.TelemetryOptout, "M365_TELEMETRY_OPTOUT")
-	debugMode := helpers.GetValueOrEnvBool(ctx, data.Debug, "M365_DEBUG_MODE")
+	debugMode := helpers.GetValueOrEnvBool(ctx, data.DebugMode, "M365_DEBUG_MODE")
 
 	data.TenantID = types.StringValue(tenantID)
 	data.AuthMethod = types.StringValue(authMethod)
@@ -255,7 +255,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	data.Cloud = types.StringValue(cloud)
 	data.EnableChaos = types.BoolValue(enableChaos)
 	data.TelemetryOptout = types.BoolValue(telemetryOptout)
-	data.Debug = types.BoolValue(debugMode)
+	data.DebugMode = types.BoolValue(debugMode)
 
 	tflog.Debug(ctx, "M365ProviderModel after population", map[string]interface{}{
 		"tenant_id_length":                 len(data.TenantID.ValueString()),
@@ -273,7 +273,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		"cloud":                            data.Cloud.ValueString(),
 		"enable_chaos":                     data.EnableChaos.ValueBool(),
 		"telemetry_optout":                 data.TelemetryOptout.ValueBool(),
-		"debug_mode":                       data.Debug.ValueBool(),
+		"debug_mode":                       data.DebugMode.ValueBool(),
 	})
 
 	ctx = tflog.SetField(ctx, "cloud", cloud)
