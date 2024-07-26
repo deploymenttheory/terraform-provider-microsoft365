@@ -106,12 +106,12 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 			"client_id": data.ClientID.ValueString(),
 		})
 
-		if data.ClientCertificateFilePath.IsNull() {
-			return nil, fmt.Errorf("'client_certificate_file_path' must be provided for client_certificate authentication")
+		if data.ClientCertificate.IsNull() {
+			return nil, fmt.Errorf("'client_certificateh' must be provided for client_certificate authentication")
 		}
 
 		tflog.Debug(ctx, "Using client certificate file path")
-		certData, err := os.ReadFile(data.ClientCertificateFilePath.ValueString())
+		certData, err := os.ReadFile(data.ClientCertificate.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("failed to read certificate file: %v", err)
 		}

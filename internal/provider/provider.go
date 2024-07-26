@@ -33,8 +33,7 @@ type M365ProviderModel struct {
 	AuthMethod                types.String `tfsdk:"auth_method"`
 	ClientID                  types.String `tfsdk:"client_id"`
 	ClientSecret              types.String `tfsdk:"client_secret"`
-	ClientCertificateBase64   types.String `tfsdk:"client_certificate_base64"`
-	ClientCertificateFilePath types.String `tfsdk:"client_certificate_file_path"`
+	ClientCertificate         types.String `tfsdk:"client_certificate"`
 	ClientCertificatePassword types.String `tfsdk:"client_certificate_password"`
 	Username                  types.String `tfsdk:"username"`
 	Password                  types.String `tfsdk:"password"`
@@ -108,27 +107,28 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Required for client credentials and on-behalf-of flows. " +
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
-			"client_certificate_base64": schema.StringAttribute{
-				MarkdownDescription: "Base64 encoded certificate data for authenticating a Service Principal using a Client Certificate. " +
-					"Supports PEM and PKCS#12 formats. For PEM, the data should contain the certificate and the unencrypted private key. " +
-					"For PKCS#12, use 'client_certificate_password' if the data is encrypted. " +
-					"Can also be set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable.",
-				Optional:  true,
-				Sensitive: true,
-			},
-			"client_certificate_file_path": schema.StringAttribute{
+			"client_certificate": schema.StringAttribute{
 				MarkdownDescription: "The path to the Client Certificate file associated with the Service " +
 					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
-					"Supports PEM and PKCS#12 (.pfx) file formats. For PEM, the file should contain the certificate " +
-					"and the unencrypted private key. For PKCS#12, use 'client_certificate_password' if the file is encrypted. " +
+					"Supports PKCS#12 (.pfx or .p12) file format. The file should contain the certificate, " +
+					"private key, and optionally a certificate chain. " +
+					"IMPORTANT: As a prerequisite, the public key certificate must be uploaded to the " +
+					"Enterprise Application in Microsoft Entra ID (formerly Azure Active Directory). This can be done in the Azure Portal " +
+					"under 'Enterprise Applications' > [Your App] > 'Certificates & secrets' > 'Certificates'. " +
+					"Use 'client_certificate_password' if the file is encrypted. This certificate should be " +
+					"associated with the application registered in Azure Entra ID. " +
 					"Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
 				Optional:  true,
 				Sensitive: true,
 			},
 			"client_certificate_password": schema.StringAttribute{
-				MarkdownDescription: "The password associated with the Client Certificate. For use when" +
-					"authenticating as a Service Principal using a Client Certificate. Can also be set using" +
-					"the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
+				MarkdownDescription: "The password to decrypt the PKCS#12 (.pfx or .p12) file specified in " +
+					"'client_certificate_file_path'. This is required if the PKCS#12 file is password-protected. " +
+					"When the certificate file is created, this password is used to encrypt the private key for " +
+					"security. It's not related to any Microsoft Entra ID (formerly Azure Active Directory) settings," +
+					"but rather to the certificate file itself. " +
+					"If your PKCS#12 file was created without a password, this field should be left empty. " +
+					"Can also be set using the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
 				Optional:  true,
 				Sensitive: true,
 			},
@@ -232,8 +232,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		AuthMethod:                types.StringValue(helpers.EnvDefaultFunc("M365_AUTH_METHOD", config.AuthMethod.ValueString())),
 		ClientID:                  types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ID", config.ClientID.ValueString())),
 		ClientSecret:              types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_SECRET", config.ClientSecret.ValueString())),
-		ClientCertificateBase64:   types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_BASE64", config.ClientCertificateBase64.ValueString())),
-		ClientCertificateFilePath: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_FILE_PATH", config.ClientCertificateFilePath.ValueString())),
+		ClientCertificate:         types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_FILE_PATH", config.ClientCertificate.ValueString())),
 		ClientCertificatePassword: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_PASSWORD", config.ClientCertificatePassword.ValueString())),
 		Username:                  types.StringValue(helpers.EnvDefaultFunc("M365_USERNAME", config.Username.ValueString())),
 		Password:                  types.StringValue(helpers.EnvDefaultFunc("M365_PASSWORD", config.Password.ValueString())),
@@ -258,10 +257,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "telemetry_optout", data.TelemetryOptout.ValueBool())
 	ctx = tflog.SetField(ctx, "debug_mode", data.DebugMode.ValueBool())
 
-	ctx = tflog.SetField(ctx, "client_certificate_base64", data.ClientCertificateBase64.ValueString())
-	ctx = tflog.SetField(ctx, "client_certificate_file_path", data.ClientCertificateFilePath.ValueString())
+	ctx = tflog.SetField(ctx, "client_certificate_file_path", data.ClientCertificate.ValueString())
 	ctx = tflog.SetField(ctx, "client_certificate_password", data.ClientCertificatePassword.ValueString())
-	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate_base64`))
+	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate`))
 
 	ctx = tflog.SetField(ctx, "username", data.Username.ValueString())
 	ctx = tflog.SetField(ctx, "password", data.Password.ValueString())
