@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func logDebugInfo(ctx context.Context, req provider.ConfigureRequest, data M365ProviderModel) {
@@ -15,98 +14,77 @@ func logDebugInfo(ctx context.Context, req provider.ConfigureRequest, data M365P
 		return
 	}
 
-	tflog.Info(ctx, "==== M365ProviderModel Debug Information ====")
+	fmt.Println("\n==== M365ProviderModel Debug Information ====")
 
-	logEnvironmentVariables(ctx)
-	logSchemaValues(ctx, req)
-	logProviderDataModel(ctx, data)
-
-	tflog.Info(ctx, "========================================")
-}
-
-func logEnvironmentVariables(ctx context.Context) {
-	tflog.Info(ctx, "==== Environment Variables ====")
-	envVars := []string{
-		"M365_CLOUD", "M365_TENANT_ID", "M365_AUTH_METHOD", "M365_CLIENT_ID",
-		"M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_BASE64", "M365_CLIENT_CERTIFICATE_FILE_PATH",
-		"M365_CLIENT_CERTIFICATE_PASSWORD", "M365_USERNAME", "M365_PASSWORD",
-		"M365_REDIRECT_URL", "M365_USE_PROXY", "M365_PROXY_URL", "M365_ENABLE_CHAOS",
-		"M365_TELEMETRY_OPTOUT", "M365_DEBUG_MODE",
-	}
-
-	for _, env := range envVars {
-		value := os.Getenv(env)
-		if isSecretValue(env) && value != "" {
-			value = "[REDACTED]"
-		}
-		tflog.Info(ctx, fmt.Sprintf("%s: %s", env, value))
-	}
-}
-
-func logSchemaValues(ctx context.Context, req provider.ConfigureRequest) {
-	tflog.Info(ctx, "==== Values Set in Schema ====")
 	var config M365ProviderModel
-	diags := req.Config.Get(ctx, &config)
-	if diags.HasError() {
-		tflog.Error(ctx, "Error retrieving schema values", map[string]interface{}{"diagnostics": diags.Errors()})
-		return
-	}
+	req.Config.Get(ctx, &config)
 
-	logSchemaValue(ctx, "Tenant ID", config.TenantID)
-	logSchemaValue(ctx, "Auth Method", config.AuthMethod)
-	logSchemaValue(ctx, "Client ID", config.ClientID)
-	logSchemaValue(ctx, "Client Secret", config.ClientSecret)
-	logSchemaValue(ctx, "Client Certificate Base64", config.ClientCertificateBase64)
-	logSchemaValue(ctx, "Client Certificate File Path", config.ClientCertificateFilePath)
-	logSchemaValue(ctx, "Client Certificate Password", config.ClientCertificatePassword)
-	logSchemaValue(ctx, "Username", config.Username)
-	logSchemaValue(ctx, "Password", config.Password)
-	logSchemaValue(ctx, "Redirect URL", config.RedirectURL)
-	logSchemaValue(ctx, "Use Proxy", config.UseProxy)
-	logSchemaValue(ctx, "Proxy URL", config.ProxyURL)
-	logSchemaValue(ctx, "Cloud", config.Cloud)
-	logSchemaValue(ctx, "Enable Chaos", config.EnableChaos)
-	logSchemaValue(ctx, "Telemetry Optout", config.TelemetryOptout)
-	logSchemaValue(ctx, "Debug Mode", config.DebugMode)
+	logValueSource("Cloud", []string{"M365_CLOUD", "AZURE_CLOUD"}, config.Cloud, data.Cloud)
+	logValueSource("Tenant ID", []string{"M365_TENANT_ID"}, config.TenantID, data.TenantID)
+	logValueSource("Auth Method", []string{"M365_AUTH_METHOD"}, config.AuthMethod, data.AuthMethod)
+	logValueSource("Client ID", []string{"M365_CLIENT_ID"}, config.ClientID, data.ClientID)
+	logValueSource("Client Secret", []string{"M365_CLIENT_SECRET"}, config.ClientSecret, data.ClientSecret)
+	logValueSource("Client Certificate Base64", []string{"M365_CLIENT_CERTIFICATE_BASE64"}, config.ClientCertificateBase64, data.ClientCertificateBase64)
+	logValueSource("Client Certificate File Path", []string{"M365_CLIENT_CERTIFICATE_FILE_PATH"}, config.ClientCertificateFilePath, data.ClientCertificateFilePath)
+	logValueSource("Client Certificate Password", []string{"M365_CLIENT_CERTIFICATE_PASSWORD"}, config.ClientCertificatePassword, data.ClientCertificatePassword)
+	logValueSource("Username", []string{"M365_USERNAME"}, config.Username, data.Username)
+	logValueSource("Password", []string{"M365_PASSWORD"}, config.Password, data.Password)
+	logValueSource("Redirect URL", []string{"M365_REDIRECT_URL"}, config.RedirectURL, data.RedirectURL)
+	logBoolValueSource("Use Proxy", []string{"M365_USE_PROXY"}, config.UseProxy, data.UseProxy)
+	logValueSource("Proxy URL", []string{"M365_PROXY_URL"}, config.ProxyURL, data.ProxyURL)
+	logBoolValueSource("Enable Chaos", []string{"M365_ENABLE_CHAOS"}, config.EnableChaos, data.EnableChaos)
+	logBoolValueSource("Telemetry Optout", []string{"M365_TELEMETRY_OPTOUT"}, config.TelemetryOptout, data.TelemetryOptout)
+	logBoolValueSource("Debug Mode", []string{"M365_DEBUG_MODE"}, config.DebugMode, data.DebugMode)
+
+	fmt.Println("========================================")
 }
 
-func logProviderDataModel(ctx context.Context, data M365ProviderModel) {
-	tflog.Info(ctx, "==== Values Mapped to Provider Data Model ====")
-	tflog.Info(ctx, fmt.Sprintf("Tenant ID Length: %d", len(data.TenantID.ValueString())))
-	tflog.Info(ctx, fmt.Sprintf("Auth Method: %s", data.AuthMethod.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("Client ID Length: %d", len(data.ClientID.ValueString())))
-	tflog.Info(ctx, fmt.Sprintf("Client Secret Length: %d", len(data.ClientSecret.ValueString())))
-	tflog.Info(ctx, fmt.Sprintf("Client Certificate Base64 Length: %d", len(data.ClientCertificateBase64.ValueString())))
-	tflog.Info(ctx, fmt.Sprintf("Client Certificate File Path: %s", data.ClientCertificateFilePath.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("Client Certificate Password Set: %t", data.ClientCertificatePassword.ValueString() != ""))
-	tflog.Info(ctx, fmt.Sprintf("Username Set: %t", data.Username.ValueString() != ""))
-	tflog.Info(ctx, fmt.Sprintf("Password Set: %t", data.Password.ValueString() != ""))
-	tflog.Info(ctx, fmt.Sprintf("Redirect URL: %s", data.RedirectURL.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("Use Proxy: %t", data.UseProxy.ValueBool()))
-	tflog.Info(ctx, fmt.Sprintf("Proxy URL: %s", data.ProxyURL.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("Cloud: %s", data.Cloud.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("Enable Chaos: %t", data.EnableChaos.ValueBool()))
-	tflog.Info(ctx, fmt.Sprintf("Telemetry Optout: %t", data.TelemetryOptout.ValueBool()))
-	tflog.Info(ctx, fmt.Sprintf("Debug Mode: %t", data.DebugMode.ValueBool()))
-}
-
-func logSchemaValue(ctx context.Context, name string, value interface{}) {
-	switch v := value.(type) {
-	case types.String:
-		tflog.Info(ctx, fmt.Sprintf("%s: %t", name, !v.IsNull() && !v.IsUnknown()))
-	case types.Bool:
-		tflog.Info(ctx, fmt.Sprintf("%s: %t", name, !v.IsNull() && !v.IsUnknown()))
-	default:
-		tflog.Info(ctx, fmt.Sprintf("%s: Unknown type", name))
-	}
-}
-
-func isSecretValue(envVar string) bool {
-	secretVars := []string{"M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_BASE64", "M365_CLIENT_CERTIFICATE_PASSWORD", "M365_PASSWORD"}
-	for _, secretVar := range secretVars {
-		if envVar == secretVar {
-			return true
+func logValueSource(name string, envVars []string, configValue, dataValue types.String) {
+	var source, value string
+	for _, env := range envVars {
+		if v := os.Getenv(env); v != "" {
+			source = "Environment Variable"
+			value = v
+			break
 		}
 	}
-	return false
+	if source == "" {
+		if !configValue.IsNull() && !configValue.IsUnknown() {
+			source = "HCL Configuration"
+			value = configValue.ValueString()
+		} else {
+			source = "HCL Default"
+			value = dataValue.ValueString()
+		}
+	}
+	fmt.Printf("%s: %s (Source: %s)\n", name, maskSensitiveValue(value), source)
+}
+
+func logBoolValueSource(name string, envVars []string, configValue, dataValue types.Bool) {
+	var source string
+	var value bool
+	for _, env := range envVars {
+		if v := os.Getenv(env); v != "" {
+			source = "Environment Variable"
+			value = v == "true" || v == "1"
+			break
+		}
+	}
+	if source == "" {
+		if !configValue.IsNull() && !configValue.IsUnknown() {
+			source = "HCL Configuration"
+			value = configValue.ValueBool()
+		} else {
+			source = "HCL Default"
+			value = dataValue.ValueBool()
+		}
+	}
+	fmt.Printf("%s: %t (Source: %s)\n", name, value, source)
+}
+
+func maskSensitiveValue(value string) string {
+	if value != "" {
+		return value
+	}
+	return ""
 }

@@ -109,15 +109,18 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"client_certificate_base64": schema.StringAttribute{
-				MarkdownDescription: "Base64 encoded PKCS#12 certificate bundle. For use when" +
-					"authenticating as a Service Principal using a Client Certificate. Can also be" +
-					"set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable.",
+				MarkdownDescription: "Base64 encoded certificate data for authenticating a Service Principal using a Client Certificate. " +
+					"Supports PEM and PKCS#12 formats. For PEM, the data should contain the certificate and the unencrypted private key. " +
+					"For PKCS#12, use 'client_certificate_password' if the data is encrypted. " +
+					"Can also be set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable.",
 				Optional:  true,
 				Sensitive: true,
 			},
 			"client_certificate_file_path": schema.StringAttribute{
-				MarkdownDescription: "The path to the Client Certificate associated with the Service" +
-					"Principal for use when authenticating as a Service Principal using a Client Certificate." +
+				MarkdownDescription: "The path to the Client Certificate file associated with the Service " +
+					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
+					"Supports PEM and PKCS#12 (.pfx) file formats. For PEM, the file should contain the certificate " +
+					"and the unencrypted private key. For PKCS#12, use 'client_certificate_password' if the file is encrypted. " +
 					"Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
 				Optional:  true,
 				Sensitive: true,
