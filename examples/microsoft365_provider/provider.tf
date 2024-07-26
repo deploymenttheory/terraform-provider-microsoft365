@@ -1,21 +1,20 @@
 
 provider "microsoft365" {
-  tenant_id                    = var.tenant_id
-  auth_method                  = var.auth_method
-  client_id                    = var.client_id
-  client_secret                = var.client_secret
-  client_certificate_base64    = var.client_certificate_base64
-  client_certificate_file_path = var.client_certificate_file_path
-  client_certificate_password  = var.client_certificate_password
-  username                     = var.username
-  password                     = var.password
-  redirect_url                 = var.redirect_url
-  use_proxy                    = var.use_proxy
-  proxy_url                    = var.proxy_url
-  cloud                        = var.cloud
-  enable_chaos                 = var.enable_chaos
-  telemetry_optout             = var.telemetry_optout
-  debug_mode                   = var.debug_mode
+  tenant_id                   = var.tenant_id
+  auth_method                 = var.auth_method
+  client_id                   = var.client_id
+  client_secret               = var.client_secret
+  client_certificate          = var.client_certificate
+  client_certificate_password = var.client_certificate_password
+  username                    = var.username
+  password                    = var.password
+  redirect_url                = var.redirect_url
+  use_proxy                   = var.use_proxy
+  proxy_url                   = var.proxy_url
+  cloud                       = var.cloud
+  enable_chaos                = var.enable_chaos
+  telemetry_optout            = var.telemetry_optout
+  debug_mode                  = var.debug_mode
 }
 
 variable "cloud" {
@@ -49,14 +48,7 @@ variable "client_secret" {
   default     = ""
 }
 
-variable "client_certificate_base64" {
-  description = "Base64 encoded PKCS#12 certificate bundle. For use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "client_certificate_file_path" {
+variable "client_certificate" {
   description = "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable."
   type        = string
   sensitive   = true
