@@ -257,24 +257,9 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	data.TelemetryOptout = types.BoolValue(telemetryOptout)
 	data.DebugMode = types.BoolValue(debugMode)
 
-	tflog.Debug(ctx, "M365ProviderModel after population", map[string]interface{}{
-		"tenant_id_length":                 len(data.TenantID.ValueString()),
-		"auth_method":                      data.AuthMethod.ValueString(),
-		"client_id_length":                 len(data.ClientID.ValueString()),
-		"client_secret_length":             len(data.ClientSecret.ValueString()),
-		"client_certificate_base64_length": len(data.ClientCertificateBase64.ValueString()),
-		"client_certificate_file_path":     data.ClientCertificateFilePath.ValueString(),
-		"client_certificate_password_set":  data.ClientCertificatePassword.ValueString() != "",
-		"username_set":                     data.Username.ValueString() != "",
-		"password_set":                     data.Password.ValueString() != "",
-		"redirect_url":                     data.RedirectURL.ValueString(),
-		"use_proxy":                        data.UseProxy.ValueBool(),
-		"proxy_url":                        data.ProxyURL.ValueString(),
-		"cloud":                            data.Cloud.ValueString(),
-		"enable_chaos":                     data.EnableChaos.ValueBool(),
-		"telemetry_optout":                 data.TelemetryOptout.ValueBool(),
-		"debug_mode":                       data.DebugMode.ValueBool(),
-	})
+	if debugMode {
+		logDebugInfo(ctx, data)
+	}
 
 	ctx = tflog.SetField(ctx, "cloud", cloud)
 	ctx = tflog.SetField(ctx, "auth_method", authMethod)
