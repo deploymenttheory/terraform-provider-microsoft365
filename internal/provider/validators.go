@@ -95,43 +95,103 @@ func (v useProxyValidator) ValidateBool(ctx context.Context, request validator.B
 	}
 }
 
-/* redirect_url, proxy_url, token_endpoint fields schema validator */
+/* redirect_url field schema validator */
+type redirectURLValidator struct{}
 
-type urlValidator struct{}
-
-func (v urlValidator) Description(ctx context.Context) string {
-	return "Validates that the value is a valid URL."
+func (v redirectURLValidator) Description(ctx context.Context) string {
+	return "Ensures that redirect_url is a well-formed URL if provided."
 }
 
-func (v urlValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the value is a valid URL."
+func (v redirectURLValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that redirect_url is a well-formed URL if provided."
 }
 
-func validateURL() validator.String {
-	return urlValidator{}
-}
+func (v redirectURLValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 
-// ValidateString validates the "redirect_url", "proxy_url", or any URL attribute.
-func (v urlValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
-	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	re := regexp.MustCompile(helpers.UrlValidStringRegex)
+	redirectURL := req.ConfigValue.ValueString()
+	if redirectURL == "" {
+		return
+	}
 
-	if !re.MatchString(request.ConfigValue.ValueString()) {
-		response.Diagnostics.AddError(
-			"Invalid URL",
-			"The value must be a valid URL.",
+	parsedURL, err := url.Parse(redirectURL)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL",
+			fmt.Sprintf("The value %q for redirect_url is not a valid URL: %s", redirectURL, err),
 		)
 		return
 	}
 
-	u, err := url.ParseRequestURI(request.ConfigValue.ValueString())
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		response.Diagnostics.AddError(
-			"Invalid URL",
-			"The value must be a valid URL.",
+	if parsedURL.Scheme == "" || parsedURL.Host == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL",
+			fmt.Sprintf("The value %q for redirect_url must include a scheme and host (e.g., https://example.com)", redirectURL),
+		)
+		return
+	}
+
+	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, redirectURL)
+	if !match {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Redirect URL Format",
+			fmt.Sprintf("The value %q for redirect_url contains invalid characters. It must match the format: [A-Za-z0-9-._~%%/:/?=]+", redirectURL),
 		)
 	}
+}
+
+func validateRedirectURL() validator.String {
+	return redirectURLValidator{}
+}
+
+/* proxy_url field schema validator */
+
+type proxyURLValidator struct{}
+
+func (v proxyURLValidator) Description(ctx context.Context) string {
+	return "Ensures that proxy_url is a well-formed URL if provided."
+}
+
+func (v proxyURLValidator) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that proxy_url is a well-formed URL if provided."
+}
+
+func (v proxyURLValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	proxyURL := req.ConfigValue.ValueString()
+	if proxyURL == "" {
+		return
+	}
+
+	_, err := url.Parse(proxyURL)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Proxy URL",
+			fmt.Sprintf("The value %q for proxy_url is not a valid URL: %s", proxyURL, err),
+		)
+		return
+	}
+
+	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, proxyURL)
+	if !match {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Proxy URL Format",
+			fmt.Sprintf("The value %q for proxy_url contains invalid characters. It must match the format: [A-Za-z0-9-._~%%/:/?=]+", proxyURL),
+		)
+	}
+}
+
+func validateProxyURL() validator.String {
+	return proxyURLValidator{}
 }

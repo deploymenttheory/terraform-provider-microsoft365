@@ -142,10 +142,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			},
 			"redirect_url": schema.StringAttribute{
 				Optional: true,
-				Description: "The redirect URL for interactive browser authentication. Can also be set using" +
+				Description: "The redirect URL for interactive browser authentication. Can also be set using " +
 					"the `M365_REDIRECT_URL` environment variable.",
 				Validators: []validator.String{
-					validateURL(),
+					validateRedirectURL(),
 				},
 			},
 			"use_proxy": schema.BoolAttribute{
@@ -165,7 +165,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"HTTP client to route requests through the proxy. Ensure the proxy server is reachable and correctly " +
 					"configured to handle the network traffic. Can also be set using the `M365_PROXY_URL` environment variable.",
 				Validators: []validator.String{
-					validateURL(),
+					validateProxyURL(),
 				},
 			},
 			"enable_chaos": schema.BoolAttribute{

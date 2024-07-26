@@ -1,3 +1,4 @@
+
 provider "microsoft365" {
   tenant_id                    = var.tenant_id
   auth_method                  = var.auth_method
@@ -14,11 +15,19 @@ provider "microsoft365" {
   cloud                        = var.cloud
   enable_chaos                 = var.enable_chaos
   telemetry_optout             = var.telemetry_optout
+  debug_mode                   = var.debug_mode
+}
+
+variable "cloud" {
+  description = "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`. Can also be set using the `M365_CLOUD` environment variable."
+  type        = string
+  default     = "public"
 }
 
 variable "tenant_id" {
   description = "The M365 tenant ID for the Entra ID application. This ID uniquely identifies your Entra ID (EID) instance. It can be found in the Azure portal under Entra ID > Properties. Can also be set using the `M365_TENANT_ID` environment variable."
   type        = string
+  default     = ""
 }
 
 variable "auth_method" {
@@ -30,46 +39,54 @@ variable "auth_method" {
 variable "client_id" {
   description = "The client ID for the Entra ID application. This ID is generated when you register an application in the Entra ID (Azure AD) and can be found under App registrations > YourApp > Overview. Can also be set using the `M365_CLIENT_ID` environment variable."
   type        = string
+  default     = ""
 }
 
 variable "client_secret" {
   description = "The client secret for the Entra ID application. This secret is generated in the Entra ID (Azure AD) and is required for authentication flows such as client credentials and on-behalf-of flows. It can be found under App registrations > YourApp > Certificates & secrets. Required for client credentials and on-behalf-of flows. Can also be set using the `M365_CLIENT_SECRET` environment variable."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "client_certificate_base64" {
   description = "Base64 encoded PKCS#12 certificate bundle. For use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_BASE64` environment variable."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "client_certificate_file_path" {
   description = "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "client_certificate_password" {
   description = "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "username" {
   description = "The username for username/password authentication. Can also be set using the `M365_USERNAME` environment variable."
   type        = string
+  default     = ""
 }
 
 variable "password" {
   description = "The password for username/password authentication. Can also be set using the `M365_PASSWORD` environment variable."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "redirect_url" {
   description = "The redirect URL for interactive browser authentication. Can also be set using the `M365_REDIRECT_URL` environment variable."
   type        = string
+  default     = ""
 }
 
 variable "use_proxy" {
@@ -81,12 +98,7 @@ variable "use_proxy" {
 variable "proxy_url" {
   description = "Specifies the URL of the HTTP proxy server. This URL should be in a valid URL format (e.g., 'http://proxy.example.com:8080'). When 'use_proxy' is enabled, this URL is used to configure the HTTP client to route requests through the proxy. Ensure the proxy server is reachable and correctly configured to handle the network traffic. Can also be set using the `M365_PROXY_URL` environment variable."
   type        = string
-}
-
-variable "cloud" {
-  description = "The cloud to use for authentication and Graph / Graph Beta API requests. Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`. Can also be set using the `M365_CLOUD` environment variable."
-  type        = string
-  default     = "public"
+  default     = ""
 }
 
 variable "enable_chaos" {
@@ -97,6 +109,12 @@ variable "enable_chaos" {
 
 variable "telemetry_optout" {
   description = "Flag to indicate whether to opt out of telemetry. Default is `false`. Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable."
+  type        = bool
+  default     = false
+}
+
+variable "debug_mode" {
+  description = "Flag to enable debug mode for the provider. When enabled, the provider will output additional debug information to the console to help diagnose issues. Can also be set using the `M365_DEBUG_MODE` environment variable."
   type        = bool
   default     = false
 }
