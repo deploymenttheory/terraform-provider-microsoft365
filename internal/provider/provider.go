@@ -37,6 +37,8 @@ type M365ProviderModel struct {
 	ClientCertificatePassword types.String `tfsdk:"client_certificate_password"`
 	Username                  types.String `tfsdk:"username"`
 	Password                  types.String `tfsdk:"password"`
+	ClientAssertion           types.String `tfsdk:"client_assertion"`
+	ClientAssertionFile       types.String `tfsdk:"client_assertion_file"`
 	RedirectURL               types.String `tfsdk:"redirect_url"`
 	UseProxy                  types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                  types.String `tfsdk:"proxy_url"`
@@ -58,9 +60,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
 					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
 					"Can also be set using the `M365_CLOUD` environment variable.",
-				MarkdownDescription: "The cloud to use for authentication and Graph / Graph Beta API requests." +
-					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
-					"Can also be set using the `M365_CLOUD` environment variable.",
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("public", "gcc", "gcchigh", "china", "dod", "ex", "rx"),
@@ -70,9 +69,27 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Required: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
-					"'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable.",
+					"'username_password', 'client_assertion'. Each method requires different credentials to be provided. " +
+					"'client_assertion' is typically used with OIDC tokens for secure server-to-server authentication. " +
+					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
+				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
+					"Options:\n" +
+					"- `device_code`: Uses a device code flow for authentication.\n" +
+					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
+					"- `client_certificate`: Uses a client certificate for authentication.\n" +
+					"- `interactive_browser`: Opens a browser for interactive login.\n" +
+					"- `username_password`: Uses username and password for authentication (not recommended for production).\n" +
+					"- `client_assertion`: Uses a client assertion (OIDC token) for authentication, suitable for CI/CD and server-to-server scenarios.\n\n" +
+					"Each method requires different credentials to be provided. Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("device_code", "client_secret", "client_certificate", "interactive_browser", "username_password"),
+					stringvalidator.OneOf(
+						"device_code",
+						"client_secret",
+						"client_certificate",
+						"interactive_browser",
+						"username_password",
+						"client_assertion",
+					),
 				},
 			},
 			"tenant_id": schema.StringAttribute{
@@ -108,7 +125,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"client_certificate": schema.StringAttribute{
-				MarkdownDescription: "The path to the Client Certificate file associated with the Service " +
+				Description: "The path to the Client Certificate file associated with the Service " +
 					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
 					"Supports PKCS#12 (.pfx or .p12) file format. The file should contain the certificate, " +
 					"private key, and optionally a certificate chain. " +
@@ -122,7 +139,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Sensitive: true,
 			},
 			"client_certificate_password": schema.StringAttribute{
-				MarkdownDescription: "The password to decrypt the PKCS#12 (.pfx or .p12) file specified in " +
+				Description: "The password to decrypt the PKCS#12 (.pfx or .p12) file specified in " +
 					"'client_certificate_file_path'. This is required if the PKCS#12 file is password-protected. " +
 					"When the certificate file is created, this password is used to encrypt the private key for " +
 					"security. It's not related to any Microsoft Entra ID (formerly Azure Active Directory) settings," +
@@ -142,6 +159,27 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Sensitive: true,
 				Description: "The password for username/password authentication. Can also be set using the" +
 					"`M365_PASSWORD` environment variable.",
+			},
+			"client_assertion": schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
+				Description: "The client assertion string (OIDC token) for authentication. " +
+					"This is typically a JSON Web Token (JWT) that represents the identity of the client. " +
+					"It is used in the client credentials flow with client assertion. " +
+					"This method is more secure than client secret as the assertion is short-lived. " +
+					"Commonly used in CI/CD pipelines and server-to-server authentication scenarios. " +
+					"Can also be set using the `M365_CLIENT_ASSERTION` environment variable. " +
+					"If both this and `client_assertion_file` are specified, this takes precedence.",
+			},
+			"client_assertion_file": schema.StringAttribute{
+				Optional: true,
+				Description: "Path to a file containing the client assertion (OIDC token) for authentication. " +
+					"This file should contain a JSON Web Token (JWT) that represents the identity of the client. " +
+					"Useful when the assertion is too long to be specified directly or when it's generated externally. " +
+					"The provider will read this file to obtain the assertion string. " +
+					"Ensure the file permissions are set appropriately to protect the token. " +
+					"Can also be set using the `M365_CLIENT_ASSERTION_FILE` environment variable. " +
+					"If both this and `client_assertion` are specified, `client_assertion` takes precedence.",
 			},
 			"redirect_url": schema.StringAttribute{
 				Optional: true,
@@ -184,14 +222,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional: true,
 				Description: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
 					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
-				MarkdownDescription: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
-					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
 			},
 			"debug_mode": schema.BoolAttribute{
 				Optional: true,
 				Description: "Flag to enable debug mode for the provider." +
-					"Can also be set using the `M365_DEBUG_MODE` environment variable.",
-				MarkdownDescription: "Flag to enable debug mode for the provider." +
 					"Can also be set using the `M365_DEBUG_MODE` environment variable.",
 			},
 		},
@@ -236,6 +270,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		ClientCertificatePassword: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_PASSWORD", config.ClientCertificatePassword.ValueString())),
 		Username:                  types.StringValue(helpers.EnvDefaultFunc("M365_USERNAME", config.Username.ValueString())),
 		Password:                  types.StringValue(helpers.EnvDefaultFunc("M365_PASSWORD", config.Password.ValueString())),
+		ClientAssertion:           types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ASSERTION", config.ClientAssertion.ValueString())),
+		ClientAssertionFile:       types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ASSERTION_FILE", config.ClientAssertionFile.ValueString())),
 		RedirectURL:               types.StringValue(helpers.EnvDefaultFunc("M365_REDIRECT_URL", config.RedirectURL.ValueString())),
 		UseProxy:                  types.BoolValue(helpers.EnvDefaultFuncBool("M365_USE_PROXY", config.UseProxy.ValueBool())),
 		ProxyURL:                  types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_URL", config.ProxyURL.ValueString())),
@@ -264,6 +300,10 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "username", data.Username.ValueString())
 	ctx = tflog.SetField(ctx, "password", data.Password.ValueString())
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
+
+	ctx = tflog.SetField(ctx, "client_assertion", data.ClientAssertion.ValueString())
+	ctx = tflog.SetField(ctx, "client_assertion_file", data.ClientAssertionFile.ValueString())
+	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_assertion`))
 
 	ctx = tflog.SetField(ctx, "tenant_id", data.TenantID.ValueString())
 	ctx = tflog.SetField(ctx, "client_id", data.ClientID.ValueString())
@@ -346,7 +386,11 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	stableAdapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
-		authProvider, nil, nil, httpClient)
+		authProvider,
+		nil,
+		nil,
+		httpClient,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create Microsoft Graph Stable SDK Adapter",
@@ -356,7 +400,11 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	betaAdapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
-		authProvider, nil, nil, httpClient)
+		authProvider,
+		nil,
+		nil,
+		httpClient,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create Microsoft Graph Beta SDK Adapter",
