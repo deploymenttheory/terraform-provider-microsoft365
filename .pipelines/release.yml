@@ -1,0 +1,34 @@
+# Terraform Provider Registry release workflow.
+name: Terraform Provider Release
+
+# This GitHub action creates a release when a tag that matches the pattern
+# "v*" (e.g. v0.1.0) is created.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Release for Partner and Community Providers
+  terraform-provider-release:
+    name: 'Terraform Provider Release'
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
+    secrets:
+      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
+      gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
+    with:
+      release-notes: false # Set to true if you have release notes to include
+      setup-go-version: '1.22' # Specify the Go version needed
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: 0
+      - name: Generate Release Notes
+        run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.txt
+          retention-days: 1
