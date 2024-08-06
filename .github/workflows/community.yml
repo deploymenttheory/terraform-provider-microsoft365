@@ -1,4 +1,5 @@
-# forked from hashicorp and modifed the runner to ubuntu-latest-m
+# forked from hashicorp and modifed the runner to windows-latest-l to
+# grant a large enough runner to successfully complete the goreleaser action
 on:
   workflow_call:
     inputs:
