@@ -153,33 +153,6 @@ func obtainCredential(ctx context.Context, data M365ProviderModel, clientOptions
 		return azidentity.NewUsernamePasswordCredential(data.TenantID.ValueString(), data.ClientID.ValueString(), username, password, &azidentity.UsernamePasswordCredentialOptions{
 			ClientOptions: clientOptions,
 		})
-	case "client_assertion":
-		tflog.Debug(ctx, "Obtaining Client Assertion Credential", map[string]interface{}{
-			"tenant_id": data.TenantID.ValueString(),
-			"client_id": data.ClientID.ValueString(),
-		})
-
-		var assertion string
-		if data.ClientAssertion.ValueString() != "" {
-			assertion = data.ClientAssertion.ValueString()
-		} else if data.ClientAssertionFile.ValueString() != "" {
-			content, err := os.ReadFile(data.ClientAssertionFile.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("failed to read client assertion file: %v", err)
-			}
-			assertion = string(content)
-		} else {
-			return nil, fmt.Errorf("either client_assertion or client_assertion_file must be provided for client assertion authentication")
-		}
-		return azidentity.NewClientAssertionCredential(
-			data.TenantID.ValueString(),
-			data.ClientID.ValueString(),
-			func(context.Context) (string, error) {
-				return assertion, nil
-			},
-			&azidentity.ClientAssertionCredentialOptions{
-				ClientOptions: clientOptions,
-			})
 
 	default:
 		return nil, fmt.Errorf("unsupported authentication method '%s'", data.AuthMethod.ValueString())
