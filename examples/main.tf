@@ -14,7 +14,7 @@ provider "microsoft365" {
   client_id     = var.client_id
   client_secret = var.client_secret
   auth_method   = "client_secret"
-  cloud         = "public"
+  cloud         = var.cloud
 }
 
 # Example resource
@@ -40,4 +40,10 @@ variable "client_secret" {
   description = "The client secret for the Entra ID application"
   type        = string
   sensitive   = true
+}
+
+variable "cloud" {
+  description = "The Microsoft cloud environment to use"
+  type        = string
+  default     = "public"
 }
