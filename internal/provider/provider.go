@@ -37,8 +37,6 @@ type M365ProviderModel struct {
 	ClientCertificatePassword types.String `tfsdk:"client_certificate_password"`
 	Username                  types.String `tfsdk:"username"`
 	Password                  types.String `tfsdk:"password"`
-	ClientAssertion           types.String `tfsdk:"client_assertion"`
-	ClientAssertionFile       types.String `tfsdk:"client_assertion_file"`
 	RedirectURL               types.String `tfsdk:"redirect_url"`
 	UseProxy                  types.Bool   `tfsdk:"use_proxy"`
 	ProxyURL                  types.String `tfsdk:"proxy_url"`
@@ -57,12 +55,23 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"cloud": schema.StringAttribute{
-				Description: "The cloud to use for authentication and Graph / Graph Beta API requests." +
-					"Default is `public`. Valid values are `public`, `gcc`, `gcchigh`, `china`, `dod`, `ex`, `rx`." +
-					"Can also be set using the `M365_CLOUD` environment variable.",
+				Description: "Specifies the Microsoft cloud environment for authentication and API requests. " +
+					"This setting determines the endpoints used for Microsoft Graph and Graph Beta APIs. " +
+					"Default is 'public'. Can be set using the `M365_CLOUD` environment variable.",
+				MarkdownDescription: "Specifies the Microsoft cloud environment for authentication and API requests. " +
+					"This setting determines the endpoints used for Microsoft Graph and Graph Beta APIs.\n\n" +
+					"Valid values:\n" +
+					"- `public`: Microsoft Azure Public Cloud (default)\n" +
+					"- `dod`: US Department of Defense (DoD) Cloud\n" +
+					"- `gcc`: US Government Cloud\n" +
+					"- `gcchigh`: US Government High Cloud\n" +
+					"- `china`: China Cloud\n" +
+					"- `ex`: EagleX Cloud\n" +
+					"- `rx`: Secure Cloud (RX)\n\n" +
+					"Can be set using the `M365_CLOUD` environment variable.",
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("public", "gcc", "gcchigh", "china", "dod", "ex", "rx"),
+					stringvalidator.OneOf("public", "dod", "gcc", "gcchigh", "china", "ex", "rx"),
 				},
 			},
 			"auth_method": schema.StringAttribute{
@@ -82,22 +91,31 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Each method requires different credentials to be provided. Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"device_code",
-						"client_secret",
-						"client_certificate",
-						"interactive_browser",
-						"username_password",
-						"client_assertion",
+						"device_code", "client_secret", "client_certificate", "interactive_browser", "username_password", "client_assertion",
 					),
 				},
 			},
 			"tenant_id": schema.StringAttribute{
 				Required:  true,
 				Sensitive: true,
-				Description: "The M365 tenant ID for the Entra ID application. " +
-					"This ID uniquely identifies your Entra ID (EID) instance. " +
-					"It can be found in the Azure portal under Entra ID > Properties. " +
-					"Can also be set using the `M365_TENANT_ID` environment variable.",
+				Description: "The Microsoft 365 tenant ID for the Entra ID (formerly Azure AD) application. " +
+					"This GUID uniquely identifies your Entra ID instance. " +
+					"Can be set using the `M365_TENANT_ID` environment variable.",
+				MarkdownDescription: "The Microsoft 365 tenant ID for the Entra ID (formerly Azure AD) application. " +
+					"This GUID uniquely identifies your Entra ID instance.\n\n" +
+					"To find your tenant ID:\n" +
+					"1. Log in to the [Azure portal](https://portal.azure.com)\n" +
+					"2. Navigate to 'Microsoft Entra ID' (formerly Azure Active Directory)\n" +
+					"3. In the Overview page, look for 'Tenant ID'\n\n" +
+					"Alternatively, you can use PowerShell:\n" +
+					"```powershell\n" +
+					"(Get-AzureADTenantDetails).ObjectId\n" +
+					"```\n\n" +
+					"Or Azure CLI:\n" +
+					"```bash\n" +
+					"az account show --query tenantId -o tsv\n" +
+					"```\n\n" +
+					"Can be set using the `M365_TENANT_ID` environment variable.",
 				Validators: []validator.String{
 					validateGUID("tenant_id"),
 				},
@@ -105,10 +123,25 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_id": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Description: "The client ID for the Entra ID application. " +
-					"This ID is generated when you register an application in the Entra ID (Azure AD) " +
-					"and can be found under App registrations > YourApp > Overview. " +
-					"Can also be set using the `M365_CLIENT_ID` environment variable.",
+				Description: "The client ID (application ID) for the Entra ID application. " +
+					"This GUID is generated when you register an application in Entra ID. " +
+					"Can be set using the `M365_CLIENT_ID` environment variable.",
+				MarkdownDescription: "The client ID (application ID) for the Entra ID (formerly Azure AD) application. " +
+					"This GUID is generated when you register an application in Entra ID.\n\n" +
+					"To find or create a client ID:\n" +
+					"1. Log in to the [Azure portal](https://portal.azure.com)\n" +
+					"2. Navigate to 'Microsoft Entra ID' > 'App registrations'\n" +
+					"3. Select your application or create a new one\n" +
+					"4. The client ID is listed as 'Application (client) ID' in the Overview page\n\n" +
+					"Using Azure CLI:\n" +
+					"```bash\n" +
+					"az ad app list --query \"[].{appId:appId, displayName:displayName}\"\n" +
+					"```\n\n" +
+					"Using Microsoft Graph PowerShell:\n" +
+					"```powershell\n" +
+					"Get-MgApplication -Filter \"displayName eq 'Your App Name'\" | Select-Object AppId, DisplayName\n" +
+					"```\n\n" +
+					"Can be set using the `M365_CLIENT_ID` environment variable.",
 				Validators: []validator.String{
 					validateGUID("client_id"),
 				},
@@ -116,74 +149,130 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 			"client_secret": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Description: "The client secret for the Entra ID application. " +
-					"This secret is generated in the Entra ID (Azure AD) and is required for " +
-					"authentication flows such as client credentials and on-behalf-of flows. " +
-					"It can be found under App registrations > YourApp > Certificates & secrets. " +
-					"Required for client credentials and on-behalf-of flows. " +
-					"Can also be set using the `M365_CLIENT_SECRET` environment variable.",
+				Description: "The client secret for the Entra ID application. Required for client credentials authentication. " +
+					"This secret is generated in Entra ID and has an expiration date. " +
+					"Can be set using the `M365_CLIENT_SECRET` environment variable.",
+				MarkdownDescription: "The client secret for the Entra ID (formerly Azure AD) application. " +
+					"This secret is required for client credentials authentication flow.\n\n" +
+					"Important notes:\n" +
+					"- Client secrets are sensitive and should be handled securely\n" +
+					"- Secrets have an expiration date and need to be rotated periodically\n" +
+					"- Use managed identities or certificate-based authentication when possible for improved security\n\n" +
+					"To create a client secret:\n" +
+					"1. Log in to the [Azure portal](https://portal.azure.com)\n" +
+					"2. Navigate to 'Microsoft Entra ID' > 'App registrations'\n" +
+					"3. Select your application\n" +
+					"4. Go to 'Certificates & secrets' > 'Client secrets'\n" +
+					"5. Click 'New client secret' and set a description and expiration\n" +
+					"6. Copy the secret value immediately (it won't be shown again)\n\n" +
+					"Using Azure CLI:\n" +
+					"```bash\n" +
+					"az ad app credential reset --id <app-id> --append\n" +
+					"```\n\n" +
+					"Using Microsoft Graph PowerShell:\n" +
+					"```powershell\n" +
+					"$credential = @{\n" +
+					"    displayName = 'My Secret'\n" +
+					"    endDateTime = (Get-Date).AddMonths(6)\n" +
+					"}\n" +
+					"New-MgApplicationPassword -ApplicationId <app-id> -PasswordCredential $credential\n" +
+					"```\n\n" +
+					"Can be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"client_certificate": schema.StringAttribute{
 				Description: "The path to the Client Certificate file associated with the Service " +
 					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
 					"Supports PKCS#12 (.pfx or .p12) file format. The file should contain the certificate, " +
-					"private key, and optionally a certificate chain. " +
-					"IMPORTANT: As a prerequisite, the public key certificate must be uploaded to the " +
-					"Enterprise Application in Microsoft Entra ID (formerly Azure Active Directory). This can be done in the Azure Portal " +
-					"under 'Enterprise Applications' > [Your App] > 'Certificates & secrets' > 'Certificates'. " +
-					"Use 'client_certificate_password' if the file is encrypted. This certificate should be " +
-					"associated with the application registered in Azure Entra ID. " +
-					"Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
-				Optional:  true,
-				Sensitive: true,
+					"private key with an RSA type, and optionally a password which can be defined in client_certificate_password. ",
+				MarkdownDescription: "The path to the client certificate file for certificate-based authentication with Entra ID (formerly Azure AD). " +
+					"This method is more secure than client secret-based authentication.\n\n" +
+					"Requirements:\n" +
+					"- File format: PKCS#12 (.pfx or .p12)\n" +
+					"- Contents: Certificate, private key, and optionally a certificate chain\n" +
+					"- The public key certificate must be uploaded to Entra ID\n\n" +
+					"Steps to set up certificate authentication:\n" +
+					"1. Generate a self-signed certificate or obtain one from a trusted Certificate Authority\n" +
+					"2. Convert the certificate to PKCS#12 format if necessary\n" +
+					"3. Upload the public key to Entra ID:\n" +
+					"   - Go to Azure Portal > 'Microsoft Entra ID' > 'App registrations' > [Your App] > 'Certificates & secrets'\n" +
+					"   - Upload the public key portion of your certificate\n" +
+					"4. Provide the path to the PKCS#12 file in this attribute\n\n" +
+					"Using OpenSSL to create a self-signed certificate:\n" +
+					"```bash\n" +
+					"openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365\n" +
+					"openssl pkcs12 -export -out certificate.pfx -inkey key.pem -in cert.pem\n" +
+					"```\n\n" +
+					"Can be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
 			},
 			"client_certificate_password": schema.StringAttribute{
-				Description: "The password to decrypt the PKCS#12 (.pfx or .p12) file specified in " +
-					"'client_certificate_file_path'. This is required if the PKCS#12 file is password-protected. " +
-					"When the certificate file is created, this password is used to encrypt the private key for " +
-					"security. It's not related to any Microsoft Entra ID (formerly Azure Active Directory) settings," +
-					"but rather to the certificate file itself. " +
-					"If your PKCS#12 file was created without a password, this field should be left empty. " +
-					"Can also be set using the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
 				Optional:  true,
 				Sensitive: true,
+				Description: "The password to decrypt the PKCS#12 (.pfx or .p12) client certificate file. " +
+					"Required only if the certificate file is password-protected. " +
+					"Can be set using the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
+				MarkdownDescription: "The password to decrypt the PKCS#12 (.pfx or .p12) client certificate file. " +
+					"This is required only if the certificate file is password-protected.\n\n" +
+					"Important notes:\n" +
+					"- This password is used to encrypt the private key in the certificate file\n" +
+					"- It's not related to any Entra ID settings, but to the certificate file itself\n" +
+					"- If your PKCS#12 file was created without a password, leave this field empty\n" +
+					"- Treat this password with the same level of security as the certificate itself\n\n" +
+					"When creating a PKCS#12 file with OpenSSL, you'll be prompted for this password:\n" +
+					"```bash\n" +
+					"openssl pkcs12 -export -out certificate.pfx -inkey key.pem -in cert.pem\n" +
+					"```\n\n" +
+					"Can be set using the `M365_CLIENT_CERTIFICATE_PASSWORD` environment variable.",
 			},
 			"username": schema.StringAttribute{
 				Optional: true,
-				Description: "The username for username/password authentication. Can also be set using the" +
-					"`M365_USERNAME` environment variable.",
+				Description: "The username for resource owner password credentials (ROPC) flow. " +
+					"Can be set using the `M365_USERNAME` environment variable.",
+				MarkdownDescription: "The username for resource owner password credentials (ROPC) flow authentication.\n\n" +
+					"**Important Security Notice:**\n" +
+					"- Resource Owner Password Credentials (ROPC) is considered less secure than other authentication methods\n" +
+					"- It should only be used when other, more secure methods are not possible\n" +
+					"- Not recommended for production environments\n" +
+					"- Does not support multi-factor authentication\n\n" +
+					"Usage:\n" +
+					"- Typically, this is the user's email address or User Principal Name (UPN)\n" +
+					"- Ensure the user has appropriate permissions for the required operations\n\n" +
+					"Can be set using the `M365_USERNAME` environment variable.",
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Description: "The password for username/password authentication. Can also be set using the" +
-					"`M365_PASSWORD` environment variable.",
-			},
-			"client_assertion": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
-				Description: "The client assertion string (OIDC token) for authentication. " +
-					"This is typically a JSON Web Token (JWT) that represents the identity of the client. " +
-					"It is used in the client credentials flow with client assertion. " +
-					"This method is more secure than client secret as the assertion is short-lived. " +
-					"Commonly used in CI/CD pipelines and server-to-server authentication scenarios. " +
-					"Can also be set using the `M365_CLIENT_ASSERTION` environment variable. " +
-					"If both this and `client_assertion_file` are specified, this takes precedence.",
-			},
-			"client_assertion_file": schema.StringAttribute{
-				Optional: true,
-				Description: "Path to a file containing the client assertion (OIDC token) for authentication. " +
-					"This file should contain a JSON Web Token (JWT) that represents the identity of the client. " +
-					"Useful when the assertion is too long to be specified directly or when it's generated externally. " +
-					"The provider will read this file to obtain the assertion string. " +
-					"Ensure the file permissions are set appropriately to protect the token. " +
-					"Can also be set using the `M365_CLIENT_ASSERTION_FILE` environment variable. " +
-					"If both this and `client_assertion` are specified, `client_assertion` takes precedence.",
+				Description: "The password for resource owner password credentials (ROPC) flow. " +
+					"Can be set using the `M365_PASSWORD` environment variable.",
+				MarkdownDescription: "The password for resource owner password credentials (ROPC) flow authentication.\n\n" +
+					"**Critical Security Warning:**\n" +
+					"- Storing passwords in plain text is a significant security risk\n" +
+					"- Use environment variables or secure vaults to manage this sensitive information\n" +
+					"- Regularly rotate passwords and monitor for unauthorized access\n" +
+					"- Consider using more secure authentication methods when possible\n\n" +
+					"Can be set using the `M365_PASSWORD` environment variable.",
 			},
 			"redirect_url": schema.StringAttribute{
 				Optional: true,
-				Description: "The redirect URL for interactive browser authentication. Can also be set using " +
-					"the `M365_REDIRECT_URL` environment variable.",
+				Description: "The redirect URL for OAuth 2.0 authentication flows that require a callback URL. " +
+					"Can be set using the `M365_REDIRECT_URL` environment variable.",
+				MarkdownDescription: "The redirect URL (also known as reply URL or callback URL) for OAuth 2.0 authentication flows that require a callback, such as the Authorization Code flow or interactive browser authentication.\n\n" +
+					"**Important:**\n" +
+					"- This URL must be registered in your Entra ID (formerly Azure AD) application settings\n" +
+					"- For local development, typically use `http://localhost:port`\n" +
+					"- For production, use a secure HTTPS URL\n\n" +
+					"To configure in Entra ID:\n" +
+					"1. Go to Azure Portal > 'Microsoft Entra ID' > 'App registrations'\n" +
+					"2. Select your application\n" +
+					"3. Go to 'Authentication' > 'Platform configurations'\n" +
+					"4. Add or update the redirect URI\n\n" +
+					"Security considerations:\n" +
+					"- Use a unique path for your redirect URL to prevent potential conflicts\n" +
+					"- Avoid using wildcard URLs in production environments\n" +
+					"- Regularly audit and remove any unused redirect URLs\n\n" +
+					"Example values:\n" +
+					"- Local development: `http://localhost:8000/auth/callback`\n" +
+					"- Production: `https://yourdomain.com/auth/microsoft365/callback`\n\n" +
+					"Can be set using the `M365_REDIRECT_URL` environment variable.",
 				Validators: []validator.String{
 					validateRedirectURL(),
 				},
@@ -204,6 +293,22 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"(e.g., 'http://proxy.example.com:8080'). When 'use_proxy' is enabled, this URL is used to configure the " +
 					"HTTP client to route requests through the proxy. Ensure the proxy server is reachable and correctly " +
 					"configured to handle the network traffic. Can also be set using the `M365_PROXY_URL` environment variable.",
+				MarkdownDescription: "Specifies the URL of the HTTP proxy server for routing requests when `use_proxy` is enabled.\n\n" +
+					"**Format:**\n" +
+					"- Must be a valid URL (e.g., `http://proxy.example.com:8080`)\n" +
+					"- Supports HTTP and HTTPS protocols\n\n" +
+					"**Usage:**\n" +
+					"- When `use_proxy` is set to `true`, all HTTP(S) requests will be routed through this proxy\n" +
+					"- Ensure the proxy server is reachable and correctly configured to handle the traffic\n\n" +
+					"**Examples:**\n" +
+					"- HTTP proxy: `http://proxy.example.com:8080`\n" +
+					"- HTTPS proxy: `https://secure-proxy.example.com:443`\n" +
+					"- Authenticated proxy: `http://username:password@proxy.example.com:8080`\n\n" +
+					"**Security Considerations:**\n" +
+					"- Use HTTPS for the proxy URL when possible to encrypt proxy communications\n" +
+					"- If using an authenticated proxy, consider setting the URL via the environment variable to avoid exposing credentials in configuration files\n" +
+					"- Ensure the proxy server is trusted and secure\n\n" +
+					"Can be set using the `M365_PROXY_URL` environment variable.",
 				Validators: []validator.String{
 					validateProxyURL(),
 				},
@@ -217,10 +322,25 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"for testing how the provider handles various error conditions and ensures " +
 					"it can recover gracefully. Use with caution in production environments. " +
 					"Can also be set using the `M365_ENABLE_CHAOS` environment variable.",
-			}, "telemetry_optout": schema.BoolAttribute{
+			},
+			"telemetry_optout": schema.BoolAttribute{
 				Optional: true,
-				Description: "Flag to indicate whether to opt out of telemetry. Default is `false`. " +
-					"Can also be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
+				Description: "Flag to opt out of telemetry collection. Default is `false`. " +
+					"Can be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
+				MarkdownDescription: "Controls the collection of telemetry data for the Microsoft 365 provider by Microsoft Services.\n\n" +
+					"**Usage:**\n" +
+					"- Set to `true` to disable all telemetry collection\n" +
+					"- Set to `false` (default) to allow telemetry collection\n\n" +
+					"**Behavior:**\n" +
+					"- When set to `true`, it prevents the addition of any telemetry data to API requests\n" +
+					"- This affects the User-Agent string and other potential telemetry mechanisms\n\n" +
+					"**Privacy:**\n" +
+					"- Telemetry, when enabled, may include provider version, Terraform version, and general usage patterns\n" +
+					"- No personally identifiable information (PII) or sensitive data is collected\n\n" +
+					"**Recommendations:**\n" +
+					"- For development or non-sensitive environments, consider leaving telemetry enabled to support product improvement\n" +
+					"- For production or sensitive environments, you may choose to opt out\n\n" +
+					"Can be set using the `M365_TELEMETRY_OPTOUT` environment variable.",
 			},
 			"debug_mode": schema.BoolAttribute{
 				Optional: true,
@@ -269,8 +389,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		ClientCertificatePassword: types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_CERTIFICATE_PASSWORD", config.ClientCertificatePassword.ValueString())),
 		Username:                  types.StringValue(helpers.EnvDefaultFunc("M365_USERNAME", config.Username.ValueString())),
 		Password:                  types.StringValue(helpers.EnvDefaultFunc("M365_PASSWORD", config.Password.ValueString())),
-		ClientAssertion:           types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ASSERTION", config.ClientAssertion.ValueString())),
-		ClientAssertionFile:       types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ASSERTION_FILE", config.ClientAssertionFile.ValueString())),
 		RedirectURL:               types.StringValue(helpers.EnvDefaultFunc("M365_REDIRECT_URL", config.RedirectURL.ValueString())),
 		UseProxy:                  types.BoolValue(helpers.EnvDefaultFuncBool("M365_USE_PROXY", config.UseProxy.ValueBool())),
 		ProxyURL:                  types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_URL", config.ProxyURL.ValueString())),
@@ -299,10 +417,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	ctx = tflog.SetField(ctx, "username", data.Username.ValueString())
 	ctx = tflog.SetField(ctx, "password", data.Password.ValueString())
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
-
-	ctx = tflog.SetField(ctx, "client_assertion", data.ClientAssertion.ValueString())
-	ctx = tflog.SetField(ctx, "client_assertion_file", data.ClientAssertionFile.ValueString())
-	ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_assertion`))
 
 	ctx = tflog.SetField(ctx, "tenant_id", data.TenantID.ValueString())
 	ctx = tflog.SetField(ctx, "client_id", data.ClientID.ValueString())
