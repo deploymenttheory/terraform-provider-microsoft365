@@ -180,6 +180,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"Can be set using the `M365_CLIENT_SECRET` environment variable.",
 			},
 			"client_certificate": schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
 				Description: "The path to the Client Certificate file associated with the Service " +
 					"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
 					"Supports PKCS#12 (.pfx or .p12) file format. The file should contain the certificate, " +
