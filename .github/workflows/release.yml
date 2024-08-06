@@ -12,7 +12,7 @@ jobs:
   # Release for Partner and Community Providers
   terraform-provider-release:
     name: 'Terraform Provider Release'
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
+    uses: deploymenttheory/terraform-provider-microsoft365/.github/workflows/community.yml@main
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
@@ -21,7 +21,6 @@ jobs:
       setup-go-version: '1.22.5' # Specify the Go version needed
   release-notes:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4.1.7
         with:
