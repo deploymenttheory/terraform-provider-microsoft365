@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta
 package graphBetaAssignmentFilter
 
 import (

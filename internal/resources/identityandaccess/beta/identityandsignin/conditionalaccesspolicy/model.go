@@ -113,6 +113,7 @@ type AuthenticationStrengthPolicyModel struct {
 	AllowedCombinations   []types.String `tfsdk:"allowed_combinations"`
 }
 
+// Ref: https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesssessioncontrols?view=graph-rest-beta
 type ConditionalAccessSessionControlsModel struct {
 	ApplicationEnforcedRestrictions *ApplicationEnforcedRestrictionsSessionControlModel `tfsdk:"application_enforced_restrictions"`
 	CloudAppSecurity                *CloudAppSecuritySessionControlModel                `tfsdk:"cloud_app_security"`
@@ -150,9 +151,5 @@ type SignInFrequencySessionControlModel struct {
 }
 
 type SecureSignInSessionControlModel struct {
-	IsEnabled          types.Bool   `tfsdk:"is_enabled"`
-	Type               types.String `tfsdk:"type"`
-	Value              types.Int64  `tfsdk:"value"`
-	AuthenticationType types.String `tfsdk:"authentication_type"`
-	FrequencyInterval  types.String `tfsdk:"frequency_interval"`
+	IsEnabled types.Bool `tfsdk:"is_enabled"`
 }
