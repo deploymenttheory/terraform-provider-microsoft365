@@ -122,7 +122,6 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	// After successful update, read the resource again to ensure the state reflects the latest changes
 	updatedPolicy, err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(plan.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
