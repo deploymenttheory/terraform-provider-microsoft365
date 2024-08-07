@@ -76,6 +76,8 @@ type ConditionalAccessDeviceStatesModel struct {
 type ConditionalAccessDevicesModel struct {
 	IncludeDevices []types.String                `tfsdk:"include_devices"`
 	ExcludeDevices []types.String                `tfsdk:"exclude_devices"`
+	IncludeStates  []types.String                `tfsdk:"include_states"` // this may be wrong
+	ExcludeStates  []types.String                `tfsdk:"exclude_states"` // this may be wrong
 	DeviceFilter   *ConditionalAccessFilterModel `tfsdk:"device_filter"`
 }
 

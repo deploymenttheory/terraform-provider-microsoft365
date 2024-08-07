@@ -154,11 +154,17 @@ func constructConditions(data *ConditionalAccessConditionsModel) (*models.Condit
 
 	// Insider Risk Levels
 	if !data.InsiderRiskLevels.IsNull() {
-		insiderRiskLevel, err := models.ParseConditionalAccessInsiderRiskLevels(data.InsiderRiskLevels.ValueString())
+		insiderRiskLevelAny, err := models.ParseConditionalAccessInsiderRiskLevels(data.InsiderRiskLevels.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("error parsing insider risk level: %v", err)
 		}
-		conditions.SetInsiderRiskLevels(insiderRiskLevel)
+		if insiderRiskLevelAny != nil {
+			insiderRiskLevel, ok := insiderRiskLevelAny.(*models.ConditionalAccessInsiderRiskLevels)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for insider risk level: %T", insiderRiskLevelAny)
+			}
+			conditions.SetInsiderRiskLevels(insiderRiskLevel)
+		}
 	}
 
 	// Locations
@@ -181,41 +187,65 @@ func constructConditions(data *ConditionalAccessConditionsModel) (*models.Condit
 
 	// Service Principal Risk Levels
 	if len(data.ServicePrincipalRiskLevels) > 0 {
-		riskLevels := make([]models.RiskLevel, len(data.ServicePrincipalRiskLevels))
-		for i, level := range data.ServicePrincipalRiskLevels {
-			riskLevel, err := models.ParseRiskLevel(level.ValueString())
+		riskLevels := make([]models.RiskLevel, 0, len(data.ServicePrincipalRiskLevels))
+		for _, level := range data.ServicePrincipalRiskLevels {
+			riskLevelAny, err := models.ParseRiskLevel(level.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing service principal risk level: %v", err)
 			}
-			riskLevels[i] = *riskLevel
+			if riskLevelAny != nil {
+				riskLevel, ok := riskLevelAny.(*models.RiskLevel)
+				if !ok {
+					return nil, fmt.Errorf("unexpected type for risk level: %T", riskLevelAny)
+				}
+				riskLevels = append(riskLevels, *riskLevel)
+			}
 		}
-		conditions.SetServicePrincipalRiskLevels(riskLevels)
+		if len(riskLevels) > 0 {
+			conditions.SetServicePrincipalRiskLevels(riskLevels)
+		}
 	}
 
 	// Sign-in Risk Levels
 	if len(data.SignInRiskLevels) > 0 {
-		riskLevels := make([]models.RiskLevel, len(data.SignInRiskLevels))
-		for i, level := range data.SignInRiskLevels {
-			riskLevel, err := models.ParseRiskLevel(level.ValueString())
+		signInRiskLevels := make([]models.RiskLevel, 0, len(data.SignInRiskLevels))
+		for _, level := range data.SignInRiskLevels {
+			riskLevelAny, err := models.ParseRiskLevel(level.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing sign-in risk level: %v", err)
 			}
-			riskLevels[i] = *riskLevel
+			if riskLevelAny != nil {
+				riskLevel, ok := riskLevelAny.(*models.RiskLevel)
+				if !ok {
+					return nil, fmt.Errorf("unexpected type for sign-in risk level: %T", riskLevelAny)
+				}
+				signInRiskLevels = append(signInRiskLevels, *riskLevel)
+			}
 		}
-		conditions.SetSignInRiskLevels(riskLevels)
+		if len(signInRiskLevels) > 0 {
+			conditions.SetSignInRiskLevels(signInRiskLevels)
+		}
 	}
 
 	// User Risk Levels
 	if len(data.UserRiskLevels) > 0 {
-		riskLevels := make([]models.RiskLevel, len(data.UserRiskLevels))
-		for i, level := range data.UserRiskLevels {
-			riskLevel, err := models.ParseRiskLevel(level.ValueString())
+		userRiskLevels := make([]models.RiskLevel, 0, len(data.UserRiskLevels))
+		for _, level := range data.UserRiskLevels {
+			riskLevelAny, err := models.ParseRiskLevel(level.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing user risk level: %v", err)
 			}
-			riskLevels[i] = *riskLevel
+			if riskLevelAny != nil {
+				riskLevel, ok := riskLevelAny.(*models.RiskLevel)
+				if !ok {
+					return nil, fmt.Errorf("unexpected type for user risk level: %T", riskLevelAny)
+				}
+				userRiskLevels = append(userRiskLevels, *riskLevel)
+			}
 		}
-		conditions.SetUserRiskLevels(riskLevels)
+		if len(userRiskLevels) > 0 {
+			conditions.SetUserRiskLevels(userRiskLevels)
+		}
 	}
 
 	// Users
@@ -439,37 +469,59 @@ func constructDevices(data *ConditionalAccessDevicesModel) (models.ConditionalAc
 	devices := models.NewConditionalAccessDevices()
 
 	if len(data.IncludeDevices) > 0 {
-		includeDevices := make([]models.ConditionalAccessDeviceType, 0, len(data.IncludeDevices))
-		for _, deviceType := range data.IncludeDevices {
-			deviceTypeAny, err := models.ParseConditionalAccessDeviceType(deviceType.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing include device type: %v", err)
-			}
-			if deviceTypeAny != nil {
-				includeDevices = append(includeDevices, *deviceTypeAny.(*models.ConditionalAccessDeviceType))
-			}
+		includeDevices := make([]string, len(data.IncludeDevices))
+		for i, device := range data.IncludeDevices {
+			includeDevices[i] = device.ValueString()
 		}
 		devices.SetIncludeDevices(includeDevices)
 	}
 
 	if len(data.ExcludeDevices) > 0 {
-		excludeDevices := make([]models.ConditionalAccessDeviceType, 0, len(data.ExcludeDevices))
-		for _, deviceType := range data.ExcludeDevices {
-			deviceTypeAny, err := models.ParseConditionalAccessDeviceType(deviceType.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing exclude device type: %v", err)
-			}
-			if deviceTypeAny != nil {
-				excludeDevices = append(excludeDevices, *deviceTypeAny.(*models.ConditionalAccessDeviceType))
-			}
+		excludeDevices := make([]string, len(data.ExcludeDevices))
+		for i, device := range data.ExcludeDevices {
+			excludeDevices[i] = device.ValueString()
 		}
 		devices.SetExcludeDevices(excludeDevices)
 	}
 
+	if data.IncludeStates != nil {
+		if len(data.IncludeStates) > 0 {
+			includeStates := make([]string, len(data.IncludeStates))
+			for i, state := range data.IncludeStates {
+				includeStates[i] = state.ValueString()
+			}
+			devices.SetIncludeDeviceStates(includeStates)
+		}
+
+		if len(data.ExcludeStates) > 0 {
+			excludeStates := make([]string, len(data.ExcludeStates))
+			for i, state := range data.ExcludeStates {
+				excludeStates[i] = state.ValueString()
+			}
+			devices.SetExcludeDeviceStates(excludeStates)
+		}
+	}
+
 	if data.DeviceFilter != nil {
 		filter := models.NewConditionalAccessFilter()
-		filter.SetMode(&data.DeviceFilter.Mode.ValueString())
-		filter.SetRule(&data.DeviceFilter.Rule.ValueString())
+
+		if !data.DeviceFilter.Mode.IsNull() {
+			modeStr := data.DeviceFilter.Mode.ValueString()
+			modeAny, err := models.ParseFilterMode(modeStr)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing device filter mode: %v", err)
+			}
+			if modeAny != nil {
+				mode := modeAny.(*models.FilterMode)
+				filter.SetMode(mode)
+			}
+		}
+
+		if !data.DeviceFilter.Rule.IsNull() {
+			rule := data.DeviceFilter.Rule.ValueString()
+			filter.SetRule(&rule)
+		}
+
 		devices.SetDeviceFilter(filter)
 	}
 
@@ -478,28 +530,92 @@ func constructDevices(data *ConditionalAccessDevicesModel) (models.ConditionalAc
 
 func constructDeviceStates(data *ConditionalAccessDeviceStatesModel) (models.ConditionalAccessDeviceStatesable, error) {
 	if data == nil {
-			return nil, nil
+		return nil, nil
 	}
 
 	deviceStates := models.NewConditionalAccessDeviceStates()
 
 	if len(data.IncludeStates) > 0 {
-			includeStates := make([]string, len(data.IncludeStates))
-			for i, state := range data.IncludeStates {
-					includeStates[i] = state.ValueString()
-			}
-			deviceStates.SetIncludeStates(includeStates)
+		includeStates := make([]string, len(data.IncludeStates))
+		for i, state := range data.IncludeStates {
+			includeStates[i] = state.ValueString()
+		}
+		deviceStates.SetIncludeStates(includeStates)
 	}
 
 	if len(data.ExcludeStates) > 0 {
-			excludeStates := make([]string, len(data.ExcludeStates))
-			for i, state := range data.ExcludeStates {
-					excludeStates[i] = state.ValueString()
-			}
-			deviceStates.SetExcludeStates(excludeStates)
+		excludeStates := make([]string, len(data.ExcludeStates))
+		for i, state := range data.ExcludeStates {
+			excludeStates[i] = state.ValueString()
+		}
+		deviceStates.SetExcludeStates(excludeStates)
 	}
 
 	return deviceStates, nil
+}
+
+func constructLocations(data *ConditionalAccessLocationsModel) (models.ConditionalAccessLocationsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	locations := models.NewConditionalAccessLocations()
+
+	if len(data.IncludeLocations) > 0 {
+		includeLocations := make([]string, len(data.IncludeLocations))
+		for i, location := range data.IncludeLocations {
+			includeLocations[i] = location.ValueString()
+		}
+		locations.SetIncludeLocations(includeLocations)
+	}
+
+	if len(data.ExcludeLocations) > 0 {
+		excludeLocations := make([]string, len(data.ExcludeLocations))
+		for i, location := range data.ExcludeLocations {
+			excludeLocations[i] = location.ValueString()
+		}
+		locations.SetExcludeLocations(excludeLocations)
+	}
+
+	return locations, nil
+}
+
+func constructPlatforms(data *ConditionalAccessPlatformsModel) (models.ConditionalAccessPlatformsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	platforms := models.NewConditionalAccessPlatforms()
+
+	if len(data.IncludePlatforms) > 0 {
+		includePlatforms := make([]models.ConditionalAccessDevicePlatform, 0, len(data.IncludePlatforms))
+		for _, platform := range data.IncludePlatforms {
+			platformAny, err := models.ParseConditionalAccessDevicePlatform(platform.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing include platform: %v", err)
+			}
+			if platformAny != nil {
+				includePlatforms = append(includePlatforms, *platformAny.(*models.ConditionalAccessDevicePlatform))
+			}
+		}
+		platforms.SetIncludePlatforms(includePlatforms)
+	}
+
+	if len(data.ExcludePlatforms) > 0 {
+		excludePlatforms := make([]models.ConditionalAccessDevicePlatform, 0, len(data.ExcludePlatforms))
+		for _, platform := range data.ExcludePlatforms {
+			platformAny, err := models.ParseConditionalAccessDevicePlatform(platform.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing exclude platform: %v", err)
+			}
+			if platformAny != nil {
+				excludePlatforms = append(excludePlatforms, *platformAny.(*models.ConditionalAccessDevicePlatform))
+			}
+		}
+		platforms.SetExcludePlatforms(excludePlatforms)
+	}
+
+	return platforms, nil
 }
 
 func constructGrantControls(data *ConditionalAccessGrantControlsModel) (*models.ConditionalAccessGrantControls, error) {
