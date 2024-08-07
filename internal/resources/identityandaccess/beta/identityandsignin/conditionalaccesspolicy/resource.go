@@ -55,7 +55,7 @@ type ConditionalAccessGuestsOrExternalUsersModel struct {
 }
 
 type ConditionalAccessExternalTenantsModel struct {
-	// Add properties as needed
+	GuestOrExternalUserTypes types.String `tfsdk:"guest_or_external_user_types"`
 }
 
 type ConditionalAccessClientApplicationsModel struct {
@@ -133,7 +133,7 @@ type CloudAppSecuritySessionControlModel struct {
 }
 
 type ContinuousAccessEvaluationSessionControlModel struct {
-	// Add properties as needed
+	Mode types.String `tfsdk:"mode"`
 }
 
 type PersistentBrowserSessionControlModel struct {
@@ -150,5 +150,9 @@ type SignInFrequencySessionControlModel struct {
 }
 
 type SecureSignInSessionControlModel struct {
-	// Add properties as needed
+	IsEnabled          types.Bool   `tfsdk:"is_enabled"`
+	Type               types.String `tfsdk:"type"`
+	Value              types.Int64  `tfsdk:"value"`
+	AuthenticationType types.String `tfsdk:"authentication_type"`
+	FrequencyInterval  types.String `tfsdk:"frequency_interval"`
 }

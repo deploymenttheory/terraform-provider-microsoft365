@@ -22,7 +22,8 @@
         "excludeGuestsOrExternalUsers": {
         "@odata.type": "microsoft.graph.conditionalAccessGuestsOrExternalUsers",
         "externalTenants": {
-          "@odata.type": "microsoft.graph.conditionalAccessExternalTenants"
+          "@odata.type": "microsoft.graph.conditionalAccessExternalTenants",
+          "guestOrExternalUserTypes": "String"
         },
         "guestOrExternalUserTypes": "String"
         },
@@ -32,7 +33,8 @@
         "includeGuestsOrExternalUsers": {
           "@odata.type": "#microsoft.graph.conditionalAccessGuestsOrExternalUsers",
           "externalTenants": {
-            "@odata.type": "microsoft.graph.conditionalAccessExternalTenants"
+            "@odata.type": "microsoft.graph.conditionalAccessExternalTenants",
+            "guestOrExternalUserTypes": "String"
           },
           "guestOrExternalUserTypes": "String"
         },
@@ -113,7 +115,10 @@
       "isEnabled": true,
       "cloudAppSecurityType": "String"
     },
-    "continuousAccessEvaluation": {"@odata.type": "microsoft.graph.continuousAccessEvaluationSessionControl"},
+    "continuousAccessEvaluation": {
+      "@odata.type": "microsoft.graph.continuousAccessEvaluationSessionControl",
+      "mode": "String"
+    },
     "persistentBrowser": {
       "@odata.type": "microsoft.graph.persistentBrowserSessionControl",
       "isEnabled": true,
@@ -128,7 +133,14 @@
       "frequencyInterval": "String"
     },
     "disableResilienceDefaults": false,
-    "secureSignInSession": {"@odata.type": "microsoft.graph.secureSignInSessionControl"}
+    "secureSignInSession": {
+      "@odata.type": "microsoft.graph.secureSignInSessionControl",
+      "isEnabled":true,
+      "type": "String",
+      "value": 1024,
+      "authenticationType": "String",
+      "frequencyInterval": "String"
+    }
   },
   "state": "string"
 }
