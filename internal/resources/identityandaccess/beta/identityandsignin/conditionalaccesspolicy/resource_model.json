@@ -1,71 +1,134 @@
 {
+  "id": "string",
+  "description": "String",
+  "displayName": "string",
+  "createdDateTime": "string",
+  "modifiedDateTime": "string",
   "conditions": {
-    "@odata.type": "microsoft.graph.conditionalAccessConditionSet",
     "applications": {
-      "@odata.type": "microsoft.graph.conditionalAccessApplications"
+      "@odata.type": "microsoft.graph.conditionalAccessApplications",
+      "includeApplications": ["String"],
+      "excludeApplications": ["String"],
+      "applicationFilter": {
+        "@odata.type": "microsoft.graph.conditionalAccessFilter",
+        "mode": "String",
+        "rule": "String"
+      },
+      "includeUserActions": ["String"]
     },
     "users": {
-      "@odata.type": "microsoft.graph.conditionalAccessUsers"
+      "@odata.type": "microsoft.graph.conditionalAccessUsers",
+        "excludeGroups": ["String"],
+        "excludeGuestsOrExternalUsers": {
+        "@odata.type": "microsoft.graph.conditionalAccessGuestsOrExternalUsers",
+        "externalTenants": {
+          "@odata.type": "microsoft.graph.conditionalAccessExternalTenants"
+        },
+        "guestOrExternalUserTypes": "String"
+        },
+        "excludeRoles": ["String"],
+        "excludeUsers": ["String"],
+        "includeGroups": ["String"],
+        "includeGuestsOrExternalUsers": {
+          "@odata.type": "#microsoft.graph.conditionalAccessGuestsOrExternalUsers",
+          "externalTenants": {
+            "@odata.type": "microsoft.graph.conditionalAccessExternalTenants"
+          },
+          "guestOrExternalUserTypes": "String"
+        },
+        "includeRoles": ["String"],
+        "includeUsers": ["String"]  
     },
     "clientApplications": {
-      "@odata.type": "microsoft.graph.conditionalAccessClientApplications"
+        "@odata.type": "#microsoft.graph.conditionalAccessClientApplications",
+        "excludeServicePrincipals": ["String"],
+        "includeServicePrincipals": ["String"],
+        "servicePrincipalFilter": {
+          "@odata.type": "microsoft.graph.conditionalAccessFilter",
+          "mode": "String",
+          "rule": "String"
+        }
     },
-    "clientAppTypes": ["String"],
+    "clientAppTypes": ["string"],
     "deviceStates": {
-      "@odata.type": "microsoft.graph.conditionalAccessDeviceStates"
+      "@odata.type": "microsoft.graph.conditionalAccessDeviceStates",
+      "includeStates": [ "String" ],
+      "excludeStates": [ "String" ]
     },
     "devices": {
-      "@odata.type": "microsoft.graph.conditionalAccessDevices"
+      "@odata.type": "microsoft.graph.conditionalAccessDevices",
+      "includeDevices": [ "String" ],
+      "excludeDevices": [ "String" ],
+      "deviceFilter": {
+        "@odata.type": "microsoft.graph.conditionalAccessFilter",
+        "mode": "String",
+        "rule": "String"
+      }
     },
     "locations": {
-      "@odata.type": "microsoft.graph.conditionalAccessLocations"
+      "@odata.type": "microsoft.graph.conditionalAccessLocations",
+      "excludeLocations": ["String"],
+      "includeLocations": ["String"]
     },
     "platforms": {
-      "@odata.type": "microsoft.graph.conditionalAccessPlatforms"
+      "@odata.type": "microsoft.graph.conditionalAccessPlatforms",
+      "excludePlatforms": ["String"],
+      "includePlatforms": ["String"]
     },
-    "servicePrincipalRiskLevels": ["String"],
-    "signInRiskLevels": ["String"],
+    "servicePrincipalRiskLevels": ["string"],
+    "signInRiskLevels": ["string"],
+    "userRiskLevels": ["string"],
     "authenticationFlows": {
-      "@odata.type": "microsoft.graph.conditionalAccessAuthenticationFlows"
+      "@odata.type": "microsoft.graph.conditionalAccessAuthenticationFlows",
+      "transferMethods": "String"
     },
-    "insiderRiskLevels": "String"
+    "insiderRiskLevels": "string"
   },
-  "createdDateTime": "String (timestamp)",
-  "description": "String",
-  "displayName": "String",
   "grantControls": {
     "@odata.type": "microsoft.graph.conditionalAccessGrantControls",
-    "builtInControls": ["String"],
-    "customAuthenticationFactors": ["String"],
-    "operator": "String",
-    "termsOfUse": ["String"],
+    "builtInControls": ["string"],
+    "customAuthenticationFactors": ["string"],
+    "operator": "string",
+    "termsOfUse": ["string"],
     "authenticationStrength": {
-      "@odata.type": "microsoft.graph.authenticationStrengthPolicy"
+      "@odata.type": "microsoft.graph.authenticationStrengthPolicy",
+      "id": "String (identifier)",
+      "createdDateTime": "String (timestamp)",
+      "modifiedDateTime": "String (timestamp)",
+      "displayName": "String",
+      "description": "String",
+      "policyType": "String",
+      "requirementsSatisfied": "String",
+      "allowedCombinations": ["String"]
     }
   },
-  "id": "String (identifier)",
-  "modifiedDateTime": "String (timestamp)",
   "sessionControls": {
     "@odata.type": "microsoft.graph.conditionalAccessSessionControls",
     "applicationEnforcedRestrictions": {
-      "@odata.type": "microsoft.graph.applicationEnforcedRestrictionsSessionControl"
+      "@odata.type": "microsoft.graph.applicationEnforcedRestrictionsSessionControl",
+      "isEnabled": true
     },
     "cloudAppSecurity": {
-      "@odata.type": "microsoft.graph.cloudAppSecuritySessionControl"
+      "@odata.type": "microsoft.graph.cloudAppSecuritySessionControl",
+      "isEnabled": true,
+      "cloudAppSecurityType": "String"
     },
-    "continuousAccessEvaluation": {
-      "@odata.type": "microsoft.graph.continuousAccessEvaluationSessionControl"
-    },
+    "continuousAccessEvaluation": {"@odata.type": "microsoft.graph.continuousAccessEvaluationSessionControl"},
     "persistentBrowser": {
-      "@odata.type": "microsoft.graph.persistentBrowserSessionControl"
+      "@odata.type": "microsoft.graph.persistentBrowserSessionControl",
+      "isEnabled": true,
+      "mode": "String"
     },
     "signInFrequency": {
-      "@odata.type": "microsoft.graph.signInFrequencySessionControl"
+      "@odata.type": "microsoft.graph.signInFrequencySessionControl",
+      "isEnabled": true,
+      "type": "String",
+      "value": 1024,
+      "authenticationType": "String",
+      "frequencyInterval": "String"
     },
     "disableResilienceDefaults": false,
-    "secureSignInSession": {
-      "@odata.type": "microsoft.graph.secureSignInSessionControl"
-    }
+    "secureSignInSession": {"@odata.type": "microsoft.graph.secureSignInSessionControl"}
   },
   "state": "string"
 }
