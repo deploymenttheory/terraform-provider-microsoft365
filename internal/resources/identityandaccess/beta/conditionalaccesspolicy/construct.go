@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -428,17 +429,6 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 
 	externalTenants := models.NewConditionalAccessExternalTenants()
 
-	if !data.GuestOrExternalUserTypes.IsNull() {
-		guestOrExternalUserTypesStr := data.GuestOrExternalUserTypes.ValueString()
-
-		// Set the GuestOrExternalUserTypes as additional data
-		externalTenants.SetAdditionalData(map[string]interface{}{
-			"guestOrExternalUserTypes": guestOrExternalUserTypesStr,
-		})
-	}
-
-	// Set MembershipKind if it's part of your model
-	// If MembershipKind is not part of your model, you can remove this block
 	if !data.MembershipKind.IsNull() {
 		membershipKindStr := data.MembershipKind.ValueString()
 		membershipKindAny, err := models.ParseConditionalAccessExternalTenantsMembershipKind(membershipKindStr)
@@ -446,9 +436,21 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 			return nil, fmt.Errorf("error parsing membership kind: %v", err)
 		}
 		if membershipKindAny != nil {
-			membershipKind := membershipKindAny.(*models.ConditionalAccessExternalTenantsMembershipKind)
+			membershipKind, ok := membershipKindAny.(*models.ConditionalAccessExternalTenantsMembershipKind)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for membership kind: %T", membershipKindAny)
+			}
 			externalTenants.SetMembershipKind(membershipKind)
 		}
+	}
+
+	// If you need to handle GuestOrExternalUserTypes, you might need to use a different approach
+	// as it's not directly available in the ConditionalAccessExternalTenants struct
+	if !data.GuestOrExternalUserTypes.IsNull() {
+		guestOrExternalUserTypesStr := data.GuestOrExternalUserTypes.ValueString()
+		externalTenants.SetAdditionalData(map[string]interface{}{
+			"guestOrExternalUserTypes": guestOrExternalUserTypesStr,
+		})
 	}
 
 	return externalTenants, nil
@@ -821,8 +823,12 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 		}
 
 		if !data.SignInFrequency.Value.IsNull() {
-			value := data.SignInFrequency.Value.ValueInt32()
-			signInFrequency.SetValue(&value)
+			value := data.SignInFrequency.Value.ValueInt64()
+			if value > math.MaxInt32 || value < math.MinInt32 {
+				return nil, fmt.Errorf("sign-in frequency value %d is out of range for int32", value)
+			}
+			int32Value := int32(value)
+			signInFrequency.SetValue(&int32Value)
 		}
 
 		if !data.SignInFrequency.FrequencyInterval.IsNull() {
