@@ -397,11 +397,17 @@ func constructGuestsOrExternalUsers(data *ConditionalAccessGuestsOrExternalUsers
 	guestsOrExternalUsers := models.NewConditionalAccessGuestsOrExternalUsers()
 
 	if !data.GuestOrExternalUserTypes.IsNull() {
-		guestOrExternalUserTypes, err := models.ParseConditionalAccessGuestOrExternalUserTypes(data.GuestOrExternalUserTypes.ValueString())
+		userTypesAny, err := models.ParseConditionalAccessGuestOrExternalUserTypes(data.GuestOrExternalUserTypes.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("error parsing guest or external user types: %v", err)
 		}
-		guestsOrExternalUsers.SetGuestOrExternalUserTypes(guestOrExternalUserTypes)
+		if userTypesAny != nil {
+			userTypes, ok := userTypesAny.(*models.ConditionalAccessGuestOrExternalUserTypes)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for guest or external user types: %T", userTypesAny)
+			}
+			guestsOrExternalUsers.SetGuestOrExternalUserTypes(userTypes)
+		}
 	}
 
 	if data.ExternalTenants != nil {
@@ -422,7 +428,8 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 
 	externalTenants := models.NewConditionalAccessExternalTenants()
 
-	// The SDK doesn't have a MembershipKind property, so we'll skip that
+	// Set membership kind if it's part of your model
+	// externalTenants.SetMembershipKind(data.MembershipKind.ValueString())
 
 	if len(data.TenantIds) > 0 {
 		tenantIds := make([]string, len(data.TenantIds))
