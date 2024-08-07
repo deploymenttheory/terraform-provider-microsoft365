@@ -1,7 +1,10 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-beta
 package graphBetaConditionalAccessPolicy
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 type ConditionalAccessPolicyResourceModel struct {
 	ID               types.String                           `tfsdk:"id"`
@@ -13,6 +16,7 @@ type ConditionalAccessPolicyResourceModel struct {
 	Conditions       *ConditionalAccessConditionsModel      `tfsdk:"conditions"`
 	GrantControls    *ConditionalAccessGrantControlsModel   `tfsdk:"grant_controls"`
 	SessionControls  *ConditionalAccessSessionControlsModel `tfsdk:"session_controls"`
+	Timeouts         timeouts.Value                         `tfsdk:"timeouts"`
 }
 
 type ConditionalAccessConditionsModel struct {
