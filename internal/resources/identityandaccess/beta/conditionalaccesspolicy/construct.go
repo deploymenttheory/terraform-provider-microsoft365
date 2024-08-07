@@ -10,7 +10,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the SDK model
+// constructResource maps the Terraform schema to the graph beta SDK model
 func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (*models.ConditionalAccessPolicy, error) {
 	requestBody := models.NewConditionalAccessPolicy()
 
@@ -428,15 +428,27 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 
 	externalTenants := models.NewConditionalAccessExternalTenants()
 
-	// Set membership kind if it's part of your model
-	// externalTenants.SetMembershipKind(data.MembershipKind.ValueString())
+	if !data.GuestOrExternalUserTypes.IsNull() {
+		guestOrExternalUserTypesStr := data.GuestOrExternalUserTypes.ValueString()
 
-	if len(data.TenantIds) > 0 {
-		tenantIds := make([]string, len(data.TenantIds))
-		for i, id := range data.TenantIds {
-			tenantIds[i] = id.ValueString()
+		// Set the GuestOrExternalUserTypes as additional data
+		externalTenants.SetAdditionalData(map[string]interface{}{
+			"guestOrExternalUserTypes": guestOrExternalUserTypesStr,
+		})
+	}
+
+	// Set MembershipKind if it's part of your model
+	// If MembershipKind is not part of your model, you can remove this block
+	if !data.MembershipKind.IsNull() {
+		membershipKindStr := data.MembershipKind.ValueString()
+		membershipKindAny, err := models.ParseConditionalAccessExternalTenantsMembershipKind(membershipKindStr)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing membership kind: %v", err)
 		}
-		externalTenants.SetTenantIds(tenantIds)
+		if membershipKindAny != nil {
+			membershipKind := membershipKindAny.(*models.ConditionalAccessExternalTenantsMembershipKind)
+			externalTenants.SetMembershipKind(membershipKind)
+		}
 	}
 
 	return externalTenants, nil
@@ -633,21 +645,24 @@ func constructGrantControls(data *ConditionalAccessGrantControlsModel) (*models.
 	grantControls := models.NewConditionalAccessGrantControls()
 
 	if !data.Operator.IsNull() {
-		operator, err := models.ParseConditionalAccessGrantControlOperator(data.Operator.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("error parsing grant control operator: %v", err)
-		}
-		grantControls.SetOperator(operator)
+		operator := data.Operator.ValueString()
+		grantControls.SetOperator(&operator)
 	}
 
 	if len(data.BuiltInControls) > 0 {
-		builtInControls := make([]models.ConditionalAccessGrantControl, len(data.BuiltInControls))
-		for i, control := range data.BuiltInControls {
-			builtInControl, err := models.ParseConditionalAccessGrantControl(control.ValueString())
+		builtInControls := make([]models.ConditionalAccessGrantControl, 0, len(data.BuiltInControls))
+		for _, control := range data.BuiltInControls {
+			builtInControlAny, err := models.ParseConditionalAccessGrantControl(control.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing built-in control: %v", err)
 			}
-			builtInControls[i] = *builtInControl
+			if builtInControlAny != nil {
+				builtInControl, ok := builtInControlAny.(*models.ConditionalAccessGrantControl)
+				if !ok {
+					return nil, fmt.Errorf("unexpected type for built-in control: %T", builtInControlAny)
+				}
+				builtInControls = append(builtInControls, *builtInControl)
+			}
 		}
 		grantControls.SetBuiltInControls(builtInControls)
 	}
@@ -697,19 +712,39 @@ func constructAuthenticationStrength(data *AuthenticationStrengthPolicyModel) (*
 	}
 
 	if !data.PolicyType.IsNull() {
-		policyType := data.PolicyType.ValueString()
-		authStrength.SetPolicyType(&policyType)
+		policyTypeStr := data.PolicyType.ValueString()
+		policyTypeAny, err := models.ParseAuthenticationStrengthPolicyType(policyTypeStr)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing policy type: %v", err)
+		}
+		if policyTypeAny != nil {
+			policyType := policyTypeAny.(*models.AuthenticationStrengthPolicyType)
+			authStrength.SetPolicyType(policyType)
+		}
 	}
 
 	if !data.RequirementsSatisfied.IsNull() {
-		requirementsSatisfied := data.RequirementsSatisfied.ValueString()
-		authStrength.SetRequirementsSatisfied(&requirementsSatisfied)
+		requirementsSatisfiedStr := data.RequirementsSatisfied.ValueString()
+		requirementsSatisfiedAny, err := models.ParseAuthenticationStrengthRequirements(requirementsSatisfiedStr)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing requirements satisfied: %v", err)
+		}
+		if requirementsSatisfiedAny != nil {
+			requirementsSatisfied := requirementsSatisfiedAny.(*models.AuthenticationStrengthRequirements)
+			authStrength.SetRequirementsSatisfied(requirementsSatisfied)
+		}
 	}
-
 	if len(data.AllowedCombinations) > 0 {
-		allowedCombinations := make([]string, len(data.AllowedCombinations))
-		for i, combination := range data.AllowedCombinations {
-			allowedCombinations[i] = combination.ValueString()
+		allowedCombinations := make([]models.AuthenticationMethodModes, 0, len(data.AllowedCombinations))
+		for _, combination := range data.AllowedCombinations {
+			combinationAny, err := models.ParseAuthenticationMethodModes(combination.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing allowed combination: %v", err)
+			}
+			if combinationAny != nil {
+				authMethodMode := combinationAny.(*models.AuthenticationMethodModes)
+				allowedCombinations = append(allowedCombinations, *authMethodMode)
+			}
 		}
 		authStrength.SetAllowedCombinations(allowedCombinations)
 	}
@@ -731,22 +766,18 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 		sessionControls.SetApplicationEnforcedRestrictions(appRestrictions)
 	}
 
-	if data.ApplicationEnforcedRestrictions != nil {
-		appRestrictions := models.NewApplicationEnforcedRestrictionsSessionControl()
-		isEnabled := data.ApplicationEnforcedRestrictions.IsEnabled.ValueBool()
-		appRestrictions.SetIsEnabled(&isEnabled)
-		sessionControls.SetApplicationEnforcedRestrictions(appRestrictions)
-	}
-
 	if data.ContinuousAccessEvaluation != nil {
 		continuousAccessEvaluation := models.NewContinuousAccessEvaluationSessionControl()
 
 		if !data.ContinuousAccessEvaluation.Mode.IsNull() {
-			mode, err := models.ParseContinuousAccessEvaluationMode(data.ContinuousAccessEvaluation.Mode.ValueString())
+			modeAny, err := models.ParseContinuousAccessEvaluationMode(data.ContinuousAccessEvaluation.Mode.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing continuous access evaluation mode: %v", err)
 			}
-			continuousAccessEvaluation.SetMode(mode)
+			if modeAny != nil {
+				mode := modeAny.(*models.ContinuousAccessEvaluationMode)
+				continuousAccessEvaluation.SetMode(mode)
+			}
 		}
 
 		sessionControls.SetContinuousAccessEvaluation(continuousAccessEvaluation)
@@ -755,16 +786,18 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 	if data.PersistentBrowser != nil {
 		persistentBrowser := models.NewPersistentBrowserSessionControl()
 
-		// SetIsEnabled is inherited from ConditionalAccessSessionControl
 		isEnabled := data.PersistentBrowser.IsEnabled.ValueBool()
 		persistentBrowser.SetIsEnabled(&isEnabled)
 
 		if !data.PersistentBrowser.Mode.IsNull() {
-			mode, err := models.ParsePersistentBrowserSessionMode(data.PersistentBrowser.Mode.ValueString())
+			modeAny, err := models.ParsePersistentBrowserSessionMode(data.PersistentBrowser.Mode.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing persistent browser session mode: %v", err)
 			}
-			persistentBrowser.SetMode(mode)
+			if modeAny != nil {
+				mode := modeAny.(*models.PersistentBrowserSessionMode)
+				persistentBrowser.SetMode(mode)
+			}
 		}
 
 		sessionControls.SetPersistentBrowser(persistentBrowser)
@@ -773,16 +806,18 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 	if data.SignInFrequency != nil {
 		signInFrequency := models.NewSignInFrequencySessionControl()
 
-		// SetIsEnabled is inherited from ConditionalAccessSessionControl
 		isEnabled := data.SignInFrequency.IsEnabled.ValueBool()
 		signInFrequency.SetIsEnabled(&isEnabled)
 
 		if !data.SignInFrequency.Type.IsNull() {
-			freqType, err := models.ParseSigninFrequencyType(data.SignInFrequency.Type.ValueString())
+			typeAny, err := models.ParseSigninFrequencyType(data.SignInFrequency.Type.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing sign-in frequency type: %v", err)
 			}
-			signInFrequency.SetTypeEscaped(freqType)
+			if typeAny != nil {
+				freqType := typeAny.(*models.SigninFrequencyType)
+				signInFrequency.SetTypeEscaped(freqType)
+			}
 		}
 
 		if !data.SignInFrequency.Value.IsNull() {
@@ -791,19 +826,25 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 		}
 
 		if !data.SignInFrequency.FrequencyInterval.IsNull() {
-			freqInterval, err := models.ParseSignInFrequencyInterval(data.SignInFrequency.FrequencyInterval.ValueString())
+			intervalAny, err := models.ParseSignInFrequencyInterval(data.SignInFrequency.FrequencyInterval.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing sign-in frequency interval: %v", err)
 			}
-			signInFrequency.SetFrequencyInterval(freqInterval)
+			if intervalAny != nil {
+				interval := intervalAny.(*models.SignInFrequencyInterval)
+				signInFrequency.SetFrequencyInterval(interval)
+			}
 		}
 
 		if !data.SignInFrequency.AuthenticationType.IsNull() {
-			authType, err := models.ParseSignInFrequencyAuthenticationType(data.SignInFrequency.AuthenticationType.ValueString())
+			authTypeAny, err := models.ParseSignInFrequencyAuthenticationType(data.SignInFrequency.AuthenticationType.ValueString())
 			if err != nil {
 				return nil, fmt.Errorf("error parsing sign-in frequency authentication type: %v", err)
 			}
-			signInFrequency.SetAuthenticationType(authType)
+			if authTypeAny != nil {
+				authType := authTypeAny.(*models.SignInFrequencyAuthenticationType)
+				signInFrequency.SetAuthenticationType(authType)
+			}
 		}
 
 		sessionControls.SetSignInFrequency(signInFrequency)
@@ -811,11 +852,15 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 
 	if data.SecureSignInSession != nil {
 		secureSignInSession := models.NewSecureSignInSessionControl()
-		secureSignInSession.SetIsEnabled(data.SecureSignInSession.IsEnabled.ValueBool())
+		isEnabled := data.SecureSignInSession.IsEnabled.ValueBool()
+		secureSignInSession.SetIsEnabled(&isEnabled)
 		sessionControls.SetSecureSignInSession(secureSignInSession)
 	}
 
-	sessionControls.SetDisableResilienceDefaults(data.DisableResilienceDefaults.ValueBool())
+	if !data.DisableResilienceDefaults.IsNull() {
+		disableResilienceDefaults := data.DisableResilienceDefaults.ValueBool()
+		sessionControls.SetDisableResilienceDefaults(&disableResilienceDefaults)
+	}
 
 	return sessionControls, nil
 }

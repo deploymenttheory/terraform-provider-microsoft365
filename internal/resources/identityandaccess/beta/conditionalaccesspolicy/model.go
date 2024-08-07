@@ -157,5 +157,9 @@ type SignInFrequencySessionControlModel struct {
 }
 
 type SecureSignInSessionControlModel struct {
-	IsEnabled types.Bool `tfsdk:"is_enabled"`
+	IsEnabled          types.Bool   `tfsdk:"is_enabled"`
+	Type               types.String `tfsdk:"type"`
+	Value              types.Int64  `tfsdk:"value"`
+	AuthenticationType types.String `tfsdk:"authentication_type"`
+	FrequencyInterval  types.String `tfsdk:"frequency_interval"`
 }
