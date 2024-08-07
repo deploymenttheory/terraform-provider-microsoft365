@@ -1,4 +1,3 @@
-// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta
 package graphBetaAssignmentFilter
 
 import (
@@ -31,19 +30,6 @@ type AssignmentFilterResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
-}
-
-type AssignmentFilterResourceModel struct {
-	ID                             types.String   `tfsdk:"id"`
-	DisplayName                    types.String   `tfsdk:"display_name"`
-	Description                    types.String   `tfsdk:"description"`
-	Platform                       types.String   `tfsdk:"platform"`
-	Rule                           types.String   `tfsdk:"rule"`
-	AssignmentFilterManagementType types.String   `tfsdk:"assignment_filter_management_type"`
-	CreatedDateTime                types.String   `tfsdk:"created_date_time"`
-	LastModifiedDateTime           types.String   `tfsdk:"last_modified_date_time"`
-	RoleScopeTags                  types.List     `tfsdk:"role_scope_tags"`
-	Timeouts                       timeouts.Value `tfsdk:"timeouts"`
 }
 
 // GetID returns the ID of a resource from the state model.
