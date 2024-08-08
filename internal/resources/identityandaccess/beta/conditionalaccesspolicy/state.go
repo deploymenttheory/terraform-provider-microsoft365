@@ -9,7 +9,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// mapRemoteStateToTerraform maps the remote state from the Graph API to the Terraform resource model.
+// mapRemoteStateToTerraform maps the remote state from the Graph API to the Terraform resource model for stating.
 // It populates the ConditionalAccessPolicyResourceModel with data from the ConditionalAccessPolicy.
 func mapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolicyResourceModel, remoteResource models.ConditionalAccessPolicyable) {
 	if remoteResource == nil {
@@ -17,7 +17,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolic
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
 		"resourceId": helpers.StringPtrToString(remoteResource.GetId()),
 	})
 
@@ -361,14 +361,121 @@ func mapFilter(ctx context.Context, filter models.ConditionalAccessFilterable) *
 }
 
 // Map Grant Controls
-// TODO
-
 func mapGrantControls(ctx context.Context, grantControls models.ConditionalAccessGrantControlsable) *ConditionalAccessGrantControlsModel {
+	if grantControls == nil {
+		tflog.Debug(ctx, "Grant controls model is nil")
+		return nil
+	}
 
-	return nil
+	tflog.Debug(ctx, "Starting to map grant controls")
+
+	result := &ConditionalAccessGrantControlsModel{}
+
+	if operator := grantControls.GetOperator(); operator != nil {
+		result.Operator = types.StringValue(*operator)
+	}
+
+	if builtInControls := grantControls.GetBuiltInControls(); builtInControls != nil {
+		result.BuiltInControls = helpers.EnumSliceToTypeStringSlice(builtInControls)
+	}
+
+	if customAuthenticationFactors := grantControls.GetCustomAuthenticationFactors(); customAuthenticationFactors != nil {
+		result.CustomAuthenticationFactors = helpers.SliceToTypeStringSlice(customAuthenticationFactors)
+	}
+
+	if termsOfUse := grantControls.GetTermsOfUse(); termsOfUse != nil {
+		result.TermsOfUse = helpers.SliceToTypeStringSlice(termsOfUse)
+	}
+
+	if authenticationStrength := grantControls.GetAuthenticationStrength(); authenticationStrength != nil {
+		result.AuthenticationStrength = &AuthenticationStrengthPolicyModel{
+			DisplayName: types.StringValue(helpers.StringPtrToString(authenticationStrength.GetDisplayName())),
+			Description: types.StringValue(helpers.StringPtrToString(authenticationStrength.GetDescription())),
+			PolicyType:  types.StringValue(authenticationStrength.GetPolicyType().String()),
+			RequirementsSatisfied: types.StringValue(
+				authenticationStrength.GetRequirementsSatisfied().String(),
+			),
+			AllowedCombinations: helpers.EnumSliceToTypeStringSlice(authenticationStrength.GetAllowedCombinations()),
+		}
+	}
+
+	tflog.Debug(ctx, "Finished mapping grant controls", map[string]interface{}{
+		"operator":                    result.Operator.ValueString(),
+		"builtInControlsCount":        len(result.BuiltInControls),
+		"customAuthenticationFactors": len(result.CustomAuthenticationFactors),
+		"termsOfUseCount":             len(result.TermsOfUse),
+		"hasAuthenticationStrength":   result.AuthenticationStrength != nil,
+	})
+
+	return result
 }
 
+// mapSessionControls
 func mapSessionControls(ctx context.Context, sessionControls models.ConditionalAccessSessionControlsable) *ConditionalAccessSessionControlsModel {
+	if sessionControls == nil {
+		tflog.Debug(ctx, "Session controls model is nil")
+		return nil
+	}
 
-	return nil
+	tflog.Debug(ctx, "Starting to map session controls")
+
+	result := &ConditionalAccessSessionControlsModel{}
+
+	if appRestrictions := sessionControls.GetApplicationEnforcedRestrictions(); appRestrictions != nil {
+		result.ApplicationEnforcedRestrictions = &ApplicationEnforcedRestrictionsSessionControlModel{
+			IsEnabled: types.BoolValue(*appRestrictions.GetIsEnabled()),
+		}
+	}
+
+	if cloudAppSecurity := sessionControls.GetCloudAppSecurity(); cloudAppSecurity != nil {
+		result.CloudAppSecurity = &CloudAppSecuritySessionControlModel{
+			IsEnabled:            types.BoolValue(*cloudAppSecurity.GetIsEnabled()),
+			CloudAppSecurityType: types.StringValue(cloudAppSecurity.GetCloudAppSecurityType().String()),
+		}
+	}
+
+	if continuousAccessEvaluation := sessionControls.GetContinuousAccessEvaluation(); continuousAccessEvaluation != nil {
+		result.ContinuousAccessEvaluation = &ContinuousAccessEvaluationSessionControlModel{
+			Mode: types.StringValue(continuousAccessEvaluation.GetMode().String()),
+		}
+	}
+
+	if persistentBrowser := sessionControls.GetPersistentBrowser(); persistentBrowser != nil {
+		result.PersistentBrowser = &PersistentBrowserSessionControlModel{
+			IsEnabled: types.BoolValue(*persistentBrowser.GetIsEnabled()),
+			Mode:      types.StringValue(persistentBrowser.GetMode().String()),
+		}
+	}
+
+	if signInFrequency := sessionControls.GetSignInFrequency(); signInFrequency != nil {
+		result.SignInFrequency = &SignInFrequencySessionControlModel{
+			IsEnabled:          types.BoolValue(*signInFrequency.GetIsEnabled()),
+			Type:               types.StringValue(signInFrequency.GetTypeEscaped().String()),
+			Value:              types.Int64Value(int64(*signInFrequency.GetValue())),
+			FrequencyInterval:  types.StringValue(signInFrequency.GetFrequencyInterval().String()),
+			AuthenticationType: types.StringValue(signInFrequency.GetAuthenticationType().String()),
+		}
+	}
+
+	if secureSignInSession := sessionControls.GetSecureSignInSession(); secureSignInSession != nil {
+		result.SecureSignInSession = &SecureSignInSessionControlModel{
+			IsEnabled: types.BoolValue(*secureSignInSession.GetIsEnabled()),
+		}
+	}
+
+	if disableResilienceDefaults := sessionControls.GetDisableResilienceDefaults(); disableResilienceDefaults != nil {
+		result.DisableResilienceDefaults = types.BoolValue(*disableResilienceDefaults)
+	}
+
+	tflog.Debug(ctx, "Finished mapping session controls", map[string]interface{}{
+		"hasApplicationEnforcedRestrictions": result.ApplicationEnforcedRestrictions != nil,
+		"hasCloudAppSecurity":                result.CloudAppSecurity != nil,
+		"hasContinuousAccessEvaluation":      result.ContinuousAccessEvaluation != nil,
+		"hasPersistentBrowser":               result.PersistentBrowser != nil,
+		"hasSignInFrequency":                 result.SignInFrequency != nil,
+		"hasSecureSignInSession":             result.SecureSignInSession != nil,
+		"disableResilienceDefaults":          result.DisableResilienceDefaults.ValueBool(),
+	})
+
+	return result
 }
