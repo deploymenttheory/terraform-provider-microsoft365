@@ -62,6 +62,8 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolic
 	})
 }
 
+// Map Conditions
+
 func mapConditions(ctx context.Context, conditions models.ConditionalAccessConditionSetable) *ConditionalAccessConditionsModel {
 	if conditions == nil {
 		tflog.Debug(ctx, "Conditions are nil")
@@ -109,7 +111,7 @@ func mapApplications(ctx context.Context, apps models.ConditionalAccessApplicati
 		IncludeApplications: helpers.SliceToTypeStringSlice(apps.GetIncludeApplications()),
 		ExcludeApplications: helpers.SliceToTypeStringSlice(apps.GetExcludeApplications()),
 		IncludeUserActions:  helpers.SliceToTypeStringSlice(apps.GetIncludeUserActions()),
-		ApplicationFilter:   mapFilter(apps.GetApplicationFilter()),
+		ApplicationFilter:   mapFilter(ctx, apps.GetApplicationFilter()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping applications", map[string]interface{}{
@@ -134,8 +136,8 @@ func mapUsers(ctx context.Context, users models.ConditionalAccessUsersable) *Con
 		IncludeGroups:                helpers.SliceToTypeStringSlice(users.GetIncludeGroups()),
 		IncludeRoles:                 helpers.SliceToTypeStringSlice(users.GetIncludeRoles()),
 		IncludeUsers:                 helpers.SliceToTypeStringSlice(users.GetIncludeUsers()),
-		ExcludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(users.GetExcludeGuestsOrExternalUsers()),
-		IncludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(users.GetIncludeGuestsOrExternalUsers()),
+		ExcludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(ctx, users.GetExcludeGuestsOrExternalUsers()),
+		IncludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(ctx, users.GetIncludeGuestsOrExternalUsers()),
 	}
 	tflog.Debug(ctx, "Finished mapping users", map[string]interface{}{
 		"excludeGroupsCount": len(result.ExcludeGroups),
@@ -146,14 +148,21 @@ func mapUsers(ctx context.Context, users models.ConditionalAccessUsersable) *Con
 
 func mapAuthenticationFlows(ctx context.Context, authFlows models.ConditionalAccessAuthenticationFlowsable) *ConditionalAccessAuthenticationFlowsModel {
 	if authFlows == nil {
-		tflog.Debug(ctx, "Authentication flows are nil")
+		tflog.Debug(ctx, "Authentication flows model is nil")
 		return nil
 	}
 
 	tflog.Debug(ctx, "Starting to map authentication flows")
 
+	var transferMethodsString string
+	if authFlows.GetTransferMethods() != nil {
+		transferMethodsString = authFlows.GetTransferMethods().String()
+	} else {
+		transferMethodsString = ""
+	}
+
 	result := &ConditionalAccessAuthenticationFlowsModel{
-		TransferMethods: types.StringValue(string(*authFlows.GetTransferMethods())),
+		TransferMethods: types.StringValue(transferMethodsString),
 	}
 
 	tflog.Debug(ctx, "Finished mapping authentication flows", map[string]interface{}{
@@ -163,25 +172,58 @@ func mapAuthenticationFlows(ctx context.Context, authFlows models.ConditionalAcc
 	return result
 }
 
-func mapGuestsOrExternalUsers(guestsOrExternalUsers models.ConditionalAccessGuestsOrExternalUsersable) *ConditionalAccessGuestsOrExternalUsersModel {
+func mapGuestsOrExternalUsers(ctx context.Context, guestsOrExternalUsers models.ConditionalAccessGuestsOrExternalUsersable) *ConditionalAccessGuestsOrExternalUsersModel {
 	if guestsOrExternalUsers == nil {
+		tflog.Debug(ctx, "Guests or External Users model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessGuestsOrExternalUsersModel{
-		ExternalTenants:          mapExternalTenants(guestsOrExternalUsers.GetExternalTenants()),
-		GuestOrExternalUserTypes: types.StringValue(string(*guestsOrExternalUsers.GetGuestOrExternalUserTypes())),
+	tflog.Debug(ctx, "Starting to map guests or external users")
+
+	var guestOrExternalUserTypesString string
+	if guestsOrExternalUsers.GetGuestOrExternalUserTypes() != nil {
+		guestOrExternalUserTypesString = guestsOrExternalUsers.GetGuestOrExternalUserTypes().String()
+	} else {
+		guestOrExternalUserTypesString = ""
 	}
+
+	result := &ConditionalAccessGuestsOrExternalUsersModel{
+		ExternalTenants:          mapExternalTenants(ctx, guestsOrExternalUsers.GetExternalTenants()),
+		GuestOrExternalUserTypes: types.StringValue(guestOrExternalUserTypesString),
+	}
+
+	tflog.Debug(ctx, "Finished mapping guests or external users", map[string]interface{}{
+		"guestOrExternalUserTypes": result.GuestOrExternalUserTypes.ValueString(),
+		"hasExternalTenants":       result.ExternalTenants != nil,
+	})
+
+	return result
 }
 
-func mapExternalTenants(externalTenants models.ConditionalAccessExternalTenantsable) *ConditionalAccessExternalTenantsModel {
+func mapExternalTenants(ctx context.Context, externalTenants models.ConditionalAccessExternalTenantsable) *ConditionalAccessExternalTenantsModel {
 	if externalTenants == nil {
+		tflog.Debug(ctx, "External Tenants model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessExternalTenantsModel{
-		MembershipKind: types.StringValue(string(*externalTenants.GetMembershipKind())),
+	tflog.Debug(ctx, "Starting to map external tenants")
+
+	var membershipKindString string
+	if externalTenants.GetMembershipKind() != nil {
+		membershipKindString = externalTenants.GetMembershipKind().String()
+	} else {
+		membershipKindString = ""
 	}
+
+	result := &ConditionalAccessExternalTenantsModel{
+		MembershipKind: types.StringValue(membershipKindString),
+	}
+
+	tflog.Debug(ctx, "Finished mapping external tenants", map[string]interface{}{
+		"membershipKind": result.MembershipKind.ValueString(),
+	})
+
+	return result
 }
 
 func mapClientApplications(ctx context.Context, clientApps models.ConditionalAccessClientApplicationsable) *ConditionalAccessClientApplicationsModel {
@@ -195,7 +237,7 @@ func mapClientApplications(ctx context.Context, clientApps models.ConditionalAcc
 	result := &ConditionalAccessClientApplicationsModel{
 		ExcludeServicePrincipals: helpers.SliceToTypeStringSlice(clientApps.GetExcludeServicePrincipals()),
 		IncludeServicePrincipals: helpers.SliceToTypeStringSlice(clientApps.GetIncludeServicePrincipals()),
-		ServicePrincipalFilter:   mapFilter(clientApps.GetServicePrincipalFilter()),
+		ServicePrincipalFilter:   mapFilter(ctx, clientApps.GetServicePrincipalFilter()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping client applications", map[string]interface{}{
@@ -209,117 +251,124 @@ func mapClientApplications(ctx context.Context, clientApps models.ConditionalAcc
 
 func mapDevices(ctx context.Context, devices models.ConditionalAccessDevicesable) *ConditionalAccessDevicesModel {
 	if devices == nil {
+		tflog.Debug(ctx, "Devices model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessDevicesModel{
+	tflog.Debug(ctx, "Starting to map devices")
+
+	result := &ConditionalAccessDevicesModel{
 		IncludeDevices: helpers.SliceToTypeStringSlice(devices.GetIncludeDevices()),
 		ExcludeDevices: helpers.SliceToTypeStringSlice(devices.GetExcludeDevices()),
 		IncludeStates:  helpers.SliceToTypeStringSlice(devices.GetIncludeDeviceStates()),
 		ExcludeStates:  helpers.SliceToTypeStringSlice(devices.GetExcludeDeviceStates()),
-		DeviceFilter:   mapFilter(devices.GetDeviceFilter()),
+		DeviceFilter:   mapFilter(ctx, devices.GetDeviceFilter()),
 	}
+
+	tflog.Debug(ctx, "Finished mapping devices", map[string]interface{}{
+		"includeDevicesCount": len(result.IncludeDevices),
+		"excludeDevicesCount": len(result.ExcludeDevices),
+		"includeStatesCount":  len(result.IncludeStates),
+		"excludeStatesCount":  len(result.ExcludeStates),
+		"hasDeviceFilter":     result.DeviceFilter != nil,
+	})
+
+	return result
 }
 
 func mapDeviceStates(ctx context.Context, deviceStates models.ConditionalAccessDeviceStatesable) *ConditionalAccessDeviceStatesModel {
 	if deviceStates == nil {
+		tflog.Debug(ctx, "Device states model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessDeviceStatesModel{
+	tflog.Debug(ctx, "Starting to map device states")
+
+	result := &ConditionalAccessDeviceStatesModel{
 		IncludeStates: helpers.SliceToTypeStringSlice(deviceStates.GetIncludeStates()),
 		ExcludeStates: helpers.SliceToTypeStringSlice(deviceStates.GetExcludeStates()),
 	}
+
+	tflog.Debug(ctx, "Finished mapping device states", map[string]interface{}{
+		"includeStatesCount": len(result.IncludeStates),
+		"excludeStatesCount": len(result.ExcludeStates),
+	})
+
+	return result
 }
 
 func mapLocations(ctx context.Context, locations models.ConditionalAccessLocationsable) *ConditionalAccessLocationsModel {
 	if locations == nil {
+		tflog.Debug(ctx, "Locations model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessLocationsModel{
+	tflog.Debug(ctx, "Starting to map locations")
+
+	result := &ConditionalAccessLocationsModel{
 		ExcludeLocations: helpers.SliceToTypeStringSlice(locations.GetExcludeLocations()),
 		IncludeLocations: helpers.SliceToTypeStringSlice(locations.GetIncludeLocations()),
 	}
+
+	tflog.Debug(ctx, "Finished mapping locations", map[string]interface{}{
+		"excludeLocationsCount": len(result.ExcludeLocations),
+		"includeLocationsCount": len(result.IncludeLocations),
+	})
+
+	return result
 }
 
 func mapPlatforms(ctx context.Context, platforms models.ConditionalAccessPlatformsable) *ConditionalAccessPlatformsModel {
 	if platforms == nil {
+		tflog.Debug(ctx, "Platforms model is nil")
 		return nil
 	}
 
-	return &ConditionalAccessPlatformsModel{
+	tflog.Debug(ctx, "Starting to map platforms")
+
+	result := &ConditionalAccessPlatformsModel{
 		ExcludePlatforms: helpers.EnumSliceToTypeStringSlice(platforms.GetExcludePlatforms()),
 		IncludePlatforms: helpers.EnumSliceToTypeStringSlice(platforms.GetIncludePlatforms()),
 	}
-}
 
-func mapFilter(filter models.ConditionalAccessFilterable) *ConditionalAccessFilterModel {
-	if filter == nil {
-		return nil
-	}
-
-	return &ConditionalAccessFilterModel{
-		Mode: types.StringValue(string(*filter.GetMode())),
-		Rule: types.StringValue(*filter.GetRule()),
-	}
-}
-
-// Helper functions for mapping sub-components (e.g., mapApplications, mapUsers, etc.)
-
-func mapGrantControls(ctx context.Context, grantControls models.ConditionalAccessGrantControlsable) *ConditionalAccessGrantControlsModel {
-	if grantControls == nil {
-		return nil
-	}
-
-	result := &ConditionalAccessGrantControlsModel{}
-
-	if operator := grantControls.GetOperator(); operator != nil {
-		result.Operator = types.StringValue(*operator)
-	}
-
-	if builtInControls := grantControls.GetBuiltInControls(); builtInControls != nil {
-		result.BuiltInControls = helpers.EnumSliceToTypeStringSlice(builtInControls)
-	}
-
-	if customAuthenticationFactors := grantControls.GetCustomAuthenticationFactors(); customAuthenticationFactors != nil {
-		result.CustomAuthenticationFactors = helpers.SliceToTypeStringSlice(customAuthenticationFactors)
-	}
-
-	if termsOfUse := grantControls.GetTermsOfUse(); termsOfUse != nil {
-		result.TermsOfUse = helpers.SliceToTypeStringSlice(termsOfUse)
-	}
-
-	// Map AuthenticationStrength if needed
+	tflog.Debug(ctx, "Finished mapping platforms", map[string]interface{}{
+		"excludePlatformsCount": len(result.ExcludePlatforms),
+		"includePlatformsCount": len(result.IncludePlatforms),
+	})
 
 	return result
+}
+
+func mapFilter(ctx context.Context, filter models.ConditionalAccessFilterable) *ConditionalAccessFilterModel {
+	if filter == nil {
+		tflog.Debug(ctx, "Filter model is nil")
+		return nil
+	}
+
+	tflog.Debug(ctx, "Starting to map filter")
+
+	result := &ConditionalAccessFilterModel{
+		Mode: types.StringValue(filter.GetMode().String()),
+		Rule: types.StringValue(*filter.GetRule()),
+	}
+
+	tflog.Debug(ctx, "Finished mapping filter", map[string]interface{}{
+		"mode": result.Mode.ValueString(),
+		"rule": result.Rule.ValueString(),
+	})
+
+	return result
+}
+
+// Map Grant Controls
+// TODO
+
+func mapGrantControls(ctx context.Context, grantControls models.ConditionalAccessGrantControlsable) *ConditionalAccessGrantControlsModel {
+
+	return nil
 }
 
 func mapSessionControls(ctx context.Context, sessionControls models.ConditionalAccessSessionControlsable) *ConditionalAccessSessionControlsModel {
-	if sessionControls == nil {
-		return nil
-	}
 
-	result := &ConditionalAccessSessionControlsModel{}
-
-	// Map ApplicationEnforcedRestrictions
-	if appRestrictions := sessionControls.GetApplicationEnforcedRestrictions(); appRestrictions != nil {
-		result.ApplicationEnforcedRestrictions = &ApplicationEnforcedRestrictionsSessionControlModel{
-			IsEnabled: types.BoolValue(*appRestrictions.GetIsEnabled()),
-		}
-	}
-
-	// Map CloudAppSecurity
-	if cloudAppSecurity := sessionControls.GetCloudAppSecurity(); cloudAppSecurity != nil {
-		result.CloudAppSecurity = &CloudAppSecuritySessionControlModel{
-			IsEnabled:            types.BoolValue(*cloudAppSecurity.GetIsEnabled()),
-			CloudAppSecurityType: types.StringValue(string(*cloudAppSecurity.GetCloudAppSecurityType())),
-		}
-	}
-
-	// Map other session controls (PersistentBrowser, SignInFrequency, etc.) similarly
-
-	return result
+	return nil
 }
-
-// Additional helper functions for mapping other components would be defined here.
