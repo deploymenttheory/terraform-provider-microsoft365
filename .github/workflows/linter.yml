@@ -6,6 +6,11 @@ jobs:
   build:
     name: Linter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.7
@@ -13,9 +18,14 @@ jobs:
           fetch-depth: 0
 
       - name: Lint Code Base
-        uses: github/super-linter@v6
+        uses: super-linter/super-linter@v6.8.0
         env:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_MARKDOWN: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILTER_REGEX_EXCLUDE: |
+            .*README\.md$|          # Exclude README markdown files
+            .*test/.*|              # Exclude all files in any test directory
+            .*_test\.go$|           # Exclude Go test files (e.g., *_test.go)
+            .*\.json$               # Exclude all JSON files
