@@ -261,23 +261,9 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessApplicationsSchema() 
 				),
 			},
 		},
-		"application_filter": schema.SingleNestedAttribute{
-			Optional:    true,
-			Description: "Filter that defines the dynamic-application-syntax rule to include/exclude cloud applications. A filter can use custom security attributes to include/exclude applications.",
-			Attributes: map[string]schema.Attribute{
-				"mode": schema.StringAttribute{
-					Required:    true,
-					Description: "Mode to use for the filter. Possible values are include or exclude.",
-					Validators: []validator.String{
-						stringvalidator.OneOf("include", "exclude"),
-					},
-				},
-				"rule": schema.StringAttribute{
-					Required:    true,
-					Description: "Rule syntax is similar to that used for membership rules for groups in Microsoft Entra ID.",
-				},
-			},
-		},
+		"application_filter": filterSchema(
+			"Filter that defines the dynamic-application-syntax rule to include/exclude cloud applications. A filter can use custom security attributes to include/exclude applications.",
+		),
 		"include_user_actions": schema.ListAttribute{
 			Optional:    true,
 			Description: "User actions to include. Supported values are 'urn:user:registersecurityinfo' and 'urn:user:registerdevice'.",
@@ -424,23 +410,9 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessClientApplicationsSch
 				),
 			},
 		},
-		"service_principal_filter": schema.SingleNestedAttribute{
-			Optional:    true,
-			Description: "Filter that defines the dynamic-servicePrincipal-syntax rule to include/exclude service principals. A filter can use custom security attributes to include/exclude service principals.",
-			Attributes: map[string]schema.Attribute{
-				"mode": schema.StringAttribute{
-					Required:    true,
-					Description: "Mode to use for the filter. Possible values are include or exclude.",
-					Validators: []validator.String{
-						stringvalidator.OneOf("include", "exclude"),
-					},
-				},
-				"rule": schema.StringAttribute{
-					Required:    true,
-					Description: "Rule syntax is similar to that used for membership rules for groups in Microsoft Entra ID.",
-				},
-			},
-		},
+		"service_principal_filter": filterSchema(
+			"Filter that defines the dynamic-servicePrincipal-syntax rule to include/exclude service principals. A filter can use custom security attributes to include/exclude service principals.",
+		),
 	}
 }
 
@@ -495,27 +467,9 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessDevicesSchema() map[s
 				listvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("device_filter")),
 			},
 		},
-		"device_filter": schema.SingleNestedAttribute{
-			Optional:    true,
-			Description: "Filter that defines the dynamic-device-syntax rule to include/exclude devices. A filter can use device properties (such as extension attributes) to include/exclude them. Cannot be set if includeDevices or excludeDevices is set.",
-			Attributes: map[string]schema.Attribute{
-				"mode": schema.StringAttribute{
-					Required:    true,
-					Description: "Mode to use for the filter. Possible values are include or exclude.",
-					Validators: []validator.String{
-						stringvalidator.OneOf("include", "exclude"),
-					},
-				},
-				"rule": schema.StringAttribute{
-					Required:    true,
-					Description: "Rule syntax is similar to that used for membership rules for groups in Microsoft Entra ID.",
-				},
-			},
-			Validators: []validator.Object{
-				objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("include_devices")),
-				objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("exclude_devices")),
-			},
-		},
+		"device_filter": filterSchema(
+			"Filter that defines the dynamic-device-syntax rule to include/exclude devices. A filter can use device properties (such as extension attributes) to include/exclude them. Cannot be set if includeDevices or excludeDevices is set.",
+		),
 		"include_device_states": schema.ListAttribute{
 			Optional:           true,
 			Description:        "(Deprecated) States in the scope of the policy. 'All' is the only allowed value.",
@@ -827,6 +781,30 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessSessionControlsSchema
 					Description: "Specifies whether the session control is enabled.",
 				},
 			},
+		},
+	}
+}
+
+func filterSchema(description string) schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional:    true,
+		Description: description,
+		Attributes: map[string]schema.Attribute{
+			"mode": schema.StringAttribute{
+				Required:    true,
+				Description: "Mode to use for the filter. Possible values are include or exclude.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("include", "exclude"),
+				},
+			},
+			"rule": schema.StringAttribute{
+				Required:    true,
+				Description: "Rule syntax is similar to that used for membership rules for groups in Microsoft Entra ID.",
+			},
+		},
+		Validators: []validator.Object{
+			objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("include_devices")),
+			objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("exclude_devices")),
 		},
 	}
 }
