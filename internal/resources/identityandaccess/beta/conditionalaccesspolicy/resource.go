@@ -223,14 +223,11 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessConditionsSchema() ma
 				),
 			},
 		},
-		"insider_risk_levels": schema.ListAttribute{
+		"insider_risk_levels": schema.StringAttribute{
 			Optional:    true,
 			Description: "Insider risk levels included in the policy. The possible values are: minor, moderate, elevated, unknownFutureValue.",
-			ElementType: types.StringType,
-			Validators: []validator.List{
-				listvalidator.ValueStringsAre(
-					stringvalidator.OneOf("minor", "moderate", "elevated", "unknownFutureValue"),
-				),
+			Validators: []validator.String{
+				stringvalidator.OneOf("minor", "moderate", "elevated", "unknownFutureValue"),
 			},
 		},
 	}
@@ -306,18 +303,15 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessApplicationsSchema() 
 
 func (r *ConditionalAccessPolicyResource) conditionalAccessAuthenticationFlowsSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"transfer_methods": schema.ListAttribute{
-			Required:    true,
+		"transfer_methods": schema.StringAttribute{
+			Optional:    true,
 			Description: "Represents the transfer methods in scope for the policy. The possible values are: none, deviceCodeFlow, authenticationTransfer, unknownFutureValue.",
-			ElementType: types.StringType,
-			Validators: []validator.List{
-				listvalidator.ValueStringsAre(
-					stringvalidator.OneOf(
-						"none",
-						"deviceCodeFlow",
-						"authenticationTransfer",
-						"unknownFutureValue",
-					),
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					"none",
+					"deviceCodeFlow",
+					"authenticationTransfer",
+					"unknownFutureValue",
 				),
 			},
 		},
@@ -616,7 +610,7 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessGuestsOrExternalUsers
 	return map[string]schema.Attribute{
 		"external_tenants": schema.SingleNestedAttribute{
 			Optional:    true,
-			Description: "The tenant IDs of the selected types of external users. Either all B2B tenant or a collection of tenant IDs. External tenants can be specified only when the property guestOrExternalUserTypes isn't null or an empty String.",
+			Description: "The tenant IDs of the selected types of external users.",
 			Attributes: map[string]schema.Attribute{
 				"membership_kind": schema.StringAttribute{
 					Required:    true,
@@ -625,34 +619,21 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessGuestsOrExternalUsers
 						stringvalidator.OneOf("all", "enumerated", "unknownFutureValue"),
 					},
 				},
-				"tenant_ids": schema.ListAttribute{
-					Optional:    true,
-					Description: "The list of tenant IDs for external users from specific organizations.",
-					ElementType: types.StringType,
-					Validators: []validator.List{
-						listvalidator.ValueStringsAre(
-							stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`), "must be a valid UUID"),
-						),
-					},
-				},
 			},
 		},
-		"guest_or_external_user_types": schema.ListAttribute{
+		"guest_or_external_user_types": schema.StringAttribute{
 			Required:    true,
-			Description: "Indicates internal guests or external user types, and is a multi-valued property. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.",
-			ElementType: types.StringType,
-			Validators: []validator.List{
-				listvalidator.ValueStringsAre(
-					stringvalidator.OneOf(
-						"none",
-						"internalGuest",
-						"b2bCollaborationGuest",
-						"b2bCollaborationMember",
-						"b2bDirectConnectUser",
-						"otherExternalUser",
-						"serviceProvider",
-						"unknownFutureValue",
-					),
+			Description: "Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					"none",
+					"internalGuest",
+					"b2bCollaborationGuest",
+					"b2bCollaborationMember",
+					"b2bDirectConnectUser",
+					"otherExternalUser",
+					"serviceProvider",
+					"unknownFutureValue",
 				),
 			},
 		},

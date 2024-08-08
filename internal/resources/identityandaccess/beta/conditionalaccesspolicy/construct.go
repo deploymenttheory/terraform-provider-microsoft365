@@ -430,8 +430,7 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 	externalTenants := models.NewConditionalAccessExternalTenants()
 
 	if !data.MembershipKind.IsNull() {
-		membershipKindStr := data.MembershipKind.ValueString()
-		membershipKindAny, err := models.ParseConditionalAccessExternalTenantsMembershipKind(membershipKindStr)
+		membershipKindAny, err := models.ParseConditionalAccessExternalTenantsMembershipKind(data.MembershipKind.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("error parsing membership kind: %v", err)
 		}
@@ -442,15 +441,6 @@ func constructConditionalAccessExternalTenants(data *ConditionalAccessExternalTe
 			}
 			externalTenants.SetMembershipKind(membershipKind)
 		}
-	}
-
-	// If you need to handle GuestOrExternalUserTypes, you might need to use a different approach
-	// as it's not directly available in the ConditionalAccessExternalTenants struct
-	if !data.GuestOrExternalUserTypes.IsNull() {
-		guestOrExternalUserTypesStr := data.GuestOrExternalUserTypes.ValueString()
-		externalTenants.SetAdditionalData(map[string]interface{}{
-			"guestOrExternalUserTypes": guestOrExternalUserTypesStr,
-		})
 	}
 
 	return externalTenants, nil

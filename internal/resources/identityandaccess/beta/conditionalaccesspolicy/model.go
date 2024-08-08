@@ -59,7 +59,7 @@ type ConditionalAccessGuestsOrExternalUsersModel struct {
 }
 
 type ConditionalAccessExternalTenantsModel struct {
-	GuestOrExternalUserTypes types.String `tfsdk:"guest_or_external_user_types"`
+	MembershipKind types.String `tfsdk:"membership_kind"`
 }
 
 type ConditionalAccessClientApplicationsModel struct {
