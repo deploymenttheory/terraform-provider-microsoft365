@@ -22,12 +22,10 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	createTimeout, diags := plan.Timeouts.Create(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
 	requestBody, err := constructResource(ctx, &plan)
@@ -69,12 +67,11 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading conditional access policy with ID: %s", state.ID.ValueString()))
-	readTimeout, diags := state.Timeouts.Read(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+
+	ctx, cancel := common.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
 	conditionalAccessPolicy, err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(state.ID.ValueString()).Get(ctx, nil)
@@ -99,12 +96,10 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	updateTimeout, diags := plan.Timeouts.Update(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
 	requestBody, err := constructResource(ctx, &plan)
@@ -150,12 +145,10 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 		return
 	}
 
-	deleteTimeout, diags := data.Timeouts.Delete(ctx, 30*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := common.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
 	err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(data.ID.ValueString()).Delete(ctx, nil)
