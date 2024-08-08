@@ -19,28 +19,28 @@ type StateWithID interface {
 	GetID() string
 }
 
-// HandleReadStateError handles errors during the read operation.
-func HandleReadStateError(ctx context.Context, resp *resource.ReadResponse, resource ResourceWithID, state StateWithID, err error) {
-	if IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
-		tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", resource.GetTypeName(), state.GetID()))
+// HandleReadErrorIfNotFound handles errors during the read operation.
+func HandleReadErrorIfNotFound(ctx context.Context, resp *resource.ReadResponse, resource ResourceWithID, state StateWithID, err error) {
+	handleIsNotFoundStateError(ctx, "read", resource, state, err, func() {
 		resp.State.RemoveResource(ctx)
-	} else {
-		resp.Diagnostics.AddError(
-			"Error reading resource",
-			fmt.Sprintf("Could not update %s with ID %s: %s", resource.GetTypeName(), state.GetID(), err.Error()),
-		)
-	}
+	})
+	resp.Diagnostics.AddError("Error reading resource", fmt.Sprintf("Could not read %s with ID %s: %s", resource.GetTypeName(), state.GetID(), err.Error()))
 }
 
-// HandleUpdateStateError handles errors during the update operation.
-func HandleUpdateStateError(ctx context.Context, resp *resource.UpdateResponse, resource ResourceWithID, state StateWithID, err error) {
+// HandleUpdateErrorIfNotFound handles errors during the update operation.
+func HandleUpdateErrorIfNotFound(ctx context.Context, resp *resource.UpdateResponse, resource ResourceWithID, state StateWithID, err error) {
+	handleIsNotFoundStateError(ctx, "update", resource, state, err, func() {
+		resp.State.RemoveResource(ctx)
+	})
+	resp.Diagnostics.AddError("Error updating resource", fmt.Sprintf("Could not update %s with ID %s: %s", resource.GetTypeName(), state.GetID(), err.Error()))
+}
+
+// handleIsNotFoundStateError handles errors during CRUD operations internally.
+func handleIsNotFoundStateError(ctx context.Context, operation string, resource ResourceWithID, state StateWithID, err error, removeResource func()) {
 	if IsNotFoundError(err) || strings.Contains(err.Error(), "An error has occurred") {
 		tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found, removing from state", resource.GetTypeName(), state.GetID()))
-		resp.State.RemoveResource(ctx)
+		removeResource()
 	} else {
-		resp.Diagnostics.AddError(
-			"Error updating resource",
-			fmt.Sprintf("Could not update %s with ID %s: %s", resource.GetTypeName(), state.GetID(), err.Error()),
-		)
+		fmt.Printf("Error %sing resource: %s with ID %s: %s", operation, resource.GetTypeName(), state.GetID(), err.Error())
 	}
 }
