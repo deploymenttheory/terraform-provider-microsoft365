@@ -2,9 +2,9 @@ package graphCloudPcProvisioningPolicy
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
@@ -52,33 +51,7 @@ func (r *CloudPcProvisioningPolicyResource) Metadata(ctx context.Context, req re
 
 // Configure sets the client for the resource.
 func (r *CloudPcProvisioningPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	tflog.Debug(ctx, "Configuring CloudPcProvisioningPolicyResource")
-
-	if req.ProviderData == nil {
-		tflog.Warn(ctx, "Provider data is nil, skipping resource configuration")
-		return
-	}
-
-	clients, ok := req.ProviderData.(*client.GraphClients)
-	if !ok {
-		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]interface{}{
-			"expected": "*client.GraphClients",
-			"actual":   fmt.Sprintf("%T", req.ProviderData),
-		})
-		resp.Diagnostics.AddError(
-			"Unexpected Provider Data Type",
-			fmt.Sprintf("Expected *client.GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	if clients.StableClient == nil {
-		tflog.Warn(ctx, "StableClient is nil, resource may not be fully configured")
-		return
-	}
-
-	r.client = clients.StableClient
-	tflog.Debug(ctx, "Initialized graphCloudPcProvisioningPolicy resource with Graph Client")
+	r.client = common.SetGraphStableClient(ctx, req, resp, "CloudPcProvisioningPolicyResource")
 }
 
 // ImportState imports the resource state.
