@@ -1,6 +1,6 @@
 # forked from hashicorp and modifed settings to increase runner size and timeout.
 # to grant a large enough runner to successfully complete the goreleaser action
-name: community
+name: community provider release
 
 on:
   workflow_call:
