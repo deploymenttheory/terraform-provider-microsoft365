@@ -13,23 +13,12 @@ jobs:
     - name: Render terraform docs and push changes back to PR
       uses: terraform-docs/gh-actions@v1.2.0
       with:
-        find-dir: examples/
+        working-dir: examples/
+        recursive: true
+        recursive-path: examples
+        args: --sort-by-required
+        indention: 3
         output-file: README.md
         output-method: inject
         git-push: "true"
-  
-    - name: Render terraform docs for microsoft365_graph and push changes back to PR
-      uses: terraform-docs/gh-actions@v1.2.0
-      with:
-        find-dir: examples/microsoft365_graph/
-        output-file: README.md
-        output-method: inject
-        git-push: "true"
-
-    - name: Render terraform docs for microsoft365_graph_beta and push changes back to PR
-      uses: terraform-docs/gh-actions@v1.2.0
-      with:
-        find-dir: examples/microsoft365_graph_beta/
-        output-file: README.md
-        output-method: inject
-        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
