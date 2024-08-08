@@ -2,10 +2,9 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
@@ -15,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -51,33 +49,7 @@ func (r *ConditionalAccessPolicyResource) Metadata(ctx context.Context, req reso
 
 // Configure sets the client for the resource.
 func (r *ConditionalAccessPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	tflog.Debug(ctx, "Configuring ConditionalAccessPolicyResource")
-
-	if req.ProviderData == nil {
-		tflog.Warn(ctx, "Provider data is nil, skipping resource configuration")
-		return
-	}
-
-	clients, ok := req.ProviderData.(*client.GraphClients)
-	if !ok {
-		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]interface{}{
-			"expected": "*client.GraphClients",
-			"actual":   fmt.Sprintf("%T", req.ProviderData),
-		})
-		resp.Diagnostics.AddError(
-			"Unexpected Provider Data Type",
-			fmt.Sprintf("Expected *client.GraphClients, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	if clients.BetaClient == nil {
-		tflog.Warn(ctx, "BetaClient is nil, resource may not be fully configured")
-		return
-	}
-
-	r.client = clients.BetaClient
-	tflog.Debug(ctx, "Initialized graphBetaAssignmentFilter resource with Graph Beta Client")
+	r.client = common.SetGraphBetaClient(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
