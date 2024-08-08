@@ -17,3 +17,19 @@ jobs:
         output-file: README.md
         output-method: inject
         git-push: "true"
+  
+    - name: Render terraform docs for microsoft365_graph and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.2.0
+      with:
+        find-dir: microsoft365_graph/
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+
+    - name: Render terraform docs for microsoft365_graph_beta and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.2.0
+      with:
+        find-dir: microsoft365_graph_beta/
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
