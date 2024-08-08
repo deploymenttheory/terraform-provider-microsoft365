@@ -2,7 +2,6 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -39,17 +38,8 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 		data.AssignmentFilterManagementType = types.StringNull()
 	}
 
-	if createdDateTime := remoteResource.GetCreatedDateTime(); createdDateTime != nil {
-		data.CreatedDateTime = types.StringValue(createdDateTime.Format(time.RFC3339))
-	} else {
-		data.CreatedDateTime = types.StringNull()
-	}
-
-	if lastModifiedDateTime := remoteResource.GetLastModifiedDateTime(); lastModifiedDateTime != nil {
-		data.LastModifiedDateTime = types.StringValue(lastModifiedDateTime.Format(time.RFC3339))
-	} else {
-		data.LastModifiedDateTime = types.StringNull()
-	}
+	data.CreatedDateTime = helpers.TimeToString(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = helpers.TimeToString(remoteResource.GetLastModifiedDateTime())
 
 	roleScopeTags := remoteResource.GetRoleScopeTags()
 

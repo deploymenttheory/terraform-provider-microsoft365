@@ -18,28 +18,28 @@
     },
     "users": {
       "@odata.type": "microsoft.graph.conditionalAccessUsers",
-        "excludeGroups": ["String"],
-        "excludeGuestsOrExternalUsers": {
-        "@odata.type": "microsoft.graph.conditionalAccessGuestsOrExternalUsers",
+      "excludeGroups": ["String"],
+      "excludeGuestsOrExternalUsers": {
+        "@odata.type": "#microsoft.graph.conditionalAccessGuestsOrExternalUsers",
         "externalTenants": {
           "@odata.type": "microsoft.graph.conditionalAccessExternalTenants",
-          "guestOrExternalUserTypes": "String"
+          "membershipKind": "String"
         },
         "guestOrExternalUserTypes": "String"
+      },
+      "excludeRoles": ["String"],
+      "excludeUsers": ["String"],
+      "includeGroups": ["String"],
+      "includeGuestsOrExternalUsers": {
+        "@odata.type": "#microsoft.graph.conditionalAccessGuestsOrExternalUsers",
+        "externalTenants": {
+          "@odata.type": "microsoft.graph.conditionalAccessExternalTenants",
+          "membershipKind": "String"
         },
-        "excludeRoles": ["String"],
-        "excludeUsers": ["String"],
-        "includeGroups": ["String"],
-        "includeGuestsOrExternalUsers": {
-          "@odata.type": "#microsoft.graph.conditionalAccessGuestsOrExternalUsers",
-          "externalTenants": {
-            "@odata.type": "microsoft.graph.conditionalAccessExternalTenants",
-            "guestOrExternalUserTypes": "String"
-          },
-          "guestOrExternalUserTypes": "String"
-        },
-        "includeRoles": ["String"],
-        "includeUsers": ["String"]  
+        "guestOrExternalUserTypes": "String"
+      },
+      "includeRoles": ["String"],
+      "includeUsers": ["String"]
     },
     "clientApplications": {
         "@odata.type": "#microsoft.graph.conditionalAccessClientApplications",
