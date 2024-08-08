@@ -15,7 +15,7 @@ jobs:
       with:
         working-dir: examples/
         recursive: true
-        recursive-path: examples
+        recursive-path: microsoft365_graph,microsoft365_graph_beta
         args: --sort-by-required
         indention: 3
         output-file: README.md
