@@ -758,6 +758,25 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 		sessionControls.SetApplicationEnforcedRestrictions(appRestrictions)
 	}
 
+	if data.CloudAppSecurity != nil {
+		cloudAppSecurity := models.NewCloudAppSecuritySessionControl()
+		isEnabled := data.CloudAppSecurity.IsEnabled.ValueBool()
+		cloudAppSecurity.SetIsEnabled(&isEnabled)
+
+		if !data.CloudAppSecurity.CloudAppSecurityType.IsNull() {
+			typeAny, err := models.ParseCloudAppSecuritySessionControlType(data.CloudAppSecurity.CloudAppSecurityType.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing cloud app security type: %v", err)
+			}
+			if typeAny != nil {
+				cloudAppSecurityType := typeAny.(*models.CloudAppSecuritySessionControlType)
+				cloudAppSecurity.SetCloudAppSecurityType(cloudAppSecurityType)
+			}
+		}
+
+		sessionControls.SetCloudAppSecurity(cloudAppSecurity)
+	}
+
 	if data.ContinuousAccessEvaluation != nil {
 		continuousAccessEvaluation := models.NewContinuousAccessEvaluationSessionControl()
 
