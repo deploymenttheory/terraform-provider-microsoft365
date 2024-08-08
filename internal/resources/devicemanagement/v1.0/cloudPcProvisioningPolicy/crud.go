@@ -76,7 +76,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().ByCloudPcProvisioningPolicyId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		common.HandleReadStateError(ctx, resp, r, &state, err)
+		common.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 
 	_, err = r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		common.HandleUpdateStateError(ctx, resp, r, &plan, err)
+		common.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
 	}
 

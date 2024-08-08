@@ -76,7 +76,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		common.HandleReadStateError(ctx, resp, r, &state, err)
+		common.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		common.HandleUpdateStateError(ctx, resp, r, &plan, err)
+		common.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
 	}
 

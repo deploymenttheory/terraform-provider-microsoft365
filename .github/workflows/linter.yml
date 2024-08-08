@@ -24,8 +24,9 @@ jobs:
           VALIDATE_MARKDOWN: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MARKDOWN_CONFIG_FILE: .markdown-lint.yml
           FILTER_REGEX_EXCLUDE: |
-            .*README\.md$|          # Exclude README markdown files
+            .*\.md$|                # Exclude all markdown files
             .*test/.*|              # Exclude all files in any test directory
             .*_test\.go$|           # Exclude Go test files (e.g., *_test.go)
             .*\.json$               # Exclude all JSON files

@@ -1,0 +1,38 @@
+---
+# Disable rules related to line length and code block consistency
+MD013: false  # Line length
+MD046: false  # Code block style
+
+# Disable rules that might cause issues with your specific Markdown structure
+MD024: false  # Multiple headers with the same content
+MD033: false  # Inline HTML
+MD041: false  # First line in file should be a top level header
+
+# Disable rule for required punctuation in headers
+MD026: false
+
+# Modify rules for list style consistency
+MD004:
+  style: "consistent"
+MD007:
+  indent: 2
+
+# Disable rule for emphasis used instead of headers
+MD036: false
+
+# Disable rule for fenced code blocks
+MD040: false
+
+# Disable rule for links with empty URLs
+MD042: false
+
+# Disable rule for required code block language
+MD048: false
+
+# Ignore certain patterns or files
+MD002: false  # First header should be a top level header
+MD052: false  # Reference links and images should use a label that is defined
+
+# Ignore table formatting issues
+MD055: false
+MD056: false

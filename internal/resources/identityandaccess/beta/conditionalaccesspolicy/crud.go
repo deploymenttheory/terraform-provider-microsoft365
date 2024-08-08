@@ -76,7 +76,7 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 	conditionalAccessPolicy, err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		common.HandleReadStateError(ctx, resp, r, &state, err)
+		common.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 	_, err = r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		common.HandleUpdateStateError(ctx, resp, r, &plan, err)
+		common.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
 	}
 
