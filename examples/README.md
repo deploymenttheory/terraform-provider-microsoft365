@@ -1,27 +1,27 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+### Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_microsoft365"></a> [microsoft365](#requirement\_microsoft365) | ~> 1.0.0 |
 
-## Providers
+### Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_microsoft365"></a> [microsoft365](#provider\_microsoft365) | ~> 1.0.0 |
 
-## Modules
+### Modules
 
 No modules.
 
-## Resources
+### Resources
 
 | Name | Type |
 |------|------|
 | [microsoft365_graph_beta_device_and_app_management_assignment_filter.example](https://registry.terraform.io/providers/deploymenttheory/terraform-provider-microsoft365/latest/docs/resources/graph_beta_device_and_app_management_assignment_filter) | resource |
 
-## Inputs
+### Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
@@ -30,7 +30,7 @@ No modules.
 | <a name="input_cloud"></a> [cloud](#input\_cloud) | The Microsoft cloud environment to use | `string` | `"public"` | no |
 | <a name="input_tenant_id"></a> [tenant\_id](#input\_tenant\_id) | The Microsoft 365 tenant ID | `string` | n/a | yes |
 
-## Outputs
+### Outputs
 
 No outputs.
 <!-- END_TF_DOCS -->
