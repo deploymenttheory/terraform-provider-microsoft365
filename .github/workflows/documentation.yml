@@ -14,7 +14,6 @@ jobs:
       uses: terraform-docs/gh-actions@v1.2.0
       with:
         working-dir: examples/
-        recursive: true
         indention: 3
         output-file: README.md
         output-method: inject
@@ -25,7 +24,6 @@ jobs:
       uses: terraform-docs/gh-actions@v1.2.0
       with:
         working-dir: examples/microsoft365_graph
-        recursive: true
         indention: 3
         output-file: README.md
         output-method: inject
@@ -36,7 +34,6 @@ jobs:
       uses: terraform-docs/gh-actions@v1.2.0
       with:
         working-dir: examples/microsoft365_graph_beta
-        recursive: true
         indention: 3
         output-file: README.md
         output-method: inject
