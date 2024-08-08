@@ -16,10 +16,8 @@ jobs:
         working-dir: examples/
         recursive: true
         recursive-path: microsoft365_graph,microsoft365_graph_beta
-        args: --sort-by-required
         indention: 3
         output-file: README.md
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
-
