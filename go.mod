@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.13.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/microsoft/kiota-http-go v1.4.3
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.106.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.107.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.46.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.0
 	github.com/stretchr/testify v1.9.0
