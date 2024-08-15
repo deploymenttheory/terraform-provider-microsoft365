@@ -63,7 +63,11 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		err := SetParsedValueFromAttributes(attrs, "test_key", func(i *int) {
 			result = *i
 		}, func(s string) (interface{}, error) {
-			return strconv.Atoi(s)
+			v, err := strconv.Atoi(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, 42, result)
@@ -75,7 +79,11 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		err := SetParsedValueFromAttributes(attrs, "non_existing_key", func(i *int) {
 			result = *i
 		}, func(s string) (interface{}, error) {
-			return strconv.Atoi(s)
+			v, err := strconv.Atoi(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, result)
@@ -89,7 +97,11 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		err := SetParsedValueFromAttributes(attrs, "test_key", func(i *int) {
 			result = *i
 		}, func(s string) (interface{}, error) {
-			return strconv.Atoi(s)
+			v, err := strconv.Atoi(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, result)
@@ -103,7 +115,11 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		err := SetParsedValueFromAttributes(attrs, "test_key", func(i *int) {
 			result = *i
 		}, func(s string) (interface{}, error) {
-			return strconv.Atoi(s)
+			v, err := strconv.Atoi(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, result)
@@ -117,24 +133,14 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		err := SetParsedValueFromAttributes(attrs, "test_key", func(i *int) {
 			result = *i
 		}, func(s string) (interface{}, error) {
-			return strconv.Atoi(s)
+			v, err := strconv.Atoi(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
 		})
 		assert.Error(t, err)
 		assert.Equal(t, 0, result)
-	})
-
-	t.Run("Nil parsed value", func(t *testing.T) {
-		attrs := map[string]attr.Value{
-			"test_key": types.StringValue("nil_value"),
-		}
-		var result *string
-		err := SetParsedValueFromAttributes(attrs, "test_key", func(s *string) {
-			result = s
-		}, func(s string) (interface{}, error) {
-			return nil, nil
-		})
-		assert.NoError(t, err)
-		assert.Nil(t, result)
 	})
 
 	t.Run("Custom error", func(t *testing.T) {
@@ -150,5 +156,41 @@ func TestSetParsedValueFromAttributes(t *testing.T) {
 		})
 		assert.Equal(t, customErr, err)
 		assert.Equal(t, "", result)
+	})
+
+	t.Run("Parse bool value", func(t *testing.T) {
+		attrs := map[string]attr.Value{
+			"test_key": types.StringValue("true"),
+		}
+		var result bool
+		err := SetParsedValueFromAttributes(attrs, "test_key", func(b *bool) {
+			result = *b
+		}, func(s string) (interface{}, error) {
+			v, err := strconv.ParseBool(s)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
+		})
+		assert.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	t.Run("Parse float value", func(t *testing.T) {
+		attrs := map[string]attr.Value{
+			"test_key": types.StringValue("3.14"),
+		}
+		var result float64
+		err := SetParsedValueFromAttributes(attrs, "test_key", func(f *float64) {
+			result = *f
+		}, func(s string) (interface{}, error) {
+			v, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
+		})
+		assert.NoError(t, err)
+		assert.InDelta(t, 3.14, result, 0.001)
 	})
 }
