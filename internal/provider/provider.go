@@ -78,7 +78,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Required: true,
 				Description: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', " +
-					"'username_password', 'client_assertion'. Each method requires different credentials to be provided. " +
+					"'username_password'. Each method requires different credentials to be provided. " +
 					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
@@ -87,7 +87,6 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +
 					"- `interactive_browser`: Opens a browser for interactive login.\n" +
 					"- `username_password`: Uses username and password for authentication (not recommended for production).\n" +
-					"- `client_assertion`: Uses a client assertion (OIDC token) for authentication, suitable for CI/CD and server-to-server scenarios.\n\n" +
 					"Each method requires different credentials to be provided. Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
