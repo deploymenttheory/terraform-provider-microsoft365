@@ -1,21 +1,19 @@
 version: '0.16'
 
-formatter:
-  markdown:
-    enabled: true
-    output:
-      file: README.md
-      mode: inject
-      template: |
-        <!-- BEGIN_TF_DOCS -->
-        {{ .Content }}
-        <!-- END_TF_DOCS -->
+formatter: markdown
+output:
+  file: README.md
+  mode: inject
+  template: |
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
 
-    templates:
-      data_source: templates/data_sources.md.tmpl
-      resource: templates/resources.md.tmpl
-      index: templates/index.md.tmpl
+templates:
+  data_source: templates/data_sources.md.tmpl
+  resource: templates/resources.md.tmpl
+  index: templates/index.md.tmpl
 
-    settings:
-      indent: 3
-      escape: false
+settings:
+  indent: 3
+  escape: false
