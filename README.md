@@ -1,16 +1,40 @@
 # Community Terraform Provider for Microsoft 365
 
-The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Intune](https://intune.microsoft.com/) , [Office365](https://www.office.com/
-), [MicrosoftTeams](https://teams.microsoft.com/
-) and [MicrosoftSecurity](https://security.microsoft.com/
-).
+The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Microsoft Intune](https://www.microsoft.com/en-us/security/business/endpoint-management/microsoft-intune), [Microsoft 365](https://www.microsoft.com/en-us/microsoft-365), [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software), and [Microsoft Defender](https://www.microsoft.com/en-us/security/business/microsoft-defender).
 
 > [!WARNING]
 > This code is experimental and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, and no guarantees or support is provided. By using this code, you acknowledge and agree to these conditions. Consult the documentation or contact the maintainer if you have questions or concerns.
 
-# To-Do List
+## Overview
 
-## Exchange
+The Community Terraform Provider for Microsoft 365 empowers DevOps teams and administrators to manage their Microsoft 365 environments using Infrastructure as Code (IaC) principles. This provider bridges the gap between Terraform's powerful resource management capabilities and the extensive features of Microsoft 365, allowing for automated, version-controlled, and repeatable deployments across various Microsoft cloud services.
+
+## Key Features
+
+- **Comprehensive Resource Management**: Manage resources across Microsoft Intune, Microsoft 365, Microsoft Teams, and Microsoft Defender.
+- **Multi-Cloud Support**: Compatible with various Microsoft cloud environments, including public, government, and national clouds.
+- **Flexible Authentication**: Supports multiple authentication methods, including client credentials, certificate-based, and interactive browser flows.
+- **Beta API Access**: Includes a beta client for accessing cutting-edge features and APIs still in development.
+- **Enhanced Security Options**: Offers proxy support and various security configurations to align with organizational policies.
+
+## Use Cases
+
+- Automate the creation and management of user accounts, groups, and permissions.
+- Deploy and configure Microsoft Teams environments at scale.
+- Manage security policies and compliance settings across your Microsoft 365 tenant.
+- Provision and configure Intune policies for device management.
+
+## Community Contributions
+
+As a community-driven project, contributions, feedback, and issue reports are welcome and encouraged. Together, we can enhance and expand the capabilities of this provider to meet the evolving needs of Microsoft 365 administrators and DevOps professionals.
+
+## Disclaimer
+
+While every effort is made to maintain accuracy and reliability, users should thoroughly test configurations in non-production environments before deploying to production. Always refer to official Microsoft documentation for the most up-to-date information on Microsoft 365 services and features.
+
+# Community Terraform Provider for Microsoft 365 Provider Roadmap
+
+## Microsoft Exchange Online
 
 - [ ] AddressBookPolicy
 - [ ] AddressList
@@ -43,13 +67,13 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 - [ ] Organization Relationship
 - [ ] OrganizationConfig
 - [ ] Outbound connectors
-- [ ] Outlook Web App policies
+- [ ] Outlook on the web policies
 - [ ] Partner Applications
 - [ ] PolicyTipConfig
 - [ ] Role Assignment Policies
 - [ ] Transport Rules
 
-## Security & Compliance
+## Microsoft Purview
 
 - [ ] Audit configuration policy
 - [ ] Case hold policies
@@ -58,35 +82,43 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 - [ ] ComplianceTags
 - [ ] Content search actions
 - [ ] Content searches
-- [ ] Device conditional access policies
-- [ ] Device configuration policies
 - [ ] DLP compliance policies
-- [ ] DLP senstitive information types
+- [ ] DLP sensitive information types
 - [ ] File plan property authorities
 - [ ] File plan property categories
 - [ ] File plan property citations
 - [ ] File plan property departments
 - [ ] File plan property reference ids
 - [ ] File plan property reference sub categories
-- [ ] Hosted connection filter policies
-- [ ] Hosted content filter policies
-- [ ] Hosted content filter rules
-- [ ] Hosted outbound spam filter policies
-- [ ] Hosted outbound spam filter rules
 - [ ] Information governance
 - [ ] Compliance Retention Event Types
 - [ ] Retention
 - [ ] Label Policy
 - [ ] Labels
+
+## Microsoft Defender for Office 365
+
 - [ ] Threat management
 - [ ] Policy
-- [ ] ATP Anti-Phishing
-- [ ] ATP Safe Attachments
-- [ ] ATP Safe Links
+- [ ] Anti-Phishing
+- [ ] Safe Attachments
+- [ ] Safe Links
 - [ ] Global Settings
 - [ ] Quarantine Policies
+- [ ] Hosted connection filter policies
+- [ ] Hosted content filter policies
+- [ ] Hosted content filter rules
+- [ ] Hosted outbound spam filter policies
+- [ ] Hosted outbound spam filter rules
 
-## Teams
+## Microsoft Entra ID (formerly Azure Active Directory)
+
+- [ ] Device conditional access policies
+- [ ] Device configuration policies
+
+
+## Microsoft Teams
+
 - [ ] Apps
 - [ ] Permission policies
 - [ ] Meetings
@@ -98,14 +130,14 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 - [ ] Voice
 - [ ] Calling policies
 
-## Intune
+## Microsoft Intune
 
 ### Apps
 
 - [ ] App configuration policies
 - [ ] App protection policies (Platform = Android)
 - [ ] App protection policies (Platform = iOS/iPadOS)
-- [ ] App protection policies (Platform = Windows 10)
+- [ ] App protection policies (Platform = Windows 10/11)
 - [ ] Diagnostic settings
 - [ ] Endpoint security
 - [ ] Mobile Threat Defense
@@ -132,82 +164,39 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 - [ ] Endpoint analytics
 - [ ] Proactive Remediations
 
+### Intune Suite
+
+- [ ] Advanced Analytics
+- [ ] Advanced Endpoint Analytics
+- [ ] Remote Help
+- [ ] Endpoint Privilege Management
+- [ ] Microsoft Tunnel for Mobile Application Management
+- [ ] Automated App Patching
+
+## Windows 365
+
+- [ ] Cloud PC Provisioning Policies
+- [ ] User Settings Policies
+- [ ] Network Settings
+- [ ] Image Management
+- [ ] Windows 365 Frontline
+- [ ] Windows 365 Boot
+- [ ] Windows 365 Switch
+- [ ] Cloud PC Health Monitoring
+- [ ] Cloud PC Restore
+- [ ] Cloud PC Resize
+- [ ] Cloud PC Reprovision
+- [ ] Usage Analytics
+- [ ] Point-in-Time Restore
+- [ ] Universal Print Integration
+- [ ] Regional Settings
+- [ ] Custom Language Packs
+
 ### Tenant administration
 
 - [ ] Filters
 
-# Template
+## Data Collection
 
-This repository serves as a **Default Template Repository** according official [GitHub Contributing Guidelines][ProjectSetup] for healthy contributions. It brings you clean default Templates for several areas:
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at https://go.microsoft.com/fwlink/?LinkID=824704. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
 
-- [Azure DevOps Pull Requests](.azuredevops/PULL_REQUEST_TEMPLATE.md) ([`.azuredevops\PULL_REQUEST_TEMPLATE.md`](`.azuredevops\PULL_REQUEST_TEMPLATE.md`))
-- [Azure Pipelines](.pipelines/pipeline.yml) ([`.pipelines/pipeline.yml`](`.pipelines/pipeline.yml`))
-- [GitHub Workflows](.github/workflows/)
-  - [Super Linter](.github/workflows/linter.yml) ([`.github/workflows/linter.yml`](`.github/workflows/linter.yml`))
-  - [Sample Workflows](.github/workflows/workflow.yml) ([`.github/workflows/workflow.yml`](`.github/workflows/workflow.yml`))
-- [GitHub Pull Requests](.github/PULL_REQUEST_TEMPLATE.md) ([`.github/PULL_REQUEST_TEMPLATE.md`](`.github/PULL_REQUEST_TEMPLATE.md`))
-- [GitHub Issues](.github/ISSUE_TEMPLATE/)
-  - [Feature Requests](.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md) ([`.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md`](`.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md`))
-  - [Bug Reports](.github/ISSUE_TEMPLATE/BUG_REPORT.md) ([`.github/ISSUE_TEMPLATE/BUG_REPORT.md`](`.github/ISSUE_TEMPLATE/BUG_REPORT.md`))
-- [Codeowners](.github/CODEOWNERS) ([`.github/CODEOWNERS`](`.github/CODEOWNERS`)) _adjust usernames once cloned_
-- [Wiki and Documentation](docs/) ([`docs/`](`docs/`))
-- [gitignore](.gitignore) ([`.gitignore`](.gitignore))
-- [gitattributes](.gitattributes) ([`.gitattributes`](.gitattributes))
-- [Changelog](CHANGELOG.md) ([`CHANGELOG.md`](`CHANGELOG.md`))
-- [Code of Conduct](CODE_OF_CONDUCT.md) ([`CODE_OF_CONDUCT.md`](`CODE_OF_CONDUCT.md`))
-- [Contribution](CONTRIBUTING.md) ([`CONTRIBUTING.md`](`CONTRIBUTING.md`))
-- [License](LICENSE) ([`LICENSE`](`LICENSE`)) _adjust projectname once cloned_
-- [Readme](README.md) ([`README.md`](`README.md`))
-- [Security](SECURITY.md) ([`SECURITY.md`](`SECURITY.md`))
-
-
-## Status
-
-[![Super Linter](<https://github.com/segraef/Template/actions/workflows/linter.yml/badge.svg>)](<https://github.com/segraef/Template/actions/workflows/linter.yml>)
-
-[![Sample Workflow](<https://github.com/segraef/Template/actions/workflows/workflow.yml/badge.svg>)](<https://github.com/segraef/Template/actions/workflows/workflow.yml>)
-
-## Creating a repository from a template
-
-You can [generate](https://github.com/segraef/Template/generate) a new repository with the same directory structure and files as an existing repository. More details can be found [here][CreateFromTemplate].
-
-## Reporting Issues and Feedback
-
-### Issues and Bugs
-
-If you find any bugs, please file an issue in the [GitHub Issues][GitHubIssues] page. Please fill out the provided template with the appropriate information.
-
-If you are taking the time to mention a problem, even a seemingly minor one, it is greatly appreciated, and a totally valid contribution to this project. **Thank you!**
-
-## Feedback
-
-If there is a feature you would like to see in here, please file an issue or feature request in the [GitHub Issues][GitHubIssues] page to provide direct feedback.
-
-## Contribution
-
-If you would like to become an active contributor to this repository or project, please follow the instructions provided in [`CONTRIBUTING.md`][Contributing].
-
-## Learn More
-
-* [GitHub Documentation][GitHubDocs]
-* [Azure DevOps Documentation][AzureDevOpsDocs]
-* [Microsoft Azure Documentation][MicrosoftAzureDocs]
-
-<!-- References -->
-
-<!-- Local -->
-[ProjectSetup]: <https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions>
-[CreateFromTemplate]: <https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/creating-a-repository-from-a-template>
-[GitHubDocs]: <https://docs.github.com/>
-[AzureDevOpsDocs]: <https://docs.microsoft.com/en-us/azure/devops/?view=azure-devops>
-[GitHubIssues]: <https://github.com/segraef/Template/issues>
-[Contributing]: CONTRIBUTING.md
-
-<!-- External -->
-[Az]: <https://img.shields.io/powershellgallery/v/Az.svg?style=flat-square&label=Az>
-[AzGallery]: <https://www.powershellgallery.com/packages/Az/>
-[PowerShellCore]: <https://github.com/PowerShell/PowerShell/releases/latest>
-
-<!-- Docs -->
-[MicrosoftAzureDocs]: <https://docs.microsoft.com/en-us/azure/>
-[PowerShellDocs]: <https://docs.microsoft.com/en-us/powershell/>
