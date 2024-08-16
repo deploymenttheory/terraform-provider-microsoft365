@@ -1,4 +1,4 @@
-version: '0.16'
+version: '0.18'
 
 formatter: markdown
 output:
