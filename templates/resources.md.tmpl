@@ -1,7 +1,7 @@
 ---
 page_title: "{{.Type}}: {{.Name}}"
 description: |-
-{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Type}}: {{.Name}}
@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-{{ printf "{{tffile %q}}" .ExampleFile }}
+{{ printf "{{tffile %q}}" (printf "example/%s/resource.tf" .Name) }}
 
 {{- end }}
 
