@@ -19,8 +19,8 @@ jobs:
   # Ensure project builds before running testing matrix
   build:
     name: Build
-    runs-on: windows-latest-l
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
@@ -35,7 +35,7 @@ jobs:
           version: latest
 
   generate:
-    runs-on: windows-latest-l
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
@@ -59,7 +59,7 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -84,4 +84,4 @@ jobs:
       - env:
           TF_ACC: "1"
         run: go test -v -cover ./internal/provider/
-        timeout-minutes: 10
+        timeout-minutes: 25

@@ -21,6 +21,9 @@ builds:
     goarch:
       - amd64
       - arm64
+    ignore:
+      - goos: darwin
+        goarch: 'arm64'
     binary: '{{ .ProjectName }}_v{{ .Version }}'
 archives:
   - format: zip
