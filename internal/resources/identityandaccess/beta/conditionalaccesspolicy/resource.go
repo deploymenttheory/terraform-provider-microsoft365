@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -103,12 +103,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Description: "Specifies the session controls that are enforced after sign-in.",
 				Attributes:  r.conditionalAccessSessionControlsSchema(),
 			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Update: true,
-				Delete: true,
-			}),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

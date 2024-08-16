@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -22,7 +22,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -68,7 +68,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with ID: %s", state.ID.ValueString()))
 
-	ctx, cancel := common.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -76,7 +76,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 	assignmentFilter, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		common.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 
 	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		common.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

@@ -3,7 +3,7 @@ package graphBetaConditionalAccessPolicy
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -18,14 +18,14 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolic
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": helpers.StringPtrToString(remoteResource.GetId()),
+		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(helpers.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(helpers.StringPtrToString(remoteResource.GetDescription()))
-	data.CreatedDateTime = helpers.TimeToString(remoteResource.GetCreatedDateTime())
-	data.ModifiedDateTime = helpers.TimeToString(remoteResource.GetModifiedDateTime())
+	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
+	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
+	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
+	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
+	data.ModifiedDateTime = state.TimeToString(remoteResource.GetModifiedDateTime())
 
 	if state := remoteResource.GetState(); state != nil {
 		data.State = types.StringValue(state.String())
@@ -76,14 +76,14 @@ func mapConditions(ctx context.Context, conditions models.ConditionalAccessCondi
 		Applications:               mapApplications(ctx, conditions.GetApplications()),
 		Users:                      mapUsers(ctx, conditions.GetUsers()),
 		ClientApplications:         mapClientApplications(ctx, conditions.GetClientApplications()),
-		ClientAppTypes:             helpers.EnumSliceToTypeStringSlice(conditions.GetClientAppTypes()),
+		ClientAppTypes:             state.EnumSliceToTypeStringSlice(conditions.GetClientAppTypes()),
 		Devices:                    mapDevices(ctx, conditions.GetDevices()),
 		DeviceStates:               mapDeviceStates(ctx, conditions.GetDeviceStates()),
 		Locations:                  mapLocations(ctx, conditions.GetLocations()),
 		Platforms:                  mapPlatforms(ctx, conditions.GetPlatforms()),
-		ServicePrincipalRiskLevels: helpers.EnumSliceToTypeStringSlice(conditions.GetServicePrincipalRiskLevels()),
-		SignInRiskLevels:           helpers.EnumSliceToTypeStringSlice(conditions.GetSignInRiskLevels()),
-		UserRiskLevels:             helpers.EnumSliceToTypeStringSlice(conditions.GetUserRiskLevels()),
+		ServicePrincipalRiskLevels: state.EnumSliceToTypeStringSlice(conditions.GetServicePrincipalRiskLevels()),
+		SignInRiskLevels:           state.EnumSliceToTypeStringSlice(conditions.GetSignInRiskLevels()),
+		UserRiskLevels:             state.EnumSliceToTypeStringSlice(conditions.GetUserRiskLevels()),
 		AuthenticationFlows:        mapAuthenticationFlows(ctx, conditions.GetAuthenticationFlows()),
 		InsiderRiskLevels:          types.StringValue(conditions.GetInsiderRiskLevels().String()),
 	}
@@ -108,9 +108,9 @@ func mapApplications(ctx context.Context, apps models.ConditionalAccessApplicati
 	tflog.Debug(ctx, "Mapping applications")
 
 	result := &ConditionalAccessApplicationsModel{
-		IncludeApplications: helpers.SliceToTypeStringSlice(apps.GetIncludeApplications()),
-		ExcludeApplications: helpers.SliceToTypeStringSlice(apps.GetExcludeApplications()),
-		IncludeUserActions:  helpers.SliceToTypeStringSlice(apps.GetIncludeUserActions()),
+		IncludeApplications: state.SliceToTypeStringSlice(apps.GetIncludeApplications()),
+		ExcludeApplications: state.SliceToTypeStringSlice(apps.GetExcludeApplications()),
+		IncludeUserActions:  state.SliceToTypeStringSlice(apps.GetIncludeUserActions()),
 		ApplicationFilter:   mapFilter(ctx, apps.GetApplicationFilter()),
 	}
 
@@ -130,12 +130,12 @@ func mapUsers(ctx context.Context, users models.ConditionalAccessUsersable) *Con
 
 	tflog.Debug(ctx, "Starting to map users")
 	result := &ConditionalAccessUsersModel{
-		ExcludeGroups:                helpers.SliceToTypeStringSlice(users.GetExcludeGroups()),
-		ExcludeRoles:                 helpers.SliceToTypeStringSlice(users.GetExcludeRoles()),
-		ExcludeUsers:                 helpers.SliceToTypeStringSlice(users.GetExcludeUsers()),
-		IncludeGroups:                helpers.SliceToTypeStringSlice(users.GetIncludeGroups()),
-		IncludeRoles:                 helpers.SliceToTypeStringSlice(users.GetIncludeRoles()),
-		IncludeUsers:                 helpers.SliceToTypeStringSlice(users.GetIncludeUsers()),
+		ExcludeGroups:                state.SliceToTypeStringSlice(users.GetExcludeGroups()),
+		ExcludeRoles:                 state.SliceToTypeStringSlice(users.GetExcludeRoles()),
+		ExcludeUsers:                 state.SliceToTypeStringSlice(users.GetExcludeUsers()),
+		IncludeGroups:                state.SliceToTypeStringSlice(users.GetIncludeGroups()),
+		IncludeRoles:                 state.SliceToTypeStringSlice(users.GetIncludeRoles()),
+		IncludeUsers:                 state.SliceToTypeStringSlice(users.GetIncludeUsers()),
 		ExcludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(ctx, users.GetExcludeGuestsOrExternalUsers()),
 		IncludeGuestsOrExternalUsers: mapGuestsOrExternalUsers(ctx, users.GetIncludeGuestsOrExternalUsers()),
 	}
@@ -235,8 +235,8 @@ func mapClientApplications(ctx context.Context, clientApps models.ConditionalAcc
 	tflog.Debug(ctx, "Starting to map client applications")
 
 	result := &ConditionalAccessClientApplicationsModel{
-		ExcludeServicePrincipals: helpers.SliceToTypeStringSlice(clientApps.GetExcludeServicePrincipals()),
-		IncludeServicePrincipals: helpers.SliceToTypeStringSlice(clientApps.GetIncludeServicePrincipals()),
+		ExcludeServicePrincipals: state.SliceToTypeStringSlice(clientApps.GetExcludeServicePrincipals()),
+		IncludeServicePrincipals: state.SliceToTypeStringSlice(clientApps.GetIncludeServicePrincipals()),
 		ServicePrincipalFilter:   mapFilter(ctx, clientApps.GetServicePrincipalFilter()),
 	}
 
@@ -258,10 +258,10 @@ func mapDevices(ctx context.Context, devices models.ConditionalAccessDevicesable
 	tflog.Debug(ctx, "Starting to map devices")
 
 	result := &ConditionalAccessDevicesModel{
-		IncludeDevices: helpers.SliceToTypeStringSlice(devices.GetIncludeDevices()),
-		ExcludeDevices: helpers.SliceToTypeStringSlice(devices.GetExcludeDevices()),
-		IncludeStates:  helpers.SliceToTypeStringSlice(devices.GetIncludeDeviceStates()),
-		ExcludeStates:  helpers.SliceToTypeStringSlice(devices.GetExcludeDeviceStates()),
+		IncludeDevices: state.SliceToTypeStringSlice(devices.GetIncludeDevices()),
+		ExcludeDevices: state.SliceToTypeStringSlice(devices.GetExcludeDevices()),
+		IncludeStates:  state.SliceToTypeStringSlice(devices.GetIncludeDeviceStates()),
+		ExcludeStates:  state.SliceToTypeStringSlice(devices.GetExcludeDeviceStates()),
 		DeviceFilter:   mapFilter(ctx, devices.GetDeviceFilter()),
 	}
 
@@ -285,8 +285,8 @@ func mapDeviceStates(ctx context.Context, deviceStates models.ConditionalAccessD
 	tflog.Debug(ctx, "Starting to map device states")
 
 	result := &ConditionalAccessDeviceStatesModel{
-		IncludeStates: helpers.SliceToTypeStringSlice(deviceStates.GetIncludeStates()),
-		ExcludeStates: helpers.SliceToTypeStringSlice(deviceStates.GetExcludeStates()),
+		IncludeStates: state.SliceToTypeStringSlice(deviceStates.GetIncludeStates()),
+		ExcludeStates: state.SliceToTypeStringSlice(deviceStates.GetExcludeStates()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping device states", map[string]interface{}{
@@ -306,8 +306,8 @@ func mapLocations(ctx context.Context, locations models.ConditionalAccessLocatio
 	tflog.Debug(ctx, "Starting to map locations")
 
 	result := &ConditionalAccessLocationsModel{
-		ExcludeLocations: helpers.SliceToTypeStringSlice(locations.GetExcludeLocations()),
-		IncludeLocations: helpers.SliceToTypeStringSlice(locations.GetIncludeLocations()),
+		ExcludeLocations: state.SliceToTypeStringSlice(locations.GetExcludeLocations()),
+		IncludeLocations: state.SliceToTypeStringSlice(locations.GetIncludeLocations()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping locations", map[string]interface{}{
@@ -327,8 +327,8 @@ func mapPlatforms(ctx context.Context, platforms models.ConditionalAccessPlatfor
 	tflog.Debug(ctx, "Starting to map platforms")
 
 	result := &ConditionalAccessPlatformsModel{
-		ExcludePlatforms: helpers.EnumSliceToTypeStringSlice(platforms.GetExcludePlatforms()),
-		IncludePlatforms: helpers.EnumSliceToTypeStringSlice(platforms.GetIncludePlatforms()),
+		ExcludePlatforms: state.EnumSliceToTypeStringSlice(platforms.GetExcludePlatforms()),
+		IncludePlatforms: state.EnumSliceToTypeStringSlice(platforms.GetIncludePlatforms()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping platforms", map[string]interface{}{
@@ -376,26 +376,26 @@ func mapGrantControls(ctx context.Context, grantControls models.ConditionalAcces
 	}
 
 	if builtInControls := grantControls.GetBuiltInControls(); builtInControls != nil {
-		result.BuiltInControls = helpers.EnumSliceToTypeStringSlice(builtInControls)
+		result.BuiltInControls = state.EnumSliceToTypeStringSlice(builtInControls)
 	}
 
 	if customAuthenticationFactors := grantControls.GetCustomAuthenticationFactors(); customAuthenticationFactors != nil {
-		result.CustomAuthenticationFactors = helpers.SliceToTypeStringSlice(customAuthenticationFactors)
+		result.CustomAuthenticationFactors = state.SliceToTypeStringSlice(customAuthenticationFactors)
 	}
 
 	if termsOfUse := grantControls.GetTermsOfUse(); termsOfUse != nil {
-		result.TermsOfUse = helpers.SliceToTypeStringSlice(termsOfUse)
+		result.TermsOfUse = state.SliceToTypeStringSlice(termsOfUse)
 	}
 
 	if authenticationStrength := grantControls.GetAuthenticationStrength(); authenticationStrength != nil {
 		result.AuthenticationStrength = &AuthenticationStrengthPolicyModel{
-			DisplayName: types.StringValue(helpers.StringPtrToString(authenticationStrength.GetDisplayName())),
-			Description: types.StringValue(helpers.StringPtrToString(authenticationStrength.GetDescription())),
+			DisplayName: types.StringValue(state.StringPtrToString(authenticationStrength.GetDisplayName())),
+			Description: types.StringValue(state.StringPtrToString(authenticationStrength.GetDescription())),
 			PolicyType:  types.StringValue(authenticationStrength.GetPolicyType().String()),
 			RequirementsSatisfied: types.StringValue(
 				authenticationStrength.GetRequirementsSatisfied().String(),
 			),
-			AllowedCombinations: helpers.EnumSliceToTypeStringSlice(authenticationStrength.GetAllowedCombinations()),
+			AllowedCombinations: state.EnumSliceToTypeStringSlice(authenticationStrength.GetAllowedCombinations()),
 		}
 	}
 

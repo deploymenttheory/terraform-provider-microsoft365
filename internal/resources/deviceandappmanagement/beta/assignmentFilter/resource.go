@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -107,12 +107,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: "Indicates role scope tags assigned for the assignment filter.",
 				ElementType: types.StringType,
 			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Update: true,
-				Delete: true,
-			}),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
