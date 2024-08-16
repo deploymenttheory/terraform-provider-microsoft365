@@ -1,32 +1,21 @@
-version: '0.16.0'
+version: '0.16'
 
 formatter:
   markdown:
     enabled: true
-    # Specify the custom templates for resources, data sources, and the index
+    output:
+      file: README.md
+      mode: inject
+      template: |
+        <!-- BEGIN_TF_DOCS -->
+        {{ .Content }}
+        <!-- END_TF_DOCS -->
+
     templates:
-      data_source: "templates/data_sources.md.tmpl"
-      resource: "templates/resources.md.tmpl"
-      index: "templates/index.md.tmpl"
+      data_source: templates/data_sources.md.tmpl
+      resource: templates/resources.md.tmpl
+      index: templates/index.md.tmpl
 
-  content:
-    # Optional: You can define headers and footers if needed
-    header: |-
-      <!-- BEGIN_TF_DOCS -->
-      {{ .Header }}
-
-    footer: |-
-      {{ .Footer }}
-      <!-- END_TF_DOCS -->
-
-  settings:
-    indent: 3
-    escape: false
-
-  output:
-    file: README.md
-    mode: inject  # Options: replace, inject, print
-    template: |
-      <!-- BEGIN_TF_DOCS -->
-      {{ .Content }}
-      <!-- END_TF_DOCS -->
+    settings:
+      indent: 3
+      escape: false
