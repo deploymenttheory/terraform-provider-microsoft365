@@ -547,7 +547,32 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	})
 }
 
-// New returns a new provider.Provider instance for the Microsoft365 provider.
+// New returns a function that, when invoked, creates and returns a new instance
+// of the Microsoft365 provider, which implements the terraform-plugin-framework's
+// provider.Provider interface. This function is designed to accept a version string,
+// which is used to track the version of the provider being created.
+//
+// The provider instance that is created by this function contains several configurations
+// and resources specific to the Microsoft365 ecosystem. A key part of the provider is the
+// integration with Microsoft Graph API, which allows Terraform to manage and configure
+// various resources within the Microsoft365 environment.
+//
+// The provider internally manages two distinct Microsoft Graph clients:
+// 1. StableClient: A client instance configured to interact with the stable version of the
+//    Microsoft Graph API. This client is used for production-level operations where stability
+//    and reliability are paramount.
+//
+// 2. BetaClient: A client instance configured to interact with the beta version of the
+//    Microsoft Graph API. This client is used for operations that require access to
+//    newer or experimental features that are not yet available in the stable API.
+//    Note that using this client might involve interacting with APIs that could change or
+//    be deprecated as they are part of the beta environment.
+//
+// The New function encapsulates these clients within the M365Provider struct, which also
+// holds the provider's configuration and resources. When Terraform invokes this function,
+// it ensures that the provider is correctly instantiated with all necessary clients and
+// configurations, making it ready to manage Microsoft365 resources through Terraform.
+
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		p := &M365Provider{
