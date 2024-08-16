@@ -15,7 +15,7 @@ jobs:
       with:
         working-dir: examples/
         recursive: true
-        recursive-path: examples/
+        recursive-path: microsoft365_graph_beta/
         output-file: README.md
         output-method: inject
         git-push: "true"
