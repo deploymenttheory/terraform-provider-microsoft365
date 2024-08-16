@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -22,7 +22,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -68,7 +68,7 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading Cloud Pc User Setting with ID: %s", state.ID.ValueString()))
 
-	ctx, cancel := common.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -76,7 +76,7 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 
 	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
-		common.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 
 	_, err = r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		common.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	ctx, cancel := common.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

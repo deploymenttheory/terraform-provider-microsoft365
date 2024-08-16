@@ -3,7 +3,7 @@ package graphBetaAssignmentFilter
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,17 +17,17 @@ func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": helpers.StringPtrToString(remoteResource.GetId()),
+		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(helpers.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(helpers.StringPtrToString(remoteResource.GetDescription()))
-	data.Platform = helpers.EnumPtrToTypeString(remoteResource.GetPlatform())
-	data.Rule = types.StringValue(helpers.StringPtrToString(remoteResource.GetRule()))
-	data.AssignmentFilterManagementType = helpers.EnumPtrToTypeString(remoteResource.GetAssignmentFilterManagementType())
-	data.CreatedDateTime = helpers.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = helpers.TimeToString(remoteResource.GetLastModifiedDateTime())
+	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
+	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
+	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
+	data.Platform = state.EnumPtrToTypeString(remoteResource.GetPlatform())
+	data.Rule = types.StringValue(state.StringPtrToString(remoteResource.GetRule()))
+	data.AssignmentFilterManagementType = state.EnumPtrToTypeString(remoteResource.GetAssignmentFilterManagementType())
+	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 
 	// Special handling for RoleScopeTags
 	roleScopeTags := remoteResource.GetRoleScopeTags()

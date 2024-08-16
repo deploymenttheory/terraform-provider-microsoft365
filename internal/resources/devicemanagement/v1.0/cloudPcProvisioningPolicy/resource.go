@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -174,12 +174,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					},
 				},
 			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Update: true,
-				Delete: true,
-			}),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
