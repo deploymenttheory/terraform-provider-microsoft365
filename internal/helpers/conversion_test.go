@@ -134,3 +134,103 @@ func TestEnumSliceToTypeStringSlice(t *testing.T) {
 		assert.Equal(t, expected, result, "Should correctly handle empty enums in the input slice")
 	})
 }
+
+func TestBoolPtrToTypeBool(t *testing.T) {
+	t.Run("Nil bool pointer", func(t *testing.T) {
+		var input *bool
+		result := BoolPtrToTypeBool(input)
+		assert.True(t, result.IsNull(), "Should return types.BoolNull() for nil input")
+	})
+
+	t.Run("True bool pointer", func(t *testing.T) {
+		input := true
+		result := BoolPtrToTypeBool(&input)
+		assert.Equal(t, types.BoolValue(true), result, "Should return types.BoolValue(true) for true input")
+	})
+
+	t.Run("False bool pointer", func(t *testing.T) {
+		input := false
+		result := BoolPtrToTypeBool(&input)
+		assert.Equal(t, types.BoolValue(false), result, "Should return types.BoolValue(false) for false input")
+	})
+}
+
+type testEnum int
+
+const (
+	EnumOne testEnum = iota
+	EnumTwo
+	EnumThree
+)
+
+func (e testEnum) String() string {
+	return [...]string{"One", "Two", "Three"}[e]
+}
+
+func TestEnumPtrToTypeString(t *testing.T) {
+	t.Run("Nil enum pointer", func(t *testing.T) {
+		var input *testEnum
+		result := EnumPtrToTypeString(input)
+		assert.True(t, result.IsNull(), "Should return types.StringNull() for nil input")
+	})
+
+	t.Run("Valid enum pointer", func(t *testing.T) {
+		input := EnumTwo
+		result := EnumPtrToTypeString(&input)
+		assert.Equal(t, types.StringValue("Two"), result, "Should return the string representation of the enum")
+	})
+
+	t.Run("Different enum values", func(t *testing.T) {
+		testCases := []struct {
+			input    testEnum
+			expected string
+		}{
+			{EnumOne, "One"},
+			{EnumTwo, "Two"},
+			{EnumThree, "Three"},
+		}
+
+		for _, tc := range testCases {
+			result := EnumPtrToTypeString(&tc.input)
+			assert.Equal(t, types.StringValue(tc.expected), result, "Should return correct string for enum value")
+		}
+	})
+}
+
+func TestInt32PtrToTypeInt64(t *testing.T) {
+	t.Run("Nil int32 pointer", func(t *testing.T) {
+		var input *int32
+		result := Int32PtrToTypeInt64(input)
+		assert.True(t, result.IsNull(), "Should return types.Int64Null() for nil input")
+	})
+
+	t.Run("Valid int32 pointer", func(t *testing.T) {
+		input := int32(42)
+		result := Int32PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(42), result, "Should return types.Int64Value(42) for input 42")
+	})
+
+	t.Run("Negative int32 pointer", func(t *testing.T) {
+		input := int32(-123)
+		result := Int32PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(-123), result, "Should return types.Int64Value(-123) for input -123")
+	})
+
+	t.Run("Zero int32 pointer", func(t *testing.T) {
+		input := int32(0)
+		result := Int32PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(0), result, "Should return types.Int64Value(0) for input 0")
+	})
+
+	t.Run("Max int32 pointer", func(t *testing.T) {
+		input := int32(2147483647) // Max value for int32
+		result := Int32PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(2147483647), result, "Should correctly convert max int32 value")
+	})
+
+	t.Run("Min int32 pointer", func(t *testing.T) {
+		input := int32(-2147483648) // Min value for int32
+		result := Int32PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(-2147483648), result, "Should correctly convert min int32 value")
+	})
+}

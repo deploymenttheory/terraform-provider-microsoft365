@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
@@ -28,10 +27,6 @@ type CloudPcProvisioningPolicyResource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
-}
-
-type WindowsSettingModel struct {
-	Locale types.String `tfsdk:"locale"`
 }
 
 // GetID returns the ID of a resource from the state model.

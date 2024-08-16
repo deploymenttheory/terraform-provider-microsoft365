@@ -5,6 +5,7 @@ import (
 
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
 	graphCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcProvisioningPolicy"
+	graphCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcUserSetting"
 	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identityandaccess/beta/conditionalaccesspolicy"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -24,6 +25,7 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		graphCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
+		graphCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphBetaAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 	}
