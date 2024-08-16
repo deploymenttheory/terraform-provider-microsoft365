@@ -1,27 +1,27 @@
 <!-- BEGIN_TF_DOCS -->
-### Requirements
+## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_microsoft365"></a> [microsoft365](#requirement\_microsoft365) | ~> 1.0.0 |
 
-### Providers
+## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_microsoft365"></a> [microsoft365](#provider\_microsoft365) | ~> 1.0.0 |
 
-### Modules
+## Modules
 
 No modules.
 
-### Resources
+## Resources
 
 | Name | Type |
 |------|------|
 | [microsoft365_graph_beta_device_and_app_management_assignment_filter.example](https://registry.terraform.io/providers/deploymenttheory/terraform-provider-microsoft365/latest/docs/resources/graph_beta_device_and_app_management_assignment_filter) | resource |
 
-### Inputs
+## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
@@ -41,7 +41,7 @@ No modules.
 | <a name="input_use_proxy"></a> [use\_proxy](#input\_use\_proxy) | Enables the use of an HTTP proxy for network requests. When set to true, the provider will route all HTTP requests through the specified proxy server. This can be useful for environments that require proxy access for internet connectivity or for monitoring and logging HTTP traffic. Can also be set using the `M365_USE_PROXY` environment variable. | `bool` | `false` | no |
 | <a name="input_username"></a> [username](#input\_username) | The username for username/password authentication. Can also be set using the `M365_USERNAME` environment variable. | `string` | `""` | no |
 
-### Outputs
+## Outputs
 
 No outputs.
 <!-- END_TF_DOCS -->
