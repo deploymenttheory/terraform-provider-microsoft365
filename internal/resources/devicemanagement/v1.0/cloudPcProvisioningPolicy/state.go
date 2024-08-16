@@ -9,13 +9,15 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-// mapRemoteStateToTerraform maps the remote state from the Graph API to the Terraform resource model.
-// It populates the CloudPcProvisioningPolicyResourceModel with data from the CloudPcProvisioningPolicy.
 func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel, remoteResource models.CloudPcProvisioningPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
+
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+		"resourceId": helpers.StringPtrToString(remoteResource.GetId()),
+	})
 
 	data.ID = types.StringValue(helpers.StringPtrToString(remoteResource.GetId()))
 	data.DisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetDisplayName()))
@@ -23,48 +25,17 @@ func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	data.CloudPcNamingTemplate = types.StringValue(helpers.StringPtrToString(remoteResource.GetCloudPcNamingTemplate()))
 	data.AlternateResourceUrl = types.StringValue(helpers.StringPtrToString(remoteResource.GetAlternateResourceUrl()))
 	data.CloudPcGroupDisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetCloudPcGroupDisplayName()))
-
-	if enableSSO := remoteResource.GetEnableSingleSignOn(); enableSSO != nil {
-		data.EnableSingleSignOn = types.BoolValue(*enableSSO)
-	} else {
-		data.EnableSingleSignOn = types.BoolNull()
-	}
-
-	if gracePeriod := remoteResource.GetGracePeriodInHours(); gracePeriod != nil {
-		data.GracePeriodInHours = types.Int64Value(int64(*gracePeriod))
-	} else {
-		data.GracePeriodInHours = types.Int64Null()
-	}
-
+	data.EnableSingleSignOn = helpers.BoolPtrToTypeBool(remoteResource.GetEnableSingleSignOn())
+	data.GracePeriodInHours = helpers.Int32PtrToTypeInt64(remoteResource.GetGracePeriodInHours())
 	data.ImageDisplayName = types.StringValue(helpers.StringPtrToString(remoteResource.GetImageDisplayName()))
 	data.ImageId = types.StringValue(helpers.StringPtrToString(remoteResource.GetImageId()))
-
-	if imageType := remoteResource.GetImageType(); imageType != nil {
-		data.ImageType = types.StringValue(imageType.String())
-	} else {
-		data.ImageType = types.StringNull()
-	}
-
-	if localAdmin := remoteResource.GetLocalAdminEnabled(); localAdmin != nil {
-		data.LocalAdminEnabled = types.BoolValue(*localAdmin)
-	} else {
-		data.LocalAdminEnabled = types.BoolNull()
-	}
-
-	if provisioningType := remoteResource.GetProvisioningType(); provisioningType != nil {
-		data.ProvisioningType = types.StringValue(provisioningType.String())
-	} else {
-		data.ProvisioningType = types.StringNull()
-	}
+	data.ImageType = helpers.EnumPtrToTypeString(remoteResource.GetImageType())
+	data.LocalAdminEnabled = helpers.BoolPtrToTypeBool(remoteResource.GetLocalAdminEnabled())
+	data.ProvisioningType = helpers.EnumPtrToTypeString(remoteResource.GetProvisioningType())
 
 	if mmd := remoteResource.GetMicrosoftManagedDesktop(); mmd != nil {
-		managedType := ""
-		if mt := mmd.GetManagedType(); mt != nil {
-			managedType = mt.String()
-		}
-
 		data.MicrosoftManagedDesktop = &MicrosoftManagedDesktopModel{
-			ManagedType: types.StringValue(managedType),
+			ManagedType: helpers.EnumPtrToTypeString(mmd.GetManagedType()),
 			Profile:     types.StringValue(helpers.StringPtrToString(mmd.GetProfile())),
 		}
 	} else {
@@ -74,13 +45,8 @@ func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); domainJoinConfigs != nil {
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
-			domainJoinType := ""
-			if djt := config.GetDomainJoinType(); djt != nil {
-				domainJoinType = djt.String()
-			}
-
 			data.DomainJoinConfigurations[i] = DomainJoinConfigurationModel{
-				DomainJoinType:         types.StringValue(domainJoinType),
+				DomainJoinType:         helpers.EnumPtrToTypeString(config.GetDomainJoinType()),
 				OnPremisesConnectionId: types.StringValue(helpers.StringPtrToString(config.GetOnPremisesConnectionId())),
 				RegionName:             types.StringValue(helpers.StringPtrToString(config.GetRegionName())),
 			}
@@ -97,5 +63,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.WindowsSetting = nil
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform")
+	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
+		"resourceId": data.ID.ValueString(),
+	})
 }

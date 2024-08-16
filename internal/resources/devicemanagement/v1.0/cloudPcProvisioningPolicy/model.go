@@ -35,3 +35,7 @@ type MicrosoftManagedDesktopModel struct {
 	ManagedType types.String `tfsdk:"managed_type"`
 	Profile     types.String `tfsdk:"profile"`
 }
+
+type WindowsSettingModel struct {
+	Locale types.String `tfsdk:"locale"`
+}
