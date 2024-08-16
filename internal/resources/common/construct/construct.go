@@ -1,4 +1,4 @@
-package common
+package construct
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
