@@ -23,7 +23,7 @@ jobs:
     - name: Render terraform docs for microsoft365_graph and microsoft365_graph_beta
       uses: terraform-docs/gh-actions@v1.2.0
       with:
-        working-dir: examples
+        working-dir: examples/
         indention: 3
         output-file: README.md
         output-method: inject
