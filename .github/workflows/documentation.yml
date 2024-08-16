@@ -6,11 +6,31 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.7
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
-    - name: Generate terraform docs for all examples
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.2.0
+      with:
+        working-dir: examples/
+        indention: 3
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
+    
+    - name: Render terraform docs for microsoft365_graph
+      uses: terraform-docs/gh-actions@v1.2.0
+      with:
+        working-dir: examples/microsoft365_graph
+        indention: 3
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
+  
+    - name: Render terraform docs for microsoft365_graph_beta
       uses: terraform-docs/gh-actions@v1.2.0
       with:
         working-dir: examples/
