@@ -5,6 +5,22 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
+// GraphClientInterface defines the interface for GraphClients
+type GraphClientInterface interface {
+	GetStableClient() *msgraphsdk.GraphServiceClient
+	GetBetaClient() *msgraphbetasdk.GraphServiceClient
+}
+
+// GetStableClient returns the stable client
+func (g *GraphClients) GetStableClient() *msgraphsdk.GraphServiceClient {
+	return g.StableClient
+}
+
+// GetBetaClient returns the beta client
+func (g *GraphClients) GetBetaClient() *msgraphbetasdk.GraphServiceClient {
+	return g.BetaClient
+}
+
 // GraphClients encapsulates both the stable and beta GraphServiceClients
 // provided by the Microsoft Graph SDKs. These clients are used to interact
 // with the Microsoft Graph API and its beta endpoints, respectively.
