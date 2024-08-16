@@ -1,0 +1,14 @@
+{
+    "@odata.type": "#microsoft.graph.cloudPcDeviceImage",
+    "displayName": "String",
+    "errorCode": "String",
+    "expirationDate": "String (Date)",
+    "id": "String (identifier)",
+    "lastModifiedDateTime": "String (timestamp)",
+    "operatingSystem": "String",
+    "osBuildNumber": "String",
+    "osStatus": "String",
+    "sourceImageResourceId": "String",
+    "status": "String",
+    "version": "String"
+}

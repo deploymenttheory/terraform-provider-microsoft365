@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 // StringPtrToString converts a string pointer to a string.
@@ -22,7 +24,7 @@ func TimeToString(t *time.Time) types.String {
 	if t == nil {
 		return types.StringNull()
 	}
-	return types.StringValue(t.Format(TimeFormatRFC3339))
+	return types.StringValue(t.Format(helpers.TimeFormatRFC3339))
 }
 
 // SliceToTypeStringSlice converts a slice of strings to a slice of types.String.
@@ -80,4 +82,12 @@ func Int32PtrToTypeInt64(i *int32) types.Int64 {
 		return types.Int64Null()
 	}
 	return types.Int64Value(int64(*i))
+}
+
+// DateOnlyPtrToString converts a DateOnly pointer to a Terraform string.
+func DateOnlyPtrToString(date *serialization.DateOnly) types.String {
+	if date == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(date.String())
 }
