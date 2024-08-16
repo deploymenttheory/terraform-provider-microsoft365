@@ -7,7 +7,7 @@ No requirements.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_microsoft365"></a> [microsoft365](#provider\_microsoft365) | n/a |
+| <a name="provider_microsoft365"></a> [microsoft365](#provider_microsoft365) | n/a |
 
 ## Modules
 
