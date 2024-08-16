@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -232,5 +233,45 @@ func TestInt32PtrToTypeInt64(t *testing.T) {
 		input := int32(-2147483648) // Min value for int32
 		result := Int32PtrToTypeInt64(&input)
 		assert.Equal(t, types.Int64Value(-2147483648), result, "Should correctly convert min int32 value")
+	})
+}
+
+func TestDateOnlyPtrToString(t *testing.T) {
+	t.Run("Nil DateOnly pointer", func(t *testing.T) {
+		var input *serialization.DateOnly
+		result := DateOnlyPtrToString(input)
+		assert.True(t, result.IsNull(), "Should return types.StringNull() for nil input")
+	})
+
+	t.Run("Valid DateOnly pointer", func(t *testing.T) {
+		date := time.Date(2024, 8, 16, 0, 0, 0, 0, time.UTC)
+		input := serialization.NewDateOnly(date)
+		expected := types.StringValue("2024-08-16")
+		result := DateOnlyPtrToString(input)
+		assert.Equal(t, expected, result, "Should return the date formatted as YYYY-MM-DD")
+	})
+
+	t.Run("Different valid DateOnly pointer", func(t *testing.T) {
+		date := time.Date(1999, 12, 31, 0, 0, 0, 0, time.UTC)
+		input := serialization.NewDateOnly(date)
+		expected := types.StringValue("1999-12-31")
+		result := DateOnlyPtrToString(input)
+		assert.Equal(t, expected, result, "Should return the date formatted as YYYY-MM-DD")
+	})
+
+	t.Run("Edge case DateOnly pointer", func(t *testing.T) {
+		date := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC) // The minimum date in the Gregorian calendar
+		input := serialization.NewDateOnly(date)
+		expected := types.StringValue("0001-01-01")
+		result := DateOnlyPtrToString(input)
+		assert.Equal(t, expected, result, "Should handle the minimum date correctly")
+	})
+
+	t.Run("Another edge case DateOnly pointer", func(t *testing.T) {
+		date := time.Date(9999, 12, 31, 0, 0, 0, 0, time.UTC) // The maximum date in the Gregorian calendar
+		input := serialization.NewDateOnly(date)
+		expected := types.StringValue("9999-12-31")
+		result := DateOnlyPtrToString(input)
+		assert.Equal(t, expected, result, "Should handle the maximum date correctly")
 	})
 }
