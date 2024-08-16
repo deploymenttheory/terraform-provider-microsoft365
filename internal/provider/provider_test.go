@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	testingResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -252,9 +251,9 @@ func TestAccM365Provider_TenantIDSensitivity(t *testing.T) {
 // TestAccM365Provider_AuthMethodRequired ensures that the auth_method is required
 // and that a configuration without it fails to apply.
 func TestAccM365Provider_AuthMethodRequired(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config:      `provider "microsoft365" {}`,
 				ExpectError: regexp.MustCompile(`The argument "auth_method" is required`),
@@ -266,9 +265,9 @@ func TestAccM365Provider_AuthMethodRequired(t *testing.T) {
 // TestAccM365Provider_InvalidAuthMethod verifies that an invalid value for auth_method
 // triggers a validation error.
 func TestAccM365Provider_InvalidAuthMethod(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config: `provider "microsoft365" {
                     auth_method = "invalid_method"
@@ -284,13 +283,13 @@ func TestAccM365Provider_InvalidAuthMethod(t *testing.T) {
 func TestAccM365Provider_AuthMethodFromEnvVar(t *testing.T) {
 	t.Setenv("M365_AUTH_METHOD", "client_secret")
 
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config: `provider "microsoft365" {}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
+				Check: testingResource.ComposeTestCheckFunc(
+					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "client_secret",
 					),
 				),
@@ -304,15 +303,15 @@ func TestAccM365Provider_AuthMethodFromEnvVar(t *testing.T) {
 func TestAccM365Provider_AuthMethodEnvVarOverridesHCL(t *testing.T) {
 	t.Setenv("M365_AUTH_METHOD", "client_secret")
 
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config: `provider "microsoft365" {
                     auth_method = "device_code"
                 }`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
+				Check: testingResource.ComposeTestCheckFunc(
+					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "client_secret",
 					),
 				),
@@ -330,15 +329,15 @@ func TestAccM365Provider_ValidAuthMethodValues(t *testing.T) {
 
 	for _, method := range validAuthMethods {
 		t.Run(fmt.Sprintf("AuthMethod=%s", method), func(t *testing.T) {
-			resource.Test(t, resource.TestCase{
+			testingResource.Test(t, testingResource.TestCase{
 				ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
+				Steps: []testingResource.TestStep{
 					{
 						Config: fmt.Sprintf(`provider "microsoft365" {
                             auth_method = "%s"
                         }`, method),
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttr(
+						Check: testingResource.ComposeTestCheckFunc(
+							testingResource.TestCheckResourceAttr(
 								"microsoft365.provider", "auth_method", method,
 							),
 						),
@@ -354,15 +353,15 @@ func TestAccM365Provider_ValidAuthMethodValues(t *testing.T) {
 func TestAccM365Provider_AuthMethodSensitivity(t *testing.T) {
 	validAuthMethod := "client_secret"
 
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config: fmt.Sprintf(`provider "microsoft365" {
                     auth_method = "%s"
                 }`, validAuthMethod),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
+				Check: testingResource.ComposeTestCheckFunc(
+					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", validAuthMethod,
 					),
 				),
@@ -376,15 +375,15 @@ func TestAccM365Provider_AuthMethodSensitivity(t *testing.T) {
 func TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL(t *testing.T) {
 	t.Setenv("M365_AUTH_METHOD", "interactive_browser")
 
-	resource.Test(t, resource.TestCase{
+	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+		Steps: []testingResource.TestStep{
 			{
 				Config: `provider "microsoft365" {
                     auth_method = "device_code"
                 }`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
+				Check: testingResource.ComposeTestCheckFunc(
+					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "interactive_browser",
 					),
 				),
