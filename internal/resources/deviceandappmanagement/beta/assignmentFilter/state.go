@@ -10,7 +10,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func mapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResourceModel, remoteResource models.DeviceAndAppManagementAssignmentFilterable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResourceModel, remoteResource models.DeviceAndAppManagementAssignmentFilterable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

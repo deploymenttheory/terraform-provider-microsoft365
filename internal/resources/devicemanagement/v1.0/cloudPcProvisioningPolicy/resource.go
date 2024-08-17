@@ -46,7 +46,7 @@ func (r *CloudPcProvisioningPolicyResource) Metadata(ctx context.Context, req re
 
 // Configure sets the client for the resource.
 func (r *CloudPcProvisioningPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClient(ctx, req, resp, "CloudPcProvisioningPolicyResource")
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, "CloudPcProvisioningPolicyResource")
 }
 
 // ImportState imports the resource state.

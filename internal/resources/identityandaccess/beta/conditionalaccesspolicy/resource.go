@@ -49,7 +49,7 @@ func (r *ConditionalAccessPolicyResource) Metadata(ctx context.Context, req reso
 
 // Configure sets the client for the resource.
 func (r *ConditionalAccessPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClient(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
