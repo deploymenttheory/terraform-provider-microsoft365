@@ -13,7 +13,7 @@ import (
 )
 
 func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state CloudPcDeviceImageDataSourceModel
+	var state resource.CloudPcDeviceImageResourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return

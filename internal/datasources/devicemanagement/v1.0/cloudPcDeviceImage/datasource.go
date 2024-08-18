@@ -4,11 +4,8 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
@@ -23,21 +20,6 @@ type CloudPcDeviceImageDataSource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
-}
-
-type CloudPcDeviceImageDataSourceModel struct {
-	ID                    types.String   `tfsdk:"id"`
-	DisplayName           types.String   `tfsdk:"display_name"`
-	ErrorCode             types.String   `tfsdk:"error_code"`
-	ExpirationDate        types.String   `tfsdk:"expiration_date"`
-	LastModifiedDateTime  types.String   `tfsdk:"last_modified_date_time"`
-	OperatingSystem       types.String   `tfsdk:"operating_system"`
-	OSBuildNumber         types.String   `tfsdk:"os_build_number"`
-	OSStatus              types.String   `tfsdk:"os_status"`
-	SourceImageResourceID types.String   `tfsdk:"source_image_resource_id"`
-	Status                types.String   `tfsdk:"status"`
-	Version               types.String   `tfsdk:"version"`
-	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
 
 func (d *CloudPcDeviceImageDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -91,7 +73,6 @@ func (d *CloudPcDeviceImageDataSource) Schema(ctx context.Context, _ datasource.
 				Computed:    true,
 				Description: "The image version.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
