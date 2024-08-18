@@ -48,7 +48,7 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 
 	plan.ID = types.StringValue(*conditionalAccessPolicy.GetId())
 
-	mapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -80,7 +80,7 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &state, conditionalAccessPolicy)
+	MapRemoteStateToTerraform(ctx, &state, conditionalAccessPolicy)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -127,7 +127,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	}
 
 	// Map the updated policy back to the Terraform state
-	mapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 

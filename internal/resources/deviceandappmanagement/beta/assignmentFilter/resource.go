@@ -48,7 +48,7 @@ func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.Me
 
 // Configure sets the client for the resource.
 func (r *AssignmentFilterResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClient(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.

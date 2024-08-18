@@ -46,7 +46,7 @@ func (r *CloudPcProvisioningPolicyResource) Metadata(ctx context.Context, req re
 
 // Configure sets the client for the resource.
 func (r *CloudPcProvisioningPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClient(ctx, req, resp, "CloudPcProvisioningPolicyResource")
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, "CloudPcProvisioningPolicyResource")
 }
 
 // ImportState imports the resource state.
@@ -126,8 +126,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					"publisher: 'Microsoftwindowsdesktop', " +
 					"offer: 'windows-ent-cpc', " +
 					"sku: '21h1-ent-cpc-m365', '21h1-ent-cpc-os', '20h2-ent-cpc-m365', '20h2-ent-cpc-os', " +
-					"'20h1-ent-cpc-m365', '20h1-ent-cpc-os', '19h2-ent-cpc-m365', '19h2-ent-cpc-os'. " +
-					"Supports $filter, $select, and $orderBy.",
+					"'20h1-ent-cpc-m365', '20h1-ent-cpc-os', '19h2-ent-cpc-m365', '19h2-ent-cpc-os'.",
 			},
 			"image_type": schema.StringAttribute{
 				Required:    true,

@@ -45,7 +45,7 @@ func (r *CloudPcUserSettingResource) Metadata(ctx context.Context, req resource.
 
 // Configure sets the client for the resource.
 func (r *CloudPcUserSettingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClient(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.

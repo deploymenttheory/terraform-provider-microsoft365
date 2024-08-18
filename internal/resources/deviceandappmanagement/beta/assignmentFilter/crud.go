@@ -48,7 +48,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 
 	plan.ID = types.StringValue(*assignmentFilter.GetId())
 
-	mapRemoteStateToTerraform(ctx, &plan, assignmentFilter)
+	MapRemoteStateToTerraform(ctx, &plan, assignmentFilter)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -80,7 +80,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &state, assignmentFilter)
+	MapRemoteStateToTerraform(ctx, &state, assignmentFilter)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

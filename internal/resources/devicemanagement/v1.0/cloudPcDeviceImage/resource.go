@@ -46,7 +46,7 @@ func (r *CloudPcDeviceImageResource) Metadata(ctx context.Context, req resource.
 
 // Configure sets the client for the resource.
 func (r *CloudPcDeviceImageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClient(ctx, req, resp, "CloudPcDeviceImageResource")
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, "CloudPcDeviceImageResource")
 }
 
 // ImportState imports the resource state.

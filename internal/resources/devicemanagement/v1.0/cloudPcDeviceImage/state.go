@@ -9,7 +9,7 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcDeviceImageResourceModel, remoteResource models.CloudPcDeviceImageable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcDeviceImageResourceModel, remoteResource models.CloudPcDeviceImageable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
