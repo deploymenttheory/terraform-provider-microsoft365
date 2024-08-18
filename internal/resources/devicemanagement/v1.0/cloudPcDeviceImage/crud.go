@@ -48,7 +48,7 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 
 	plan.ID = types.StringValue(*provisioningPolicy.GetId())
 
-	mapRemoteStateToTerraform(ctx, &plan, provisioningPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, provisioningPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -80,7 +80,7 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &state, provisioningPolicy)
+	MapRemoteStateToTerraform(ctx, &state, provisioningPolicy)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-func mapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingResourceModel, remoteState models.CloudPcUserSettingable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingResourceModel, remoteState models.CloudPcUserSettingable) {
 	if remoteState == nil {
 		tflog.Debug(ctx, "Remote state is nil")
 		return

@@ -48,7 +48,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 
 	plan.ID = types.StringValue(*cloudPcUserSetting.GetId())
 
-	mapRemoteStateToTerraform(ctx, &plan, cloudPcUserSetting)
+	MapRemoteStateToTerraform(ctx, &plan, cloudPcUserSetting)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -80,7 +80,7 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &state, cloudPcUserSetting)
+	MapRemoteStateToTerraform(ctx, &state, cloudPcUserSetting)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -127,7 +127,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Map the updated policy back to the Terraform state
-	mapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 

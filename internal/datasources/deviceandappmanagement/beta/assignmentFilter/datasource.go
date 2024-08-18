@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -68,7 +67,6 @@ func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.Sc
 				Description: "Indicates role scope tags assigned for the assignment filter.",
 				ElementType: types.StringType,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

@@ -9,9 +9,9 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// mapRemoteStateToTerraform maps the remote state from the Graph API to the Terraform resource model for stating.
+// MapRemoteStateToTerraform maps the remote state from the Graph API to the Terraform resource model for stating.
 // It populates the ConditionalAccessPolicyResourceModel with data from the ConditionalAccessPolicy.
-func mapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolicyResourceModel, remoteResource models.ConditionalAccessPolicyable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *ConditionalAccessPolicyResourceModel, remoteResource models.ConditionalAccessPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

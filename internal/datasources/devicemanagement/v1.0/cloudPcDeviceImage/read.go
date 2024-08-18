@@ -1,4 +1,4 @@
-package graphBetaAssignmentFilter
+package graphCloudPcDeviceImage
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
+	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcDeviceImage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	betamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	models "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state resource.AssignmentFilterResourceModel
+func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var state CloudPcDeviceImageDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -27,7 +27,7 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with display name: %s", state.DisplayName.ValueString()))
 
-	filters := d.client.DeviceManagement().AssignmentFilters()
+	filters := d.client.DeviceManagement().VirtualEndpoint().DeviceImages()
 	result, err := filters.Get(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -37,7 +37,7 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	var foundFilter betamodels.DeviceAndAppManagementAssignmentFilterable
+	var foundFilter models.CloudPcDeviceImageable
 	for _, filter := range result.GetValue() {
 		if *filter.GetDisplayName() == state.DisplayName.ValueString() {
 			foundFilter = filter
