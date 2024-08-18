@@ -126,8 +126,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					"publisher: 'Microsoftwindowsdesktop', " +
 					"offer: 'windows-ent-cpc', " +
 					"sku: '21h1-ent-cpc-m365', '21h1-ent-cpc-os', '20h2-ent-cpc-m365', '20h2-ent-cpc-os', " +
-					"'20h1-ent-cpc-m365', '20h1-ent-cpc-os', '19h2-ent-cpc-m365', '19h2-ent-cpc-os'. " +
-					"Supports $filter, $select, and $orderBy.",
+					"'20h1-ent-cpc-m365', '20h1-ent-cpc-os', '19h2-ent-cpc-m365', '19h2-ent-cpc-os'.",
 			},
 			"image_type": schema.StringAttribute{
 				Required:    true,
