@@ -48,7 +48,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScript
 	} else {
 		data.Assignments = make([]DeviceManagementScriptAssignmentResourceModel, len(assignments))
 		for i, assignment := range assignments {
-			data.Assignments[i] = mapAssignment(assignment)
+			data.Assignments[i] = MapAssignmentsRemoteStateToTerraform(assignment)
 		}
 	}
 
@@ -59,7 +59,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScript
 	} else {
 		data.GroupAssignments = make([]DeviceManagementScriptGroupAssignmentResourceModel, len(groupAssignments))
 		for i, groupAssignment := range groupAssignments {
-			data.GroupAssignments[i] = mapGroupAssignment(groupAssignment)
+			data.GroupAssignments[i] = MapGroupAssignmentsRemoteStateToTerraform(groupAssignment)
 		}
 	}
 
@@ -68,9 +68,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScript
 	})
 }
 
-func mapAssignment(assignment models.DeviceManagementScriptAssignmentable) DeviceManagementScriptAssignmentResourceModel {
+func MapAssignmentsRemoteStateToTerraform(assignment models.DeviceManagementScriptAssignmentable) DeviceManagementScriptAssignmentResourceModel {
 	return DeviceManagementScriptAssignmentResourceModel{
-		Id: types.StringValue(state.StringPtrToString(assignment.GetId())),
+		ID: types.StringValue(state.StringPtrToString(assignment.GetId())),
 		Target: Target{
 			DeviceAndAppManagementAssignmentFilterId:   types.StringValue(state.StringPtrToString(assignment.GetTarget().GetDeviceAndAppManagementAssignmentFilterId())),
 			DeviceAndAppManagementAssignmentFilterType: state.EnumPtrToTypeString(assignment.GetTarget().GetDeviceAndAppManagementAssignmentFilterType()),
@@ -81,7 +81,7 @@ func mapAssignment(assignment models.DeviceManagementScriptAssignmentable) Devic
 	}
 }
 
-func mapGroupAssignment(groupAssignment models.DeviceManagementScriptGroupAssignmentable) DeviceManagementScriptGroupAssignmentResourceModel {
+func MapGroupAssignmentsRemoteStateToTerraform(groupAssignment models.DeviceManagementScriptGroupAssignmentable) DeviceManagementScriptGroupAssignmentResourceModel {
 	return DeviceManagementScriptGroupAssignmentResourceModel{
 		ID:            types.StringValue(state.StringPtrToString(groupAssignment.GetId())),
 		TargetGroupId: types.StringValue(state.StringPtrToString(groupAssignment.GetTargetGroupId())),

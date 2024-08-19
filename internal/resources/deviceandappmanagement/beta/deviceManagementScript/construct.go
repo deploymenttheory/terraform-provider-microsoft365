@@ -3,6 +3,7 @@ package graphbetadevicemanagementscript
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -72,6 +73,13 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 		script.SetRunAs32Bit(&runAs32Bit)
 	}
 
+	requestBodyJSON, err := json.MarshalIndent(script, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript resource:\n"+string(requestBodyJSON))
+
 	return script, nil
 }
 
@@ -113,6 +121,13 @@ func constructAssignments(ctx context.Context, assignments []DeviceManagementScr
 		constructedAssignments = append(constructedAssignments, newAssignment)
 	}
 
+	assignmentsJSON, err := json.MarshalIndent(constructedAssignments, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling assignments to JSON: %s", err)
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript assignments:\n"+string(assignmentsJSON))
+
 	return constructedAssignments, nil
 }
 
@@ -129,6 +144,13 @@ func constructGroupAssignments(ctx context.Context, groupAssignments []DeviceMan
 
 		constructedGroupAssignments = append(constructedGroupAssignments, newGroupAssignment)
 	}
+
+	groupAssignmentsJSON, err := json.MarshalIndent(constructedGroupAssignments, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling group assignments to JSON: %s", err)
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript group assignments:\n"+string(groupAssignmentsJSON))
 
 	return constructedGroupAssignments, nil
 }

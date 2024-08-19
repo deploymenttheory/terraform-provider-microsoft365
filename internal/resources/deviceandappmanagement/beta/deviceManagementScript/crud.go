@@ -9,94 +9,87 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation.
 func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan DeviceManagementScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
+	// Retrieve the plan from the request
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Setup context with timeout
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	// Construct the device management script resource using the helper function
+	script, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing device management script",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing device management script", fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
 		return
 	}
 
-	script, err := r.client.DeviceManagement().DeviceManagementScripts().Post(ctx, requestBody, nil)
+	// Create the device management script via API call
+	createdScript, err := r.client.DeviceManagement().DeviceManagementScripts().Post(ctx, script, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating device management script",
-			fmt.Sprintf("Could not create device management script: %s", err.Error()),
-		)
+		resp.Diagnostics.AddError("Error creating device management script", fmt.Sprintf("Could not create device management script: %s", err.Error()))
 		return
 	}
 
-	plan.ID = types.StringValue(*script.GetId())
+	// Set the ID in the plan
+	plan.ID = types.StringValue(*createdScript.GetId())
 
-	// Handle assignments
+	// Handle assignments if any
 	if len(plan.Assignments) > 0 {
 		assignments, err := constructAssignments(ctx, plan.Assignments)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing resource assignments",
-				fmt.Sprintf("Could not construct assignments: %s", err.Error()),
-			)
+			resp.Diagnostics.AddError("Error constructing resource assignments", fmt.Sprintf("Could not construct assignments: %s", err.Error()))
 			return
 		}
 
 		for _, assignment := range assignments {
-			_, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(*script.GetId()).Assignments().Post(ctx, assignment, nil)
+			_, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(*createdScript.GetId()).Assignments().Post(ctx, assignment, nil)
 			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error creating resource assignment",
-					fmt.Sprintf("Could not create assignment for device management script %s: %s", *script.GetId(), err.Error()),
-				)
+				resp.Diagnostics.AddError("Error creating resource assignment", fmt.Sprintf("Could not create assignment for device management script %s: %s", *createdScript.GetId(), err.Error()))
 				return
 			}
 		}
 	}
 
-	// Handle group assignments
+	// Handle group assignments if any
 	if len(plan.GroupAssignments) > 0 {
 		groupAssignments, err := constructGroupAssignments(ctx, plan.GroupAssignments)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing resource group assignments",
-				fmt.Sprintf("Could not construct group assignments: %s", err.Error()),
-			)
+			resp.Diagnostics.AddError("Error constructing resource group assignments", fmt.Sprintf("Could not construct group assignments: %s", err.Error()))
 			return
 		}
 
 		for _, groupAssignment := range groupAssignments {
-			_, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(*script.GetId()).GroupAssignments().Post(ctx, groupAssignment, nil)
+			_, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(*createdScript.GetId()).GroupAssignments().Post(ctx, groupAssignment, nil)
 			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error creating resource group assignment",
-					fmt.Sprintf("Could not create group assignment for device management script %s: %s", *script.GetId(), err.Error()),
-				)
+				resp.Diagnostics.AddError("Error creating resource group assignment", fmt.Sprintf("Could not create group assignment for device management script %s: %s", *createdScript.GetId(), err.Error()))
 				return
 			}
 		}
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, script)
+	// Call Read to fetch the full state and set it in the response
+	readResp := resource.ReadResponse{State: resp.State}
+	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
 
+	// If there were any errors in Read, add them to the Create response
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the state in the response
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -121,13 +114,46 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	assignmentFilter, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).Get(ctx, nil)
+	// Retrieve the main resource
+	script, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, assignmentFilter)
+	// Retrieve assignments
+	assignments, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).Assignments().Get(ctx, nil)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading assignments", fmt.Sprintf("Could not read assignments for device management script %s: %s", state.ID.ValueString(), err.Error()))
+		return
+	}
+
+	// Retrieve group assignments
+	groupAssignments, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).GroupAssignments().Get(ctx, nil)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading group assignments", fmt.Sprintf("Could not read group assignments for device management script %s: %s", state.ID.ValueString(), err.Error()))
+		return
+	}
+
+	// Map the retrieved resource data to the Terraform state
+	MapRemoteStateToTerraform(ctx, &state, script)
+
+	// Map assignments to state
+	if assignments != nil && len(assignments.GetValue()) > 0 {
+		state.Assignments = make([]DeviceManagementScriptAssignmentResourceModel, len(assignments.GetValue()))
+		for i, assignment := range assignments.GetValue() {
+			state.Assignments[i] = MapAssignmentsRemoteStateToTerraform(assignment)
+		}
+	}
+
+	// Map group assignments to state
+	if groupAssignments != nil && len(groupAssignments.GetValue()) > 0 {
+		state.GroupAssignments = make([]DeviceManagementScriptGroupAssignmentResourceModel, len(groupAssignments.GetValue()))
+		for i, groupAssignment := range groupAssignments.GetValue() {
+			state.GroupAssignments[i] = MapGroupAssignmentsRemoteStateToTerraform(groupAssignment)
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -152,57 +178,54 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	err := r.updateResource(ctx, &plan, &state)
+	// Update the main resource
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating script resource", err.Error())
+		resp.Diagnostics.AddError("Error constructing resource", fmt.Sprintf("Could not construct resource: %v", err))
 		return
 	}
 
+	_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating script", fmt.Sprintf("Could not update script: %v", err))
+		return
+	}
+
+	// Update assignments
 	err = r.updateAssignments(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating assignments", err.Error())
 		return
 	}
 
+	// Update group assignments
 	err = r.updateGroupAssignments(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating group assignments", err.Error())
 		return
 	}
 
-	// Map the updated resource to Terraform state
-	updatedResource, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Get(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving updated resource", err.Error())
+	// Call Read to fetch the full state and set it in the response
+	readResp := resource.ReadResponse{State: resp.State}
+	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+
+	// If there were any errors in Read, add them to the Update response
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, updatedResource)
-
+	// Set the state in the response
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
-}
-
-func (r *DeviceManagementScriptResource) updateResource(ctx context.Context, plan, state *DeviceManagementScriptResourceModel) error {
-	requestBody, err := constructResource(ctx, plan)
-	if err != nil {
-		return fmt.Errorf("could not construct resource: %v", err)
-	}
-
-	_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
-	if err != nil {
-		return fmt.Errorf("error updating script: %v", err)
-	}
-
-	return nil
 }
 
 func (r *DeviceManagementScriptResource) updateAssignments(ctx context.Context, plan, state *DeviceManagementScriptResourceModel) error {
 	// Delete assignments that are in state but not in plan
 	for _, stateAssignment := range state.Assignments {
 		if !assignmentExistsInPlan(stateAssignment, plan.Assignments) {
-			err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(stateAssignment.Id.ValueString()).Delete(ctx, nil)
+			err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(stateAssignment.ID.ValueString()).Delete(ctx, nil)
 			if err != nil {
 				return fmt.Errorf("error deleting assignment: %v", err)
 			}
@@ -210,15 +233,16 @@ func (r *DeviceManagementScriptResource) updateAssignments(ctx context.Context, 
 	}
 
 	// Create or update assignments in plan
-	for _, planAssignment := range plan.Assignments {
-		assignment, err := constructAssignment(planAssignment)
-		if err != nil {
-			return fmt.Errorf("error constructing assignment: %v", err)
-		}
+	assignments, err := constructAssignments(ctx, plan.Assignments)
+	if err != nil {
+		return fmt.Errorf("error constructing assignments: %v", err)
+	}
 
+	for i, assignment := range assignments {
+		planAssignment := plan.Assignments[i]
 		if assignmentExistsInState(planAssignment, state.Assignments) {
 			// Update existing assignment
-			_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(planAssignment.Id.ValueString()).Patch(ctx, assignment, nil)
+			_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(planAssignment.ID.ValueString()).Patch(ctx, assignment, nil)
 		} else {
 			// Create new assignment
 			_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Assignments().Post(ctx, assignment, nil)
@@ -233,31 +257,38 @@ func (r *DeviceManagementScriptResource) updateAssignments(ctx context.Context, 
 }
 
 func (r *DeviceManagementScriptResource) updateGroupAssignments(ctx context.Context, plan, state *DeviceManagementScriptResourceModel) error {
-	// Implement group assignment update logic here, similar to updateAssignments
+	// Delete group assignments that are in state but not in plan
+	for _, stateGroupAssignment := range state.GroupAssignments {
+		if !groupAssignmentExistsInPlan(stateGroupAssignment, plan.GroupAssignments) {
+			err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).GroupAssignments().ByDeviceManagementScriptGroupAssignmentId(stateGroupAssignment.ID.ValueString()).Delete(ctx, nil)
+			if err != nil {
+				return fmt.Errorf("error deleting group assignment: %v", err)
+			}
+		}
+	}
+
+	// Create or update group assignments in plan
+	groupAssignments, err := constructGroupAssignments(ctx, plan.GroupAssignments)
+	if err != nil {
+		return fmt.Errorf("error constructing group assignments: %v", err)
+	}
+
+	for i, groupAssignment := range groupAssignments {
+		planGroupAssignment := plan.GroupAssignments[i]
+		if groupAssignmentExistsInState(planGroupAssignment, state.GroupAssignments) {
+			// Update existing group assignment
+			_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).GroupAssignments().ByDeviceManagementScriptGroupAssignmentId(planGroupAssignment.ID.ValueString()).Patch(ctx, groupAssignment, nil)
+		} else {
+			// Create new group assignment
+			_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).GroupAssignments().Post(ctx, groupAssignment, nil)
+		}
+
+		if err != nil {
+			return fmt.Errorf("error creating/updating group assignment: %v", err)
+		}
+	}
+
 	return nil
-}
-
-func assignmentExistsInPlan(assignment DeviceManagementScriptAssignmentResourceModel, planAssignments []DeviceManagementScriptAssignmentResourceModel) bool {
-	for _, planAssignment := range planAssignments {
-		if assignment.Id == planAssignment.Id {
-			return true
-		}
-	}
-	return false
-}
-
-func assignmentExistsInState(assignment DeviceManagementScriptAssignmentResourceModel, stateAssignments []DeviceManagementScriptAssignmentResourceModel) bool {
-	for _, stateAssignment := range stateAssignments {
-		if assignment.Id == stateAssignment.Id {
-			return true
-		}
-	}
-	return false
-}
-
-func constructAssignment(assignment DeviceManagementScriptAssignmentResourceModel) (models.DeviceManagementScriptAssignmentable, error) {
-	// Implement assignment construction logic here
-	return nil, nil
 }
 
 // Delete handles the Delete operation for the DeviceManagementScript resource.
@@ -287,7 +318,7 @@ func (r *DeviceManagementScriptResource) Delete(ctx context.Context, req resourc
 	defer cancel()
 
 	for _, assignment := range data.Assignments {
-		err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(data.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(assignment.Id.ValueString()).Delete(ctx, nil)
+		err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(data.ID.ValueString()).Assignments().ByDeviceManagementScriptAssignmentId(assignment.ID.ValueString()).Delete(ctx, nil)
 		if err != nil {
 			resp.Diagnostics.AddError("Error deleting assignment", err.Error())
 			return

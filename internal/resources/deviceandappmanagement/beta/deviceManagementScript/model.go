@@ -26,7 +26,7 @@ type DeviceManagementScriptResourceModel struct {
 
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicemanagementscriptassignment?view=graph-rest-beta
 type DeviceManagementScriptAssignmentResourceModel struct {
-	Id     types.String `tfsdk:"id"`
+	ID     types.String `tfsdk:"id"`
 	Target Target       `tfsdk:"target"`
 }
 
