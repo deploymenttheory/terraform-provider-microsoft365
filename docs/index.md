@@ -157,8 +157,6 @@ variable "debug_mode" {
 - `client_certificate`: Uses a client certificate (.pfx) for authentication.
 - `interactive_browser`: Opens a browser for interactive login.
 - `username_password`: Uses username and password for authentication (not recommended for production).
-- `client_assertion`: Uses a client assertion (OIDC token) for authentication, suitable for CI/CD and server-to-server scenarios.
-
 Each method requires different credentials to be provided. Can also be set using the `M365_AUTH_METHOD` environment variable.
 - `cloud` (String) Specifies the Microsoft cloud environment for authentication and API requests. This setting determines the endpoints used for Microsoft Graph and Graph Beta APIs.
 
