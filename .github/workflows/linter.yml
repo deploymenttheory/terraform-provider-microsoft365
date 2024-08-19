@@ -4,17 +4,14 @@ on: [pull_request]
 
 permissions:
   contents: read
-  pull-requests: write
+  packages: read
+  # To report GitHub Actions status checks
+  statuses: write
   
 jobs:
   build:
     name: Linter
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-      # To report GitHub Actions status checks
-      statuses: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.7
