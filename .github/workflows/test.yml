@@ -132,5 +132,4 @@ jobs:
           M365_ENABLE_CHAOS: "true"
           M365_TELEMETRY_OPTOUT: "true"
           M365_DEBUG_MODE: "true"
-        run: go test -v -cover ./internal
-        timeout-minutes: 25
+        run: go test -v -cover ./...
