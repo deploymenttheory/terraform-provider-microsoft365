@@ -97,7 +97,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # list whatever Terraform versions here you would like to support
         terraform:
           - '1.5.*'
           - '1.6.*'
@@ -115,6 +114,10 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
+      - name: Terraform Init
+        run: terraform init
+      - name: Print environment variables
+        run: env | grep M365
       - env:
           TF_ACC: "1"
           M365_TENANT_ID: "env-tenant-id"

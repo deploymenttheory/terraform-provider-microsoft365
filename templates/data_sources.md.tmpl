@@ -1,10 +1,12 @@
 ---
 page_title: "{{ .Type }}: {{ .Name }}"
 description: |
-  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+  {{ .Description | trimspace | prefixlines "  " }}
 ---
 
 # {{ .Type }}: {{ .Name }}
+
+{{ printf "Description: %s" .Description }}  <!-- Debugging line -->
 
 {{ .Description | trimspace }}
 
