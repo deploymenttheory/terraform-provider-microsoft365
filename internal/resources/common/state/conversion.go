@@ -1,6 +1,7 @@
 package state
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -90,4 +91,19 @@ func DateOnlyPtrToString(date *serialization.DateOnly) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(date.String())
+}
+
+// ByteToString converts a byte slice to a string.
+// It returns the byte slice encoded as a base64 string.
+func ByteToString(b []byte) string {
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+// BoolPtrToBool converts a bool pointer to a bool.
+// If the input is nil, it returns false.
+func BoolPtrToBool(b *bool) bool {
+	if b == nil {
+		return false
+	}
+	return *b
 }

@@ -1,41 +1,16 @@
 {
-  "@odata.type": "#microsoft.graph.deviceHealthScript",
+  "@odata.type": "#microsoft.graph.deviceManagementScript",
   "id": "String (identifier)",
-  "publisher": "String",
-  "version": "String",
   "displayName": "String",
   "description": "String",
-  "detectionScriptContent": "binary",
-  "remediationScriptContent": "binary",
+  "scriptContent": "binary",
   "createdDateTime": "String (timestamp)",
   "lastModifiedDateTime": "String (timestamp)",
   "runAsAccount": "String",
   "enforceSignatureCheck": true,
-  "runAs32Bit": true,
+  "fileName": "String",
   "roleScopeTagIds": [
     "String"
   ],
-  "isGlobalScript": true,
-  "highestAvailableVersion": "String",
-  "deviceHealthScriptType": "String",
-  "detectionScriptParameters": [
-    {
-      "@odata.type": "microsoft.graph.deviceHealthScriptStringParameter",
-      "name": "String",
-      "description": "String",
-      "isRequired": true,
-      "applyDefaultValueWhenNotAssigned": true,
-      "defaultValue": "String"
-    }
-  ],
-  "remediationScriptParameters": [
-    {
-      "@odata.type": "microsoft.graph.deviceHealthScriptStringParameter",
-      "name": "String",
-      "description": "String",
-      "isRequired": true,
-      "applyDefaultValueWhenNotAssigned": true,
-      "defaultValue": "String"
-    }
-  ]
+  "runAs32Bit": true
 }
