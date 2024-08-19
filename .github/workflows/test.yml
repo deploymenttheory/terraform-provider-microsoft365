@@ -1,8 +1,6 @@
 # Terraform Provider testing workflow.
 name: Tests
 
-# This GitHub action runs your tests for each pull request and push.
-# Optionally, you can turn it on using a schedule for regular testing.
 on:
   pull_request:
     branches:
@@ -28,31 +26,27 @@ on:
       - '.dockerignore'
       - 'Dockerfile'
 
-# Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
 
-
 jobs:
-  # Ensure project builds before running testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
       - run: go build -v .
       - name: Run linters
-        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86 # v6.1.0
+        uses: golangci/golangci-lint-action@v3
         with:
           version: latest
 
-  # Run acceptance tests in a matrix with Terraform CLI versions
   test:
     name: Terraform Provider Acceptance Tests
     needs: build
@@ -68,19 +62,43 @@ jobs:
           - '1.8.*'
           - '1.9.*'
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
-      - run: go mod download
-      - name: Terraform Init
+      
+      - name: Go mod download
+        run: go mod download
+      
+      - name: Debug Environment Variables
+        run: |
+          echo "M365_TENANT_ID: $M365_TENANT_ID"
+          echo "M365_AUTH_METHOD: $M365_AUTH_METHOD"
+          echo "M365_CLIENT_ID: $M365_CLIENT_ID"
+          echo "M365_USE_PROXY: $M365_USE_PROXY"
+          echo "M365_CLOUD: $M365_CLOUD"
+        env:
+          M365_TENANT_ID: "env-tenant-id"
+          M365_AUTH_METHOD: "env-device_code"
+          M365_CLIENT_ID: "env-client-id"
+          M365_USE_PROXY: "true"
+          M365_CLOUD: "gcc"
+      
+      - name: Setup Provider
+        run: |
+          mkdir -p ~/.terraform.d/plugins
+          cp ./terraform-provider-microsoft365 ~/.terraform.d/plugins/
+      
+      - name: Initialize Terraform
         run: terraform init
-      - env:
+      
+      - name: Run Acceptance Tests
+        env:
           TF_ACC: "1"
           M365_TENANT_ID: "env-tenant-id"
           M365_AUTH_METHOD: "env-device_code"
@@ -97,4 +115,5 @@ jobs:
           M365_ENABLE_CHAOS: "true"
           M365_TELEMETRY_OPTOUT: "true"
           M365_DEBUG_MODE: "true"
-        run: go test -v -cover ./...
+        run: |
+          go test -v -cover -race ./... -timeout 30m
