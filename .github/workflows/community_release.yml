@@ -2,6 +2,10 @@
 # to grant a large enough runner to successfully complete the goreleaser action
 name: community provider release
 
+permissions:
+  contents: write
+  id-token: write
+  
 on:
   workflow_call:
     inputs:

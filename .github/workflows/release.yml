@@ -7,6 +7,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   # ensure go.mod and go.sum are updated
   depscheck:
