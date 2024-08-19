@@ -117,5 +117,20 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-        run: go test -v -cover ./internal/provider/
+          M365_TENANT_ID: "env-tenant-id"
+          M365_AUTH_METHOD: "env-device_code"
+          M365_CLIENT_ID: "env-client-id"
+          M365_CLIENT_SECRET: "env-client-secret"
+          M365_CLIENT_CERTIFICATE_FILE_PATH: "env-client-certificate"
+          M365_CLIENT_CERTIFICATE_PASSWORD: "env-client-cert-password"
+          M365_USERNAME: "env-username"
+          M365_PASSWORD: "env-password"
+          M365_REDIRECT_URL: "env-redirect-url"
+          M365_USE_PROXY: "true"
+          M365_PROXY_URL: "http://env-proxy-url:8080"
+          M365_CLOUD: "gcc"
+          M365_ENABLE_CHAOS: "true"
+          M365_TELEMETRY_OPTOUT: "true"
+          M365_DEBUG_MODE: "true"
+        run: go test -v -cover ./internal
         timeout-minutes: 25
