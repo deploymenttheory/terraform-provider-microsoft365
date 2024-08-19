@@ -116,8 +116,6 @@ jobs:
       - run: go mod download
       - name: Terraform Init
         run: terraform init
-      - name: Print environment variables
-        run: env | grep M365
       - env:
           TF_ACC: "1"
           M365_TENANT_ID: "env-tenant-id"
