@@ -5,6 +5,8 @@ name: Tests
 # Optionally, you can turn it on using a schedule for regular testing.
 on:
   pull_request:
+    branches:
+      - main
     paths-ignore:
       - '**/*.md'
       - 'LICENSE'
