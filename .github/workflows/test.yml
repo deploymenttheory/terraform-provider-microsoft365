@@ -6,10 +6,46 @@ name: Tests
 on:
   pull_request:
     paths-ignore:
-      - 'README.md'
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'examples/**'
+      - 'website/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - '**/*.txt'
+      - '**/*.png'
+      - '**/*.jpg'
+      - '**/*.svg'
+      - '.golangci.yml'
+      - 'Makefile'
+      - 'scripts/**'
+      - '.dockerignore'
+      - 'Dockerfile'
   push:
     paths-ignore:
-      - 'README.md'
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'examples/**'
+      - 'website/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - '**/*.txt'
+      - '**/*.png'
+      - '**/*.jpg'
+      - '**/*.svg'
+      - '.golangci.yml'
+      - 'Makefile'
+      - 'scripts/**'
+      - '.dockerignore'
+      - 'Dockerfile'
 
 # Testing only needs permissions to read the repository contents.
 permissions:
