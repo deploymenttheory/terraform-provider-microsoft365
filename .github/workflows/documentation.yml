@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+  push:
 
 permissions:
   contents: write  # If you need to update documentation in the repo
