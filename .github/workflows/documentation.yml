@@ -1,6 +1,9 @@
 name: Generate terraform docs
+
 on:
-  - pull_request
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write  # If you need to update documentation in the repo
