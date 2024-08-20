@@ -10,14 +10,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	testingResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(New("1.0.0")()),
+	"microsoft365": func() (tfprotov6.ProviderServer, error) {
+		fmt.Println("Instantiating provider for unit tests")
+		provider := New("1.0.0")()
+		fmt.Printf("Unit Test Provider instantiated: %T\n", provider)
+		return providerserver.NewProtocol6WithError(provider)()
+	},
 }
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(New("1.0.0")()),
+	"microsoft365": func() (tfprotov6.ProviderServer, error) {
+		fmt.Println("Instantiating provider for acceptance tests")
+		provider := New("1.0.0")()
+		fmt.Printf("Acceptance Test Provider instantiated: %T\n", provider)
+		return providerserver.NewProtocol6WithError(provider)()
+	},
 }
 
 func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
@@ -115,13 +126,16 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 // Tenant ID
 
 func TestAccM365Provider_InvalidTenantIDFormat(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_InvalidTenantIDFormat")
 	t.Setenv("M365_TENANT_ID", "invalid-tenant-id")
+	t.Logf("Set M365_TENANT_ID to: %s", os.Getenv("M365_TENANT_ID"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
 			if v := os.Getenv("M365_TENANT_ID"); v == "" {
 				t.Fatal("M365_TENANT_ID must be set for this test")
 			}
+			t.Log("PreCheck passed")
 		},
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps: []testingResource.TestStep{
@@ -131,9 +145,11 @@ func TestAccM365Provider_InvalidTenantIDFormat(t *testing.T) {
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_InvalidTenantIDFormat")
 }
 
 func TestAccM365Provider_MissingTenantID(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_MissingTenantID")
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps: []testingResource.TestStep{
@@ -147,9 +163,11 @@ func TestAccM365Provider_MissingTenantID(t *testing.T) {
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_MissingTenantID")
 }
 
 func TestAccM365Provider_TenantIDRequired(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_TenantIDRequired")
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps: []testingResource.TestStep{
@@ -159,10 +177,13 @@ func TestAccM365Provider_TenantIDRequired(t *testing.T) {
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_TenantIDRequired")
 }
 
 func TestAccM365Provider_TenantIDFromEnvVar(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_TenantIDFromEnvVar")
 	t.Setenv("M365_TENANT_ID", "env-tenant-id")
+	t.Logf("Set M365_TENANT_ID to: %s", os.Getenv("M365_TENANT_ID"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -173,14 +194,21 @@ func TestAccM365Provider_TenantIDFromEnvVar(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "tenant_id", "env-tenant-id",
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_TenantIDFromEnvVar")
 }
 
 func TestAccM365Provider_TenantIDEnvVarOverridesHCL(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_TenantIDEnvVarOverridesHCL")
 	t.Setenv("M365_TENANT_ID", "env-tenant-id")
+	t.Logf("Set M365_TENANT_ID to: %s", os.Getenv("M365_TENANT_ID"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -193,14 +221,21 @@ func TestAccM365Provider_TenantIDEnvVarOverridesHCL(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "tenant_id", "env-tenant-id",
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_TenantIDEnvVarOverridesHCL")
 }
 
 func TestAccM365Provider_ValidTenantIDFormat(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_ValidTenantIDFormat")
 	validTenantID := "123e4567-e89b-12d3-a456-426614174000" // Example valid GUID
+	t.Logf("Using valid tenant ID: %s", validTenantID)
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -213,14 +248,21 @@ func TestAccM365Provider_ValidTenantIDFormat(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "tenant_id", validTenantID,
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_ValidTenantIDFormat")
 }
 
 func TestAccM365Provider_TenantIDSensitivity(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_TenantIDSensitivity")
 	validTenantID := "123e4567-e89b-12d3-a456-426614174000" // Example valid GUID
+	t.Logf("Using valid tenant ID: %s", validTenantID)
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -230,20 +272,23 @@ func TestAccM365Provider_TenantIDSensitivity(t *testing.T) {
                     tenant_id = "%s"
                 }`, validTenantID),
 				Check: testingResource.ComposeTestCheckFunc(
-					// Check that tenant_id is marked as sensitive
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "tenant_id", validTenantID,
 					),
-					// Ensure it's masked in the plan output
 					testingResource.TestCheckTypeSetElemNestedAttrs(
 						"microsoft365.provider", "tenant_id", map[string]string{
 							"sensitive": "true",
 						},
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes and sensitivity")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_TenantIDSensitivity")
 }
 
 // Auth Method
@@ -251,6 +296,7 @@ func TestAccM365Provider_TenantIDSensitivity(t *testing.T) {
 // TestAccM365Provider_AuthMethodRequired ensures that the auth_method is required
 // and that a configuration without it fails to apply.
 func TestAccM365Provider_AuthMethodRequired(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_AuthMethodRequired")
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps: []testingResource.TestStep{
@@ -260,11 +306,13 @@ func TestAccM365Provider_AuthMethodRequired(t *testing.T) {
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_AuthMethodRequired")
 }
 
 // TestAccM365Provider_InvalidAuthMethod verifies that an invalid value for auth_method
 // triggers a validation error.
 func TestAccM365Provider_InvalidAuthMethod(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_InvalidAuthMethod")
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 		Steps: []testingResource.TestStep{
@@ -276,12 +324,15 @@ func TestAccM365Provider_InvalidAuthMethod(t *testing.T) {
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_InvalidAuthMethod")
 }
 
 // TestAccM365Provider_AuthMethodFromEnvVar tests the scenario where the auth_method
 // is not specified in the HCL configuration but is provided as an environment variable.
 func TestAccM365Provider_AuthMethodFromEnvVar(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_AuthMethodFromEnvVar")
 	t.Setenv("M365_AUTH_METHOD", "client_secret")
+	t.Logf("Set M365_AUTH_METHOD to: %s", os.Getenv("M365_AUTH_METHOD"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -292,16 +343,23 @@ func TestAccM365Provider_AuthMethodFromEnvVar(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "client_secret",
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_AuthMethodFromEnvVar")
 }
 
 // TestAccM365Provider_AuthMethodEnvVarOverridesHCL ensures that when both an environment variable
 // and an HCL configuration are provided, the environment variable takes precedence.
 func TestAccM365Provider_AuthMethodEnvVarOverridesHCL(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_AuthMethodEnvVarOverridesHCL")
 	t.Setenv("M365_AUTH_METHOD", "client_secret")
+	t.Logf("Set M365_AUTH_METHOD to: %s", os.Getenv("M365_AUTH_METHOD"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -314,21 +372,28 @@ func TestAccM365Provider_AuthMethodEnvVarOverridesHCL(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "client_secret",
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_AuthMethodEnvVarOverridesHCL")
 }
 
 // TestAccM365Provider_ValidAuthMethodValues ensures that valid values for auth_method
 // are accepted and used correctly.
 func TestAccM365Provider_ValidAuthMethodValues(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_ValidAuthMethodValues")
 	validAuthMethods := []string{
 		"device_code", "client_secret", "client_certificate", "interactive_browser", "username_password",
 	}
 
 	for _, method := range validAuthMethods {
 		t.Run(fmt.Sprintf("AuthMethod=%s", method), func(t *testing.T) {
+			t.Logf("Testing auth_method: %s", method)
 			testingResource.Test(t, testingResource.TestCase{
 				ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
 				Steps: []testingResource.TestStep{
@@ -340,17 +405,23 @@ func TestAccM365Provider_ValidAuthMethodValues(t *testing.T) {
 							testingResource.TestCheckResourceAttr(
 								"microsoft365.provider", "auth_method", method,
 							),
+							func(s *terraform.State) error {
+								t.Log("Checking provider attributes")
+								return nil
+							},
 						),
 					},
 				},
 			})
 		})
 	}
+	t.Log("Completed TestAccM365Provider_ValidAuthMethodValues")
 }
 
 // TestAccM365Provider_AuthMethodSensitivity ensures that the auth_method attribute
 // is treated correctly and does not reveal sensitive information.
 func TestAccM365Provider_AuthMethodSensitivity(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_AuthMethodSensitivity")
 	validAuthMethod := "client_secret"
 
 	testingResource.Test(t, testingResource.TestCase{
@@ -364,16 +435,23 @@ func TestAccM365Provider_AuthMethodSensitivity(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", validAuthMethod,
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes and sensitivity")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_AuthMethodSensitivity")
 }
 
 // TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL tests the scenario where the environment variable is set,
 // but the HCL configuration is explicitly set to a different valid value, to confirm that precedence is respected.
 func TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL(t *testing.T) {
+	t.Log("Starting TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL")
 	t.Setenv("M365_AUTH_METHOD", "interactive_browser")
+	t.Logf("Set M365_AUTH_METHOD to: %s", os.Getenv("M365_AUTH_METHOD"))
 
 	testingResource.Test(t, testingResource.TestCase{
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -386,8 +464,13 @@ func TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL(t *testing.T) {
 					testingResource.TestCheckResourceAttr(
 						"microsoft365.provider", "auth_method", "interactive_browser",
 					),
+					func(s *terraform.State) error {
+						t.Log("Checking provider attributes")
+						return nil
+					},
 				),
 			},
 		},
 	})
+	t.Log("Completed TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL")
 }
