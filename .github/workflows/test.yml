@@ -88,6 +88,13 @@ jobs:
           name: terraform-provider-microsoft365
           path: ${{ github.workspace }}/bin
       
+      - name: Check for provider binary
+        run: |
+          if [ ! -f "${{ github.workspace }}/bin/terraform-provider-microsoft365" ]; then
+            echo "Provider binary not found. Exiting."
+            exit 1
+          fi
+      
       - name: Make provider binary executable
         run: chmod +x ${{ github.workspace }}/bin/terraform-provider-microsoft365
       
