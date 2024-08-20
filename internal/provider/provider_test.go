@@ -196,6 +196,7 @@ func TestAccM365Provider_InvalidTenantIDFormat(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_TENANT_ID"); v == "" {
 				t.Fatal("M365_TENANT_ID must be set for this test")
 			}
@@ -270,6 +271,7 @@ func TestAccM365Provider_TenantIDFromEnvVar(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_TENANT_ID"); v == "" {
 				t.Fatal("M365_TENANT_ID must be set for this test")
 			}
@@ -315,6 +317,7 @@ func TestAccM365Provider_TenantIDEnvVarOverridesHCL(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_TENANT_ID"); v == "" {
 				t.Fatal("M365_TENANT_ID must be set for this test")
 			}
@@ -355,7 +358,7 @@ func TestAccM365Provider_TenantIDEnvVarOverridesHCL(t *testing.T) {
 // TestAccM365Provider_ValidTenantIDFormat verifies that a valid GUID format for tenant_id is accepted.
 func TestAccM365Provider_ValidTenantIDFormat(t *testing.T) {
 	t.Log("Starting TestAccM365Provider_ValidTenantIDFormat")
-	validTenantID := "123e4567-e89b-12d3-a456-426614174000" // Example valid GUID
+	validTenantID := "123e4567-e89b-12d3-a456-426614174000"
 	t.Logf("Using valid tenant ID: %s", validTenantID)
 
 	testingResource.Test(t, testingResource.TestCase{
@@ -500,6 +503,7 @@ func TestAccM365Provider_AuthMethodFromEnvVar(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_AUTH_METHOD"); v == "" {
 				t.Fatal("M365_AUTH_METHOD must be set for this test")
 			}
@@ -544,6 +548,7 @@ func TestAccM365Provider_AuthMethodEnvVarOverridesHCL(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_AUTH_METHOD"); v == "" {
 				t.Fatal("M365_AUTH_METHOD must be set for this test")
 			}
@@ -665,6 +670,8 @@ func TestAccM365Provider_AuthMethodSensitivity(t *testing.T) {
 
 // TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL tests the scenario where the environment variable is set,
 // but the HCL configuration is explicitly set to a different valid value, to confirm that precedence is respected.
+// TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL tests the scenario where the environment variable is set,
+// but the HCL configuration is explicitly set to a different valid value, to confirm that precedence is respected.
 func TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL(t *testing.T) {
 	t.Log("Starting TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL")
 	envAuthMethod := "interactive_browser"
@@ -674,6 +681,7 @@ func TestAccM365Provider_AuthMethodCombinedEnvVarAndHCL(t *testing.T) {
 
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
+			testAccPreCheck(t)
 			if v := os.Getenv("M365_AUTH_METHOD"); v == "" {
 				t.Fatal("M365_AUTH_METHOD must be set for this test")
 			}
