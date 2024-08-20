@@ -543,6 +543,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
 		"graph_client_set":      p.clients.StableClient != nil,
 		"graph_beta_client_set": p.clients.BetaClient != nil,
+		"config":                fmt.Sprintf("%+v", config),
 	})
 }
 
