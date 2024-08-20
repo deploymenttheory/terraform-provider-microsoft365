@@ -1,4 +1,3 @@
-# Terraform Provider testing workflow.
 name: Tests
 
 on:
@@ -31,23 +30,31 @@ permissions:
   contents: read
 
 jobs:
-  # Ensure project builds before running testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
-      - run: go build -v .
+      - name: Build provider
+        run: |
+          go build -o terraform-provider-microsoft365
+          mkdir -p ${{ github.workspace }}/bin
+          mv terraform-provider-microsoft365 ${{ github.workspace }}/bin/
       - name: Run linters
-        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86 # v6.1.0
+        uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+      - name: Upload provider binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-provider-microsoft365
+          path: ${{ github.workspace }}/bin/terraform-provider-microsoft365
 
   test:
     name: Terraform Provider Acceptance Tests
@@ -72,6 +79,15 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       
+      - name: Download provider binary
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-provider-microsoft365
+          path: ${{ github.workspace }}/bin
+      
+      - name: Make provider binary executable
+        run: chmod +x ${{ github.workspace }}/bin/terraform-provider-microsoft365
+      
       - name: Go mod download
         run: go mod download
       
@@ -83,16 +99,16 @@ jobs:
           echo "M365_USE_PROXY: $M365_USE_PROXY"
           echo "M365_CLOUD: $M365_CLOUD"
         env:
-          M365_TENANT_ID: "env-tenant-id"
-          M365_AUTH_METHOD: "env-device_code"
-          M365_CLIENT_ID: "env-client-id"
-          M365_USE_PROXY: "true"
-          M365_CLOUD: "gcc"
+          M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
+          M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
+          M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
+          M365_USE_PROXY: ${{ vars.TESTS_M365_USE_PROXY }}
+          M365_CLOUD: ${{ vars.TESTS_M365_CLOUD }}
       
       - name: Setup Provider
         run: |
           mkdir -p ~/.terraform.d/plugins
-          cp ./terraform-provider-microsoft365 ~/.terraform.d/plugins/
+          cp ${{ github.workspace }}/bin/terraform-provider-microsoft365 ~/.terraform.d/plugins/
       
       - name: Initialize Terraform
         run: terraform init
@@ -100,20 +116,20 @@ jobs:
       - name: Run Acceptance Tests
         env:
           TF_ACC: "1"
-          M365_TENANT_ID: "env-tenant-id"
-          M365_AUTH_METHOD: "env-device_code"
-          M365_CLIENT_ID: "env-client-id"
-          M365_CLIENT_SECRET: "env-client-secret"
-          M365_CLIENT_CERTIFICATE_FILE_PATH: "env-client-certificate"
-          M365_CLIENT_CERTIFICATE_PASSWORD: "env-client-cert-password"
-          M365_USERNAME: "env-username"
-          M365_PASSWORD: "env-password"
-          M365_REDIRECT_URL: "env-redirect-url"
-          M365_USE_PROXY: "true"
-          M365_PROXY_URL: "http://env-proxy-url:8080"
-          M365_CLOUD: "gcc"
-          M365_ENABLE_CHAOS: "true"
-          M365_TELEMETRY_OPTOUT: "true"
-          M365_DEBUG_MODE: "true"
+          M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
+          M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
+          M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
+          M365_CLIENT_SECRET: ${{ vars.TESTS_M365_CLIENT_SECRET }}
+          M365_CLIENT_CERTIFICATE_FILE_PATH: ${{ vars.TESTS_M365_CLIENT_CERTIFICATE_FILE_PATH }}
+          M365_CLIENT_CERTIFICATE_PASSWORD: ${{ vars.TESTS_M365_CLIENT_CERTIFICATE_PASSWORD }}
+          M365_USERNAME: ${{ vars.TESTS_M365_USERNAME }}
+          M365_PASSWORD: ${{ vars.TESTS_M365_PASSWORD }}
+          M365_REDIRECT_URL: ${{ vars.TESTS_M365_REDIRECT_URL }}
+          M365_USE_PROXY: ${{ vars.TESTS_M365_USE_PROXY }}
+          M365_PROXY_URL: ${{ vars.TESTS_M365_PROXY_URL }}
+          M365_CLOUD: ${{ vars.TESTS_M365_CLOUD }}
+          M365_ENABLE_CHAOS: ${{ vars.TESTS_M365_ENABLE_CHAOS }}
+          M365_TELEMETRY_OPTOUT: ${{ vars.TESTS_M365_TELEMETRY_OPTOUT }}
+          M365_DEBUG_MODE: ${{ vars.TESTS_M365_DEBUG_MODE }}
         run: |
           go test -v -cover -race ./... -timeout 30m
