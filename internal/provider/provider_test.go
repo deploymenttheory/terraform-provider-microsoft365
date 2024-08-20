@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	testingResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -16,20 +18,85 @@ import (
 
 var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"microsoft365": func() (tfprotov6.ProviderServer, error) {
-		fmt.Println("Instantiating provider for unit tests")
-		provider := New("1.0.0")()
-		fmt.Printf("Unit Test Provider instantiated: %T\n", provider)
+		ctx := context.Background()
+		tflog.Info(ctx, "Instantiating provider for unit tests")
+		provider := New("test")()
+		tflog.Debug(ctx, fmt.Sprintf("Unit Test Provider instantiated: %T", provider))
+
 		return providerserver.NewProtocol6WithError(provider)()
 	},
 }
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"microsoft365": func() (tfprotov6.ProviderServer, error) {
-		fmt.Println("Instantiating provider for acceptance tests")
-		provider := New("1.0.0")()
-		fmt.Printf("Acceptance Test Provider instantiated: %T\n", provider)
+		ctx := context.Background()
+		tflog.Info(ctx, "Instantiating provider for acceptance tests")
+		provider := New("test")()
+		tflog.Debug(ctx, fmt.Sprintf("Acceptance Test Provider instantiated: %T", provider))
+
 		return providerserver.NewProtocol6WithError(provider)()
 	},
+}
+
+// testAccPreCheck runs a pre-check to ensure the required environment variables are set
+func testAccPreCheck(t *testing.T) {
+	t.Helper()
+	t.Log("Running pre-check for acceptance tests")
+
+	requiredEnvVars := []string{
+		"M365_TENANT_ID",
+		"M365_AUTH_METHOD",
+		"M365_CLOUD",
+		"M365_CLIENT_ID",
+	}
+
+	for _, envVar := range requiredEnvVars {
+		if v := os.Getenv(envVar); v == "" {
+			t.Fatalf("%s must be set for acceptance tests", envVar)
+		}
+	}
+
+	// Check for auth method specific environment variables
+	authMethod := os.Getenv("M365_AUTH_METHOD")
+	switch authMethod {
+	case "client_secret":
+		if v := os.Getenv("M365_CLIENT_SECRET"); v == "" {
+			t.Fatal("M365_CLIENT_SECRET must be set when auth_method is client_secret")
+		}
+	case "client_certificate":
+		if v := os.Getenv("M365_CLIENT_CERTIFICATE_FILE_PATH"); v == "" {
+			t.Fatal("M365_CLIENT_CERTIFICATE_FILE_PATH must be set when auth_method is client_certificate")
+		}
+	case "username_password":
+		if v := os.Getenv("M365_USERNAME"); v == "" {
+			t.Fatal("M365_USERNAME must be set when auth_method is username_password")
+		}
+		if v := os.Getenv("M365_PASSWORD"); v == "" {
+			t.Fatal("M365_PASSWORD must be set when auth_method is username_password")
+		}
+	case "device_code", "interactive_browser":
+		// These methods don't require additional environment variables
+	default:
+		t.Fatalf("Unknown auth_method: %s", authMethod)
+	}
+
+	// Optional environment variables
+	optionalEnvVars := []string{
+		"M365_REDIRECT_URL",
+		"M365_USE_PROXY",
+		"M365_PROXY_URL",
+		"M365_ENABLE_CHAOS",
+		"M365_TELEMETRY_OPTOUT",
+		"M365_DEBUG_MODE",
+	}
+
+	for _, envVar := range optionalEnvVars {
+		if v := os.Getenv(envVar); v != "" {
+			t.Logf("Optional environment variable %s is set", envVar)
+		}
+	}
+
+	t.Log("Pre-check completed successfully")
 }
 
 // TestAccM365Provider_EnvVarPrecedence verifies that environment variables take precedence over HCL configuration.
