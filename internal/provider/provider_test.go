@@ -131,7 +131,7 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 	testingResource.Test(t, testingResource.TestCase{
 		PreCheck: func() {
 			t.Log("Running pre-check")
-			for key, _ := range envVars {
+			for key := range envVars {
 				if v := os.Getenv(key); v == "" {
 					t.Fatalf("%s must be set for this test", key)
 				}
