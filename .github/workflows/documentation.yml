@@ -7,7 +7,7 @@ on:
   push:
 
 permissions:
-  contents: write  # If you need to update documentation in the repo
+  contents: write  # Required to update documentation in the repo
   pull-requests: write
   
 jobs:
