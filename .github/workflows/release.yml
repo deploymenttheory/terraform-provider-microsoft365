@@ -115,6 +115,7 @@ jobs:
   # ensure go doc generation is up to date
   generate:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
@@ -178,6 +179,7 @@ jobs:
   # Release for Partner and Community Providers
   terraform-provider-release:
     name: 'Terraform Provider Release'
+    needs: build
     uses: deploymenttheory/terraform-provider-microsoft365/.github/workflows/community_release.yml@main
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
