@@ -7,7 +7,7 @@ on:
   push:
 
 permissions:
-  contents: write  # If you need to update documentation in the repo
+  contents: write  # Required to update documentation in the repo
   pull-requests: write
   
 jobs:
@@ -61,15 +61,17 @@ jobs:
         with:
           terraform_version: '1.9.4'
           terraform_wrapper: false.
-      - name: git diff
+      - name: Run go generate
+        run: go generate ./...
+      - name: Commit and push changes if any
         run: |
-          go generate ./...
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git commit -m "go generate: automated update"
-            git push origin ${{ github.head_ref }}
-          else
+          git add .
+          if git diff --staged --quiet; then
             echo "No changes detected from go generate"
+          else
+            git commit -m "go generate: automated update"
+            git pull --rebase origin ${{ github.head_ref }}
+            git push origin ${{ github.head_ref }}
           fi

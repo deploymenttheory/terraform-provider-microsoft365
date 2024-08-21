@@ -543,6 +543,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
 		"graph_client_set":      p.clients.StableClient != nil,
 		"graph_beta_client_set": p.clients.BetaClient != nil,
+		"config":                fmt.Sprintf("%+v", config),
 	})
 }
 
@@ -551,21 +552,13 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 // provider.Provider interface. This function is designed to accept a version string,
 // which is used to track the version of the provider being created.
 //
-// The provider instance that is created by this function contains several configurations
-// and resources specific to the Microsoft365 ecosystem. A key part of the provider is the
-// integration with Microsoft Graph API, which allows Terraform to manage and configure
-// various resources within the Microsoft365 environment.
-//
 // The provider internally manages two distinct Microsoft Graph clients:
 // 1. StableClient: A client instance configured to interact with the stable version of the
-//    Microsoft Graph API. This client is used for production-level operations where stability
-//    and reliability are paramount.
+//    Microsoft Graph API.
 //
 // 2. BetaClient: A client instance configured to interact with the beta version of the
 //    Microsoft Graph API. This client is used for operations that require access to
 //    newer or experimental features that are not yet available in the stable API.
-//    Note that using this client might involve interacting with APIs that could change or
-//    be deprecated as they are part of the beta environment.
 //
 // The New function encapsulates these clients within the M365Provider struct, which also
 // holds the provider's configuration and resources. When Terraform invokes this function,

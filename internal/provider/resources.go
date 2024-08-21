@@ -4,6 +4,7 @@ import (
 	"context"
 
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
+	graphBetaDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/deviceManagementScript"
 	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcDeviceImage"
 	graphCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcProvisioningPolicy"
 	graphCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcUserSetting"
@@ -25,10 +26,12 @@ import (
 // Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		graphBetaAssignmentFilter.NewAssignmentFilterResource,
+		graphBetaDeviceManagementScript.NewDeviceManagementScriptResource,
 		graphCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphCloudPcUserSetting.NewCloudPcUserSettingResource,
-		graphBetaAssignmentFilter.NewAssignmentFilterResource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageResource,
 		graphBetaConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		// Add microsoft 365 provider resources here
 	}
 }
