@@ -19,10 +19,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
-    - name: Render terraform docs and push changes back to PR
+    - name: Render terraform docs for microsoft365_provider
       uses: terraform-docs/gh-actions@e47bfa196e79fa50987ef391be236d9d97b0c786 # v1.2.0
       with:
-        working-dir: examples/
+        working-dir: examples/microsoft365_provider
         indention: 3
         output-file: README.md
         output-method: inject
@@ -32,8 +32,9 @@ jobs:
     - name: Render terraform docs for microsoft365_graph
       uses: terraform-docs/gh-actions@v1.2.0
       with:
-        working-dir: examples/microsoft365_graph
-        indention: 3
+        working-dir: examples/
+        recursive: true
+        recursive-path: microsoft365_graph/
         output-file: README.md
         output-method: inject
         git-push: "true"
