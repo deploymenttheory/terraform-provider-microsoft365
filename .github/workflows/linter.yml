@@ -5,8 +5,7 @@ on: [pull_request]
 permissions:
   contents: read
   packages: read
-  # To report GitHub Actions status checks
-  statuses: write
+  statuses: write # To report GitHub Actions status checks
   
 jobs:
   build:
