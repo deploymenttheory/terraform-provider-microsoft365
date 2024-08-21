@@ -61,9 +61,10 @@ jobs:
         with:
           terraform_version: '1.9.4'
           terraform_wrapper: false.
-      - name: git diff
+      - name: Run go generate
+        run: go generate ./...
+      - name: Commit changes if any
         run: |
-          go generate ./...
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
