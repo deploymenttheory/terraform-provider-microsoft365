@@ -112,7 +112,7 @@ jobs:
     - name: Run tfproviderlint
       run: tfproviderlint ./...
 
-  # ensure go docs generation is up to date
+  # ensure go doc generation is up to date
   generate:
     runs-on: ubuntu-latest
     steps:
@@ -145,7 +145,7 @@ jobs:
           commit_message: "go generate: automated update"
           file_pattern: '.' # current directory and all subdirectories.
 
-  # ensure docs are generated
+  # ensure terraform docs are generated
   gencheck:
     name: Check Generated Docs
     needs: build
