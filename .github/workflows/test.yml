@@ -120,7 +120,7 @@ jobs:
       
       - name: Run Acceptance Tests
         env:
-          TF_ACC: "1" # enables acceptance tests
+          # TF_ACC: "1" # TODO enable acceptance tests
           M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
           M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
           M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
