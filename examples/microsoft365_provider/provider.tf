@@ -1,4 +1,14 @@
+# Example backend
+terraform {
+  required_providers {
+    microsoft365 = {
+      source  = "deploymenttheory/terraform-provider-microsoft365"
+      version = "~> 1.0.0"  
+    }
+  }
+}
 
+# Example provider
 provider "microsoft365" {
   tenant_id                   = var.tenant_id
   auth_method                 = var.auth_method
