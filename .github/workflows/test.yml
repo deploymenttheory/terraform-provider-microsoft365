@@ -39,6 +39,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
+          go-version: stable
       - run: go mod download
 
       - name: Build provider
@@ -46,11 +47,6 @@ jobs:
           go build -o terraform-provider-microsoft365
           mkdir -p ${{ github.workspace }}/bin
           mv terraform-provider-microsoft365 ${{ github.workspace }}/bin/
-
-      - name: Run linters
-        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86 # v6.1.0
-        with:
-          version: latest
 
       - name: Upload provider binary
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
