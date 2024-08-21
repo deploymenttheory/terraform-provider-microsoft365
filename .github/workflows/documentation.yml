@@ -48,35 +48,3 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
-  
-  generate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
-        with:
-          terraform_version: '1.9.4'
-          terraform_wrapper: false.
-
-      - name: Run go generate
-        run: go generate ./...
-      
-      - name: Check for changes
-        id: git-check
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "changes=false" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Commit changes
-        if: steps.git-check.outputs.changes == 'true'
-        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
-        with:
-          commit_message: "go generate: automated update"
-          file_pattern: '.' # current directory and all subdirectories.
