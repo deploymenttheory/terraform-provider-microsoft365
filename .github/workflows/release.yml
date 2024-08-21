@@ -121,15 +121,29 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
         with:
           terraform_version: '1.9.4'
-          terraform_wrapper: false
-      - run: go generate ./...
-      - name: git diff
+          terraform_wrapper: false.
+
+      - name: Run go generate
+        run: go generate ./...
+      
+      - name: Check for changes
+        id: git-check
         run: |
-          git diff --compact-summary --exit-code || \
-            (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit changes
+        if: steps.git-check.outputs.changes == 'true'
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+        with:
+          commit_message: "go generate: automated update"
+          file_pattern: '.' # current directory and all subdirectories.
 
   # ensure docs are generated
   gencheck:
