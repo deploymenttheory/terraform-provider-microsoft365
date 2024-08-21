@@ -63,15 +63,23 @@ jobs:
           terraform_wrapper: false.
       - name: Run go generate
         run: go generate ./...
-      - name: Commit and push changes if any
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Check for changes
+        id: git-check
+        run: |
           git add .
           if git diff --staged --quiet; then
-            echo "No changes detected from go generate"
+            echo "changes=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "go generate: automated update"
-            git pull --rebase origin ${{ github.head_ref }}
-            git push origin ${{ github.head_ref }}
+            echo "changes=true" >> $GITHUB_OUTPUT
           fi
+      - name: Commit changes
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git commit -m "go generate: automated update"
+      - name: Pull and rebase
+        if: steps.git-check.outputs.changes == 'true'
+        run: git pull --rebase origin "${{ github.head_ref }}"
