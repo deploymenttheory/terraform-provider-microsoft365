@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '.github/**'
 
 permissions:
   contents: write  # Required to update documentation in the repo
