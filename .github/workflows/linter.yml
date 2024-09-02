@@ -1,6 +1,9 @@
 name: Linter
 
-on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+      - '.github/**'
 
 permissions:
   contents: read
@@ -17,7 +20,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
-      - name: Lint Code Base
+      - name: Lint Code Base with Super-Linter
         uses: super-linter/super-linter@v7.0.0
         env:
           DEFAULT_BRANCH: origin/main
@@ -28,7 +31,7 @@ jobs:
           VALIDATE_GOVET: true
           VALIDATE_GOLANGCI_LINT: true
           VALIDATE_CPD: false # Disable CPD (Copy Paste Detection) for all languages
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
           MARKDOWN_CONFIG_FILE: .markdown-lint.yml
           FILTER_REGEX_EXCLUDE: |
             .*\.md$|                # Exclude all markdown files
