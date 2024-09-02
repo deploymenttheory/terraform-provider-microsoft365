@@ -169,8 +169,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.9 h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
-github.com/microsoft/kiota-abstractions-go v1.6.1 h1:NXK50S3BwJn9Wj6bO0YFuAig7y2WVgdQ/ie1ktMl2J4=
-github.com/microsoft/kiota-abstractions-go v1.6.1/go.mod h1:FI1I2OHg0E7bK5t8DPnw+9C/CHVyLP6XeqDBT+95pTE=
+github.com/microsoft/kiota-abstractions-go v1.7.0 h1:/0OKSSEe94Z1qgpcGE7ZFI9P+4iAnsDQo9v9UOk+R8E=
+github.com/microsoft/kiota-abstractions-go v1.7.0/go.mod h1:FI1I2OHg0E7bK5t8DPnw+9C/CHVyLP6XeqDBT+95pTE=
 github.com/microsoft/kiota-authentication-azure-go v1.1.0 h1:HudH57Enel9zFQ4TEaJw6lMiyZ5RbBdrRHwdU0NP2RY=
 github.com/microsoft/kiota-authentication-azure-go v1.1.0/go.mod h1:zfPFOiLdEqM77Hua5B/2vpcXrVaGqSWjHSRzlvAWEgc=
 github.com/microsoft/kiota-http-go v1.4.4 h1:HM0KT/Q7o+JsGatFkkbTIqJL24Jzo5eMI5NNe9N4TQ4=
