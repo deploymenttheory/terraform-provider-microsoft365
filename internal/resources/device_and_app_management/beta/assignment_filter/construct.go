@@ -59,14 +59,7 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 	}
 	requestBody.SetRoleScopeTags(roleScopeTags)
 
-	requestBodyJSON, err := json.MarshalIndent(map[string]interface{}{
-		"displayName":    requestBody.GetDisplayName(),
-		"description":    requestBody.GetDescription(),
-		"platform":       requestBody.GetPlatform(),
-		"rule":           requestBody.GetRule(),
-		"managementType": requestBody.GetAssignmentFilterManagementType(),
-		"roleScopeTags":  requestBody.GetRoleScopeTags(),
-	}, "", "  ")
+	requestBodyJSON, err := json.MarshalIndent(requestBody, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
 	}

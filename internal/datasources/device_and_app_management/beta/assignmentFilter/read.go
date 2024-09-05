@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
+	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/assignmentFilter"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	betamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"

@@ -3,12 +3,14 @@ package provider
 import (
 	"context"
 
-	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/assignmentFilter"
-	graphBetaDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/deviceandappmanagement/beta/deviceManagementScript"
-	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcDeviceImage"
-	graphCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcProvisioningPolicy"
-	graphCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/devicemanagement/v1.0/cloudPcUserSetting"
-	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identityandaccess/beta/conditionalaccesspolicy"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/assignment_filter"
+	graphBetaDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/device_management_script"
+	graphBetaM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/m365_apps_installation_options"
+	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_device_image"
+	graphCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_provisioning_policy"
+	graphCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_user_setting"
+	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/beta/conditional_access_policy"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -28,10 +30,11 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		graphBetaAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceManagementScript.NewDeviceManagementScriptResource,
+		graphBetaConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		graphBetaM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		graphCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageResource,
-		graphBetaConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 		// Add microsoft 365 provider resources here
 	}
 }
