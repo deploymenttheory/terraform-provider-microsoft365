@@ -40,7 +40,7 @@ func (r *CloudPcUserSettingResource) GetTypeName() string {
 
 // Metadata returns the resource type name.
 func (r *CloudPcUserSettingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_cloud_pc_user_setting"
+	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_cloud_pc_user_setting"
 }
 
 // Configure sets the client for the resource.

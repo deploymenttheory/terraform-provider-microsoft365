@@ -1,0 +1,16 @@
+{
+  "@odata.type": "#microsoft.graph.m365AppsInstallationOptions",
+  "updateChannel": "String",
+  "appsForWindows": {
+    "@odata.type": "#microsoft.graph.appsInstallationOptionsForWindows",
+    "isMicrosoft365AppsEnabled": "Boolean",
+    "isProjectEnabled": "Boolean",
+    "isSkypeForBusinessEnabled": "Boolean",
+    "isVisioEnabled": "Boolean"
+  },
+  "appsForMac": {
+    "@odata.type": "#microsoft.graph.appsInstallationOptionsForMac",
+    "isMicrosoft365AppsEnabled": "Boolean",
+    "isSkypeForBusinessEnabled": "Boolean"
+  }
+}
