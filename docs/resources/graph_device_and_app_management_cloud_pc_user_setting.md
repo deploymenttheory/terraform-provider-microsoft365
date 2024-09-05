@@ -1,10 +1,10 @@
 ---
-page_title: "Resource: microsoft365_graph_cloud_pc_user_setting"
+page_title: "Resource: microsoft365_graph_device_and_app_management_cloud_pc_user_setting"
 description: |-
     
 ---
 
-# Resource: microsoft365_graph_cloud_pc_user_setting
+# Resource: microsoft365_graph_device_and_app_management_cloud_pc_user_setting
 
 
 
