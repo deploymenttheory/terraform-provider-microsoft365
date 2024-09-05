@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/assignmentFilter"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/assignment_filter"
 	graphBetaDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/device_management_script"
 	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/v1.0/cloud_pc_device_image"
 
