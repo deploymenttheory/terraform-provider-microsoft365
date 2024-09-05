@@ -1,10 +1,10 @@
 ---
-page_title: "Resource: microsoft365_graph_cloud_pc_device_image"
+page_title: "Resource: microsoft365_graph_device_and_app_management_cloud_pc_device_image"
 description: |-
     
 ---
 
-# Resource: microsoft365_graph_cloud_pc_device_image
+# Resource: microsoft365_graph_device_and_app_management_cloud_pc_device_image
 
 
 

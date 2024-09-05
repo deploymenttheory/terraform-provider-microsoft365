@@ -1,0 +1,101 @@
+{
+  "@odata.type": "#microsoft.graph.browserSite",
+  "allowRedirect": "Boolean",
+  "comment": "String",
+  "compatibilityMode": "String",
+  "createdDateTime": "String (timestamp)",
+  "deletedDateTime": "String (timestamp)",
+  "history": [
+    {
+      "@odata.type": "#microsoft.graph.browserSiteHistory",
+      "allowRedirect": "Boolean",
+      "comment": "String",
+      "compatibilityMode": "String",
+      "lastModifiedBy": {
+        "@odata.type": "microsoft.graph.identitySet",
+        "application": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "applicationInstance": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "conversation": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "conversationIdentityType": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "device": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "encrypted": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "onPremises": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "guest": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "phone": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        },
+        "user": {
+          "@odata.type": "microsoft.graph.identity",
+          "displayName": "String",
+          "id": "String (identifier)",
+          "tenantId": "String"
+        }
+      },
+      "mergeType": "String",
+      "publishedDateTime": "String (timestamp)",
+      "targetEnvironment": "String"
+    }
+  ],
+  "id": "String (identifier)",
+  "lastModifiedBy": {
+    "@odata.type": "microsoft.graph.identitySet",
+    "application": {"@odata.type": "microsoft.graph.identity"},
+    "applicationInstance": {"@odata.type": "microsoft.graph.identity"},
+    "conversation": {"@odata.type": "microsoft.graph.identity"},
+    "conversationIdentityType": {"@odata.type": "microsoft.graph.identity"},
+    "device": {"@odata.type": "microsoft.graph.identity"},
+    "encrypted": {"@odata.type": "microsoft.graph.identity"},
+    "onPremises": {"@odata.type": "microsoft.graph.identity"},
+    "guest": {"@odata.type": "microsoft.graph.identity"},
+    "phone": {"@odata.type": "microsoft.graph.identity"},
+    "user": {"@odata.type": "microsoft.graph.identity"}
+  },
+  "lastModifiedDateTime": "String (timestamp)",
+  "mergeType": "String",
+  "status": "String",
+  "targetEnvironment": "String",
+  "webUrl": "String"
+}

@@ -1,10 +1,10 @@
 ---
-page_title: "Resource: microsoft365_graph_cloud_pc_provisioning_policy"
+page_title: "Resource: microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy"
 description: |-
     
 ---
 
-# Resource: microsoft365_graph_cloud_pc_provisioning_policy
+# Resource: microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy
 
 
 
