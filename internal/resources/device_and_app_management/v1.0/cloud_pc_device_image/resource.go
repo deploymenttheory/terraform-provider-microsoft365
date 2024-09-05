@@ -41,7 +41,7 @@ func (r *CloudPcDeviceImageResource) GetTypeName() string {
 
 // Metadata returns the resource type name.
 func (r *CloudPcDeviceImageResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_cloud_pc_device_image"
+	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_cloud_pc_device_image"
 }
 
 // Configure sets the client for the resource.
