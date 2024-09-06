@@ -75,4 +75,14 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
       with:
         commit_message: "go generate: automated update"
-        file_pattern: '.'
+        file_pattern: '**/*.go'
+        commit_options: '--no-verify --signoff'
+        commit_user_name: "GitHub Actions Bot"
+        commit_user_email: "github-actions[bot]@users.noreply.github.com"
+        commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+        status_options: '--untracked-files=no'
+        add_options: '-u'
+        push_options: '--force'
+        skip_dirty_check: false
+        skip_fetch: true
+        skip_checkout: true
