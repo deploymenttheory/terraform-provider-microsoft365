@@ -56,14 +56,15 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [test-build]
-    uses: deploymenttheory/terraform-provider-microsoft365/.github/workflows/community_release.yml@main
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
-      release-notes: false # Set to true if you have release notes to include
+      goreleaser-release-args: --parallelism 2 --timeout 90m # required due to provider release file size
+      release-notes: true # Set to true if you have release notes to include
       setup-go-version: '1.22.5' # Specify the Go version needed
-      
+
   release-notes:
     runs-on: ubuntu-latest
     needs: [terraform-provider-release]
