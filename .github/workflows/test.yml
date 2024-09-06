@@ -67,7 +67,7 @@ jobs:
           - '1.9.*'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5.0.2
         with:
           go-version-file: 'go.mod'
           cache: true
