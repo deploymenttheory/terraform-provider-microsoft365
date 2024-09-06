@@ -62,6 +62,10 @@ func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "The unique identifier for the site.",
 				Computed:    true,
 			},
+			"browser_site_list_assignment_id": schema.StringAttribute{
+				Required:    true,
+				Description: "The browser site list id to assign this browser site to.",
+			},
 			"allow_redirect": schema.BoolAttribute{
 				Description: "Controls the behavior of redirected sites. If `true`, indicates that the site will open in Internet Explorer 11 or Microsoft Edge even if the site is navigated to as part of a HTTP or meta refresh redirection chain.",
 				Required:    true,

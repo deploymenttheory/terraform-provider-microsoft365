@@ -37,7 +37,7 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	browserSiteListId := "default" // TODO figure out how to get this id
+	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
 
 	createdSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().ByBrowserSiteListId(browserSiteListId).Sites().Post(ctx, requestBody, nil)
 	if err != nil {
@@ -51,6 +51,9 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	plan.ID = types.StringValue(*createdSite.GetId())
 
 	MapRemoteStateToTerraform(ctx, &plan, createdSite)
+
+	// Explicitly set BrowserSiteListAssignmentID in the state as it's not in the resp.
+	plan.BrowserSiteListAssignmentID = types.StringValue(browserSiteListId)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -75,10 +78,8 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 	defer cancel()
-	// TODO figure out how to get this id
-	// Assuming we have a default or known browserSiteList-id
-	// You may need to implement logic to determine the correct browserSiteList-id
-	browserSiteListId := "default" // or some other way to determine the correct ID
+
+	browserSiteListId := state.BrowserSiteListAssignmentID.ValueString()
 
 	browserSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
@@ -92,7 +93,9 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, browserSite)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -122,9 +125,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Assuming we have a default or known browserSiteList-id
-	// You may need to implement logic to determine the correct browserSiteList-id
-	browserSiteListId := "default" // or some other way to determine the correct ID
+	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
 
 	_, err = r.client.Admin().Edge().InternetExplorerMode().SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
@@ -159,9 +160,7 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	// Assuming we have a default or known browserSiteList-id
-	// You may need to implement logic to determine the correct browserSiteList-id
-	browserSiteListId := "default" // or some other way to determine the correct ID
+	browserSiteListId := data.BrowserSiteListAssignmentID.ValueString()
 
 	err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
