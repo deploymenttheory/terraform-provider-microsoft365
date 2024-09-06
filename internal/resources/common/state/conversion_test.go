@@ -324,3 +324,41 @@ func TestBoolPtrToBool(t *testing.T) {
 		assert.False(t, result, "Should return false for false input")
 	})
 }
+
+func TestInt64PtrToTypeInt64(t *testing.T) {
+	t.Run("Nil int64 pointer", func(t *testing.T) {
+		var input *int64
+		result := Int64PtrToTypeInt64(input)
+		assert.True(t, result.IsNull(), "Should return types.Int64Null() for nil input")
+	})
+
+	t.Run("Valid int64 pointer", func(t *testing.T) {
+		input := int64(42)
+		result := Int64PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(42), result, "Should return types.Int64Value(42) for input 42")
+	})
+
+	t.Run("Negative int64 pointer", func(t *testing.T) {
+		input := int64(-123)
+		result := Int64PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(-123), result, "Should return types.Int64Value(-123) for input -123")
+	})
+
+	t.Run("Zero int64 pointer", func(t *testing.T) {
+		input := int64(0)
+		result := Int64PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(0), result, "Should return types.Int64Value(0) for input 0")
+	})
+
+	t.Run("Max int64 pointer", func(t *testing.T) {
+		input := int64(9223372036854775807) // Max value for int64
+		result := Int64PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(9223372036854775807), result, "Should correctly convert max int64 value")
+	})
+
+	t.Run("Min int64 pointer", func(t *testing.T) {
+		input := int64(-9223372036854775808) // Min value for int64
+		result := Int64PtrToTypeInt64(&input)
+		assert.Equal(t, types.Int64Value(-9223372036854775808), result, "Should correctly convert min int64 value")
+	})
+}
