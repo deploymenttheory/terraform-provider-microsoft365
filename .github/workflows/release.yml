@@ -57,12 +57,12 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [test-build]
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
+    uses:  ./.github/workflows/community.yml
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
-      goreleaser-release-args: --parallelism 2 --timeout 90m0s # required due to provider release file size
+      goreleaser-release-args: --verbose --parallelism 2 --timeout 120m0s # required due to provider release file size
       release-notes: false
       setup-go-version: '1.22.5'
 
