@@ -1,10 +1,11 @@
 resource "microsoft365_graph_beta_device_and_app_management_browser_site" "example" {
-  allow_redirect     = true
-  comment            = "Example browser site for Contoso"
-  compatibility_mode = "default"
-  merge_type         = "default"
-  target_environment = "internetExplorerMode"
-  web_url            = "https://www.contoso.com"
+  allow_redirect                  = true
+  browser_site_list_assignment_id = "11111111-1111-1111-1111-111111111111"
+  comment                         = "Example browser site for Contoso"
+  compatibility_mode              = "default"
+  merge_type                      = "default"
+  target_environment              = "internetExplorerMode"
+  web_url                         = "https://www.contoso.com"
 
   timeouts {
     create = "30m"
