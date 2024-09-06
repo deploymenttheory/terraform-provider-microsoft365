@@ -63,8 +63,6 @@ jobs:
       fail-fast: false
       matrix:
         terraform:
-          - '1.7.*'
-          - '1.8.*'
           - '1.9.*'
     steps:
       - uses: actions/checkout@v4
