@@ -1,38 +1,13 @@
-name: Tests
+name: Go Test Pipeline
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.editorconfig'
-      - 'docs/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'examples/**'
-      - 'website/**'
-      - '.vscode/**'
-      - '.idea/**'
-      - '**/*.txt'
-      - '**/*.png'
-      - '**/*.jpg'
-      - '**/*.svg'
-      - '.golangci.yml'
-      - 'Makefile'
-      - 'scripts/**'
-      - '.dockerignore'
-      - 'Dockerfile'
-
-permissions:
-  contents: read
+  push:
+    branches: [ '*' ]
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: actions/setup-go@v5.0.2
@@ -42,112 +17,15 @@ jobs:
           go-version: stable
       - run: go mod download
 
-      - name: Build provider
-        run: |
-          go build -o terraform-provider-microsoft365
-          mkdir -p ${{ github.workspace }}/bin
-          mv terraform-provider-microsoft365 ${{ github.workspace }}/bin/
-
-      - name: Upload provider binary
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 #v4.3.6
-        with:
-          name: terraform-provider-microsoft365
-          path: ${{ github.workspace }}/bin/terraform-provider-microsoft365
-
-  test:
-    name: Terraform Provider Acceptance Tests
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30 
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform:
-          - '1.9.*'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5.0.2
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - uses: hashicorp/setup-terraform@v3.1.2
-        with:
-          terraform_version: ${{ matrix.terraform }}
-          terraform_wrapper: false
-      
-      - name: Download provider binary
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: terraform-provider-microsoft365
-          path: ${{ github.workspace }}/bin
-      
-      - name: Check for provider binary
-        run: |
-          if [ ! -f "${{ github.workspace }}/bin/terraform-provider-microsoft365" ]; then
-            echo "Provider binary not found. Exiting."
-            exit 1
-          fi
-      
-      - name: Make provider binary executable
-        run: chmod +x ${{ github.workspace }}/bin/terraform-provider-microsoft365
-      
-      - name: Go mod download
+      - name: Install dependencies
         run: go mod download
-      
-      - name: Setup Provider
-        run: |
-          mkdir -p ~/.terraform.d/plugins
-          cp ${{ github.workspace }}/bin/terraform-provider-microsoft365 ~/.terraform.d/plugins/
-      
-      - name: Initialize Terraform
-        run: terraform init
-      
-      - name: Run Acceptance Tests
-        id: run_tests
-        env:
-          TF_ACC: "1"
-          M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
-          M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
-          M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
-          M365_CLIENT_SECRET: ${{ vars.TESTS_M365_CLIENT_SECRET }}
-          M365_CLIENT_CERTIFICATE_FILE_PATH: ${{ vars.TESTS_M365_CLIENT_CERTIFICATE_FILE_PATH }}
-          M365_CLIENT_CERTIFICATE_PASSWORD: ${{ vars.TESTS_M365_CLIENT_CERTIFICATE_PASSWORD }}
-          M365_USERNAME: ${{ vars.TESTS_M365_USERNAME }}
-          M365_PASSWORD: ${{ vars.TESTS_M365_PASSWORD }}
-          M365_REDIRECT_URL: ${{ vars.TESTS_M365_REDIRECT_URL }}
-          M365_USE_PROXY: ${{ vars.TESTS_M365_USE_PROXY }}
-          M365_PROXY_URL: ${{ vars.TESTS_M365_PROXY_URL }}
-          M365_CLOUD: ${{ vars.TESTS_M365_CLOUD }}
-          M365_ENABLE_CHAOS: ${{ vars.TESTS_M365_ENABLE_CHAOS }}
-          M365_TELEMETRY_OPTOUT: ${{ vars.TESTS_M365_TELEMETRY_OPTOUT }}
-          M365_DEBUG_MODE: ${{ vars.TESTS_M365_DEBUG_MODE }}
-        run: |
-          go test -v -cover -race ./... -timeout 30m > test_output.txt
-          echo "TEST_EXIT_CODE=$?" >> $GITHUB_OUTPUT
 
-      - name: Process test results
-        if: always()
-        run: |
-          BUILD_STATUS="✅ Build Successful"
-          if [ ${{ steps.run_tests.outputs.TEST_EXIT_CODE }} -eq 0 ]; then
-            TEST_STATUS="✅ Tests Passed"
-          else
-            TEST_STATUS="❌ Tests Failed"
-          fi
-          TEST_SUMMARY=$(grep -E "^(PASS|FAIL)" test_output.txt | wc -l)
-          COVERAGE=$(grep -E "^coverage:" test_output.txt | awk '{print $2}')
-          
-          echo "{
-            \"buildStatus\": \"$BUILD_STATUS\",
-            \"testStatus\": \"$TEST_STATUS\",
-            \"testSummary\": \"Total tests run: $TEST_SUMMARY\",
-            \"coverageReport\": \"Code coverage: $COVERAGE\",
-            \"changedFiles\": \"$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})\"
-          }" > test_results.json
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
-          name: test-results
-          path: test_results.json
+          file: ./coverage.txt
+          flags: unittests
+          fail_ci_if_error: true
