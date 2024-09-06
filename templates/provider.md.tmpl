@@ -11,6 +11,12 @@ management of [m365](https://github.com/microsoftgraph/msgraph-metadata) resourc
 
 ## Example Usage
 
-{{ tffile "examples/microsoft365_provider/provider.tf" }} 
+{{ tffile "examples/microsoft365_provider/provider.tf" }}
 
+## Schema
+
+{{ if .SchemaMarkdown -}}
 {{ .SchemaMarkdown | trimspace }}
+{{- else -}}
+Please refer to the provider documentation for details on the configuration schema.
+{{- end }}

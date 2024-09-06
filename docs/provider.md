@@ -134,5 +134,8 @@ variable "debug_mode" {
   type        = bool
   default     = false
 }
-``` 
+```
 
+## Schema
+
+Please refer to the provider documentation for details on the configuration schema.
