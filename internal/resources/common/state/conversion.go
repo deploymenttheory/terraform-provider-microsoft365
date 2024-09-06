@@ -107,3 +107,12 @@ func BoolPtrToBool(b *bool) bool {
 	}
 	return *b
 }
+
+// Int64PtrToTypeInt64 converts a *int64 to a types.Int64.
+// If the input is nil, it returns types.Int64Null().
+func Int64PtrToTypeInt64(i *int64) types.Int64 {
+	if i == nil {
+		return types.Int64Null()
+	}
+	return types.Int64Value(*i)
+}

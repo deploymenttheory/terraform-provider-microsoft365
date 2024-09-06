@@ -17,7 +17,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [microsoft365_graph_beta_device_and_app_management_browser_site_list.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_browser_site_list) | resource |
+| [microsoft365_graph_beta_device_and_app_management_macos_pkg_app.example_app](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_macos_pkg_app) | resource |
 
 ## Inputs
 
