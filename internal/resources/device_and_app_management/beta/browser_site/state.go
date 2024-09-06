@@ -3,6 +3,7 @@ package graphbetabrowsersite
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -64,12 +65,12 @@ func MapHistoryRemoteStateToTerraform(historyItem models.BrowserSiteHistoryable)
 	}
 }
 
-func MapIdentitySetRemoteStateToTerraform(identitySet models.IdentitySetable) IdentitySetModel {
+func MapIdentitySetRemoteStateToTerraform(identitySet models.IdentitySetable) sharedmodels.IdentitySetModel {
 	if identitySet == nil {
-		return IdentitySetModel{}
+		return sharedmodels.IdentitySetModel{}
 	}
 
-	return IdentitySetModel{
+	return sharedmodels.IdentitySetModel{
 		Application: MapIdentityRemoteStateToTerraform(identitySet.GetApplication()),
 		User:        MapIdentityRemoteStateToTerraform(identitySet.GetUser()),
 		Device:      MapIdentityRemoteStateToTerraform(identitySet.GetDevice()),
@@ -85,12 +86,12 @@ func MapIdentitySetRemoteStateToTerraform(identitySet models.IdentitySetable) Id
 	}
 }
 
-func MapIdentityRemoteStateToTerraform(identity models.Identityable) IdentityModel {
+func MapIdentityRemoteStateToTerraform(identity models.Identityable) sharedmodels.IdentityModel {
 	if identity == nil {
-		return IdentityModel{}
+		return sharedmodels.IdentityModel{}
 	}
 
-	return IdentityModel{
+	return sharedmodels.IdentityModel{
 		DisplayName: types.StringValue(state.StringPtrToString(identity.GetDisplayName())),
 		ID:          types.StringValue(state.StringPtrToString(identity.GetId())),
 		// TODO - field missing from SDK

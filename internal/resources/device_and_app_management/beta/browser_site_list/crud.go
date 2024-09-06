@@ -12,8 +12,8 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan BrowserSiteResourceModel
+func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan BrowserSiteListResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -31,29 +31,24 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing browser site",
+			"Error constructing browser site list",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
-
-	createdSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().ByBrowserSiteListId(browserSiteListId).Sites().Post(ctx, requestBody, nil)
+	createdSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().Post(ctx, requestBody, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating browser site",
-			fmt.Sprintf("Could not create browser site: %s", err.Error()),
+			"Error creating browser site list",
+			fmt.Sprintf("Could not create browser site list: %s", err.Error()),
 		)
 		return
 	}
 
-	plan.ID = types.StringValue(*createdSite.GetId())
+	plan.ID = types.StringValue(*createdSiteList.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, createdSite)
-
-	// Explicitly set BrowserSiteListAssignmentID in the state as it's not in the resp.
-	plan.BrowserSiteListAssignmentID = types.StringValue(browserSiteListId)
+	MapRemoteStateToTerraform(ctx, &plan, createdSiteList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -61,9 +56,9 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 }
 
 // Read handles the Read operation.
-func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state BrowserSiteResourceModel
-	tflog.Debug(ctx, "Starting Read method for browser site")
+func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state BrowserSiteListResourceModel
+	tflog.Debug(ctx, "Starting Read method for browser site list")
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -71,7 +66,7 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading browser site with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading browser site list with ID: %s", state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -79,12 +74,8 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	browserSiteListId := state.BrowserSiteListAssignmentID.ValueString()
-
-	browserSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
-		ByBrowserSiteListId(browserSiteListId).
-		Sites().
-		ByBrowserSiteId(state.ID.ValueString()).
+	browserSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+		ByBrowserSiteListId(state.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -92,7 +83,7 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, browserSite)
+	MapRemoteStateToTerraform(ctx, &state, browserSiteList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -100,8 +91,8 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 }
 
 // Update handles the Update operation.
-func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan BrowserSiteResourceModel
+func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan BrowserSiteListResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -119,18 +110,14 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing browser site",
+			"Error constructing browser site list",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
-
 	_, err = r.client.Admin().Edge().InternetExplorerMode().SiteLists().
-		ByBrowserSiteListId(browserSiteListId).
-		Sites().
-		ByBrowserSiteId(plan.ID.ValueString()).
+		ByBrowserSiteListId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -144,8 +131,8 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 }
 
 // Delete handles the Delete operation.
-func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data BrowserSiteResourceModel
+func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data BrowserSiteListResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -160,12 +147,8 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	browserSiteListId := data.BrowserSiteListAssignmentID.ValueString()
-
 	err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
-		ByBrowserSiteListId(browserSiteListId).
-		Sites().
-		ByBrowserSiteId(data.ID.ValueString()).
+		ByBrowserSiteListId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
