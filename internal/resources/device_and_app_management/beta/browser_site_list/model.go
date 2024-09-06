@@ -1,7 +1,7 @@
 package graphbetabrowsersite
 
 import (
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/models/graph_beta/sharedmodels"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
