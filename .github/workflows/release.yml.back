@@ -1,0 +1,170 @@
+name: Terraform Provider Release
+
+# This GitHub action creates a release when a tag that matches the pattern
+# "v*" (e.g. v0.1.0) is created.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # ensure go.mod and go.sum are updated
+  depscheck:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+      with:
+        egress-policy: audit
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Set up Go
+      uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+      with:
+        cache: true
+        go-version-file: 'go.mod'
+      id: go
+
+
+    - name: Run 'go mod tidy' and check for differences
+      run: |
+        go mod tidy
+        git diff --exit-code -- go.mod go.sum || \
+        (echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+
+  # ensure the code builds
+  build:
+    name: Build
+    needs: depscheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+      with:
+        egress-policy: audit
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Set up Go
+      uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+      with:
+        cache: true
+        go-version-file: 'go.mod'
+      id: go
+
+    - name: Get dependencies
+      run: |
+        go mod download
+
+    - name: Build
+      run: |
+        go build -v .
+
+  # ensure go doc generation is up to date
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
+        with:
+          terraform_version: '1.9.4'
+          terraform_wrapper: false.
+
+      - name: Run go generate
+        run: go generate ./...
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit changes
+        if: steps.git-check.outputs.changes == 'true'
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+        with:
+          commit_message: "go generate: automated update"
+          file_pattern: '.' # current directory and all subdirectories.
+
+  # ensure terraform docs are generated
+  gencheck:
+    name: Check Generated Docs
+    timeout-minutes: 10
+    needs: [build, generate]
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+        with:
+          egress-policy: audit
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 2
+
+      - name: Set up Go
+        uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+        with:
+          cache: true
+          go-version-file: 'go.mod'
+        id: go
+
+      - name: Generate docs and check for differences
+        run: |
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+          tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
+          git diff HEAD --exit-code -- docs/
+  
+  # Release for Partner and Community Providers
+  terraform-provider-release:
+    name: 'Terraform Provider Release'
+    needs: [build, gencheck]
+    uses: deploymenttheory/terraform-provider-microsoft365/.github/workflows/community_release.yml@main
+    secrets:
+      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
+      gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
+    with:
+      release-notes: false # Set to true if you have release notes to include
+      setup-go-version: '1.22.5' # Specify the Go version needed
+  release-notes:
+    runs-on: ubuntu-latest
+    needs: [terraform-provider-release]
+    steps:
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+        with:
+          egress-policy: audit
+          
+      - uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: 0
+      - name: Generate Release Notes
+        run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
+      - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: release-notes
+          path: release-notes.txt
+          retention-days: 1

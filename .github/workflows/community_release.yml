@@ -39,7 +39,7 @@ on:
 
 jobs:
   Release:
-    runs-on: windows-latest-l
+    runs-on: ubuntu-latest # windows-latest-l
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4.1.7
