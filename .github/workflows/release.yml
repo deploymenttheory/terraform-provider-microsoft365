@@ -63,7 +63,7 @@ jobs:
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
       goreleaser-release-args: --parallelism 2 --timeout 90m0s # required due to provider release file size
-      release-notes: true
+      release-notes: false
       setup-go-version: '1.22.5'
 
   release-notes:
