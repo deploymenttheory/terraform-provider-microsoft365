@@ -19,10 +19,6 @@ on:
       - 'go.mod'
       - 'go.sum'
       - 'docs/**'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - 'main'
 
 permissions:
   contents: write
@@ -53,12 +49,7 @@ jobs:
             exit 1
           fi
 
-  call-tests:
-    needs: branch-check
-    uses: ./.github/workflows/test.yml
-
   update-pr:
-    needs: call-tests
     runs-on: ubuntu-latest
     steps:
       - name: Download test results
