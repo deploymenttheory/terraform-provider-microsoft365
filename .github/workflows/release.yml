@@ -63,6 +63,7 @@ jobs:
     with:
       release-notes: false # Set to true if you have release notes to include
       setup-go-version: '1.22.5' # Specify the Go version needed
+      
   release-notes:
     runs-on: ubuntu-latest
     needs: [terraform-provider-release]

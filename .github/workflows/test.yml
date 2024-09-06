@@ -50,7 +50,7 @@ jobs:
           mv terraform-provider-microsoft365 ${{ github.workspace }}/bin/
 
       - name: Upload provider binary
-        uses: actions/upload-artifact@v4.3.6
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 #v4.3.6
         with:
           name: terraform-provider-microsoft365
           path: ${{ github.workspace }}/bin/terraform-provider-microsoft365
