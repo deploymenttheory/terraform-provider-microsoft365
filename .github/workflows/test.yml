@@ -1,6 +1,7 @@
 name: Tests
 
 on:
+  workflow_call:
   pull_request:
     branches:
       - main
@@ -34,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+      - uses: actions/checkout@v4.1.7
+      - uses: actions/setup-go@v5.0.2
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -49,7 +50,7 @@ jobs:
           mv terraform-provider-microsoft365 ${{ github.workspace }}/bin/
 
       - name: Upload provider binary
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        uses: actions/upload-artifact@v4.3.6
         with:
           name: terraform-provider-microsoft365
           path: ${{ github.workspace }}/bin/terraform-provider-microsoft365
@@ -70,13 +71,13 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - uses: hashicorp/setup-terraform@v3.1.2
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       
       - name: Download provider binary
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@v4.1.8
         with:
           name: terraform-provider-microsoft365
           path: ${{ github.workspace }}/bin
@@ -94,20 +95,6 @@ jobs:
       - name: Go mod download
         run: go mod download
       
-      - name: Debug Environment Variables
-        run: |
-          echo "M365_TENANT_ID: $M365_TENANT_ID"
-          echo "M365_AUTH_METHOD: $M365_AUTH_METHOD"
-          echo "M365_CLIENT_ID: $M365_CLIENT_ID"
-          echo "M365_USE_PROXY: $M365_USE_PROXY"
-          echo "M365_CLOUD: $M365_CLOUD"
-        env:
-          M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
-          M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
-          M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
-          M365_USE_PROXY: ${{ vars.TESTS_M365_USE_PROXY }}
-          M365_CLOUD: ${{ vars.TESTS_M365_CLOUD }}
-      
       - name: Setup Provider
         run: |
           mkdir -p ~/.terraform.d/plugins
@@ -117,8 +104,9 @@ jobs:
         run: terraform init
       
       - name: Run Acceptance Tests
+        id: run_tests
         env:
-          # TF_ACC: "1" # TODO enable acceptance tests
+          TF_ACC: "1"
           M365_TENANT_ID: ${{ vars.TESTS_M365_TENANT_ID }}
           M365_AUTH_METHOD: ${{ vars.TESTS_M365_AUTH_METHOD }}
           M365_CLIENT_ID: ${{ vars.TESTS_M365_CLIENT_ID }}
@@ -135,4 +123,32 @@ jobs:
           M365_TELEMETRY_OPTOUT: ${{ vars.TESTS_M365_TELEMETRY_OPTOUT }}
           M365_DEBUG_MODE: ${{ vars.TESTS_M365_DEBUG_MODE }}
         run: |
-          go test -v -cover -race ./... -timeout 30m
+          go test -v -cover -race ./... -timeout 30m > test_output.txt
+          echo "TEST_EXIT_CODE=$?" >> $GITHUB_OUTPUT
+
+      - name: Process test results
+        if: always()
+        run: |
+          BUILD_STATUS="✅ Build Successful"
+          if [ ${{ steps.run_tests.outputs.TEST_EXIT_CODE }} -eq 0 ]; then
+            TEST_STATUS="✅ Tests Passed"
+          else
+            TEST_STATUS="❌ Tests Failed"
+          fi
+          TEST_SUMMARY=$(grep -E "^(PASS|FAIL)" test_output.txt | wc -l)
+          COVERAGE=$(grep -E "^coverage:" test_output.txt | awk '{print $2}')
+          
+          echo "{
+            \"buildStatus\": \"$BUILD_STATUS\",
+            \"testStatus\": \"$TEST_STATUS\",
+            \"testSummary\": \"Total tests run: $TEST_SUMMARY\",
+            \"coverageReport\": \"Code coverage: $COVERAGE\",
+            \"changedFiles\": \"$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})\"
+          }" > test_results.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test_results.json

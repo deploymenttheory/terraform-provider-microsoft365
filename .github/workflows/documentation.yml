@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
   
 jobs:
-  docs:
+  tf-docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -50,3 +50,29 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+
+
+  go-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Generate Go Docs
+      run: go generate ./...
+
+    - name: Check for changes in generated Go docs
+      id: go-gen-check
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Commit changes in Go docs
+      if: steps.go-gen-check.outputs.changes == 'true'
+      uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+      with:
+        commit_message: "go generate: automated update"
+        file_pattern: '.'
