@@ -40,8 +40,6 @@ Please see the roadmap below on the intended provider resource suppport
 
 [Provider Roadmap](./docs/providerroadmap/roadmap.md)
 
-
-
 ## Disclaimer
 
 While every effort is made to maintain accuracy and reliability, users should thoroughly test configurations in non-production environments before deploying to production. Always refer to official Microsoft documentation for the most up-to-date information on Microsoft 365 services and features.
