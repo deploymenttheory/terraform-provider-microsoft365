@@ -28,15 +28,19 @@ The Community Terraform Provider for Microsoft 365 empowers DevOps teams and adm
 
 As a community-driven project, contributions, feedback, and issue reports are welcome and encouraged. Together, we can enhance and expand the capabilities of this provider to meet the evolving needs of Microsoft 365 administrators and DevOps professionals.
 
+### Development Guide
+
+The style guidelines and the design decisions for this provider can be found here
+
+[Development Guide](./docs/developmentguide/guide.md)
+
 ## Community Terraform Provider for Microsoft 365 Provider Roadmap
 
 Please see the roadmap below on the intended provider resource suppport
 
 [Provider Roadmap](./docs/providerroadmap/roadmap.md)
 
-## Development Guide
 
-[Development Guide](./docs/developmentguide/guide.md)
 
 ## Disclaimer
 
