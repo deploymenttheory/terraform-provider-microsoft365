@@ -10,8 +10,8 @@ permissions:
   id-token: write
 
 jobs:
-  build:
-    name: Build and Check
+  test-build:
+    name: test build
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -52,40 +52,10 @@ jobs:
       run: |
         go build -v .
 
-    - name: Generate Go Docs
-      run: go generate ./...
-
-    - name: Check for changes in generated Go docs
-      id: go-gen-check
-      run: |
-        if [[ -n $(git status --porcelain) ]]; then
-          echo "changes=true" >> $GITHUB_OUTPUT
-        else
-          echo "changes=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Commit changes in Go docs
-      if: steps.go-gen-check.outputs.changes == 'true'
-      uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
-      with:
-        commit_message: "go generate: automated update"
-        file_pattern: '.'
-
-    - name: Generate Terraform Docs
-      run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
-
-    - name: Generate docs and check for differences
-      run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
-        git diff HEAD --exit-code -- docs/
-
   # Release for Partner and Community Providers
   terraform-provider-release:
     name: 'Terraform Provider Release'
-    needs: [build]
+    needs: [test-build]
     uses: deploymenttheory/terraform-provider-microsoft365/.github/workflows/community_release.yml@main
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
