@@ -1,5 +1,7 @@
 # cloned from hashicorp and modifed to support ubuntu-latest-m , which provides more disk space
 # for go build to complete successfully.
+name: terraform registry with goreleaser
+
 on:
   workflow_call:
     inputs:
