@@ -3,6 +3,27 @@ name: Unit Tests
 on:
   push:
     branches: [ '*' ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.yml'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'examples/**'
+      - 'website/**'
+      - '.vscode/**'
+      - '.idea/**'
+      - '**/*.txt'
+      - '**/*.png'
+      - '**/*.jpg'
+      - '**/*.svg'
+      - '.golangci.yml'
+      - 'Makefile'
+      - 'scripts/**'
+      - '.dockerignore'
+      - 'Dockerfile'
 
 jobs:
   test:
