@@ -41,7 +41,7 @@ jobs:
         with:
           ref: ${{ inputs.git-ref }}
           fetch-depth: 0
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+      - uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.1
         with:
           go-version: ${{ inputs.setup-go-version }}
           go-version-file: ${{ inputs.setup-go-version-file }}
