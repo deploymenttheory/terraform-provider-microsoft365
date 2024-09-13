@@ -18,8 +18,6 @@ No modules.
 | Name | Type |
 |------|------|
 | [microsoft365_graph_beta_device_and_app_management_role_definition.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_role_definition) | resource |
-| [microsoft365_graph_beta_device_and_app_management_role_definition.helpdesk_assignment](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_role_definition) | resource |
-| [microsoft365_graph_beta_device_and_app_management_role_definition.helpdesk_admin](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/data-sources/graph_beta_device_and_app_management_role_definition) | data source |
 
 ## Inputs
 
@@ -27,7 +25,5 @@ No inputs.
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_helpdesk_admin_role"></a> [helpdesk_admin_role](#output_helpdesk_admin_role) | n/a |
+No outputs.
 <!-- END_TF_DOCS -->
