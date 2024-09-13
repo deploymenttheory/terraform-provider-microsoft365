@@ -1,4 +1,4 @@
-resource "microsoft365_cloud_pc_device_image" "example" {
+resource "microsoft365_device_and_app_management_cloud_pc_device_image" "example" {
   display_name             = "My Custom Device Image"
   source_image_resource_id = "/subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.Compute/images/your-image-name"
   version                  = "1.0.0"
@@ -17,7 +17,7 @@ resource "microsoft365_cloud_pc_device_image" "example" {
 }
 
 # Resource: Create a new Cloud PC Device Image
-resource "microsoft365_cloud_pc_device_image" "example" {
+resource "microsoft365_device_and_app_management_cloud_pc_device_image" "example" {
   display_name             = "My Custom Device Image"
   source_image_resource_id = "/subscriptions/your-subscription-id/resourceGroups/your-resource-group/providers/Microsoft.Compute/images/your-image-name"
   version                  = "1.0.0"
