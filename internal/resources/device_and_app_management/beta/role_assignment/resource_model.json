@@ -1,0 +1,13 @@
+{
+  "@odata.type": "#microsoft.graph.roleAssignment",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "scopeMembers": [
+    "String"
+  ],
+  "scopeType": "String",
+  "resourceScopes": [
+    "String"
+  ]
+}
