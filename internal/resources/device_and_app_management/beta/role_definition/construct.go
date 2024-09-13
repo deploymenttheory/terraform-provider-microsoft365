@@ -2,7 +2,6 @@ package graphbetaroledefinition
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -89,7 +88,37 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Constructed Role Definition resource: %v", roleDef))
+	debugPrintRoleDefinition(ctx, roleDef)
 
 	return roleDef, nil
+}
+
+func debugPrintRoleDefinition(ctx context.Context, roleDef models.RoleDefinitionable) {
+	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
+		"id":                          roleDef.GetId(),
+		"display_name":                roleDef.GetDisplayName(),
+		"description":                 roleDef.GetDescription(),
+		"is_built_in":                 roleDef.GetIsBuiltIn(),
+		"is_built_in_role_definition": roleDef.GetIsBuiltInRoleDefinition(),
+		"role_scope_tag_ids":          roleDef.GetRoleScopeTagIds(),
+	})
+
+	if rolePermissions := roleDef.GetRolePermissions(); rolePermissions != nil {
+		for i, perm := range rolePermissions {
+			tflog.Debug(ctx, "Role Permission", map[string]interface{}{
+				"index":   i,
+				"actions": perm.GetActions(),
+			})
+			if resourceActions := perm.GetResourceActions(); resourceActions != nil {
+				for j, resAction := range resourceActions {
+					tflog.Debug(ctx, "Resource Action", map[string]interface{}{
+						"permission_index":             i,
+						"resource_action_index":        j,
+						"allowed_resource_actions":     resAction.GetAllowedResourceActions(),
+						"not_allowed_resource_actions": resAction.GetNotAllowedResourceActions(),
+					})
+				}
+			}
+		}
+	}
 }
