@@ -1,53 +1,33 @@
 resource "microsoft365_graph_beta_device_and_app_management_role_definition" "example" {
-  display_name = "Custom Role - Device Management"
-  description  = "This role allows management of device configurations and limited user read access"
-  is_built_in  = false
+  display_name                = "Custom Intune Role Definition"
+  description                 = "This is a custom Intune role definition for device and app management"
+  is_built_in                 = false
+  is_built_in_role_definition = false
 
   role_permissions {
+    actions = ["microsoft.intune/"]
     resource_actions {
       allowed_resource_actions = [
-        "microsoft.graph.read",
-        "microsoft.graph.deviceManagement.read",
-        "microsoft.graph.deviceManagement.configurations.read",
-        "microsoft.graph.deviceManagement.configurations.create",
-        "microsoft.graph.deviceManagement.configurations.update"
+        "microsoft.intune/deviceConfigurations/read",
+        "microsoft.intune/deviceConfigurations/basic/read",
+        "microsoft.intune/deviceConfigurations/assign/action",
+        "microsoft.intune/managedDevices/read",
+        "microsoft.intune/managedDevices/resetPasscode/action",
+        "microsoft.intune/managedApps/read",
+        "microsoft.intune/mobileApps/read",
+        "microsoft.intune/mobileApps/assign/action"
       ]
       not_allowed_resource_actions = [
-        "microsoft.graph.deviceManagement.configurations.delete",
-        "microsoft.graph.user.write"
+        "microsoft.intune/deviceConfigurations/create",
+        "microsoft.intune/deviceConfigurations/delete",
+        "microsoft.intune/managedDevices/delete",
+        "microsoft.intune/managedApps/wipe/action"
       ]
     }
   }
 
   role_scope_tag_ids = [
-    "00000000-0000-0000-0000-000000000001",
-    "00000000-0000-0000-0000-000000000002"
+    "scope_tag_1",
+    "scope_tag_2"
   ]
-
-  timeouts {
-    create = "30m"
-    read   = "5m"
-    update = "30m"
-    delete = "30m"
-  }
-}
-
-data "microsoft365_graph_beta_device_and_app_management_role_definition" "helpdesk_admin" {
-  display_name = "Helpdesk Administrator"
-  is_built_in  = true
-}
-
-output "helpdesk_admin_role" {
-  value = data.microsoft365_graph_beta_device_and_app_management_role_definition.helpdesk_admin
-}
-
-resource "microsoft365_graph_beta_device_and_app_management_role_definition" "helpdesk_assignment" {
-  role_definition_id = data.microsoft365_graph_beta_device_and_app_management_role_definition.helpdesk_admin.id
-  principal_id       = "00000000-0000-0000-0000-000000000003"  # ID of the user or group to assign the role to
-  
-  timeouts {
-    create = "15m"
-    read   = "5m"
-    delete = "15m"
-  }
 }

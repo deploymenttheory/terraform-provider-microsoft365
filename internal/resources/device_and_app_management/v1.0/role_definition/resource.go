@@ -77,23 +77,15 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"resource_actions": schema.ListNestedAttribute{
-							Description: "Resource Actions for the Role Permission",
-							Required:    true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.ListAttribute{
-										Description: "Allowed Resource Actions",
-										Optional:    true,
-										ElementType: types.StringType,
-									},
-									"not_allowed_resource_actions": schema.ListAttribute{
-										Description: "Not Allowed Resource Actions",
-										Optional:    true,
-										ElementType: types.StringType,
-									},
-								},
-							},
+						"allowed_resource_actions": schema.ListAttribute{
+							Description: "Allowed Resource Actions",
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+						"not_allowed_resource_actions": schema.ListAttribute{
+							Description: "Not Allowed Resource Actions",
+							Optional:    true,
+							ElementType: types.StringType,
 						},
 					},
 				},

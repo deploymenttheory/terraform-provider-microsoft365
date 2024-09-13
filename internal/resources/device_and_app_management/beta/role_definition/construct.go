@@ -2,7 +2,6 @@ package graphbetaroledefinition
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -29,10 +28,25 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetIsBuiltIn(&isBuiltIn)
 	}
 
+	if !data.IsBuiltInRoleDefinition.IsNull() && !data.IsBuiltInRoleDefinition.IsUnknown() {
+		isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
+		roleDef.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
+	}
+
 	if len(data.RolePermissions) > 0 {
 		rolePermissions := make([]models.RolePermissionable, 0, len(data.RolePermissions))
 		for _, v := range data.RolePermissions {
 			rolePermission := models.NewRolePermission()
+
+			if len(v.Actions) > 0 {
+				actions := make([]string, 0, len(v.Actions))
+				for _, a := range v.Actions {
+					if !a.IsNull() && !a.IsUnknown() {
+						actions = append(actions, a.ValueString())
+					}
+				}
+				rolePermission.SetActions(actions)
+			}
 
 			if len(v.ResourceActions) > 0 {
 				resourceActions := make([]models.ResourceActionable, 0, len(v.ResourceActions))
@@ -65,12 +79,17 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetRolePermissions(rolePermissions)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(roleDef, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
+	if len(data.RoleScopeTagIds) > 0 {
+		roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
+		for _, id := range data.RoleScopeTagIds {
+			if !id.IsNull() && !id.IsUnknown() {
+				roleScopeTagIds = append(roleScopeTagIds, id.ValueString())
+			}
+		}
+		roleDef.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	tflog.Debug(ctx, "Constructed Role Definition resource:\n"+string(requestBodyJSON))
+	tflog.Debug(ctx, fmt.Sprintf("Constructed Role Definition resource: %v", roleDef))
 
 	return roleDef, nil
 }
