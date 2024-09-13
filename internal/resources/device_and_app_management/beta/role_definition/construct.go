@@ -3,7 +3,6 @@ package graphbetaroledefinition
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -29,10 +28,25 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetIsBuiltIn(&isBuiltIn)
 	}
 
+	if !data.IsBuiltInRoleDefinition.IsNull() && !data.IsBuiltInRoleDefinition.IsUnknown() {
+		isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
+		roleDef.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
+	}
+
 	if len(data.RolePermissions) > 0 {
 		rolePermissions := make([]models.RolePermissionable, 0, len(data.RolePermissions))
 		for _, v := range data.RolePermissions {
 			rolePermission := models.NewRolePermission()
+
+			if len(v.Actions) > 0 {
+				actions := make([]string, 0, len(v.Actions))
+				for _, a := range v.Actions {
+					if !a.IsNull() && !a.IsUnknown() {
+						actions = append(actions, a.ValueString())
+					}
+				}
+				rolePermission.SetActions(actions)
+			}
 
 			if len(v.ResourceActions) > 0 {
 				resourceActions := make([]models.ResourceActionable, 0, len(v.ResourceActions))
@@ -65,12 +79,63 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetRolePermissions(rolePermissions)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(roleDef, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
+	if len(data.RoleScopeTagIds) > 0 {
+		roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
+		for _, id := range data.RoleScopeTagIds {
+			if !id.IsNull() && !id.IsUnknown() {
+				roleScopeTagIds = append(roleScopeTagIds, id.ValueString())
+			}
+		}
+		roleDef.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	tflog.Debug(ctx, "Constructed Role Definition resource:\n"+string(requestBodyJSON))
+	debugPrintRoleDefinition(ctx, roleDef)
 
 	return roleDef, nil
+}
+
+func debugPrintRoleDefinition(ctx context.Context, roleDef models.RoleDefinitionable) {
+	roleDefMap := map[string]interface{}{
+		"id":                          roleDef.GetId(),
+		"display_name":                roleDef.GetDisplayName(),
+		"description":                 roleDef.GetDescription(),
+		"is_built_in":                 roleDef.GetIsBuiltIn(),
+		"is_built_in_role_definition": roleDef.GetIsBuiltInRoleDefinition(),
+		"role_scope_tag_ids":          roleDef.GetRoleScopeTagIds(),
+		"role_permissions":            debugMapRolePermissions(roleDef.GetRolePermissions()),
+	}
+
+	roleDefJSON, err := json.MarshalIndent(roleDefMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling RoleDefinition to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
+		"roleDefinition": string(roleDefJSON),
+	})
+}
+
+func debugMapRolePermissions(permissions []models.RolePermissionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(permissions))
+	for i, perm := range permissions {
+		result[i] = map[string]interface{}{
+			"actions":          perm.GetActions(),
+			"resource_actions": debugMapResourceActions(perm.GetResourceActions()),
+		}
+	}
+	return result
+}
+
+func debugMapResourceActions(actions []models.ResourceActionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(actions))
+	for i, action := range actions {
+		result[i] = map[string]interface{}{
+			"allowed_resource_actions":     action.GetAllowedResourceActions(),
+			"not_allowed_resource_actions": action.GetNotAllowedResourceActions(),
+		}
+	}
+	return result
 }

@@ -73,14 +73,35 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 		script.SetRunAs32Bit(&runAs32Bit)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(script, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed DeviceManagementScript resource:\n"+string(requestBodyJSON))
+	// Debug logging
+	debugPrintRequestBody(ctx, script)
 
 	return script, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, script models.DeviceManagementScriptable) {
+	requestMap := map[string]interface{}{
+		"displayName":           script.GetDisplayName(),
+		"description":           script.GetDescription(),
+		"scriptContent":         script.GetScriptContent(),
+		"runAsAccount":          script.GetRunAsAccount(),
+		"enforceSignatureCheck": script.GetEnforceSignatureCheck(),
+		"fileName":              script.GetFileName(),
+		"roleScopeTagIds":       script.GetRoleScopeTagIds(),
+		"runAs32Bit":            script.GetRunAs32Bit(),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
 }
 
 func constructAssignments(ctx context.Context, assignments []DeviceManagementScriptAssignmentResourceModel) ([]models.DeviceManagementScriptAssignmentable, error) {
@@ -121,14 +142,34 @@ func constructAssignments(ctx context.Context, assignments []DeviceManagementScr
 		constructedAssignments = append(constructedAssignments, newAssignment)
 	}
 
-	assignmentsJSON, err := json.MarshalIndent(constructedAssignments, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling assignments to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed DeviceManagementScript assignments:\n"+string(assignmentsJSON))
+	// Debug logging
+	debugPrintAssignments(ctx, constructedAssignments)
 
 	return constructedAssignments, nil
+}
+
+func debugPrintAssignments(ctx context.Context, assignments []models.DeviceManagementScriptAssignmentable) {
+	assignmentsMap := make([]map[string]interface{}, len(assignments))
+
+	for i, assignment := range assignments {
+		target := assignment.GetTarget()
+		assignmentsMap[i] = map[string]interface{}{
+			"filterType": target.GetDeviceAndAppManagementAssignmentFilterType(),
+			"filterId":   target.GetDeviceAndAppManagementAssignmentFilterId(),
+		}
+	}
+
+	assignmentsJSON, err := json.MarshalIndent(assignmentsMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling assignments to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript assignments", map[string]interface{}{
+		"assignments": string(assignmentsJSON),
+	})
 }
 
 func constructGroupAssignments(ctx context.Context, groupAssignments []DeviceManagementScriptGroupAssignmentResourceModel) ([]models.DeviceManagementScriptGroupAssignmentable, error) {
@@ -145,12 +186,30 @@ func constructGroupAssignments(ctx context.Context, groupAssignments []DeviceMan
 		constructedGroupAssignments = append(constructedGroupAssignments, newGroupAssignment)
 	}
 
-	groupAssignmentsJSON, err := json.MarshalIndent(constructedGroupAssignments, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling group assignments to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed DeviceManagementScript group assignments:\n"+string(groupAssignmentsJSON))
+	// Debug logging
+	debugPrintGroupAssignments(ctx, constructedGroupAssignments)
 
 	return constructedGroupAssignments, nil
+}
+
+func debugPrintGroupAssignments(ctx context.Context, groupAssignments []models.DeviceManagementScriptGroupAssignmentable) {
+	groupAssignmentsMap := make([]map[string]interface{}, len(groupAssignments))
+
+	for i, groupAssignment := range groupAssignments {
+		groupAssignmentsMap[i] = map[string]interface{}{
+			"targetGroupId": groupAssignment.GetTargetGroupId(),
+		}
+	}
+
+	groupAssignmentsJSON, err := json.MarshalIndent(groupAssignmentsMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling group assignments to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed DeviceManagementScript group assignments", map[string]interface{}{
+		"groupAssignments": string(groupAssignmentsJSON),
+	})
 }

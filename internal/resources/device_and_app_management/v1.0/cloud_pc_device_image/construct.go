@@ -3,7 +3,6 @@ package graphCloudPcDeviceImage
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -29,17 +28,28 @@ func constructResource(ctx context.Context, data *CloudPcDeviceImageResourceMode
 		requestBody.SetVersion(&version)
 	}
 
-	// Convert the request body to JSON for logging
-	requestBodyJSON, err := json.MarshalIndent(map[string]interface{}{
+	// Debug logging
+	debugPrintRequestBody(ctx, requestBody)
+
+	return requestBody, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, requestBody *models.CloudPcDeviceImage) {
+	requestMap := map[string]interface{}{
 		"displayName":           requestBody.GetDisplayName(),
 		"sourceImageResourceId": requestBody.GetSourceImageResourceId(),
 		"version":               requestBody.GetVersion(),
-	}, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
 	}
 
-	tflog.Debug(ctx, "Constructed Cloud PC Device Image resource:\n"+string(requestBodyJSON))
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
 
-	return requestBody, nil
+	tflog.Debug(ctx, "Constructed Cloud PC Device Image resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
 }

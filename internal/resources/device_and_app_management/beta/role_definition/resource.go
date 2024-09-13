@@ -72,15 +72,32 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				Description: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
 				Optional:    true,
 			},
-			"role_permissions": schema.ListNestedAttribute{
-				Description: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
-				Required:    true,
-				NestedObject: schema.NestedAttributeObject{
+			"is_built_in_role_definition": schema.BoolAttribute{
+				Description: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
+				Optional:    true,
+			},
+			"role_scope_tag_ids": schema.ListAttribute{
+				Description: "List of scope tag ids for the role definition",
+				Optional:    true,
+				ElementType: types.StringType,
+			},
+			"timeouts": commonschema.Timeouts(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"role_permissions": schema.ListNestedBlock{
+				Description: "List of Role Permissions this role is allowed to perform.",
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
-						"resource_actions": schema.ListNestedAttribute{
-							Description: "Resource Actions for the Role Permission",
-							Required:    true,
-							NestedObject: schema.NestedAttributeObject{
+						"actions": schema.ListAttribute{
+							Description: "Allowed actions",
+							Optional:    true,
+							ElementType: types.StringType,
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"resource_actions": schema.ListNestedBlock{
+							Description: "Resource actions for this role permission",
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"allowed_resource_actions": schema.ListAttribute{
 										Description: "Allowed Resource Actions",
@@ -98,12 +115,6 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 					},
 				},
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
-				Description: "List of scope tag ids for this Role Definition.",
-				Optional:    true,
-				ElementType: types.StringType,
-			},
-			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

@@ -131,12 +131,67 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(requestBody, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed provisioning policy resource:\n"+string(requestBodyJSON))
+	// Debug logging
+	debugPrintRequestBody(ctx, requestBody)
 
 	return requestBody, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, requestBody *models.CloudPcProvisioningPolicy) {
+	requestMap := map[string]interface{}{
+		"displayName":              requestBody.GetDisplayName(),
+		"description":              requestBody.GetDescription(),
+		"cloudPcNamingTemplate":    requestBody.GetCloudPcNamingTemplate(),
+		"enableSingleSignOn":       requestBody.GetEnableSingleSignOn(),
+		"imageId":                  requestBody.GetImageId(),
+		"imageType":                requestBody.GetImageType(),
+		"localAdminEnabled":        requestBody.GetLocalAdminEnabled(),
+		"provisioningType":         requestBody.GetProvisioningType(),
+		"microsoftManagedDesktop":  debugMapMicrosoftManagedDesktop(requestBody.GetMicrosoftManagedDesktop()),
+		"domainJoinConfigurations": debugMapDomainJoinConfigurations(requestBody.GetDomainJoinConfigurations()),
+		"windowsSetting":           debugMapWindowsSetting(requestBody.GetWindowsSetting()),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed Cloud PC Provisioning Policy resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
+}
+
+func debugMapMicrosoftManagedDesktop(mmd models.MicrosoftManagedDesktopable) map[string]interface{} {
+	if mmd == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"managedType": mmd.GetManagedType(),
+		"profile":     mmd.GetProfile(),
+	}
+}
+
+func debugMapDomainJoinConfigurations(configs []models.CloudPcDomainJoinConfigurationable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(configs))
+	for i, config := range configs {
+		result[i] = map[string]interface{}{
+			"domainJoinType":         config.GetDomainJoinType(),
+			"onPremisesConnectionId": config.GetOnPremisesConnectionId(),
+			"regionName":             config.GetRegionName(),
+		}
+	}
+	return result
+}
+
+func debugMapWindowsSetting(setting models.CloudPcWindowsSettingable) map[string]interface{} {
+	if setting == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"locale": setting.GetLocale(),
+	}
 }

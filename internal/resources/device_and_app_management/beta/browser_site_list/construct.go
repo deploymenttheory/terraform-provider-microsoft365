@@ -3,7 +3,6 @@ package graphbetabrowsersite
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -24,12 +23,26 @@ func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) 
 		siteList.SetDisplayName(&displayName)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(siteList, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed BrowserSiteList resource:\n"+string(requestBodyJSON))
+	debugPrintRequestBody(ctx, siteList)
 
 	return siteList, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, siteList models.BrowserSiteListable) {
+	requestMap := map[string]interface{}{
+		"description": siteList.GetDescription(),
+		"displayName": siteList.GetDisplayName(),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
 }
