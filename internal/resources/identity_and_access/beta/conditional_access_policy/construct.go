@@ -2,8 +2,11 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -864,6 +867,77 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 	}
 
 	return sessionControls, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, requestBody *models.ConditionalAccessPolicy) {
+	requestMap := map[string]interface{}{
+		"displayName":     requestBody.GetDisplayName(),
+		"description":     requestBody.GetDescription(),
+		"state":           requestBody.GetState(),
+		"conditions":      debugMapConditions(requestBody.GetConditions()),
+		"grantControls":   debugMapGrantControls(requestBody.GetGrantControls()),
+		"sessionControls": debugMapSessionControls(requestBody.GetSessionControls()),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed ConditionalAccessPolicy resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
+}
+
+func debugMapConditions(conditions models.ConditionalAccessConditionSetable) map[string]interface{} {
+	if conditions == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"applications":               debugMapApplications(conditions.GetApplications()),
+		"users":                      debugMapUsers(conditions.GetUsers()),
+		"clientApplications":         debugMapClientApplications(conditions.GetClientApplications()),
+		"devices":                    debugMapDevices(conditions.GetDevices()),
+		"locations":                  debugMapLocations(conditions.GetLocations()),
+		"platforms":                  debugMapPlatforms(conditions.GetPlatforms()),
+		"signInRiskLevels":           conditions.GetSignInRiskLevels(),
+		"userRiskLevels":             conditions.GetUserRiskLevels(),
+		"clientAppTypes":             conditions.GetClientAppTypes(),
+		"servicePrincipalRiskLevels": conditions.GetServicePrincipalRiskLevels(),
+	}
+}
+
+// Add similar debug mapping functions for other nested structures...
+
+func debugMapGrantControls(controls models.ConditionalAccessGrantControlsable) map[string]interface{} {
+	if controls == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"operator":                    controls.GetOperator(),
+		"builtInControls":             controls.GetBuiltInControls(),
+		"customAuthenticationFactors": controls.GetCustomAuthenticationFactors(),
+		"termsOfUse":                  controls.GetTermsOfUse(),
+		"authenticationStrength":      debugMapAuthenticationStrength(controls.GetAuthenticationStrength()),
+	}
+}
+
+func debugMapSessionControls(controls models.ConditionalAccessSessionControlsable) map[string]interface{} {
+	if controls == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"applicationEnforcedRestrictions": debugMapApplicationEnforcedRestrictions(controls.GetApplicationEnforcedRestrictions()),
+		"cloudAppSecurity":                debugMapCloudAppSecurity(controls.GetCloudAppSecurity()),
+		"signInFrequency":                 debugMapSignInFrequency(controls.GetSignInFrequency()),
+		"persistentBrowser":               debugMapPersistentBrowser(controls.GetPersistentBrowser()),
+		"continuousAccessEvaluation":      debugMapContinuousAccessEvaluation(controls.GetContinuousAccessEvaluation()),
+		"secureSignInSession":             debugMapSecureSignInSession(controls.GetSecureSignInSession()),
+		"disableResilienceDefaults":       controls.GetDisableResilienceDefaults(),
+	}
 }
 
 func debugMapApplications(apps models.ConditionalAccessApplicationsable) map[string]interface{} {
