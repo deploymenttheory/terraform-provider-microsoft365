@@ -59,12 +59,34 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 	}
 	requestBody.SetRoleScopeTags(roleScopeTags)
 
-	requestBodyJSON, err := json.MarshalIndent(requestBody, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed assignment filter resource:\n"+string(requestBodyJSON))
+	// Debug logging
+	debugPrintRequestBody(ctx, requestBody)
 
 	return requestBody, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, requestBody *models.DeviceAndAppManagementAssignmentFilter) {
+	// Create a map to store the request body data
+	requestMap := map[string]interface{}{
+		"displayName":                    requestBody.GetDisplayName(),
+		"description":                    requestBody.GetDescription(),
+		"platform":                       requestBody.GetPlatform(),
+		"rule":                           requestBody.GetRule(),
+		"assignmentFilterManagementType": requestBody.GetAssignmentFilterManagementType(),
+		"roleScopeTags":                  requestBody.GetRoleScopeTags(),
+	}
+
+	// Marshal the map to JSON
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Log the JSON representation of the request body
+	tflog.Debug(ctx, "Constructed assignment filter resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
 }

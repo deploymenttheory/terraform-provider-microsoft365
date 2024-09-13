@@ -7,22 +7,22 @@ import (
 )
 
 type RoleDefinitionResourceModel struct {
-	ID                      types.String                  `tfsdk:"id" json:"id,omitempty"`
-	DisplayName             types.String                  `tfsdk:"display_name" json:"displayName,omitempty"`
-	Description             types.String                  `tfsdk:"description" json:"description,omitempty"`
-	IsBuiltIn               types.Bool                    `tfsdk:"is_built_in" json:"isBuiltIn,omitempty"`
-	IsBuiltInRoleDefinition types.Bool                    `tfsdk:"is_built_in_role_definition" json:"isBuiltInRoleDefinition,omitempty"`
-	RolePermissions         []RolePermissionResourceModel `tfsdk:"role_permissions" json:"rolePermissions,omitempty"`
-	RoleScopeTagIds         []types.String                `tfsdk:"role_scope_tag_ids" json:"roleScopeTagIds,omitempty"`
-	Timeouts                timeouts.Value                `tfsdk:"timeouts" json:"-"` // Exclude from JSON
+	ID                      types.String                  `tfsdk:"id"`
+	DisplayName             types.String                  `tfsdk:"display_name"`
+	Description             types.String                  `tfsdk:"description"`
+	IsBuiltIn               types.Bool                    `tfsdk:"is_built_in"`
+	IsBuiltInRoleDefinition types.Bool                    `tfsdk:"is_built_in_role_definition"`
+	RolePermissions         []RolePermissionResourceModel `tfsdk:"role_permissions"`
+	RoleScopeTagIds         []types.String                `tfsdk:"role_scope_tag_ids"`
+	Timeouts                timeouts.Value                `tfsdk:"timeouts"`
 }
 
 type RolePermissionResourceModel struct {
-	Actions         []types.String                `tfsdk:"actions" json:"actions,omitempty"`
-	ResourceActions []ResourceActionResourceModel `tfsdk:"resource_actions" json:"resourceActions,omitempty"`
+	Actions         []types.String                `tfsdk:"actions"`
+	ResourceActions []ResourceActionResourceModel `tfsdk:"resource_actions"`
 }
 
 type ResourceActionResourceModel struct {
-	AllowedResourceActions    []types.String `tfsdk:"allowed_resource_actions" json:"allowedResourceActions,omitempty"`
-	NotAllowedResourceActions []types.String `tfsdk:"not_allowed_resource_actions" json:"notAllowedResourceActions,omitempty"`
+	AllowedResourceActions    []types.String `tfsdk:"allowed_resource_actions"`
+	NotAllowedResourceActions []types.String `tfsdk:"not_allowed_resource_actions"`
 }

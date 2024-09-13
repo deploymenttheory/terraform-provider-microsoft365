@@ -74,12 +74,30 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 		site.SetWebUrl(&webUrl)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(site, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed BrowserSite resource:\n"+string(requestBodyJSON))
+	debugPrintRequestBody(ctx, site)
 
 	return site, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, site models.BrowserSiteable) {
+	requestMap := map[string]interface{}{
+		"allowRedirect":     site.GetAllowRedirect(),
+		"comment":           site.GetComment(),
+		"compatibilityMode": site.GetCompatibilityMode(),
+		"mergeType":         site.GetMergeType(),
+		"targetEnvironment": site.GetTargetEnvironment(),
+		"webUrl":            site.GetWebUrl(),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
 }

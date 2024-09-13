@@ -41,16 +41,53 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 		installationOptions.SetAppsForMac(appsForMac)
 	}
 
-	// Create an AdminMicrosoft365Apps object and set the installation options
 	requestBody := models.NewAdminMicrosoft365Apps()
 	requestBody.SetInstallationOptions(installationOptions)
 
-	requestBodyJSON, err := json.MarshalIndent(requestBody, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed AdminMicrosoft365Apps resource:\n"+string(requestBodyJSON))
+	// Debug logging
+	debugPrintRequestBody(ctx, requestBody)
 
 	return requestBody, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, requestBody models.AdminMicrosoft365Appsable) {
+	requestMap := map[string]interface{}{
+		"installationOptions": debugMapInstallationOptions(requestBody.GetInstallationOptions()),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed AdminMicrosoft365Apps resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
+}
+
+func debugMapInstallationOptions(options models.M365AppsInstallationOptionsable) map[string]interface{} {
+	optionsMap := map[string]interface{}{
+		"updateChannel": options.GetUpdateChannel(),
+	}
+
+	if appsForWindows := options.GetAppsForWindows(); appsForWindows != nil {
+		optionsMap["appsForWindows"] = map[string]interface{}{
+			"isMicrosoft365AppsEnabled": appsForWindows.GetIsMicrosoft365AppsEnabled(),
+			"isProjectEnabled":          appsForWindows.GetIsProjectEnabled(),
+			"isSkypeForBusinessEnabled": appsForWindows.GetIsSkypeForBusinessEnabled(),
+			"isVisioEnabled":            appsForWindows.GetIsVisioEnabled(),
+		}
+	}
+
+	if appsForMac := options.GetAppsForMac(); appsForMac != nil {
+		optionsMap["appsForMac"] = map[string]interface{}{
+			"isMicrosoft365AppsEnabled": appsForMac.GetIsMicrosoft365AppsEnabled(),
+			"isSkypeForBusinessEnabled": appsForMac.GetIsSkypeForBusinessEnabled(),
+		}
+	}
+
+	return optionsMap
 }
