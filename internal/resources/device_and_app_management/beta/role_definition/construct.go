@@ -2,6 +2,7 @@ package graphbetaroledefinition
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -94,31 +95,47 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 }
 
 func debugPrintRoleDefinition(ctx context.Context, roleDef models.RoleDefinitionable) {
-	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
+	roleDefMap := map[string]interface{}{
 		"id":                          roleDef.GetId(),
 		"display_name":                roleDef.GetDisplayName(),
 		"description":                 roleDef.GetDescription(),
 		"is_built_in":                 roleDef.GetIsBuiltIn(),
 		"is_built_in_role_definition": roleDef.GetIsBuiltInRoleDefinition(),
 		"role_scope_tag_ids":          roleDef.GetRoleScopeTagIds(),
-	})
+		"role_permissions":            debugMapRolePermissions(roleDef.GetRolePermissions()),
+	}
 
-	if rolePermissions := roleDef.GetRolePermissions(); rolePermissions != nil {
-		for i, perm := range rolePermissions {
-			tflog.Debug(ctx, "Role Permission", map[string]interface{}{
-				"index":   i,
-				"actions": perm.GetActions(),
-			})
-			if resourceActions := perm.GetResourceActions(); resourceActions != nil {
-				for j, resAction := range resourceActions {
-					tflog.Debug(ctx, "Resource Action", map[string]interface{}{
-						"permission_index":             i,
-						"resource_action_index":        j,
-						"allowed_resource_actions":     resAction.GetAllowedResourceActions(),
-						"not_allowed_resource_actions": resAction.GetNotAllowedResourceActions(),
-					})
-				}
-			}
+	roleDefJSON, err := json.MarshalIndent(roleDefMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling RoleDefinition to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
+		"roleDefinition": string(roleDefJSON),
+	})
+}
+
+func debugMapRolePermissions(permissions []models.RolePermissionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(permissions))
+	for i, perm := range permissions {
+		result[i] = map[string]interface{}{
+			"actions":          perm.GetActions(),
+			"resource_actions": debugMapResourceActions(perm.GetResourceActions()),
 		}
 	}
+	return result
+}
+
+func debugMapResourceActions(actions []models.ResourceActionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(actions))
+	for i, action := range actions {
+		result[i] = map[string]interface{}{
+			"allowed_resource_actions":     action.GetAllowedResourceActions(),
+			"not_allowed_resource_actions": action.GetNotAllowedResourceActions(),
+		}
+	}
+	return result
 }
