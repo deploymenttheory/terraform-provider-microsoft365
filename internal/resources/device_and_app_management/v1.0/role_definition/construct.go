@@ -3,7 +3,6 @@ package graphroledefinition
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
@@ -65,12 +64,50 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetRolePermissions(rolePermissions)
 	}
 
-	requestBodyJSON, err := json.MarshalIndent(roleDef, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed Role Definition resource:\n"+string(requestBodyJSON))
+	// Debug logging
+	debugPrintRequestBody(ctx, roleDef)
 
 	return roleDef, nil
+}
+
+func debugPrintRequestBody(ctx context.Context, roleDef models.RoleDefinitionable) {
+	requestMap := map[string]interface{}{
+		"displayName":     roleDef.GetDisplayName(),
+		"description":     roleDef.GetDescription(),
+		"isBuiltIn":       roleDef.GetIsBuiltIn(),
+		"rolePermissions": debugMapRolePermissions(roleDef.GetRolePermissions()),
+	}
+
+	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
+	if err != nil {
+		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
+		"requestBody": string(requestBodyJSON),
+	})
+}
+
+func debugMapRolePermissions(permissions []models.RolePermissionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(permissions))
+	for i, perm := range permissions {
+		result[i] = map[string]interface{}{
+			"resourceActions": debugMapResourceActions(perm.GetResourceActions()),
+		}
+	}
+	return result
+}
+
+func debugMapResourceActions(actions []models.ResourceActionable) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(actions))
+	for i, action := range actions {
+		result[i] = map[string]interface{}{
+			"allowedResourceActions":    action.GetAllowedResourceActions(),
+			"notAllowedResourceActions": action.GetNotAllowedResourceActions(),
+		}
+	}
+	return result
 }
