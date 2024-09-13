@@ -1,0 +1,23 @@
+{
+  "@odata.type": "#microsoft.graph.roleDefinition",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "rolePermissions": [
+    {
+      "@odata.type": "microsoft.graph.rolePermission",
+      "resourceActions": [
+        {
+          "@odata.type": "microsoft.graph.resourceAction",
+          "allowedResourceActions": [
+            "String"
+          ],
+          "notAllowedResourceActions": [
+            "String"
+          ]
+        }
+      ]
+    }
+  ],
+  "isBuiltIn": true
+}
