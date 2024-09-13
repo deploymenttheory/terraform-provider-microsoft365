@@ -1,4 +1,4 @@
-resource "microsoft365_graph_cloud_pc_provisioning_policy" "example" {
+resource "microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy" "example" {
   display_name             = "Example Cloud PC Provisioning Policy"
   description              = "This is an example Cloud PC provisioning policy"
   cloud_pc_naming_template = "CPC-%USERNAME:4%-%RAND:5%"
@@ -23,6 +23,31 @@ resource "microsoft365_graph_cloud_pc_provisioning_policy" "example" {
     managed_type = "premiumManaged"
     profile      = "Standard"
   }
+
+  windows_setting = {
+    locale = "en-US"
+  }
+
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "30m"
+  }
+}
+
+resource "microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy" "example" {
+  display_name             = "Example Cloud PC Provisioning Policy"
+  description              = "This is an example Cloud PC provisioning policy"
+  cloud_pc_naming_template = "CPC-%USERNAME:4%-%RAND:5%"
+
+  image_id   = "Microsoftwindowsdesktop_windows-ent-cpc_21h1-ent-cpc-m365"
+  image_type = "gallery"
+
+  provisioning_type = "dedicated"
+
+  enable_single_sign_on = true
+  local_admin_enabled   = false
 
   windows_setting = {
     locale = "en-US"
