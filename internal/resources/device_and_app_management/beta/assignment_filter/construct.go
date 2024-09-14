@@ -2,17 +2,19 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
+
+	construct.DebugPrintStruct(ctx, "Constructing Assignment Filter resource from model", data)
+
 	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
 
 	displayName := data.DisplayName.ValueString()
@@ -59,34 +61,5 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 	}
 	requestBody.SetRoleScopeTags(roleScopeTags)
 
-	// Debug logging
-	debugPrintRequestBody(ctx, requestBody)
-
 	return requestBody, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, requestBody *models.DeviceAndAppManagementAssignmentFilter) {
-	// Create a map to store the request body data
-	requestMap := map[string]interface{}{
-		"displayName":                    requestBody.GetDisplayName(),
-		"description":                    requestBody.GetDescription(),
-		"platform":                       requestBody.GetPlatform(),
-		"rule":                           requestBody.GetRule(),
-		"assignmentFilterManagementType": requestBody.GetAssignmentFilterManagementType(),
-		"roleScopeTags":                  requestBody.GetRoleScopeTags(),
-	}
-
-	// Marshal the map to JSON
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	// Log the JSON representation of the request body
-	tflog.Debug(ctx, "Constructed assignment filter resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
 }

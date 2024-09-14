@@ -2,15 +2,14 @@ package graphbetabrowsersite
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (models.BrowserSiteable, error) {
-	tflog.Debug(ctx, "Constructing BrowserSite resource")
+	construct.DebugPrintStruct(ctx, "Constructing Browser Site resource from model", data)
 
 	site := models.NewBrowserSite()
 
@@ -74,30 +73,5 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 		site.SetWebUrl(&webUrl)
 	}
 
-	debugPrintRequestBody(ctx, site)
-
 	return site, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, site models.BrowserSiteable) {
-	requestMap := map[string]interface{}{
-		"allowRedirect":     site.GetAllowRedirect(),
-		"comment":           site.GetComment(),
-		"compatibilityMode": site.GetCompatibilityMode(),
-		"mergeType":         site.GetMergeType(),
-		"targetEnvironment": site.GetTargetEnvironment(),
-		"webUrl":            site.GetWebUrl(),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
 }
