@@ -8,7 +8,7 @@ resource "microsoft365_graph_beta_device_and_app_management_browser_site" "examp
   merge_type                      = "noMerge"
 
   # Optional: Define custom timeouts
-  timeouts {
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"

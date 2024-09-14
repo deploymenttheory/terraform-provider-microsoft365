@@ -30,4 +30,12 @@ resource "microsoft365_graph_beta_device_and_app_management_role_definition" "ex
     "scope_tag_1",
     "scope_tag_2"
   ]
+
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "30m"
+  }
 }

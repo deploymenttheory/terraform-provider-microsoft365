@@ -14,6 +14,14 @@ resource "microsoft365_device_and_app_management_cloud_pc_device_image" "example
       status
     ]
   }
+
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "30m"
+  }
 }
 
 # Resource: Create a new Cloud PC Device Image
@@ -32,6 +40,14 @@ resource "microsoft365_device_and_app_management_cloud_pc_device_image" "example
       os_status,
       status
     ]
+  }
+
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "30m"
   }
 }
 

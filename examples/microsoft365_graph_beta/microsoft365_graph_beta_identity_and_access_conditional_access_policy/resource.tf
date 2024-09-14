@@ -111,11 +111,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled = true
     }
   }
-
-  timeouts {
-    create = "20m"
-    read   = "5m"
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "30m"
+    read   = "10m"
     update = "30m"
-    delete = "10m"
+    delete = "30m"
   }
 }

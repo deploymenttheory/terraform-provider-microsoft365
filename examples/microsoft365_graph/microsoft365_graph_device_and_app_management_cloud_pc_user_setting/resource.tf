@@ -8,7 +8,8 @@ resource "microsoft365_graph_device_and_app_management_cloud_pc_user_setting" "e
     user_restore_enabled = true
   }
 
-  timeouts {
+  # Optional: Define custom timeouts
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"

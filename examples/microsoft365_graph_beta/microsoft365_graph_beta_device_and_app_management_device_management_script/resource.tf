@@ -38,8 +38,8 @@ resource "microsoft365_graph_beta_device_and_app_management_device_management_sc
     target_group_id = data.azuread_group.example_group.object_id
   }
 
-  # Optionally specify timeouts
-  timeouts {
+  # Optional: Define custom timeouts
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"
