@@ -28,16 +28,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteListResourc
 	data.Revision = types.StringValue(state.StringPtrToString(remoteResource.GetRevision()))
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
 
-	// Handle LastModifiedBy
-	if lastModifiedBy := remoteResource.GetLastModifiedBy(); lastModifiedBy != nil {
-		data.LastModifiedBy = MapIdentitySetRemoteStateToTerraform(lastModifiedBy)
-	}
-
-	// Handle PublishedBy
-	if publishedBy := remoteResource.GetPublishedBy(); publishedBy != nil {
-		data.PublishedBy = MapIdentitySetRemoteStateToTerraform(publishedBy)
-	}
-
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
