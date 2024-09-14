@@ -2,9 +2,9 @@ package graphBetaM365AppsInstallationOptions
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -12,6 +12,9 @@ import (
 
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.AdminMicrosoft365Appsable, error) {
+	tflog.Debug(ctx, "Constructing M365AppsInstallationOptions Resource")
+	construct.DebugPrintStruct(ctx, "Constructed M365AppsInstallationOptions Resource from model", data)
+
 	installationOptions := models.NewM365AppsInstallationOptions()
 
 	if !data.UpdateChannel.IsNull() {
@@ -44,50 +47,5 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 	requestBody := models.NewAdminMicrosoft365Apps()
 	requestBody.SetInstallationOptions(installationOptions)
 
-	// Debug logging
-	debugPrintRequestBody(ctx, requestBody)
-
 	return requestBody, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, requestBody models.AdminMicrosoft365Appsable) {
-	requestMap := map[string]interface{}{
-		"installationOptions": debugMapInstallationOptions(requestBody.GetInstallationOptions()),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed AdminMicrosoft365Apps resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
-}
-
-func debugMapInstallationOptions(options models.M365AppsInstallationOptionsable) map[string]interface{} {
-	optionsMap := map[string]interface{}{
-		"updateChannel": options.GetUpdateChannel(),
-	}
-
-	if appsForWindows := options.GetAppsForWindows(); appsForWindows != nil {
-		optionsMap["appsForWindows"] = map[string]interface{}{
-			"isMicrosoft365AppsEnabled": appsForWindows.GetIsMicrosoft365AppsEnabled(),
-			"isProjectEnabled":          appsForWindows.GetIsProjectEnabled(),
-			"isSkypeForBusinessEnabled": appsForWindows.GetIsSkypeForBusinessEnabled(),
-			"isVisioEnabled":            appsForWindows.GetIsVisioEnabled(),
-		}
-	}
-
-	if appsForMac := options.GetAppsForMac(); appsForMac != nil {
-		optionsMap["appsForMac"] = map[string]interface{}{
-			"isMicrosoft365AppsEnabled": appsForMac.GetIsMicrosoft365AppsEnabled(),
-			"isSkypeForBusinessEnabled": appsForMac.GetIsSkypeForBusinessEnabled(),
-		}
-	}
-
-	return optionsMap
 }

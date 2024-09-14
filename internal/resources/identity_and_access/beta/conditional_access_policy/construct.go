@@ -2,10 +2,10 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -13,6 +13,9 @@ import (
 
 // constructResource maps the Terraform schema to the graph beta SDK model
 func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (*models.ConditionalAccessPolicy, error) {
+	tflog.Debug(ctx, "Constructing ConditionalAccessPolicy Resource")
+	construct.DebugPrintStruct(ctx, "Constructed ConditionalAccessPolicy Resource from model", data)
+
 	requestBody := models.NewConditionalAccessPolicy()
 
 	displayName := data.DisplayName.ValueString()
@@ -61,9 +64,6 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 		}
 		requestBody.SetSessionControls(sessionControls)
 	}
-
-	// Debug logging
-	debugPrintRequestBody(ctx, requestBody)
 
 	return requestBody, nil
 }
@@ -867,247 +867,4 @@ func constructSessionControls(data *ConditionalAccessSessionControlsModel) (mode
 	}
 
 	return sessionControls, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, requestBody *models.ConditionalAccessPolicy) {
-	requestMap := map[string]interface{}{
-		"displayName":     requestBody.GetDisplayName(),
-		"description":     requestBody.GetDescription(),
-		"state":           requestBody.GetState(),
-		"conditions":      debugMapConditions(requestBody.GetConditions()),
-		"grantControls":   debugMapGrantControls(requestBody.GetGrantControls()),
-		"sessionControls": debugMapSessionControls(requestBody.GetSessionControls()),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed ConditionalAccessPolicy resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
-}
-
-func debugMapConditions(conditions models.ConditionalAccessConditionSetable) map[string]interface{} {
-	if conditions == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"applications":               debugMapApplications(conditions.GetApplications()),
-		"users":                      debugMapUsers(conditions.GetUsers()),
-		"clientApplications":         debugMapClientApplications(conditions.GetClientApplications()),
-		"devices":                    debugMapDevices(conditions.GetDevices()),
-		"locations":                  debugMapLocations(conditions.GetLocations()),
-		"platforms":                  debugMapPlatforms(conditions.GetPlatforms()),
-		"signInRiskLevels":           conditions.GetSignInRiskLevels(),
-		"userRiskLevels":             conditions.GetUserRiskLevels(),
-		"clientAppTypes":             conditions.GetClientAppTypes(),
-		"servicePrincipalRiskLevels": conditions.GetServicePrincipalRiskLevels(),
-	}
-}
-
-// Add similar debug mapping functions for other nested structures...
-
-func debugMapGrantControls(controls models.ConditionalAccessGrantControlsable) map[string]interface{} {
-	if controls == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"operator":                    controls.GetOperator(),
-		"builtInControls":             controls.GetBuiltInControls(),
-		"customAuthenticationFactors": controls.GetCustomAuthenticationFactors(),
-		"termsOfUse":                  controls.GetTermsOfUse(),
-		"authenticationStrength":      debugMapAuthenticationStrength(controls.GetAuthenticationStrength()),
-	}
-}
-
-func debugMapSessionControls(controls models.ConditionalAccessSessionControlsable) map[string]interface{} {
-	if controls == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"applicationEnforcedRestrictions": debugMapApplicationEnforcedRestrictions(controls.GetApplicationEnforcedRestrictions()),
-		"cloudAppSecurity":                debugMapCloudAppSecurity(controls.GetCloudAppSecurity()),
-		"signInFrequency":                 debugMapSignInFrequency(controls.GetSignInFrequency()),
-		"persistentBrowser":               debugMapPersistentBrowser(controls.GetPersistentBrowser()),
-		"continuousAccessEvaluation":      debugMapContinuousAccessEvaluation(controls.GetContinuousAccessEvaluation()),
-		"secureSignInSession":             debugMapSecureSignInSession(controls.GetSecureSignInSession()),
-		"disableResilienceDefaults":       controls.GetDisableResilienceDefaults(),
-	}
-}
-
-func debugMapApplications(apps models.ConditionalAccessApplicationsable) map[string]interface{} {
-	if apps == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includeApplications": apps.GetIncludeApplications(),
-		"excludeApplications": apps.GetExcludeApplications(),
-		"includeUserActions":  apps.GetIncludeUserActions(),
-	}
-}
-
-func debugMapUsers(users models.ConditionalAccessUsersable) map[string]interface{} {
-	if users == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includeUsers":                 users.GetIncludeUsers(),
-		"excludeUsers":                 users.GetExcludeUsers(),
-		"includeGroups":                users.GetIncludeGroups(),
-		"excludeGroups":                users.GetExcludeGroups(),
-		"includeRoles":                 users.GetIncludeRoles(),
-		"excludeRoles":                 users.GetExcludeRoles(),
-		"includeGuestsOrExternalUsers": debugMapGuestsOrExternalUsers(users.GetIncludeGuestsOrExternalUsers()),
-		"excludeGuestsOrExternalUsers": debugMapGuestsOrExternalUsers(users.GetExcludeGuestsOrExternalUsers()),
-	}
-}
-
-func debugMapGuestsOrExternalUsers(guestsOrExternalUsers models.ConditionalAccessGuestsOrExternalUsersable) map[string]interface{} {
-	if guestsOrExternalUsers == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"guestOrExternalUserTypes": guestsOrExternalUsers.GetGuestOrExternalUserTypes(),
-		"externalTenants":          debugMapExternalTenants(guestsOrExternalUsers.GetExternalTenants()),
-	}
-}
-
-func debugMapExternalTenants(externalTenants models.ConditionalAccessExternalTenantsable) map[string]interface{} {
-	if externalTenants == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"membershipKind": externalTenants.GetMembershipKind(),
-	}
-}
-
-func debugMapClientApplications(clientApps models.ConditionalAccessClientApplicationsable) map[string]interface{} {
-	if clientApps == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includeServicePrincipals": clientApps.GetIncludeServicePrincipals(),
-		"excludeServicePrincipals": clientApps.GetExcludeServicePrincipals(),
-	}
-}
-
-func debugMapDevices(devices models.ConditionalAccessDevicesable) map[string]interface{} {
-	if devices == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includeDevices":      devices.GetIncludeDevices(),
-		"excludeDevices":      devices.GetExcludeDevices(),
-		"includeDeviceStates": devices.GetIncludeDeviceStates(),
-		"excludeDeviceStates": devices.GetExcludeDeviceStates(),
-		"deviceFilter":        debugMapDeviceFilter(devices.GetDeviceFilter()),
-	}
-}
-
-func debugMapDeviceFilter(filter models.ConditionalAccessFilterable) map[string]interface{} {
-	if filter == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"mode": filter.GetMode(),
-		"rule": filter.GetRule(),
-	}
-}
-
-func debugMapLocations(locations models.ConditionalAccessLocationsable) map[string]interface{} {
-	if locations == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includeLocations": locations.GetIncludeLocations(),
-		"excludeLocations": locations.GetExcludeLocations(),
-	}
-}
-
-func debugMapPlatforms(platforms models.ConditionalAccessPlatformsable) map[string]interface{} {
-	if platforms == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"includePlatforms": platforms.GetIncludePlatforms(),
-		"excludePlatforms": platforms.GetExcludePlatforms(),
-	}
-}
-
-func debugMapAuthenticationStrength(authStrength models.AuthenticationStrengthPolicyable) map[string]interface{} {
-	if authStrength == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"displayName":           authStrength.GetDisplayName(),
-		"description":           authStrength.GetDescription(),
-		"policyType":            authStrength.GetPolicyType(),
-		"requirementsSatisfied": authStrength.GetRequirementsSatisfied(),
-		"allowedCombinations":   authStrength.GetAllowedCombinations(),
-	}
-}
-
-func debugMapApplicationEnforcedRestrictions(restrictions models.ApplicationEnforcedRestrictionsSessionControlable) map[string]interface{} {
-	if restrictions == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"isEnabled": restrictions.GetIsEnabled(),
-	}
-}
-
-func debugMapCloudAppSecurity(cloudAppSecurity models.CloudAppSecuritySessionControlable) map[string]interface{} {
-	if cloudAppSecurity == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"isEnabled":            cloudAppSecurity.GetIsEnabled(),
-		"cloudAppSecurityType": cloudAppSecurity.GetCloudAppSecurityType(),
-	}
-}
-
-func debugMapSignInFrequency(signInFrequency models.SignInFrequencySessionControlable) map[string]interface{} {
-	if signInFrequency == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"isEnabled":          signInFrequency.GetIsEnabled(),
-		"type":               signInFrequency.GetTypeEscaped(),
-		"value":              signInFrequency.GetValue(),
-		"frequencyInterval":  signInFrequency.GetFrequencyInterval(),
-		"authenticationType": signInFrequency.GetAuthenticationType(),
-	}
-}
-
-func debugMapPersistentBrowser(persistentBrowser models.PersistentBrowserSessionControlable) map[string]interface{} {
-	if persistentBrowser == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"isEnabled": persistentBrowser.GetIsEnabled(),
-		"mode":      persistentBrowser.GetMode(),
-	}
-}
-
-func debugMapContinuousAccessEvaluation(continuousAccessEvaluation models.ContinuousAccessEvaluationSessionControlable) map[string]interface{} {
-	if continuousAccessEvaluation == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"mode": continuousAccessEvaluation.GetMode(),
-	}
-}
-
-func debugMapSecureSignInSession(secureSignInSession models.SecureSignInSessionControlable) map[string]interface{} {
-	if secureSignInSession == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"isEnabled": secureSignInSession.GetIsEnabled(),
-	}
 }

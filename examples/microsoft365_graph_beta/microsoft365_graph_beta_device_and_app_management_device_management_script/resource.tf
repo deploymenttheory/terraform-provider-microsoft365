@@ -24,8 +24,8 @@ resource "microsoft365_graph_beta_device_and_app_management_device_management_sc
   role_scope_tag_ids = ["tag1", "tag2"]
 
   # Example assignment
-  assignments {
-    target {
+  assignments = {
+    target = {
       target_type                                     = "user"
       device_and_app_management_assignment_filter_id   = "filter-id-123"
       device_and_app_management_assignment_filter_type = "include"
@@ -34,12 +34,12 @@ resource "microsoft365_graph_beta_device_and_app_management_device_management_sc
   }
 
   # Example group assignment
-  group_assignments {
+  group_assignments = {
     target_group_id = data.azuread_group.example_group.object_id
   }
 
-  # Optionally specify timeouts
-  timeouts {
+  # Optional: Define custom timeouts
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"

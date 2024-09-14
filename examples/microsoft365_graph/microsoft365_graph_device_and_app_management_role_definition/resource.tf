@@ -1,27 +1,37 @@
-resource "microsoft365_graph_device_and_app_management_role_definition" "example" {
-  display_name = "Custom Role - Device Management"
-  description  = "This role allows management of device configurations and limited user read access"
-  is_built_in  = false
+resource "microsoft365_graph_beta_device_and_app_management_role_definition" "example" {
+  display_name                = "Custom Intune Role Definition"
+  description                 = "This is a custom Intune role definition for device and app management"
+  is_built_in                 = false
+  is_built_in_role_definition = false
 
   role_permissions {
+    actions = ["microsoft.intune/"]
     resource_actions {
       allowed_resource_actions = [
-        "microsoft.graph.read",
-        "microsoft.graph.deviceManagement.read",
-        "microsoft.graph.deviceManagement.configurations.read",
-        "microsoft.graph.deviceManagement.configurations.create",
-        "microsoft.graph.deviceManagement.configurations.update"
+        "Microsoft.Intune/MobileApps/Read",
+        "Microsoft.Intune/TermsAndConditions/Read",
+        "Microsoft.Intune/ManagedApps/Read",
+        "Microsoft.Intune/ManagedDevices/Read",
+        "Microsoft.Intune/DeviceConfigurations/Read",
+        "Microsoft.Intune/TelecomExpenses/Read",
+        "Microsoft.Intune/Organization/Read",
+        "Microsoft.Intune/RemoteTasks/RebootNow",
+        "Microsoft.Intune/RemoteTasks/RemoteLock"
       ]
       not_allowed_resource_actions = [
-        "microsoft.graph.deviceManagement.configurations.delete",
-        "microsoft.graph.user.write"
       ]
     }
   }
 
-  timeouts {
+  role_scope_tag_ids = [
+    "scope_tag_1",
+    "scope_tag_2"
+  ]
+
+  # Optional: Define custom timeouts
+  timeouts = {
     create = "30m"
-    read   = "5m"
+    read   = "10m"
     update = "30m"
     delete = "30m"
   }
@@ -34,15 +44,4 @@ data "microsoft365_graph_device_and_app_management_role_definition" "helpdesk_ad
 
 output "helpdesk_admin_role" {
   value = data.microsoft365_graph_device_and_app_management_role_definition.helpdesk_admin
-}
-
-resource "microsoft365_graph_device_and_app_management_role_definition" "helpdesk_assignment" {
-  role_definition_id = data.microsoft365_graph_device_and_app_management_role_definition.helpdesk_admin.id
-  principal_id       = "00000000-0000-0000-0000-000000000003"  # ID of the user or group to assign the role to
-  
-  timeouts {
-    create = "15m"
-    read   = "5m"
-    delete = "15m"
-  }
 }

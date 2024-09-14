@@ -4,6 +4,8 @@ import (
 	"context"
 
 	graphBetaDeviceAndAppManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/assignment_filter"
+	graphBetaDeviceAndAppManagementBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/browser_site"
+	graphBetaDeviceAndAppManagementBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/browser_site_list"
 	graphBetaDeviceAndAppManagementDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/device_management_script"
 	graphBetaDeviceAndAppManagementM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/m365_apps_installation_options"
 	graphBetaDeviceAndAppManagementRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/role_definition"
@@ -31,6 +33,8 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		graphBetaDeviceAndAppManagementAssignmentFilter.NewAssignmentFilterResource,
+		graphBetaDeviceAndAppManagementBrowserSite.NewBrowserSiteResource,
+		graphBetaDeviceAndAppManagementBrowserSiteList.NewBrowserSiteListResource,
 		graphBetaDeviceAndAppManagementDeviceManagementScript.NewDeviceManagementScriptResource,
 		graphBetaDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,

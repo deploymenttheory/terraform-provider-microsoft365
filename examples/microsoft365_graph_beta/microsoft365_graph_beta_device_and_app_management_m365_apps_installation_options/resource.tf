@@ -13,10 +13,11 @@ resource "microsoft365_graph_beta_device_and_app_management_m365_apps_installati
     is_skype_for_business_enabled = false
   }
 
-  timeouts {
+  # Optional: Define custom timeouts
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"
-    delete = "10m"
+    delete = "30m"
   }
 }
