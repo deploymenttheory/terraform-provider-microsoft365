@@ -2,15 +2,16 @@ package graphCloudPcUserSetting
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 func constructResource(ctx context.Context, data *CloudPcUserSettingResourceModel) (*models.CloudPcUserSetting, error) {
 	tflog.Debug(ctx, "Constructing CloudPcUserSetting resource")
+	construct.DebugPrintStruct(ctx, "Constructed CloudPcUserSetting Resource from model", data)
 
 	requestBody := models.NewCloudPcUserSetting()
 
@@ -36,9 +37,6 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 		}
 		requestBody.SetRestorePointSetting(restorePointSetting)
 	}
-
-	// Debug logging
-	debugPrintRequestBody(ctx, requestBody)
 
 	return requestBody, nil
 }
@@ -71,35 +69,4 @@ func constructRestorePointSetting(data *CloudPcRestorePointSettingModel) (models
 	}
 
 	return restorePointSetting, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, requestBody *models.CloudPcUserSetting) {
-	requestMap := map[string]interface{}{
-		"displayName":         requestBody.GetDisplayName(),
-		"localAdminEnabled":   requestBody.GetLocalAdminEnabled(),
-		"resetEnabled":        requestBody.GetResetEnabled(),
-		"restorePointSetting": debugMapRestorePointSetting(requestBody.GetRestorePointSetting()),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed CloudPcUserSetting resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
-}
-
-func debugMapRestorePointSetting(setting models.CloudPcRestorePointSettingable) map[string]interface{} {
-	if setting == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"frequencyType":      setting.GetFrequencyType(),
-		"userRestoreEnabled": setting.GetUserRestoreEnabled(),
-	}
 }

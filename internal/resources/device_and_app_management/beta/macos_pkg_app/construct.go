@@ -2,9 +2,8 @@ package graphbetamacospkgapp
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -12,6 +11,7 @@ import (
 
 func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (models.MacOSPkgAppable, error) {
 	tflog.Debug(ctx, "Constructing MacOSPkgApp resource")
+	construct.DebugPrintStruct(ctx, "Constructed MacOSPkgAp Resource from model", data)
 
 	app := models.NewMacOSPkgApp()
 
@@ -137,13 +137,6 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 		postInstallScript.SetScriptContent(data.PostInstallScript.ScriptContent.ValueStringPointer())
 		app.SetPostInstallScript(postInstallScript)
 	}
-
-	requestBodyJSON, err := json.MarshalIndent(app, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling request body to JSON: %s", err)
-	}
-
-	tflog.Debug(ctx, "Constructed MacOSPkgApp resource:\n"+string(requestBodyJSON))
 
 	return app, nil
 }

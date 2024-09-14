@@ -2,14 +2,15 @@ package graphroledefinition
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
 	tflog.Debug(ctx, "Constructing RoleDefinition resource")
+	construct.DebugPrintStruct(ctx, "Constructed RoleDefinition Resource from model", data)
 
 	roleDef := models.NewRoleDefinition()
 
@@ -64,50 +65,5 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		roleDef.SetRolePermissions(rolePermissions)
 	}
 
-	// Debug logging
-	debugPrintRequestBody(ctx, roleDef)
-
 	return roleDef, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, roleDef models.RoleDefinitionable) {
-	requestMap := map[string]interface{}{
-		"displayName":     roleDef.GetDisplayName(),
-		"description":     roleDef.GetDescription(),
-		"isBuiltIn":       roleDef.GetIsBuiltIn(),
-		"rolePermissions": debugMapRolePermissions(roleDef.GetRolePermissions()),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed RoleDefinition resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
-}
-
-func debugMapRolePermissions(permissions []models.RolePermissionable) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(permissions))
-	for i, perm := range permissions {
-		result[i] = map[string]interface{}{
-			"resourceActions": debugMapResourceActions(perm.GetResourceActions()),
-		}
-	}
-	return result
-}
-
-func debugMapResourceActions(actions []models.ResourceActionable) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(actions))
-	for i, action := range actions {
-		result[i] = map[string]interface{}{
-			"allowedResourceActions":    action.GetAllowedResourceActions(),
-			"notAllowedResourceActions": action.GetNotAllowedResourceActions(),
-		}
-	}
-	return result
 }

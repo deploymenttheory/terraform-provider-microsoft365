@@ -2,15 +2,18 @@ package graphCloudPcProvisioningPolicy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel) (*models.CloudPcProvisioningPolicy, error) {
+	tflog.Debug(ctx, "Constructing CloudPcProvisioningPolicy Resource")
+	construct.DebugPrintStruct(ctx, "Constructed CloudPcProvisioningPolicy Resource from model", data)
+
 	requestBody := models.NewCloudPcProvisioningPolicy()
 
 	displayName := data.DisplayName.ValueString()
@@ -131,67 +134,5 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 
-	// Debug logging
-	debugPrintRequestBody(ctx, requestBody)
-
 	return requestBody, nil
-}
-
-func debugPrintRequestBody(ctx context.Context, requestBody *models.CloudPcProvisioningPolicy) {
-	requestMap := map[string]interface{}{
-		"displayName":              requestBody.GetDisplayName(),
-		"description":              requestBody.GetDescription(),
-		"cloudPcNamingTemplate":    requestBody.GetCloudPcNamingTemplate(),
-		"enableSingleSignOn":       requestBody.GetEnableSingleSignOn(),
-		"imageId":                  requestBody.GetImageId(),
-		"imageType":                requestBody.GetImageType(),
-		"localAdminEnabled":        requestBody.GetLocalAdminEnabled(),
-		"provisioningType":         requestBody.GetProvisioningType(),
-		"microsoftManagedDesktop":  debugMapMicrosoftManagedDesktop(requestBody.GetMicrosoftManagedDesktop()),
-		"domainJoinConfigurations": debugMapDomainJoinConfigurations(requestBody.GetDomainJoinConfigurations()),
-		"windowsSetting":           debugMapWindowsSetting(requestBody.GetWindowsSetting()),
-	}
-
-	requestBodyJSON, err := json.MarshalIndent(requestMap, "", "  ")
-	if err != nil {
-		tflog.Error(ctx, "Error marshalling request body to JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, "Constructed Cloud PC Provisioning Policy resource", map[string]interface{}{
-		"requestBody": string(requestBodyJSON),
-	})
-}
-
-func debugMapMicrosoftManagedDesktop(mmd models.MicrosoftManagedDesktopable) map[string]interface{} {
-	if mmd == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"managedType": mmd.GetManagedType(),
-		"profile":     mmd.GetProfile(),
-	}
-}
-
-func debugMapDomainJoinConfigurations(configs []models.CloudPcDomainJoinConfigurationable) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(configs))
-	for i, config := range configs {
-		result[i] = map[string]interface{}{
-			"domainJoinType":         config.GetDomainJoinType(),
-			"onPremisesConnectionId": config.GetOnPremisesConnectionId(),
-			"regionName":             config.GetRegionName(),
-		}
-	}
-	return result
-}
-
-func debugMapWindowsSetting(setting models.CloudPcWindowsSettingable) map[string]interface{} {
-	if setting == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"locale": setting.GetLocale(),
-	}
 }
