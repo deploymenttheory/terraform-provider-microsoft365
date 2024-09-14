@@ -87,9 +87,19 @@ func handleStruct(v reflect.Value) map[string]interface{} {
 func handleSlice(v reflect.Value) []interface{} {
 	var result []interface{}
 	for i := 0; i < v.Len(); i++ {
-		value := structToMap(v.Index(i))
-		if value != nil {
-			result = append(result, value)
+		elem := v.Index(i)
+		if elem.Type().Implements(reflect.TypeOf((*attr.Value)(nil)).Elem()) {
+			// If the element implements attr.Value, use handleTerraformValue
+			value := handleTerraformValue(elem.Interface().(attr.Value))
+			if value != nil {
+				result = append(result, value)
+			}
+		} else {
+			// For other types, use structToMap
+			value := structToMap(elem)
+			if value != nil {
+				result = append(result, value)
+			}
 		}
 	}
 	if len(result) == 0 {
