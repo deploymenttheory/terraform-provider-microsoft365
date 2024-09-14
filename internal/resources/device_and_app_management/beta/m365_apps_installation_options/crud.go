@@ -38,7 +38,7 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 		return
 	}
 
-	options, err := r.client.Admin().Microsoft365Apps().Patch(ctx, requestBody, nil)
+	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Patch(ctx, requestBody, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating M365AppsInstallationOptions",
@@ -75,7 +75,7 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	options, err := r.client.Admin().Microsoft365Apps().Get(ctx, nil)
+	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Get(ctx, nil)
 	if err != nil {
 		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
 		return
@@ -112,7 +112,7 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 		return
 	}
 
-	options, err := r.client.Admin().Microsoft365Apps().Patch(ctx, requestBody, nil)
+	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Patch(ctx, requestBody, nil)
 	if err != nil {
 		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return

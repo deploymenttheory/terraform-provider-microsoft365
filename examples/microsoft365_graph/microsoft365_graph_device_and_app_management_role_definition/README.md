@@ -17,8 +17,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [microsoft365_graph_device_and_app_management_role_definition.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_device_and_app_management_role_definition) | resource |
-| [microsoft365_graph_device_and_app_management_role_definition.helpdesk_assignment](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_device_and_app_management_role_definition) | resource |
+| [microsoft365_graph_beta_device_and_app_management_role_definition.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_role_definition) | resource |
 | [microsoft365_graph_device_and_app_management_role_definition.helpdesk_admin](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/data-sources/graph_device_and_app_management_role_definition) | data source |
 
 ## Inputs

@@ -17,7 +17,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [microsoft365_graph_cloud_pc_user_setting.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_cloud_pc_user_setting) | resource |
+| [microsoft365_graph_device_and_app_management_cloud_pc_user_setting.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_device_and_app_management_cloud_pc_user_setting) | resource |
 
 ## Inputs
 

@@ -11,7 +11,7 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.AdminMicrosoft365Appsable, error) {
+func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.M365AppsInstallationOptionsable, error) {
 	tflog.Debug(ctx, "Constructing M365AppsInstallationOptions Resource")
 	construct.DebugPrintStruct(ctx, "Constructed M365AppsInstallationOptions Resource from model", data)
 
@@ -44,8 +44,5 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 		installationOptions.SetAppsForMac(appsForMac)
 	}
 
-	requestBody := models.NewAdminMicrosoft365Apps()
-	requestBody.SetInstallationOptions(installationOptions)
-
-	return requestBody, nil
+	return installationOptions, nil
 }
