@@ -83,7 +83,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 					"value": schema.StringAttribute{
 						Required:    true,
-						Description: "The base64-encoded icon data.",
+						Description: "The icon data, request for mat should be in raw bytes.",
 					},
 				},
 				Description: "The large icon, to be displayed in the app details and used for upload of the icon.",
