@@ -1,0 +1,27 @@
+{
+  "@odata.type": "#microsoft.graph.mobileAppAssignment",
+  "id": "String (identifier)",
+  "intent": "String",
+  "target": {
+    "@odata.type": "microsoft.graph.allLicensedUsersAssignmentTarget",
+    "deviceAndAppManagementAssignmentFilterId": "String",
+    "deviceAndAppManagementAssignmentFilterType": "String"
+  },
+  "settings": {
+    "@odata.type": "microsoft.graph.winGetAppAssignmentSettings",
+    "notifications": "String",
+    "restartSettings": {
+      "@odata.type": "microsoft.graph.winGetAppRestartSettings",
+      "gracePeriodInMinutes": 1024,
+      "countdownDisplayBeforeRestartInMinutes": 1024,
+      "restartNotificationSnoozeDurationInMinutes": 1024
+    },
+    "installTimeSettings": {
+      "@odata.type": "microsoft.graph.winGetAppInstallTimeSettings",
+      "useLocalTime": true,
+      "deadlineDateTime": "String (timestamp)"
+    }
+  },
+  "source": "String",
+  "sourceId": "String"
+}

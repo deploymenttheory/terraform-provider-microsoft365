@@ -5,6 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -172,7 +173,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 				Description: "The install experience settings associated with this application.",
 			},
-			"assignments": commonschema.DeviceAndAppManagementAssignments(),
+			"assignments": graphBetaMobileAppAssignment.MobileAppAssignments(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
