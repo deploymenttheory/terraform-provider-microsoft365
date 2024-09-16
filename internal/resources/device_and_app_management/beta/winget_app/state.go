@@ -66,57 +66,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 		}
 	}
 
-	// Handle Assignments
-	if assignments := remoteResource.GetAssignments(); assignments != nil {
-		data.MobileAppAssignments = make([]MobileAppAssignmentModel, len(assignments))
-		for i, assignment := range assignments {
-			data.MobileAppAssignments[i] = mapAssignmentToModel(assignment)
-		}
-	} else {
-		data.MobileAppAssignments = []MobileAppAssignmentModel{}
-	}
-
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
-}
-
-func mapAssignmentToModel(assignment models.MobileAppAssignmentable) MobileAppAssignmentModel {
-	model := MobileAppAssignmentModel{
-		Intent: state.EnumPtrToTypeString(assignment.GetIntent()),
-	}
-
-	// Map Target
-	if target := assignment.GetTarget(); target != nil {
-		model.Target = mapTargetToModel(target)
-	}
-
-	// Map Settings
-	if settings := assignment.GetSettings(); settings != nil {
-		if winGetSettings, ok := settings.(models.WinGetAppAssignmentSettingsable); ok {
-			model.Settings = WinGetAppAssignmentSettingsModel{
-				Notifications: state.EnumPtrToTypeString(winGetSettings.GetNotifications()),
-			}
-		}
-	}
-
-	return model
-}
-
-func mapTargetToModel(target models.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetModel {
-	model := AssignmentTargetModel{}
-
-	switch target.(type) {
-	case models.AllLicensedUsersAssignmentTargetable:
-		model.Type = types.StringValue("allLicensedUsers")
-	case models.AllDevicesAssignmentTargetable:
-		model.Type = types.StringValue("allDevices")
-	case models.GroupAssignmentTargetable:
-		model.Type = types.StringValue("group")
-		if groupTarget, ok := target.(models.GroupAssignmentTargetable); ok {
-			model.GroupID = types.StringValue(state.StringPtrToString(groupTarget.GetGroupId()))
-		}
-	}
-
-	return model
 }

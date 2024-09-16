@@ -95,17 +95,30 @@ func ConstructAssignments(ctx context.Context, assignments []MobileAppAssignment
 }
 
 // ConstructAssignmentTarget constructs the assignment target based on the provided target model.
-func ConstructAssignmentTarget(target AssignmentTargetModel) models.DeviceAndAppManagementAssignmentTargetable {
-	switch target.Type.ValueString() {
+func ConstructAssignmentTarget(target AllLicensedUsersAssignmentTarget) models.DeviceAndAppManagementAssignmentTargetable {
+	switch target.DeviceAndAppManagementAssignmentFilterType.ValueString() {
 	case "allLicensedUsers":
 		return models.NewAllLicensedUsersAssignmentTarget()
 	case "allDevices":
 		return models.NewAllDevicesAssignmentTarget()
 	case "group":
 		groupTarget := models.NewGroupAssignmentTarget()
-		groupTarget.SetGroupId(target.GroupID.ValueStringPointer())
+		groupTarget.SetGroupId(target.DeviceAndAppManagementAssignmentFilterID.ValueStringPointer())
+
+		// Set the filter ID if available
+		if target.DeviceAndAppManagementAssignmentFilterID.ValueString() != "" {
+			groupTarget.SetDeviceAndAppManagementAssignmentFilterId(target.DeviceAndAppManagementAssignmentFilterID.ValueStringPointer())
+		}
+
+		// Set the filter type if available
+		if target.DeviceAndAppManagementAssignmentFilterType.ValueString() != "" {
+			filterType, err := models.ParseDeviceAndAppManagementAssignmentFilterType(target.DeviceAndAppManagementAssignmentFilterType.ValueString())
+			if err == nil && filterType != nil {
+				groupTarget.SetDeviceAndAppManagementAssignmentFilterType(filterType.(*models.DeviceAndAppManagementAssignmentFilterType))
+			}
+		}
 		return groupTarget
 	default:
-		return nil // Should not happen due to schema validation
+		return nil // This should not happen due to schema validation
 	}
 }
