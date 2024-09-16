@@ -172,7 +172,8 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 				Description: "The install experience settings associated with this application.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": commonschema.DeviceAndAppManagementAssignments(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

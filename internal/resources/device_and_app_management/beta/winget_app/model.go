@@ -44,3 +44,35 @@ type MimeContentModel struct {
 type WinGetAppInstallExperienceModel struct {
 	RunAsAccount types.String `tfsdk:"run_as_account"`
 }
+
+// WinGetAppAssignmentResourceModel represents the Terraform resource model for a WinGet app assignment
+type WinGetAppAssignmentResourceModel struct {
+	ID                   types.String               `tfsdk:"id"`
+	AppID                types.String               `tfsdk:"app_id"`
+	MobileAppAssignments []MobileAppAssignmentModel `tfsdk:"mobile_app_assignments"`
+}
+
+// MobileAppAssignmentModel represents a single mobile app assignment
+type MobileAppAssignmentModel struct {
+	Target   AssignmentTargetModel            `tfsdk:"target"`
+	Intent   types.String                     `tfsdk:"intent"`
+	Settings WinGetAppAssignmentSettingsModel `tfsdk:"settings"`
+}
+
+// AssignmentTargetModel represents the target of an assignment
+type AssignmentTargetModel struct {
+	Type    types.String `tfsdk:"type"`
+	GroupID types.String `tfsdk:"group_id"`
+}
+
+// WinGetAppAssignmentSettingsModel represents the settings for a WinGet app assignment
+type WinGetAppAssignmentSettingsModel struct {
+	Notifications types.String `tfsdk:"notifications"`
+}
+
+// WinGetAppAssignmentDataSourceModel represents the data source model for WinGet app assignments
+type WinGetAppAssignmentDataSourceModel struct {
+	ID                   types.String               `tfsdk:"id"`
+	AppID                types.String               `tfsdk:"app_id"`
+	MobileAppAssignments []MobileAppAssignmentModel `tfsdk:"mobile_app_assignments"`
+}
