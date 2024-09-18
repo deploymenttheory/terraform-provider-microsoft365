@@ -117,15 +117,12 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Read assignments
 	assignments, err := r.readAssignments(ctx, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading assignments",
-			fmt.Sprintf("Could not read assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
+		tflog.Warn(ctx, fmt.Sprintf("Error reading assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
+		// Continue without assignments instead of returning an error
+	} else {
+		// Set the assignments in the state, even if it's an empty slice
+		state.Assignments = assignments
 	}
-
-	// Set the assignments in the state, even if it's an empty slice
-	state.Assignments = assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))

@@ -7,6 +7,7 @@ import (
 	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Helper functions for assignments
@@ -41,6 +42,8 @@ func (r *WinGetAppResource) createAssignments(ctx context.Context, appID string,
 }
 
 func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) ([]graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Starting readAssignments for app ID: %s", appID))
+
 	// Create a new MobileAppAssignmentResource
 	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
 
@@ -59,8 +62,8 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 		SourceID: types.StringValue(appID),
 	}
 
-	// Ensure req.State is valid before calling Set
-	diags := req.State.Set(ctx, state)
+	// Set the State in the ReadRequest
+	diags := req.State.Set(ctx, &state)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error setting state for reading assignments: %v", diags)
 	}
@@ -71,7 +74,6 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Call the Read method of the MobileAppAssignmentResource
 	assignmentResource.Read(ctx, req, resp)
 
-	// Check for diagnostics errors
 	if resp.Diagnostics.HasError() {
 		return nil, fmt.Errorf("error reading assignments: %v", resp.Diagnostics)
 	}
@@ -82,9 +84,11 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Get the assignments from the response state
 	diags = resp.State.Get(ctx, &assignments)
 	if diags.HasError() {
-		return nil, fmt.Errorf("error retrieving assignments from state: %v", diags)
+		tflog.Warn(ctx, fmt.Sprintf("No assignments found or error retrieving assignments for app ID %s: %v", appID, diags))
+		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Successfully read %d assignments for app ID: %s", len(assignments), appID))
 	return assignments, nil
 }
 
