@@ -58,7 +58,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 	// Handle RoleScopeTagIds
 	roleScopeTags := remoteResource.GetRoleScopeTagIds()
 
-	if roleScopeTags != nil && len(roleScopeTags) > 0 {
+	if len(roleScopeTags) > 0 {
 		data.RoleScopeTagIds = make([]types.String, len(roleScopeTags))
 		for i, tag := range roleScopeTags {
 			data.RoleScopeTagIds[i] = types.StringValue(tag)
