@@ -61,6 +61,18 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
 
+	// Handle assignments if present
+	if len(plan.Assignments) > 0 {
+		err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error creating assignments",
+				fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -77,7 +89,7 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading win get app with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -102,6 +114,17 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
+
+	// Read assignments
+	assignments, err := r.readAssignments(ctx, state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading assignments",
+			fmt.Sprintf("Could not read assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
+		return
+	}
+	state.Assignments = assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -139,6 +162,16 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Update assignments
+	err = r.updateAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating assignments",
+			fmt.Sprintf("Could not update assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -161,7 +194,17 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(data.ID.ValueString()).Delete(ctx, nil)
+	// Delete assignments first
+	err := r.deleteAssignments(ctx, data.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting assignments",
+			fmt.Sprintf("Could not delete assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
+		return
+	}
+
+	err = r.client.DeviceAppManagement().MobileApps().ByMobileAppId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
 		return

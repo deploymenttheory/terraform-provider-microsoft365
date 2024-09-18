@@ -1,6 +1,7 @@
 package graphBetaMobileAppAssignment
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -12,6 +13,7 @@ type MobileAppAssignmentResourceModel struct {
 	Settings WinGetAppAssignmentSettings      `tfsdk:"settings"`
 	Source   types.String                     `tfsdk:"source"`
 	SourceID types.String                     `tfsdk:"source_id"`
+	Timeouts timeouts.Value                   `tfsdk:"timeouts"`
 }
 
 // AllLicensedUsersAssignmentTarget represents the target structure for assignments

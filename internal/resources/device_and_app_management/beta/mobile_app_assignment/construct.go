@@ -6,104 +6,118 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// ConstructAssignments constructs a list of MobileAppAssignments from the resource model.
-func ConstructAssignments(ctx context.Context, assignments []MobileAppAssignmentResourceModel) []models.MobileAppAssignmentable {
-	construct.DebugPrintStruct(ctx, "Constructing Mobile App assignments from model", assignments)
+// constructResource maps the Terraform schema to the SDK model
+func constructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
+	construct.DebugPrintStruct(ctx, "Constructing Mobile App Assignment resource from model", data)
 
-	var mobileAppAssignments []models.MobileAppAssignmentable
+	requestBody := models.NewMobileAppAssignment()
 
-	for _, assignment := range assignments {
-		mobileAppAssignment := models.NewMobileAppAssignment()
-
-		target := ConstructAssignmentTarget(assignment.Target)
-		mobileAppAssignment.SetTarget(target)
-
-		if !assignment.Intent.IsNull() {
-			intent, err := models.ParseInstallIntent(assignment.Intent.ValueString())
-			if err == nil && intent != nil {
-				mobileAppAssignment.SetIntent(intent.(*models.InstallIntent))
-			}
+	// Set Intent
+	intentValue, err := models.ParseInstallIntent(data.Intent.ValueString())
+	if err != nil {
+		return nil, fmt.Errorf("invalid intent: %s", err)
+	}
+	if intentValue != nil {
+		intent, ok := intentValue.(*models.InstallIntent)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type for intent: %T", intentValue)
 		}
-
-		settings := models.NewWinGetAppAssignmentSettings()
-
-		if !assignment.Settings.Notifications.IsNull() {
-			notifications, err := models.ParseWinGetAppNotification(assignment.Settings.Notifications.ValueString())
-			if err == nil && notifications != nil {
-				settings.SetNotifications(notifications.(*models.WinGetAppNotification))
-			}
-		}
-
-		if assignment.Settings.RestartSettings.GracePeriodInMinutes.ValueInt64() != 0 ||
-			assignment.Settings.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt64() != 0 ||
-			assignment.Settings.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt64() != 0 {
-
-			restartSettings := models.NewWinGetAppRestartSettings()
-
-			gracePeriod := int32(assignment.Settings.RestartSettings.GracePeriodInMinutes.ValueInt64())
-			countdownBeforeRestart := int32(assignment.Settings.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt64())
-			snoozeDuration := int32(assignment.Settings.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt64())
-
-			restartSettings.SetGracePeriodInMinutes(&gracePeriod)
-			restartSettings.SetCountdownDisplayBeforeRestartInMinutes(&countdownBeforeRestart)
-			restartSettings.SetRestartNotificationSnoozeDurationInMinutes(&snoozeDuration)
-
-			settings.SetRestartSettings(restartSettings)
-		}
-
-		if assignment.Settings.InstallTimeSettings.UseLocalTime.ValueBool() ||
-			assignment.Settings.InstallTimeSettings.DeadlineDateTime.ValueString() != "" {
-
-			installTimeSettings := models.NewWinGetAppInstallTimeSettings()
-			useLocalTime := assignment.Settings.InstallTimeSettings.UseLocalTime.ValueBool()
-			installTimeSettings.SetUseLocalTime(&useLocalTime)
-
-			if deadline := assignment.Settings.InstallTimeSettings.DeadlineDateTime.ValueString(); deadline != "" {
-				parsedTime, err := time.Parse(time.RFC3339, deadline)
-				if err != nil {
-					fmt.Printf("Error parsing DeadlineDateTime: %v\n", err)
-				} else {
-					installTimeSettings.SetDeadlineDateTime(&parsedTime)
-				}
-			}
-
-			settings.SetInstallTimeSettings(installTimeSettings)
-		}
-
-		mobileAppAssignment.SetSettings(settings)
-
-		mobileAppAssignments = append(mobileAppAssignments, mobileAppAssignment)
+		requestBody.SetIntent(intent)
 	}
 
-	return mobileAppAssignments
-}
-
-// ConstructAssignmentTarget constructs the assignment target based on the provided target model.
-func ConstructAssignmentTarget(target AllLicensedUsersAssignmentTarget) models.DeviceAndAppManagementAssignmentTargetable {
-	switch target.DeviceAndAppManagementAssignmentFilterType.ValueString() {
-	case "allLicensedUsers":
-		return models.NewAllLicensedUsersAssignmentTarget()
-	case "allDevices":
-		return models.NewAllDevicesAssignmentTarget()
-	case "group":
-		groupTarget := models.NewGroupAssignmentTarget()
-		groupTarget.SetGroupId(target.DeviceAndAppManagementAssignmentFilterID.ValueStringPointer())
-
-		if target.DeviceAndAppManagementAssignmentFilterID.ValueString() != "" {
-			groupTarget.SetDeviceAndAppManagementAssignmentFilterId(target.DeviceAndAppManagementAssignmentFilterID.ValueStringPointer())
-		}
-
-		if target.DeviceAndAppManagementAssignmentFilterType.ValueString() != "" {
-			filterType, err := models.ParseDeviceAndAppManagementAssignmentFilterType(target.DeviceAndAppManagementAssignmentFilterType.ValueString())
-			if err == nil && filterType != nil {
-				groupTarget.SetDeviceAndAppManagementAssignmentFilterType(filterType.(*models.DeviceAndAppManagementAssignmentFilterType))
-			}
-		}
-		return groupTarget
-	default:
-		return nil // This should not happen due to schema validation
+	// Set Target
+	target := models.NewAllLicensedUsersAssignmentTarget()
+	if !data.Target.DeviceAndAppManagementAssignmentFilterID.IsNull() {
+		filterID := data.Target.DeviceAndAppManagementAssignmentFilterID.ValueString()
+		target.SetDeviceAndAppManagementAssignmentFilterId(&filterID)
 	}
+	if !data.Target.DeviceAndAppManagementAssignmentFilterType.IsNull() {
+		filterTypeValue, err := models.ParseDeviceAndAppManagementAssignmentFilterType(data.Target.DeviceAndAppManagementAssignmentFilterType.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("invalid device and app management assignment filter type: %s", err)
+		}
+		if filterTypeValue != nil {
+			filterType, ok := filterTypeValue.(*models.DeviceAndAppManagementAssignmentFilterType)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for filter type: %T", filterTypeValue)
+			}
+			target.SetDeviceAndAppManagementAssignmentFilterType(filterType)
+		}
+	}
+	requestBody.SetTarget(target)
+
+	// Set Settings
+	settings := models.NewWinGetAppAssignmentSettings()
+	if !data.Settings.Notifications.IsNull() {
+		notificationsValue, err := models.ParseWinGetAppNotification(data.Settings.Notifications.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("invalid notifications setting: %s", err)
+		}
+		if notificationsValue != nil {
+			notifications, ok := notificationsValue.(*models.WinGetAppNotification)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for notifications: %T", notificationsValue)
+			}
+			settings.SetNotifications(notifications)
+		}
+	}
+
+	// Set Restart Settings
+	restartSettings := models.NewWinGetAppRestartSettings()
+	if !data.Settings.RestartSettings.GracePeriodInMinutes.IsNull() {
+		gracePeriod := int32(data.Settings.RestartSettings.GracePeriodInMinutes.ValueInt64())
+		restartSettings.SetGracePeriodInMinutes(&gracePeriod)
+	}
+	if !data.Settings.RestartSettings.CountdownDisplayBeforeRestartInMinutes.IsNull() {
+		countdown := int32(data.Settings.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt64())
+		restartSettings.SetCountdownDisplayBeforeRestartInMinutes(&countdown)
+	}
+	if !data.Settings.RestartSettings.RestartNotificationSnoozeDurationInMinutes.IsNull() {
+		snoozeDuration := int32(data.Settings.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt64())
+		restartSettings.SetRestartNotificationSnoozeDurationInMinutes(&snoozeDuration)
+	}
+	settings.SetRestartSettings(restartSettings)
+
+	// Set Install Time Settings
+	installTimeSettings := models.NewWinGetAppInstallTimeSettings()
+	if !data.Settings.InstallTimeSettings.UseLocalTime.IsNull() {
+		useLocalTime := data.Settings.InstallTimeSettings.UseLocalTime.ValueBool()
+		installTimeSettings.SetUseLocalTime(&useLocalTime)
+	}
+	if !data.Settings.InstallTimeSettings.DeadlineDateTime.IsNull() {
+		deadlineDateTimeStr := data.Settings.InstallTimeSettings.DeadlineDateTime.ValueString()
+		deadlineDateTime, err := time.Parse(time.RFC3339, deadlineDateTimeStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid deadline date time format: %s", err)
+		}
+		installTimeSettings.SetDeadlineDateTime(&deadlineDateTime)
+	}
+	settings.SetInstallTimeSettings(installTimeSettings)
+
+	requestBody.SetSettings(settings)
+	// Set Source
+	if !data.Source.IsNull() {
+		sourceValue, err := models.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("invalid source: %s", err)
+		}
+		if sourceValue != nil {
+			source, ok := sourceValue.(*models.DeviceAndAppManagementAssignmentSource)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for source: %T", sourceValue)
+			}
+			requestBody.SetSource(source)
+		}
+	}
+
+	// Set SourceID
+	if !data.SourceID.IsNull() {
+		sourceID := data.SourceID.ValueString()
+		requestBody.SetSourceId(&sourceID)
+	}
+
+	return requestBody, nil
 }

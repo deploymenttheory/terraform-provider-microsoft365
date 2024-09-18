@@ -1,4 +1,4 @@
-package graphBetaAssignmentFilter
+package graphBetaMobileAppAssignment
 
 import (
 	"context"
@@ -9,11 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation.
-func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AssignmentFilterResourceModel
+func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan MobileAppAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -28,16 +30,24 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	mobileAppAssignment, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing assignment filter",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			"Error constructing resource",
+			fmt.Sprintf("Could not construct %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
+	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
+	requestBody.SetMobileAppAssignments([]models.MobileAppAssignmentable{mobileAppAssignment})
+
+	err = r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(plan.SourceID.ValueString()).
+		Assign().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating resource",
@@ -46,9 +56,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	plan.ID = types.StringValue(*resource.GetId())
-
-	MapRemoteStateToTerraform(ctx, &plan, resource)
+	plan.ID = types.StringValue(plan.SourceID.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -56,8 +64,8 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 }
 
 // Read handles the Read operation.
-func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state AssignmentFilterResourceModel
+func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state MobileAppAssignmentResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -74,20 +82,43 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
+	assignmentsResponse, err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(state.SourceID.ValueString()).Assignments().Get(ctx, nil)
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		resp.Diagnostics.AddError(
+			"Error reading mobile app assignments",
+			fmt.Sprintf("Could not read assignments for mobile app %s: %s", state.SourceID.ValueString(), err.Error()),
+		)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, resource)
+	// Get the actual assignments from the response
+	assignments := assignmentsResponse.GetValue()
+
+	// Find the specific assignment we're interested in
+	var targetAssignment models.MobileAppAssignmentable
+	for _, assignment := range assignments {
+		if assignment.GetId() != nil && *assignment.GetId() == state.ID.ValueString() {
+			targetAssignment = assignment
+			break
+		}
+	}
+
+	if targetAssignment == nil {
+		resp.Diagnostics.AddError(
+			"Error reading mobile app assignment",
+			fmt.Sprintf("Could not find assignment with ID %s for mobile app %s", state.ID.ValueString(), state.SourceID.ValueString()),
+		)
+		return
+	}
+
+	MapRemoteStateToTerraform(ctx, &state, targetAssignment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
-func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan AssignmentFilterResourceModel
+func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan MobileAppAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -102,7 +133,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	mobileAppAssignment, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -111,7 +142,15 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
+	requestBody.SetMobileAppAssignments([]models.MobileAppAssignmentable{mobileAppAssignment})
+
+	err = r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
 		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
 		return
@@ -123,8 +162,8 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 }
 
 // Delete handles the Delete operation.
-func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data AssignmentFilterResourceModel
+func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data MobileAppAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -139,7 +178,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(data.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
 		return

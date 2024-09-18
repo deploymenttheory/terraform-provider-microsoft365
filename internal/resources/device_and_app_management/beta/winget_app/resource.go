@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -56,6 +55,13 @@ func (r *WinGetAppResource) ImportState(ctx context.Context, req resource.Import
 }
 
 func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	// Create an instance of MobileAppAssignmentResource
+	mobileAppAssignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+
+	// Get the schema for MobileAppAssignmentResource
+	var mobileAppAssignmentResp resource.SchemaResponse
+	mobileAppAssignmentResource.Schema(ctx, resource.SchemaRequest{}, &mobileAppAssignmentResp)
+
 	resp.Schema = schema.Schema{
 		Description: "Manages a WinGet application in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
@@ -173,8 +179,14 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 				Description: "The install experience settings associated with this application.",
 			},
-			"assignments": graphBetaMobileAppAssignment.MobileAppAssignments(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"assignments": schema.ListNestedAttribute{
+				Optional:    true,
+				Description: "The list of group assignments for this mobile app.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: mobileAppAssignmentResp.Schema.Attributes,
+				},
+			},
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
