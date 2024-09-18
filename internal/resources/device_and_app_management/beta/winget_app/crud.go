@@ -52,8 +52,9 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	resourceAsWinGetApp, ok := resource.(models.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Error creating resource",
-			fmt.Sprintf("Created resource is not of type WinGetApp: %s_%s", r.ProviderTypeName, r.TypeName),
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, resource),
 		)
 		return
 	}
@@ -93,8 +94,9 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	resourceAsWinGetApp, ok := resource.(models.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Error creating resource",
-			fmt.Sprintf("Created resource is not of type WinGetApp: %s_%s", r.ProviderTypeName, r.TypeName),
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, resource),
 		)
 		return
 	}
