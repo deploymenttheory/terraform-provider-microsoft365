@@ -84,7 +84,6 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -124,6 +123,8 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		)
 		return
 	}
+
+	// Set the assignments in the state, even if it's an empty slice
 	state.Assignments = assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

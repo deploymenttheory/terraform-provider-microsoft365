@@ -7,6 +7,7 @@ import (
 	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Helper functions for assignments
@@ -76,7 +77,10 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Get the assignments from the response state
 	diags = resp.State.Get(ctx, &assignments)
 	if diags.HasError() {
-		return nil, fmt.Errorf("error retrieving assignments from state: %v", diags)
+		// If there's an error, it might be because there are no assignments
+		// Log a warning and return an empty slice instead of an error
+		tflog.Warn(ctx, fmt.Sprintf("No assignments found for app ID %s", appID))
+		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
 	}
 
 	return assignments, nil
