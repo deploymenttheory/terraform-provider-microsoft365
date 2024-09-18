@@ -7,7 +7,7 @@ import (
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *WinGetAppResourceModel) models.WinGetAppable {
+func constructResource(ctx context.Context, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
 	construct.DebugPrintStruct(ctx, "Constructing WinGet App resource from model", data)
 
 	requestBody := models.NewWinGetApp()
@@ -77,5 +77,5 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) models
 		requestBody.SetInstallExperience(installExperience)
 	}
 
-	return requestBody
+	return requestBody, nil
 }
