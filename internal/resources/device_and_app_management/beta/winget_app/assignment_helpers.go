@@ -7,7 +7,6 @@ import (
 	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Helper functions for assignments
@@ -45,6 +44,11 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Create a new MobileAppAssignmentResource
 	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
 
+	// Ensure the resource is not nil
+	if assignmentResource == nil {
+		return nil, fmt.Errorf("MobileAppAssignmentResource is nil")
+	}
+
 	// Create a new ReadRequest
 	req := resource.ReadRequest{}
 
@@ -55,7 +59,7 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 		SourceID: types.StringValue(appID),
 	}
 
-	// Set the State in the ReadRequest
+	// Ensure req.State is valid before calling Set
 	diags := req.State.Set(ctx, state)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error setting state for reading assignments: %v", diags)
@@ -67,6 +71,7 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Call the Read method of the MobileAppAssignmentResource
 	assignmentResource.Read(ctx, req, resp)
 
+	// Check for diagnostics errors
 	if resp.Diagnostics.HasError() {
 		return nil, fmt.Errorf("error reading assignments: %v", resp.Diagnostics)
 	}
@@ -77,10 +82,7 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	// Get the assignments from the response state
 	diags = resp.State.Get(ctx, &assignments)
 	if diags.HasError() {
-		// If there's an error, it might be because there are no assignments
-		// Log a warning and return an empty slice instead of an error
-		tflog.Warn(ctx, fmt.Sprintf("No assignments found for app ID %s", appID))
-		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
+		return nil, fmt.Errorf("error retrieving assignments from state: %v", diags)
 	}
 
 	return assignments, nil
