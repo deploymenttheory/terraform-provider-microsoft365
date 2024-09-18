@@ -9,8 +9,8 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
+// ConstructResource maps the Terraform schema to the SDK model
+func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
 	construct.DebugPrintStruct(ctx, "Constructing Mobile App Assignment resource from model", data)
 
 	requestBody := models.NewMobileAppAssignment()

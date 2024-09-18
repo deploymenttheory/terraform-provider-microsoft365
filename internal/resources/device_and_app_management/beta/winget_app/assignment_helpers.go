@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -16,47 +14,49 @@ func (r *WinGetAppResource) createAssignments(ctx context.Context, appID string,
 		return nil
 	}
 
-	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
-
 	for _, assignment := range assignments {
-		assignment.SourceID = types.StringValue(appID)
-
-		req := resource.CreateRequest{
-			Plan: assignment,
+		requestBody, err := graphBetaMobileAppAssignment.ConstructResource(ctx, &assignment)
+		if err != nil {
+			return fmt.Errorf("error constructing assignment: %v", err)
 		}
-		resp := &resource.CreateResponse{}
 
-		assignmentResource.Create(ctx, req, resp)
+		_, err = r.client.DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(appID).
+			Assignments().
+			Post(ctx, requestBody, nil)
 
-		if resp.Diagnostics.HasError() {
-			return fmt.Errorf("error creating assignment: %v", resp.Diagnostics)
+		if err != nil {
+			return fmt.Errorf("error creating assignment: %v", err)
 		}
 	}
+
 	return nil
 }
 
 func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) ([]graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting readAssignments for app ID: %s", appID))
 
-	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+	assignmentsResponse, err := r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(appID).
+		Assignments().
+		Get(ctx, nil)
 
-	req := resource.ReadRequest{
-		State: graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{
-			SourceID: types.StringValue(appID),
-		},
-	}
-	resp := &resource.ReadResponse{}
-
-	assignmentResource.Read(ctx, req, resp)
-
-	if resp.Diagnostics.HasError() {
-		return nil, fmt.Errorf("error reading assignments: %v", resp.Diagnostics)
+	if err != nil {
+		return nil, fmt.Errorf("error reading assignments: %v", err)
 	}
 
-	var assignments []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel
-	resp.State.Get(ctx, &assignments)
+	assignments := assignmentsResponse.GetValue()
+	var result []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel
 
-	return assignments, nil
+	for _, assignment := range assignments {
+		var terraformAssignment graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel
+		graphBetaMobileAppAssignment.MapRemoteStateToTerraform(ctx, &terraformAssignment, assignment)
+		result = append(result, terraformAssignment)
+	}
+
+	return result, nil
 }
 
 func (r *WinGetAppResource) updateAssignments(ctx context.Context, appID string, newAssignments []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel) error {
@@ -65,22 +65,69 @@ func (r *WinGetAppResource) updateAssignments(ctx context.Context, appID string,
 		return nil
 	}
 
-	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+	// First, get existing assignments
+	existingAssignments, err := r.readAssignments(ctx, appID)
+	if err != nil {
+		return fmt.Errorf("error reading existing assignments: %v", err)
+	}
 
-	for _, assignment := range newAssignments {
-		assignment.SourceID = types.StringValue(appID)
+	// Create a map of existing assignments for easy lookup
+	existingMap := make(map[string]graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel)
+	for _, assignment := range existingAssignments {
+		existingMap[assignment.ID.ValueString()] = assignment
+	}
 
-		req := resource.UpdateRequest{
-			Plan: assignment,
+	// Update or create assignments
+	for _, newAssignment := range newAssignments {
+		requestBody, err := graphBetaMobileAppAssignment.ConstructResource(ctx, &newAssignment)
+		if err != nil {
+			return fmt.Errorf("error constructing assignment: %v", err)
 		}
-		resp := &resource.UpdateResponse{}
 
-		assignmentResource.Update(ctx, req, resp)
+		if _, exists := existingMap[newAssignment.ID.ValueString()]; exists {
+			// Update existing assignment
+			_, err = r.client.DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(appID).
+				Assignments().
+				ByMobileAppAssignmentId(newAssignment.ID.ValueString()).
+				Patch(ctx, requestBody, nil)
+		} else {
+			// Create new assignment
+			_, err = r.client.DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(appID).
+				Assignments().
+				Post(ctx, requestBody, nil)
+		}
 
-		if resp.Diagnostics.HasError() {
-			return fmt.Errorf("error updating assignment: %v", resp.Diagnostics)
+		if err != nil {
+			return fmt.Errorf("error updating/creating assignment: %v", err)
 		}
 	}
+
+	// Delete assignments that are not in the new set
+	for _, existingAssignment := range existingAssignments {
+		found := false
+		for _, newAssignment := range newAssignments {
+			if existingAssignment.ID == newAssignment.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			err := r.client.DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(appID).
+				Assignments().
+				ByMobileAppAssignmentId(existingAssignment.ID.ValueString()).
+				Delete(ctx, nil)
+			if err != nil {
+				return fmt.Errorf("error deleting assignment %s: %v", existingAssignment.ID.ValueString(), err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -90,24 +137,18 @@ func (r *WinGetAppResource) deleteAssignments(ctx context.Context, appID string)
 		return err
 	}
 
-	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments to delete")
-		return nil
-	}
-
-	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
-
 	for _, assignment := range assignments {
-		req := resource.DeleteRequest{
-			State: assignment,
-		}
-		resp := &resource.DeleteResponse{}
+		err := r.client.DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(appID).
+			Assignments().
+			ByMobileAppAssignmentId(assignment.ID.ValueString()).
+			Delete(ctx, nil)
 
-		assignmentResource.Delete(ctx, req, resp)
-
-		if resp.Diagnostics.HasError() {
-			return fmt.Errorf("error deleting assignment: %v", resp.Diagnostics)
+		if err != nil {
+			return fmt.Errorf("error deleting assignment %s: %v", assignment.ID.ValueString(), err)
 		}
 	}
+
 	return nil
 }
