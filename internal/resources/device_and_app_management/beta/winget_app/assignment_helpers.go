@@ -10,28 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Helper functions for assignments
 func (r *WinGetAppResource) createAssignments(ctx context.Context, appID string, assignments []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel) error {
-	for _, assignment := range assignments {
-		// Create a new MobileAppAssignmentResource
-		assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to create")
+		return nil
+	}
 
-		// Set the SourceID for the assignment
+	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+
+	for _, assignment := range assignments {
 		assignment.SourceID = types.StringValue(appID)
 
-		// Create a new CreateRequest
-		req := resource.CreateRequest{}
-
-		// Set the Plan in the CreateRequest
-		diags := req.Plan.Set(ctx, assignment)
-		if diags.HasError() {
-			return fmt.Errorf("error setting plan for assignment: %v", diags)
+		req := resource.CreateRequest{
+			Plan: assignment,
 		}
-
-		// Create a new CreateResponse
 		resp := &resource.CreateResponse{}
 
-		// Call the Create method of the MobileAppAssignmentResource
 		assignmentResource.Create(ctx, req, resp)
 
 		if resp.Diagnostics.HasError() {
@@ -44,70 +38,50 @@ func (r *WinGetAppResource) createAssignments(ctx context.Context, appID string,
 func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) ([]graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting readAssignments for app ID: %s", appID))
 
-	// Create a new MobileAppAssignmentResource
 	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
 
-	// Ensure the resource is not nil
-	if assignmentResource == nil {
-		return nil, fmt.Errorf("MobileAppAssignmentResource is nil")
+	req := resource.ReadRequest{
+		State: graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{
+			SourceID: types.StringValue(appID),
+		},
 	}
-
-	// Create a new ReadRequest
-	req := resource.ReadRequest{}
-
-	// Create a state to hold the appID
-	state := struct {
-		SourceID types.String `tfsdk:"source_id"`
-	}{
-		SourceID: types.StringValue(appID),
-	}
-
-	// Set the State in the ReadRequest
-	diags := req.State.Set(ctx, &state)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error setting state for reading assignments: %v", diags)
-	}
-
-	// Create a new ReadResponse
 	resp := &resource.ReadResponse{}
 
-	// Call the Read method of the MobileAppAssignmentResource
 	assignmentResource.Read(ctx, req, resp)
 
 	if resp.Diagnostics.HasError() {
 		return nil, fmt.Errorf("error reading assignments: %v", resp.Diagnostics)
 	}
 
-	// Create a variable to hold the assignments
 	var assignments []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel
+	resp.State.Get(ctx, &assignments)
 
-	// Get the assignments from the response state
-	diags = resp.State.Get(ctx, &assignments)
-	if diags.HasError() {
-		tflog.Warn(ctx, fmt.Sprintf("No assignments found or error retrieving assignments for app ID %s: %v", appID, diags))
-		// Return an empty slice instead of nil
-		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
-	}
-
-	// If assignments is nil, return an empty slice
-	if assignments == nil {
-		tflog.Debug(ctx, fmt.Sprintf("No assignments found for app ID: %s", appID))
-		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Successfully read %d assignments for app ID: %s", len(assignments), appID))
 	return assignments, nil
 }
 
 func (r *WinGetAppResource) updateAssignments(ctx context.Context, appID string, newAssignments []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel) error {
-	// First, delete all existing assignments
-	err := r.deleteAssignments(ctx, appID)
-	if err != nil {
-		return err
+	if len(newAssignments) == 0 {
+		tflog.Debug(ctx, "No assignments to update")
+		return nil
 	}
 
-	// Then, create all new assignments
-	return r.createAssignments(ctx, appID, newAssignments)
+	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+
+	for _, assignment := range newAssignments {
+		assignment.SourceID = types.StringValue(appID)
+
+		req := resource.UpdateRequest{
+			Plan: assignment,
+		}
+		resp := &resource.UpdateResponse{}
+
+		assignmentResource.Update(ctx, req, resp)
+
+		if resp.Diagnostics.HasError() {
+			return fmt.Errorf("error updating assignment: %v", resp.Diagnostics)
+		}
+	}
+	return nil
 }
 
 func (r *WinGetAppResource) deleteAssignments(ctx context.Context, appID string) error {
@@ -116,23 +90,19 @@ func (r *WinGetAppResource) deleteAssignments(ctx context.Context, appID string)
 		return err
 	}
 
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to delete")
+		return nil
+	}
+
+	assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+
 	for _, assignment := range assignments {
-		// Create a new MobileAppAssignmentResource for each assignment
-		assignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
-
-		// Create a new DeleteRequest
-		req := resource.DeleteRequest{}
-
-		// Set the State in the DeleteRequest
-		diags := req.State.Set(ctx, assignment)
-		if diags.HasError() {
-			return fmt.Errorf("error setting state for assignment deletion: %v", diags)
+		req := resource.DeleteRequest{
+			State: assignment,
 		}
-
-		// Create a new DeleteResponse
 		resp := &resource.DeleteResponse{}
 
-		// Call the Delete method of the MobileAppAssignmentResource
 		assignmentResource.Delete(ctx, req, resp)
 
 		if resp.Diagnostics.HasError() {
