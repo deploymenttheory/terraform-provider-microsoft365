@@ -85,6 +85,13 @@ func (r *WinGetAppResource) readAssignments(ctx context.Context, appID string) (
 	diags = resp.State.Get(ctx, &assignments)
 	if diags.HasError() {
 		tflog.Warn(ctx, fmt.Sprintf("No assignments found or error retrieving assignments for app ID %s: %v", appID, diags))
+		// Return an empty slice instead of nil
+		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
+	}
+
+	// If assignments is nil, return an empty slice
+	if assignments == nil {
+		tflog.Debug(ctx, fmt.Sprintf("No assignments found for app ID: %s", appID))
 		return []graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel{}, nil
 	}
 
