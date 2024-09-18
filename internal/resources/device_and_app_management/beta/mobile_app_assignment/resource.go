@@ -68,7 +68,7 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 				Description: "The unique identifier of the mobile app assignment.",
 			},
 			"source_id": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "The identifier of the source mobile app.",
 			},
 			"target": schema.SingleNestedAttribute{
