@@ -1,7 +1,8 @@
 // This is a shared resource used by multiple intune app types to define the assignments for the app.
 // As such, i have taken the design decision to make this a shared resource that will be called by the
 // different app types that require it. It shall be triggered by the inclusion of app assignments within
-// the hcl of app resource. it shall not be a stand alone resource that can be created on its own.
+// the hcl of app resource. it shall not be a stand alone resource that can be created on its own and
+// is therefore not exposed to the user.
 
 package graphBetaMobileAppAssignment
 

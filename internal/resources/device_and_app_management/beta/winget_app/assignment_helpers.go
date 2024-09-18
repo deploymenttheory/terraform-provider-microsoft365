@@ -3,6 +3,7 @@ package graphBetaWinGetApp
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -65,67 +66,47 @@ func (r *WinGetAppResource) updateAssignments(ctx context.Context, appID string,
 		return nil
 	}
 
-	// First, get existing assignments
+	// Get existing assignments
 	existingAssignments, err := r.readAssignments(ctx, appID)
 	if err != nil {
 		return fmt.Errorf("error reading existing assignments: %v", err)
 	}
 
-	// Create a map of existing assignments for easy lookup
+	// Create map of existing assignments
 	existingMap := make(map[string]graphBetaMobileAppAssignment.MobileAppAssignmentResourceModel)
 	for _, assignment := range existingAssignments {
 		existingMap[assignment.ID.ValueString()] = assignment
 	}
 
-	// Update or create assignments
-	for _, newAssignment := range newAssignments {
-		requestBody, err := graphBetaMobileAppAssignment.ConstructResource(ctx, &newAssignment)
-		if err != nil {
-			return fmt.Errorf("error constructing assignment: %v", err)
-		}
-
-		if _, exists := existingMap[newAssignment.ID.ValueString()]; exists {
-			// Update existing assignment
-			_, err = r.client.DeviceAppManagement().
-				MobileApps().
-				ByMobileAppId(appID).
-				Assignments().
-				ByMobileAppAssignmentId(newAssignment.ID.ValueString()).
-				Patch(ctx, requestBody, nil)
-		} else {
-			// Create new assignment
-			_, err = r.client.DeviceAppManagement().
-				MobileApps().
-				ByMobileAppId(appID).
-				Assignments().
-				Post(ctx, requestBody, nil)
-		}
-
-		if err != nil {
-			return fmt.Errorf("error updating/creating assignment: %v", err)
-		}
-	}
-
-	// Delete assignments that are not in the new set
-	for _, existingAssignment := range existingAssignments {
-		found := false
+	// Check if there are any changes
+	changesExist := false
+	if len(existingAssignments) != len(newAssignments) {
+		changesExist = true
+	} else {
 		for _, newAssignment := range newAssignments {
-			if existingAssignment.ID == newAssignment.ID {
-				found = true
+			existingAssignment, exists := existingMap[newAssignment.ID.ValueString()]
+			if !exists || !reflect.DeepEqual(existingAssignment, newAssignment) {
+				changesExist = true
 				break
 			}
 		}
-		if !found {
-			err := r.client.DeviceAppManagement().
-				MobileApps().
-				ByMobileAppId(appID).
-				Assignments().
-				ByMobileAppAssignmentId(existingAssignment.ID.ValueString()).
-				Delete(ctx, nil)
-			if err != nil {
-				return fmt.Errorf("error deleting assignment %s: %v", existingAssignment.ID.ValueString(), err)
-			}
-		}
+	}
+
+	if !changesExist {
+		tflog.Debug(ctx, "No changes in assignments")
+		return nil
+	}
+
+	// If there are changes, delete all existing assignments
+	err = r.deleteAssignments(ctx, appID)
+	if err != nil {
+		return fmt.Errorf("error deleting existing assignments: %v", err)
+	}
+
+	// Create all new assignments
+	err = r.createAssignments(ctx, appID, newAssignments)
+	if err != nil {
+		return fmt.Errorf("error creating new assignments: %v", err)
 	}
 
 	return nil
