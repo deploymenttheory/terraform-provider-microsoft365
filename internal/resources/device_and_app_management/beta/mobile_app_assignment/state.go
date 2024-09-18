@@ -22,9 +22,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentRes
 
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
 
-	if intent := remoteResource.GetIntent(); intent != nil {
-		data.Intent = types.StringValue(intent.String())
-	}
+	data.Intent = state.EnumPtrToTypeString(remoteResource.GetIntent())
 
 	if target := remoteResource.GetTarget(); target != nil {
 		mapTargetToTerraform(data, target)
@@ -34,7 +32,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentRes
 		mapSettingsToTerraform(ctx, data, settings)
 	}
 
-	data.Source = types.StringValue(state.StringPtrToString(remoteResource.GetSource().String()))
+	data.Source = state.EnumPtrToTypeString(remoteResource.GetSource())
 	data.SourceID = types.StringValue(state.StringPtrToString(remoteResource.GetSourceId()))
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
