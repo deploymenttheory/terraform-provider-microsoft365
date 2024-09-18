@@ -5,13 +5,13 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	graphBetaMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -55,6 +55,13 @@ func (r *WinGetAppResource) ImportState(ctx context.Context, req resource.Import
 }
 
 func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	// Create an instance of MobileAppAssignmentResource
+	mobileAppAssignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()
+
+	// Get the schema for MobileAppAssignmentResource
+	var mobileAppAssignmentResp resource.SchemaResponse
+	mobileAppAssignmentResource.Schema(ctx, resource.SchemaRequest{}, &mobileAppAssignmentResp)
+
 	resp.Schema = schema.Schema{
 		Description: "Manages a WinGet application in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
@@ -83,7 +90,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 					"value": schema.StringAttribute{
 						Required:    true,
-						Description: "The base64-encoded icon data.",
+						Description: "The icon data, request for mat should be in raw bytes.",
 					},
 				},
 				Description: "The large icon, to be displayed in the app details and used for upload of the icon.",
@@ -171,6 +178,13 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 				},
 				Description: "The install experience settings associated with this application.",
+			},
+			"assignments": schema.ListNestedAttribute{
+				Optional:    true,
+				Description: "The list of group assignments for this mobile app.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: mobileAppAssignmentResp.Schema.Attributes,
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
