@@ -18,10 +18,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4.1.7
 
-    - name: Install Microsoft Graph PowerShell SDK
+    - name: Install Chocolatey
       run: |
-        Install-Module Microsoft.Graph -Scope CurrentUser -Force
-        Import-Module Microsoft.Graph
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+      shell: pwsh
+
+    - name: Install Microsoft Graph PowerShell SDK via Chocolatey
+      run: choco install microsoft-graph -y
+      shell: pwsh
+
+    - name: Import Microsoft Graph Module
+      run: Import-Module Microsoft.Graph
+      shell: pwsh
 
     - name: Run Graph Permissions Script
       run: |
@@ -42,6 +52,6 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add internal/permissions/ExportedGraphPermissionss.json
+        git add internal/permissions/ExportedGraphPermissions.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update Graph permissions data" && git push)
       shell: pwsh
