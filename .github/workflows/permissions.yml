@@ -3,7 +3,7 @@ name: Extract Graph Permissions
 on:
   workflow_dispatch:  # Allows manual triggering
   schedule:
-    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+    - cron: '0 0 * * 0'  # Runs at 00:00 UTC every Sunday
 
 env:
   CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -23,13 +23,13 @@ jobs:
         Install-Module Microsoft.Graph -Scope CurrentUser -Force
         Import-Module Microsoft.Graph
 
-        - name: Run Graph Permissions Script
-        run: |
-          ${{ github.workspace }}\scripts\ExportGraphPermissions.ps1 `
-            -ClientId $env:CLIENT_ID `
-            -ClientSecret $env:CLIENT_SECRET `
-            -TenantId $env:TENANT_ID
-        shell: pwsh
+    - name: Run Graph Permissions Script
+      run: |
+        ${{ github.workspace }}\scripts\ExportGraphPermissions.ps1 `
+          -ClientId $env:CLIENT_ID `
+          -ClientSecret $env:CLIENT_SECRET `
+          -TenantId $env:TENANT_ID
+      shell: pwsh
   
     - name: Move exported file to correct location
       run: |
