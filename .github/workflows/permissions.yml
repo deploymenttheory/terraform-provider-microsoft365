@@ -1,0 +1,47 @@
+name: Extract Graph Permissions
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+
+env:
+  CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+jobs:
+  extract-permissions:
+    runs-on: windows-latest  # Using Windows runner for PowerShell
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+
+    - name: Install Microsoft Graph PowerShell SDK
+      run: |
+        Install-Module Microsoft.Graph -Scope CurrentUser -Force
+        Import-Module Microsoft.Graph
+
+    - name: Run Graph Permissions Script
+      run: |
+        .\scripts\ExportGraphPermissions.ps1 `
+          -ClientId $env:CLIENT_ID `
+          -ClientSecret $env:CLIENT_SECRET `
+          -TenantId $env:TENANT_ID
+      shell: pwsh
+
+    - name: Upload JSON artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: graph-permissions
+        path: scripts/Export/ExportedGraphPermissions.json
+
+    # Optional: Commit and push if there are changes
+    - name: Commit and push if changed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add internal/permissions/ExportedGraphPermissionss.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update Graph permissions data" && git push)
+      shell: pwsh
