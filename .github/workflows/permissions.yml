@@ -18,40 +18,43 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4.1.7
 
-    - name: Install Chocolatey
+    - name: Install Microsoft Graph PowerShell SDK
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-      shell: pwsh
+        Install-Module Microsoft.Graph -Scope CurrentUser -Force
+        Import-Module Microsoft.Graph
 
-    - name: Install Microsoft Graph PowerShell SDK via Chocolatey
-      run: choco install microsoft-graph -y
-      shell: pwsh
-
-    - name: Import Microsoft Graph Module
-      run: Import-Module Microsoft.Graph
-      shell: pwsh
-
-    - name: Run Graph Permissions Script
+        - name: Run Graph Permissions Script
+        run: |
+          ${{ github.workspace }}\scripts\ExportGraphPermissions.ps1 `
+            -ClientId $env:CLIENT_ID `
+            -ClientSecret $env:CLIENT_SECRET `
+            -TenantId $env:TENANT_ID
+        shell: pwsh
+  
+    - name: Move exported file to correct location
       run: |
-        .\scripts\ExportGraphPermissions.ps1 `
-          -ClientId $env:CLIENT_ID `
-          -ClientSecret $env:CLIENT_SECRET `
-          -TenantId $env:TENANT_ID
+        $sourceFile = "${{ github.workspace }}\scripts\Export\ExportedGraphPermissions.json"
+        $destinationPath = "${{ github.workspace }}\internal\permissions"
+        $destinationFile = "ExportedGraphPermissions.json"
+        
+        # Create the destination directory if it doesn't exist
+        New-Item -ItemType Directory -Force -Path $destinationPath
+        
+        # Move the file
+        Move-Item -Path $sourceFile -Destination "$destinationPath\$destinationFile" -Force
       shell: pwsh
 
     - name: Upload JSON artifact
       uses: actions/upload-artifact@v4.4.0
       with:
         name: graph-permissions
-        path: scripts/Export/ExportedGraphPermissions.json
+        path: ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
 
-    # Optional: Commit and push if there are changes
+    # Commit and push if there are changes
     - name: Commit and push if changed
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add internal/permissions/ExportedGraphPermissions.json
+        git add ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update Graph permissions data" && git push)
       shell: pwsh
