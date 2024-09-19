@@ -23,25 +23,38 @@ jobs:
         Install-Module Microsoft.Graph -Scope CurrentUser -Force
         Import-Module Microsoft.Graph
 
-    - name: Run Graph Permissions Script
+        - name: Run Graph Permissions Script
+        run: |
+          ${{ github.workspace }}\scripts\ExportGraphPermissions.ps1 `
+            -ClientId $env:CLIENT_ID `
+            -ClientSecret $env:CLIENT_SECRET `
+            -TenantId $env:TENANT_ID
+        shell: pwsh
+  
+    - name: Move exported file to correct location
       run: |
-        .\scripts\ExportGraphPermissions.ps1 `
-          -ClientId $env:CLIENT_ID `
-          -ClientSecret $env:CLIENT_SECRET `
-          -TenantId $env:TENANT_ID
+        $sourceFile = "${{ github.workspace }}\scripts\Export\ExportedGraphPermissions.json"
+        $destinationPath = "${{ github.workspace }}\internal\permissions"
+        $destinationFile = "ExportedGraphPermissions.json"
+        
+        # Create the destination directory if it doesn't exist
+        New-Item -ItemType Directory -Force -Path $destinationPath
+        
+        # Move the file
+        Move-Item -Path $sourceFile -Destination "$destinationPath\$destinationFile" -Force
       shell: pwsh
 
     - name: Upload JSON artifact
       uses: actions/upload-artifact@v4.4.0
       with:
         name: graph-permissions
-        path: scripts/Export/ExportedGraphPermissions.json
+        path: ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
 
-    # Optional: Commit and push if there are changes
+    # Commit and push if there are changes
     - name: Commit and push if changed
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add internal/permissions/ExportedGraphPermissionss.json
+        git add ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update Graph permissions data" && git push)
       shell: pwsh
