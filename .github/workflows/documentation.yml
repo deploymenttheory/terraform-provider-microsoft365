@@ -20,7 +20,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
 
     - name: Render terraform docs for microsoft365_provider
-      uses: terraform-docs/gh-actions@cca78c27ac9e2b6545debf2ecae9df930fd3461c # v1.2.2
+      uses: terraform-docs/gh-actions@aeae0038ed47a547e0c0fca5c059d3335f48fb25 # v1.3.0
       with:
         working-dir: examples/microsoft365_provider
         indention: 3
@@ -30,7 +30,7 @@ jobs:
         git-commit-message: "terraform-docs: automated action"
     
     - name: Render terraform docs for microsoft365_graph
-      uses: terraform-docs/gh-actions@v1.2.2
+      uses: terraform-docs/gh-actions@v1.3.0
       with:
         working-dir: examples/
         recursive: true
@@ -41,7 +41,7 @@ jobs:
         git-commit-message: "terraform-docs: automated action"
   
     - name: Render terraform docs for microsoft365_graph_beta
-      uses: terraform-docs/gh-actions@v1.2.2
+      uses: terraform-docs/gh-actions@v1.3.0
       with:
         working-dir: examples/
         recursive: true
