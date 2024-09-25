@@ -15,30 +15,41 @@ import (
 func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan DeviceManagementScriptResourceModel
 
-	// Retrieve the plan from the request
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Setup context with timeout
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// Construct the device management script resource using the helper function
-	script, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error constructing device management script", fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
+		resp.Diagnostics.AddError(
+			"Error constructing resource",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
 		return
 	}
 
-	// Create the device management script via API call
-	createdScript, err := r.client.DeviceManagement().DeviceManagementScripts().Post(ctx, script, nil)
+	createdScript, err := r.client.DeviceManagement().
+		DeviceManagementScripts().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating device management script", fmt.Sprintf("Could not create device management script: %s", err.Error()))
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -116,8 +127,22 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 
 	// Retrieve the main resource
 	script, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).Get(ctx, nil)
+
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -181,13 +206,29 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	// Update the main resource
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error constructing resource", fmt.Sprintf("Could not construct resource: %v", err))
+		resp.Diagnostics.AddError(
+			"Error constructing resource for update method",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
 		return
 	}
 
 	_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating script", fmt.Sprintf("Could not update script: %v", err))
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -209,13 +250,11 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	readResp := resource.ReadResponse{State: resp.State}
 	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
 
-	// If there were any errors in Read, add them to the Update response
 	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Set the state in the response
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))

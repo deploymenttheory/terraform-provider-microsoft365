@@ -14,19 +14,27 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &DeviceManagementScriptResource{}
 var _ resource.ResourceWithConfigure = &DeviceManagementScriptResource{}
 var _ resource.ResourceWithImportState = &DeviceManagementScriptResource{}
 
 func NewDeviceManagementScriptResource() resource.Resource {
-	return &DeviceManagementScriptResource{}
+	return &DeviceManagementScriptResource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+	}
 }
 
 type DeviceManagementScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

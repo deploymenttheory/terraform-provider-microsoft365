@@ -18,13 +18,24 @@ var _ resource.ResourceWithConfigure = &MacOSPkgAppResource{}
 var _ resource.ResourceWithImportState = &MacOSPkgAppResource{}
 
 func NewMacOSPkgAppResource() resource.Resource {
-	return &MacOSPkgAppResource{}
+	return &MacOSPkgAppResource{
+		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+	}
 }
 
 type MacOSPkgAppResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

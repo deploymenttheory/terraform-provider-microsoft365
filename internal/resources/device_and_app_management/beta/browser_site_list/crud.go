@@ -39,15 +39,11 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 
 	createdSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().Post(ctx, requestBody, nil)
 	if err != nil {
-		permErr := crud.PermissionError(err, "Create", r.WritePermissions)
-		if permErr != err {
-			resp.Diagnostics.AddError(
-				"Permission Error",
-				permErr.Error(),
-			)
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
 		} else {
 			resp.Diagnostics.AddError(
-				"Error creating browser site list",
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
 				err.Error(),
 			)
 		}
@@ -87,13 +83,17 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 
 	if err != nil {
 		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
 			resp.State.RemoveResource(ctx)
 			return
 		}
 
-		err = crud.PermissionError(err, "Read", r.ReadPermissions)
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
-			"Permission Error",
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
 			err.Error(),
 		)
 		return
@@ -138,16 +138,17 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 
 	if err != nil {
 		if crud.IsNotFoundError(err) {
-			resp.Diagnostics.AddError(
-				"Error updating browser site list",
-				fmt.Sprintf("Browser site list with ID %s not found", plan.ID.ValueString()),
-			)
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
 			return
 		}
 
-		err = crud.PermissionError(err, "Update", r.WritePermissions)
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
-			"Error updating browser site list",
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
 			err.Error(),
 		)
 		return
@@ -181,22 +182,23 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 
 	if err != nil {
 		if crud.IsNotFoundError(err) {
-			resp.Diagnostics.AddError(
-				"Error deleting browser site list",
-				fmt.Sprintf("Browser site list with ID %s not found", data.ID.ValueString()),
-			)
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
 			return
 		}
 
-		err = crud.PermissionError(err, "Delete", r.WritePermissions)
+		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
-			"Error deleting browser site list",
+			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
 			err.Error(),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

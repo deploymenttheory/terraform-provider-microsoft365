@@ -4,8 +4,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 )
+
+// ResourceWithID is an interface that represents a resource with an ID.
+type ResourceWithID interface {
+	GetTypeName() string
+}
+
+// StateWithID is an interface that represents a state model with an ID.
+type StateWithID interface {
+	GetID() string
+}
 
 // IsNotFoundError checks if the given error is an OData error indicating that a resource was not found.
 // The function first verifies if the error is not nil. Then, it attempts to cast the error to an ODataError
@@ -66,44 +78,25 @@ func IsNotFoundError(err error) bool {
 	return false
 }
 
+// ResponseWithDiagnostics is an interface that represents a response with diagnostics.
+type ResponseWithDiagnostics interface {
+	AddError(summary, detail string)
+}
+
+// responseWrapper implements ResponseWithDiagnostics for different response types.
+type responseWrapper struct {
+	diagnostics *diag.Diagnostics
+}
+
+func (r *responseWrapper) AddError(summary, detail string) {
+	r.diagnostics.AddError(summary, detail)
+}
+
 // PermissionError checks if the given error is related to insufficient permissions
 // and returns a more informative error message if it is.
-//
-// This function is designed to work with the generic error messages returned by the Microsoft Graph API,
-// which often do not provide detailed information about the specific permissions required.
-//
-// The function checks for common phrases indicating a permission issue, such as "permission",
-// "access denied", or "unauthorized". If such a phrase is found, it constructs a more detailed
-// error message that includes the operation being performed and the permissions required for that operation.
-//
-// For Read operations, the function will specify both Read and ReadWrite permissions as possible
-// requirements. For all other operations, only the ReadWrite permission will be specified.
-//
-// Parameters:
-//   - err: The original error returned by the API call.
-//   - operation: A string describing the operation being performed (e.g., "Create", "Read", "Update", "Delete").
-//   - requiredPermissions: A slice of strings listing the permissions required for the operation.
-//     The first permission in this slice is assumed to be the ReadWrite permission.
-//
-// Returns:
-//   - An error with a more detailed message if a permission issue is detected.
-//   - The original error if no permission issue is detected.
-//
-// Usage:
-//
-//	err = crud.PermissionError(err, "Create", r.WritePermissions)
-//	if err != nil {
-//	    resp.Diagnostics.AddError("Error creating browser site list", err.Error())
-//	    return
-//	}
-//
-// For a Read operation, the usage would be:
-//
-//	err = crud.HandlePermissionError(err, "Read", r.WritePermissions)
-//	// The function will automatically derive the Read permission from the WritePermissions
-func PermissionError(err error, operation string, requiredPermissions []string) error {
+func PermissionError(err error, operation string, requiredPermissions []string, resp interface{}) bool {
 	if err == nil {
-		return nil
+		return false
 	}
 
 	errorMsg := err.Error()
@@ -120,9 +113,30 @@ func PermissionError(err error, operation string, requiredPermissions []string) 
 			permissionMsg = fmt.Sprintf("Required permissions: %s", strings.Join(requiredPermissions, ", "))
 		}
 
-		return fmt.Errorf("insufficient permissions for %s operation. %s. Original error: %s",
-			operation, permissionMsg, errorMsg)
+		var respWithDiag ResponseWithDiagnostics
+
+		switch r := resp.(type) {
+		case *resource.CreateResponse:
+			respWithDiag = &responseWrapper{diagnostics: &r.Diagnostics}
+		case *resource.ReadResponse:
+			respWithDiag = &responseWrapper{diagnostics: &r.Diagnostics}
+		case *resource.UpdateResponse:
+			respWithDiag = &responseWrapper{diagnostics: &r.Diagnostics}
+		case *resource.DeleteResponse:
+			respWithDiag = &responseWrapper{diagnostics: &r.Diagnostics}
+		default:
+			// If an unsupported response type is passed, we'll return false
+			// and let the caller handle the error
+			return false
+		}
+
+		respWithDiag.AddError(
+			"Permission Error",
+			fmt.Sprintf("Insufficient permissions for %s operation. %s. Original error: %s",
+				operation, permissionMsg, errorMsg),
+		)
+		return true
 	}
 
-	return err
+	return false
 }

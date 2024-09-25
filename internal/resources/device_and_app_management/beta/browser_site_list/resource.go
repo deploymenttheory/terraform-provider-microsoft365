@@ -16,7 +16,6 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &BrowserSiteListResource{}
 var _ resource.ResourceWithConfigure = &BrowserSiteListResource{}
 var _ resource.ResourceWithImportState = &BrowserSiteListResource{}

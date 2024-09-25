@@ -31,18 +31,25 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing provisioning policy",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().Post(ctx, requestBody, nil)
+	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().
+		ProvisioningPolicies().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating provisioning policy",
-			fmt.Sprintf("Could not create provisioning policy: %s", err.Error()),
-		)
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -58,7 +65,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 // Read handles the Read operation.
 func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state CloudPcProvisioningPolicyResourceModel
-	tflog.Debug(ctx, "Starting Read method for provisioning policy")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -66,7 +73,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading provisioning policy with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -74,14 +81,32 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().ByCloudPcProvisioningPolicyId(state.ID.ValueString()).Get(ctx, nil)
+	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+		Get(ctx, nil)
+
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, provisioningPolicy)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -105,18 +130,33 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing provisioning policy",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	_, err = r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	_, err = r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -139,9 +179,25 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().ByCloudPcProvisioningPolicyId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(data.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 

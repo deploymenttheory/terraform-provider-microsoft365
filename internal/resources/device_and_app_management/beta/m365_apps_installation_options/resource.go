@@ -19,13 +19,22 @@ var _ resource.ResourceWithConfigure = &M365AppsInstallationOptionsResource{}
 var _ resource.ResourceWithImportState = &M365AppsInstallationOptionsResource{}
 
 func NewM365AppsInstallationOptionsResource() resource.Resource {
-	return &M365AppsInstallationOptionsResource{}
+	return &M365AppsInstallationOptionsResource{
+		ReadPermissions: []string{
+			"OrgSettings-Microsoft365Install.Read.All",
+		},
+		WritePermissions: []string{
+			"OrgSettings-Microsoft365Install.ReadWrite.All",
+		},
+	}
 }
 
 type M365AppsInstallationOptionsResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

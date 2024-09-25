@@ -18,13 +18,22 @@ var _ resource.ResourceWithConfigure = &RoleDefinitionResource{}
 var _ resource.ResourceWithImportState = &RoleDefinitionResource{}
 
 func NewRoleDefinitionResource() resource.Resource {
-	return &RoleDefinitionResource{}
+	return &RoleDefinitionResource{
+		ReadPermissions: []string{
+			"DeviceManagementRBAC.Read.All",
+		},
+		WritePermissions: []string{
+			" DeviceManagementRBAC.ReadWrite.All",
+		},
+	}
 }
 
 type RoleDefinitionResource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

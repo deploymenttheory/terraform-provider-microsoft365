@@ -23,13 +23,22 @@ var _ resource.ResourceWithConfigure = &ConditionalAccessPolicyResource{}
 var _ resource.ResourceWithImportState = &ConditionalAccessPolicyResource{}
 
 func NewConditionalAccessPolicyResource() resource.Resource {
-	return &ConditionalAccessPolicyResource{}
+	return &ConditionalAccessPolicyResource{
+		ReadPermissions: []string{
+			"Policy.Read.All",
+		},
+		WritePermissions: []string{
+			"Policy.ReadWrite.ConditionalAccess",
+		},
+	}
 }
 
 type ConditionalAccessPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

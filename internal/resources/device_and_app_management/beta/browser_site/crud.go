@@ -41,9 +41,12 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 
 	createdSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().ByBrowserSiteListId(browserSiteListId).Sites().Post(ctx, requestBody, nil)
 	if err != nil {
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		}
 		resp.Diagnostics.AddError(
-			"Error creating browser site",
-			fmt.Sprintf("Could not create browser site: %s", err.Error()),
+			fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
 		)
 		return
 	}
@@ -63,7 +66,7 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 // Read handles the Read operation.
 func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state BrowserSiteResourceModel
-	tflog.Debug(ctx, "Starting Read method for browser site")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -71,7 +74,7 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading browser site with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -88,7 +91,20 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		Get(ctx, nil)
 
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -134,7 +150,20 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -169,6 +198,16 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 		Delete(ctx, nil)
 
 	if err != nil {
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
 			err.Error(),

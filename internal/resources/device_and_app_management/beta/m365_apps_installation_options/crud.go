@@ -28,11 +28,10 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	}
 	defer cancel()
 
-	// Since there's no Create API, we'll use the Update API to set the initial state
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing M365AppsInstallationOptions",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -40,10 +39,14 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 
 	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Patch(ctx, requestBody, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating M365AppsInstallationOptions",
-			fmt.Sprintf("Could not create M365AppsInstallationOptions: %s", err.Error()),
-		)
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -59,7 +62,7 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 // Read handles the Read operation.
 func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state M365AppsInstallationOptionsResourceModel
-	tflog.Debug(ctx, "Starting Read method for M365AppsInstallationOptions")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -67,7 +70,7 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading M365 Apps Installation Options with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -77,12 +80,27 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 
 	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Get(ctx, nil)
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, options)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -106,7 +124,7 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing M365AppsInstallationOptions",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -114,7 +132,20 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 
 	options, err := r.client.Admin().Microsoft365Apps().InstallationOptions().Patch(ctx, requestBody, nil)
 	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 

@@ -19,13 +19,22 @@ var _ resource.ResourceWithConfigure = &CloudPcUserSettingResource{}
 var _ resource.ResourceWithImportState = &CloudPcUserSettingResource{}
 
 func NewCloudPcUserSettingResource() resource.Resource {
-	return &CloudPcUserSettingResource{}
+	return &CloudPcUserSettingResource{
+		ReadPermissions: []string{
+			"CloudPC.Read.All",
+		},
+		WritePermissions: []string{
+			"CloudPC.ReadWrite.All",
+		},
+	}
 }
 
 type CloudPcUserSettingResource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

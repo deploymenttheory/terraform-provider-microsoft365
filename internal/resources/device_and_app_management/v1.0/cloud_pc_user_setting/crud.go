@@ -31,7 +31,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing Cloud Pc User Setting",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -39,10 +39,14 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 
 	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().Post(ctx, requestBody, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Cloud Pc User Setting",
-			fmt.Sprintf("Could not create Cloud Pc User Setting: %s", err.Error()),
-		)
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -58,7 +62,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 // Read handles the Read operation.
 func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state CloudPcUserSettingResourceModel
-	tflog.Debug(ctx, "Starting Read method for Cloud Pc User Setting")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -66,7 +70,7 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading Cloud Pc User Setting with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -74,14 +78,32 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(state.ID.ValueString()).Get(ctx, nil)
+	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+		ByCloudPcUserSettingId(state.ID.ValueString()).
+		Get(ctx, nil)
+
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, cloudPcUserSetting)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -105,29 +127,33 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing Cloud Pc User Setting",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	_, err = r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
-	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
-		return
-	}
+	_, err = r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+		ByCloudPcUserSettingId(plan.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
-	updatedPolicy, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(plan.ID.ValueString()).Get(ctx, nil)
 	if err != nil {
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
-			"Error Reading Updated Cloud Pc User Setting",
-			fmt.Sprintf("Could not read updated Cloud Pc User Setting: %s", err.Error()),
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
 		)
 		return
 	}
-
-	// Map the updated policy back to the Terraform state
-	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -151,16 +177,29 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().ByCloudPcUserSettingId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+		ByCloudPcUserSettingId(data.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
+			return
+		}
+
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error deleting %s_%s", r.ProviderTypeName, r.TypeName),
-			fmt.Sprintf("Failed to delete Cloud Pc User Setting: %s", err.Error()),
+			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
