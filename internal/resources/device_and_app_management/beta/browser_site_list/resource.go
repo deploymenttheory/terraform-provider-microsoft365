@@ -22,13 +22,22 @@ var _ resource.ResourceWithConfigure = &BrowserSiteListResource{}
 var _ resource.ResourceWithImportState = &BrowserSiteListResource{}
 
 func NewBrowserSiteListResource() resource.Resource {
-	return &BrowserSiteListResource{}
+	return &BrowserSiteListResource{
+		ReadPermissions: []string{
+			"BrowserSiteLists.Read.All",
+		},
+		WritePermissions: []string{
+			"BrowserSiteLists.ReadWrite.All",
+		},
+	}
 }
 
 type BrowserSiteListResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

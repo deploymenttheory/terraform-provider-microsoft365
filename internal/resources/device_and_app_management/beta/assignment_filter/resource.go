@@ -22,13 +22,22 @@ var _ resource.ResourceWithConfigure = &AssignmentFilterResource{}
 var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
 
 func NewAssignmentFilterResource() resource.Resource {
-	return &AssignmentFilterResource{}
+	return &AssignmentFilterResource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+	}
 }
 
 type AssignmentFilterResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

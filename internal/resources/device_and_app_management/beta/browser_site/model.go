@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta
 package graphbetabrowsersite
 
 import (
