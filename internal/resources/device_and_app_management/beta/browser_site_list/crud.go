@@ -31,7 +31,7 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing browser site list",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -39,9 +39,10 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 
 	createdSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().Post(ctx, requestBody, nil)
 	if err != nil {
+		err = crud.PermissionError(err, "Create", r.WritePermissions)
 		resp.Diagnostics.AddError(
-			"Error creating browser site list",
-			fmt.Sprintf("Could not create browser site list: %s", err.Error()),
+			"Permission Error",
+			err.Error(),
 		)
 		return
 	}
@@ -58,15 +59,14 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 // Read handles the Read operation.
 func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state BrowserSiteListResourceModel
-	tflog.Debug(ctx, "Starting Read method for browser site list")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading browser site list with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -79,7 +79,16 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 		Get(ctx, nil)
 
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		err = crud.PermissionError(err, "Read", r.ReadPermissions)
+		resp.Diagnostics.AddError(
+			"Permission Error",
+			err.Error(),
+		)
 		return
 	}
 
@@ -110,7 +119,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing browser site list",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -121,7 +130,19 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		if crud.IsNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Error updating browser site list",
+				fmt.Sprintf("Browser site list with ID %s not found", plan.ID.ValueString()),
+			)
+			return
+		}
+
+		err = crud.PermissionError(err, "Update", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Error updating browser site list",
+			err.Error(),
+		)
 		return
 	}
 
@@ -152,8 +173,17 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 		Delete(ctx, nil)
 
 	if err != nil {
+		if crud.IsNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Error deleting browser site list",
+				fmt.Sprintf("Browser site list with ID %s not found", data.ID.ValueString()),
+			)
+			return
+		}
+
+		err = crud.PermissionError(err, "Update", r.WritePermissions)
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
+			"Error deleting browser site list",
 			err.Error(),
 		)
 		return

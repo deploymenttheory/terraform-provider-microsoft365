@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
@@ -63,4 +64,65 @@ func IsNotFoundError(err error) bool {
 	}
 
 	return false
+}
+
+// PermissionError checks if the given error is related to insufficient permissions
+// and returns a more informative error message if it is.
+//
+// This function is designed to work with the generic error messages returned by the Microsoft Graph API,
+// which often do not provide detailed information about the specific permissions required.
+//
+// The function checks for common phrases indicating a permission issue, such as "permission",
+// "access denied", or "unauthorized". If such a phrase is found, it constructs a more detailed
+// error message that includes the operation being performed and the permissions required for that operation.
+//
+// For Read operations, the function will specify both Read and ReadWrite permissions as possible
+// requirements. For all other operations, only the ReadWrite permission will be specified.
+//
+// Parameters:
+//   - err: The original error returned by the API call.
+//   - operation: A string describing the operation being performed (e.g., "Create", "Read", "Update", "Delete").
+//   - requiredPermissions: A slice of strings listing the permissions required for the operation.
+//     The first permission in this slice is assumed to be the ReadWrite permission.
+//
+// Returns:
+//   - An error with a more detailed message if a permission issue is detected.
+//   - The original error if no permission issue is detected.
+//
+// Usage:
+//
+//	err = crud.PermissionError(err, "Create", r.WritePermissions)
+//	if err != nil {
+//	    resp.Diagnostics.AddError("Error creating browser site list", err.Error())
+//	    return
+//	}
+//
+// For a Read operation, the usage would be:
+//
+//	err = crud.HandlePermissionError(err, "Read", r.WritePermissions)
+//	// The function will automatically derive the Read permission from the WritePermissions
+func PermissionError(err error, operation string, requiredPermissions []string) error {
+	if err == nil {
+		return nil
+	}
+
+	errorMsg := err.Error()
+	lowerErrorMsg := strings.ToLower(errorMsg)
+
+	if strings.Contains(lowerErrorMsg, "permission") ||
+		strings.Contains(lowerErrorMsg, "access denied") ||
+		strings.Contains(lowerErrorMsg, "unauthorized") {
+		var permissionMsg string
+		if strings.ToLower(operation) == "read" {
+			readPerm := strings.Replace(requiredPermissions[0], "ReadWrite", "Read", 1)
+			permissionMsg = fmt.Sprintf("Required permissions: %s or %s", readPerm, requiredPermissions[0])
+		} else {
+			permissionMsg = fmt.Sprintf("Required permissions: %s", strings.Join(requiredPermissions, ", "))
+		}
+
+		return fmt.Errorf("insufficient permissions for %s operation. %s. Original error: %s",
+			operation, permissionMsg, errorMsg)
+	}
+
+	return err
 }
