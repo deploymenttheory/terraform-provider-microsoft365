@@ -39,11 +39,18 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 
 	createdSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().Post(ctx, requestBody, nil)
 	if err != nil {
-		err = crud.PermissionError(err, "Create", r.WritePermissions)
-		resp.Diagnostics.AddError(
-			"Permission Error",
-			err.Error(),
-		)
+		permErr := crud.PermissionError(err, "Create", r.WritePermissions)
+		if permErr != err {
+			resp.Diagnostics.AddError(
+				"Permission Error",
+				permErr.Error(),
+			)
+		} else {
+			resp.Diagnostics.AddError(
+				"Error creating browser site list",
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -181,7 +188,7 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 			return
 		}
 
-		err = crud.PermissionError(err, "Update", r.WritePermissions)
+		err = crud.PermissionError(err, "Delete", r.WritePermissions)
 		resp.Diagnostics.AddError(
 			"Error deleting browser site list",
 			err.Error(),
