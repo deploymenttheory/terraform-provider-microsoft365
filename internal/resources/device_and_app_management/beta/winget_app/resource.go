@@ -20,13 +20,24 @@ var _ resource.ResourceWithConfigure = &WinGetAppResource{}
 var _ resource.ResourceWithImportState = &WinGetAppResource{}
 
 func NewWinGetAppResource() resource.Resource {
-	return &WinGetAppResource{}
+	return &WinGetAppResource{
+		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+	}
 }
 
 type WinGetAppResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

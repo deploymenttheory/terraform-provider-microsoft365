@@ -20,13 +20,22 @@ var _ resource.ResourceWithConfigure = &CloudPcDeviceImageResource{}
 var _ resource.ResourceWithImportState = &CloudPcDeviceImageResource{}
 
 func NewCloudPcDeviceImageResource() resource.Resource {
-	return &CloudPcDeviceImageResource{}
+	return &CloudPcDeviceImageResource{
+		ReadPermissions: []string{
+			"CloudPC.Read.All",
+		},
+		WritePermissions: []string{
+			"CloudPC.ReadWrite.All",
+		},
+	}
 }
 
 type CloudPcDeviceImageResource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

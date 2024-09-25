@@ -31,7 +31,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing assignment filter",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -39,10 +39,14 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 
 	resource, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating resource",
-			fmt.Sprintf("Could not create %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
 
@@ -74,14 +78,32 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).Get(ctx, nil)
+	resource, err := r.client.DeviceManagement().AssignmentFilters().
+		ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).
+		Get(ctx, nil)
+
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, resource)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -111,9 +133,25 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err = r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	_, err = r.client.DeviceManagement().AssignmentFilters().
+		ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		crud.HandleUpdateErrorIfNotFound(ctx, resp, r, &plan, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 

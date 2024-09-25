@@ -16,6 +16,8 @@ import (
 func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan MacOSPkgAppResourceModel
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -29,16 +31,25 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 
 	app, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error constructing macOS PKG app", fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
+		resp.Diagnostics.AddError(
+			"Error constructing resource",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
 		return
 	}
 
 	createdApp, err := r.client.DeviceAppManagement().MobileApps().Post(ctx, app, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating macOS PKG app", fmt.Sprintf("Could not create macOS PKG app: %s", err.Error()))
+		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
+				err.Error(),
+			)
+		}
 		return
 	}
-
 	plan.ID = types.StringValue(*createdApp.GetId())
 
 	// Call Read to fetch the full state and set it in the response
@@ -74,8 +85,22 @@ func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest
 	defer cancel()
 
 	app, err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(state.ID.ValueString()).Get(ctx, nil)
+
 	if err != nil {
-		crud.HandleReadErrorIfNotFound(ctx, resp, r, &state, err)
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -92,6 +117,7 @@ func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest
 	MapRemoteStateToTerraform(ctx, &state, macOSPkgApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -115,13 +141,32 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error constructing resource", fmt.Sprintf("Could not construct resource: %v", err))
+		resp.Diagnostics.AddError(
+			"Error constructing resource for update method",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
 		return
 	}
 
-	_, err = r.client.DeviceAppManagement().MobileApps().ByMobileAppId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	_, err = r.client.DeviceAppManagement().MobileApps().
+		ByMobileAppId(plan.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating macOS PKG app", fmt.Sprintf("Could not update macOS PKG app: %v", err))
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 
@@ -156,9 +201,25 @@ func (r *MacOSPkgAppResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceAppManagement().MobileApps().
+		ByMobileAppId(data.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
+		if crud.IsNotFoundError(err) {
+			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
+			err.Error(),
+		)
 		return
 	}
 

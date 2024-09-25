@@ -24,13 +24,24 @@ var _ resource.ResourceWithConfigure = &MobileAppAssignmentResource{}
 var _ resource.ResourceWithImportState = &MobileAppAssignmentResource{}
 
 func NewMobileAppAssignmentResource() resource.Resource {
-	return &MobileAppAssignmentResource{}
+	return &MobileAppAssignmentResource{
+		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+	}
 }
 
 type MobileAppAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.

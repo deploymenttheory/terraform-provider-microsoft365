@@ -14,19 +14,27 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &BrowserSiteResource{}
 var _ resource.ResourceWithConfigure = &BrowserSiteResource{}
 var _ resource.ResourceWithImportState = &BrowserSiteResource{}
 
 func NewBrowserSiteResource() resource.Resource {
-	return &BrowserSiteResource{}
+	return &BrowserSiteResource{
+		ReadPermissions: []string{
+			"BrowserSiteLists.Read.All",
+		},
+		WritePermissions: []string{
+			"BrowserSiteLists.ReadWrite.All",
+		},
+	}
 }
 
 type BrowserSiteResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetID returns the ID of a resource from the state model.
