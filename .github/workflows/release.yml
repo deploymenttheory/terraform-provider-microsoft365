@@ -12,7 +12,7 @@ permissions:
 jobs:
   test-build:
     name: test build
-    runs-on: ubuntu-24.04-4c.16gb
+    runs-on: windows-latest-l
     timeout-minutes: 60
     steps:
     - name: Harden Runner
