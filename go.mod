@@ -18,6 +18,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go v1.48.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	software.sslmate.com/src/go-pkcs12 v0.5.0
 )
 
@@ -100,7 +101,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
