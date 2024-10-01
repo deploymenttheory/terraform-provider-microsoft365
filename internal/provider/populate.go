@@ -59,6 +59,17 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 		return types.ObjectNull(entraIDSchema), diags
 	}
 
+	var defaultAllowedTenants []string
+	if !entraIDOptions.AdditionallyAllowedTenants.IsNull() && !entraIDOptions.AdditionallyAllowedTenants.IsUnknown() {
+		entraIDOptions.AdditionallyAllowedTenants.ElementsAs(ctx, &defaultAllowedTenants, false)
+	}
+
+	allowedTenants := helpers.EnvDefaultFuncStringList("M365_ADDITIONALLY_ALLOWED_TENANTS", defaultAllowedTenants)
+	allowedTenantsList, diags := types.ListValueFrom(ctx, types.StringType, allowedTenants)
+	if diags.HasError() {
+		return types.ObjectNull(entraIDSchema), diags
+	}
+
 	return types.ObjectValueMust(entraIDSchema, map[string]attr.Value{
 		"client_id":                    types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_ID", entraIDOptions.ClientID.ValueString())),
 		"client_secret":                types.StringValue(helpers.EnvDefaultFunc("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString())),
@@ -68,11 +79,10 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 		"username":                     types.StringValue(helpers.EnvDefaultFunc("M365_USERNAME", entraIDOptions.Username.ValueString())),
 		"password":                     types.StringValue(helpers.EnvDefaultFunc("M365_PASSWORD", entraIDOptions.Password.ValueString())),
 		"disable_instance_discovery":   types.BoolValue(helpers.EnvDefaultFuncBool("M365_DISABLE_INSTANCE_DISCOVERY", entraIDOptions.DisableInstanceDiscovery.ValueBool())),
-		"additionally_allowed_tenants": types.StringValue(helpers.EnvDefaultFunc("M365_ADDITIONALLY_ALLOWED_TENANTS", entraIDOptions.Password.ValueString())),
+		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringValue(helpers.EnvDefaultFunc("M365_REDIRECT_URI", entraIDOptions.RedirectUrl.ValueString())),
 	}), diags
 }
-
 func populateClientOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var clientOptions ClientOptionsModel

@@ -3,6 +3,7 @@ package helpers
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -49,6 +50,26 @@ func EnvDefaultFuncInt64Value(k string, defaultValue types.Int64) types.Int64 {
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err == nil {
 			return types.Int64Value(i)
+		}
+	}
+	return defaultValue
+}
+
+// EnvDefaultFuncStringList is a helper function that returns a slice of strings
+// based on the environment variable (if set) or the provided default value.
+// The environment variable should be a comma-separated string.
+func EnvDefaultFuncStringList(k string, defaultValue []string) []string {
+	if v := os.Getenv(k); v != "" {
+		elements := strings.Split(v, ",")
+		var result []string
+		for _, element := range elements {
+			trimmed := strings.TrimSpace(element)
+			if trimmed != "" {
+				result = append(result, trimmed)
+			}
+		}
+		if len(result) > 0 {
+			return result
 		}
 	}
 	return defaultValue

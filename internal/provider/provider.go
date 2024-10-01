@@ -34,7 +34,6 @@ type M365ProviderModel struct {
 	ClientOptions   types.Object `tfsdk:"client_options"`
 	TelemetryOptout types.Bool   `tfsdk:"telemetry_optout"`
 	DebugMode       types.Bool   `tfsdk:"debug_mode"`
-	LogLevel        types.String `tfsdk:"log_level"`
 }
 
 // EntraIDOptionsModel describes the Entra ID options
