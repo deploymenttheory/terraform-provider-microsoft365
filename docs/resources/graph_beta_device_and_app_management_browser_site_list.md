@@ -1,12 +1,12 @@
 ---
-page_title: "Resource: microsoft365_graph_device_and_app_management_role_definition"
+page_title: "Resource: microsoft365_graph_beta_device_and_app_management_browser_site_list"
 description: |-
-    The resource role_definition manages a Role Definition in Microsoft 365
+    Manages a browser site list in Microsoft Intune.
 ---
 
-# Resource: microsoft365_graph_device_and_app_management_role_definition
+# Resource: microsoft365_graph_beta_device_and_app_management_browser_site_list
 
-The resource `role_definition` manages a Role Definition in Microsoft 365
+Manages a browser site list in Microsoft Intune.
 
 
 
@@ -15,27 +15,20 @@ The resource `role_definition` manages a Role Definition in Microsoft 365
 
 ### Required
 
-- `display_name` (String) Display Name of the Role definition.
-- `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission. (see [below for nested schema](#nestedatt--role_permissions))
+- `display_name` (String) The name of the site list.
 
 ### Optional
 
-- `description` (String) Description of the Role definition.
-- `is_built_in` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
+- `description` (String) The description of the site list.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) Key of the entity. This is read-only and automatically generated.
-
-<a id="nestedatt--role_permissions"></a>
-### Nested Schema for `role_permissions`
-
-Optional:
-
-- `allowed_resource_actions` (List of String) Allowed Resource Actions
-- `not_allowed_resource_actions` (List of String) Not Allowed Resource Actions
-
+- `id` (String) The unique identifier for the site list.
+- `last_modified_date_time` (String) The date and time when the site list was last modified.
+- `published_date_time` (String) The date and time when the site list was published.
+- `revision` (String) The current revision of the site list.
+- `status` (String) The current status of the site list.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

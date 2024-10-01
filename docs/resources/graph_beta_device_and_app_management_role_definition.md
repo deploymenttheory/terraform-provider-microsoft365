@@ -16,27 +16,29 @@ The resource `role_definition` manages a Role Definition in Microsoft 365
 ### Required
 
 - `display_name` (String) Display Name of the Role definition.
-- `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission. (see [below for nested schema](#nestedatt--role_permissions))
 
 ### Optional
 
 - `description` (String) Description of the Role definition.
 - `is_built_in` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
-- `role_scope_tag_ids` (List of String) List of scope tag ids for this Role Definition.
+- `is_built_in_role_definition` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
+- `role_permissions` (Block List) List of Role Permissions this role is allowed to perform. (see [below for nested schema](#nestedblock--role_permissions))
+- `role_scope_tag_ids` (List of String) List of scope tag ids for the role definition
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `id` (String) Key of the entity. This is read-only and automatically generated.
 
-<a id="nestedatt--role_permissions"></a>
+<a id="nestedblock--role_permissions"></a>
 ### Nested Schema for `role_permissions`
 
-Required:
+Optional:
 
-- `resource_actions` (Attributes List) Resource Actions for the Role Permission (see [below for nested schema](#nestedatt--role_permissions--resource_actions))
+- `actions` (List of String) Allowed actions
+- `resource_actions` (Block List) Resource actions for this role permission (see [below for nested schema](#nestedblock--role_permissions--resource_actions))
 
-<a id="nestedatt--role_permissions--resource_actions"></a>
+<a id="nestedblock--role_permissions--resource_actions"></a>
 ### Nested Schema for `role_permissions.resource_actions`
 
 Optional:
