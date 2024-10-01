@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -37,19 +38,13 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().
+	provisioningPolicy, err := r.client.DeviceManagement().
+		VirtualEndpoint().
 		ProvisioningPolicies().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -81,25 +76,14 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	provisioningPolicy, err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+	provisioningPolicy, err := r.client.DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -136,27 +120,17 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	_, err = r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+	_, err = r.client.DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -179,25 +153,14 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().VirtualEndpoint().ProvisioningPolicies().
+	err := r.client.DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 

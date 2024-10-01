@@ -38,7 +38,10 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
+	resource, err := r.client.DeviceManagement().
+		AssignmentFilters().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
@@ -72,7 +75,8 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().
+	resource, err := r.client.DeviceManagement().
+		AssignmentFilters().
 		ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).
 		Get(ctx, nil)
 
@@ -145,7 +149,10 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceManagement().
+		AssignmentFilters().
+		ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).
+		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)

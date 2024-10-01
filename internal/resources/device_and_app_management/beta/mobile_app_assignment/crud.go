@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -49,14 +50,7 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -86,23 +80,14 @@ func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.Rea
 	}
 	defer cancel()
 
-	assignmentsResponse, err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(state.SourceID.ValueString()).Assignments().Get(ctx, nil)
+	assignmentsResponse, err := r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(state.SourceID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -169,20 +154,7 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -208,23 +180,13 @@ func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(data.ID.ValueString()).
+		Delete(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 

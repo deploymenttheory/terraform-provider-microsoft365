@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -37,22 +38,19 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	createdRoleDef, err := r.client.DeviceManagement().RoleDefinitions().Post(ctx, roleDef, nil)
+	createdRoleDef, err := r.client.DeviceManagement().
+		RoleDefinitions().
+		Post(ctx, roleDef, nil)
+
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
 	plan.ID = types.StringValue(*createdRoleDef.GetId())
 
 	readResp := resource.ReadResponse{State: resp.State}
+
 	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
 
 	resp.Diagnostics.Append(readResp.Diagnostics...)
@@ -83,25 +81,13 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	roleDef, err := r.client.DeviceManagement().RoleDefinitions().
+	roleDef, err := r.client.DeviceManagement().
+		RoleDefinitions().
 		ByRoleDefinitionId(state.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -139,25 +125,13 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	updatedRoleDef, err := r.client.DeviceManagement().RoleDefinitions().
+	updatedRoleDef, err := r.client.DeviceManagement().
+		RoleDefinitions().
 		ByRoleDefinitionId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -185,25 +159,13 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().RoleDefinitions().
+	err := r.client.DeviceManagement().
+		RoleDefinitions().
 		ByRoleDefinitionId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 
