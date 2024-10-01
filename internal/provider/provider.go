@@ -57,7 +57,6 @@ type ClientOptionsModel struct {
 	MaxRetries              types.Int64  `tfsdk:"max_retries"`
 	RetryDelaySeconds       types.Int64  `tfsdk:"retry_delay_seconds"`
 	EnableRedirect          types.Bool   `tfsdk:"enable_redirect"`
-	RedirectURL             types.String `tfsdk:"redirect_url"`
 	MaxRedirects            types.Int64  `tfsdk:"max_redirects"`
 	EnableCompression       types.Bool   `tfsdk:"enable_compression"`
 	CustomUserAgent         types.String `tfsdk:"custom_user_agent"`
@@ -66,8 +65,6 @@ type ClientOptionsModel struct {
 	ProxyUsername           types.String `tfsdk:"proxy_username"`
 	ProxyPassword           types.String `tfsdk:"proxy_password"`
 	TimeoutSeconds          types.Int64  `tfsdk:"timeout_seconds"`
-	ObservabilityEnabled    types.Bool   `tfsdk:"observability_enabled"`
-	TracerName              types.String `tfsdk:"tracer_name"`
 	EnableChaos             types.Bool   `tfsdk:"enable_chaos"`
 	ChaosPercentage         types.Int64  `tfsdk:"chaos_percentage"`
 	ChaosStatusCode         types.Int64  `tfsdk:"chaos_status_code"`
@@ -417,39 +414,39 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 func ClientOptionsSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		// ----    set these with default values
-		// "enable_headers_inspection": schema.BoolAttribute{
-		// 	Optional:    true,
-		// 	Description: "Enable inspection of HTTP headers.",
-		// },
-		// "enable_retry": schema.BoolAttribute{
-		// 	Optional:    true,
-		// 	Description: "Enable automatic retries for failed requests.",
-		// },
-		// "max_retries": schema.Int64Attribute{
-		// 	Optional:    true,
-		// 	Description: "Maximum number of retries for failed requests.",
-		// },
-		// "retry_delay_seconds": schema.Int64Attribute{
-		// 	Optional:    true,
-		// 	Description: "Delay between retry attempts in seconds.",
-		// },
-		// "enable_redirect": schema.BoolAttribute{
-		// 	Optional:    true,
-		// 	Description: "Enable automatic following of redirects.",
-		// },
-		// "max_redirects": schema.Int64Attribute{
-		// 	Optional:    true,
-		// 	Description: "Maximum number of redirects to follow.",
-		// },
-		// "enable_compression": schema.BoolAttribute{
-		// 	Optional:    true,
-		// 	Description: "Enable compression for HTTP requests and responses.",
-		// },
+		"enable_headers_inspection": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable inspection of HTTP headers.",
+		},
+		"enable_retry": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable automatic retries for failed requests.",
+		},
+		"max_retries": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Maximum number of retries for failed requests.",
+		},
+		"retry_delay_seconds": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Delay between retry attempts in seconds.",
+		},
+		"enable_redirect": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable automatic following of redirects.",
+		},
+		"max_redirects": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Maximum number of redirects to follow.",
+		},
+		"enable_compression": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable compression for HTTP requests and responses.",
+		},
 		// ----    set these with default values
-		// "custom_user_agent": schema.StringAttribute{
-		// 	Optional:    true,
-		// 	Description: "Custom User-Agent string to be sent with requests.",
-		// }, TODO - set one for the provider
+		"custom_user_agent": schema.StringAttribute{
+			Optional:    true,
+			Description: "Custom User-Agent string to be sent with requests.",
+		}, // TODO - set one for the provider
 		"use_proxy": schema.BoolAttribute{
 			Optional:    true,
 			Description: "Enable the use of a proxy for network requests.",

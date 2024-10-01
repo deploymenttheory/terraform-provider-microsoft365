@@ -83,6 +83,7 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 		"redirect_url":                 types.StringValue(helpers.EnvDefaultFunc("M365_REDIRECT_URI", entraIDOptions.RedirectUrl.ValueString())),
 	}), diags
 }
+
 func populateClientOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var clientOptions ClientOptionsModel
@@ -99,14 +100,22 @@ func populateClientOptions(ctx context.Context, config types.Object) (types.Obje
 	}
 
 	return types.ObjectValueMust(clientSchema, map[string]attr.Value{
-		"use_proxy":            types.BoolValue(helpers.EnvDefaultFuncBool("M365_USE_PROXY", clientOptions.UseProxy.ValueBool())),
-		"proxy_url":            types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_URL", clientOptions.ProxyURL.ValueString())),
-		"proxy_username":       types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_USERNAME", clientOptions.ProxyUsername.ValueString())),
-		"proxy_password":       types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_PASSWORD", clientOptions.ProxyPassword.ValueString())),
-		"timeout_seconds":      helpers.EnvDefaultFuncInt64Value("M365_TIMEOUT_SECONDS", clientOptions.TimeoutSeconds),
-		"enable_chaos":         types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_CHAOS", clientOptions.EnableChaos.ValueBool())),
-		"chaos_percentage":     helpers.EnvDefaultFuncInt64Value("M365_CHAOS_PERCENTAGE", clientOptions.ChaosPercentage),
-		"chaos_status_code":    helpers.EnvDefaultFuncInt64Value("M365_CHAOS_STATUS_CODE", clientOptions.ChaosStatusCode),
-		"chaos_status_message": types.StringValue(helpers.EnvDefaultFunc("M365_CHAOS_STATUS_MESSAGE", clientOptions.ChaosStatusMessage.ValueString())),
+		"enable_headers_inspection": types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_HEADERS_INSPECTION", clientOptions.EnableHeadersInspection.ValueBool())),
+		"enable_retry":              types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_RETRY", clientOptions.EnableRetry.ValueBool())),
+		"max_retries":               helpers.EnvDefaultFuncInt64Value("M365_MAX_RETRIES", clientOptions.MaxRetries),
+		"retry_delay_seconds":       helpers.EnvDefaultFuncInt64Value("M365_RETRY_DELAY_SECONDS", clientOptions.RetryDelaySeconds),
+		"enable_redirect":           types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_REDIRECT", clientOptions.EnableRedirect.ValueBool())),
+		"max_redirects":             helpers.EnvDefaultFuncInt64Value("M365_MAX_REDIRECTS", clientOptions.MaxRedirects),
+		"enable_compression":        types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_COMPRESSION", clientOptions.EnableCompression.ValueBool())),
+		"custom_user_agent":         types.StringValue(helpers.EnvDefaultFunc("M365_CUSTOM_USER_AGENT", clientOptions.CustomUserAgent.ValueString())),
+		"use_proxy":                 types.BoolValue(helpers.EnvDefaultFuncBool("M365_USE_PROXY", clientOptions.UseProxy.ValueBool())),
+		"proxy_url":                 types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_URL", clientOptions.ProxyURL.ValueString())),
+		"proxy_username":            types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_USERNAME", clientOptions.ProxyUsername.ValueString())),
+		"proxy_password":            types.StringValue(helpers.EnvDefaultFunc("M365_PROXY_PASSWORD", clientOptions.ProxyPassword.ValueString())),
+		"timeout_seconds":           helpers.EnvDefaultFuncInt64Value("M365_TIMEOUT_SECONDS", clientOptions.TimeoutSeconds),
+		"enable_chaos":              types.BoolValue(helpers.EnvDefaultFuncBool("M365_ENABLE_CHAOS", clientOptions.EnableChaos.ValueBool())),
+		"chaos_percentage":          helpers.EnvDefaultFuncInt64Value("M365_CHAOS_PERCENTAGE", clientOptions.ChaosPercentage),
+		"chaos_status_code":         helpers.EnvDefaultFuncInt64Value("M365_CHAOS_STATUS_CODE", clientOptions.ChaosStatusCode),
+		"chaos_status_message":      types.StringValue(helpers.EnvDefaultFunc("M365_CHAOS_STATUS_MESSAGE", clientOptions.ChaosStatusMessage.ValueString())),
 	}), diags
 }
