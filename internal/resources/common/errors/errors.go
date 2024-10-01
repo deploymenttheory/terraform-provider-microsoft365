@@ -9,26 +9,42 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 )
 
-// HandleGraphError handles errors returned by the Graph SDK
-func HandleGraphError(ctx context.Context, err error) {
-	if err == nil {
-		return
+// GraphErrorInfo contains extracted information from a Graph API error
+type GraphErrorInfo struct {
+	StatusCode     int
+	ErrorCode      string
+	ErrorMessage   string
+	IsODataError   bool
+	AdditionalData map[string]interface{}
+}
+
+// GraphError logs detailed information about errors returned by the Graph SDK
+// and returns extracted error information for further processing
+func GraphError(ctx context.Context, err error) GraphErrorInfo {
+	errorInfo := GraphErrorInfo{
+		StatusCode:     0,
+		IsODataError:   false,
+		AdditionalData: make(map[string]interface{}),
 	}
-	var apiError abstractions.ApiErrorable
-	var ok bool
+
+	if err == nil {
+		return errorInfo
+	}
 
 	tflog.Error(ctx, fmt.Sprintf("Raw error: %v", err))
 
+	var apiError abstractions.ApiErrorable
+	var ok bool
 	if apiError, ok = err.(abstractions.ApiErrorable); !ok {
 		tflog.Error(ctx, "Error does not implement ApiErrorable interface")
 		tflog.Error(ctx, fmt.Sprintf("Error type: %T", err))
 		tflog.Error(ctx, fmt.Sprintf("Error message: %s", err.Error()))
-		return
+		errorInfo.ErrorMessage = err.Error()
+		return errorInfo
 	}
 
-	// Return HTTP status code and resp headers
-	statusCode := apiError.GetStatusCode()
-	tflog.Info(ctx, fmt.Sprintf("HTTP Status Code: %d", statusCode))
+	errorInfo.StatusCode = apiError.GetStatusCode()
+	tflog.Info(ctx, fmt.Sprintf("HTTP Status Code: %d", errorInfo.StatusCode))
 
 	responseHeaders := apiError.GetResponseHeaders()
 	if responseHeaders != nil {
@@ -41,14 +57,16 @@ func HandleGraphError(ctx context.Context, err error) {
 		}
 	}
 
-	// If it's an ODataError, we can get more detailed information
 	if odataErr, ok := err.(*odataerrors.ODataError); ok {
+		errorInfo.IsODataError = true
 		if mainError := odataErr.GetErrorEscaped(); mainError != nil {
 			if code := mainError.GetCode(); code != nil {
-				tflog.Info(ctx, fmt.Sprintf("Error Code: %s", *code))
+				errorInfo.ErrorCode = *code
+				tflog.Info(ctx, fmt.Sprintf("Error Code: %s", errorInfo.ErrorCode))
 			}
 			if message := mainError.GetMessage(); message != nil {
-				tflog.Info(ctx, fmt.Sprintf("Error Message: %s", *message))
+				errorInfo.ErrorMessage = *message
+				tflog.Info(ctx, fmt.Sprintf("Error Message: %s", errorInfo.ErrorMessage))
 			}
 		}
 
@@ -56,100 +74,11 @@ func HandleGraphError(ctx context.Context, err error) {
 		if len(additionalData) > 0 {
 			tflog.Debug(ctx, "Additional Data:")
 			for key, value := range additionalData {
+				errorInfo.AdditionalData[key] = value
 				tflog.Debug(ctx, fmt.Sprintf("%s: %v", key, value))
 			}
 		}
 	}
-}
 
-// HandleGraphErrorStructured handles errors returned by the Graph SDK and logs them using structured logging
-func HandleGraphErrorStructured(ctx context.Context, err error) {
-	if err == nil {
-		return
-	}
-	var apiError abstractions.ApiErrorable
-	var ok bool
-
-	tflog.Error(ctx, "Raw error", map[string]interface{}{"error": err})
-
-	if apiError, ok = err.(abstractions.ApiErrorable); !ok {
-		tflog.Error(ctx, "Error does not implement ApiErrorable interface")
-		tflog.Error(ctx, "Error details", map[string]interface{}{
-			"type":    fmt.Sprintf("%T", err),
-			"message": err.Error(),
-		})
-		return
-	}
-
-	statusCode := apiError.GetStatusCode()
-	tflog.Info(ctx, "HTTP Status Code", map[string]interface{}{"statusCode": statusCode})
-
-	responseHeaders := apiError.GetResponseHeaders()
-	if responseHeaders != nil {
-		headerMap := make(map[string]interface{})
-		for _, key := range responseHeaders.ListKeys() {
-			values := responseHeaders.Get(key)
-			if len(values) == 1 {
-				headerMap[key] = values[0]
-			} else if len(values) > 1 {
-				headerMap[key] = values
-			}
-		}
-		tflog.Debug(ctx, "Response Headers", map[string]interface{}{"headers": headerMap})
-	}
-
-	// If it's an ODataError, we can get more detailed information
-	if odataErr, ok := err.(*odataerrors.ODataError); ok {
-		if mainError := odataErr.GetErrorEscaped(); mainError != nil {
-			if code := mainError.GetCode(); code != nil {
-				tflog.Info(ctx, "Error Code", map[string]interface{}{"code": *code})
-			}
-			if message := mainError.GetMessage(); message != nil {
-				tflog.Info(ctx, "Error Message", map[string]interface{}{"message": *message})
-			}
-		}
-	}
-}
-
-// HandleGraphErrorUnstructured handles errors returned by the Graph SDK and logs them using unstructured logging
-func HandleGraphErrorUnstructured(ctx context.Context, err error) {
-	if err == nil {
-		return
-	}
-	var apiError abstractions.ApiErrorable
-	var ok bool
-
-	tflog.Error(ctx, fmt.Sprintf("Raw error: %v", err))
-
-	if apiError, ok = err.(abstractions.ApiErrorable); !ok {
-		tflog.Error(ctx, "Error does not implement ApiErrorable interface")
-		tflog.Error(ctx, fmt.Sprintf("Error type: %T", err))
-		tflog.Error(ctx, fmt.Sprintf("Error message: %s", err.Error()))
-		return
-	}
-
-	statusCode := apiError.GetStatusCode()
-	tflog.Info(ctx, fmt.Sprintf("HTTP Status Code: %d", statusCode))
-
-	responseHeaders := apiError.GetResponseHeaders()
-	if responseHeaders != nil {
-		tflog.Debug(ctx, "Response Headers:")
-		for _, key := range responseHeaders.ListKeys() {
-			values := responseHeaders.Get(key)
-			for _, value := range values {
-				tflog.Debug(ctx, fmt.Sprintf("%s: %s", key, value))
-			}
-		}
-	}
-
-	if odataErr, ok := err.(*odataerrors.ODataError); ok {
-		if mainError := odataErr.GetErrorEscaped(); mainError != nil {
-			if code := mainError.GetCode(); code != nil {
-				tflog.Info(ctx, fmt.Sprintf("Error Code: %s", *code))
-			}
-			if message := mainError.GetMessage(); message != nil {
-				tflog.Info(ctx, fmt.Sprintf("Error Message: %s", *message))
-			}
-		}
-	}
+	return errorInfo
 }
