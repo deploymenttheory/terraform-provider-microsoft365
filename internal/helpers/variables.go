@@ -3,6 +3,8 @@ package helpers
 import (
 	"os"
 	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // MultiEnvDefaultFunc is a helper function that returns the value of the first
@@ -35,6 +37,18 @@ func EnvDefaultFuncBool(k string, defaultValue bool) bool {
 		b, err := strconv.ParseBool(v)
 		if err == nil {
 			return b
+		}
+	}
+	return defaultValue
+}
+
+// EnvDefaultFuncInt64Value is a helper function that returns the types.Int64Value
+// of the given environment variable, if one exists, or the default value otherwise.
+func EnvDefaultFuncInt64Value(k string, defaultValue types.Int64) types.Int64 {
+	if v := os.Getenv(k); v != "" {
+		i, err := strconv.ParseInt(v, 10, 64)
+		if err == nil {
+			return types.Int64Value(i)
 		}
 	}
 	return defaultValue
