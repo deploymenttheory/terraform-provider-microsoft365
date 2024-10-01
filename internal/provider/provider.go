@@ -413,39 +413,39 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 
 func ClientOptionsSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		// ----    set these with default values
+		// ----  TODO  set these with default values
 		"enable_headers_inspection": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable inspection of HTTP headers.",
+			Optional:            true,
+			MarkdownDescription: "Enable inspection of HTTP headers.",
 		},
 		"enable_retry": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable automatic retries for failed requests.",
+			Optional:            true,
+			MarkdownDescription: "Enable automatic retries for failed requests.",
 		},
 		"max_retries": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Maximum number of retries for failed requests.",
+			Optional:            true,
+			MarkdownDescription: "Maximum number of retries for failed requests.",
 		},
 		"retry_delay_seconds": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Delay between retry attempts in seconds.",
+			Optional:            true,
+			MarkdownDescription: "Delay between retry attempts in seconds.",
 		},
 		"enable_redirect": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable automatic following of redirects.",
+			Optional:            true,
+			MarkdownDescription: "Enable automatic following of redirects.",
 		},
 		"max_redirects": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Maximum number of redirects to follow.",
+			Optional:            true,
+			MarkdownDescription: "Maximum number of redirects to follow.",
 		},
 		"enable_compression": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable compression for HTTP requests and responses.",
+			Optional:            true,
+			MarkdownDescription: "Enable compression for HTTP requests and responses.",
 		},
 		// ----    set these with default values
 		"custom_user_agent": schema.StringAttribute{
-			Optional:    true,
-			Description: "Custom User-Agent string to be sent with requests.",
+			Optional:            true,
+			MarkdownDescription: "Custom User-Agent string to be sent with requests.",
 		}, // TODO - set one for the provider
 		"use_proxy": schema.BoolAttribute{
 			Optional:    true,
@@ -482,6 +482,9 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 				"}\n" +
 				"```\n\n" +
 				"Can be set using the `M365_PROXY_URL` environment variable.",
+			Validators: []validator.String{
+				validateProxyURL(),
+			},
 		},
 		"proxy_username": schema.StringAttribute{
 			Optional:    true,
@@ -526,7 +529,7 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 		},
 		"timeout_seconds": schema.Int64Attribute{
 			Optional:    true,
-			Description: "Timeout for requests in seconds.",
+			Description: "Override value for authentication request timeouts in seconds.",
 		},
 		"enable_chaos": schema.BoolAttribute{
 			Optional:    true,
@@ -642,33 +645,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		})
 		return
 	}
-	// if data.DebugMode.ValueBool() {
-	// 	logDebugInfo(ctx, req, data)
-	// }
-
-	// ctx = tflog.SetField(ctx, "cloud", data.Cloud.ValueString())
-	// ctx = tflog.SetField(ctx, "auth_method", data.AuthMethod.ValueString())
-	// ctx = tflog.SetField(ctx, "use_proxy", data.UseProxy.ValueBool())
-	// ctx = tflog.SetField(ctx, "redirect_url", data.RedirectURL.ValueString())
-	// ctx = tflog.SetField(ctx, "proxy_url", data.ProxyURL.ValueString())
-	// ctx = tflog.SetField(ctx, "enable_chaos", data.EnableChaos.ValueBool())
-	// ctx = tflog.SetField(ctx, "telemetry_optout", data.TelemetryOptout.ValueBool())
-	// ctx = tflog.SetField(ctx, "debug_mode", data.DebugMode.ValueBool())
-
-	// ctx = tflog.SetField(ctx, "client_certificate_file_path", data.ClientCertificate.ValueString())
-	// ctx = tflog.SetField(ctx, "client_certificate_password", data.ClientCertificatePassword.ValueString())
-	// ctx = tflog.MaskAllFieldValuesRegexes(ctx, regexp.MustCompile(`(?i)client_certificate`))
-
-	// ctx = tflog.SetField(ctx, "username", data.Username.ValueString())
-	// ctx = tflog.SetField(ctx, "password", data.Password.ValueString())
-	// ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "password")
-
-	// ctx = tflog.SetField(ctx, "tenant_id", data.TenantID.ValueString())
-	// ctx = tflog.SetField(ctx, "client_id", data.ClientID.ValueString())
-	// ctx = tflog.SetField(ctx, "client_secret", data.ClientSecret.ValueString())
-	// ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "tenant_id")
-	// ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_id")
-	// ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "client_secret")
 
 	authorityURL, apiScope, graphServiceRoot, graphBetaServiceRoot, err := setCloudConstants(data.Cloud.ValueString())
 	if err != nil {
@@ -679,11 +655,6 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		)
 		return
 	}
-
-	ctx = tflog.SetField(ctx, "authority_url", authorityURL)
-	ctx = tflog.SetField(ctx, "api_scope", apiScope)
-	ctx = tflog.SetField(ctx, "graph_service_root", graphServiceRoot)
-	ctx = tflog.SetField(ctx, "graph_beta_service_root", graphBetaServiceRoot)
 
 	clientOptions, err := configureEntraIDClientOptions(ctx, &data, authorityURL)
 	if err != nil {
