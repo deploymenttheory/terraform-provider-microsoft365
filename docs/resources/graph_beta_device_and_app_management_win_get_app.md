@@ -15,22 +15,40 @@ Manages a WinGet application in Microsoft Intune.
 
 ### Required
 
-- `display_name` (String) The admin provided or imported title of the app.
 - `install_experience` (Attributes) The install experience settings associated with this application. (see [below for nested schema](#nestedatt--install_experience))
-- `package_identifier` (String) The PackageIdentifier from the WinGet source repository REST API. This also maps to the Id when using the WinGet client command line application. Required at creation time, cannot be modified on existing objects.
+- `package_identifier` (String) The **unique identifier** for the WinGet/Microsoft Store app from the storefront.
+
+For example, for the URL [https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US](https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US), the package identifier is `9nzvdkpmr9rd`.
+
+**Important notes:**
+- This identifier is **required** at creation time.
+- It **cannot be modified** for existing Terraform-deployed WinGet/Microsoft Store apps.
+
+**Steps to find your package identifier:**
+1. Navigate to the [Microsoft Store for Business](https://businessstore.microsoft.com/) portal.
+2. Locate the desired WinGet app.
+3. In the app details page, identify the package identifier in the URL or within the app information section.
+
+**Example usage:**
+```hcl
+resource "m365_graph_beta_device_and_app_management_win_get_app" "example" {
+  package_identifier = "9nzvdkpmr9rd"
+
+  install_experience {
+    run_as_account = "user"
+  }
+}
+```
 
 ### Optional
 
 - `assignments` (Attributes List) The list of group assignments for this mobile app. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) The description of the app.
 - `developer` (String) The developer of the app.
 - `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
-- `large_icon` (Attributes) The large icon, to be displayed in the app details and used for upload of the icon. (see [below for nested schema](#nestedatt--large_icon))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
 - `privacy_information_url` (String) The privacy statement Url.
-- `publisher` (String) The publisher of the app.
 - `role_scope_tag_ids` (List of String) List of scope tag ids for this mobile app.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -38,10 +56,14 @@ Manages a WinGet application in Microsoft Intune.
 
 - `created_date_time` (String) The date and time the app was created. This property is read-only.
 - `dependent_app_count` (Number) The total number of dependencies the child app has. This property is read-only.
-- `id` (String) Key of the entity. This property is read-only.
+- `description` (String) A detailed description of the WinGet app, automatically retrieved from the Microsoft Store for Business.
+- `display_name` (String) The title of the WinGet app imported from the Microsoft Store for Business.This field is automatically populated based on the package identifier.
+- `id` (String) The unique graph guid that identifies this resource.Assigned at time of resource creation. This property is read-only.
 - `is_assigned` (Boolean) The value indicating whether the app is assigned to at least one group. This property is read-only.
+- `large_icon` (Attributes) The large icon for the WinGet app, automatically downloaded and set from the Microsoft Store for Business. (see [below for nested schema](#nestedatt--large_icon))
 - `last_modified_date_time` (String) The date and time the app was last modified. This property is read-only.
 - `manifest_hash` (String) Hash of package metadata properties used to validate that the application matches the metadata in the source repository.
+- `publisher` (String) The publisher of the WinGet app, automatically fetched from the Microsoft Store for Business.
 - `publishing_state` (String) The publishing state for the app. The app cannot be assigned unless the app is published. Possible values are: notPublished, processing, published.
 - `superseded_app_count` (Number) The total number of apps this app is directly or indirectly superseded by. This property is read-only.
 - `superseding_app_count` (Number) The total number of apps this app directly or indirectly supersedes. This property is read-only.
@@ -129,15 +151,6 @@ Optional:
 
 
 
-<a id="nestedatt--large_icon"></a>
-### Nested Schema for `large_icon`
-
-Required:
-
-- `type` (String) The MIME type of the icon.
-- `value` (String) The icon data, request for mat should be in raw bytes.
-
-
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
@@ -147,5 +160,14 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+
+<a id="nestedatt--large_icon"></a>
+### Nested Schema for `large_icon`
+
+Read-Only:
+
+- `type` (String) The MIME type of the app's large icon, automatically determined based on the downloaded image from the Microsoft Store for Business.
+- `value` (String) The raw byte data of the app's large icon, automatically downloaded from the Microsoft Store for Business.
 
 
