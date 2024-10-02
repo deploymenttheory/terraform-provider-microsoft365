@@ -16,24 +16,24 @@ jobs:
     timeout-minutes: 60
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+      uses: step-security/harden-runner@v2.10.1
       with:
         egress-policy: audit
 
     - name: Check out code
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4.2.0
       with:
         fetch-depth: 2
 
     - name: Set up Go
-      uses: actions/setup-go@b26d40294f8ad76fcc90b915dac85892322fe62d # v5.0.2
+      uses: actions/setup-go@v5.0.2
       with:
         cache: true
         go-version-file: 'go.mod'
       id: go
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
+      uses: hashicorp/setup-terraform@v3.1.2
       with:
         terraform_version: '1.9.4'
         terraform_wrapper: false

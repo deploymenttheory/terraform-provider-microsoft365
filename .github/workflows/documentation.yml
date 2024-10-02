@@ -20,7 +20,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
 
     - name: Render terraform docs for microsoft365_provider
-      uses: terraform-docs/gh-actions@aeae0038ed47a547e0c0fca5c059d3335f48fb25 # v1.3.0
+      uses: terraform-docs/gh-actions@v1.3.0
       with:
         working-dir: examples/microsoft365_provider
         indention: 3
@@ -72,7 +72,7 @@ jobs:
 
     - name: Commit changes in Go docs
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+      uses: stefanzweifel/git-auto-commit-action@v5.0.1
       with:
         commit_message: "go generate: automated update"
         file_pattern: '**/*.go'
