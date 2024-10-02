@@ -41,25 +41,21 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 	requestBody.SetDescription(&description)
 	requestBody.SetPublisher(&publisher)
 
-	// Attempt to download and set the large icon if available
+	// Attempt to download and set the large icon from the msft app store
 	if imageURL != "" {
 		iconBytes, err := utils.DownloadImage(imageURL)
 		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v", imageURL, err))
-			return nil, fmt.Errorf("failed to download icon image from URL '%s': %v", imageURL, err)
+			tflog.Warn(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v. Continuing without setting the icon.", imageURL, err))
+		} else {
+			largeIcon := models.NewMimeContent()
+			iconType := "image/png"
+			largeIcon.SetTypeEscaped(&iconType)
+			largeIcon.SetValue(iconBytes)
+			requestBody.SetLargeIcon(largeIcon)
+			tflog.Debug(ctx, fmt.Sprintf("Icon set from store URL. Data length: %d bytes", len(iconBytes)))
 		}
-
-		largeIcon := models.NewMimeContent()
-		iconType := "image/png"
-		largeIcon.SetTypeEscaped(&iconType)
-		largeIcon.SetValue(iconBytes)
-		requestBody.SetLargeIcon(largeIcon)
-
-		tflog.Debug(ctx, fmt.Sprintf("Icon set from store URL. Data length: %d bytes", len(iconBytes)))
 	} else {
-		errMsg := fmt.Sprintf("Missing icon image for packageIdentifier '%s'.", packageIdentifier)
-		tflog.Error(ctx, errMsg)
-		return nil, fmt.Errorf(errMsg)
+		tflog.Debug(ctx, fmt.Sprintf("No icon image URL found for packageIdentifier '%s'. The large icon will not be set.", packageIdentifier))
 	}
 
 	if !data.IsFeatured.IsNull() {
