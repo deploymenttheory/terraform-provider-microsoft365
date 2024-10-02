@@ -1,8 +1,8 @@
-resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "example" {
-  package_identifier = "9nzvdkpmr9rd"  # The unique identifier for the app
+resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsapp" {
+  package_identifier = "9NKSQGP7F2NH"  # The unique identifier for the app obtained from msft app store
 
   # Install experience settings
-  install_experience {
+  install_experience = {
     run_as_account = "user"  # Can be 'system' or 'user'
   }
 
@@ -13,15 +13,6 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "exampl
   owner                   = "example-owner"
   developer               = "example-developer"
   notes                   = "Some relevant notes for this app."
-
-  # Role scope tags
-  role_scope_tag_ids = ["tag-id-1", "tag-id-2"]
-
-  # Assignments (example of group assignments)
-  assignments = {
-    target_group_id = "group-id-1"
-    install_intent  = "available"
-  }
 
   # Optional: Define custom timeouts
   timeouts = {
