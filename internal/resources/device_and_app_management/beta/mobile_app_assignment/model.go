@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappassignment?view=graph-rest-beta
 package graphBetaMobileAppAssignment
 
 import (
