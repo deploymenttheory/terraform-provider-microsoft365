@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -42,14 +43,7 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -126,23 +120,13 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 	defer cancel()
 
 	// Retrieve the main resource
-	script, err := r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(state.ID.ValueString()).Get(ctx, nil)
+	script, err := r.client.DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(state.ID.ValueString()).
+		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -160,7 +144,6 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	// Map the retrieved resource data to the Terraform state
 	MapRemoteStateToTerraform(ctx, &state, script)
 
 	// Map assignments to state
@@ -170,8 +153,6 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 			state.Assignments[i] = MapAssignmentsRemoteStateToTerraform(assignment)
 		}
 	}
-
-	// Map group assignments to state
 	if groupAssignments != nil && len(groupAssignments.GetValue()) > 0 {
 		state.GroupAssignments = make([]DeviceManagementScriptGroupAssignmentResourceModel, len(groupAssignments.GetValue()))
 		for i, groupAssignment := range groupAssignments.GetValue() {
@@ -213,22 +194,13 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	_, err = r.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(plan.ID.ValueString()).Patch(ctx, requestBody, nil)
+	_, err = r.client.DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(plan.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -238,15 +210,12 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 		resp.Diagnostics.AddError("Error updating assignments", err.Error())
 		return
 	}
-
-	// Update group assignments
 	err = r.updateGroupAssignments(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating group assignments", err.Error())
 		return
 	}
 
-	// Call Read to fetch the full state and set it in the response
 	readResp := resource.ReadResponse{State: resp.State}
 	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
 

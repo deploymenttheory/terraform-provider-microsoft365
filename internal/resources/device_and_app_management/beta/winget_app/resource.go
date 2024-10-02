@@ -2,6 +2,7 @@ package graphBetaWinGetApp
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -77,42 +78,38 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 		Description: "Manages a WinGet application in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "Key of the entity. This property is read-only.",
+				Computed: true,
+				Description: "The unique graph guid that identifies this resource." +
+					"Assigned at time of resource creation. This property is read-only.",
 			},
-			"display_name": schema.StringAttribute{
-				Required:    true,
-				Description: "The admin provided or imported title of the app.",
-			},
-			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "The description of the app.",
-			},
-			"publisher": schema.StringAttribute{
-				Optional:    true,
-				Description: "The publisher of the app.",
-			},
-			"large_icon": schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"type": schema.StringAttribute{
-						Required:    true,
-						Description: "The MIME type of the icon.",
-					},
-					"value": schema.StringAttribute{
-						Required:    true,
-						Description: "The icon data, request for mat should be in raw bytes.",
-					},
+			"package_identifier": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "The **unique identifier** for the WinGet/Microsoft Store app from the storefront.\n\n" +
+					"For example, for the URL [https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US](https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US), " +
+					"the package identifier is `9nzvdkpmr9rd`.\n\n" +
+					"**Important notes:**\n" +
+					"- This identifier is **required** at creation time.\n" +
+					"- It **cannot be modified** for existing Terraform-deployed WinGet/Microsoft Store apps.\n\n" +
+					"**Steps to find your package identifier:**\n" +
+					"1. Navigate to the [Microsoft Store for Business](https://businessstore.microsoft.com/) portal.\n" +
+					"2. Locate the desired WinGet app.\n" +
+					"3. In the app details page, identify the package identifier in the URL or within the app information section.\n\n" +
+					"**Example usage:**\n" +
+					"```hcl\n" +
+					"resource \"m365_graph_beta_device_and_app_management_win_get_app\" \"example\" {\n" +
+					"  package_identifier = \"9nzvdkpmr9rd\"\n" +
+					"\n" +
+					"  install_experience {\n" +
+					"    run_as_account = \"user\"\n" +
+					"  }\n" +
+					"}\n" +
+					"```\n\n",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[A-Z0-9]{12}$`),
+						"package_identifier must be a 12-character string containing only uppercase letters and numbers.",
+					),
 				},
-				Description: "The large icon, to be displayed in the app details and used for upload of the icon.",
-			},
-			"created_date_time": schema.StringAttribute{
-				Computed:    true,
-				Description: "The date and time the app was created. This property is read-only.",
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:    true,
-				Description: "The date and time the app was last modified. This property is read-only.",
 			},
 			"is_featured": schema.BoolAttribute{
 				Optional:    true,
@@ -137,6 +134,55 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			"notes": schema.StringAttribute{
 				Optional:    true,
 				Description: "Notes for the app.",
+			},
+			"display_name": schema.StringAttribute{
+				Computed: true,
+				Description: "The title of the WinGet app imported from the Microsoft Store for Business." +
+					"This field is automatically populated based on the package identifier.",
+			},
+			"description": schema.StringAttribute{
+				Computed:    true,
+				Description: "A detailed description of the WinGet app, automatically retrieved from the Microsoft Store for Business.",
+			},
+			"publisher": schema.StringAttribute{
+				Computed:    true,
+				Description: "The publisher of the WinGet app, automatically fetched from the Microsoft Store for Business.",
+			},
+			"install_experience": schema.SingleNestedAttribute{
+				Required: true,
+				Attributes: map[string]schema.Attribute{
+					"run_as_account": schema.StringAttribute{
+						Required: true,
+						Description: "The account type (System or User) that actions should be run as on target devices. " +
+							"Required at creation time.",
+						Validators: []validator.String{
+							stringvalidator.OneOf("system", "user"),
+						},
+					},
+				},
+				Description: "The install experience settings associated with this application.",
+			},
+			"large_icon": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						Computed:    true,
+						Description: "The MIME type of the app's large icon, automatically determined based on the downloaded image from the Microsoft Store for Business.",
+					},
+					"value": schema.StringAttribute{
+						Computed:    true,
+						Description: "The raw byte data of the app's large icon, automatically downloaded from the Microsoft Store for Business.",
+					},
+				},
+				Description: "The large icon for the WinGet app, automatically downloaded and set from the Microsoft Store for Business.",
+			},
+			"created_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The date and time the app was created. This property is read-only.",
+			},
+			"last_modified_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The date and time the app was last modified. This property is read-only.",
 			},
 			"upload_state": schema.Int64Attribute{
 				Computed:    true,
@@ -171,24 +217,6 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			"manifest_hash": schema.StringAttribute{
 				Computed:    true,
 				Description: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
-			},
-			"package_identifier": schema.StringAttribute{
-				Required:    true,
-				Description: "The PackageIdentifier from the WinGet source repository REST API. This also maps to the Id when using the WinGet client command line application. Required at creation time, cannot be modified on existing objects.",
-			},
-			"install_experience": schema.SingleNestedAttribute{
-				Required: true,
-				Attributes: map[string]schema.Attribute{
-					"run_as_account": schema.StringAttribute{
-						Required: true,
-						Description: "The account type (System or User) that actions should be run as on target devices. " +
-							"Required at creation time.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("system", "user"),
-						},
-					},
-				},
-				Description: "The install experience settings associated with this application.",
 			},
 			"assignments": schema.ListNestedAttribute{
 				Optional:    true,

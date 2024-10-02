@@ -13,7 +13,7 @@ type WinGetAppResourceModel struct {
 	DisplayName           types.String                                                    `tfsdk:"display_name"`
 	Description           types.String                                                    `tfsdk:"description"`
 	Publisher             types.String                                                    `tfsdk:"publisher"`
-	LargeIcon             *MimeContentModel                                               `tfsdk:"large_icon"`
+	LargeIcon             types.Object                                                    `tfsdk:"large_icon"`
 	CreatedDateTime       types.String                                                    `tfsdk:"created_date_time"`
 	LastModifiedDateTime  types.String                                                    `tfsdk:"last_modified_date_time"`
 	IsFeatured            types.Bool                                                      `tfsdk:"is_featured"`

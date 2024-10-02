@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -37,16 +38,12 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().Post(ctx, requestBody, nil)
+	resource, err := r.client.DeviceManagement().
+		AssignmentFilters().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -78,25 +75,13 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceManagement().AssignmentFilters().
+	resource, err := r.client.DeviceManagement().
+		AssignmentFilters().
 		ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -138,20 +123,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -177,9 +149,13 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).Delete(ctx, nil)
+	err := r.client.DeviceManagement().
+		AssignmentFilters().
+		ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 

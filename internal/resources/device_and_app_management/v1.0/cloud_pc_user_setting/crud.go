@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -37,16 +38,13 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().Post(ctx, requestBody, nil)
+	cloudPcUserSetting, err := r.client.DeviceManagement().
+		VirtualEndpoint().
+		UserSettings().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		if crud.PermissionError(err, "Create", r.WritePermissions, resp) {
-			return
-		} else {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Client error when creating %s_%s", r.ProviderTypeName, r.TypeName),
-				err.Error(),
-			)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -78,25 +76,14 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	cloudPcUserSetting, err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+	cloudPcUserSetting, err := r.client.DeviceManagement().
+		VirtualEndpoint().
+		UserSettings().
 		ByCloudPcUserSettingId(state.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, state.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Read", r.ReadPermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when reading %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
@@ -133,25 +120,14 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err = r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+	_, err = r.client.DeviceManagement().
+		VirtualEndpoint().
+		UserSettings().
 		ByCloudPcUserSettingId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, plan.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Update", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when updating %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -177,28 +153,16 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().VirtualEndpoint().UserSettings().
+	err := r.client.DeviceManagement().
+		VirtualEndpoint().
+		UserSettings().
 		ByCloudPcUserSettingId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
-		if crud.IsNotFoundError(err) {
-			tflog.Warn(ctx, fmt.Sprintf("%s with ID %s not found on server, removing from state", r.TypeName, data.ID.ValueString()))
-			resp.State.RemoveResource(ctx)
-			return
-		}
-
-		if crud.PermissionError(err, "Delete", r.WritePermissions, resp) {
-			return
-		}
-
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName),
-			err.Error(),
-		)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
-
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
