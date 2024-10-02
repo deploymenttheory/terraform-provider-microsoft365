@@ -42,27 +42,34 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
 
 	// Handle LargeIcon
-	largeIconObj := types.ObjectNull(
+	// largeIconObj := types.ObjectNull(
+	// 	map[string]attr.Type{
+	// 		"type":  types.StringType,
+	// 		"value": types.StringType,
+	// 	},
+	// )
+
+	// if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+	// 	largeIconObj, _ = types.ObjectValue(
+	// 		map[string]attr.Type{
+	// 			"type":  types.StringType,
+	// 			"value": types.StringType,
+	// 		},
+	// 		map[string]attr.Value{
+	// 			"type":  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
+	// 			"value": types.StringValue(state.ByteToString(largeIcon.GetValue())),
+	// 		},
+	// 	)
+	// }
+
+	// data.LargeIcon = largeIconObj
+
+	data.LargeIcon = types.ObjectNull(
 		map[string]attr.Type{
 			"type":  types.StringType,
 			"value": types.StringType,
 		},
 	)
-
-	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		largeIconObj, _ = types.ObjectValue(
-			map[string]attr.Type{
-				"type":  types.StringType,
-				"value": types.StringType,
-			},
-			map[string]attr.Value{
-				"type":  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
-				"value": types.StringValue(state.ByteToString(largeIcon.GetValue())),
-			},
-		)
-	}
-
-	data.LargeIcon = largeIconObj
 
 	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {

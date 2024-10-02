@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -58,4 +59,10 @@ func DownloadImage(url string) ([]byte, error) {
 	}
 
 	return imageData, nil
+}
+
+// IsDebugMode checks if the M365_DEBUG_MODE environment variable is set to true
+func IsDebugMode() bool {
+	debugMode := os.Getenv("M365_DEBUG_MODE")
+	return strings.ToLower(debugMode) == "true"
 }

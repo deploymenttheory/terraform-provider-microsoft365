@@ -218,13 +218,13 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:    true,
 				Description: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
 			},
-			"assignments": schema.ListNestedAttribute{
-				Optional:    true,
-				Description: "The list of group assignments for this mobile app.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: mobileAppAssignmentResp.Schema.Attributes,
-				},
-			},
+			// "assignments": schema.ListNestedAttribute{
+			// 	Optional:    true,
+			// 	Description: "The list of group assignments for this mobile app.",
+			// 	NestedObject: schema.NestedAttributeObject{
+			// 		Attributes: mobileAppAssignmentResp.Schema.Attributes,
+			// 	},
+			// },
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}

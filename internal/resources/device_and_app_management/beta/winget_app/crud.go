@@ -63,16 +63,16 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
 
 	// Handle assignments if present
-	if len(plan.Assignments) > 0 {
-		err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error creating assignments",
-				fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-	}
+	// if len(plan.Assignments) > 0 {
+	// 	err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error creating assignments",
+	// 			fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -106,38 +106,37 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	resourceAsWinGetApp, ok := resource.(models.WinGetAppable)
+	tflog.Debug(ctx, fmt.Sprintf("Resource type: %T", resource))
+
+	mobileApp, ok := resource.(models.MobileAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type MobileApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, resource),
+		)
+		return
+	}
+
+	resourceAsWinGetApp, ok := mobileApp.(models.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Type Assertion Error",
 			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, resource),
+				r.ProviderTypeName, r.TypeName, mobileApp),
 		)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
 
-	// Read assignments only if they were originally configured
-	if len(state.Assignments) > 0 {
-		assignments, err := r.readAssignments(ctx, state.ID.ValueString())
-		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Error reading assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
-			// Continue without assignments instead of returning an error
-		} else {
-			state.Assignments = assignments
-		}
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation.
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WinGetAppResourceModel
-
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -160,30 +159,41 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	_, err = r.client.DeviceAppManagement().
+	resource, err := r.client.DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	// Update assignments if present in the plan
-	if len(plan.Assignments) > 0 {
-		err = r.updateAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error updating assignments",
-				fmt.Sprintf("Could not update assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
+	tflog.Debug(ctx, fmt.Sprintf("Resource type after update: %T", resource))
+
+	mobileApp, ok := resource.(models.MobileAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type MobileApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, resource),
+		)
+		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resourceAsWinGetApp, ok := mobileApp.(models.WinGetAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, mobileApp),
+		)
+		return
+	}
 
+	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -203,18 +213,6 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 	defer cancel()
-
-	// Delete assignments if they were originally configured
-	if len(data.Assignments) > 0 {
-		err := r.deleteAssignments(ctx, data.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error deleting assignments",
-				fmt.Sprintf("Could not delete assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-	}
 
 	err := r.client.DeviceAppManagement().
 		MobileApps().
