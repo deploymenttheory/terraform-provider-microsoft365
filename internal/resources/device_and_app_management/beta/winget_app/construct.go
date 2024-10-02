@@ -25,41 +25,43 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 	// Fetch metadata from the Microsoft Store using the packageIdentifier
 	title, imageURL, description, publisher, err := FetchStoreAppDetails(packageIdentifier)
 	if err != nil {
-		tflog.Warn(ctx, fmt.Sprintf("Failed to fetch store details for packageIdentifier '%s': %v. Using default values.", packageIdentifier, err))
-
-		// Set default values if fetching store details fails
-		defaultDisplayName := "Default Display Name"
-		requestBody.SetDisplayName(&defaultDisplayName)
-
-		defaultDescription := "Default description here."
-		requestBody.SetDescription(&defaultDescription)
-
-		defaultPublisher := "Default Publisher"
-		requestBody.SetPublisher(&defaultPublisher)
-	} else {
-		tflog.Debug(ctx, fmt.Sprintf("Fetched store details for packageIdentifier '%s': Title='%s', ImageURL='%s', Description='%s', Publisher='%s'", packageIdentifier, title, imageURL, description, publisher))
-
-		// Set the fetched title, description, and publisher
-		requestBody.SetDisplayName(&title)
-		requestBody.SetDescription(&description)
-		requestBody.SetPublisher(&publisher)
-
-		// Download the image from the fetched URL and set
-		iconBytes, err := utils.DownloadImage(imageURL)
-		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v", imageURL, err))
-		} else {
-			largeIcon := models.NewMimeContent()
-			iconType := "image/png"
-			largeIcon.SetTypeEscaped(&iconType)
-			largeIcon.SetValue(iconBytes)
-			requestBody.SetLargeIcon(largeIcon)
-
-			tflog.Debug(ctx, fmt.Sprintf("Icon set from store URL. Data length: %d bytes", len(iconBytes)))
-		}
+		tflog.Error(ctx, fmt.Sprintf("Failed to fetch store details for packageIdentifier '%s': %v", packageIdentifier, err))
+		return nil, fmt.Errorf("failed to fetch store details for packageIdentifier '%s': %v", packageIdentifier, err)
 	}
 
-	// Set optional fields from the Terraform model if they are not already set by store details
+	// Check if any required value (title, description, publisher) is empty
+	if title == "" || description == "" || publisher == "" {
+		errMsg := fmt.Sprintf("Incomplete store details for packageIdentifier '%s'. Missing required fields: Title='%s', Description='%s', Publisher='%s'", packageIdentifier, title, description, publisher)
+		tflog.Error(ctx, errMsg)
+		return nil, fmt.Errorf(errMsg)
+	}
+
+	// Set the fetched title, description, and publisher
+	requestBody.SetDisplayName(&title)
+	requestBody.SetDescription(&description)
+	requestBody.SetPublisher(&publisher)
+
+	// Attempt to download and set the large icon if available
+	if imageURL != "" {
+		iconBytes, err := utils.DownloadImage(imageURL)
+		if err != nil {
+			tflog.Error(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v", imageURL, err))
+			return nil, fmt.Errorf("failed to download icon image from URL '%s': %v", imageURL, err)
+		}
+
+		largeIcon := models.NewMimeContent()
+		iconType := "image/png"
+		largeIcon.SetTypeEscaped(&iconType)
+		largeIcon.SetValue(iconBytes)
+		requestBody.SetLargeIcon(largeIcon)
+
+		tflog.Debug(ctx, fmt.Sprintf("Icon set from store URL. Data length: %d bytes", len(iconBytes)))
+	} else {
+		errMsg := fmt.Sprintf("Missing icon image for packageIdentifier '%s'.", packageIdentifier)
+		tflog.Error(ctx, errMsg)
+		return nil, fmt.Errorf(errMsg)
+	}
+
 	if !data.IsFeatured.IsNull() {
 		requestBody.SetIsFeatured(data.IsFeatured.ValueBoolPointer())
 	}
