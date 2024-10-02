@@ -1,12 +1,12 @@
 ---
 page_title: "Resource: microsoft365_graph_beta_device_and_app_management_assignment_filter"
 description: |-
-    
+    Manages Assignment Filters in Microsoft Intune.
 ---
 
 # Resource: microsoft365_graph_beta_device_and_app_management_assignment_filter
 
-
+Manages Assignment Filters in Microsoft Intune.
 
 
 
