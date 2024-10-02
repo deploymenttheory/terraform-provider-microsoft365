@@ -2,27 +2,64 @@ package graphBetaWinGetApp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// constructResource constructs a WinGetApp resource using data from the Terraform model.
+// It fetches additional details from the Microsoft Store using FetchStoreAppDetails.
 func constructResource(ctx context.Context, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
 	construct.DebugPrintStruct(ctx, "Constructing WinGet App resource from model", data)
 
 	requestBody := models.NewWinGetApp()
 
-	// Set required fields
-	requestBody.SetDisplayName(data.DisplayName.ValueStringPointer())
-	requestBody.SetPackageIdentifier(data.PackageIdentifier.ValueStringPointer())
+	// Set the packageIdentifier
+	packageIdentifier := data.PackageIdentifier.ValueString()
+	upperPackageIdentifier := utils.ToUpperCase(packageIdentifier)
+	requestBody.SetPackageIdentifier(&upperPackageIdentifier)
 
-	// Set optional fields
-	if !data.Description.IsNull() {
-		requestBody.SetDescription(data.Description.ValueStringPointer())
+	// Fetch metadata from the Microsoft Store using the packageIdentifier
+	title, imageURL, description, publisher, err := FetchStoreAppDetails(packageIdentifier)
+	if err != nil {
+		tflog.Warn(ctx, fmt.Sprintf("Failed to fetch store details for packageIdentifier '%s': %v. Using default values.", packageIdentifier, err))
+
+		// Set default values if fetching store details fails
+		defaultDisplayName := "Default Display Name"
+		requestBody.SetDisplayName(&defaultDisplayName)
+
+		defaultDescription := "Default description here."
+		requestBody.SetDescription(&defaultDescription)
+
+		defaultPublisher := "Default Publisher"
+		requestBody.SetPublisher(&defaultPublisher)
+	} else {
+		tflog.Debug(ctx, fmt.Sprintf("Fetched store details for packageIdentifier '%s': Title='%s', ImageURL='%s', Description='%s', Publisher='%s'", packageIdentifier, title, imageURL, description, publisher))
+
+		// Set the fetched title, description, and publisher
+		requestBody.SetDisplayName(&title)
+		requestBody.SetDescription(&description)
+		requestBody.SetPublisher(&publisher)
+
+		// Download the image from the fetched URL and set
+		iconBytes, err := utils.DownloadImage(imageURL)
+		if err != nil {
+			tflog.Warn(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v", imageURL, err))
+		} else {
+			largeIcon := models.NewMimeContent()
+			iconType := "image/png"
+			largeIcon.SetTypeEscaped(&iconType)
+			largeIcon.SetValue(iconBytes)
+			requestBody.SetLargeIcon(largeIcon)
+
+			tflog.Debug(ctx, fmt.Sprintf("Icon set from store URL. Data length: %d bytes", len(iconBytes)))
+		}
 	}
-	if !data.Publisher.IsNull() {
-		requestBody.SetPublisher(data.Publisher.ValueStringPointer())
-	}
+
+	// Set optional fields from the Terraform model if they are not already set by store details
 	if !data.IsFeatured.IsNull() {
 		requestBody.SetIsFeatured(data.IsFeatured.ValueBoolPointer())
 	}
@@ -45,7 +82,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		requestBody.SetManifestHash(data.ManifestHash.ValueStringPointer())
 	}
 
-	// Set role scope tag IDs
+	// Set role scope tag IDs if provided
 	if len(data.RoleScopeTagIds) > 0 {
 		roleScopeTagIds := make([]string, len(data.RoleScopeTagIds))
 		for i, id := range data.RoleScopeTagIds {
@@ -54,15 +91,13 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	// Set large icon
-	if data.LargeIcon != nil && !data.LargeIcon.Type.IsNull() && !data.LargeIcon.Value.IsNull() {
-		largeIcon := models.NewMimeContent()
-		largeIcon.SetTypeEscaped(data.LargeIcon.Type.ValueStringPointer())
-		largeIcon.SetValue([]byte(data.LargeIcon.Value.ValueString()))
-		requestBody.SetLargeIcon(largeIcon)
+	// Set additional data
+	additionalData := map[string]interface{}{
+		"repositoryType": "microsoftStore",
 	}
+	requestBody.SetAdditionalData(additionalData)
 
-	// Set install experience
+	// Set the install experience
 	if data.InstallExperience != nil && !data.InstallExperience.RunAsAccount.IsNull() {
 		installExperience := models.NewWinGetAppInstallExperience()
 		runAsAccount := data.InstallExperience.RunAsAccount.ValueString()
@@ -73,6 +108,10 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		case "user":
 			userAccount := models.USER_RUNASACCOUNTTYPE
 			installExperience.SetRunAsAccount(&userAccount)
+		default:
+			tflog.Warn(ctx, fmt.Sprintf("Unknown runAsAccount value '%s'. Defaulting to 'user'.", runAsAccount))
+			defaultRunAs := models.USER_RUNASACCOUNTTYPE
+			installExperience.SetRunAsAccount(&defaultRunAs)
 		}
 		requestBody.SetInstallExperience(installExperience)
 	}
