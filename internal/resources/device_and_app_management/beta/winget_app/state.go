@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -41,12 +42,27 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
 
 	// Handle LargeIcon
+	largeIconObj := types.ObjectNull(
+		map[string]attr.Type{
+			"type":  types.StringType,
+			"value": types.StringType,
+		},
+	)
+
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		data.LargeIcon = &MimeContentModel{
-			Type:  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
-			Value: types.StringValue(string(largeIcon.GetValue())),
-		}
+		largeIconObj, _ = types.ObjectValue(
+			map[string]attr.Type{
+				"type":  types.StringType,
+				"value": types.StringType,
+			},
+			map[string]attr.Value{
+				"type":  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
+				"value": types.StringValue(state.ByteToString(largeIcon.GetValue())),
+			},
+		)
 	}
+
+	data.LargeIcon = largeIconObj
 
 	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {

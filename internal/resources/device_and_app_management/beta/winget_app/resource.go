@@ -103,10 +103,12 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					"    run_as_account = \"user\"\n" +
 					"  }\n" +
 					"}\n" +
-					"```\n\n" +
-					"Can be set using the `PACKAGE_IDENTIFIER` environment variable.",
+					"```\n\n",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9]{12}$`), "package_identifier must be a 12-character alphanumeric string (upper or lowercase)."),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[A-Z0-9]{12}$`),
+						"package_identifier must be a 12-character string containing only uppercase letters and numbers.",
+					),
 				},
 			},
 			"is_featured": schema.BoolAttribute{
