@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -34,9 +36,11 @@ func FetchStoreAppDetails(packageIdentifier string) (string, string, string, str
 	}
 
 	// Print raw HTML for debugging purposes
-	fmt.Println("---- Start of Raw HTML ----")
-	fmt.Println(string(rawHTML))
-	fmt.Println("---- End of Raw HTML ----")
+	if utils.IsDebugMode() {
+		fmt.Println("---- Start of Raw HTML ----")
+		fmt.Println(string(rawHTML))
+		fmt.Println("---- End of Raw HTML ----")
+	}
 
 	// Parse the webpage using goquery
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(rawHTML)))

@@ -63,16 +63,16 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
 
 	// Handle assignments if present
-	if len(plan.Assignments) > 0 {
-		err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error creating assignments",
-				fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-	}
+	// if len(plan.Assignments) > 0 {
+	// 	err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error creating assignments",
+	// 			fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -118,16 +118,16 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
 
-	// Read assignments only if they were originally configured
-	if len(state.Assignments) > 0 {
-		assignments, err := r.readAssignments(ctx, state.ID.ValueString())
-		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Error reading assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
-			// Continue without assignments instead of returning an error
-		} else {
-			state.Assignments = assignments
-		}
-	}
+	//Read assignments only if they were originally configured
+	// if len(state.Assignments) > 0 {
+	// 	assignments, err := r.readAssignments(ctx, state.ID.ValueString())
+	// 	if err != nil {
+	// 		tflog.Warn(ctx, fmt.Sprintf("Error reading assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()))
+	// 		// Continue without assignments instead of returning an error
+	// 	} else {
+	// 		state.Assignments = assignments
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -162,8 +162,8 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 
 	_, err = r.client.DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(plan.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
+		ByMobileAppId(plan.ID.ValueString()).ToPatchRequestInformation(ctx, requestBody, nil)
+	//PATCH(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
@@ -171,16 +171,16 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Update assignments if present in the plan
-	if len(plan.Assignments) > 0 {
-		err = r.updateAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error updating assignments",
-				fmt.Sprintf("Could not update assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-	}
+	// if len(plan.Assignments) > 0 {
+	// 	err = r.updateAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error updating assignments",
+	// 			fmt.Sprintf("Could not update assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -205,16 +205,16 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer cancel()
 
 	// Delete assignments if they were originally configured
-	if len(data.Assignments) > 0 {
-		err := r.deleteAssignments(ctx, data.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error deleting assignments",
-				fmt.Sprintf("Could not delete assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-	}
+	// if len(data.Assignments) > 0 {
+	// 	err := r.deleteAssignments(ctx, data.ID.ValueString())
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error deleting assignments",
+	// 			fmt.Sprintf("Could not delete assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	err := r.client.DeviceAppManagement().
 		MobileApps().
