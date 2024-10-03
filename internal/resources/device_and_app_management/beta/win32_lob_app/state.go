@@ -82,6 +82,89 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		}
 	}
 
+	// Detection Rules
+	if detectionRules := remoteResource.GetDetectionRules(); detectionRules != nil {
+		data.DetectionRules = make([]Win32LobAppRegistryDetectionResourceModel, len(detectionRules))
+		for i, rule := range detectionRules {
+			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryDetectionable); ok {
+				data.DetectionRules[i] = Win32LobAppRegistryDetectionResourceModel{
+					Check32BitOn64System: state.BoolPtrToTypeBool(registryRule.GetCheck32BitOn64System()),
+					KeyPath:              types.StringValue(state.StringPtrToString(registryRule.GetKeyPath())),
+					ValueName:            types.StringValue(state.StringPtrToString(registryRule.GetValueName())),
+					DetectionType:        types.StringValue("registry"),
+					Operator:             state.EnumPtrToTypeString(registryRule.GetOperator()),
+					DetectionValue:       types.StringValue(state.StringPtrToString(registryRule.GetDetectionValue())),
+				}
+			}
+		}
+	}
+
+	// Requirement Rules
+	if requirementRules := remoteResource.GetRequirementRules(); requirementRules != nil {
+		data.RequirementRules = make([]Win32LobAppRegistryRequirementResourceModel, len(requirementRules))
+		for i, rule := range requirementRules {
+			if registryRequirement, ok := rule.(graphmodels.Win32LobAppRegistryRequirementable); ok {
+				data.RequirementRules[i] = Win32LobAppRegistryRequirementResourceModel{
+					Check32BitOn64System: state.BoolPtrToTypeBool(registryRequirement.GetCheck32BitOn64System()),
+					KeyPath:              types.StringValue(state.StringPtrToString(registryRequirement.GetKeyPath())),
+					ValueName:            types.StringValue(state.StringPtrToString(registryRequirement.GetValueName())),
+					Operator:             state.EnumPtrToTypeString(registryRequirement.GetOperator()),
+					DetectionValue:       types.StringValue(state.StringPtrToString(registryRequirement.GetDetectionValue())),
+					DetectionType:        types.StringValue("registry"),
+				}
+			}
+		}
+	}
+
+	// Rules
+	if rules := remoteResource.GetRules(); rules != nil {
+		data.Rules = make([]Win32LobAppRegistryRuleResourceModel, len(rules))
+		for i, rule := range rules {
+			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryRuleable); ok {
+				data.Rules[i] = Win32LobAppRegistryRuleResourceModel{
+					RuleType:             types.StringValue(state.StringPtrToString(registryRule.GetRuleType())),
+					Check32BitOn64System: state.BoolPtrToTypeBool(registryRule.GetCheck32BitOn64System()),
+					KeyPath:              types.StringValue(state.StringPtrToString(registryRule.GetKeyPath())),
+					ValueName:            types.StringValue(state.StringPtrToString(registryRule.GetValueName())),
+					OperationType:        types.StringValue(state.StringPtrToString(registryRule.GetOperationType())),
+					Operator:             state.EnumPtrToTypeString(registryRule.GetOperator()),
+					ComparisonValue:      types.StringValue(state.StringPtrToString(registryRule.GetComparisonValue())),
+				}
+			}
+		}
+	}
+
+	// Install Experience
+	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
+		data.InstallExperience = Win32LobAppInstallExperienceResourceModel{
+			RunAsAccount:          state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),
+			DeviceRestartBehavior: state.EnumPtrToTypeString(installExperience.GetDeviceRestartBehavior()),
+			MaxRunTimeInMinutes:   state.Int32PtrToTypeInt64(installExperience.GetMaxRunTimeInMinutes()),
+		}
+	}
+
+	// Return Codes
+	if returnCodes := remoteResource.GetReturnCodes(); returnCodes != nil {
+		data.ReturnCodes = make([]Win32LobAppReturnCodeResourceModel, len(returnCodes))
+		for i, code := range returnCodes {
+			data.ReturnCodes[i] = Win32LobAppReturnCodeResourceModel{
+				ReturnCode: state.Int32PtrToTypeInt64(code.GetReturnCode()),
+				Type:       state.EnumPtrToTypeString(code.GetTypeEscaped()),
+			}
+		}
+	}
+
+	// MSI Information
+	if msiInfo := remoteResource.GetMsiInformation(); msiInfo != nil {
+		data.MsiInformation = Win32LobAppMsiInformationResourceModel{
+			ProductCode:    types.StringValue(state.StringPtrToString(msiInfo.GetProductCode())),
+			ProductVersion: types.StringValue(state.StringPtrToString(msiInfo.GetProductVersion())),
+			UpgradeCode:    types.StringValue(state.StringPtrToString(msiInfo.GetUpgradeCode())),
+			RequiresReboot: state.BoolPtrToTypeBool(msiInfo.GetRequiresReboot()),
+			PackageType:    state.EnumPtrToTypeString(msiInfo.GetPackageType()),
+		}
+	}
+
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
