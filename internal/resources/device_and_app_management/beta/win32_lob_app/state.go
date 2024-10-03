@@ -2,6 +2,7 @@ package graphBetaWin32LobApp
 
 import (
 	"context"
+	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -86,15 +87,43 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	if detectionRules := remoteResource.GetDetectionRules(); detectionRules != nil {
 		data.DetectionRules = make([]Win32LobAppRegistryDetectionRulesResourceModel, len(detectionRules))
 		for i, rule := range detectionRules {
-			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryDetectionable); ok {
+			switch detectionRule := rule.(type) {
+			case graphmodels.Win32LobAppRegistryDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					Check32BitOn64System: state.BoolPtrToTypeBool(registryRule.GetCheck32BitOn64System()),
-					KeyPath:              types.StringValue(state.StringPtrToString(registryRule.GetKeyPath())),
-					ValueName:            types.StringValue(state.StringPtrToString(registryRule.GetValueName())),
-					DetectionType:        types.StringValue("registry"),
-					Operator:             state.EnumPtrToTypeString(registryRule.GetOperator()),
-					DetectionValue:       types.StringValue(state.StringPtrToString(registryRule.GetDetectionValue())),
+					Check32BitOn64System:      state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
+					KeyPath:                   types.StringValue(state.StringPtrToString(detectionRule.GetKeyPath())),
+					ValueName:                 types.StringValue(state.StringPtrToString(detectionRule.GetValueName())),
+					DetectionType:             types.StringValue("registry"),
+					RegistryDetectionOperator: state.EnumPtrToTypeString(detectionRule.GetOperator()),
+					DetectionValue:            types.StringValue(state.StringPtrToString(detectionRule.GetDetectionValue())),
 				}
+			case graphmodels.Win32LobAppProductCodeDetectionable:
+				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					ProductCode:            types.StringValue(state.StringPtrToString(detectionRule.GetProductCode())),
+					ProductVersion:         types.StringValue(state.StringPtrToString(detectionRule.GetProductVersion())),
+					ProductVersionOperator: state.EnumPtrToTypeString(detectionRule.GetProductVersionOperator()),
+					DetectionType:          types.StringValue("msi_information"),
+				}
+			case graphmodels.Win32LobAppFileSystemDetectionable:
+				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					FileSystemDetectionType:     types.StringValue("file_system"),
+					FilePath:                    types.StringValue(state.StringPtrToString(detectionRule.GetPath())),
+					FileFolderName:              types.StringValue(state.StringPtrToString(detectionRule.GetFileOrFolderName())),
+					Check32BitOn64System:        state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
+					FileSystemDetectionOperator: state.EnumPtrToTypeString(detectionRule.GetOperator()),
+					DetectionValue:              types.StringValue(state.StringPtrToString(detectionRule.GetDetectionValue())),
+				}
+			case graphmodels.Win32LobAppPowerShellScriptDetectionable:
+				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					ScriptContent:         types.StringValue(state.StringPtrToString(detectionRule.GetScriptContent())),
+					EnforceSignatureCheck: state.BoolPtrToTypeBool(detectionRule.GetEnforceSignatureCheck()),
+					RunAs32Bit:            state.BoolPtrToTypeBool(detectionRule.GetRunAs32Bit()),
+					DetectionType:         types.StringValue("powershell_script"),
+				}
+			default:
+				tflog.Warn(ctx, "Unknown detection rule type", map[string]interface{}{
+					"ruleType": fmt.Sprintf("%T", rule),
+				})
 			}
 		}
 	}

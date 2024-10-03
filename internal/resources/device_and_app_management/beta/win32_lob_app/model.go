@@ -69,21 +69,24 @@ type WindowsMinimumOperatingSystemResourceModel struct {
 }
 
 type Win32LobAppRegistryDetectionRulesResourceModel struct {
-	// Common for all detection types
-	DetectionType        types.String `tfsdk:"detection_type"`            // registry, msi, file, powershell_script
-	Check32BitOn64System types.Bool   `tfsdk:"check_32_bit_on_64_system"` // Only for registry, file, PowerShell
-	Operator             types.String `tfsdk:"operator"`                  // For registry and file detection types
-	DetectionValue       types.String `tfsdk:"detection_value"`           // For registry detection
+	// Common for multiple detection types
+	DetectionType        types.String `tfsdk:"detection_type"`            // registry, msi_information, file_system, powershell_script
+	Check32BitOn64System types.Bool   `tfsdk:"check_32_bit_on_64_system"` // Only for registry, file_system, powershell_script
+	DetectionValue       types.String `tfsdk:"detection_value"`           // For registry and file_system detection types
 	// Registry-specific fields
-	KeyPath   types.String `tfsdk:"key_path"`
-	ValueName types.String `tfsdk:"value_name"`
+	RegistryDetectionType     types.String `tfsdk:"registry_detection_type"`
+	KeyPath                   types.String `tfsdk:"key_path"`
+	ValueName                 types.String `tfsdk:"value_name"`
+	RegistryDetectionOperator types.String `tfsdk:"registry_detection_operator"`
 	// MSI-specific fields
-	ProductCode    types.String `tfsdk:"product_code"`
-	ProductVersion types.String `tfsdk:"product_version"`
-	UpgradeCode    types.String `tfsdk:"upgrade_code"`
+	ProductCode            types.String `tfsdk:"product_code"`
+	ProductVersion         types.String `tfsdk:"product_version"`
+	ProductVersionOperator types.String `tfsdk:"product_version_operator"`
 	// File detection-specific fields
-	FilePath types.String `tfsdk:"file_path"`
-	FileName types.String `tfsdk:"file_name"`
+	FileSystemDetectionType     types.String `tfsdk:"registry_detection_type"`
+	FilePath                    types.String `tfsdk:"file_path"`
+	FileFolderName              types.String `tfsdk:"file_or_folder_name"`
+	FileSystemDetectionOperator types.String `tfsdk:"filesystem_detection_operator"`
 	// PowerShell script detection-specific fields
 	ScriptContent         types.String `tfsdk:"script_content"`
 	EnforceSignatureCheck types.Bool   `tfsdk:"enforce_signature_check"`

@@ -50,19 +50,19 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if len(data.DetectionRules) > 0 {
 		detectionRules := make([]graphmodels.Win32LobAppDetectionable, len(data.DetectionRules))
 		for i, rule := range data.DetectionRules {
-			switch rule.DetectionType.ValueString() {
+			switch rule.RegistryDetectionType.ValueString() {
 			case "registry":
 				registryRule := graphmodels.NewWin32LobAppRegistryDetection()
+				construct.SetBoolProperty(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
 				construct.SetStringProperty(rule.KeyPath, registryRule.SetKeyPath)
 				construct.SetStringProperty(rule.ValueName, registryRule.SetValueName)
-				construct.SetBoolProperty(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
 
-				err := construct.ParseEnum[*graphmodels.Win32LobAppDetectionOperator](rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
+				err := construct.ParseEnum(rule.RegistryDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
 				if err != nil {
-					return nil, fmt.Errorf("failed to parse registry detection operator: %v", err)
+					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
 
-				err = construct.ParseEnum(rule.DetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
+				err = construct.ParseEnum(rule.RegistryDetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
 				}
@@ -76,7 +76,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				construct.SetStringProperty(rule.ProductCode, msiRule.SetProductCode)
 				construct.SetStringProperty(rule.ProductVersion, msiRule.SetProductVersion)
 
-				err := construct.ParseEnum(rule.ProductVersion, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
+				err := construct.ParseEnum(rule.ProductVersionOperator, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse MSI product version: %v", err)
 				}
@@ -85,22 +85,20 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			case "file_system":
 				fileRule := graphmodels.NewWin32LobAppFileSystemDetection()
+				construct.SetBoolProperty(rule.Check32BitOn64System, fileRule.SetCheck32BitOn64System)
 				construct.SetStringProperty(rule.FilePath, fileRule.SetPath)
-				construct.SetStringProperty(rule.FileName, fileRule.SetFileOrFolderName)
+				construct.SetStringProperty(rule.FileFolderName, fileRule.SetFileOrFolderName)
+				construct.SetStringProperty(rule.DetectionValue, fileRule.SetDetectionValue)
 
-				err := construct.ParseEnum(rule.DetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
+				err := construct.ParseEnum(rule.FileSystemDetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection type: %v", err)
 				}
 
-				construct.SetStringProperty(rule.DetectionValue, fileRule.SetDetectionValue)
-
-				err = construct.ParseEnum(rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
+				err = construct.ParseEnum(rule.FileSystemDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
-
-				construct.SetBoolProperty(rule.Check32BitOn64System, fileRule.SetCheck32BitOn64System)
 
 				detectionRules[i] = fileRule
 			case "powershell_script":
