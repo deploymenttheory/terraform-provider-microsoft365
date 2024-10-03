@@ -117,10 +117,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 				}
 			case graphmodels.Win32LobAppPowerShellScriptDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					DetectionType:         types.StringValue("powershell_script"),
 					ScriptContent:         types.StringValue(state.StringPtrToString(detectionRule.GetScriptContent())),
 					EnforceSignatureCheck: state.BoolPtrToTypeBool(detectionRule.GetEnforceSignatureCheck()),
 					RunAs32Bit:            state.BoolPtrToTypeBool(detectionRule.GetRunAs32Bit()),
-					DetectionType:         types.StringValue("powershell_script"),
 				}
 			default:
 				tflog.Warn(ctx, "Unknown detection rule type", map[string]interface{}{
