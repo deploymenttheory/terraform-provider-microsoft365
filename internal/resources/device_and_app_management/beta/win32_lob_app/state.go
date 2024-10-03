@@ -90,23 +90,25 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 			switch detectionRule := rule.(type) {
 			case graphmodels.Win32LobAppRegistryDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					DetectionType:             types.StringValue("registry"),
+					RegistryDetectionType:     state.EnumPtrToTypeString(detectionRule.GetDetectionType()),
 					Check32BitOn64System:      state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
 					KeyPath:                   types.StringValue(state.StringPtrToString(detectionRule.GetKeyPath())),
 					ValueName:                 types.StringValue(state.StringPtrToString(detectionRule.GetValueName())),
-					DetectionType:             types.StringValue("registry"),
 					RegistryDetectionOperator: state.EnumPtrToTypeString(detectionRule.GetOperator()),
 					DetectionValue:            types.StringValue(state.StringPtrToString(detectionRule.GetDetectionValue())),
 				}
 			case graphmodels.Win32LobAppProductCodeDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
+					DetectionType:          types.StringValue("msi_information"),
 					ProductCode:            types.StringValue(state.StringPtrToString(detectionRule.GetProductCode())),
 					ProductVersion:         types.StringValue(state.StringPtrToString(detectionRule.GetProductVersion())),
 					ProductVersionOperator: state.EnumPtrToTypeString(detectionRule.GetProductVersionOperator()),
-					DetectionType:          types.StringValue("msi_information"),
 				}
 			case graphmodels.Win32LobAppFileSystemDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					FileSystemDetectionType:     types.StringValue("file_system"),
+					DetectionType:               types.StringValue("file_system"),
+					FileSystemDetectionType:     state.EnumPtrToTypeString(detectionRule.GetDetectionType()),
 					FilePath:                    types.StringValue(state.StringPtrToString(detectionRule.GetPath())),
 					FileFolderName:              types.StringValue(state.StringPtrToString(detectionRule.GetFileOrFolderName())),
 					Check32BitOn64System:        state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
