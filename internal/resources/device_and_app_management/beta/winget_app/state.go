@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel, remoteResource models.WinGetAppable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel, remoteResource graphmodels.WinGetAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -73,7 +73,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 
 	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
-		data.InstallExperience = &WinGetAppInstallExperienceModel{
+		data.InstallExperience = &WinGetAppInstallExperienceResourceModel{
 			RunAsAccount: state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),
 		}
 	}

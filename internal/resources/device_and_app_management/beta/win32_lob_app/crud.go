@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation.
@@ -38,7 +39,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	resource, err := r.client.DeviceAppManagement().
+	createdResource, err := r.client.DeviceAppManagement().
 		MobileApps().
 		Post(ctx, requestBody, nil)
 
@@ -47,9 +48,19 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	plan.ID = types.StringValue(*resource.GetId())
+	resourceAsWin32LobApp, ok := createdResource.(models.Win32LobAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type Win32LobApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, createdResource),
+		)
+		return
+	}
 
-	MapRemoteStateToTerraform(ctx, &plan, resource)
+	plan.ID = types.StringValue(*resourceAsWin32LobApp.GetId())
+
+	MapRemoteStateToTerraform(ctx, &plan, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -62,7 +73,6 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -75,7 +85,7 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceAppManagement().
+	fetchedResource, err := r.client.DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -85,7 +95,17 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, resource)
+	resourceAsWin32LobApp, ok := fetchedResource.(models.Win32LobAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type Win32LobApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, fetchedResource),
+		)
+		return
+	}
+
+	MapRemoteStateToTerraform(ctx, &state, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -118,7 +138,8 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	_, err = r.client.DeviceAppManagement().MobileApps().
+	updatedResource, err := r.client.DeviceAppManagement().
+		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
@@ -126,6 +147,18 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
+
+	resourceAsWin32LobApp, ok := updatedResource.(models.Win32LobAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Error",
+			fmt.Sprintf("Expected resource of type Win32LobApp for %s_%s, but got %T",
+				r.ProviderTypeName, r.TypeName, updatedResource),
+		)
+		return
+	}
+
+	MapRemoteStateToTerraform(ctx, &plan, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 

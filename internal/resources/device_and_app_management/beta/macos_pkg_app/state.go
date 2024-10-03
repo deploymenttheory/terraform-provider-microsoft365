@@ -3,13 +3,14 @@ package graphbetamacospkgapp
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceModel, remoteResource models.MacOSPkgAppable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -36,7 +37,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceMod
 	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		data.LargeIcon = MimeContent{
+		data.LargeIcon = sharedmodels.MimeContentResourceModel{
 			Type:  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
 			Value: types.StringValue(state.ByteToString(largeIcon.GetValue())),
 		}
@@ -56,11 +57,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceMod
 	// Handle IncludedApps
 	includedApps := remoteResource.GetIncludedApps()
 	if len(includedApps) == 0 {
-		data.IncludedApps = []MacOSIncludedApp{}
+		data.IncludedApps = []MacOSIncludedAppResourceModel{}
 	} else {
-		data.IncludedApps = make([]MacOSIncludedApp, len(includedApps))
+		data.IncludedApps = make([]MacOSIncludedAppResourceModel, len(includedApps))
 		for i, app := range includedApps {
-			data.IncludedApps[i] = MacOSIncludedApp{
+			data.IncludedApps[i] = MacOSIncludedAppResourceModel{
 				BundleId:      types.StringValue(state.StringPtrToString(app.GetBundleId())),
 				BundleVersion: types.StringValue(state.StringPtrToString(app.GetBundleVersion())),
 			}
@@ -69,7 +70,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceMod
 
 	// Handle MinimumSupportedOperatingSystem
 	minOS := remoteResource.GetMinimumSupportedOperatingSystem()
-	data.MinimumSupportedOperatingSystem = MacOSMinimumOperatingSystem{
+	data.MinimumSupportedOperatingSystem = MacOSMinimumOperatingSystemResourceModel{
 		V10_7:  state.BoolPtrToTypeBool(minOS.GetV107()),
 		V10_8:  state.BoolPtrToTypeBool(minOS.GetV108()),
 		V10_9:  state.BoolPtrToTypeBool(minOS.GetV109()),
@@ -86,11 +87,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceMod
 	}
 
 	// Handle PreInstallScript / PostInstallScript
-	data.PreInstallScript = MacOSAppScript{
+	data.PreInstallScript = MacOSAppScriptResourceModel{
 		ScriptContent: types.StringValue(state.StringPtrToString(remoteResource.GetPreInstallScript().GetScriptContent())),
 	}
 
-	data.PostInstallScript = MacOSAppScript{
+	data.PostInstallScript = MacOSAppScriptResourceModel{
 		ScriptContent: types.StringValue(state.StringPtrToString(remoteResource.GetPostInstallScript().GetScriptContent())),
 	}
 

@@ -6,10 +6,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScriptResourceModel, remoteResource models.DeviceManagementScriptable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -68,7 +68,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceManagementScript
 	})
 }
 
-func MapAssignmentsRemoteStateToTerraform(assignment models.DeviceManagementScriptAssignmentable) DeviceManagementScriptAssignmentResourceModel {
+func MapAssignmentsRemoteStateToTerraform(assignment graphmodels.DeviceManagementScriptAssignmentable) DeviceManagementScriptAssignmentResourceModel {
 	return DeviceManagementScriptAssignmentResourceModel{
 		ID: types.StringValue(state.StringPtrToString(assignment.GetId())),
 		Target: Target{
@@ -81,7 +81,7 @@ func MapAssignmentsRemoteStateToTerraform(assignment models.DeviceManagementScri
 	}
 }
 
-func MapGroupAssignmentsRemoteStateToTerraform(groupAssignment models.DeviceManagementScriptGroupAssignmentable) DeviceManagementScriptGroupAssignmentResourceModel {
+func MapGroupAssignmentsRemoteStateToTerraform(groupAssignment graphmodels.DeviceManagementScriptGroupAssignmentable) DeviceManagementScriptGroupAssignmentResourceModel {
 	return DeviceManagementScriptGroupAssignmentResourceModel{
 		ID:            types.StringValue(state.StringPtrToString(groupAssignment.GetId())),
 		TargetGroupId: types.StringValue(state.StringPtrToString(groupAssignment.GetTargetGroupId())),

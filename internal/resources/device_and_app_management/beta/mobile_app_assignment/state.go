@@ -7,9 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentResourceModel, remoteResource models.MobileAppAssignmentable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentResourceModel, remoteResource graphmodels.MobileAppAssignmentable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -26,7 +27,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentRes
 
 	// Map Target
 	if target := remoteResource.GetTarget(); target != nil {
-		data.Target = AllLicensedUsersAssignmentTarget{
+		data.Target = AllLicensedUsersAssignmentTargetResourceModel{
 			DeviceAndAppManagementAssignmentFilterID:   types.StringValue(state.StringPtrToString(target.GetDeviceAndAppManagementAssignmentFilterId())),
 			DeviceAndAppManagementAssignmentFilterType: state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType()),
 		}
@@ -36,13 +37,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentRes
 	if settings := remoteResource.GetSettings(); settings != nil {
 		winGetSettings, ok := settings.(models.WinGetAppAssignmentSettingsable)
 		if ok {
-			data.Settings = WinGetAppAssignmentSettings{
+			data.Settings = WinGetAppAssignmentSettingsResourceModel{
 				Notifications: state.EnumPtrToTypeString(winGetSettings.GetNotifications()),
 			}
 
 			// Map RestartSettings
 			if restartSettings := winGetSettings.GetRestartSettings(); restartSettings != nil {
-				data.Settings.RestartSettings = WinGetAppRestartSettings{
+				data.Settings.RestartSettings = WinGetAppRestartSettingsResourceModel{
 					GracePeriodInMinutes:                       state.Int32PtrToTypeInt64(restartSettings.GetGracePeriodInMinutes()),
 					CountdownDisplayBeforeRestartInMinutes:     state.Int32PtrToTypeInt64(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
 					RestartNotificationSnoozeDurationInMinutes: state.Int32PtrToTypeInt64(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
@@ -51,7 +52,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *MobileAppAssignmentRes
 
 			// Map InstallTimeSettings
 			if installTimeSettings := winGetSettings.GetInstallTimeSettings(); installTimeSettings != nil {
-				data.Settings.InstallTimeSettings = WinGetAppInstallTimeSettings{
+				data.Settings.InstallTimeSettings = WinGetAppInstallTimeSettingsResourceModel{
 					UseLocalTime:     state.BoolPtrToTypeBool(installTimeSettings.GetUseLocalTime()),
 					DeadlineDateTime: state.TimeToString(installTimeSettings.GetDeadlineDateTime()),
 				}
