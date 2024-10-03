@@ -271,7 +271,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								stringvalidator.OneOf("registry", "msi", "file"),
 							},
 						},
-						"path": schema.StringAttribute{
+						"key_path": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "The path to detect for file or registry type.",
 						},
@@ -306,7 +306,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								stringvalidator.OneOf("registry", "file", "script"),
 							},
 						},
-						"path": schema.StringAttribute{
+						"key_path": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "The path to check for file or registry type.",
 						},
