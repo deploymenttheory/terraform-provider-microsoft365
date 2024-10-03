@@ -167,6 +167,61 @@ func TestBoolPtr(t *testing.T) {
 	}
 }
 
+// Test StringPtr utility function
+func TestStringPtr(t *testing.T) {
+
+	// Test case 1: Valid string
+	t.Run("Non-empty string", func(t *testing.T) {
+		input := "test"
+		expected := "test"
+		result := StringPtr(input)
+
+		// Check if result is not nil
+		if result == nil {
+			t.Fatalf("Expected non-nil result for input %s", input)
+		}
+
+		// Check if the value pointed to by result matches expected value
+		if *result != expected {
+			t.Errorf("Expected %s, got %s", expected, *result)
+		}
+	})
+
+	// Test case 2: Empty string
+	t.Run("Empty string", func(t *testing.T) {
+		input := ""
+		expected := ""
+		result := StringPtr(input)
+
+		// Check if result is not nil
+		if result == nil {
+			t.Fatalf("Expected non-nil result for input empty string")
+		}
+
+		// Check if the value pointed to by result matches expected value
+		if *result != expected {
+			t.Errorf("Expected empty string, got %s", *result)
+		}
+	})
+
+	// Test case 3: String with special characters
+	t.Run("String with special characters", func(t *testing.T) {
+		input := "!@#$%^&*()_+"
+		expected := "!@#$%^&*()_+"
+		result := StringPtr(input)
+
+		// Check if result is not nil
+		if result == nil {
+			t.Fatalf("Expected non-nil result for input %s", input)
+		}
+
+		// Check if the value pointed to by result matches expected value
+		if *result != expected {
+			t.Errorf("Expected %s, got %s", expected, *result)
+		}
+	})
+}
+
 // TestToUpperCase tests the ToUpperCase function.
 func TestToUpperCase(t *testing.T) {
 	tests := []struct {

@@ -266,30 +266,68 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					Attributes: map[string]schema.Attribute{
 						"detection_type": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The detection rule type. Possible values are: registry, msi, file.",
+							MarkdownDescription: "The detection rule type. Possible values are: registry, msi_information, file_system, powershell_script.",
 							Validators: []validator.String{
-								stringvalidator.OneOf("registry", "msi", "file"),
+								stringvalidator.OneOf("registry", "msi_information", "file_system", "powershell_script"),
 							},
 						},
+						// For Registry Detection
 						"key_path": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "The path to detect for file or registry type.",
+							MarkdownDescription: "The registry key path for registry detection.",
 						},
-						"file_or_folder_name": schema.StringAttribute{
+						"value_name": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "The file or folder name to detect.",
+							MarkdownDescription: "The registry value name for registry detection.",
 						},
 						"check_32_bit_on_64_system": schema.BoolAttribute{
 							Optional:            true,
-							MarkdownDescription: "A value indicating whether to check 32-bit on 64-bit system.",
-						},
-						"detection_value": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The value to detect.",
+							MarkdownDescription: "Whether to check 32-bit registry on 64-bit system for registry detection.",
 						},
 						"operator": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "The operator for detection. Possible values are: notConfigured, equal, notEqual, greaterThan, greaterThanOrEqual, lessThan, lessThanOrEqual.",
+							MarkdownDescription: "The comparison operator for detection. Possible values are: notConfigured, equal, notEqual, greaterThan, greaterThanOrEqual, lessThan, lessThanOrEqual.",
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"notConfigured",
+									"equal",
+									"notEqual",
+									"greaterThan",
+									"greaterThanOrEqual",
+									"lessThan",
+									"lessThanOrEqual",
+								),
+							},
+						},
+						"detection_value": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The registry detection value.",
+						},
+						"detection_type_enum": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Registry detection type: exists, doesNotExist, string, integer, version.",
+						},
+						// For MSI Detection
+						"product_code": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The MSI product code for MSI detection.",
+						},
+						"product_version": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The MSI product version for MSI detection.",
+						},
+						"upgrade_code": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The MSI upgrade code for MSI detection.",
+						},
+						// For File Detection
+						"file_path": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The file path for file detection.",
+						},
+						"file_name": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The file name for file detection.",
 						},
 					},
 				},

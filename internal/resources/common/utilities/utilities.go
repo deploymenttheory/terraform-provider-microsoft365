@@ -31,6 +31,11 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
+// Utility function to convert a string to *string
+func StringPtr(s string) *string {
+	return &s
+}
+
 // Helper function to convert a string to uppercase
 func ToUpperCase(s string) string {
 	return strings.ToUpper(s)

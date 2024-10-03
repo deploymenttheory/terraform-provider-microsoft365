@@ -8,48 +8,48 @@ import (
 )
 
 type Win32LobAppResourceModel struct {
-	ID                              types.String                                  `tfsdk:"id"`
-	DisplayName                     types.String                                  `tfsdk:"display_name"`
-	Description                     types.String                                  `tfsdk:"description"`
-	Publisher                       types.String                                  `tfsdk:"publisher"`
-	LargeIcon                       sharedmodels.MimeContentResourceModel         `tfsdk:"large_icon"`
-	CreatedDateTime                 types.String                                  `tfsdk:"created_date_time"`
-	LastModifiedDateTime            types.String                                  `tfsdk:"last_modified_date_time"`
-	IsFeatured                      types.Bool                                    `tfsdk:"is_featured"`
-	PrivacyInformationUrl           types.String                                  `tfsdk:"privacy_information_url"`
-	InformationUrl                  types.String                                  `tfsdk:"information_url"`
-	Owner                           types.String                                  `tfsdk:"owner"`
-	Developer                       types.String                                  `tfsdk:"developer"`
-	Notes                           types.String                                  `tfsdk:"notes"`
-	UploadState                     types.Int64                                   `tfsdk:"upload_state"`
-	PublishingState                 types.String                                  `tfsdk:"publishing_state"`
-	IsAssigned                      types.Bool                                    `tfsdk:"is_assigned"`
-	RoleScopeTagIds                 []types.String                                `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount               types.Int64                                   `tfsdk:"dependent_app_count"`
-	SupersedingAppCount             types.Int64                                   `tfsdk:"superseding_app_count"`
-	SupersededAppCount              types.Int64                                   `tfsdk:"superseded_app_count"`
-	CommittedContentVersion         types.String                                  `tfsdk:"committed_content_version"`
-	FileName                        types.String                                  `tfsdk:"file_name"`
-	Size                            types.Int64                                   `tfsdk:"size"`
-	InstallCommandLine              types.String                                  `tfsdk:"install_command_line"`
-	UninstallCommandLine            types.String                                  `tfsdk:"uninstall_command_line"`
-	ApplicableArchitectures         types.String                                  `tfsdk:"applicable_architectures"`
-	MinimumSupportedOperatingSystem WindowsMinimumOperatingSystemResourceModel    `tfsdk:"minimum_supported_operating_system"`
-	MinimumFreeDiskSpaceInMB        types.Int64                                   `tfsdk:"minimum_free_disk_space_in_mb"`
-	MinimumMemoryInMB               types.Int64                                   `tfsdk:"minimum_memory_in_mb"`
-	MinimumNumberOfProcessors       types.Int64                                   `tfsdk:"minimum_number_of_processors"`
-	MinimumCpuSpeedInMHz            types.Int64                                   `tfsdk:"minimum_cpu_speed_in_mhz"`
-	DetectionRules                  []Win32LobAppRegistryDetectionResourceModel   `tfsdk:"detection_rules"`
-	RequirementRules                []Win32LobAppRegistryRequirementResourceModel `tfsdk:"requirement_rules"`
-	Rules                           []Win32LobAppRegistryRuleResourceModel        `tfsdk:"rules"`
-	InstallExperience               Win32LobAppInstallExperienceResourceModel     `tfsdk:"install_experience"`
-	ReturnCodes                     []Win32LobAppReturnCodeResourceModel          `tfsdk:"return_codes"`
-	MsiInformation                  Win32LobAppMsiInformationResourceModel        `tfsdk:"msi_information"`
-	SetupFilePath                   types.String                                  `tfsdk:"setup_file_path"`
-	MinimumSupportedWindowsRelease  types.String                                  `tfsdk:"minimum_supported_windows_release"`
-	DisplayVersion                  types.String                                  `tfsdk:"display_version"`
-	AllowAvailableUninstall         types.Bool                                    `tfsdk:"allow_available_uninstall"`
-	Timeouts                        timeouts.Value                                `tfsdk:"timeouts"`
+	ID                              types.String                                     `tfsdk:"id"`
+	DisplayName                     types.String                                     `tfsdk:"display_name"`
+	Description                     types.String                                     `tfsdk:"description"`
+	Publisher                       types.String                                     `tfsdk:"publisher"`
+	LargeIcon                       sharedmodels.MimeContentResourceModel            `tfsdk:"large_icon"`
+	CreatedDateTime                 types.String                                     `tfsdk:"created_date_time"`
+	LastModifiedDateTime            types.String                                     `tfsdk:"last_modified_date_time"`
+	IsFeatured                      types.Bool                                       `tfsdk:"is_featured"`
+	PrivacyInformationUrl           types.String                                     `tfsdk:"privacy_information_url"`
+	InformationUrl                  types.String                                     `tfsdk:"information_url"`
+	Owner                           types.String                                     `tfsdk:"owner"`
+	Developer                       types.String                                     `tfsdk:"developer"`
+	Notes                           types.String                                     `tfsdk:"notes"`
+	UploadState                     types.Int64                                      `tfsdk:"upload_state"`
+	PublishingState                 types.String                                     `tfsdk:"publishing_state"`
+	IsAssigned                      types.Bool                                       `tfsdk:"is_assigned"`
+	RoleScopeTagIds                 []types.String                                   `tfsdk:"role_scope_tag_ids"`
+	DependentAppCount               types.Int64                                      `tfsdk:"dependent_app_count"`
+	SupersedingAppCount             types.Int64                                      `tfsdk:"superseding_app_count"`
+	SupersededAppCount              types.Int64                                      `tfsdk:"superseded_app_count"`
+	CommittedContentVersion         types.String                                     `tfsdk:"committed_content_version"`
+	FileName                        types.String                                     `tfsdk:"file_name"`
+	Size                            types.Int64                                      `tfsdk:"size"`
+	InstallCommandLine              types.String                                     `tfsdk:"install_command_line"`
+	UninstallCommandLine            types.String                                     `tfsdk:"uninstall_command_line"`
+	ApplicableArchitectures         types.String                                     `tfsdk:"applicable_architectures"`
+	MinimumSupportedOperatingSystem WindowsMinimumOperatingSystemResourceModel       `tfsdk:"minimum_supported_operating_system"`
+	MinimumFreeDiskSpaceInMB        types.Int64                                      `tfsdk:"minimum_free_disk_space_in_mb"`
+	MinimumMemoryInMB               types.Int64                                      `tfsdk:"minimum_memory_in_mb"`
+	MinimumNumberOfProcessors       types.Int64                                      `tfsdk:"minimum_number_of_processors"`
+	MinimumCpuSpeedInMHz            types.Int64                                      `tfsdk:"minimum_cpu_speed_in_mhz"`
+	DetectionRules                  []Win32LobAppRegistryDetectionRulesResourceModel `tfsdk:"detection_rules"`
+	RequirementRules                []Win32LobAppRegistryRequirementResourceModel    `tfsdk:"requirement_rules"`
+	Rules                           []Win32LobAppRegistryRuleResourceModel           `tfsdk:"rules"`
+	InstallExperience               Win32LobAppInstallExperienceResourceModel        `tfsdk:"install_experience"`
+	ReturnCodes                     []Win32LobAppReturnCodeResourceModel             `tfsdk:"return_codes"`
+	MsiInformation                  Win32LobAppMsiInformationResourceModel           `tfsdk:"msi_information"`
+	SetupFilePath                   types.String                                     `tfsdk:"setup_file_path"`
+	MinimumSupportedWindowsRelease  types.String                                     `tfsdk:"minimum_supported_windows_release"`
+	DisplayVersion                  types.String                                     `tfsdk:"display_version"`
+	AllowAvailableUninstall         types.Bool                                       `tfsdk:"allow_available_uninstall"`
+	Timeouts                        timeouts.Value                                   `tfsdk:"timeouts"`
 }
 
 type WindowsMinimumOperatingSystemResourceModel struct {
@@ -68,13 +68,26 @@ type WindowsMinimumOperatingSystemResourceModel struct {
 	V10_21H1 types.Bool `tfsdk:"v10_21h1"`
 }
 
-type Win32LobAppRegistryDetectionResourceModel struct {
-	Check32BitOn64System types.Bool   `tfsdk:"check_32_bit_on_64_system"`
-	KeyPath              types.String `tfsdk:"key_path"`
-	ValueName            types.String `tfsdk:"value_name"`
-	DetectionType        types.String `tfsdk:"detection_type"`
-	Operator             types.String `tfsdk:"operator"`
-	DetectionValue       types.String `tfsdk:"detection_value"`
+type Win32LobAppRegistryDetectionRulesResourceModel struct {
+	// Common for all detection types
+	DetectionType        types.String `tfsdk:"detection_type"`            // registry, msi, file, powershell_script
+	Check32BitOn64System types.Bool   `tfsdk:"check_32_bit_on_64_system"` // Only for registry, file, PowerShell
+	Operator             types.String `tfsdk:"operator"`                  // For registry and file detection types
+	DetectionValue       types.String `tfsdk:"detection_value"`           // For registry detection
+	// Registry-specific fields
+	KeyPath   types.String `tfsdk:"key_path"`
+	ValueName types.String `tfsdk:"value_name"`
+	// MSI-specific fields
+	ProductCode    types.String `tfsdk:"product_code"`
+	ProductVersion types.String `tfsdk:"product_version"`
+	UpgradeCode    types.String `tfsdk:"upgrade_code"`
+	// File detection-specific fields
+	FilePath types.String `tfsdk:"file_path"`
+	FileName types.String `tfsdk:"file_name"`
+	// PowerShell script detection-specific fields
+	ScriptContent         types.String `tfsdk:"script_content"`
+	EnforceSignatureCheck types.Bool   `tfsdk:"enforce_signature_check"`
+	RunAs32Bit            types.Bool   `tfsdk:"run_as_32_bit"`
 }
 
 type Win32LobAppRegistryRequirementResourceModel struct {

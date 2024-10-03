@@ -1,0 +1,397 @@
+package graphBetaWin32LobApp
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (graphmodels.Win32LobAppable, error) {
+	tflog.Debug(ctx, "Constructing Win32LobApp resource")
+	construct.DebugPrintStruct(ctx, "Constructed Win32LobApp Resource from model", data)
+
+	win32LobApp := graphmodels.NewWin32LobApp()
+
+	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
+		displayName := data.DisplayName.ValueString()
+		win32LobApp.SetDisplayName(&displayName)
+	}
+
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
+		description := data.Description.ValueString()
+		win32LobApp.SetDescription(&description)
+	}
+
+	if !data.Publisher.IsNull() && !data.Publisher.IsUnknown() {
+		publisher := data.Publisher.ValueString()
+		win32LobApp.SetPublisher(&publisher)
+	}
+
+	if !data.FileName.IsNull() && !data.FileName.IsUnknown() {
+		fileName := data.FileName.ValueString()
+		win32LobApp.SetFileName(&fileName)
+	}
+
+	if !data.InstallCommandLine.IsNull() && !data.InstallCommandLine.IsUnknown() {
+		installCommandLine := data.InstallCommandLine.ValueString()
+		win32LobApp.SetInstallCommandLine(&installCommandLine)
+	}
+
+	if !data.UninstallCommandLine.IsNull() && !data.UninstallCommandLine.IsUnknown() {
+		uninstallCommandLine := data.UninstallCommandLine.ValueString()
+		win32LobApp.SetUninstallCommandLine(&uninstallCommandLine)
+	}
+
+	if !data.SetupFilePath.IsNull() && !data.SetupFilePath.IsUnknown() {
+		setupFilePath := data.SetupFilePath.ValueString()
+		win32LobApp.SetSetupFilePath(&setupFilePath)
+	}
+
+	if !data.CommittedContentVersion.IsNull() && !data.CommittedContentVersion.IsUnknown() {
+		contentVersion := data.CommittedContentVersion.ValueString()
+		win32LobApp.SetCommittedContentVersion(&contentVersion)
+	}
+
+	// Handle MinimumSupportedOperatingSystem
+	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
+		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()
+
+		if !minOS.V8_0.IsNull() && !minOS.V8_0.IsUnknown() {
+			minSupportedOS.SetV80(utilities.BoolPtr(minOS.V8_0.ValueBool()))
+		}
+		if !minOS.V8_1.IsNull() && !minOS.V8_1.IsUnknown() {
+			minSupportedOS.SetV81(utilities.BoolPtr(minOS.V8_1.ValueBool()))
+		}
+		if !minOS.V10_0.IsNull() && !minOS.V10_0.IsUnknown() {
+			minSupportedOS.SetV100(utilities.BoolPtr(minOS.V10_0.ValueBool()))
+		}
+		if !minOS.V10_1607.IsNull() && !minOS.V10_1607.IsUnknown() {
+			minSupportedOS.SetV101607(utilities.BoolPtr(minOS.V10_1607.ValueBool()))
+		}
+		if !minOS.V10_1703.IsNull() && !minOS.V10_1703.IsUnknown() {
+			minSupportedOS.SetV101703(utilities.BoolPtr(minOS.V10_1703.ValueBool()))
+		}
+		if !minOS.V10_1709.IsNull() && !minOS.V10_1709.IsUnknown() {
+			minSupportedOS.SetV101709(utilities.BoolPtr(minOS.V10_1709.ValueBool()))
+		}
+		if !minOS.V10_1803.IsNull() && !minOS.V10_1803.IsUnknown() {
+			minSupportedOS.SetV101803(utilities.BoolPtr(minOS.V10_1803.ValueBool()))
+		}
+		if !minOS.V10_1809.IsNull() && !minOS.V10_1809.IsUnknown() {
+			minSupportedOS.SetV101809(utilities.BoolPtr(minOS.V10_1809.ValueBool()))
+		}
+		if !minOS.V10_1903.IsNull() && !minOS.V10_1903.IsUnknown() {
+			minSupportedOS.SetV101903(utilities.BoolPtr(minOS.V10_1903.ValueBool()))
+		}
+		if !minOS.V10_1909.IsNull() && !minOS.V10_1909.IsUnknown() {
+			minSupportedOS.SetV101909(utilities.BoolPtr(minOS.V10_1909.ValueBool()))
+		}
+		if !minOS.V10_2004.IsNull() && !minOS.V10_2004.IsUnknown() {
+			minSupportedOS.SetV102004(utilities.BoolPtr(minOS.V10_2004.ValueBool()))
+		}
+		if !minOS.V10_2H20.IsNull() && !minOS.V10_2H20.IsUnknown() {
+			minSupportedOS.SetV102H20(utilities.BoolPtr(minOS.V10_2H20.ValueBool()))
+		}
+		if !minOS.V10_21H1.IsNull() && !minOS.V10_21H1.IsUnknown() {
+			minSupportedOS.SetV1021H1(utilities.BoolPtr(minOS.V10_21H1.ValueBool()))
+		}
+
+		win32LobApp.SetMinimumSupportedOperatingSystem(minSupportedOS)
+	}
+
+	// Handle DetectionRules
+	if len(data.DetectionRules) > 0 {
+		detectionRules := make([]graphmodels.Win32LobAppDetectionable, len(data.DetectionRules))
+		for i, rule := range data.DetectionRules {
+			switch rule.DetectionType.ValueString() {
+			case "registry":
+				registryRule := graphmodels.NewWin32LobAppRegistryDetection()
+
+				if !rule.KeyPath.IsNull() && !rule.KeyPath.IsUnknown() {
+					registryRule.SetKeyPath(utilities.StringPtr(rule.KeyPath.ValueString()))
+				}
+
+				if !rule.ValueName.IsNull() && !rule.ValueName.IsUnknown() {
+					registryRule.SetValueName(utilities.StringPtr(rule.ValueName.ValueString()))
+				}
+
+				if !rule.Check32BitOn64System.IsNull() && !rule.Check32BitOn64System.IsUnknown() {
+					registryRule.SetCheck32BitOn64System(utilities.BoolPtr(rule.Check32BitOn64System.ValueBool()))
+				}
+
+				if !rule.Operator.IsNull() && !rule.Operator.IsUnknown() {
+					operator, err := graphmodels.ParseWin32LobAppDetectionOperator(rule.Operator.ValueString())
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse registry detection operator: %v", err)
+					}
+					registryRule.SetOperator(operator.(*graphmodels.Win32LobAppDetectionOperator))
+				}
+
+				if !rule.DetectionType.IsNull() && !rule.DetectionType.IsUnknown() {
+					detectionType, err := graphmodels.ParseWin32LobAppRegistryDetectionType(rule.DetectionType.ValueString())
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
+					}
+					registryRule.SetDetectionType(detectionType.(*graphmodels.Win32LobAppRegistryDetectionType))
+				}
+
+				if !rule.DetectionValue.IsNull() && !rule.DetectionValue.IsUnknown() {
+					registryRule.SetDetectionValue(utilities.StringPtr(rule.DetectionValue.ValueString()))
+				}
+
+				detectionRules[i] = registryRule
+
+			case "msi_information":
+				msiRule := graphmodels.NewWin32LobAppProductCodeDetection()
+
+				if !rule.ProductCode.IsNull() && !rule.ProductCode.IsUnknown() {
+					msiRule.SetProductCode(utilities.StringPtr(rule.ProductCode.ValueString()))
+				}
+
+				if !rule.ProductVersion.IsNull() && !rule.ProductVersion.IsUnknown() {
+					msiRule.SetProductVersion(utilities.StringPtr(rule.ProductVersion.ValueString()))
+				}
+
+				if !rule.ProductVersion.IsNull() && !rule.ProductVersion.IsUnknown() {
+					operator, err := graphmodels.ParseWin32LobAppDetectionOperator(rule.ProductVersion.ValueString())
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse MSI product version : %v", err)
+					}
+					msiRule.SetProductVersionOperator(operator.(*graphmodels.Win32LobAppDetectionOperator))
+				}
+
+				detectionRules[i] = msiRule
+
+			case "file_system":
+				fileRule := graphmodels.NewWin32LobAppFileSystemDetection()
+
+				if !rule.FilePath.IsNull() && !rule.FilePath.IsUnknown() {
+					fileRule.SetPath(utilities.StringPtr(rule.FilePath.ValueString()))
+				}
+
+				if !rule.FileName.IsNull() && !rule.FileName.IsUnknown() {
+					fileRule.SetFileOrFolderName(utilities.StringPtr(rule.FileName.ValueString()))
+				}
+
+				if !rule.DetectionType.IsNull() && !rule.DetectionType.IsUnknown() {
+					detectionType, err := graphmodels.ParseWin32LobAppFileSystemDetectionType(rule.DetectionType.ValueString())
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse file system detection type: %v", err)
+					}
+					fileRule.SetDetectionType(detectionType.(*graphmodels.Win32LobAppFileSystemDetectionType))
+				}
+
+				if !rule.DetectionValue.IsNull() && !rule.DetectionValue.IsUnknown() {
+					fileRule.SetDetectionValue(utilities.StringPtr(rule.DetectionValue.ValueString()))
+				}
+
+				if !rule.Operator.IsNull() && !rule.Operator.IsUnknown() {
+					operator, err := graphmodels.ParseWin32LobAppDetectionOperator(rule.Operator.ValueString())
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
+					}
+					fileRule.SetOperator(operator.(*graphmodels.Win32LobAppDetectionOperator))
+				}
+
+				if !rule.Check32BitOn64System.IsNull() && !rule.Check32BitOn64System.IsUnknown() {
+					fileRule.SetCheck32BitOn64System(utilities.BoolPtr(rule.Check32BitOn64System.ValueBool()))
+				}
+
+				detectionRules[i] = fileRule
+			case "powershell_script":
+				powershellRule := graphmodels.NewWin32LobAppPowerShellScriptDetection()
+
+				if !rule.ScriptContent.IsNull() && !rule.ScriptContent.IsUnknown() {
+					powershellRule.SetScriptContent(utilities.StringPtr(rule.ScriptContent.ValueString()))
+				}
+
+				if !rule.EnforceSignatureCheck.IsNull() && !rule.EnforceSignatureCheck.IsUnknown() {
+					powershellRule.SetEnforceSignatureCheck(utilities.BoolPtr(rule.EnforceSignatureCheck.ValueBool()))
+				}
+
+				if !rule.RunAs32Bit.IsNull() && !rule.RunAs32Bit.IsUnknown() {
+					powershellRule.SetRunAs32Bit(utilities.BoolPtr(rule.RunAs32Bit.ValueBool()))
+				}
+
+				detectionRules[i] = powershellRule
+			}
+		}
+		win32LobApp.SetDetectionRules(detectionRules)
+	}
+
+	// Handle RequirementRules
+	if len(data.RequirementRules) > 0 {
+		requirementRules := make([]graphmodels.Win32LobAppRequirementable, len(data.RequirementRules))
+		for i, rule := range data.RequirementRules {
+			registryRequirement := graphmodels.NewWin32LobAppRegistryRequirement()
+
+			if !rule.KeyPath.IsNull() && !rule.KeyPath.IsUnknown() {
+				registryRequirement.SetKeyPath(utilities.StringPtr(rule.KeyPath.ValueString()))
+			}
+
+			if !rule.ValueName.IsNull() && !rule.ValueName.IsUnknown() {
+				registryRequirement.SetValueName(utilities.StringPtr(rule.ValueName.ValueString()))
+			}
+
+			if !rule.Check32BitOn64System.IsNull() && !rule.Check32BitOn64System.IsUnknown() {
+				registryRequirement.SetCheck32BitOn64System(utilities.BoolPtr(rule.Check32BitOn64System.ValueBool()))
+			}
+
+			if !rule.Operator.IsNull() && !rule.Operator.IsUnknown() {
+				operator, err := graphmodels.ParseWin32LobAppDetectionOperator(rule.Operator.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry requirement operator: %v", err)
+				}
+				registryRequirement.SetOperator(operator.(*graphmodels.Win32LobAppDetectionOperator))
+			}
+
+			if !rule.DetectionType.IsNull() && !rule.DetectionType.IsUnknown() {
+				detectionType, err := graphmodels.ParseWin32LobAppRegistryDetectionType(rule.DetectionType.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
+				}
+				registryRequirement.SetDetectionType(detectionType.(*graphmodels.Win32LobAppRegistryDetectionType))
+			}
+
+			if !rule.DetectionValue.IsNull() && !rule.DetectionValue.IsUnknown() {
+				registryRequirement.SetDetectionValue(utilities.StringPtr(rule.DetectionValue.ValueString()))
+			}
+
+			requirementRules[i] = registryRequirement
+		}
+		win32LobApp.SetRequirementRules(requirementRules)
+	}
+
+	// Handle Rules
+	if len(data.Rules) > 0 {
+		rules := make([]graphmodels.Win32LobAppRuleable, len(data.Rules))
+		for i, rule := range data.Rules {
+			registryRule := graphmodels.NewWin32LobAppRegistryRule()
+
+			if !rule.KeyPath.IsNull() && !rule.KeyPath.IsUnknown() {
+				registryRule.SetKeyPath(utilities.StringPtr(rule.KeyPath.ValueString()))
+			}
+
+			if !rule.ValueName.IsNull() && !rule.ValueName.IsUnknown() {
+				registryRule.SetValueName(utilities.StringPtr(rule.ValueName.ValueString()))
+			}
+
+			if !rule.Check32BitOn64System.IsNull() && !rule.Check32BitOn64System.IsUnknown() {
+				registryRule.SetCheck32BitOn64System(utilities.BoolPtr(rule.Check32BitOn64System.ValueBool()))
+			}
+
+			if !rule.Operator.IsNull() && !rule.Operator.IsUnknown() {
+				operator, err := graphmodels.ParseWin32LobAppRuleOperator(rule.Operator.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry rule operator: %v", err)
+				}
+				registryRule.SetOperator(operator.(*graphmodels.Win32LobAppRuleOperator))
+			}
+
+			if !rule.OperationType.IsNull() && !rule.OperationType.IsUnknown() {
+				operationType, err := graphmodels.ParseWin32LobAppRegistryRuleOperationType(rule.OperationType.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry rule operation type: %v", err)
+				}
+				registryRule.SetOperationType(operationType.(*graphmodels.Win32LobAppRegistryRuleOperationType))
+			}
+
+			if !rule.ComparisonValue.IsNull() && !rule.ComparisonValue.IsUnknown() {
+				registryRule.SetComparisonValue(utilities.StringPtr(rule.ComparisonValue.ValueString()))
+			}
+
+			rules[i] = registryRule
+		}
+		win32LobApp.SetRules(rules)
+	}
+
+	// Handle Install Experience
+	if installExperience := data.InstallExperience; installExperience != (Win32LobAppInstallExperienceResourceModel{}) {
+		installExp := graphmodels.NewWin32LobAppInstallExperience()
+
+		if !installExperience.RunAsAccount.IsNull() && !installExperience.RunAsAccount.IsUnknown() {
+			runAsAccountType, err := graphmodels.ParseRunAsAccountType(installExperience.RunAsAccount.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse RunAsAccountType: %v", err)
+			}
+			installExp.SetRunAsAccount(runAsAccountType.(*graphmodels.RunAsAccountType))
+		}
+
+		if !installExperience.DeviceRestartBehavior.IsNull() && !installExperience.DeviceRestartBehavior.IsUnknown() {
+			restartBehavior, err := graphmodels.ParseWin32LobAppRestartBehavior(installExperience.DeviceRestartBehavior.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse DeviceRestartBehavior: %v", err)
+			}
+			installExp.SetDeviceRestartBehavior(restartBehavior.(*graphmodels.Win32LobAppRestartBehavior))
+		}
+
+		if !installExperience.MaxRunTimeInMinutes.IsNull() && !installExperience.MaxRunTimeInMinutes.IsUnknown() {
+			maxRunTimeInMinutes := int32(installExperience.MaxRunTimeInMinutes.ValueInt64())
+			installExp.SetMaxRunTimeInMinutes(&maxRunTimeInMinutes)
+		}
+
+		win32LobApp.SetInstallExperience(installExp)
+	}
+
+	// Handle Return Codes
+	if len(data.ReturnCodes) > 0 {
+		returnCodes := make([]graphmodels.Win32LobAppReturnCodeable, len(data.ReturnCodes))
+		for i, code := range data.ReturnCodes {
+			returnCode := graphmodels.NewWin32LobAppReturnCode()
+
+			returnCodeValue := int32(code.ReturnCode.ValueInt64())
+			returnCode.SetReturnCode(&returnCodeValue)
+
+			returnType, err := graphmodels.ParseWin32LobAppReturnCodeType(code.Type.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse return code type: %v", err)
+			}
+			returnCode.SetTypeEscaped(returnType.(*graphmodels.Win32LobAppReturnCodeType))
+
+			returnCodes[i] = returnCode
+		}
+		win32LobApp.SetReturnCodes(returnCodes)
+	}
+
+	// Handle MSI Information
+	if msiInfo := data.MsiInformation; msiInfo != (Win32LobAppMsiInformationResourceModel{}) {
+		msiInformation := graphmodels.NewWin32LobAppMsiInformation()
+
+		if !msiInfo.ProductCode.IsNull() && !msiInfo.ProductCode.IsUnknown() {
+			productCode := msiInfo.ProductCode.ValueString()
+			msiInformation.SetProductCode(&productCode)
+		}
+
+		if !msiInfo.ProductVersion.IsNull() && !msiInfo.ProductVersion.IsUnknown() {
+			productVersion := msiInfo.ProductVersion.ValueString()
+			msiInformation.SetProductVersion(&productVersion)
+		}
+
+		if !msiInfo.UpgradeCode.IsNull() && !msiInfo.UpgradeCode.IsUnknown() {
+			upgradeCode := msiInfo.UpgradeCode.ValueString()
+			msiInformation.SetUpgradeCode(&upgradeCode)
+		}
+
+		if !msiInfo.RequiresReboot.IsNull() && !msiInfo.RequiresReboot.IsUnknown() {
+			requiresReboot := msiInfo.RequiresReboot.ValueBool()
+			msiInformation.SetRequiresReboot(&requiresReboot)
+		}
+
+		if !msiInfo.PackageType.IsNull() && !msiInfo.PackageType.IsUnknown() {
+			packageType, err := graphmodels.ParseWin32LobAppMsiPackageType(msiInfo.PackageType.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
+			}
+			msiInformation.SetPackageType(packageType.(*graphmodels.Win32LobAppMsiPackageType))
+		}
+
+		win32LobApp.SetMsiInformation(msiInformation)
+	}
+
+	tflog.Debug(ctx, "Finished constructing Win32LobApp resource")
+	return win32LobApp, nil
+}
