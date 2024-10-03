@@ -3,8 +3,10 @@ package graphBetaWin32LobApp
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -35,6 +37,26 @@ type Win32LobAppResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+}
+
+// GetID returns the ID of a resource from the state model.
+func (s *Win32LobAppResource) GetID() string {
+	return s.ID.ValueString()
+}
+
+// GetTypeName returns the type name of the resource from the state model.
+func (r *Win32LobAppResource) GetTypeName() string {
+	return r.TypeName
+}
+
+// Configure sets the client for the resource.
+func (r *Win32LobAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+}
+
+// ImportState imports the resource state.
+func (r *Win32LobAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (r *Win32LobAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {

@@ -122,11 +122,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		for i, rule := range rules {
 			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryRuleable); ok {
 				data.Rules[i] = Win32LobAppRegistryRuleResourceModel{
-					RuleType:             types.StringValue(state.StringPtrToString(registryRule.GetRuleType())),
+					RuleType:             state.EnumPtrToTypeString(registryRule.GetRuleType()),
 					Check32BitOn64System: state.BoolPtrToTypeBool(registryRule.GetCheck32BitOn64System()),
 					KeyPath:              types.StringValue(state.StringPtrToString(registryRule.GetKeyPath())),
 					ValueName:            types.StringValue(state.StringPtrToString(registryRule.GetValueName())),
-					OperationType:        types.StringValue(state.StringPtrToString(registryRule.GetOperationType())),
+					OperationType:        state.EnumPtrToTypeString(registryRule.GetOperationType()),
 					Operator:             state.EnumPtrToTypeString(registryRule.GetOperator()),
 					ComparisonValue:      types.StringValue(state.StringPtrToString(registryRule.GetComparisonValue())),
 				}

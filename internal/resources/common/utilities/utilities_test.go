@@ -137,6 +137,36 @@ func TestStringToInt(t *testing.T) {
 	}
 }
 
+// TestBoolPtr tests the BoolPtr function.
+func TestBoolPtr(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bool
+		want  *bool
+	}{
+		{
+			name:  "True value",
+			input: true,
+			want:  BoolPtr(true),
+		},
+		{
+			name:  "False value",
+			input: false,
+			want:  BoolPtr(false),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Capture range variable
+		t.Run(tt.name, func(t *testing.T) {
+			got := BoolPtr(tt.input)
+			if got == nil || *got != *tt.want {
+				t.Errorf("BoolPtr() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestToUpperCase tests the ToUpperCase function.
 func TestToUpperCase(t *testing.T) {
 	tests := []struct {
