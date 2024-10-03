@@ -39,11 +39,6 @@ type Win32LobAppResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *Win32LobAppResource) GetID() string {
-	return s.ID.ValueString()
-}
-
 // GetTypeName returns the type name of the resource from the state model.
 func (r *Win32LobAppResource) GetTypeName() string {
 	return r.TypeName
