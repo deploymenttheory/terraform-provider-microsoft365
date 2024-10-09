@@ -77,3 +77,4 @@ This structure helps to organize different types of resources within the project
     - `applications/`: Contains code related to application resources.
 
 Each resource type (users, groups, applications) can have its own set of files and subfolders as needed for implementation.
+

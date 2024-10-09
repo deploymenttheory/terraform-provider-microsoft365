@@ -3,14 +3,14 @@ package graphbetabrowsersite
 import (
 	"context"
 
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceModel, remoteResource models.BrowserSiteable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceModel, remoteResource graphmodels.BrowserSiteable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -35,9 +35,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 	// Handle History
 	history := remoteResource.GetHistory()
 	if len(history) == 0 {
-		data.History = []BrowserSiteHistoryModel{}
+		data.History = []BrowserSiteHistoryResourceModel{}
 	} else {
-		data.History = make([]BrowserSiteHistoryModel, len(history))
+		data.History = make([]BrowserSiteHistoryResourceModel, len(history))
 		for i, historyItem := range history {
 			data.History[i] = MapHistoryRemoteStateToTerraform(historyItem)
 		}
@@ -53,8 +53,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 	})
 }
 
-func MapHistoryRemoteStateToTerraform(historyItem models.BrowserSiteHistoryable) BrowserSiteHistoryModel {
-	return BrowserSiteHistoryModel{
+func MapHistoryRemoteStateToTerraform(historyItem graphmodels.BrowserSiteHistoryable) BrowserSiteHistoryResourceModel {
+	return BrowserSiteHistoryResourceModel{
 		AllowRedirect:     types.BoolValue(state.BoolPtrToBool(historyItem.GetAllowRedirect())),
 		Comment:           types.StringValue(state.StringPtrToString(historyItem.GetComment())),
 		CompatibilityMode: state.EnumPtrToTypeString(historyItem.GetCompatibilityMode()),
@@ -65,12 +65,12 @@ func MapHistoryRemoteStateToTerraform(historyItem models.BrowserSiteHistoryable)
 	}
 }
 
-func MapIdentitySetRemoteStateToTerraform(identitySet models.IdentitySetable) sharedmodels.IdentitySetModel {
+func MapIdentitySetRemoteStateToTerraform(identitySet graphmodels.IdentitySetable) sharedmodels.IdentitySetResourceModel {
 	if identitySet == nil {
-		return sharedmodels.IdentitySetModel{}
+		return sharedmodels.IdentitySetResourceModel{}
 	}
 
-	return sharedmodels.IdentitySetModel{
+	return sharedmodels.IdentitySetResourceModel{
 		Application: MapIdentityRemoteStateToTerraform(identitySet.GetApplication()),
 		User:        MapIdentityRemoteStateToTerraform(identitySet.GetUser()),
 		Device:      MapIdentityRemoteStateToTerraform(identitySet.GetDevice()),
@@ -86,12 +86,12 @@ func MapIdentitySetRemoteStateToTerraform(identitySet models.IdentitySetable) sh
 	}
 }
 
-func MapIdentityRemoteStateToTerraform(identity models.Identityable) sharedmodels.IdentityModel {
+func MapIdentityRemoteStateToTerraform(identity graphmodels.Identityable) sharedmodels.IdentityResourceModel {
 	if identity == nil {
-		return sharedmodels.IdentityModel{}
+		return sharedmodels.IdentityResourceModel{}
 	}
 
-	return sharedmodels.IdentityModel{
+	return sharedmodels.IdentityResourceModel{
 		DisplayName: types.StringValue(state.StringPtrToString(identity.GetDisplayName())),
 		ID:          types.StringValue(state.StringPtrToString(identity.GetId())),
 		// TODO - field missing from SDK

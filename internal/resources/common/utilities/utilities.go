@@ -26,6 +26,16 @@ func StringToInt(str string, mapping map[string]int) (int, error) {
 	return -1, fmt.Errorf("invalid string: %s. Supported strings: %v", str, mapping)
 }
 
+// Utility function to convert a bool to *bool
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+// Utility function to convert a string to *string
+func StringPtr(s string) *string {
+	return &s
+}
+
 // Helper function to convert a string to uppercase
 func ToUpperCase(s string) string {
 	return strings.ToUpper(s)
