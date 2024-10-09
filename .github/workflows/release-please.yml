@@ -4,8 +4,6 @@ run-name: 🚀 Release Please - ${{ github.event.repository.updated_at }}
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'  # At 00:00 UTC on Sunday
 
 permissions:
   contents: write
