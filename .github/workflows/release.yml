@@ -21,7 +21,7 @@ jobs:
         egress-policy: audit
 
     - name: Check out code
-      uses: actions/checkout@v4.2.0
+      uses: actions/checkout@v4.2.1
       with:
         fetch-depth: 2
 
@@ -76,7 +76,7 @@ jobs:
         with:
           egress-policy: audit
           
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.1
         with:
           fetch-depth: 0
       - name: Generate Release Notes
