@@ -128,7 +128,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err = r.client.
+	updatedPolicy, err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
@@ -137,15 +137,6 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
-		return
-	}
-
-	updatedPolicy, err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(plan.ID.ValueString()).Get(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Updated Conditional Access Policy",
-			fmt.Sprintf("Could not read updated conditional access policy: %s", err.Error()),
-		)
 		return
 	}
 
