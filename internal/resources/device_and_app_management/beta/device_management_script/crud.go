@@ -155,6 +155,10 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 	MapRemoteStateToTerraform(ctx, &state, script)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 

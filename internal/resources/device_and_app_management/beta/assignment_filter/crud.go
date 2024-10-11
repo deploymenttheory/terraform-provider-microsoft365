@@ -38,7 +38,8 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	resource, err := r.client.DeviceManagement().
+	resource, err := r.client.
+		DeviceManagement().
 		AssignmentFilters().
 		Post(ctx, requestBody, nil)
 
@@ -78,7 +79,8 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceManagement().
+	resource, err := r.client.
+		DeviceManagement().
 		AssignmentFilters().
 		ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -91,6 +93,9 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	MapRemoteStateToTerraform(ctx, &state, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -121,7 +126,9 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err = r.client.DeviceManagement().AssignmentFilters().
+	_, err = r.client.
+		DeviceManagement().
+		AssignmentFilters().
 		ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
@@ -131,6 +138,9 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -152,7 +162,8 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().
+	err := r.client.
+		DeviceManagement().
 		AssignmentFilters().
 		ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).
 		Delete(ctx, nil)
@@ -162,7 +173,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

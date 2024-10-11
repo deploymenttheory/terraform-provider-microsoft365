@@ -80,7 +80,11 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	browserSiteList, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	browserSiteList, err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(state.ID.ValueString()).
 		Get(ctx, nil)
 
@@ -92,6 +96,9 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 	MapRemoteStateToTerraform(ctx, &state, browserSiteList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -122,7 +129,11 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	_, err = r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	_, err = r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
@@ -132,6 +143,9 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -153,7 +167,11 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
