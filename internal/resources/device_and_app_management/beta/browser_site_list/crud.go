@@ -38,7 +38,10 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	createdSiteList, err := r.client.Admin().Edge().InternetExplorerMode().
+	createdSiteList, err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
 		SiteLists().
 		Post(ctx, requestBody, nil)
 
@@ -52,6 +55,9 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	MapRemoteStateToTerraform(ctx, &plan, createdSiteList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

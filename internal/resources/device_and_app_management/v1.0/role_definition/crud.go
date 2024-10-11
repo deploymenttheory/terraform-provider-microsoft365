@@ -38,7 +38,8 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	createdRoleDef, err := r.client.DeviceManagement().
+	createdRoleDef, err := r.client.
+		DeviceManagement().
 		RoleDefinitions().
 		Post(ctx, roleDef, nil)
 
@@ -49,16 +50,12 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 
 	plan.ID = types.StringValue(*createdRoleDef.GetId())
 
-	readResp := resource.ReadResponse{State: resp.State}
+	MapRemoteStateToTerraform(ctx, &plan, createdRoleDef)
 
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -81,7 +78,8 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	roleDef, err := r.client.DeviceManagement().
+	roleDef, err := r.client.
+		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -94,6 +92,9 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	MapRemoteStateToTerraform(ctx, &state, roleDef)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -125,7 +126,8 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	updatedRoleDef, err := r.client.DeviceManagement().
+	updatedRoleDef, err := r.client.
+		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
@@ -138,6 +140,9 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	MapRemoteStateToTerraform(ctx, &plan, updatedRoleDef)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -159,7 +164,8 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().
+	err := r.client.
+		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(data.ID.ValueString()).
 		Delete(ctx, nil)

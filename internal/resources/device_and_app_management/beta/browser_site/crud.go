@@ -40,7 +40,11 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 
 	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
 
-	createdSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	createdSite, err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
 		Post(ctx, requestBody, nil)
@@ -50,6 +54,9 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	plan.ID = types.StringValue(*createdSite.GetId())
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	MapRemoteStateToTerraform(ctx, &plan, createdSite)
 

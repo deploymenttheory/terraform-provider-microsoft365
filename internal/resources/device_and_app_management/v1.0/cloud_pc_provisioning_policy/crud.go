@@ -38,7 +38,8 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	provisioningPolicy, err := r.client.DeviceManagement().
+	provisioningPolicy, err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		Post(ctx, requestBody, nil)
@@ -53,6 +54,9 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 	MapRemoteStateToTerraform(ctx, &plan, provisioningPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -76,7 +80,8 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	provisioningPolicy, err := r.client.DeviceManagement().
+	provisioningPolicy, err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
@@ -90,6 +95,9 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	MapRemoteStateToTerraform(ctx, &state, provisioningPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -120,7 +128,8 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	_, err = r.client.DeviceManagement().
+	_, err = r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).
@@ -132,6 +141,9 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -153,7 +165,8 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().
+	err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(data.ID.ValueString()).

@@ -52,6 +52,9 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 	MapRemoteStateToTerraform(ctx, &plan, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

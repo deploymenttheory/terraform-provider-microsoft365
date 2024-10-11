@@ -29,7 +29,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	roleDef, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -38,9 +38,10 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	createdRoleDef, err := r.client.DeviceManagement().
+	createdRoleDef, err := r.client.
+		DeviceManagement().
 		RoleDefinitions().
-		Post(ctx, roleDef, nil)
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -49,15 +50,12 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 
 	plan.ID = types.StringValue(*createdRoleDef.GetId())
 
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+	MapRemoteStateToTerraform(ctx, &plan, createdRoleDef)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -93,6 +91,9 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	MapRemoteStateToTerraform(ctx, &state, roleDef)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -137,6 +138,9 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	MapRemoteStateToTerraform(ctx, &plan, updatedRoleDef)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

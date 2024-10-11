@@ -38,7 +38,8 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	cloudPcUserSetting, err := r.client.DeviceManagement().
+	cloudPcUserSetting, err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
 		Post(ctx, requestBody, nil)
@@ -53,6 +54,9 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 	MapRemoteStateToTerraform(ctx, &plan, cloudPcUserSetting)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -76,7 +80,8 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	cloudPcUserSetting, err := r.client.DeviceManagement().
+	cloudPcUserSetting, err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
 		ByCloudPcUserSettingId(state.ID.ValueString()).
@@ -90,6 +95,9 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	MapRemoteStateToTerraform(ctx, &state, cloudPcUserSetting)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -120,7 +128,8 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err = r.client.DeviceManagement().
+	_, err = r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
 		ByCloudPcUserSettingId(plan.ID.ValueString()).
@@ -132,6 +141,9 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -153,7 +165,8 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().
+	err := r.client.
+		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
 		ByCloudPcUserSettingId(data.ID.ValueString()).

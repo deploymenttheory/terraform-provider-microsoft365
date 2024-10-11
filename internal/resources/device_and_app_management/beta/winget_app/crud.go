@@ -39,7 +39,8 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	resource, err := r.client.DeviceAppManagement().
+	resource, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		Post(context.Background(), requestBody, nil)
 
@@ -62,19 +63,10 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
 
-	// Handle assignments if present
-	// if len(plan.Assignments) > 0 {
-	// 	err = r.createAssignments(ctx, plan.ID.ValueString(), plan.Assignments)
-	// 	if err != nil {
-	// 		resp.Diagnostics.AddError(
-	// 			"Error creating assignments",
-	// 			fmt.Sprintf("Could not create assignments for %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-	// 		)
-	// 		return
-	// 	}
-	// }
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -131,6 +123,10 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -159,7 +155,8 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	resource, err := r.client.DeviceAppManagement().
+	resource, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
@@ -194,6 +191,10 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
