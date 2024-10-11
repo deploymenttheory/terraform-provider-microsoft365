@@ -39,7 +39,8 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	createdResource, err := r.client.DeviceAppManagement().
+	createdResource, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		Post(ctx, requestBody, nil)
 
@@ -63,6 +64,9 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -85,7 +89,8 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	fetchedResource, err := r.client.DeviceAppManagement().
+	fetchedResource, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -108,6 +113,9 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	MapRemoteStateToTerraform(ctx, &state, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -138,7 +146,8 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	updatedResource, err := r.client.DeviceAppManagement().
+	updatedResource, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
@@ -161,6 +170,9 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 	MapRemoteStateToTerraform(ctx, &plan, resourceAsWin32LobApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -182,7 +194,8 @@ func (r *Win32LobAppResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().
+	err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(data.ID.ValueString()).
 		Delete(ctx, nil)

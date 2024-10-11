@@ -39,7 +39,8 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	createdApp, err := r.client.DeviceAppManagement().
+	createdApp, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		Post(ctx, app, nil)
 
@@ -50,16 +51,21 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 
 	plan.ID = types.StringValue(*createdApp.GetId())
 
-	// Call Read to fetch the full state and set it in the response
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+	macOSPkgApp, ok := app.(models.MacOSPkgAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			fmt.Sprintf("Expected MacOSPkgAppable, got: %T. Please report this issue to the provider developers.", app),
+		)
 		return
 	}
 
+	MapRemoteStateToTerraform(ctx, &plan, macOSPkgApp)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -82,7 +88,8 @@ func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	app, err := r.client.DeviceAppManagement().
+	app, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -136,7 +143,8 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	_, err = r.client.DeviceAppManagement().
+	_, err = r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
@@ -146,16 +154,21 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Call Read to fetch the full state and set it in the response
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+	macOSPkgApp, ok := requestBody.(models.MacOSPkgAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			fmt.Sprintf("Expected MacOSPkgAppable, got: %T. Please report this issue to the provider developers.", requestBody),
+		)
 		return
 	}
 
+	MapRemoteStateToTerraform(ctx, &plan, macOSPkgApp)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -177,7 +190,9 @@ func (r *MacOSPkgAppResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().MobileApps().
+	err := r.client.
+		DeviceAppManagement().
+		MobileApps().
 		ByMobileAppId(data.ID.ValueString()).
 		Delete(ctx, nil)
 

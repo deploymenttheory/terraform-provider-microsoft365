@@ -38,7 +38,8 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createdScript, err := r.client.DeviceManagement().
+	createdScript, err := r.client.
+		DeviceManagement().
 		DeviceManagementScripts().
 		Post(ctx, requestBody, nil)
 
@@ -47,7 +48,6 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// Set the ID in the plan
 	plan.ID = types.StringValue(*createdScript.GetId())
 
 	// Handle assignments if any
@@ -84,18 +84,12 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 		}
 	}
 
-	// Call Read to fetch the full state and set it in the response
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+	MapRemoteStateToTerraform(ctx, &plan, createdScript)
 
-	// If there were any errors in Read, add them to the Create response
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Set the state in the response
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -119,8 +113,8 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	// Retrieve the main resource
-	script, err := r.client.DeviceManagement().
+	script, err := r.client.
+		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(state.ID.ValueString()).
 		Get(ctx, nil)
@@ -144,8 +138,6 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, script)
-
 	// Map assignments to state
 	if assignments != nil && len(assignments.GetValue()) > 0 {
 		state.Assignments = make([]DeviceManagementScriptAssignmentResourceModel, len(assignments.GetValue()))
@@ -160,7 +152,13 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 		}
 	}
 
+	MapRemoteStateToTerraform(ctx, &state, script)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -184,7 +182,6 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Update the main resource
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -194,7 +191,8 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	_, err = r.client.DeviceManagement().
+	_, err = r.client.
+		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
@@ -210,21 +208,19 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 		resp.Diagnostics.AddError("Error updating assignments", err.Error())
 		return
 	}
+
 	err = r.updateGroupAssignments(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating group assignments", err.Error())
 		return
 	}
 
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+	MapRemoteStateToTerraform(ctx, &plan, requestBody)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -353,6 +349,9 @@ func (r *DeviceManagementScriptResource) Delete(ctx context.Context, req resourc
 	} else {
 		// If there are still assignments, just update the state
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))

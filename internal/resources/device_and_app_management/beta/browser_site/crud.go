@@ -40,7 +40,11 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 
 	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
 
-	createdSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	createdSite, err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
 		Post(ctx, requestBody, nil)
@@ -50,6 +54,9 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	plan.ID = types.StringValue(*createdSite.GetId())
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	MapRemoteStateToTerraform(ctx, &plan, createdSite)
 
@@ -57,6 +64,9 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	plan.BrowserSiteListAssignmentID = types.StringValue(browserSiteListId)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -82,7 +92,11 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 
 	browserSiteListId := state.BrowserSiteListAssignmentID.ValueString()
 
-	browserSite, err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	browserSite, err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
 		ByBrowserSiteId(state.ID.ValueString()).
@@ -96,6 +110,9 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 	MapRemoteStateToTerraform(ctx, &state, browserSite)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -128,7 +145,11 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 
 	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
 
-	_, err = r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	_, err = r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
 		ByBrowserSiteId(plan.ID.ValueString()).
@@ -140,6 +161,9 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -163,7 +187,11 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	browserSiteListId := data.BrowserSiteListAssignmentID.ValueString()
 
-	err := r.client.Admin().Edge().InternetExplorerMode().SiteLists().
+	err := r.client.
+		Admin().
+		Edge().
+		InternetExplorerMode().
+		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
 		ByBrowserSiteId(data.ID.ValueString()).

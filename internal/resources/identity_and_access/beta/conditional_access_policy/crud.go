@@ -38,7 +38,8 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	conditionalAccessPolicy, err := r.client.Identity().
+	conditionalAccessPolicy, err := r.client.
+		Identity().
 		ConditionalAccess().
 		Policies().
 		Post(ctx, requestBody, nil)
@@ -53,6 +54,9 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -76,7 +80,8 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	conditionalAccessPolicy, err := r.client.Identity().
+	conditionalAccessPolicy, err := r.client.
+		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(state.ID.ValueString()).
@@ -90,6 +95,9 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	MapRemoteStateToTerraform(ctx, &state, conditionalAccessPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -120,7 +128,8 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err = r.client.Identity().
+	_, err = r.client.
+		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(plan.ID.ValueString()).
@@ -140,10 +149,12 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	// Map the updated policy back to the Terraform state
 	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -165,7 +176,8 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	err := r.client.Identity().
+	err := r.client.
+		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(data.ID.ValueString()).

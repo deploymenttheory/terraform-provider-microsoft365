@@ -43,7 +43,8 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	requestBody.SetMobileAppAssignments([]models.MobileAppAssignmentable{mobileAppAssignment})
 
-	err = r.client.DeviceAppManagement().
+	err = r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.SourceID.ValueString()).
 		Assign().
@@ -57,6 +58,9 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 	plan.ID = types.StringValue(plan.SourceID.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -80,7 +84,8 @@ func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.Rea
 	}
 	defer cancel()
 
-	assignmentsResponse, err := r.client.DeviceAppManagement().
+	assignmentsResponse, err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(state.SourceID.ValueString()).
 		Assignments().
@@ -114,6 +119,9 @@ func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.Rea
 	MapRemoteStateToTerraform(ctx, &state, targetAssignment)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -147,7 +155,8 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	requestBody.SetMobileAppAssignments([]models.MobileAppAssignmentable{mobileAppAssignment})
 
-	err = r.client.DeviceAppManagement().
+	err = r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(plan.ID.ValueString()).
 		Assign().
@@ -159,6 +168,9 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -180,7 +192,8 @@ func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().
+	err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(data.ID.ValueString()).
 		Delete(ctx, nil)
@@ -190,7 +203,7 @@ func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }

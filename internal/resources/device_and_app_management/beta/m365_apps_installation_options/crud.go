@@ -53,6 +53,9 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	MapRemoteStateToTerraform(ctx, &plan, options)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -76,7 +79,8 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	resource, err := r.client.Admin().
+	resource, err := r.client.
+		Admin().
 		Microsoft365Apps().
 		InstallationOptions().
 		Get(ctx, nil)
@@ -89,6 +93,9 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 	MapRemoteStateToTerraform(ctx, &state, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -119,7 +126,8 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 		return
 	}
 
-	options, err := r.client.Admin().
+	options, err := r.client.
+		Admin().
 		Microsoft365Apps().
 		InstallationOptions().
 		Patch(ctx, requestBody, nil)
@@ -132,6 +140,9 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	MapRemoteStateToTerraform(ctx, &plan, options)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
