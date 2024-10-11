@@ -128,7 +128,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	updatedPolicy, err := r.client.
+	conditionalAccessPolicy, err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
@@ -140,7 +140,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
