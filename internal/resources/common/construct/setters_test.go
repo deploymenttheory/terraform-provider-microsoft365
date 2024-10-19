@@ -142,3 +142,73 @@ func TestParseEnum(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSetArrayProperty(t *testing.T) {
+	var result []string
+
+	// Case: Valid array with all valid strings
+	result = nil
+	validArray := []types.String{
+		types.StringValue("test1"),
+		types.StringValue("test2"),
+		types.StringValue("test3"),
+	}
+	SetArrayProperty(validArray, func(val []string) {
+		result = val
+	})
+	assert.NotNil(t, result)
+	assert.Equal(t, []string{"test1", "test2", "test3"}, result)
+
+	// Case: Array with mix of valid, null, and unknown values
+	result = nil
+	mixedArray := []types.String{
+		types.StringValue("test1"),
+		types.StringNull(),
+		types.StringValue("test3"),
+		types.StringUnknown(),
+	}
+	SetArrayProperty(mixedArray, func(val []string) {
+		result = val
+	})
+	assert.NotNil(t, result)
+	assert.Equal(t, []string{"test1", "test3"}, result)
+
+	// Case: Empty array
+	result = nil
+	emptyArray := []types.String{}
+	SetArrayProperty(emptyArray, func(val []string) {
+		result = val
+	})
+	assert.Nil(t, result)
+
+	// Case: Array with only null and unknown values
+	result = nil
+	nullUnknownArray := []types.String{
+		types.StringNull(),
+		types.StringUnknown(),
+		types.StringNull(),
+	}
+	SetArrayProperty(nullUnknownArray, func(val []string) {
+		result = val
+	})
+	assert.Nil(t, result)
+
+	// Case: Array with one valid value
+	result = nil
+	singleValidArray := []types.String{
+		types.StringValue("test"),
+	}
+	SetArrayProperty(singleValidArray, func(val []string) {
+		result = val
+	})
+	assert.NotNil(t, result)
+	assert.Equal(t, []string{"test"}, result)
+
+	// Case: Nil array
+	result = nil
+	var nilArray []types.String
+	SetArrayProperty(nilArray, func(val []string) {
+		result = val
+	})
+	assert.Nil(t, result)
+}

@@ -3,6 +3,7 @@ package construct
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -53,4 +54,19 @@ func ParseEnum[T any](value basetypes.StringValue, parser func(string) (any, err
 		setter(typedEnumVal)
 	}
 	return nil
+}
+
+// Add this new helper function to your construct package
+func SetArrayProperty(values []types.String, setter func([]string)) {
+	if len(values) > 0 {
+		stringValues := make([]string, 0, len(values))
+		for _, v := range values {
+			if !v.IsNull() && !v.IsUnknown() {
+				stringValues = append(stringValues, v.ValueString())
+			}
+		}
+		if len(stringValues) > 0 {
+			setter(stringValues)
+		}
+	}
 }
