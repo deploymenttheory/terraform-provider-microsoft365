@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -51,7 +52,8 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 
 	plan.ID = types.StringValue(*resource.GetId())
 
-	// Set the state to the values we know
+	MapRemoteStateToTerraform(ctx, &plan, resource)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -78,7 +80,7 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	resource, err := r.client.
+	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
@@ -89,14 +91,46 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Resource type: %T", resource))
+	MapRemoteStateToTerraform(ctx, &state, respResource)
 
-	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
+	tflog.Debug(ctx, fmt.Sprintf("Resource type: %T", respResource))
+
+	respSettings, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Settings().
+		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
+				Expand: []string{""}, // Expand all related settings
+			},
+		})
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteStateToTerraform(ctx, &state, respSettings)
+
+	respAssignments, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assignments().
+		Get(context.Background(), nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	MapRemoteStateToTerraform(ctx, &state, respAssignments)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -117,49 +151,44 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
+	// Step 1: Update policy using custom PUT request
+	putConfig := client.CustomPutRequestConfig{
+		APIVersion:  client.GraphAPIBeta,
+		Endpoint:    "deviceManagement/configurationPolicies",
+		ResourceID:  plan.ID.ValueString(),
+		RequestBody: constructSettingsCatalogPolicy(settingsCatalogConfig, true),
 	}
 
-	resource, err := r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(plan.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
+	err = client.SendCustomPutRequestByResourceId(ctx, clients, putConfig)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Resource type after update: %T", resource))
-
-	mobileApp, ok := resource.(models.MobileAppable)
-	if !ok {
+	// Step 2: Update assignments
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type MobileApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, resource),
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	resourceAsWinGetApp, ok := mobileApp.(models.WinGetAppable)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, mobileApp),
-		)
+	respAssignments, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
+	MapRemoteStateToTerraform(ctx, &plan, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
