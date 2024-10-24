@@ -62,7 +62,7 @@ type CustomPutRequestConfig struct {
 //	    RequestBody: myRequestBody,
 //	}
 //	err := SendCustomPutRequestByResourceId(ctx, clients, config)
-func SendCustomPutRequestByResourceId(ctx context.Context, clients *GraphClients, config CustomPutRequestConfig) error {
+func SendCustomPutRequestByResourceId(ctx context.Context, clients GraphClientInterface, config CustomPutRequestConfig) error {
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.PUT
 	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint + "('{id}')"

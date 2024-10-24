@@ -50,6 +50,27 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for create method",
+			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
+		return
+	}
+
+	respAssignments, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
+
 	plan.ID = types.StringValue(*resource.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -191,7 +212,7 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	respAssignments, err := r.client.
+	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
@@ -199,18 +220,23 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, respAssignments)
+	// Step 3: Use Read to refresh the state
+	readResp := resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+
 }
 
 // Delete handles the Delete operation.
