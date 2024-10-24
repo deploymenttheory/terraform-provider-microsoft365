@@ -1,4 +1,4 @@
-package client
+package beta
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
 // GraphAPIVersion represents Microsoft Graph API version
@@ -62,7 +64,7 @@ type CustomPutRequestConfig struct {
 //	    RequestBody: myRequestBody,
 //	}
 //	err := SendCustomPutRequestByResourceId(ctx, clients, config)
-func SendCustomPutRequestByResourceId(ctx context.Context, clients GraphClientInterface, config CustomPutRequestConfig) error {
+func SendCustomPutRequestByResourceId(ctx context.Context, betaClient *msgraphbetasdk.GraphServiceClient, config CustomPutRequestConfig) error {
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.PUT
 	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint + "('{id}')"
@@ -71,13 +73,31 @@ func SendCustomPutRequestByResourceId(ctx context.Context, clients GraphClientIn
 		"id":      config.ResourceID,
 	}
 
-	// Select the appropriate client based on API version
-	var adapter abstractions.RequestAdapter
-	if config.APIVersion == GraphAPIBeta {
-		adapter = clients.BetaClient.GetAdapter()
-	} else {
-		adapter = clients.StableClient.GetAdapter()
+	adapter := betaClient.GetAdapter()
+
+	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
+	if err != nil {
+		return fmt.Errorf("error setting content: %v", err)
 	}
+
+	err = adapter.SendNoContent(ctx, requestInfo, nil)
+	if err != nil {
+		return fmt.Errorf("error sending request: %v", err)
+	}
+
+	return nil
+}
+
+func SendCustomPutRequestForStable(ctx context.Context, stableClient *msgraphsdk.GraphServiceClient, config CustomPutRequestConfig) error {
+	requestInfo := abstractions.NewRequestInformation()
+	requestInfo.Method = abstractions.PUT
+	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint + "('{id}')"
+	requestInfo.PathParameters = map[string]string{
+		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
+		"id":      config.ResourceID,
+	}
+
+	adapter := stableClient.GetAdapter() // Use stable client adapter
 
 	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
 	if err != nil {

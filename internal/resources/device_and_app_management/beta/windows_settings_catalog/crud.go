@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	betaClient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -188,14 +188,14 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	putRequest := client.CustomPutRequestConfig{
-		APIVersion:  client.GraphAPIBeta,
+	putRequest := betaClient.CustomPutRequestConfig{
+		APIVersion:  betaClient.GraphAPIBeta,
 		Endpoint:    "deviceManagement/configurationPolicies",
 		ResourceID:  plan.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
-	err = client.SendCustomPutRequestByResourceId(ctx, r.client, putRequest)
+	err = betaClient.SendCustomPutRequestByResourceId(ctx, r.client, putRequest)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
