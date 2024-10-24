@@ -73,20 +73,23 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 
 	plan.ID = types.StringValue(*resource.GetId())
 
+	// Set the state after creating the resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readResp := resource.ReadResponse{State: resp.State}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+	// Call the Read method to refresh the state after creation
+	r.Read(ctx, resource.ReadRequest{
+		State: resp.State,
+	}, resp)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+
 }
 
 // Read handles the Read operation.
