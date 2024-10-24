@@ -18,7 +18,6 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 	Platforms            types.String                                        `tfsdk:"platforms"`
 	Technologies         types.String                                        `tfsdk:"technologies"`
 	SettingsCount        types.Int64                                         `tfsdk:"settings_count"`
-	Name                 types.String                                        `tfsdk:"name"`
 	CreationSource       types.String                                        `tfsdk:"creation_source"`
 	RoleScopeTagIds      []types.String                                      `tfsdk:"role_scope_tag_ids"`
 	IsAssigned           types.Bool                                          `tfsdk:"is_assigned"`
@@ -26,6 +25,7 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 	CreatedDateTime      types.String                                        `tfsdk:"created_date_time"`
 	TemplateReference    TemplateReference                                   `tfsdk:"template_reference"`
 	Settings             []DeviceManagementConfigurationSettingResourceModel `tfsdk:"settings"`
+	Assignments          *SettingsCatalogSettingsAssignmentResourceModel     `tfsdk:"assignments"`
 	Timeouts             timeouts.Value                                      `tfsdk:"timeouts"`
 }
 

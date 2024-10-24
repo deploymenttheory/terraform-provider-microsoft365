@@ -52,9 +52,15 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 
 	plan.ID = types.StringValue(*resource.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, resource)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readResp := resource.ReadResponse{State: resp.State}
+	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -80,6 +86,7 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
+	// Get base resource
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -91,10 +98,9 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &state, respResource)
 
-	tflog.Debug(ctx, fmt.Sprintf("Resource type: %T", respResource))
-
+	// Get settings
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -111,8 +117,9 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, respSettings)
+	MapRemoteSettingsStateToTerraform(ctx, &state, respSettings)
 
+	// Get assignments
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -125,12 +132,12 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 		return
 	}
 
+	MapRemoteAssignmentStateToTerraform(ctx, &state, respAssignments)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	MapRemoteStateToTerraform(ctx, &state, respAssignments)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -151,15 +158,23 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Step 1: Update policy using custom PUT request
-	putConfig := client.CustomPutRequestConfig{
+	requestBody, err := constructResource(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing resource for Create method",
+			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
+		return
+	}
+
+	putRequest := client.CustomPutRequestConfig{
 		APIVersion:  client.GraphAPIBeta,
 		Endpoint:    "deviceManagement/configurationPolicies",
 		ResourceID:  plan.ID.ValueString(),
-		RequestBody: constructSettingsCatalogPolicy(settingsCatalogConfig, true),
+		RequestBody: requestBody,
 	}
 
-	err = client.SendCustomPutRequestByResourceId(ctx, clients, putConfig)
+	err = client.SendCustomPutRequestByResourceId(ctx, r.client, putRequest)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
