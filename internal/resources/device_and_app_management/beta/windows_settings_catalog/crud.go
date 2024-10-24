@@ -59,7 +59,7 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	respAssignments, err := r.client.
+	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
@@ -67,7 +67,7 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
