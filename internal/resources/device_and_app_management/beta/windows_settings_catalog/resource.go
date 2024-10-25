@@ -89,7 +89,7 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Computed:    true,
 				Description: "The technologies this profile uses.",
 			},
-			"settings_count": schema.Int64Attribute{
+			"settings_count": schema.Int32Attribute{
 				Computed:    true,
 				Description: "The number of settings in this profile.",
 			},
@@ -211,7 +211,7 @@ func settingsSchema() schema.ListNestedAttribute {
 									},
 								},
 								// Changed from 'value' to match model fields
-								"int_value": schema.Int64Attribute{
+								"int_value": schema.Int32Attribute{
 									Optional:    true,
 									Description: "The integer value of the choice setting.",
 								},
@@ -268,7 +268,7 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 						},
 					},
 				},
-				"int_value": schema.Int64Attribute{
+				"int_value": schema.Int32Attribute{
 					Optional:    true,
 					Description: "The integer value of the choice setting.",
 				},
