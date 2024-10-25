@@ -6,117 +6,146 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// Main entry point like ConstructSettingsCatalogProfileRequestBody
 func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, "Constructing WindowsSettingsCatalog resource")
-	construct.DebugPrintStruct(ctx, "Constructed WindowsSettingsCatalog Resource from model", data)
+	tflog.Debug(ctx, "Constructing Windows Settings Catalog resource")
+	construct.DebugPrintStruct(ctx, "Constructed Windows Settings Catalog Resource from model", data)
 
 	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	construct.SetStringProperty(data.DisplayName, profile.SetName)
-	construct.SetStringProperty(data.Description, profile.SetDescription)
+	displayName := data.DisplayName.ValueString()
+	description := data.Description.ValueString()
 
+	profile.SetName(&displayName)
+	profile.SetDescription(&description)
+
+	// Always set for create
+	platforms := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
+	profile.SetPlatforms(&platforms)
+
+	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
+	profile.SetTechnologies(&technologies)
+
+	// Handle role scope tags
 	if len(data.RoleScopeTagIds) > 0 {
-		construct.SetArrayProperty(data.RoleScopeTagIds, profile.SetRoleScopeTagIds)
+		var tagIds []string
+		for _, tag := range data.RoleScopeTagIds {
+			tagIds = append(tagIds, tag.ValueString())
+		}
+		profile.SetRoleScopeTagIds(tagIds)
 	} else {
 		profile.SetRoleScopeTagIds([]string{"0"})
 	}
 
-	if data.ID.IsNull() {
-		platforms := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
-		profile.SetPlatforms(&platforms)
+	// Construct settings like ConstructSettingsCatalogSettingsRequestBody
+	settings := constructSettingsCatalogSettings(data.Settings)
+	profile.SetSettings(settings)
 
-		technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
-		profile.SetTechnologies(&technologies)
-	}
+	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
+	return profile, nil
+}
 
-	// Handle settings
-	if len(data.Settings) > 0 {
-		var settings []graphmodels.DeviceManagementConfigurationSettingable
+// Like ConstructSettingsCatalogSettingsRequestBody
+func constructSettingsCatalogSettings(settingConfigs []DeviceManagementConfigurationSettingResourceModel) []graphmodels.DeviceManagementConfigurationSettingable {
+	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
-		for _, settingData := range data.Settings {
-			if settingData.SettingInstance != nil {
-				setting := graphmodels.NewDeviceManagementConfigurationSetting()
-
-				// Construct setting instance based on type
-				switch settingData.SettingInstance.ODataType.ValueString() {
-				case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-					instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-					construct.SetStringProperty(settingData.SettingInstance.SettingDefinitionID, instance.SetSettingDefinitionId)
-
-					if settingData.SettingInstance.ChoiceSettingValue != nil {
-						if !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsUnknown() {
-							intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-							construct.SetInt32Property(settingData.SettingInstance.ChoiceSettingValue.IntValue, intValue.SetValue)
-							instance.SetSimpleSettingValue(intValue)
-						} else if !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsUnknown() {
-							stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-							construct.SetStringProperty(settingData.SettingInstance.ChoiceSettingValue.StringValue, stringValue.SetValue)
-							instance.SetSimpleSettingValue(stringValue)
-						}
-					}
-					setting.SetSettingInstance(instance)
-
-				case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-					instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-					construct.SetStringProperty(settingData.SettingInstance.SettingDefinitionID, instance.SetSettingDefinitionId)
-
-					// Handle choice setting value
-					if settingData.SettingInstance.ChoiceSettingValue != nil {
-						choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-						if !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsUnknown() {
-							intVal := strconv.Itoa(int(settingData.SettingInstance.ChoiceSettingValue.IntValue.ValueInt32()))
-							choiceValue.SetValue(&intVal)
-						} else if !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsUnknown() {
-							strVal := settingData.SettingInstance.ChoiceSettingValue.StringValue.ValueString()
-							choiceValue.SetValue(&strVal)
-						}
-						instance.SetChoiceSettingValue(choiceValue)
-					}
-					setting.SetSettingInstance(instance)
-
-				case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-					instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-					construct.SetStringProperty(settingData.SettingInstance.SettingDefinitionID, instance.SetSettingDefinitionId)
-
-					// Handle collection values
-					if settingData.SettingInstance.ChoiceSettingValue != nil && len(settingData.SettingInstance.ChoiceSettingValue.Children) > 0 {
-						var collectionValues []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-
-						for _, child := range settingData.SettingInstance.ChoiceSettingValue.Children {
-							if !child.ChoiceSettingValue.IntValue.IsNull() && !child.ChoiceSettingValue.IntValue.IsUnknown() {
-								// Convert Int32 value to string for setting
-								intStr := strconv.Itoa(int(child.ChoiceSettingValue.IntValue.ValueInt32()))
-								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								stringValue.SetValue(&intStr)
-								collectionValues = append(collectionValues, stringValue)
-							} else if !child.ChoiceSettingValue.StringValue.IsNull() && !child.ChoiceSettingValue.StringValue.IsUnknown() {
-								// Use String value directly if set
-								strVal := child.ChoiceSettingValue.StringValue.ValueString()
-								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								stringValue.SetValue(&strVal)
-								collectionValues = append(collectionValues, stringValue)
-							}
-						}
-
-						if len(collectionValues) > 0 {
-							instance.SetSimpleSettingCollectionValue(collectionValues)
-						}
-					}
-					setting.SetSettingInstance(instance)
-				}
-
+	for _, settingConfig := range settingConfigs {
+		setting := graphmodels.NewDeviceManagementConfigurationSetting()
+		if settingConfig.SettingInstance != nil {
+			settingInstance := constructSettingInstance(settingConfig.SettingInstance)
+			if settingInstance != nil {
+				setting.SetSettingInstance(settingInstance)
 				settings = append(settings, setting)
 			}
 		}
-
-		if len(settings) > 0 {
-			profile.SetSettings(settings)
-		}
 	}
 
-	tflog.Debug(ctx, "Finished constructing WindowsSettingsCatalog resource")
-	return profile, nil
+	return settings
+}
+
+// Like constructSettingInstance from the shared package
+func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	switch instanceConfig.ODataType.ValueString() {
+	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
+		instance.SetSettingDefinitionId(&settingDefId)
+
+		if instanceConfig.ChoiceSettingValue != nil {
+			var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+			if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
+				intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+				val := instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()
+				intValue.SetValue(&val)
+				simpleValue = intValue
+			} else if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
+				stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+				val := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
+				stringValue.SetValue(&val)
+				simpleValue = stringValue
+			}
+			if simpleValue != nil {
+				instance.SetSimpleSettingValue(simpleValue)
+			}
+		}
+		return instance
+
+	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
+		instance.SetSettingDefinitionId(&settingDefId)
+
+		if instanceConfig.ChoiceSettingValue != nil {
+			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+			if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
+				strValue := strconv.Itoa(int(instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()))
+				choiceValue.SetValue(&strValue)
+			} else if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
+				strVal := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
+				choiceValue.SetValue(&strVal)
+			}
+			instance.SetChoiceSettingValue(choiceValue)
+		}
+		return instance
+
+	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
+		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
+		instance.SetSettingDefinitionId(&settingDefId)
+
+		if instanceConfig.ChoiceSettingValue != nil && len(instanceConfig.ChoiceSettingValue.Children) > 0 {
+			var collectionValues []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+
+			for _, child := range instanceConfig.ChoiceSettingValue.Children {
+				if child.ChoiceSettingValue != nil {
+					var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+					if !child.ChoiceSettingValue.IntValue.IsNull() {
+						strValue := strconv.Itoa(int(child.ChoiceSettingValue.IntValue.ValueInt32()))
+						stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+						stringValue.SetValue(&strValue)
+						simpleValue = stringValue
+					} else if !child.ChoiceSettingValue.StringValue.IsNull() {
+						strVal := child.ChoiceSettingValue.StringValue.ValueString()
+						stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+						stringValue.SetValue(&strVal)
+						simpleValue = stringValue
+					}
+					if simpleValue != nil {
+						collectionValues = append(collectionValues, simpleValue)
+					}
+				}
+			}
+
+			if len(collectionValues) > 0 {
+				instance.SetSimpleSettingCollectionValue(collectionValues)
+			}
+		}
+		return instance
+	}
+
+	return nil
 }
