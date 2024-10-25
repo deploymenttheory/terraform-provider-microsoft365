@@ -15,6 +15,10 @@ import (
 )
 
 // Create handles the Create operation.
+// It performs the creation of the Windows Settings Catalog base settings and settings catalog settings as they
+// are required for successful creation of the Windows Settings Catalog. You cannot create this resource with settings
+// being defined. The function then creates the Windows Settings assignments which is optional. The function then sets
+// the state of the resource to the plan and returns the response.
 func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan WindowsSettingsCatalogProfileResourceModel
 
@@ -52,24 +56,31 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 
 	plan.ID = types.StringValue(*requestResource.GetId())
 
-	requestAssignment, err := constructAssignment(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for create method",
-			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for create method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceManagement().
+			ConfigurationPolicies().
+			ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+			Assign().
+			Post(ctx, requestAssignment, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

@@ -2,6 +2,7 @@ package graphBetaWindowsSettingsCatalog
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
@@ -23,14 +24,12 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 	profile.SetName(&displayName)
 	profile.SetDescription(&description)
 
-	// Always set for create
 	platforms := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
 	profile.SetPlatforms(&platforms)
 
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
 	profile.SetTechnologies(&technologies)
 
-	// Handle role scope tags
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
 		for _, tag := range data.RoleScopeTagIds {
@@ -42,15 +41,15 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 	}
 
 	// Construct settings like ConstructSettingsCatalogSettingsRequestBody
-	settings := constructSettingsCatalogSettings(data.Settings)
+	settings := constructSettingsCatalogSettings(ctx, data.Settings)
 	profile.SetSettings(settings)
 
 	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
 	return profile, nil
 }
 
-// Like ConstructSettingsCatalogSettingsRequestBody
-func constructSettingsCatalogSettings(settingConfigs []DeviceManagementConfigurationSettingResourceModel) []graphmodels.DeviceManagementConfigurationSettingable {
+// ConstructSettingsCatalogSettingsRequestBody constructs a slice of DeviceManagementConfigurationSettingable objects from a slice of DeviceManagementConfigurationSetting objects.
+func constructSettingsCatalogSettings(ctx context.Context, settingConfigs []DeviceManagementConfigurationSettingResourceModel) []graphmodels.DeviceManagementConfigurationSettingable {
 	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
 	for _, settingConfig := range settingConfigs {
@@ -60,6 +59,7 @@ func constructSettingsCatalogSettings(settingConfigs []DeviceManagementConfigura
 			if settingInstance != nil {
 				setting.SetSettingInstance(settingInstance)
 				settings = append(settings, setting)
+				tflog.Debug(ctx, fmt.Sprintf("Adding setting: %s", *settingInstance.GetSettingDefinitionId()))
 			}
 		}
 	}
@@ -75,8 +75,9 @@ func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSetti
 		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
 		instance.SetSettingDefinitionId(&settingDefId)
 
+		var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+
 		if instanceConfig.ChoiceSettingValue != nil {
-			var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
 			if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
 				intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
 				val := instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()
