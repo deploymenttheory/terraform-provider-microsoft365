@@ -7,10 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel, assignmentsResponse graphmodels.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return
@@ -48,7 +47,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 	if len(includeGroupAssignments) > 0 {
 		assignments.IncludeGroups = make([]IncludeGroup, 0, len(includeGroupAssignments))
 		for _, assignment := range includeGroupAssignments {
-			if target, ok := assignment.GetTarget().(graphmodels.GroupAssignmentTargetable); ok {
+			if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
 				includeGroup := IncludeGroup{
 					GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
 				}
@@ -68,7 +67,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 	if len(excludeGroupAssignments) > 0 {
 		assignments.ExcludeGroupIds = make([]types.String, 0, len(excludeGroupAssignments))
 		for _, assignment := range excludeGroupAssignments {
-			if target, ok := assignment.GetTarget().(graphmodels.ExclusionGroupAssignmentTargetable); ok {
+			if target, ok := assignment.GetTarget().(models.ExclusionGroupAssignmentTargetable); ok {
 				if groupId := target.GetGroupId(); groupId != nil {
 					assignments.ExcludeGroupIds = append(assignments.ExcludeGroupIds, types.StringValue(*groupId))
 				}
