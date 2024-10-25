@@ -43,8 +43,10 @@ type WindowsSettingsCatalogResource struct {
 	WritePermissions []string
 }
 
+// GuidRegex returns the regex pattern for a GUID.
 func (r *WindowsSettingsCatalogResource) GuidRegex() string {
 	guidRegex = regexp.MustCompile(helpers.GuidRegex)
+	return helpers.GuidRegex
 }
 
 // GetTypeName returns the type name of the resource from the state model.
