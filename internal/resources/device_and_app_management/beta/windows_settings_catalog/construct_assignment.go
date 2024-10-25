@@ -42,7 +42,7 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 
 	// Handle Exclude Groups assignment
 	if len(data.Assignments.ExcludeGroupIds) > 0 {
-		assignments = append(assignments, constructGroupExcludeAssignments(ctx, data.Assignments)...)
+		assignments = append(assignments, constructGroupExcludeAssignments(data.Assignments)...)
 	}
 
 	requestBody.SetAssignments(assignments)
@@ -181,8 +181,7 @@ func constructGroupIncludeAssignments(ctx context.Context, config *SettingsCatal
 	return assignments
 }
 
-// constructGroupExcludeAssignments constructs and returns a list of DeviceManagementConfigurationPolicyAssignment objects for excluded groups
-func constructGroupExcludeAssignments(ctx context.Context, config *SettingsCatalogSettingsAssignmentResourceModel) []graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
+func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentResourceModel) []graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
 	var assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable
 
 	for _, groupId := range config.ExcludeGroupIds {

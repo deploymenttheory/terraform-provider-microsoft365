@@ -40,7 +40,7 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	resource, err := r.client.
+	requestResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(context.Background(), requestBody, nil)
@@ -49,6 +49,8 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
+
+	plan.ID = types.StringValue(*requestResource.GetId())
 
 	requestAssignment, err := constructAssignment(ctx, &plan)
 	if err != nil {
@@ -67,29 +69,23 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	plan.ID = types.StringValue(*resource.GetId())
-
-	// Set the state after creating the resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Call the Read method to refresh the state after creation
-	r.Read(ctx, resource.ReadRequest{
+	readResp := &resource.ReadResponse{
 		State: resp.State,
-	}, resp)
-
-	if resp.Diagnostics.HasError() {
-		return
 	}
+	r.Read(ctx, resource.ReadRequest{State: resp.State}, readResp)
+
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 }
 
 // Read handles the Read operation.
