@@ -143,7 +143,6 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 		},
 	}
 }
-
 func settingsSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Required:    true,
@@ -210,7 +209,6 @@ func settingsSchema() schema.ListNestedAttribute {
 										},
 									},
 								},
-								// Changed from 'value' to match model fields
 								"int_value": schema.Int32Attribute{
 									Optional:    true,
 									Description: "The integer value of the choice setting.",
@@ -242,6 +240,14 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 	}
 
 	childAttributes := map[string]schema.Attribute{
+		"odata_type": schema.StringAttribute{
+			Required:    true,
+			Description: fmt.Sprintf("The OData type for child setting at depth %d.", depth+1),
+		},
+		"setting_definition_id": schema.StringAttribute{
+			Required:    true,
+			Description: fmt.Sprintf("The setting definition ID for child setting at depth %d.", depth+1),
+		},
 		"choice_setting_value": schema.SingleNestedAttribute{
 			Optional:    true,
 			Description: fmt.Sprintf("The choice setting value for child level %d.", depth+1),
@@ -280,23 +286,14 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 		},
 	}
 
-	// Add children for next level if not at max depth
+	// Add children for the next level if not at max depth
 	if depth < 9 {
-		settingValue := childAttributes["choice_setting_value"].(schema.SingleNestedAttribute)
-		settingValueAttrs := settingValue.Attributes
-
-		settingValueAttrs["children"] = schema.ListNestedAttribute{
+		childAttributes["children"] = schema.ListNestedAttribute{
 			Optional:    true,
 			Description: fmt.Sprintf("The child settings of this choice setting (level %d).", depth+2),
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: settingInstanceSchema(depth + 1),
 			},
-		}
-
-		childAttributes["choice_setting_value"] = schema.SingleNestedAttribute{
-			Optional:    true,
-			Description: settingValue.Description,
-			Attributes:  settingValueAttrs,
 		}
 	}
 

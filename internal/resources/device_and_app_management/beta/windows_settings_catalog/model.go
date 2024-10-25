@@ -30,12 +30,12 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 }
 
 // TemplateReference struct to hold template reference information
-type TemplateReference struct {
-	TemplateID             types.String `tfsdk:"template_id"`
-	TemplateFamily         string       `tfsdk:"template_family"`
-	TemplateDisplayName    types.String `tfsdk:"template_display_name"`
-	TemplateDisplayVersion types.String `tfsdk:"template_display_version"`
-}
+// type TemplateReference struct {
+// 	TemplateID             types.String `tfsdk:"template_id"`
+// 	TemplateFamily         types.String `tfsdk:"template_family"`
+// 	TemplateDisplayName    types.String `tfsdk:"template_display_name"`
+// 	TemplateDisplayVersion types.String `tfsdk:"template_display_version"`
+// }
 
 // DeviceManagementConfigurationSetting struct to hold the settings catalog configuration settings.
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsetting?view=graph-rest-beta
@@ -73,50 +73,6 @@ type DeviceManagementConfigurationSettingValueTemplateReference struct {
 	ODataType              types.String `tfsdk:"odata_type"`
 	SettingValueTemplateID types.String `tfsdk:"setting_value_template_id"`
 	UseTemplateDefault     types.Bool   `tfsdk:"use_template_default"`
-}
-
-// DeviceManagementConfigurationSettingDefinitionResourceModel represents a setting catalog item definition
-// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsettingdefinition?view=graph-rest-beta
-type DeviceManagementConfigurationSettingDefinitionResourceModel struct {
-	ODataType                      string                                                    `tfsdk:"odata_type"`
-	Applicability                  DeviceManagementConfigurationSettingApplicability         `tfsdk:"applicability"`
-	AccessTypes                    string                                                    `tfsdk:"access_types"`
-	Keywords                       []string                                                  `tfsdk:"keywords"`
-	InfoUrls                       []string                                                  `tfsdk:"info_urls"`
-	Occurrence                     DeviceManagementConfigurationSettingOccurrence            `tfsdk:"occurrence"`
-	BaseUri                        string                                                    `tfsdk:"base_uri"`
-	OffsetUri                      string                                                    `tfsdk:"offset_uri"`
-	RootDefinitionID               string                                                    `tfsdk:"root_definition_id"`
-	CategoryID                     string                                                    `tfsdk:"category_id"`
-	SettingUsage                   string                                                    `tfsdk:"setting_usage"`
-	UxBehavior                     string                                                    `tfsdk:"ux_behavior"`
-	Visibility                     string                                                    `tfsdk:"visibility"`
-	ReferredSettingInformationList []DeviceManagementConfigurationReferredSettingInformation `tfsdk:"referred_setting_information_list"`
-	ID                             string                                                    `tfsdk:"id"`
-	Description                    string                                                    `tfsdk:"description"`
-	HelpText                       string                                                    `tfsdk:"help_text"`
-	Name                           string                                                    `tfsdk:"name"`
-	DisplayName                    string                                                    `tfsdk:"display_name"`
-	Version                        string                                                    `tfsdk:"version"`
-}
-
-type DeviceManagementConfigurationSettingApplicability struct {
-	ODataType    string `tfsdk:"odata_type"`
-	Description  string `tfsdk:"description"`
-	Platform     string `tfsdk:"platform"`
-	DeviceMode   string `tfsdk:"device_mode"`
-	Technologies string `tfsdk:"technologies"`
-}
-
-type DeviceManagementConfigurationSettingOccurrence struct {
-	ODataType           string `tfsdk:"odata_type"`
-	MinDeviceOccurrence int    `tfsdk:"min_device_occurrence"`
-	MaxDeviceOccurrence int    `tfsdk:"max_device_occurrence"`
-}
-
-type DeviceManagementConfigurationReferredSettingInformation struct {
-	ODataType           string `tfsdk:"odata_type"`
-	SettingDefinitionID string `tfsdk:"setting_definition_id"`
 }
 
 // SettingsCatalogSettingsAssignmentResourceModel struct to hold assignment configuration
