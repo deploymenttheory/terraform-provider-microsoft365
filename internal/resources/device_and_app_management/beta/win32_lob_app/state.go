@@ -33,7 +33,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	data.Owner = types.StringValue(state.StringPtrToString(remoteResource.GetOwner()))
 	data.Developer = types.StringValue(state.StringPtrToString(remoteResource.GetDeveloper()))
 	data.Notes = types.StringValue(state.StringPtrToString(remoteResource.GetNotes()))
-	data.UploadState = state.Int32PtrToTypeInt64(remoteResource.GetUploadState())
+	data.UploadState = state.Int32PtrToTypeInt32(remoteResource.GetUploadState())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 
@@ -45,19 +45,19 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	}
 
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
-	data.DependentAppCount = state.Int32PtrToTypeInt64(remoteResource.GetDependentAppCount())
-	data.SupersedingAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersedingAppCount())
-	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
+	data.DependentAppCount = state.Int32PtrToTypeInt32(remoteResource.GetDependentAppCount())
+	data.SupersedingAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersedingAppCount())
+	data.SupersededAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersededAppCount())
 	data.CommittedContentVersion = types.StringValue(state.StringPtrToString(remoteResource.GetCommittedContentVersion()))
 	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))
 	data.Size = state.Int64PtrToTypeInt64(remoteResource.GetSize())
 	data.InstallCommandLine = types.StringValue(state.StringPtrToString(remoteResource.GetInstallCommandLine()))
 	data.UninstallCommandLine = types.StringValue(state.StringPtrToString(remoteResource.GetUninstallCommandLine()))
 	data.ApplicableArchitectures = state.EnumPtrToTypeString(remoteResource.GetApplicableArchitectures())
-	data.MinimumFreeDiskSpaceInMB = state.Int32PtrToTypeInt64(remoteResource.GetMinimumFreeDiskSpaceInMB())
-	data.MinimumMemoryInMB = state.Int32PtrToTypeInt64(remoteResource.GetMinimumMemoryInMB())
-	data.MinimumNumberOfProcessors = state.Int32PtrToTypeInt64(remoteResource.GetMinimumNumberOfProcessors())
-	data.MinimumCpuSpeedInMHz = state.Int32PtrToTypeInt64(remoteResource.GetMinimumCpuSpeedInMHz())
+	data.MinimumFreeDiskSpaceInMB = state.Int32PtrToTypeInt32(remoteResource.GetMinimumFreeDiskSpaceInMB())
+	data.MinimumMemoryInMB = state.Int32PtrToTypeInt32(remoteResource.GetMinimumMemoryInMB())
+	data.MinimumNumberOfProcessors = state.Int32PtrToTypeInt32(remoteResource.GetMinimumNumberOfProcessors())
+	data.MinimumCpuSpeedInMHz = state.Int32PtrToTypeInt32(remoteResource.GetMinimumCpuSpeedInMHz())
 	data.SetupFilePath = types.StringValue(state.StringPtrToString(remoteResource.GetSetupFilePath()))
 	data.MinimumSupportedWindowsRelease = types.StringValue(state.StringPtrToString(remoteResource.GetMinimumSupportedWindowsRelease()))
 	data.DisplayVersion = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayVersion()))
@@ -170,7 +170,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		data.InstallExperience = Win32LobAppInstallExperienceResourceModel{
 			RunAsAccount:          state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),
 			DeviceRestartBehavior: state.EnumPtrToTypeString(installExperience.GetDeviceRestartBehavior()),
-			MaxRunTimeInMinutes:   state.Int32PtrToTypeInt64(installExperience.GetMaxRunTimeInMinutes()),
+			MaxRunTimeInMinutes:   state.Int32PtrToTypeInt32(installExperience.GetMaxRunTimeInMinutes()),
 		}
 	}
 
@@ -179,7 +179,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		data.ReturnCodes = make([]Win32LobAppReturnCodeResourceModel, len(returnCodes))
 		for i, code := range returnCodes {
 			data.ReturnCodes[i] = Win32LobAppReturnCodeResourceModel{
-				ReturnCode: state.Int32PtrToTypeInt64(code.GetReturnCode()),
+				ReturnCode: state.Int32PtrToTypeInt32(code.GetReturnCode()),
 				Type:       state.EnumPtrToTypeString(code.GetTypeEscaped()),
 			}
 		}

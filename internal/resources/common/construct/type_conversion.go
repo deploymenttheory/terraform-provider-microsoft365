@@ -26,10 +26,19 @@ func SetBoolProperty(value basetypes.BoolValue, setter func(*bool)) {
 }
 
 // SetInt32Property sets the value of an int32 property if the value is not null or unknown.
-// It accepts a basetypes.Int64Value (Terraform SDK type), converts it into an int32, and passes it to the setter function.
-func SetInt32Property(value basetypes.Int64Value, setter func(*int32)) {
+// It accepts a basetypes.Int32Value (Terraform SDK type) and passes it to the setter function.
+func SetInt32Property(value basetypes.Int32Value, setter func(*int32)) {
 	if !value.IsNull() && !value.IsUnknown() {
-		val := int32(value.ValueInt64())
+		val := value.ValueInt32()
+		setter(&val)
+	}
+}
+
+// SetInt64Property sets the value of an int64 property if the value is not null or unknown.
+// It accepts a basetypes.Int64Value (Terraform SDK type) and passes it to the setter function.
+func SetInt64Property(value basetypes.Int64Value, setter func(*int64)) {
+	if !value.IsNull() && !value.IsUnknown() {
+		val := value.ValueInt64()
 		setter(&val)
 	}
 }

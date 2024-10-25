@@ -2,6 +2,7 @@ package graphBetaWindowsSettingsCatalog
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -20,7 +21,7 @@ import (
 var _ resource.Resource = &WindowsSettingsCatalogResource{}
 var _ resource.ResourceWithConfigure = &WindowsSettingsCatalogResource{}
 var _ resource.ResourceWithImportState = &WindowsSettingsCatalogResource{}
-var guidRegex *regexp.Regexp
+var guidRegex = regexp.MustCompile(helpers.GuidRegex)
 
 func NewWindowsSettingsCatalogResource() resource.Resource {
 	return &WindowsSettingsCatalogResource{
@@ -41,12 +42,6 @@ type WindowsSettingsCatalogResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
-}
-
-// GuidRegex returns the regex pattern for a GUID.
-func (r *WindowsSettingsCatalogResource) GuidRegex() string {
-	guidRegex = regexp.MustCompile(helpers.GuidRegex)
-	return helpers.GuidRegex
 }
 
 // GetTypeName returns the type name of the resource from the state model.
@@ -98,10 +93,6 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Computed:    true,
 				Description: "The number of settings in this profile.",
 			},
-			"name": schema.StringAttribute{
-				Computed:    true,
-				Description: "The name of the Windows Settings Catalog profile.",
-			},
 			"creation_source": schema.StringAttribute{
 				Computed:    true,
 				Description: "The source of creation for this profile.",
@@ -123,24 +114,24 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Computed:    true,
 				Description: "The date and time when this profile was created.",
 			},
-			"template_reference": schema.SingleNestedAttribute{
-				Required:    true,
-				Description: "The template reference for this Windows Settings Catalog profile.",
-				Attributes: map[string]schema.Attribute{
-					"template_id": schema.StringAttribute{
-						Required:    true,
-						Description: "The ID of the template used for this profile.",
-					},
-					"template_display_name": schema.StringAttribute{
-						Computed:    true,
-						Description: "The display name of the template used for this profile.",
-					},
-					"template_display_version": schema.StringAttribute{
-						Computed:    true,
-						Description: "The display version of the template used for this profile.",
-					},
-				},
-			},
+			// "template_reference": schema.SingleNestedAttribute{
+			// 	Required:    true,
+			// 	Description: "The template reference for this Windows Settings Catalog profile.",
+			// 	Attributes: map[string]schema.Attribute{
+			// 		"template_id": schema.StringAttribute{
+			// 			Required:    true,
+			// 			Description: "The ID of the template used for this profile.",
+			// 		},
+			// 		"template_display_name": schema.StringAttribute{
+			// 			Computed:    true,
+			// 			Description: "The display name of the template used for this profile.",
+			// 		},
+			// 		"template_display_version": schema.StringAttribute{
+			// 			Computed:    true,
+			// 			Description: "The display version of the template used for this profile.",
+			// 		},
+			// 	},
+			// },
 
 			// Settings attributes
 			"settings": settingsSchema(),
@@ -152,6 +143,7 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 		},
 	}
 }
+
 func settingsSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Required:    true,
@@ -231,7 +223,7 @@ func settingsSchema() schema.ListNestedAttribute {
 									Optional:    true,
 									Description: "The child settings of this choice setting.",
 									NestedObject: schema.NestedAttributeObject{
-										Attributes: settingInstanceSchema(),
+										Attributes: settingInstanceSchema(0),
 									},
 								},
 							},
@@ -244,33 +236,15 @@ func settingsSchema() schema.ListNestedAttribute {
 }
 
 // settingInstanceSchema returns the schema for a setting instance, used recursively for children
-func settingInstanceSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"odata_type": schema.StringAttribute{
-			Required:    true,
-			Description: "The OData type of the setting instance.",
-		},
-		"setting_definition_id": schema.StringAttribute{
-			Required:    true,
-			Description: "The ID of the setting definition.",
-		},
-		"setting_instance_template_reference": schema.SingleNestedAttribute{
-			Optional:    true,
-			Description: "The template reference for this setting instance.",
-			Attributes: map[string]schema.Attribute{
-				"odata_type": schema.StringAttribute{
-					Required:    true,
-					Description: "The OData type of the setting instance template reference.",
-				},
-				"setting_instance_template_id": schema.StringAttribute{
-					Required:    true,
-					Description: "The ID of the setting instance template.",
-				},
-			},
-		},
+func settingInstanceSchema(depth int) map[string]schema.Attribute {
+	if depth >= 10 {
+		return nil
+	}
+
+	childAttributes := map[string]schema.Attribute{
 		"choice_setting_value": schema.SingleNestedAttribute{
 			Optional:    true,
-			Description: "The choice setting value.",
+			Description: fmt.Sprintf("The choice setting value for child level %d.", depth+1),
 			Attributes: map[string]schema.Attribute{
 				"odata_type": schema.StringAttribute{
 					Required:    true,
@@ -302,16 +276,31 @@ func settingInstanceSchema() map[string]schema.Attribute {
 					Optional:    true,
 					Description: "The string value of the choice setting.",
 				},
-				"children": schema.ListNestedAttribute{
-					Optional:    true,
-					Description: "The child settings of this choice setting.",
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: settingInstanceSchema(),
-					},
-				},
 			},
 		},
 	}
+
+	// Add children for next level if not at max depth
+	if depth < 9 {
+		settingValue := childAttributes["choice_setting_value"].(schema.SingleNestedAttribute)
+		settingValueAttrs := settingValue.Attributes
+
+		settingValueAttrs["children"] = schema.ListNestedAttribute{
+			Optional:    true,
+			Description: fmt.Sprintf("The child settings of this choice setting (level %d).", depth+2),
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: settingInstanceSchema(depth + 1),
+			},
+		}
+
+		childAttributes["choice_setting_value"] = schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: settingValue.Description,
+			Attributes:  settingValueAttrs,
+		}
+	}
+
+	return childAttributes
 }
 
 func assignmentsSchema() schema.SingleNestedAttribute {

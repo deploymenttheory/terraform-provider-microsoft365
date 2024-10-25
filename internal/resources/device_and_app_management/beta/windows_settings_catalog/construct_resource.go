@@ -46,17 +46,14 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 					instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
 					construct.SetStringProperty(settingData.SettingInstance.SettingDefinitionID, instance.SetSettingDefinitionId)
 
-					// Handle choice setting value
 					if settingData.SettingInstance.ChoiceSettingValue != nil {
-						if settingData.SettingInstance.ChoiceSettingValue.IntValue != 0 {
+						if !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsUnknown() {
 							intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-							val := int32(settingData.SettingInstance.ChoiceSettingValue.IntValue)
-							intValue.SetValue(&val)
+							construct.SetInt32Property(settingData.SettingInstance.ChoiceSettingValue.IntValue, intValue.SetValue)
 							instance.SetSimpleSettingValue(intValue)
-						} else if settingData.SettingInstance.ChoiceSettingValue.StringValue != "" {
+						} else if !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsUnknown() {
 							stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-							val := settingData.SettingInstance.ChoiceSettingValue.StringValue
-							stringValue.SetValue(&val)
+							construct.SetStringProperty(settingData.SettingInstance.ChoiceSettingValue.StringValue, stringValue.SetValue)
 							instance.SetSimpleSettingValue(stringValue)
 						}
 					}
@@ -69,12 +66,12 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 					// Handle choice setting value
 					if settingData.SettingInstance.ChoiceSettingValue != nil {
 						choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-						if settingData.SettingInstance.ChoiceSettingValue.IntValue != 0 {
-							val := strconv.Itoa(int(settingData.SettingInstance.ChoiceSettingValue.IntValue))
-							choiceValue.SetValue(&val)
-						} else if settingData.SettingInstance.ChoiceSettingValue.StringValue != "" {
-							val := settingData.SettingInstance.ChoiceSettingValue.StringValue
-							choiceValue.SetValue(&val)
+						if !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.IntValue.IsUnknown() {
+							intVal := strconv.Itoa(int(settingData.SettingInstance.ChoiceSettingValue.IntValue.ValueInt32()))
+							choiceValue.SetValue(&intVal)
+						} else if !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsNull() && !settingData.SettingInstance.ChoiceSettingValue.StringValue.IsUnknown() {
+							strVal := settingData.SettingInstance.ChoiceSettingValue.StringValue.ValueString()
+							choiceValue.SetValue(&strVal)
 						}
 						instance.SetChoiceSettingValue(choiceValue)
 					}
@@ -89,15 +86,17 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 						var collectionValues []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
 
 						for _, child := range settingData.SettingInstance.ChoiceSettingValue.Children {
-							if child.ChoiceSettingValue.IntValue != 0 {
-								intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-								val := int32(child.ChoiceSettingValue.IntValue)
-								intValue.SetValue(&val)
-								collectionValues = append(collectionValues, intValue)
-							} else if child.ChoiceSettingValue.StringValue != "" {
+							if !child.ChoiceSettingValue.IntValue.IsNull() && !child.ChoiceSettingValue.IntValue.IsUnknown() {
+								// Convert Int32 value to string for setting
+								intStr := strconv.Itoa(int(child.ChoiceSettingValue.IntValue.ValueInt32()))
 								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								val := child.ChoiceSettingValue.StringValue
-								stringValue.SetValue(&val)
+								stringValue.SetValue(&intStr)
+								collectionValues = append(collectionValues, stringValue)
+							} else if !child.ChoiceSettingValue.StringValue.IsNull() && !child.ChoiceSettingValue.StringValue.IsUnknown() {
+								// Use String value directly if set
+								strVal := child.ChoiceSettingValue.StringValue.ValueString()
+								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+								stringValue.SetValue(&strVal)
 								collectionValues = append(collectionValues, stringValue)
 							}
 						}

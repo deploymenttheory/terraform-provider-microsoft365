@@ -236,6 +236,44 @@ func TestInt32PtrToTypeInt64(t *testing.T) {
 	})
 }
 
+func TestInt32PtrToTypeInt32(t *testing.T) {
+	t.Run("Nil int32 pointer", func(t *testing.T) {
+		var input *int32
+		result := Int32PtrToTypeInt32(input)
+		assert.True(t, result.IsNull(), "Should return types.Int32Null() for nil input")
+	})
+
+	t.Run("Valid int32 pointer", func(t *testing.T) {
+		input := int32(42)
+		result := Int32PtrToTypeInt32(&input)
+		assert.Equal(t, types.Int32Value(42), result, "Should return types.Int32Value(42) for input 42")
+	})
+
+	t.Run("Negative int32 pointer", func(t *testing.T) {
+		input := int32(-123)
+		result := Int32PtrToTypeInt32(&input)
+		assert.Equal(t, types.Int32Value(-123), result, "Should return types.Int32Value(-123) for input -123")
+	})
+
+	t.Run("Zero int32 pointer", func(t *testing.T) {
+		input := int32(0)
+		result := Int32PtrToTypeInt32(&input)
+		assert.Equal(t, types.Int32Value(0), result, "Should return types.Int32Value(0) for input 0")
+	})
+
+	t.Run("Max int32 pointer", func(t *testing.T) {
+		input := int32(2147483647) // Max value for int32
+		result := Int32PtrToTypeInt32(&input)
+		assert.Equal(t, types.Int32Value(2147483647), result, "Should correctly convert max int32 value")
+	})
+
+	t.Run("Min int32 pointer", func(t *testing.T) {
+		input := int32(-2147483648) // Min value for int32
+		result := Int32PtrToTypeInt32(&input)
+		assert.Equal(t, types.Int32Value(-2147483648), result, "Should correctly convert min int32 value")
+	})
+}
+
 func TestDateOnlyPtrToString(t *testing.T) {
 	t.Run("Nil DateOnly pointer", func(t *testing.T) {
 		var input *serialization.DateOnly

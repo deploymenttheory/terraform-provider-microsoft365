@@ -12,21 +12,21 @@ import (
 // WindowsSettingsCatalogProfileResourceModel struct to hold the configuration for a Settings Catalog profile
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta
 type WindowsSettingsCatalogProfileResourceModel struct {
-	ID                   types.String                                        `tfsdk:"id"`
-	DisplayName          types.String                                        `tfsdk:"display_name"`
-	Description          types.String                                        `tfsdk:"description"`
-	Platforms            types.String                                        `tfsdk:"platforms"`
-	Technologies         types.String                                        `tfsdk:"technologies"`
-	SettingsCount        types.Int64                                         `tfsdk:"settings_count"`
-	CreationSource       types.String                                        `tfsdk:"creation_source"`
-	RoleScopeTagIds      []types.String                                      `tfsdk:"role_scope_tag_ids"`
-	IsAssigned           types.Bool                                          `tfsdk:"is_assigned"`
-	LastModifiedDateTime types.String                                        `tfsdk:"last_modified_date_time"`
-	CreatedDateTime      types.String                                        `tfsdk:"created_date_time"`
-	TemplateReference    TemplateReference                                   `tfsdk:"template_reference"`
-	Settings             []DeviceManagementConfigurationSettingResourceModel `tfsdk:"settings"`
-	Assignments          *SettingsCatalogSettingsAssignmentResourceModel     `tfsdk:"assignments"`
-	Timeouts             timeouts.Value                                      `tfsdk:"timeouts"`
+	ID                   types.String   `tfsdk:"id"`
+	DisplayName          types.String   `tfsdk:"display_name"`
+	Description          types.String   `tfsdk:"description"`
+	Platforms            types.String   `tfsdk:"platforms"`
+	Technologies         types.String   `tfsdk:"technologies"`
+	SettingsCount        types.Int32    `tfsdk:"settings_count"`
+	CreationSource       types.String   `tfsdk:"creation_source"`
+	RoleScopeTagIds      []types.String `tfsdk:"role_scope_tag_ids"`
+	IsAssigned           types.Bool     `tfsdk:"is_assigned"`
+	LastModifiedDateTime types.String   `tfsdk:"last_modified_date_time"`
+	CreatedDateTime      types.String   `tfsdk:"created_date_time"`
+	//TemplateReference    TemplateReference                                   `tfsdk:"template_reference"`
+	Settings    []DeviceManagementConfigurationSettingResourceModel `tfsdk:"settings"`
+	Assignments *SettingsCatalogSettingsAssignmentResourceModel     `tfsdk:"assignments"`
+	Timeouts    timeouts.Value                                      `tfsdk:"timeouts"`
 }
 
 // TemplateReference struct to hold template reference information
@@ -63,8 +63,8 @@ type DeviceManagementConfigurationSettingInstanceTemplateReference struct {
 type DeviceManagementConfigurationChoiceSettingValue struct {
 	ODataType                     types.String                                                `tfsdk:"odata_type"`
 	SettingValueTemplateReference *DeviceManagementConfigurationSettingValueTemplateReference `tfsdk:"setting_value_template_reference"`
-	IntValue                      int32                                                       `tfsdk:"int_value"`
-	StringValue                   string                                                      `tfsdk:"string_value"`
+	IntValue                      types.Int32                                                 `tfsdk:"int_value"`
+	StringValue                   types.String                                                `tfsdk:"string_value"`
 	Children                      []DeviceManagementConfigurationSettingInstance              `tfsdk:"children"`
 }
 

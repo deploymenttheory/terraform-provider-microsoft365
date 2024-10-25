@@ -27,7 +27,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsSetting
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
-	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
+	data.SettingsCount = state.Int32PtrToTypeInt32(remoteResource.GetSettingCount())
 
 	// Map enum values
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
@@ -41,14 +41,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsSetting
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
 
 	// Map template reference if present
-	if template := remoteResource.GetTemplateReference(); template != nil {
-		data.TemplateReference = TemplateReference{
-			TemplateID:             types.StringValue(state.StringPtrToString(template.GetTemplateId())),
-			TemplateFamily:         state.EnumPtrToTypeString(template.GetTemplateFamily()).ValueString(),
-			TemplateDisplayName:    types.StringValue(state.StringPtrToString(template.GetTemplateDisplayName())),
-			TemplateDisplayVersion: types.StringValue(state.StringPtrToString(template.GetTemplateDisplayVersion())),
-		}
-	}
+	// if template := remoteResource.GetTemplateReference(); template != nil {
+	// 	data.TemplateReference = TemplateReference{
+	// 		TemplateID:             types.StringValue(state.StringPtrToString(template.GetTemplateId())),
+	// 		TemplateFamily:         state.EnumPtrToTypeString(template.GetTemplateFamily()).ValueString(),
+	// 		TemplateDisplayName:    types.StringValue(state.StringPtrToString(template.GetTemplateDisplayName())),
+	// 		TemplateDisplayVersion: types.StringValue(state.StringPtrToString(template.GetTemplateDisplayVersion())),
+	// 	}
+	// }
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

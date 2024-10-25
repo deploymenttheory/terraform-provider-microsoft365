@@ -69,9 +69,9 @@ func TestSetBoolProperty(t *testing.T) {
 func TestSetInt32Property(t *testing.T) {
 	var result *int32
 
-	// Case: Valid int64
+	// Case: Valid int32
 	result = nil
-	optInt := types.Int64Value(123)
+	optInt := types.Int32Value(123)
 	SetInt32Property(optInt, func(val *int32) {
 		result = val
 	})
@@ -80,7 +80,7 @@ func TestSetInt32Property(t *testing.T) {
 
 	// Case: Null value
 	result = nil
-	optInt = types.Int64Null()
+	optInt = types.Int32Null()
 	SetInt32Property(optInt, func(val *int32) {
 		result = val
 	})
@@ -88,12 +88,42 @@ func TestSetInt32Property(t *testing.T) {
 
 	// Case: Unknown value
 	result = nil
-	optInt = types.Int64Unknown()
+	optInt = types.Int32Unknown()
 	SetInt32Property(optInt, func(val *int32) {
 		result = val
 	})
 	assert.Nil(t, result)
 }
+
+func TestSetInt64Property(t *testing.T) {
+	var result *int64
+
+	// Case: Valid int64
+	result = nil
+	optInt := types.Int64Value(456)
+	SetInt64Property(optInt, func(val *int64) {
+		result = val
+	})
+	assert.NotNil(t, result)
+	assert.Equal(t, int64(456), *result)
+
+	// Case: Null value
+	result = nil
+	optInt = types.Int64Null()
+	SetInt64Property(optInt, func(val *int64) {
+		result = val
+	})
+	assert.Nil(t, result)
+
+	// Case: Unknown value
+	result = nil
+	optInt = types.Int64Unknown()
+	SetInt64Property(optInt, func(val *int64) {
+		result = val
+	})
+	assert.Nil(t, result)
+}
+
 func TestParseEnum(t *testing.T) {
 	var result *string
 

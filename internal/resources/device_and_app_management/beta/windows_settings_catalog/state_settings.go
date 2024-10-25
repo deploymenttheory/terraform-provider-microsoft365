@@ -52,7 +52,7 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 					if choiceValue := v.GetChoiceSettingValue(); choiceValue != nil {
 						settingInstance.ChoiceSettingValue = &DeviceManagementConfigurationChoiceSettingValue{
 							ODataType:   types.StringValue(state.StringPtrToString(choiceValue.GetOdataType())),
-							StringValue: state.StringPtrToString(choiceValue.GetValue()),
+							StringValue: types.StringValue(state.StringPtrToString(choiceValue.GetValue())),
 						}
 					}
 
@@ -89,11 +89,11 @@ func mapSimpleSettingValue(value graphmodels.DeviceManagementConfigurationSimple
 	switch v := value.(type) {
 	case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
 		if intVal := v.GetValue(); intVal != nil {
-			result.IntValue = int32(*intVal)
+			result.IntValue = state.Int32PtrToTypeInt32(intVal)
 		}
 	case graphmodels.DeviceManagementConfigurationStringSettingValueable:
 		if strVal := v.GetValue(); strVal != nil {
-			result.StringValue = *strVal
+			result.StringValue = types.StringValue(*strVal)
 		}
 	}
 
