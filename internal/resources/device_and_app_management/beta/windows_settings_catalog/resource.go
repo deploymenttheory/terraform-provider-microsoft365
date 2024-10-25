@@ -114,24 +114,6 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Computed:    true,
 				Description: "The date and time when this profile was created.",
 			},
-			// "template_reference": schema.SingleNestedAttribute{
-			// 	Required:    true,
-			// 	Description: "The template reference for this Windows Settings Catalog profile.",
-			// 	Attributes: map[string]schema.Attribute{
-			// 		"template_id": schema.StringAttribute{
-			// 			Required:    true,
-			// 			Description: "The ID of the template used for this profile.",
-			// 		},
-			// 		"template_display_name": schema.StringAttribute{
-			// 			Computed:    true,
-			// 			Description: "The display name of the template used for this profile.",
-			// 		},
-			// 		"template_display_version": schema.StringAttribute{
-			// 			Computed:    true,
-			// 			Description: "The display version of the template used for this profile.",
-			// 		},
-			// 	},
-			// },
 
 			// Settings attributes
 			"settings": settingsSchema(),

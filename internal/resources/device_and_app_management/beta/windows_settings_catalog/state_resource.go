@@ -40,16 +40,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsSetting
 	// Map role scope tag IDs
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
 
-	// Map template reference if present
-	// if template := remoteResource.GetTemplateReference(); template != nil {
-	// 	data.TemplateReference = TemplateReference{
-	// 		TemplateID:             types.StringValue(state.StringPtrToString(template.GetTemplateId())),
-	// 		TemplateFamily:         state.EnumPtrToTypeString(template.GetTemplateFamily()).ValueString(),
-	// 		TemplateDisplayName:    types.StringValue(state.StringPtrToString(template.GetTemplateDisplayName())),
-	// 		TemplateDisplayVersion: types.StringValue(state.StringPtrToString(template.GetTemplateDisplayVersion())),
-	// 	}
-	// }
-
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
