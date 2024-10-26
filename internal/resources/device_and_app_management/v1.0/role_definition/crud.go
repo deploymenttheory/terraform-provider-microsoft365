@@ -38,7 +38,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	createdRoleDef, err := r.client.
+	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		Post(ctx, roleDef, nil)
@@ -48,9 +48,9 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	plan.ID = types.StringValue(*createdRoleDef.GetId())
+	plan.ID = types.StringValue(*resource.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, createdRoleDef)
+	MapRemoteStateToTerraform(ctx, &plan, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -78,7 +78,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	roleDef, err := r.client.
+	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(state.ID.ValueString()).
@@ -89,7 +89,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, roleDef)
+	MapRemoteStateToTerraform(ctx, &state, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -126,7 +126,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	updatedRoleDef, err := r.client.
+	updatedResource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(plan.ID.ValueString()).
@@ -137,7 +137,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, updatedRoleDef)
+	MapRemoteStateToTerraform(ctx, &plan, updatedResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

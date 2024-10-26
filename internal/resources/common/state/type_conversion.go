@@ -85,6 +85,15 @@ func Int32PtrToTypeInt64(i *int32) types.Int64 {
 	return types.Int64Value(int64(*i))
 }
 
+// Int32PtrToTypeInt32 converts a pointer to an int32 to a types.Int32.
+// This function is useful for converting nullable int32 values from the SDK to Terraform's types.Int32.
+func Int32PtrToTypeInt32(i *int32) types.Int32 {
+	if i == nil {
+		return types.Int32Null()
+	}
+	return types.Int32Value(*i)
+}
+
 // DateOnlyPtrToString converts a DateOnly pointer to a Terraform string.
 func DateOnlyPtrToString(date *serialization.DateOnly) types.String {
 	if date == nil {

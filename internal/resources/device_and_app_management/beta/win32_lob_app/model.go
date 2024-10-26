@@ -21,13 +21,13 @@ type Win32LobAppResourceModel struct {
 	Owner                           types.String                                     `tfsdk:"owner"`
 	Developer                       types.String                                     `tfsdk:"developer"`
 	Notes                           types.String                                     `tfsdk:"notes"`
-	UploadState                     types.Int64                                      `tfsdk:"upload_state"`
+	UploadState                     types.Int32                                      `tfsdk:"upload_state"`
 	PublishingState                 types.String                                     `tfsdk:"publishing_state"`
 	IsAssigned                      types.Bool                                       `tfsdk:"is_assigned"`
 	RoleScopeTagIds                 []types.String                                   `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount               types.Int64                                      `tfsdk:"dependent_app_count"`
-	SupersedingAppCount             types.Int64                                      `tfsdk:"superseding_app_count"`
-	SupersededAppCount              types.Int64                                      `tfsdk:"superseded_app_count"`
+	DependentAppCount               types.Int32                                      `tfsdk:"dependent_app_count"`
+	SupersedingAppCount             types.Int32                                      `tfsdk:"superseding_app_count"`
+	SupersededAppCount              types.Int32                                      `tfsdk:"superseded_app_count"`
 	CommittedContentVersion         types.String                                     `tfsdk:"committed_content_version"`
 	FileName                        types.String                                     `tfsdk:"file_name"`
 	Size                            types.Int64                                      `tfsdk:"size"`
@@ -35,10 +35,10 @@ type Win32LobAppResourceModel struct {
 	UninstallCommandLine            types.String                                     `tfsdk:"uninstall_command_line"`
 	ApplicableArchitectures         types.String                                     `tfsdk:"applicable_architectures"`
 	MinimumSupportedOperatingSystem WindowsMinimumOperatingSystemResourceModel       `tfsdk:"minimum_supported_operating_system"`
-	MinimumFreeDiskSpaceInMB        types.Int64                                      `tfsdk:"minimum_free_disk_space_in_mb"`
-	MinimumMemoryInMB               types.Int64                                      `tfsdk:"minimum_memory_in_mb"`
-	MinimumNumberOfProcessors       types.Int64                                      `tfsdk:"minimum_number_of_processors"`
-	MinimumCpuSpeedInMHz            types.Int64                                      `tfsdk:"minimum_cpu_speed_in_mhz"`
+	MinimumFreeDiskSpaceInMB        types.Int32                                      `tfsdk:"minimum_free_disk_space_in_mb"`
+	MinimumMemoryInMB               types.Int32                                      `tfsdk:"minimum_memory_in_mb"`
+	MinimumNumberOfProcessors       types.Int32                                      `tfsdk:"minimum_number_of_processors"`
+	MinimumCpuSpeedInMHz            types.Int32                                      `tfsdk:"minimum_cpu_speed_in_mhz"`
 	DetectionRules                  []Win32LobAppRegistryDetectionRulesResourceModel `tfsdk:"detection_rules"`
 	RequirementRules                []Win32LobAppRegistryRequirementResourceModel    `tfsdk:"requirement_rules"`
 	Rules                           []Win32LobAppRegistryRuleResourceModel           `tfsdk:"rules"`
@@ -114,12 +114,12 @@ type Win32LobAppRegistryRuleResourceModel struct {
 
 type Win32LobAppInstallExperienceResourceModel struct {
 	RunAsAccount          types.String `tfsdk:"run_as_account"`
-	MaxRunTimeInMinutes   types.Int64  `tfsdk:"max_run_time_in_minutes"`
+	MaxRunTimeInMinutes   types.Int32  `tfsdk:"max_run_time_in_minutes"`
 	DeviceRestartBehavior types.String `tfsdk:"device_restart_behavior"`
 }
 
 type Win32LobAppReturnCodeResourceModel struct {
-	ReturnCode types.Int64  `tfsdk:"return_code"`
+	ReturnCode types.Int32  `tfsdk:"return_code"`
 	Type       types.String `tfsdk:"type"`
 }
 

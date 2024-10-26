@@ -3,6 +3,7 @@ package construct
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -25,10 +26,19 @@ func SetBoolProperty(value basetypes.BoolValue, setter func(*bool)) {
 }
 
 // SetInt32Property sets the value of an int32 property if the value is not null or unknown.
-// It accepts a basetypes.Int64Value (Terraform SDK type), converts it into an int32, and passes it to the setter function.
-func SetInt32Property(value basetypes.Int64Value, setter func(*int32)) {
+// It accepts a basetypes.Int32Value (Terraform SDK type) and passes it to the setter function.
+func SetInt32Property(value basetypes.Int32Value, setter func(*int32)) {
 	if !value.IsNull() && !value.IsUnknown() {
-		val := int32(value.ValueInt64())
+		val := value.ValueInt32()
+		setter(&val)
+	}
+}
+
+// SetInt64Property sets the value of an int64 property if the value is not null or unknown.
+// It accepts a basetypes.Int64Value (Terraform SDK type) and passes it to the setter function.
+func SetInt64Property(value basetypes.Int64Value, setter func(*int64)) {
+	if !value.IsNull() && !value.IsUnknown() {
+		val := value.ValueInt64()
 		setter(&val)
 	}
 }
@@ -53,4 +63,19 @@ func ParseEnum[T any](value basetypes.StringValue, parser func(string) (any, err
 		setter(typedEnumVal)
 	}
 	return nil
+}
+
+// Add this new helper function to your construct package
+func SetArrayProperty(values []types.String, setter func([]string)) {
+	if len(values) > 0 {
+		stringValues := make([]string, 0, len(values))
+		for _, v := range values {
+			if !v.IsNull() && !v.IsUnknown() {
+				stringValues = append(stringValues, v.ValueString())
+			}
+		}
+		if len(stringValues) > 0 {
+			setter(stringValues)
+		}
+	}
 }

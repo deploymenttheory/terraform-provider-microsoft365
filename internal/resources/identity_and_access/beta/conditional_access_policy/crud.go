@@ -128,7 +128,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err = r.client.
+	conditionalAccessPolicy, err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
@@ -140,16 +140,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	updatedPolicy, err := r.client.Identity().ConditionalAccess().Policies().ByConditionalAccessPolicyId(plan.ID.ValueString()).Get(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Updated Conditional Access Policy",
-			fmt.Sprintf("Could not read updated conditional access policy: %s", err.Error()),
-		)
-		return
-	}
-
-	MapRemoteStateToTerraform(ctx, &plan, updatedPolicy)
+	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
