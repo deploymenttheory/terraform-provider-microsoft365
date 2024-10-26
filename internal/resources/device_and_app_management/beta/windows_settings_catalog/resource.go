@@ -156,11 +156,11 @@ func settingsSchema() schema.ListNestedAttribute {
 							Description: "The template reference for this setting instance.",
 							Attributes: map[string]schema.Attribute{
 								"odata_type": schema.StringAttribute{
-									Required:    true,
+									Optional:    true,
 									Description: "The OData type of the setting instance template reference.",
 								},
 								"setting_instance_template_id": schema.StringAttribute{
-									Required:    true,
+									Optional:    true,
 									Description: "The ID of the setting instance template.",
 								},
 							},
@@ -182,7 +182,7 @@ func settingsSchema() schema.ListNestedAttribute {
 											Description: "The OData type of the setting value template reference.",
 										},
 										"setting_value_template_id": schema.StringAttribute{
-											Required:    true,
+											Optional:    true,
 											Description: "The ID of the setting value template.",
 										},
 										"use_template_default": schema.BoolAttribute{
