@@ -93,18 +93,10 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Computed:    true,
 				Description: "The number of settings in this profile.",
 			},
-			"creation_source": schema.StringAttribute{
-				Computed:    true,
-				Description: "The source of creation for this profile.",
-			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 				Description: "List of scope tag IDs for this Windows Settings Catalog profile.",
-			},
-			"is_assigned": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Indicates whether this profile is assigned to any groups.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				Computed:    true,
@@ -134,10 +126,6 @@ func settingsSchema() schema.ListNestedAttribute {
 				"odata_type": schema.StringAttribute{
 					Required:    true,
 					Description: "The OData type of the setting.",
-				},
-				"id": schema.StringAttribute{
-					Computed:    true,
-					Description: "The ID of the setting.",
 				},
 				"setting_instance": schema.SingleNestedAttribute{
 					Required:    true,

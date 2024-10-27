@@ -23,7 +23,6 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 		for i, setting := range settings {
 			if instance := setting.GetSettingInstance(); instance != nil {
 				settingModel := DeviceManagementConfigurationSettingResourceModel{
-					ID:        types.StringValue(state.StringPtrToString(setting.GetId())),
 					ODataType: types.StringValue(state.StringPtrToString(instance.GetOdataType())),
 				}
 
