@@ -151,20 +151,6 @@ func settingsSchema() schema.ListNestedAttribute {
 							Required:    true,
 							Description: "The ID of the setting definition.",
 						},
-						"setting_instance_template_reference": schema.SingleNestedAttribute{
-							Optional:    true,
-							Description: "The template reference for this setting instance.",
-							Attributes: map[string]schema.Attribute{
-								"odata_type": schema.StringAttribute{
-									Optional:    true,
-									Description: "The OData type of the setting instance template reference.",
-								},
-								"setting_instance_template_id": schema.StringAttribute{
-									Optional:    true,
-									Description: "The ID of the setting instance template.",
-								},
-							},
-						},
 						"choice_setting_value": schema.SingleNestedAttribute{
 							Optional:    true,
 							Description: "The choice setting value.",
@@ -172,24 +158,6 @@ func settingsSchema() schema.ListNestedAttribute {
 								"odata_type": schema.StringAttribute{
 									Required:    true,
 									Description: "The OData type of the choice setting value.",
-								},
-								"setting_value_template_reference": schema.SingleNestedAttribute{
-									Optional:    true,
-									Description: "The template reference for this setting value.",
-									Attributes: map[string]schema.Attribute{
-										"odata_type": schema.StringAttribute{
-											Required:    true,
-											Description: "The OData type of the setting value template reference.",
-										},
-										"setting_value_template_id": schema.StringAttribute{
-											Optional:    true,
-											Description: "The ID of the setting value template.",
-										},
-										"use_template_default": schema.BoolAttribute{
-											Optional:    true,
-											Description: "Whether to use the template default value.",
-										},
-									},
 								},
 								"int_value": schema.Int32Attribute{
 									Optional:    true,
@@ -223,11 +191,11 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 
 	childAttributes := map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
-			Optional:    true, // Change to Optional for children
+			Optional:    true,
 			Description: fmt.Sprintf("The OData type for child setting at depth %d.", depth+1),
 		},
 		"setting_definition_id": schema.StringAttribute{
-			Optional:    true, // Change to Optional for children
+			Optional:    true,
 			Description: fmt.Sprintf("The setting definition ID for child setting at depth %d.", depth+1),
 		},
 		"choice_setting_value": schema.SingleNestedAttribute{
@@ -235,48 +203,23 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 			Description: fmt.Sprintf("The choice setting value for child level %d.", depth+1),
 			Attributes: map[string]schema.Attribute{
 				"odata_type": schema.StringAttribute{
-					Optional:    true, // Make Optional for children within choice_setting_value
-					Description: "The OData type of the choice setting value.",
-				},
-				"setting_value_template_reference": schema.SingleNestedAttribute{
-					Optional:    true,
-					Description: "The template reference for this setting value.",
-					Attributes: map[string]schema.Attribute{
-						"odata_type": schema.StringAttribute{
-							Optional:    true, // Make Optional for nested template reference
-							Description: "The OData type of the setting value template reference.",
-						},
-						"setting_value_template_id": schema.StringAttribute{
-							Optional:    true, // Make Optional for nested template reference
-							Description: "The ID of the setting value template.",
-						},
-						"use_template_default": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Whether to use the template default value.",
-						},
-					},
+					Optional: true,
 				},
 				"int_value": schema.Int32Attribute{
-					Optional:    true,
-					Description: "The integer value of the choice setting.",
+					Optional: true,
 				},
 				"string_value": schema.StringAttribute{
+					Optional: true,
+				},
+				"children": schema.ListNestedAttribute{
 					Optional:    true,
-					Description: "The string value of the choice setting.",
+					Description: fmt.Sprintf("The child settings of this choice setting (level %d).", depth+2),
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: settingInstanceSchema(depth + 1),
+					},
 				},
 			},
 		},
-	}
-
-	// Add children for the next level if not at max depth
-	if depth < 9 {
-		childAttributes["children"] = schema.ListNestedAttribute{
-			Optional:    true,
-			Description: fmt.Sprintf("The child settings of this choice setting (level %d).", depth+2),
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: settingInstanceSchema(depth + 1),
-			},
-		}
 	}
 
 	return childAttributes

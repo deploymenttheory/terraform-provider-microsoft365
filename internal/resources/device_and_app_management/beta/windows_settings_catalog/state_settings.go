@@ -33,14 +33,6 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 					SettingDefinitionID: types.StringValue(state.StringPtrToString(instance.GetSettingDefinitionId())),
 				}
 
-				// Map setting instance template reference if present
-				if templateRef := instance.GetSettingInstanceTemplateReference(); templateRef != nil {
-					settingInstance.SettingInstanceTemplateReference = &DeviceManagementConfigurationSettingInstanceTemplateReference{
-						ODataType:                 types.StringValue(state.StringPtrToString(templateRef.GetOdataType())),
-						SettingInstanceTemplateID: types.StringValue(state.StringPtrToString(templateRef.GetSettingInstanceTemplateId())),
-					}
-				}
-
 				// Handle different setting types
 				switch v := instance.(type) {
 				case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:

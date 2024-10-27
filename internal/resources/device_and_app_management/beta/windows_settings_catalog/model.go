@@ -38,32 +38,17 @@ type DeviceManagementConfigurationSettingResourceModel struct {
 
 // DeviceManagementConfigurationSettingInstance represents the setting instance
 type DeviceManagementConfigurationSettingInstance struct {
-	ODataType                        types.String                                                   `tfsdk:"odata_type"`
-	SettingDefinitionID              types.String                                                   `tfsdk:"setting_definition_id"`
-	SettingInstanceTemplateReference *DeviceManagementConfigurationSettingInstanceTemplateReference `tfsdk:"setting_instance_template_reference"`
-	ChoiceSettingValue               *DeviceManagementConfigurationChoiceSettingValue               `tfsdk:"choice_setting_value"`
-}
-
-// DeviceManagementConfigurationSettingInstanceTemplateReference represents the template reference
-type DeviceManagementConfigurationSettingInstanceTemplateReference struct {
-	ODataType                 types.String `tfsdk:"odata_type"`
-	SettingInstanceTemplateID types.String `tfsdk:"setting_instance_template_id"`
+	ODataType           types.String                                     `tfsdk:"odata_type"`
+	SettingDefinitionID types.String                                     `tfsdk:"setting_definition_id"`
+	ChoiceSettingValue  *DeviceManagementConfigurationChoiceSettingValue `tfsdk:"choice_setting_value"`
 }
 
 // DeviceManagementConfigurationChoiceSettingValue represents the choice setting value
 type DeviceManagementConfigurationChoiceSettingValue struct {
-	ODataType                     types.String                                                `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationSettingValueTemplateReference `tfsdk:"setting_value_template_reference"`
-	IntValue                      types.Int32                                                 `tfsdk:"int_value"`
-	StringValue                   types.String                                                `tfsdk:"string_value"`
-	Children                      []DeviceManagementConfigurationSettingInstance              `tfsdk:"children"`
-}
-
-// DeviceManagementConfigurationSettingValueTemplateReference represents the value template reference
-type DeviceManagementConfigurationSettingValueTemplateReference struct {
-	ODataType              types.String `tfsdk:"odata_type"`
-	SettingValueTemplateID types.String `tfsdk:"setting_value_template_id"`
-	UseTemplateDefault     types.Bool   `tfsdk:"use_template_default"`
+	ODataType   types.String                                   `tfsdk:"odata_type"`
+	IntValue    types.Int32                                    `tfsdk:"int_value"`
+	StringValue types.String                                   `tfsdk:"string_value"`
+	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
 }
 
 // SettingsCatalogSettingsAssignmentResourceModel struct to hold assignment configuration
