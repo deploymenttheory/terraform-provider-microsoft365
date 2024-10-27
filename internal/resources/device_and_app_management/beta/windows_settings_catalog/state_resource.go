@@ -2,7 +2,6 @@ package graphBetaWindowsSettingsCatalog
 
 import (
 	"context"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,9 +18,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsSetting
 	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
-
-	tflog.Debug(ctx, "Pausing for 5 seconds to allow for API propagation...")
-	time.Sleep(5 * time.Second)
 
 	// Map basic properties
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
