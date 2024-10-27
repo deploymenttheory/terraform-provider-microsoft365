@@ -18,9 +18,7 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 	Platforms            types.String                                        `tfsdk:"platforms"`
 	Technologies         types.String                                        `tfsdk:"technologies"`
 	SettingsCount        types.Int32                                         `tfsdk:"settings_count"`
-	CreationSource       types.String                                        `tfsdk:"creation_source"`
 	RoleScopeTagIds      []types.String                                      `tfsdk:"role_scope_tag_ids"`
-	IsAssigned           types.Bool                                          `tfsdk:"is_assigned"`
 	LastModifiedDateTime types.String                                        `tfsdk:"last_modified_date_time"`
 	CreatedDateTime      types.String                                        `tfsdk:"created_date_time"`
 	Settings             []DeviceManagementConfigurationSettingResourceModel `tfsdk:"settings"`
@@ -32,7 +30,6 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsetting?view=graph-rest-beta
 type DeviceManagementConfigurationSettingResourceModel struct {
 	ODataType       types.String                                  `tfsdk:"odata_type"`
-	ID              types.String                                  `tfsdk:"id"`
 	SettingInstance *DeviceManagementConfigurationSettingInstance `tfsdk:"setting_instance"`
 }
 
