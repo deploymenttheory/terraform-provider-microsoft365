@@ -79,7 +79,7 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan.ID)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -115,7 +115,7 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	//Get base resource
+	// Get base resource
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
