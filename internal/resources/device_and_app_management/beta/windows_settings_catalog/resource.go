@@ -18,10 +18,22 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &WindowsSettingsCatalogResource{}
-var _ resource.ResourceWithConfigure = &WindowsSettingsCatalogResource{}
-var _ resource.ResourceWithImportState = &WindowsSettingsCatalogResource{}
-var guidRegex = regexp.MustCompile(helpers.GuidRegex)
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &WindowsSettingsCatalogResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &WindowsSettingsCatalogResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &WindowsSettingsCatalogResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &WindowsSettingsCatalogResource{}
+
+	// Regex compiler
+	guidRegex = regexp.MustCompile(helpers.GuidRegex)
+)
 
 func NewWindowsSettingsCatalogResource() resource.Resource {
 	return &WindowsSettingsCatalogResource{
