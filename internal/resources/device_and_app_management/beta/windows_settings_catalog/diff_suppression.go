@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // ModifyPlan is the main entry point for diff suppression
@@ -15,6 +16,8 @@ func (r *WindowsSettingsCatalogResource) ModifyPlan(ctx context.Context, req res
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
 	}
+
+	tflog.Debug(ctx, "Starting ModifyPlan for Windows Settings Catalog")
 
 	var plan, state WindowsSettingsCatalogProfileResourceModel
 
@@ -32,6 +35,8 @@ func (r *WindowsSettingsCatalogResource) ModifyPlan(ctx context.Context, req res
 	// suppressMetadataDiffs(&plan, &state)
 
 	resp.Plan.Set(ctx, &plan)
+
+	tflog.Debug(ctx, "Completed ModifyPlan for Windows Settings Catalog")
 }
 
 // suppressAssignmentDiffs handles all assignment-related diff suppression
