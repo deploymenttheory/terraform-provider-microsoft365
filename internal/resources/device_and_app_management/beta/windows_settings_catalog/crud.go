@@ -84,17 +84,15 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	readResp := &resource.ReadResponse{
 		State: resp.State,
 	}
 	r.Read(ctx, resource.ReadRequest{State: resp.State}, readResp)
 
 	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
