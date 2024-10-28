@@ -79,12 +79,7 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan.ID)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -95,6 +90,9 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 	r.Read(ctx, resource.ReadRequest{State: resp.State}, readResp)
 
 	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -117,7 +115,7 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	// Get base resource
+	//Get base resource
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
