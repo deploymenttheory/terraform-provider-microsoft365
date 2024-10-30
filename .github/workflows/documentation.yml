@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - '.github/**'
+      - 'scripts/**'
 
 permissions:
   contents: write  # Required to update documentation in the repo
