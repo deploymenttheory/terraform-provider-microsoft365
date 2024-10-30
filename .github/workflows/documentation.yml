@@ -15,7 +15,7 @@ jobs:
   tf-docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4.2.1
+    - uses: actions/checkout@v4.2.2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
@@ -55,7 +55,7 @@ jobs:
   go-docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4.2.1
+    - uses: actions/checkout@v4.2.2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
     - name: Generate Go Docs
