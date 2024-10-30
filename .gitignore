@@ -1,35 +1,40 @@
+# Binaries and executables
 *.dll
 *.exe
-.DS_Store
-example.tf
+*.dylib
+*.so
+
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
 terraform.tfplan
-terraform.tfstate
-bin/
-dist/
-modules-dev/
-/pkg/
-website/.vagrant
-website/.bundle
-website/build
-website/node_modules
-.vagrant/
-*.backup
-./*.tfstate
 .terraform/
+.terraform.lock.hcl
+crash.log
+
+# Go development
+*.test
+/vendor/
+/bin/
+/dist/
+/pkg/
+coverage.out
+coverage.html
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+*~
+.DS_Store
+
+# Build and temp files
+/build/
+/tmp/
 *.log
 *.bak
-*~
-.*.swp
-.idea
-*.iml
-*.test
-*.iml
 
-website/vendor
-
-# Test exclusions
-!command/test-fixtures/**/*.tfstate
-!command/test-fixtures/**/.terraform/
-
-# Keep windows files with windows line endings
+# Windows-specific 
 *.winfile eol=crlf
