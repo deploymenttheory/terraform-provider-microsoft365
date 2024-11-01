@@ -7,6 +7,11 @@ import "fmt"
 // - if all_users is false, user filter settings should not be set
 // - if all_devices is true and all_devices_filter_id is nil, then all_devices_filter_type must set to "none"
 // - if all_users is true and all_users_filter_id is nil, then all_users_filter_type must set to "none"
+// - if all_devices is true and all_devices_filter_id is set, then all_devices_filter_type must be either "include" or "exclude"
+// - if all_users is true and all_users_filter_id is set, then all_users_filter_type must be either "include" or "exclude"
+// - if group_id is provided in include_groups, include_groups_filter_type must be set
+// - if group_id is provided in include_groups and include_groups_filter_id is nil, then include_groups_filter_type must be "none"
+// - if group_id is provided in include_groups and include_groups_filter_id is set, then include_groups_filter_type must be either "include" or "exclude"
 // - AllDevicesFilterType must be one of: include, exclude, none
 // - AllUsersFilterType must be one of: include, exclude, none
 // - IncludeGroupsFilterType must be one of: include, exclude, none
@@ -21,6 +26,17 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 		"include": true,
 		"exclude": true,
 		"none":    true,
+	}
+
+	// Validate filter type values
+	if !config.AllDevicesFilterType.IsNull() && !validFilterTypes[config.AllDevicesFilterType.ValueString()] {
+		return fmt.Errorf("AllDevicesFilterType must be one of: include, exclude, none. Got: %s",
+			config.AllDevicesFilterType.ValueString())
+	}
+
+	if !config.AllUsersFilterType.IsNull() && !validFilterTypes[config.AllUsersFilterType.ValueString()] {
+		return fmt.Errorf("AllUsersFilterType must be one of: include, exclude, none. Got: %s",
+			config.AllUsersFilterType.ValueString())
 	}
 
 	// Validate all_devices related settings
@@ -63,17 +79,6 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 		}
 	}
 
-	// Validate filter type values
-	if !config.AllDevicesFilterType.IsNull() && !validFilterTypes[config.AllDevicesFilterType.ValueString()] {
-		return fmt.Errorf("AllDevicesFilterType must be one of: include, exclude, none. Got: %s",
-			config.AllDevicesFilterType.ValueString())
-	}
-
-	if !config.AllUsersFilterType.IsNull() && !validFilterTypes[config.AllUsersFilterType.ValueString()] {
-		return fmt.Errorf("AllUsersFilterType must be one of: include, exclude, none. Got: %s",
-			config.AllUsersFilterType.ValueString())
-	}
-
 	// Validate include_groups filter types and alphanumeric order
 	if len(config.IncludeGroups) > 1 {
 		for i := 0; i < len(config.IncludeGroups)-1; i++ {
@@ -86,26 +91,34 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 		}
 	}
 
+	// Validate include_groups settings
 	for _, group := range config.IncludeGroups {
-		if !group.IncludeGroupsFilterType.IsNull() && !validFilterTypes[group.IncludeGroupsFilterType.ValueString()] {
-			return fmt.Errorf("IncludeGroupsFilterType must be one of: include, exclude, none. Got: %s",
-				group.IncludeGroupsFilterType.ValueString())
-		}
-
-		// Apply the same filter type logic to include groups
-		if group.IncludeGroupsFilterId.IsNull() {
-			if !group.IncludeGroupsFilterType.IsNull() && group.IncludeGroupsFilterType.ValueString() != "none" {
-				return fmt.Errorf("include_groups_filter_type must be 'none' when no filter ID is provided for group %s",
-					group.GroupId.ValueString())
-			}
-		} else {
+		// Validate that filter_type is set if group_id is provided
+		if !group.GroupId.IsNull() && !group.GroupId.IsUnknown() && group.GroupId.ValueString() != "" {
 			if group.IncludeGroupsFilterType.IsNull() {
-				return fmt.Errorf("include_groups_filter_type must be set when filter ID is provided for group %s",
+				return fmt.Errorf("include_groups_filter_type must be set when group_id is provided for group %s",
 					group.GroupId.ValueString())
 			}
-			if group.IncludeGroupsFilterType.ValueString() == "none" {
-				return fmt.Errorf("include_groups_filter_type cannot be 'none' when filter ID is provided for group %s",
-					group.GroupId.ValueString())
+
+			// Validate filter type value
+			if !validFilterTypes[group.IncludeGroupsFilterType.ValueString()] {
+				return fmt.Errorf("IncludeGroupsFilterType must be one of: include, exclude, none. Got: %s",
+					group.IncludeGroupsFilterType.ValueString())
+			}
+
+			// Apply filter type logic based on filter ID presence
+			if group.IncludeGroupsFilterId.IsNull() {
+				// No filter ID provided, filter type MUST be "none"
+				if group.IncludeGroupsFilterType.ValueString() != "none" {
+					return fmt.Errorf("include_groups_filter_type must be 'none' when no filter ID is provided for group %s",
+						group.GroupId.ValueString())
+				}
+			} else {
+				// Filter ID is provided, filter type must be either include or exclude
+				if group.IncludeGroupsFilterType.ValueString() == "none" {
+					return fmt.Errorf("include_groups_filter_type cannot be 'none' when filter ID is provided for group %s",
+						group.GroupId.ValueString())
+				}
 			}
 		}
 	}
