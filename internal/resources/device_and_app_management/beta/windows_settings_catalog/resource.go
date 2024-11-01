@@ -6,11 +6,13 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -92,15 +94,20 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 			},
 			"platforms": schema.StringAttribute{
 				Required:    true,
-				Description: "The platforms this profile supports.",
+				Description: "The platforms this settings catalog policy supports. Valid values are: android, androidEnterprise, aosp, iOS, linux, macOS, windows10, windows10X",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"android",
+						"androidEnterprise",
+						"aosp",
+						"iOS",
+						"linux",
+						"macOS",
+						"windows10",
+						"windows10X",
+					),
+				},
 			},
-			// "platforms": schema.StringAttribute{
-			// 	Computed:    true,
-			// 	Description: "The platforms this profile supports.",
-			// 	PlanModifiers: []planmodifier.String{
-			// 		stringplanmodifier.UseStateForUnknown(),
-			// 	},
-			// },
 			"technologies": schema.StringAttribute{
 				Computed:    true,
 				Description: "The technologies this profile uses.",
