@@ -25,13 +25,31 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 	profile.SetName(&displayName)
 	profile.SetDescription(&description)
 
-	// Set platforms and technologies (static values for Windows 10 MDM)
-	platforms := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
-	profile.SetPlatforms(&platforms)
+	platformStr := data.Platforms.ValueString()
+	var platform graphmodels.DeviceManagementConfigurationPlatforms
+	switch platformStr {
+	case "android":
+		platform = graphmodels.ANDROID_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "androidEnterprise":
+		platform = graphmodels.ANDROIDENTERPRISE_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "aosp":
+		platform = graphmodels.AOSP_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "iOS":
+		platform = graphmodels.IOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "linux":
+		platform = graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "macOS":
+		platform = graphmodels.MACOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "windows10":
+		platform = graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	case "windows10X":
+		platform = graphmodels.WINDOWS10X_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
+	}
+	profile.SetPlatforms(&platform)
+
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
 	profile.SetTechnologies(&technologies)
 
-	// Handle Role Scope Tag IDs
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
 		for _, tag := range data.RoleScopeTagIds {

@@ -14,11 +14,19 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation.
-// It performs the creation of the Windows Settings Catalog base settings and settings catalog settings as they
-// are required for successful creation of the Windows Settings Catalog. You cannot create this resource with settings
-// being defined. The function then creates the Windows Settings assignments which is optional. The function then sets
-// the state of the resource to the plan and returns the response.
+// Create handles the Create operation for Windows Settings Catalog resources.
+//
+//   - Retrieves the planned configuration from the create request
+//   - Constructs the resource request body from the plan
+//   - Sends POST request to create the base resource and settings
+//   - Captures the new resource ID from the response
+//   - Constructs and sends assignment configuration if specified
+//   - Maps the created resource state to Terraform
+//   - Updates the final state with all resource data
+//
+// The function ensures that both the settings catalog profile and its assignments
+// (if specified) are created properly. The settings must be defined during creation
+// as they are required for a successful deployment, while assignments are optional.
 func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan WindowsSettingsCatalogProfileResourceModel
 
@@ -79,17 +87,21 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+	// State initial base resource atts and append with content from hcl.
+	profile, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Get(context.Background(), nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, readResp)
+	MapRemoteResourceStateToTerraform(ctx, &plan, profile)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -97,7 +109,20 @@ func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Settings Catalog resources.
+//
+//   - Retrieves the current state from the read request
+//   - Gets the base resource details from the API
+//   - Maps the base resource details to Terraform state
+//   - Gets the settings configuration from the API
+//   - Maps the settings configuration to Terraform state
+//   - Gets the assignments configuration from the API
+//   - Maps the assignments configuration to Terraform state
+//   - Updates the final Terraform state with all mapped data
+//
+// The function ensures that all components (base resource, settings, and assignments)
+// are properly read and mapped into the Terraform state, providing a complete view
+// of the resource's current configuration on the server.
 func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state WindowsSettingsCatalogProfileResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -115,7 +140,6 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	// Get base resource
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -129,7 +153,6 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 
 	MapRemoteResourceStateToTerraform(ctx, &state, respResource)
 
-	// Get settings
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -148,7 +171,6 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 
 	MapRemoteSettingsStateToTerraform(ctx, &state, respSettings)
 
-	// Get assignments
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -171,7 +193,19 @@ func (r *WindowsSettingsCatalogResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Settings Catalog resources.
+//
+//   - Retrieves the planned changes from the update request
+//   - Constructs the resource request body from the plan
+//   - Sends PUT request to update the base resource and settings
+//   - Constructs the assignment request body from the plan
+//   - Sends POST request to update the assignments
+//   - Sets initial state with planned values
+//   - Calls Read operation to fetch the latest state from the API
+//   - Updates the final state with the fresh data from the API
+//
+// The function ensures that both the settings and assignments are updated atomically,
+// and the final state reflects the actual state of the resource on the server.
 func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsSettingsCatalogProfileResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -190,7 +224,7 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Create method",
+			"Error constructing resource for Update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -204,13 +238,11 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 	}
 
 	err = client.SendCustomPutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
-
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
-	// Step 2: Update assignments
 	requestAssignment, err := constructAssignment(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -232,22 +264,37 @@ func (r *WindowsSettingsCatalogResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// Step 3: Use Read to refresh the state
-	readResp := resource.ReadResponse{
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readResp := &resource.ReadResponse{
 		State: resp.State,
 	}
-	r.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+	r.Read(ctx, resource.ReadRequest{
+		State:        resp.State,
+		ProviderMeta: req.ProviderMeta,
+	}, readResp)
 
 	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	resp.State = readResp.State
 
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Settings Catalog resources.
+//
+//   - Retrieves the current state from the delete request
+//   - Validates the state data and timeout configuration
+//   - Sends DELETE request to remove the resource from the API
+//   - Cleans up by removing the resource from Terraform state
+//
+// All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *WindowsSettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data WindowsSettingsCatalogProfileResourceModel
 
