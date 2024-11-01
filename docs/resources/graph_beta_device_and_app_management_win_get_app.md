@@ -42,7 +42,6 @@ resource "m365_graph_beta_device_and_app_management_win_get_app" "example" {
 
 ### Optional
 
-- `assignments` (Attributes List) The list of group assignments for this mobile app. (see [below for nested schema](#nestedatt--assignments))
 - `developer` (String) The developer of the app.
 - `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
@@ -75,80 +74,6 @@ resource "m365_graph_beta_device_and_app_management_win_get_app" "example" {
 Required:
 
 - `run_as_account` (String) The account type (System or User) that actions should be run as on target devices. Required at creation time.
-
-
-<a id="nestedatt--assignments"></a>
-### Nested Schema for `assignments`
-
-Required:
-
-- `intent` (String) The intent of the assignment. Possible values are: available, required, uninstall, availableWithoutEnrollment.
-- `target` (Attributes) The target for this assignment. (see [below for nested schema](#nestedatt--assignments--target))
-
-Optional:
-
-- `settings` (Attributes) The settings for this assignment. (see [below for nested schema](#nestedatt--assignments--settings))
-- `source` (String) The source of the assignment.
-- `source_id` (String) The identifier of the source mobile app.
-- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--assignments--timeouts))
-
-Read-Only:
-
-- `id` (String) The unique identifier of the mobile app assignment.
-
-<a id="nestedatt--assignments--target"></a>
-### Nested Schema for `assignments.target`
-
-Required:
-
-- `type` (String) The type of target. Possible values are: allLicensedUsers, allDevices, group.
-
-Optional:
-
-- `device_and_app_management_assignment_filter_id` (String) The ID of the filter for the target assignment.
-- `device_and_app_management_assignment_filter_type` (String) The type of filter for the target assignment. Possible values are: none, include, exclude.
-- `group_id` (String) The ID of the group to assign the app to. Required when type is 'group'.
-
-
-<a id="nestedatt--assignments--settings"></a>
-### Nested Schema for `assignments.settings`
-
-Optional:
-
-- `install_time_settings` (Attributes) The install time settings for the assignment. (see [below for nested schema](#nestedatt--assignments--settings--install_time_settings))
-- `notifications` (String) The notification setting for the assignment. Possible values are: showAll, showReboot, hideAll.
-- `restart_settings` (Attributes) The restart settings for the assignment. (see [below for nested schema](#nestedatt--assignments--settings--restart_settings))
-
-<a id="nestedatt--assignments--settings--install_time_settings"></a>
-### Nested Schema for `assignments.settings.install_time_settings`
-
-Optional:
-
-- `deadline_date_time` (String) The deadline date and time for the assignment.
-- `use_local_time` (Boolean) Indicates whether to use local time for the assignment.
-
-
-<a id="nestedatt--assignments--settings--restart_settings"></a>
-### Nested Schema for `assignments.settings.restart_settings`
-
-Optional:
-
-- `countdown_display_before_restart_in_minutes` (Number) The countdown display before restart in minutes.
-- `grace_period_in_minutes` (Number) The grace period before a restart in minutes.
-- `restart_notification_snooze_duration_in_minutes` (Number) The snooze duration for the restart notification in minutes.
-
-
-
-<a id="nestedatt--assignments--timeouts"></a>
-### Nested Schema for `assignments.timeouts`
-
-Optional:
-
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-
 
 
 <a id="nestedatt--timeouts"></a>
