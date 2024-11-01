@@ -10,10 +10,10 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignments constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
+// constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
-		return nil, fmt.Errorf("assignments configuration is required")
+		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
 
 	tflog.Debug(ctx, "Starting assignment construction")
@@ -24,128 +24,60 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 	}
 
 	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
-	var assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable
+	assignments := make([]graphmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
 
-	// Handle All Devices assignment
+	hasAssignments := false
+
+	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
+		hasAssignments = true
 		assignments = append(assignments, constructAllDevicesAssignment(ctx, data.Assignments))
 	}
 
-	// Handle All Users assignment
+	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
+		hasAssignments = true
 		assignments = append(assignments, constructAllUsersAssignment(ctx, data.Assignments))
 	}
 
-	// Handle Include Groups assignment - only if AllDevices and AllUsers are false
+	// Check Include Groups
 	if !data.Assignments.AllDevices.ValueBool() &&
 		!data.Assignments.AllUsers.ValueBool() &&
 		len(data.Assignments.IncludeGroups) > 0 {
-		assignments = append(assignments, constructGroupIncludeAssignments(ctx, data.Assignments)...)
+		for _, group := range data.Assignments.IncludeGroups {
+			if !group.GroupId.IsNull() && !group.GroupId.IsUnknown() && group.GroupId.ValueString() != "" {
+				hasAssignments = true
+				assignments = append(assignments, constructGroupIncludeAssignments(ctx, data.Assignments)...)
+				break
+			}
+		}
 	}
 
-	// Handle Exclude Groups assignment
+	// Check Exclude Groups
 	if len(data.Assignments.ExcludeGroupIds) > 0 {
-		assignments = append(assignments, constructGroupExcludeAssignments(data.Assignments)...)
+		for _, id := range data.Assignments.ExcludeGroupIds {
+			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
+				hasAssignments = true
+				assignments = append(assignments, constructGroupExcludeAssignments(data.Assignments)...)
+				break
+			}
+		}
 	}
 
+	// Always set assignments (will be empty array if no active assignments)
+	// as update http method is a post not patch.
 	requestBody.SetAssignments(assignments)
+
+	tflog.Debug(ctx, "Assignment construction complete", map[string]interface{}{
+		"has_assignments":    hasAssignments,
+		"total_assignments":  len(assignments),
+		"all_devices":        data.Assignments.AllDevices.ValueBool(),
+		"all_users":          data.Assignments.AllUsers.ValueBool(),
+		"include_groups_len": len(data.Assignments.IncludeGroups),
+		"exclude_ids_len":    len(data.Assignments.ExcludeGroupIds),
+	})
+
 	return requestBody, nil
-}
-
-// ValidateAssignmentConfiguration validates the assignment configuration
-// - if all_devices is false, device filter settings should not be set
-// - if all_users is false, user filter settings should not be set
-// - AllDevicesFilterType must be one of: include, exclude, none
-// - AllUsersFilterType must be one of: include, exclude, none
-// - IncludeGroupsFilterType must be one of: include, exclude, none
-// - ExcludeGroupIds must be in alphanumeric order by group_id
-// - IncludeGroups must be in alphanumeric order by group_id
-// - No group is used more than once across include and exclude assignments
-// - AllDevices and IncludeGroups cannot be used at the same time
-// - AllUsers and IncludeGroups cannot be used at the same time
-func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceModel) error {
-	// Validate filter types have valid values
-	validFilterTypes := map[string]bool{
-		"include": true,
-		"exclude": true,
-		"none":    true,
-	}
-
-	if !config.AllDevices.ValueBool() {
-		if !config.AllDevicesFilterType.IsNull() || !config.AllDevicesFilterId.IsNull() {
-			return fmt.Errorf("all_devices_filter_type and/or all_devices_filter_id cannot be set when all_devices is false")
-		}
-	}
-
-	if !config.AllUsers.ValueBool() {
-		if !config.AllUsersFilterType.IsNull() || !config.AllUsersFilterId.IsNull() {
-			return fmt.Errorf("all_users_filter_type and/or all_users_filter_id cannot be set when all_users is false")
-		}
-	}
-
-	if !config.AllDevicesFilterType.IsNull() && !validFilterTypes[config.AllDevicesFilterType.ValueString()] {
-		return fmt.Errorf("AllDevicesFilterType must be one of: include, exclude, none. Got: %s",
-			config.AllDevicesFilterType.ValueString())
-	}
-
-	if !config.AllUsersFilterType.IsNull() && !validFilterTypes[config.AllUsersFilterType.ValueString()] {
-		return fmt.Errorf("AllUsersFilterType must be one of: include, exclude, none. Got: %s",
-			config.AllUsersFilterType.ValueString())
-	}
-
-	// Validate include_groups filter types and alphanumeric order
-	if len(config.IncludeGroups) > 1 {
-		for i := 0; i < len(config.IncludeGroups)-1; i++ {
-			current := config.IncludeGroups[i].GroupId.ValueString()
-			next := config.IncludeGroups[i+1].GroupId.ValueString()
-			if current > next {
-				return fmt.Errorf("include_groups must be in alphanumeric order by group_id. Found %s before %s",
-					current, next)
-			}
-		}
-	}
-
-	for _, group := range config.IncludeGroups {
-		if !group.IncludeGroupsFilterType.IsNull() && !validFilterTypes[group.IncludeGroupsFilterType.ValueString()] {
-			return fmt.Errorf("IncludeGroupsFilterType must be one of: include, exclude, none. Got: %s",
-				group.IncludeGroupsFilterType.ValueString())
-		}
-	}
-
-	// Validate exclude_group_ids are in alphanumeric order
-	if len(config.ExcludeGroupIds) > 1 {
-		for i := 0; i < len(config.ExcludeGroupIds)-1; i++ {
-			current := config.ExcludeGroupIds[i].ValueString()
-			next := config.ExcludeGroupIds[i+1].ValueString()
-			if current > next {
-				return fmt.Errorf("exclude_group_ids must be in alphanumeric order. Found %s before %s",
-					current, next)
-			}
-		}
-	}
-
-	// Validate no group is used more than once across include and exclude assignments
-	for _, includeGroup := range config.IncludeGroups {
-		for _, excludeGroupId := range config.ExcludeGroupIds {
-			if !includeGroup.GroupId.IsNull() && !excludeGroupId.IsNull() &&
-				includeGroup.GroupId.ValueString() == excludeGroupId.ValueString() {
-				return fmt.Errorf("group %s is used in both include and exclude assignments. Each group assignment can only be used once across all assignment rules",
-					includeGroup.GroupId.ValueString())
-			}
-		}
-	}
-
-	// Validate AllDevices cannot be used with Include Groups
-	if !config.AllDevices.IsNull() && config.AllDevices.ValueBool() && len(config.IncludeGroups) > 0 {
-		return fmt.Errorf("cannot assign to All Devices and Include Groups at the same time")
-	}
-
-	// Validate AllUsers cannot be used with Include Groups
-	if !config.AllUsers.IsNull() && config.AllUsers.ValueBool() && len(config.IncludeGroups) > 0 {
-		return fmt.Errorf("cannot assign to All Users and Include Groups at the same time")
-	}
-
-	return nil
 }
 
 // constructAllDevicesAssignment constructs and returns a DeviceManagementConfigurationPolicyAssignment object for all devices
@@ -153,16 +85,19 @@ func constructAllDevicesAssignment(ctx context.Context, config *SettingsCatalogS
 	assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
 	target := graphmodels.NewAllDevicesAssignmentTarget()
 
-	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterType.IsNull() {
+	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
+		config.AllDevicesFilterId.ValueString() != "" {
 		construct.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
-		err := construct.ParseEnum(config.AllDevicesFilterType,
-			graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-			target.SetDeviceAndAppManagementAssignmentFilterType)
-		if err != nil {
-			tflog.Warn(ctx, "Failed to parse all devices filter type", map[string]interface{}{
-				"error": err.Error(),
-			})
+		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
+			err := construct.ParseEnum(config.AllDevicesFilterType,
+				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
+				target.SetDeviceAndAppManagementAssignmentFilterType)
+			if err != nil {
+				tflog.Warn(ctx, "Failed to parse all devices filter type", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 		}
 	}
 
@@ -175,16 +110,19 @@ func constructAllUsersAssignment(ctx context.Context, config *SettingsCatalogSet
 	assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
 	target := graphmodels.NewAllLicensedUsersAssignmentTarget()
 
-	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterType.IsNull() {
+	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
+		config.AllUsersFilterId.ValueString() != "" {
 		construct.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
-		err := construct.ParseEnum(config.AllUsersFilterType,
-			graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-			target.SetDeviceAndAppManagementAssignmentFilterType)
-		if err != nil {
-			tflog.Warn(ctx, "Failed to parse all users filter type", map[string]interface{}{
-				"error": err.Error(),
-			})
+		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
+			err := construct.ParseEnum(config.AllUsersFilterType,
+				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
+				target.SetDeviceAndAppManagementAssignmentFilterType)
+			if err != nil {
+				tflog.Warn(ctx, "Failed to parse all users filter type", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 		}
 	}
 
@@ -227,17 +165,28 @@ func constructGroupIncludeAssignments(ctx context.Context, config *SettingsCatal
 func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentResourceModel) []graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
 	var assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable
 
+	// Check if we have any non-null, non-empty values
+	hasValidExcludes := false
 	for _, groupId := range config.ExcludeGroupIds {
-		// Only process if the group ID is not null or unknown
-		if !groupId.IsNull() && !groupId.IsUnknown() {
-			assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
-			target := graphmodels.NewExclusionGroupAssignmentTarget()
+		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
+			hasValidExcludes = true
+			break
+		}
+	}
 
-			// Use construct helper for setting the group ID
-			construct.SetStringProperty(groupId, target.SetGroupId)
+	// Only process if we have valid excludes
+	if hasValidExcludes {
+		for _, groupId := range config.ExcludeGroupIds {
+			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
+				assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
+				target := graphmodels.NewExclusionGroupAssignmentTarget()
 
-			assignment.SetTarget(target)
-			assignments = append(assignments, assignment)
+				// Use construct helper for setting the group ID
+				construct.SetStringProperty(groupId, target.SetGroupId)
+
+				assignment.SetTarget(target)
+				assignments = append(assignments, assignment)
+			}
 		}
 	}
 

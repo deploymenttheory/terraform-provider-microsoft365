@@ -10,13 +10,14 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map assignment state to Terraform state")
+	tflog.Debug(ctx, "Starting to map policy assignment to Terraform state")
 
 	assignments := &SettingsCatalogSettingsAssignmentResourceModel{
 		AllDevices: types.BoolValue(false),
@@ -28,8 +29,17 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 	if len(allDeviceAssignments) > 0 {
 		assignments.AllDevices = types.BoolValue(true)
 		if target := allDeviceAssignments[0].GetTarget(); target != nil {
-			assignments.AllDevicesFilterId = types.StringValue(state.StringPtrToString(target.GetDeviceAndAppManagementAssignmentFilterId()))
-			assignments.AllDevicesFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
+			if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
+				assignments.AllDevicesFilterId = types.StringValue(*filterId)
+			} else {
+				assignments.AllDevicesFilterId = types.StringNull()
+			}
+
+			if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil && assignments.AllDevicesFilterId.ValueString() != "" {
+				assignments.AllDevicesFilterType = state.EnumPtrToTypeString(filterType)
+			} else {
+				assignments.AllDevicesFilterType = types.StringValue("none")
+			}
 		}
 	}
 
@@ -38,8 +48,17 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 	if len(allUserAssignments) > 0 {
 		assignments.AllUsers = types.BoolValue(true)
 		if target := allUserAssignments[0].GetTarget(); target != nil {
-			assignments.AllUsersFilterId = types.StringValue(state.StringPtrToString(target.GetDeviceAndAppManagementAssignmentFilterId()))
-			assignments.AllUsersFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
+			if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
+				assignments.AllUsersFilterId = types.StringValue(*filterId)
+			} else {
+				assignments.AllUsersFilterId = types.StringNull()
+			}
+
+			if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil && assignments.AllUsersFilterId.ValueString() != "" {
+				assignments.AllUsersFilterType = state.EnumPtrToTypeString(filterType)
+			} else {
+				assignments.AllUsersFilterType = types.StringValue("none")
+			}
 		}
 	}
 
@@ -53,9 +72,15 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 					GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
 				}
 
-				if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-					includeGroup.IncludeGroupsFilterId = types.StringValue(state.StringPtrToString(filterId))
-					includeGroup.IncludeGroupsFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
+				// Handle filter ID and type
+				if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
+					includeGroup.IncludeGroupsFilterId = types.StringValue(*filterId)
+					if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
+						includeGroup.IncludeGroupsFilterType = state.EnumPtrToTypeString(filterType)
+					}
+				} else {
+					includeGroup.IncludeGroupsFilterId = types.StringNull()
+					includeGroup.IncludeGroupsFilterType = types.StringValue("none")
 				}
 
 				assignments.IncludeGroups = append(assignments.IncludeGroups, includeGroup)
@@ -65,24 +90,6 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 		// Sort IncludeGroups by GroupId
 		sort.Slice(assignments.IncludeGroups, func(i, j int) bool {
 			return assignments.IncludeGroups[i].GroupId.ValueString() < assignments.IncludeGroups[j].GroupId.ValueString()
-		})
-	}
-
-	// Map Exclude Group assignments
-	excludeGroupAssignments := GetExcludeGroupAssignments(assignmentsResponse)
-	if len(excludeGroupAssignments) > 0 {
-		assignments.ExcludeGroupIds = make([]types.String, 0, len(excludeGroupAssignments))
-		for _, assignment := range excludeGroupAssignments {
-			if target, ok := assignment.GetTarget().(models.ExclusionGroupAssignmentTargetable); ok {
-				if groupId := target.GetGroupId(); groupId != nil {
-					assignments.ExcludeGroupIds = append(assignments.ExcludeGroupIds, types.StringValue(*groupId))
-				}
-			}
-		}
-
-		// Sort ExcludeGroupIds
-		sort.Slice(assignments.ExcludeGroupIds, func(i, j int) bool {
-			return assignments.ExcludeGroupIds[i].ValueString() < assignments.ExcludeGroupIds[j].ValueString()
 		})
 	}
 
