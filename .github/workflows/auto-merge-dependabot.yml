@@ -9,11 +9,8 @@ permissions:
   contents: write
 
 jobs:
-
   dependabot-merge:
-
     runs-on: ubuntu-latest
-
     if: ${{ github.actor == 'dependabot[bot]' }}
 
     steps:
@@ -23,9 +20,91 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Enable auto-merge for Dependabot PRs
-        # Only if version bump is not a major version change
-        if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
+      # Process Go dependencies
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        if: ${{ steps.metadata.outputs.package-ecosystem == 'gomod' }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        if: ${{ steps.metadata.outputs.package-ecosystem == 'gomod' }}
+        with:
+          go-version: 'stable'
+
+      - name: Process Go dependencies sequentially
+        if: ${{ steps.metadata.outputs.package-ecosystem == 'gomod' }}
+        run: |
+          # Get all open Go-related Dependabot PRs
+          echo "Fetching all Go-related Dependabot PRs..."
+          GO_PRS=$(gh pr list \
+            --author "dependabot[bot]" \
+            --json number,title,headRefName,body,baseRefName \
+            --state open \
+            --jq '.[] | select(.body | contains("go.mod"))')
+          
+          # Process each PR sequentially
+          echo "$GO_PRS" | while read -r pr; do
+            PR_NUMBER=$(echo "$pr" | jq -r .number)
+            HEAD_BRANCH=$(echo "$pr" | jq -r .headRefName)
+            BASE_BRANCH=$(echo "$pr" | jq -r .baseRefName)
+            
+            echo "Processing PR #$PR_NUMBER ($HEAD_BRANCH)"
+            
+            # Ensure we're on a clean state
+            git fetch origin $BASE_BRANCH
+            git checkout $BASE_BRANCH
+            git pull origin $BASE_BRANCH
+            
+            # Checkout the PR branch
+            echo "Checking out PR branch $HEAD_BRANCH"
+            git fetch origin $HEAD_BRANCH
+            git checkout $HEAD_BRANCH
+            git pull origin $HEAD_BRANCH
+            
+            # Run go mod tidy for this PR
+            echo "Running go mod tidy for PR #$PR_NUMBER"
+            go mod tidy
+            
+            # Commit and push changes if any
+            if git diff --quiet; then
+              echo "No changes after go mod tidy for PR #$PR_NUMBER"
+            else
+              echo "Committing changes for PR #$PR_NUMBER"
+              git config --global user.name "GitHub Actions"
+              git config --global user.email "actions@github.com"
+              git commit -am "chore: go mod tidy for PR #$PR_NUMBER"
+              git push origin $HEAD_BRANCH
+            fi
+            
+            # If this is the current PR and it's not a major version update, enable auto-merge
+            if [ "$PR_NUMBER" = "$CURRENT_PR_NUMBER" ] && \
+               [ "$UPDATE_TYPE" != "version-update:semver-major" ]; then
+              echo "Enabling auto-merge for PR #$PR_NUMBER"
+              gh pr merge --auto --merge "$CURRENT_PR_URL"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          CURRENT_PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+
+      # Auto-merge pipeline dependencies
+      - name: Enable auto-merge for pipeline dependencies
+        if: |
+          steps.metadata.outputs.update-type != 'version-update:semver-major' && 
+          contains(steps.metadata.outputs.directory, '.github/workflows')
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      # Auto-merge other dependencies
+      - name: Enable auto-merge for other dependencies
+        if: |
+          steps.metadata.outputs.update-type != 'version-update:semver-major' && 
+          steps.metadata.outputs.package-ecosystem != 'gomod' &&
+          !contains(steps.metadata.outputs.directory, '.github/workflows')
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
