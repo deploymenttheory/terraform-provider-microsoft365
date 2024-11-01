@@ -3,9 +3,7 @@ package graphBetaWindowsSettingsCatalog
 import (
 	"context"
 	"fmt"
-	"regexp"
 
-	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -29,9 +27,6 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &WindowsSettingsCatalogResource{}
-
-	// Regex compiler
-	guidRegex = regexp.MustCompile(helpers.GuidRegex)
 )
 
 func NewWindowsSettingsCatalogResource() resource.Resource {
@@ -96,12 +91,16 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 				Description: "The description of the Windows Settings Catalog profile.",
 			},
 			"platforms": schema.StringAttribute{
-				Computed:    true,
+				Required:    true,
 				Description: "The platforms this profile supports.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
+			// "platforms": schema.StringAttribute{
+			// 	Computed:    true,
+			// 	Description: "The platforms this profile supports.",
+			// 	PlanModifiers: []planmodifier.String{
+			// 		stringplanmodifier.UseStateForUnknown(),
+			// 	},
+			// },
 			"technologies": schema.StringAttribute{
 				Computed:    true,
 				Description: "The technologies this profile uses.",

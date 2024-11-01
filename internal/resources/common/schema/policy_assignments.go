@@ -1,11 +1,19 @@
 package schema
 
 import (
+	"regexp"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+var (
+	// Regex compiler
+	guidRegex = regexp.MustCompile(helpers.GuidRegex)
 )
 
 func AssignmentsSchema() schema.SingleNestedAttribute {
