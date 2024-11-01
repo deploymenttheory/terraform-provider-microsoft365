@@ -1,0 +1,148 @@
+package errors
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
+)
+
+// GraphErrorInfo contains extracted information from a Graph API error
+type GraphErrorInfo struct {
+	StatusCode     int
+	ErrorCode      string
+	ErrorMessage   string
+	IsODataError   bool
+	AdditionalData map[string]interface{}
+	Headers        *abstractions.ResponseHeaders
+	RequestDetails string // Add request context
+}
+
+func GraphError(ctx context.Context, err error) GraphErrorInfo {
+	errorInfo := GraphErrorInfo{
+		AdditionalData: make(map[string]interface{}),
+	}
+
+	if err == nil {
+		return errorInfo
+	}
+
+	// Log initial error context
+	tflog.Debug(ctx, "Processing error", map[string]interface{}{
+		"error_type": fmt.Sprintf("%T", err),
+		"error":      err.Error(),
+	})
+
+	// Handle ApiErrorable interface
+	if apiErr, ok := err.(abstractions.ApiErrorable); ok {
+		errorInfo.StatusCode = apiErr.GetStatusCode()
+		errorInfo.Headers = apiErr.GetResponseHeaders()
+
+		// Log headers for debugging
+		if headers := apiErr.GetResponseHeaders(); headers != nil {
+			for _, key := range headers.ListKeys() {
+				values := headers.Get(key)
+				if len(values) > 0 {
+					errorInfo.RequestDetails += fmt.Sprintf("%s: %v\n", key, values)
+				}
+			}
+		}
+
+		if odataErr, ok := err.(*odataerrors.ODataError); ok {
+			errorInfo.IsODataError = true
+			if mainError := odataErr.GetErrorEscaped(); mainError != nil {
+				if code := mainError.GetCode(); code != nil {
+					errorInfo.ErrorCode = *code
+				}
+				if message := mainError.GetMessage(); message != nil {
+					errorInfo.ErrorMessage = *message
+				}
+			}
+			errorInfo.AdditionalData = odataErr.GetAdditionalData()
+		} else if apiBaseErr, ok := apiErr.(*abstractions.ApiError); ok {
+			errorInfo.ErrorMessage = apiBaseErr.Message
+		}
+	} else {
+		// Handle non-API errors
+		errorInfo.ErrorMessage = err.Error()
+
+		// Extract status code from error message more clearly
+		errorInfo.StatusCode = parseStatusCode(err.Error())
+	}
+
+	// Ensure we have a meaningful error message
+	if errorInfo.ErrorMessage == "" || strings.Contains(errorInfo.ErrorMessage, "error status code received from the API") {
+		errorInfo.ErrorMessage = constructMeaningfulErrorMessage(errorInfo)
+	}
+
+	logErrorDetails(ctx, &errorInfo)
+	return errorInfo
+}
+
+func parseStatusCode(errMsg string) int {
+	// Look for status code in error message
+	if strings.Contains(errMsg, "status code") {
+		// Try to find the actual number after any variation of "status code"
+		parts := strings.Split(errMsg, "status code")
+		if len(parts) > 1 {
+			// Clean up and parse the remaining string for a number
+			remaining := strings.Trim(parts[1], " :")
+			for _, word := range strings.Fields(remaining) {
+				if code, err := strconv.Atoi(word); err == nil {
+					return code
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func constructMeaningfulErrorMessage(errorInfo GraphErrorInfo) string {
+	switch errorInfo.StatusCode {
+	case 400:
+		return "The request was invalid or malformed. Please check the request parameters and try again."
+	case 401:
+		return "Authentication failed. Please check your credentials and permissions."
+	case 403:
+		return "You don't have permission to perform this action."
+	case 404:
+		return "The requested resource was not found."
+	case 409:
+		return "The request conflicts with the current state of the server."
+	case 429:
+		return "Too many requests. Please try again later."
+	case 500:
+		return "An internal server error occurred. Please try again later."
+	default:
+		if errorInfo.StatusCode > 0 {
+			return fmt.Sprintf("Unexpected error occurred (HTTP %d). Please check the request and try again.", errorInfo.StatusCode)
+		}
+		return "An unexpected error occurred. Please check the request and try again."
+	}
+}
+
+func logErrorDetails(ctx context.Context, errorInfo *GraphErrorInfo) {
+	details := map[string]interface{}{
+		"status_code":    errorInfo.StatusCode,
+		"is_odata_error": errorInfo.IsODataError,
+		"error_message":  errorInfo.ErrorMessage,
+	}
+
+	if errorInfo.ErrorCode != "" {
+		details["error_code"] = errorInfo.ErrorCode
+	}
+
+	if len(errorInfo.AdditionalData) > 0 {
+		details["additional_data"] = errorInfo.AdditionalData
+	}
+
+	if errorInfo.RequestDetails != "" {
+		details["request_details"] = errorInfo.RequestDetails
+	}
+
+	tflog.Debug(ctx, "Final error details", details)
+}

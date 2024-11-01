@@ -3,6 +3,8 @@ package graphBetaWindowsSettingsCatalog
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -10,11 +12,14 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// ConstructAssignmentRequestBody constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
+// constructAssignments constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
 		return nil, fmt.Errorf("assignments configuration is required")
 	}
+
+	tflog.Debug(ctx, "Starting assignment construction")
+	logAssignmentDetails(ctx, data.Assignments)
 
 	if err := validateAssignmentConfig(data.Assignments); err != nil {
 		return nil, err
@@ -50,6 +55,8 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 }
 
 // ValidateAssignmentConfiguration validates the assignment configuration
+// - if all_devices is false, device filter settings should not be set
+// - if all_users is false, user filter settings should not be set
 // - AllDevicesFilterType must be one of: include, exclude, none
 // - AllUsersFilterType must be one of: include, exclude, none
 // - IncludeGroupsFilterType must be one of: include, exclude, none
@@ -62,6 +69,18 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 		"include": true,
 		"exclude": true,
 		"none":    true,
+	}
+
+	if !config.AllDevices.ValueBool() {
+		if !config.AllDevicesFilterType.IsNull() || !config.AllDevicesFilterId.IsNull() {
+			return fmt.Errorf("all_devices_filter_type and/or all_devices_filter_id cannot be set when all_devices is false")
+		}
+	}
+
+	if !config.AllUsers.ValueBool() {
+		if !config.AllUsersFilterType.IsNull() || !config.AllUsersFilterId.IsNull() {
+			return fmt.Errorf("all_users_filter_type and/or all_users_filter_id cannot be set when all_users is false")
+		}
 	}
 
 	if !config.AllDevicesFilterType.IsNull() && !validFilterTypes[config.AllDevicesFilterType.ValueString()] {
@@ -100,6 +119,28 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 	// Validate AllUsers cannot be used with Include Groups
 	if !config.AllUsers.IsNull() && config.AllUsers.ValueBool() && len(config.IncludeGroups) > 0 {
 		return fmt.Errorf("cannot assign to All Users and Include Groups at the same time")
+	}
+
+	// Validate exclude_group_ids are in alphanumeric order
+	if len(config.ExcludeGroupIds) > 1 {
+		for i := 0; i < len(config.ExcludeGroupIds)-1; i++ {
+			current := config.ExcludeGroupIds[i].ValueString()
+			next := config.ExcludeGroupIds[i+1].ValueString()
+			if current > next {
+				// Create ordered slice for error message
+				expected := make([]string, len(config.ExcludeGroupIds))
+				for j, id := range config.ExcludeGroupIds {
+					expected[j] = id.ValueString()
+				}
+				sort.Strings(expected)
+
+				// Format current and expected states for error message
+				got := fmt.Sprintf("[%s]", strings.Join(arrayToStrings(config.ExcludeGroupIds), ", "))
+				want := fmt.Sprintf("[%s]", strings.Join(expected, ", "))
+
+				return fmt.Errorf("exclude_group_ids must be in alphanumeric order. got: %s, expected: %s", got, want)
+			}
+		}
 	}
 
 	return nil
@@ -199,4 +240,48 @@ func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentR
 	}
 
 	return assignments
+}
+
+// logAssignmentDetails logs detailed information about the assignments configuration
+func logAssignmentDetails(ctx context.Context, assignments *SettingsCatalogSettingsAssignmentResourceModel) {
+	tflog.Debug(ctx, "Policy Assignment Configuration Details", map[string]interface{}{
+		// All Devices fields
+		"all_devices":             assignments.AllDevices.ValueBool(),
+		"all_devices_filter_id":   assignments.AllDevicesFilterId.ValueString(),
+		"all_devices_filter_type": assignments.AllDevicesFilterType.ValueString(),
+
+		// All Users fields
+		"all_users":             assignments.AllUsers.ValueBool(),
+		"all_users_filter_id":   assignments.AllUsersFilterId.ValueString(),
+		"all_users_filter_type": assignments.AllUsersFilterType.ValueString(),
+
+		// Include Groups count
+		"include_groups_count": len(assignments.IncludeGroups),
+
+		// Exclude Groups count
+		"exclude_groups_count": len(assignments.ExcludeGroupIds),
+	})
+
+	// Log each include group separately
+	if len(assignments.IncludeGroups) > 0 {
+		for i, group := range assignments.IncludeGroups {
+			tflog.Debug(ctx, "Include Group Details", map[string]interface{}{
+				"index":                      i,
+				"group_id":                   group.GroupId.ValueString(),
+				"include_groups_filter_id":   group.IncludeGroupsFilterId.ValueString(),
+				"include_groups_filter_type": group.IncludeGroupsFilterType.ValueString(),
+			})
+		}
+	}
+
+	// Log exclude groups
+	if len(assignments.ExcludeGroupIds) > 0 {
+		excludeIds := make([]string, 0, len(assignments.ExcludeGroupIds))
+		for _, id := range assignments.ExcludeGroupIds {
+			excludeIds = append(excludeIds, id.ValueString())
+		}
+		tflog.Debug(ctx, "Exclude Group Details", map[string]interface{}{
+			"exclude_group_ids": excludeIds,
+		})
+	}
 }

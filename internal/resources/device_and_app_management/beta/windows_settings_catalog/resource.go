@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -80,10 +82,13 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 	resp.Schema = schema.Schema{
 		Description: "Manages a Windows Settings Catalog profile in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
-			// Profile attributes
+			// Policy base attributes
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The unique identifier for this Windows Settings Catalog profile.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Required:    true,
@@ -96,10 +101,16 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 			"platforms": schema.StringAttribute{
 				Computed:    true,
 				Description: "The platforms this profile supports.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"technologies": schema.StringAttribute{
 				Computed:    true,
 				Description: "The technologies this profile uses.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"settings_count": schema.Int32Attribute{
 				Computed:    true,
@@ -117,6 +128,9 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 			"created_date_time": schema.StringAttribute{
 				Computed:    true,
 				Description: "The date and time when this profile was created.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			// Settings attributes

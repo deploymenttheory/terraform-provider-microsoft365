@@ -2,6 +2,7 @@ package graphBetaWindowsSettingsCatalog
 
 import (
 	"context"
+	"sort"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -60,6 +61,11 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 				assignments.IncludeGroups = append(assignments.IncludeGroups, includeGroup)
 			}
 		}
+
+		// Sort IncludeGroups by GroupId
+		sort.Slice(assignments.IncludeGroups, func(i, j int) bool {
+			return assignments.IncludeGroups[i].GroupId.ValueString() < assignments.IncludeGroups[j].GroupId.ValueString()
+		})
 	}
 
 	// Map Exclude Group assignments
@@ -73,6 +79,11 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 				}
 			}
 		}
+
+		// Sort ExcludeGroupIds
+		sort.Slice(assignments.ExcludeGroupIds, func(i, j int) bool {
+			return assignments.ExcludeGroupIds[i].ValueString() < assignments.ExcludeGroupIds[j].ValueString()
+		})
 	}
 
 	data.Assignments = assignments
