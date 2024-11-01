@@ -93,6 +93,32 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 		})
 	}
 
+	// Map Exclude Group assignments
+	excludeGroupAssignments := GetExcludeGroupAssignments(assignmentsResponse)
+	if len(excludeGroupAssignments) > 0 {
+		excludeGroupIds := make([]types.String, 0, len(excludeGroupAssignments))
+		for _, assignment := range excludeGroupAssignments {
+			if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
+				if groupId := target.GetGroupId(); groupId != nil {
+					excludeGroupIds = append(excludeGroupIds, types.StringValue(*groupId))
+				}
+			}
+		}
+
+		// Sort exclude group IDs alphanumerically
+		sort.Slice(excludeGroupIds, func(i, j int) bool {
+			return excludeGroupIds[i].ValueString() < excludeGroupIds[j].ValueString()
+		})
+
+		if len(excludeGroupIds) > 0 {
+			assignments.ExcludeGroupIds = excludeGroupIds
+		} else {
+			assignments.ExcludeGroupIds = nil
+		}
+	} else {
+		assignments.ExcludeGroupIds = nil
+	}
+
 	data.Assignments = assignments
 
 	tflog.Debug(ctx, "Finished mapping assignment to Terraform state")
