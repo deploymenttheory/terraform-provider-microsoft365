@@ -129,6 +129,7 @@ func (r *WindowsSettingsCatalogResource) Schema(ctx context.Context, req resourc
 		},
 	}
 }
+
 func settingsSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Required:    true,

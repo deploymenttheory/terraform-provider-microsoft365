@@ -22,27 +22,46 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 		data.Settings = make([]DeviceManagementConfigurationSettingResourceModel, len(settings))
 		for i, setting := range settings {
 			if instance := setting.GetSettingInstance(); instance != nil {
+				// Always use the standard setting type at the top level
 				settingModel := DeviceManagementConfigurationSettingResourceModel{
-					ODataType: types.StringValue(state.StringPtrToString(instance.GetOdataType())),
+					ODataType: types.StringValue("#microsoft.graph.deviceManagementConfigurationSetting"),
 				}
 
 				// Map setting instance
 				settingInstance := &DeviceManagementConfigurationSettingInstance{
-					ODataType:           types.StringValue(state.StringPtrToString(instance.GetOdataType())),
 					SettingDefinitionID: types.StringValue(state.StringPtrToString(instance.GetSettingDefinitionId())),
+				}
+
+				// Set the correct instance OData type based on the instance type
+				switch instance.(type) {
+				case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
+					settingInstance.ODataType = types.StringValue("#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance")
+				case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
+					settingInstance.ODataType = types.StringValue("#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance")
+				case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
+					settingInstance.ODataType = types.StringValue("#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance")
 				}
 
 				// Handle different setting types
 				switch v := instance.(type) {
 				case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 					if simpleValue := v.GetSimpleSettingValue(); simpleValue != nil {
-						settingInstance.ChoiceSettingValue = mapSimpleSettingValue(simpleValue)
+						settingInstance.ChoiceSettingValue = &DeviceManagementConfigurationChoiceSettingValue{
+							ODataType: types.StringValue("#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"),
+						}
+
+						switch sv := simpleValue.(type) {
+						case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
+							if intVal := sv.GetValue(); intVal != nil {
+								settingInstance.ChoiceSettingValue.IntValue = state.Int32PtrToTypeInt32(intVal)
+							}
+						}
 					}
 
 				case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
 					if choiceValue := v.GetChoiceSettingValue(); choiceValue != nil {
 						settingInstance.ChoiceSettingValue = &DeviceManagementConfigurationChoiceSettingValue{
-							ODataType:   types.StringValue(state.StringPtrToString(choiceValue.GetOdataType())),
+							ODataType:   types.StringValue("#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"),
 							StringValue: types.StringValue(state.StringPtrToString(choiceValue.GetValue())),
 						}
 					}
@@ -50,13 +69,20 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 				case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
 					if collectionValues := v.GetSimpleSettingCollectionValue(); len(collectionValues) > 0 {
 						settingInstance.ChoiceSettingValue = &DeviceManagementConfigurationChoiceSettingValue{
-							Children: make([]DeviceManagementConfigurationSettingInstance, len(collectionValues)),
+							ODataType: types.StringValue("#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"),
+							Children:  make([]DeviceManagementConfigurationSettingInstance, len(collectionValues)),
 						}
 
 						for j, collectionValue := range collectionValues {
-							child := mapSimpleSettingValue(collectionValue)
-							settingInstance.ChoiceSettingValue.Children[j] = DeviceManagementConfigurationSettingInstance{
-								ChoiceSettingValue: child,
+							switch cv := collectionValue.(type) {
+							case graphmodels.DeviceManagementConfigurationStringSettingValueable:
+								if strVal := cv.GetValue(); strVal != nil {
+									settingInstance.ChoiceSettingValue.Children[j] = DeviceManagementConfigurationSettingInstance{
+										ChoiceSettingValue: &DeviceManagementConfigurationChoiceSettingValue{
+											StringValue: types.StringValue(*strVal),
+										},
+									}
+								}
 							}
 						}
 					}
@@ -69,24 +95,4 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 	}
 
 	tflog.Debug(ctx, "Finished mapping settings state to Terraform state")
-}
-
-// Helper function to map simple setting values
-func mapSimpleSettingValue(value graphmodels.DeviceManagementConfigurationSimpleSettingValueable) *DeviceManagementConfigurationChoiceSettingValue {
-	result := &DeviceManagementConfigurationChoiceSettingValue{
-		ODataType: types.StringValue(state.StringPtrToString(value.GetOdataType())),
-	}
-
-	switch v := value.(type) {
-	case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
-		if intVal := v.GetValue(); intVal != nil {
-			result.IntValue = state.Int32PtrToTypeInt32(intVal)
-		}
-	case graphmodels.DeviceManagementConfigurationStringSettingValueable:
-		if strVal := v.GetValue(); strVal != nil {
-			result.StringValue = types.StringValue(*strVal)
-		}
-	}
-
-	return result
 }
