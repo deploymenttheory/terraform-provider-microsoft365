@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphsdkmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
@@ -24,7 +25,7 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 	}
 
 	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
-	assignments := make([]graphmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
+	assignments := make([]graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
 
 	hasAssignments := false
 
@@ -81,9 +82,9 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 }
 
 // constructAllDevicesAssignment constructs and returns a DeviceManagementConfigurationPolicyAssignment object for all devices
-func constructAllDevicesAssignment(ctx context.Context, config *SettingsCatalogSettingsAssignmentResourceModel) graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
-	target := graphmodels.NewAllDevicesAssignmentTarget()
+func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
+	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+	target := graphsdkmodels.NewAllDevicesAssignmentTarget()
 
 	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
 		config.AllDevicesFilterId.ValueString() != "" {
@@ -91,7 +92,7 @@ func constructAllDevicesAssignment(ctx context.Context, config *SettingsCatalogS
 
 		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
 			err := construct.ParseEnum(config.AllDevicesFilterType,
-				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
+				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
 				tflog.Warn(ctx, "Failed to parse all devices filter type", map[string]interface{}{
@@ -106,9 +107,9 @@ func constructAllDevicesAssignment(ctx context.Context, config *SettingsCatalogS
 }
 
 // constructAllUsersAssignment constructs and returns a DeviceManagementConfigurationPolicyAssignment object for all licensed users
-func constructAllUsersAssignment(ctx context.Context, config *SettingsCatalogSettingsAssignmentResourceModel) graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
-	target := graphmodels.NewAllLicensedUsersAssignmentTarget()
+func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
+	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+	target := graphsdkmodels.NewAllLicensedUsersAssignmentTarget()
 
 	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
 		config.AllUsersFilterId.ValueString() != "" {
@@ -116,7 +117,7 @@ func constructAllUsersAssignment(ctx context.Context, config *SettingsCatalogSet
 
 		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
 			err := construct.ParseEnum(config.AllUsersFilterType,
-				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
+				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
 				tflog.Warn(ctx, "Failed to parse all users filter type", map[string]interface{}{
@@ -131,12 +132,12 @@ func constructAllUsersAssignment(ctx context.Context, config *SettingsCatalogSet
 }
 
 // constructGroupIncludeAssignments constructs and returns a list of DeviceManagementConfigurationPolicyAssignment objects for included groups
-func constructGroupIncludeAssignments(ctx context.Context, config *SettingsCatalogSettingsAssignmentResourceModel) []graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	var assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable
+func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
+	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
 
 	for _, groupFilter := range config.IncludeGroups {
-		assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
-		target := graphmodels.NewGroupAssignmentTarget()
+		assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+		target := graphsdkmodels.NewGroupAssignmentTarget()
 
 		construct.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
 
@@ -145,7 +146,7 @@ func constructGroupIncludeAssignments(ctx context.Context, config *SettingsCatal
 				target.SetDeviceAndAppManagementAssignmentFilterId)
 
 			err := construct.ParseEnum(groupFilter.IncludeGroupsFilterType,
-				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
+				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
 				tflog.Warn(ctx, "Failed to parse include groups filter type", map[string]interface{}{
@@ -162,8 +163,8 @@ func constructGroupIncludeAssignments(ctx context.Context, config *SettingsCatal
 	return assignments
 }
 
-func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentResourceModel) []graphmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	var assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable
+func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
+	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
 
 	// Check if we have any non-null, non-empty values
 	hasValidExcludes := false
@@ -178,8 +179,8 @@ func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentR
 	if hasValidExcludes {
 		for _, groupId := range config.ExcludeGroupIds {
 			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
-				assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
-				target := graphmodels.NewExclusionGroupAssignmentTarget()
+				assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
 
 				// Use construct helper for setting the group ID
 				construct.SetStringProperty(groupId, target.SetGroupId)
@@ -194,7 +195,7 @@ func constructGroupExcludeAssignments(config *SettingsCatalogSettingsAssignmentR
 }
 
 // logAssignmentDetails logs detailed information about the assignments configuration
-func logAssignmentDetails(ctx context.Context, assignments *SettingsCatalogSettingsAssignmentResourceModel) {
+func logAssignmentDetails(ctx context.Context, assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) {
 	tflog.Debug(ctx, "Policy Assignment Configuration Details", map[string]interface{}{
 		// All Devices fields
 		"all_devices":             assignments.AllDevices.ValueBool(),

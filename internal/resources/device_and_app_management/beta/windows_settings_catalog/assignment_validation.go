@@ -1,6 +1,10 @@
 package graphBetaWindowsSettingsCatalog
 
-import "fmt"
+import (
+	"fmt"
+
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
+)
 
 // ValidateAssignmentConfiguration validates the assignment configuration
 // - if all_devices is false, device filter settings should not be set
@@ -20,7 +24,7 @@ import "fmt"
 // - No group is used more than once across include and exclude assignments
 // - AllDevices and IncludeGroups cannot be used at the same time
 // - AllUsers and IncludeGroups cannot be used at the same time
-func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceModel) error {
+func validateAssignmentConfig(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) error {
 	// Validate filter types have valid values
 	validFilterTypes := map[string]bool{
 		"include": true,

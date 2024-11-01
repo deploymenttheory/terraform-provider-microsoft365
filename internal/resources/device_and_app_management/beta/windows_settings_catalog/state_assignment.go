@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -19,7 +20,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 
 	tflog.Debug(ctx, "Starting to map policy assignment to Terraform state")
 
-	assignments := &SettingsCatalogSettingsAssignmentResourceModel{
+	assignments := &sharedmodels.SettingsCatalogSettingsAssignmentResourceModel{
 		AllDevices: types.BoolValue(false),
 		AllUsers:   types.BoolValue(false),
 	}
@@ -46,7 +47,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSetti
 }
 
 // MapAllDeviceAssignments maps the all devices assignment configuration to the assignments model
-func MapAllDeviceAssignments(assignments *SettingsCatalogSettingsAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapAllDeviceAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
 	if len(allDeviceAssignments) == 0 {
 		return
 	}
@@ -69,7 +70,7 @@ func MapAllDeviceAssignments(assignments *SettingsCatalogSettingsAssignmentResou
 }
 
 // MapAllUserAssignments maps the all users assignment configuration to the assignments model
-func MapAllUserAssignments(assignments *SettingsCatalogSettingsAssignmentResourceModel, allUserAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapAllUserAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allUserAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
 	if len(allUserAssignments) == 0 {
 		return
 	}
@@ -92,16 +93,16 @@ func MapAllUserAssignments(assignments *SettingsCatalogSettingsAssignmentResourc
 }
 
 // MapIncludeGroupAssignments maps the include groups assignment configuration to the assignments model
-func MapIncludeGroupAssignments(assignments *SettingsCatalogSettingsAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
 	if len(includeGroupAssignments) == 0 {
 		return
 	}
 
-	assignments.IncludeGroups = make([]IncludeGroup, 0, len(includeGroupAssignments))
+	assignments.IncludeGroups = make([]sharedmodels.IncludeGroup, 0, len(includeGroupAssignments))
 
 	for _, assignment := range includeGroupAssignments {
 		if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
-			includeGroup := IncludeGroup{
+			includeGroup := sharedmodels.IncludeGroup{
 				GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
 			}
 
@@ -127,7 +128,7 @@ func MapIncludeGroupAssignments(assignments *SettingsCatalogSettingsAssignmentRe
 }
 
 // MapExcludeGroupAssignments maps the exclude groups assignment configuration to the assignments model
-func MapExcludeGroupAssignments(assignments *SettingsCatalogSettingsAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapExcludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
 	if len(excludeGroupAssignments) == 0 {
 		assignments.ExcludeGroupIds = nil
 		return
