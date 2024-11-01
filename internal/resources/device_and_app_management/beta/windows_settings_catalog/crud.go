@@ -14,11 +14,19 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation.
-// It performs the creation of the Windows Settings Catalog base settings and settings catalog settings as they
-// are required for successful creation of the Windows Settings Catalog. You cannot create this resource without settings
-// being defined. The function then creates the Windows Settings assignments which is optional. The function then sets
-// the state of the resource to the plan and returns the response.
+// Create handles the Create operation for Windows Settings Catalog resources.
+//
+//   - Retrieves the planned configuration from the create request
+//   - Constructs the resource request body from the plan
+//   - Sends POST request to create the base resource and settings
+//   - Captures the new resource ID from the response
+//   - Constructs and sends assignment configuration if specified
+//   - Maps the created resource state to Terraform
+//   - Updates the final state with all resource data
+//
+// The function ensures that both the settings catalog profile and its assignments
+// (if specified) are created properly. The settings must be defined during creation
+// as they are required for a successful deployment, while assignments are optional.
 func (r *WindowsSettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan WindowsSettingsCatalogProfileResourceModel
 
