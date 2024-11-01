@@ -3,8 +3,6 @@ package graphBetaWindowsSettingsCatalog
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -60,6 +58,8 @@ func constructAssignment(ctx context.Context, data *WindowsSettingsCatalogProfil
 // - AllDevicesFilterType must be one of: include, exclude, none
 // - AllUsersFilterType must be one of: include, exclude, none
 // - IncludeGroupsFilterType must be one of: include, exclude, none
+// - ExcludeGroupIds must be in alphanumeric order by group_id
+// - IncludeGroups must be in alphanumeric order by group_id
 // - No group is used more than once across include and exclude assignments
 // - AllDevices and IncludeGroups cannot be used at the same time
 // - AllUsers and IncludeGroups cannot be used at the same time
@@ -93,10 +93,34 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 			config.AllUsersFilterType.ValueString())
 	}
 
+	// Validate include_groups filter types and alphanumeric order
+	if len(config.IncludeGroups) > 1 {
+		for i := 0; i < len(config.IncludeGroups)-1; i++ {
+			current := config.IncludeGroups[i].GroupId.ValueString()
+			next := config.IncludeGroups[i+1].GroupId.ValueString()
+			if current > next {
+				return fmt.Errorf("include_groups must be in alphanumeric order by group_id. Found %s before %s",
+					current, next)
+			}
+		}
+	}
+
 	for _, group := range config.IncludeGroups {
 		if !group.IncludeGroupsFilterType.IsNull() && !validFilterTypes[group.IncludeGroupsFilterType.ValueString()] {
 			return fmt.Errorf("IncludeGroupsFilterType must be one of: include, exclude, none. Got: %s",
 				group.IncludeGroupsFilterType.ValueString())
+		}
+	}
+
+	// Validate exclude_group_ids are in alphanumeric order
+	if len(config.ExcludeGroupIds) > 1 {
+		for i := 0; i < len(config.ExcludeGroupIds)-1; i++ {
+			current := config.ExcludeGroupIds[i].ValueString()
+			next := config.ExcludeGroupIds[i+1].ValueString()
+			if current > next {
+				return fmt.Errorf("exclude_group_ids must be in alphanumeric order. Found %s before %s",
+					current, next)
+			}
 		}
 	}
 
@@ -119,28 +143,6 @@ func validateAssignmentConfig(config *SettingsCatalogSettingsAssignmentResourceM
 	// Validate AllUsers cannot be used with Include Groups
 	if !config.AllUsers.IsNull() && config.AllUsers.ValueBool() && len(config.IncludeGroups) > 0 {
 		return fmt.Errorf("cannot assign to All Users and Include Groups at the same time")
-	}
-
-	// Validate exclude_group_ids are in alphanumeric order
-	if len(config.ExcludeGroupIds) > 1 {
-		for i := 0; i < len(config.ExcludeGroupIds)-1; i++ {
-			current := config.ExcludeGroupIds[i].ValueString()
-			next := config.ExcludeGroupIds[i+1].ValueString()
-			if current > next {
-				// Create ordered slice for error message
-				expected := make([]string, len(config.ExcludeGroupIds))
-				for j, id := range config.ExcludeGroupIds {
-					expected[j] = id.ValueString()
-				}
-				sort.Strings(expected)
-
-				// Format current and expected states for error message
-				got := fmt.Sprintf("[%s]", strings.Join(arrayToStrings(config.ExcludeGroupIds), ", "))
-				want := fmt.Sprintf("[%s]", strings.Join(expected, ", "))
-
-				return fmt.Errorf("exclude_group_ids must be in alphanumeric order. got: %s, expected: %s", got, want)
-			}
-		}
 	}
 
 	return nil
