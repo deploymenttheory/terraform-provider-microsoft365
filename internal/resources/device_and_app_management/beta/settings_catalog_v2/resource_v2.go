@@ -201,6 +201,23 @@ func createSettingInstanceSchema(depth int) map[string]schema.Attribute {
 	return baseAttrs
 }
 
+// Helper function to create base setting instance attributes
+func createBaseSettingInstance() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"setting_definition_id": schema.StringAttribute{
+			Required:            true,
+			Description:         `settingDefinitionId`,
+			MarkdownDescription: "This is the settings catalog setting definition ID. e.g `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`",
+		},
+		"template_reference": schema.SingleNestedAttribute{
+			Optional:            true,
+			Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes(),
+			Description:         `settingInstanceTemplateReference`,
+			MarkdownDescription: "Setting Instance Template Reference",
+		},
+	}
+}
+
 // Template reference attributes used throughout the schema
 // Creates template reference attributes used throughout the schema
 func deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes() map[string]schema.Attribute {
@@ -241,23 +258,6 @@ func deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValu
 		"id": schema.StringAttribute{
 			Optional:            true,
 			MarkdownDescription: "Template ID",
-		},
-	}
-}
-
-// Helper function to create base setting instance attributes
-func createBaseSettingInstance() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         `settingDefinitionId`,
-			MarkdownDescription: "Setting Definition Id",
-		},
-		"template_reference": schema.SingleNestedAttribute{
-			Optional:            true,
-			Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes(),
-			Description:         `settingInstanceTemplateReference`,
-			MarkdownDescription: "Setting Instance Template Reference",
 		},
 	}
 }
