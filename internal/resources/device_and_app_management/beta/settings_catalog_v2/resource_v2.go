@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	// Derived types for setting instances
 	DeviceManagementConfigurationChoiceSettingInstance           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
 	DeviceManagementConfigurationChoiceSettingCollectionInstance = "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance"
 	DeviceManagementConfigurationSimpleSettingInstance           = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
@@ -25,6 +26,12 @@ const (
 	DeviceManagementConfigurationSettingGroupInstance            = "#microsoft.graph.deviceManagementConfigurationSettingGroupInstance"
 	DeviceManagementConfigurationSettingGroupCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance"
 	DeviceManagementConfigurationGroupSettingCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
+
+	// Derived types from `Simple Setting Value Attributes`
+	DeviceManagementConfigurationIntegerSettingValue   = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+	DeviceManagementConfigurationReferenceSettingValue = "#microsoft.graph.deviceManagementConfigurationReferenceSettingValue"
+	DeviceManagementConfigurationSecretSettingValue    = "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"
+	DeviceManagementConfigurationStringSettingValue    = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
 )
 
 var (
