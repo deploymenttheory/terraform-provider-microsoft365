@@ -126,11 +126,11 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Optional:    true,
 				Description: "List of scope tag IDs for this Windows Settings Catalog profile.",
 			},
-			"template_reference": schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes(),
-				MarkdownDescription: "The policy template reference",
-			},
+			// "template_reference": schema.SingleNestedAttribute{
+			// 	Optional:            true,
+			// 	Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes(),
+			// 	MarkdownDescription: "The policy template reference",
+			// },
 			"last_modified_date_time": schema.StringAttribute{
 				Computed:    true,
 				Description: "The date and time when this profile was last modified.",
@@ -289,9 +289,13 @@ func createChoiceSettingSchema(depth int) map[string]schema.Attribute {
 					},
 					MarkdownDescription: "Recursive child settings",
 				},
-				"value": schema.StringAttribute{
+				"string_value": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Choice setting value: an OptionDefinition ItemId",
+					MarkdownDescription: "Simple string value",
+				},
+				"int32_value": schema.Int32Attribute{
+					Optional:            true,
+					MarkdownDescription: "Simple integer value",
 				},
 			},
 			Description:         `choiceSettingValue`,
