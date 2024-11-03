@@ -184,6 +184,87 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
+// Function to create setting instance attributes with recursion handling
+func getSettingInstanceAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"definition_id": schema.StringAttribute{
+			Required:            true,
+			Description:         `settingDefinitionId`,
+			MarkdownDescription: "This is the settings catalog setting definition ID. e.g `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`",
+		},
+		"template_reference": schema.SingleNestedAttribute{
+			Optional:            true,
+			Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingInstanceTemplateReferenceAttributes,
+			Description:         `settingInstanceTemplateReference`,
+			MarkdownDescription: "Setting Instance Template Reference",
+		},
+		"choice": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getChoiceSettingInstanceAttributes(),
+				MarkdownDescription: "Choice setting instance",
+			},
+		},
+		"choice_collection": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getChoiceSettingCollectionInstanceAttributes(),
+				MarkdownDescription: "Choice setting collection instance",
+			},
+		},
+		"group": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getGroupSettingInstanceAttributes(),
+				MarkdownDescription: "Group setting instance",
+			},
+		},
+		"group_collection": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getGroupSettingCollectionInstanceAttributes(),
+				MarkdownDescription: "Group setting collection instance",
+			},
+		},
+		"setting_group": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationSettingGroupInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          map[string]schema.Attribute{},
+				MarkdownDescription: "Setting group instance",
+			},
+		},
+		"setting_group_collection": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          map[string]schema.Attribute{},
+				MarkdownDescription: "Setting group collection instance",
+			},
+		},
+		"simple": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getSimpleSettingInstanceAttributes(),
+				MarkdownDescription: "Simple setting instance",
+			},
+		},
+		"simple_collection": generic.OdataDerivedTypeNestedAttributeRs{
+			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
+			SingleNestedAttribute: schema.SingleNestedAttribute{
+				Optional:            true,
+				Attributes:          getSimpleSettingCollectionInstanceAttributes(),
+				MarkdownDescription: "Simple setting collection instance",
+			},
+		},
+	}
+}
+
 // Common template reference attributes
 var deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes = map[string]schema.Attribute{
 	"default_id": schema.StringAttribute{
@@ -351,87 +432,6 @@ func getGroupSettingInstanceAttributes() map[string]schema.Attribute {
 			Attributes:          getGroupSettingValueAttributes(),
 			Description:         `groupSettingValue`,
 			MarkdownDescription: "Group setting value",
-		},
-	}
-}
-
-// Function to create setting instance attributes with recursion handling
-func getSettingInstanceAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         `settingDefinitionId`,
-			MarkdownDescription: "Setting Definition Id",
-		},
-		"template_reference": schema.SingleNestedAttribute{
-			Optional:            true,
-			Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingInstanceTemplateReferenceAttributes,
-			Description:         `settingInstanceTemplateReference`,
-			MarkdownDescription: "Setting Instance Template Reference",
-		},
-		"choice": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getChoiceSettingInstanceAttributes(),
-				MarkdownDescription: "Choice setting instance",
-			},
-		},
-		"choice_collection": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getChoiceSettingCollectionInstanceAttributes(),
-				MarkdownDescription: "Choice setting collection instance",
-			},
-		},
-		"group": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getGroupSettingInstanceAttributes(),
-				MarkdownDescription: "Group setting instance",
-			},
-		},
-		"group_collection": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getGroupSettingCollectionInstanceAttributes(),
-				MarkdownDescription: "Group setting collection instance",
-			},
-		},
-		"setting_group": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationSettingGroupInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          map[string]schema.Attribute{},
-				MarkdownDescription: "Setting group instance",
-			},
-		},
-		"setting_group_collection": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          map[string]schema.Attribute{},
-				MarkdownDescription: "Setting group collection instance",
-			},
-		},
-		"simple": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getSimpleSettingInstanceAttributes(),
-				MarkdownDescription: "Simple setting instance",
-			},
-		},
-		"simple_collection": generic.OdataDerivedTypeNestedAttributeRs{
-			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
-			SingleNestedAttribute: schema.SingleNestedAttribute{
-				Optional:            true,
-				Attributes:          getSimpleSettingCollectionInstanceAttributes(),
-				MarkdownDescription: "Simple setting collection instance",
-			},
 		},
 	}
 }
