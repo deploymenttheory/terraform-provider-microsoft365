@@ -17,23 +17,6 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-const (
-	// Derived types for setting instances
-	DeviceManagementConfigurationChoiceSettingInstance           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-	DeviceManagementConfigurationChoiceSettingCollectionInstance = "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance"
-	DeviceManagementConfigurationSimpleSettingInstance           = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-	DeviceManagementConfigurationSimpleSettingCollectionInstance = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
-	DeviceManagementConfigurationSettingGroupInstance            = "#microsoft.graph.deviceManagementConfigurationSettingGroupInstance"
-	DeviceManagementConfigurationSettingGroupCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance"
-	DeviceManagementConfigurationGroupSettingCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
-
-	// Derived types from `Simple Setting Value Attributes`
-	DeviceManagementConfigurationIntegerSettingValue   = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
-	DeviceManagementConfigurationReferenceSettingValue = "#microsoft.graph.deviceManagementConfigurationReferenceSettingValue"
-	DeviceManagementConfigurationSecretSettingValue    = "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"
-	DeviceManagementConfigurationStringSettingValue    = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-)
-
 var (
 	// Basic resource interface (CRUD operations)
 	_ resource.Resource = &SettingsCatalogResource{}
@@ -273,7 +256,7 @@ func createChoiceSettingSchema(depth int) map[string]schema.Attribute {
 			Required: true,
 			Attributes: map[string]schema.Attribute{
 				"odata_type": schema.StringAttribute{
-					Required:            true,
+					Computed:            true,
 					MarkdownDescription: "OData type for choice setting value",
 				},
 				"template_reference": createSettingValueTemplateReference(),
@@ -299,7 +282,7 @@ func createChoiceSettingSchema(depth int) map[string]schema.Attribute {
 func createSimpleSettingValueAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
-			Required:            true,
+			Computed:            true,
 			MarkdownDescription: "OData type for simple setting value",
 		},
 		"string_value": schema.StringAttribute{
@@ -310,7 +293,7 @@ func createSimpleSettingValueAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			MarkdownDescription: "Simple boolean value",
 		},
-		"int64_value": schema.Int64Attribute{
+		"int32_value": schema.Int32Attribute{
 			Optional:            true,
 			MarkdownDescription: "Simple integer value",
 		},
@@ -325,7 +308,7 @@ func createChoiceCollectionSettingSchema(depth int) map[string]schema.Attribute 
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
 					"odata_type": schema.StringAttribute{
-						Required:            true,
+						Computed:            true,
 						MarkdownDescription: "OData type for choice collection value",
 					},
 					"template_reference": createSettingValueTemplateReference(),
@@ -357,7 +340,7 @@ func createGroupSettingSchema(depth int) map[string]schema.Attribute {
 			Required: true,
 			Attributes: map[string]schema.Attribute{
 				"odata_type": schema.StringAttribute{
-					Required:            true,
+					Computed:            true,
 					MarkdownDescription: "OData type for group setting value",
 				},
 				"template_reference": createSettingValueTemplateReference(),
@@ -423,7 +406,7 @@ func createSimpleSettingSchema() map[string]schema.Attribute {
 			Required: true,
 			Attributes: map[string]schema.Attribute{
 				"odata_type": schema.StringAttribute{
-					Required:            true,
+					Computed:            true,
 					MarkdownDescription: "OData type for simple setting value",
 				},
 				"value": schema.SingleNestedAttribute{

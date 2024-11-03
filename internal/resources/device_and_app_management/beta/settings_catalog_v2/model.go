@@ -36,71 +36,71 @@ type DeviceManagementConfigurationSettingResourceModel struct {
 
 // DeviceManagementConfigurationSettingInstance represents the setting instance
 type DeviceManagementConfigurationSettingInstance struct {
-	ODataType                        types.String                                    `tfsdk:"odata_type"`
-	SettingDefinitionID              types.String                                    `tfsdk:"setting_definition_id"`
-	SettingInstanceTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
+	ODataType                        types.String                                                 `tfsdk:"odata_type"`
+	SettingDefinitionID              types.String                                                 `tfsdk:"setting_definition_id"`
+	SettingInstanceTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
 
 	// Different setting type values
-	ChoiceSettingValue    *DeviceManagementConfigurationChoiceSettingValue    `tfsdk:"choice"`
-	ChoiceCollectionValue *DeviceManagementConfigurationChoiceCollectionValue `tfsdk:"choice_collection"`
-	SimpleSettingValue    *DeviceManagementConfigurationSimpleSettingValue    `tfsdk:"simple"`
-	SimpleCollectionValue *DeviceManagementConfigurationSimpleCollectionValue `tfsdk:"simple_collection"`
-	GroupSettingValue     *DeviceManagementConfigurationGroupSettingValue     `tfsdk:"group"`
-	GroupCollectionValue  *DeviceManagementConfigurationGroupCollectionValue  `tfsdk:"group_collection"`
+	ChoiceSettingValue    *DeviceManagementConfigurationChoiceSettingValueResourceModel    `tfsdk:"choice"`
+	ChoiceCollectionValue *DeviceManagementConfigurationChoiceCollectionValueResourceModel `tfsdk:"choice_collection"`
+	SimpleSettingValue    *DeviceManagementConfigurationSimpleSettingValueResourceModel    `tfsdk:"simple"`
+	SimpleCollectionValue *DeviceManagementConfigurationSimpleCollectionValueResourceModel `tfsdk:"simple_collection"`
+	GroupSettingValue     *DeviceManagementConfigurationGroupSettingValueResourceModel     `tfsdk:"group"`
+	GroupCollectionValue  *DeviceManagementConfigurationGroupCollectionValueResourceModel  `tfsdk:"group_collection"`
 }
 
-// DeviceManagementConfigurationChoiceSettingValue represents the choice setting value
-type DeviceManagementConfigurationChoiceSettingValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	IntValue                      types.Int32                                     `tfsdk:"int_value"`
-	StringValue                   types.String                                    `tfsdk:"string_value"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationChoiceSettingValueResourceModel represents the choice setting value
+type DeviceManagementConfigurationChoiceSettingValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	IntValue                      types.Int32                                                  `tfsdk:"int_value"`
+	StringValue                   types.String                                                 `tfsdk:"string_value"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationChoiceCollectionValue represents the choice collection setting value
-type DeviceManagementConfigurationChoiceCollectionValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	IntValue                      []types.Int32                                   `tfsdk:"int_value"`
-	StringValue                   []types.String                                  `tfsdk:"string_value"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationChoiceCollectionValueResourceModel represents the choice collection setting value
+type DeviceManagementConfigurationChoiceCollectionValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	IntValue                      []types.Int32                                                `tfsdk:"int_value"`
+	StringValue                   []types.String                                               `tfsdk:"string_value"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationSimpleSettingValue represents the simple setting value
-type DeviceManagementConfigurationSimpleSettingValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	IntValue                      types.Int32                                     `tfsdk:"int_value"`
-	StringValue                   types.String                                    `tfsdk:"string_value"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationSimpleSettingValueResourceModel represents the simple setting value
+type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	IntValue                      types.Int32                                                  `tfsdk:"int_value"`
+	StringValue                   types.String                                                 `tfsdk:"string_value"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationSimpleCollectionValue represents the simple collection setting value
-type DeviceManagementConfigurationSimpleCollectionValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	IntValue                      []types.Int32                                   `tfsdk:"int_value"`
-	StringValue                   []types.String                                  `tfsdk:"string_value"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationSimpleCollectionValueResourceModel represents the simple collection setting value
+type DeviceManagementConfigurationSimpleCollectionValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	IntValue                      []types.Int32                                                `tfsdk:"int_value"`
+	StringValue                   []types.String                                               `tfsdk:"string_value"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationGroupSettingValue represents the group setting value
-type DeviceManagementConfigurationGroupSettingValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationGroupSettingValueResourceModel represents the group setting value
+type DeviceManagementConfigurationGroupSettingValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationGroupCollectionValue represents the group collection setting value
-type DeviceManagementConfigurationGroupCollectionValue struct {
-	ODataType                     types.String                                    `tfsdk:"odata_type"`
-	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReference `tfsdk:"template_reference"`
-	Children                      []DeviceManagementConfigurationSettingInstance  `tfsdk:"children"`
+// DeviceManagementConfigurationGroupCollectionValueResourceModel represents the group collection setting value
+type DeviceManagementConfigurationGroupCollectionValueResourceModel struct {
+	ODataType                     types.String                                                 `tfsdk:"odata_type"`
+	SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
+	Children                      []DeviceManagementConfigurationSettingInstance               `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationTemplateReference represents the setting instance template reference
-type DeviceManagementConfigurationTemplateReference struct {
+// DeviceManagementConfigurationTemplateReferenceResourceModel represents the setting instance template reference
+type DeviceManagementConfigurationTemplateReferenceResourceModel struct {
 	SettingInstanceTemplateId types.String `tfsdk:"setting_instance_template_id"`
 	UseTemplateDefault        types.Bool   `tfsdk:"use_template_default"`
 }
