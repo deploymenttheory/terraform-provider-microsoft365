@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -85,7 +86,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "The unique identifier for this policy",
 			},
-			"name": schema.StringAttribute{
+			"display_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The policy name",
 			},
@@ -116,11 +117,32 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"settings_count": schema.Int32Attribute{
+				Computed:    true,
+				Description: "The number of settings in this profile.",
+			},
+			"role_scope_tag_ids": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of scope tag IDs for this Windows Settings Catalog profile.",
+			},
 			"template_reference": schema.SingleNestedAttribute{
 				Optional:            true,
 				Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValueTemplateReferenceAttributes(),
 				MarkdownDescription: "The policy template reference",
 			},
+			"last_modified_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The date and time when this profile was last modified.",
+			},
+			"created_date_time": schema.StringAttribute{
+				Computed:    true,
+				Description: "The date and time when this profile was created.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			// Settings attributes
 			"settings": schema.ListNestedAttribute{
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
