@@ -117,20 +117,28 @@ func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSetti
 
 func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+	// Set OData type explicitly
+	oDataType := DeviceManagementConfigurationSimpleSettingInstance
+	instance.SetOdataType(&oDataType)
+
 	settingDefId := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefId)
 
-	if instanceConfig.ChoiceSettingValue != nil {
-		// Process simple values
+	if instanceConfig.SimpleSettingValue != nil {
 		var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-		if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
+
+		if !instanceConfig.SimpleSettingValue.IntValue.IsNull() {
 			intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-			val := instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()
+			intODataType := DeviceManagementConfigurationIntegerSettingValue
+			intValue.SetOdataType(&intODataType)
+			val := instanceConfig.SimpleSettingValue.IntValue.ValueInt32()
 			intValue.SetValue(&val)
 			simpleValue = intValue
-		} else if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
+		} else if !instanceConfig.SimpleSettingValue.StringValue.IsNull() {
 			stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-			val := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
+			strODataType := DeviceManagementConfigurationStringSettingValue
+			stringValue.SetOdataType(&strODataType)
+			val := instanceConfig.SimpleSettingValue.StringValue.ValueString()
 			stringValue.SetValue(&val)
 			simpleValue = stringValue
 		}
@@ -140,32 +148,60 @@ func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 		}
 	}
 
+	// Set template reference if present
+	if instanceConfig.SettingInstanceTemplateReference != nil {
+		templateRef := buildTemplateReference(instanceConfig.SettingInstanceTemplateReference)
+		instance.SetSettingInstanceTemplateReference(templateRef)
+	}
+
 	return instance
 }
 
-// Example builder function for ChoiceSettingInstance with recursion
+// buildChoiceSettingInstance constructs a DeviceManagementConfigurationChoiceSettingInstance from the provided configuration.
 func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	// Initialize a new ChoiceSettingInstance
 	instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+
+	// Set the OData type explicitly using the constant
+	oDataType := DeviceManagementConfigurationChoiceSettingInstance
+	instance.SetOdataType(&oDataType)
+
+	// Set the setting definition ID
 	settingDefId := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefId)
 
+	// Check and set the choice setting value if it exists
 	if instanceConfig.ChoiceSettingValue != nil {
 		choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+		choiceODataType := DeviceManagementConfigurationChoiceSettingValue
+		choiceValue.SetOdataType(&choiceODataType)
+
+		// Assign the choice value string if present
 		if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
 			val := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
 			choiceValue.SetValue(&val)
 		}
 
-		// Recursively add children
-		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-		for _, child := range instanceConfig.ChoiceSettingValue.Children {
-			childInstance := constructSettingInstance(child) // Pass child directly without &
-			if childInstance != nil {
-				childInstances = append(childInstances, childInstance)
+		// Recursively construct child instances if available
+		if len(instanceConfig.ChoiceSettingValue.Children) > 0 {
+			childInstances := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0)
+			for _, child := range instanceConfig.ChoiceSettingValue.Children {
+				childInstance := constructSettingInstance(&child)
+				if childInstance != nil {
+					childInstances = append(childInstances, childInstance)
+				}
 			}
+			choiceValue.SetChildren(childInstances)
 		}
-		choiceValue.SetChildren(childInstances)
+
+		// Set the constructed choice value in the instance
 		instance.SetChoiceSettingValue(choiceValue)
+	}
+
+	// Include the setting instance template reference if defined
+	if instanceConfig.SettingInstanceTemplateReference != nil {
+		templateRef := buildTemplateReference(instanceConfig.SettingInstanceTemplateReference)
+		instance.SetSettingInstanceTemplateReference(templateRef)
 	}
 
 	return instance
@@ -286,95 +322,12 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 	return instance
 }
 
-// // Constructs a setting instance based on its ODataType, properly mapping values for each supported instance type.
-// func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-// 	// Determine the setting type from ODataType and construct accordingly
-// 	switch instanceConfig.ODataType.ValueString() {
-// 	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-// 		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-// 		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
-// 		instance.SetSettingDefinitionId(&settingDefId)
-
-// 		if instanceConfig.ChoiceSettingValue != nil {
-// 			var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-
-// 			if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
-// 				// Handle integer values
-// 				intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-// 				val := instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()
-// 				intValue.SetValue(&val)
-// 				simpleValue = intValue
-// 			} else if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
-// 				// Handle string values
-// 				stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-// 				val := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
-// 				stringValue.SetValue(&val)
-// 				simpleValue = stringValue
-// 			}
-
-// 			if simpleValue != nil {
-// 				instance.SetSimpleSettingValue(simpleValue)
-// 			}
-// 		}
-// 		return instance
-
-// 	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-// 		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-// 		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
-// 		instance.SetSettingDefinitionId(&settingDefId)
-
-// 		// Set choice setting value
-// 		if instanceConfig.ChoiceSettingValue != nil {
-// 			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-
-// 			if !instanceConfig.ChoiceSettingValue.IntValue.IsNull() {
-// 				strValue := strconv.Itoa(int(instanceConfig.ChoiceSettingValue.IntValue.ValueInt32()))
-// 				choiceValue.SetValue(&strValue)
-// 			} else if !instanceConfig.ChoiceSettingValue.StringValue.IsNull() {
-// 				strVal := instanceConfig.ChoiceSettingValue.StringValue.ValueString()
-// 				choiceValue.SetValue(&strVal)
-// 			}
-
-// 			instance.SetChoiceSettingValue(choiceValue)
-// 		}
-// 		return instance
-
-// 	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-// 		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-// 		settingDefId := instanceConfig.SettingDefinitionID.ValueString()
-// 		instance.SetSettingDefinitionId(&settingDefId)
-
-// 		// Handle collections
-// 		if instanceConfig.ChoiceSettingValue != nil && len(instanceConfig.ChoiceSettingValue.Children) > 0 {
-// 			var collectionValues []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-
-// 			for _, child := range instanceConfig.ChoiceSettingValue.Children {
-// 				if child.ChoiceSettingValue != nil {
-// 					var simpleValue graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-// 					if !child.ChoiceSettingValue.IntValue.IsNull() {
-// 						strValue := strconv.Itoa(int(child.ChoiceSettingValue.IntValue.ValueInt32()))
-// 						stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-// 						stringValue.SetValue(&strValue)
-// 						simpleValue = stringValue
-// 					} else if !child.ChoiceSettingValue.StringValue.IsNull() {
-// 						strVal := child.ChoiceSettingValue.StringValue.ValueString()
-// 						stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-// 						stringValue.SetValue(&strVal)
-// 						simpleValue = stringValue
-// 					}
-// 					if simpleValue != nil {
-// 						collectionValues = append(collectionValues, simpleValue)
-// 					}
-// 				}
-// 			}
-
-// 			if len(collectionValues) > 0 {
-// 				instance.SetSimpleSettingCollectionValue(collectionValues)
-// 			}
-// 		}
-// 		return instance
-// 	}
-
-// 	// Unsupported type
-// 	return nil
-// }
+// Helper function to build template references
+func buildTemplateReference(templateRef *DeviceManagementConfigurationTemplateReference) graphmodels.DeviceManagementConfigurationSettingInstanceTemplateReferenceable {
+	reference := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	templateId := templateRef.SettingInstanceTemplateId.ValueString()
+	reference.SetSettingInstanceTemplateId(&templateId)
+	useDefault := templateRef.UseTemplateDefault.ValueBool()
+	reference.SetUseTemplateDefault(&useDefault)
+	return reference
+}
