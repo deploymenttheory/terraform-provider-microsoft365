@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -105,7 +106,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			"platforms": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					wpvalidator.FlagEnumValues(
+					customValidator.EnumValues(
 						"none", "android", "iOS", "macOS", "windows10X",
 						"windows10", "linux", "unknownFutureValue",
 						"androidEnterprise", "aosp",
@@ -118,7 +119,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			"technologies": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					wpvalidator.FlagEnumValues(
+					customValidator.EnumValues(
 						"none", "mdm", "windows10XManagement", "configManager",
 						"intuneManagementExtension", "thirdParty", "documentGateway",
 						"appleRemoteManagement", "microsoftSense", "exchangeOnline",
