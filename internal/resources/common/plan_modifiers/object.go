@@ -4,19 +4,20 @@ package planmodifiers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// ObjectModifier provides plan modifier functionality for objects.
 type ObjectModifier interface {
 	planmodifier.Object
 	Description(context.Context) string
 	MarkdownDescription(context.Context) string
 }
 
+// Common structure for object modifiers with descriptions
 type objectModifier struct {
 	description         string
 	markdownDescription string
@@ -30,22 +31,18 @@ func (m objectModifier) MarkdownDescription(ctx context.Context) string {
 	return m.markdownDescription
 }
 
+// UseStateForUnknownObject sets the plan value to the state value if the plan is unknown.
 type useStateForUnknownObject struct {
 	objectModifier
 }
 
 func (m useStateForUnknownObject) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	if !req.PlanValue.IsUnknown() {
-		return
+	if req.PlanValue.IsUnknown() && !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
 	}
-
-	if req.StateValue.IsNull() {
-		return
-	}
-
-	resp.PlanValue = req.StateValue
 }
 
+// UseStateForUnknownObject constructor
 func UseStateForUnknownObject() ObjectModifier {
 	return useStateForUnknownObject{
 		objectModifier: objectModifier{
@@ -55,94 +52,30 @@ func UseStateForUnknownObject() ObjectModifier {
 	}
 }
 
+// DefaultValueObject sets a default value to an object if the plan value is null.
 type defaultValueObject struct {
 	objectModifier
 	defaultValue types.Object
 }
 
 func (m defaultValueObject) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	if !req.PlanValue.IsNull() {
-		return
+	if req.PlanValue.IsNull() {
+		resp.PlanValue = m.defaultValue
 	}
-
-	resp.PlanValue = m.defaultValue
 }
 
+// DefaultValueObject constructor, creates an object modifier with a specified default value
 func DefaultValueObject(defaultValue map[string]attr.Value) ObjectModifier {
 	return defaultValueObject{
 		objectModifier: objectModifier{
-			description:         "Default value set to empty object",
-			markdownDescription: "Default value set to empty object",
+			description:         "Default value set to specified object",
+			markdownDescription: "Default value set to specified object",
 		},
-		defaultValue: types.ObjectValueMust(map[string]attr.Type{}, defaultValue),
+		defaultValue: createDefaultObject(defaultValue),
 	}
 }
 
-// planmodifiers/set.go
-
-type SetModifier interface {
-	planmodifier.Set
-	Description(context.Context) string
-	MarkdownDescription(context.Context) string
-}
-
-type setModifier struct {
-	description         string
-	markdownDescription string
-}
-
-func (m setModifier) Description(ctx context.Context) string {
-	return m.description
-}
-
-func (m setModifier) MarkdownDescription(ctx context.Context) string {
-	return m.markdownDescription
-}
-
-type useStateForUnknownSet struct {
-	setModifier
-}
-
-func (m useStateForUnknownSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	if !req.PlanValue.IsUnknown() {
-		return
-	}
-
-	if req.StateValue.IsNull() {
-		return
-	}
-
-	resp.PlanValue = req.StateValue
-}
-
-func UseStateForUnknownSet() SetModifier {
-	return useStateForUnknownSet{
-		setModifier: setModifier{
-			description:         "Use state value if unknown",
-			markdownDescription: "Use state value if unknown",
-		},
-	}
-}
-
-type defaultValueSet struct {
-	setModifier
-	defaultValue types.Set
-}
-
-func (m defaultValueSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	if !req.PlanValue.IsNull() {
-		return
-	}
-
-	resp.PlanValue = m.defaultValue
-}
-
-func DefaultValueSet(defaultValue []attr.Value) SetModifier {
-	return defaultValueSet{
-		setModifier: setModifier{
-			description:         fmt.Sprintf("Default value set to %v", defaultValue),
-			markdownDescription: fmt.Sprintf("Default value set to `%v`", defaultValue),
-		},
-		defaultValue: types.SetValueMust(types.StringType, defaultValue),
-	}
+// Helper function to create a default empty object if needed
+func createDefaultObject(defaultValue map[string]attr.Value) types.Object {
+	return types.ObjectValueMust(map[string]attr.Type{}, defaultValue)
 }

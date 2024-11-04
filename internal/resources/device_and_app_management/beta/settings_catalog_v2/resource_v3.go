@@ -31,6 +31,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
+
+	// Cache to prevent infinite recursion during schema definition
+	schemaDepthCache = make(map[int]map[string]schema.Attribute)
 )
 
 func NewSettingsCatalogResource() resource.Resource {
@@ -47,11 +50,12 @@ func NewSettingsCatalogResource() resource.Resource {
 }
 
 type SettingsCatalogResource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
-	WritePermissions []string
+	client            *msgraphbetasdk.GraphServiceClient
+	ProviderTypeName  string
+	TypeName          string
+	ReadPermissions   []string
+	WritePermissions  []string
+	maxRecursionDepth int
 }
 
 // GetTypeName returns the type name of the resource from the state model.
@@ -99,9 +103,9 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			"settings": schema.ListNestedAttribute{
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: getSettingInstanceAttributes(),
+					Attributes: settingInstanceAttributes(0),
 				},
-				MarkdownDescription: "Policy settings configuration",
+				MarkdownDescription: "Policy settings configuration. Supports up to 5 levels of nesting. Starts at depth 0.",
 			},
 			"platforms": schema.StringAttribute{
 				Optional: true,
@@ -134,11 +138,12 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"template_reference": schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getTemplateReferenceAttributes(),
-				PlanModifiers:       []planmodifier.Object{planmodifiers.ObjectDefaultValueEmpty()},
+				Attributes:          templateReferenceAttributes(),
+				PlanModifiers:       []planmodifier.Object{planmodifiers.DefaultValueObject(map[string]attr.Value{})},
 				Computed:            true,
 				MarkdownDescription: "Template reference information",
 			},
+
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -185,9 +190,21 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
-// Function to create setting instance attributes with recursion handling
-func getSettingInstanceAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
+// settingInstanceAttributes creates the schema for the settings catalog setting instance
+func settingInstanceAttributes(depth int) map[string]schema.Attribute {
+	maxDepth := 5 // Maximum nesting depth
+
+	// Check cache first
+	if settings, exists := schemaDepthCache[depth]; exists {
+		return settings
+	}
+
+	// Prevent infinite recursion
+	if depth >= maxDepth {
+		return map[string]schema.Attribute{}
+	}
+
+	settings := map[string]schema.Attribute{
 		"definition_id": schema.StringAttribute{
 			Required:            true,
 			Description:         `settingDefinitionId`,
@@ -203,7 +220,7 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getChoiceSettingInstanceAttributes(),
+				Attributes:          choiceSettingInstanceAttributes(depth),
 				MarkdownDescription: "Choice setting instance",
 			},
 		},
@@ -211,7 +228,7 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getChoiceSettingCollectionInstanceAttributes(),
+				Attributes:          choiceSettingCollectionInstanceAttributes(depth),
 				MarkdownDescription: "Choice setting collection instance",
 			},
 		},
@@ -219,7 +236,7 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getGroupSettingInstanceAttributes(),
+				Attributes:          groupSettingInstanceAttributes(depth),
 				MarkdownDescription: "Group setting instance",
 			},
 		},
@@ -227,7 +244,7 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getGroupSettingCollectionInstanceAttributes(),
+				Attributes:          groupSettingCollectionInstanceAttributes(depth),
 				MarkdownDescription: "Group setting collection instance",
 			},
 		},
@@ -251,7 +268,7 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getSimpleSettingInstanceAttributes(),
+				Attributes:          simpleSettingInstanceAttributes(),
 				MarkdownDescription: "Simple setting instance",
 			},
 		},
@@ -259,11 +276,13 @@ func getSettingInstanceAttributes() map[string]schema.Attribute {
 			DerivedType: "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
 			SingleNestedAttribute: schema.SingleNestedAttribute{
 				Optional:            true,
-				Attributes:          getSimpleSettingCollectionInstanceAttributes(),
+				Attributes:          simpleSettingCollectionInstanceAttributes(),
 				MarkdownDescription: "Simple setting collection instance",
 			},
 		},
 	}
+	schemaDepthCache[depth] = settings
+	return settings
 }
 
 // Common template reference attributes
@@ -274,12 +293,12 @@ var deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingValue
 	},
 	"children": schema.ListNestedAttribute{
 		Optional:            true,
-		NestedObject:        schema.NestedAttributeObject{Attributes: getTemplateReferenceChildAttributes()},
+		NestedObject:        schema.NestedAttributeObject{Attributes: templateReferenceChildAttributes()},
 		MarkdownDescription: "Collection of child setting instance template references.",
 	},
 }
 
-func getTemplateReferenceChildAttributes() map[string]schema.Attribute {
+func templateReferenceChildAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"default_id": schema.StringAttribute{
 			Optional:            true,
@@ -289,18 +308,70 @@ func getTemplateReferenceChildAttributes() map[string]schema.Attribute {
 }
 
 // Simple setting value attributes
-var deviceManagementConfigurationPolicyDeviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
-	"string_value": schema.StringAttribute{
-		Optional:            true,
-		MarkdownDescription: "Simple setting value in string form.",
+var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{ // deviceManagementConfigurationSimpleSettingValue
+	"integer": generic.OdataDerivedTypeNestedAttributeRs{
+		DerivedType: "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+		SingleNestedAttribute: schema.SingleNestedAttribute{
+			Optional: true,
+			Attributes: map[string]schema.Attribute{ // deviceManagementConfigurationIntegerSettingValue
+				"value": schema.Int64Attribute{
+					Required:            true,
+					MarkdownDescription: "Value of the integer setting.",
+				},
+			},
+			MarkdownDescription: "Simple setting value / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta",
+		},
 	},
-	"boolean_value": schema.BoolAttribute{
-		Optional:            true,
-		MarkdownDescription: "Simple setting value in boolean form.",
+	"reference": generic.OdataDerivedTypeNestedAttributeRs{
+		DerivedType: "#microsoft.graph.deviceManagementConfigurationReferenceSettingValue",
+		SingleNestedAttribute: schema.SingleNestedAttribute{
+			Optional: true,
+			Attributes: map[string]schema.Attribute{ // deviceManagementConfigurationReferenceSettingValue
+				"value": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "Value of the string setting.",
+				},
+				"note": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "A note that admin can use to put some contextual information",
+				},
+			},
+			MarkdownDescription: "Model for ReferenceSettingValue / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta",
+		},
 	},
-	"int_value": schema.Int64Attribute{
-		Optional:            true,
-		MarkdownDescription: "Simple setting value in integer form.",
+	"secret": generic.OdataDerivedTypeNestedAttributeRs{
+		DerivedType: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
+		SingleNestedAttribute: schema.SingleNestedAttribute{
+			Optional: true,
+			Attributes: map[string]schema.Attribute{ // deviceManagementConfigurationSecretSettingValue
+				"value": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "Value of the secret setting.",
+				},
+				"state": schema.StringAttribute{
+					Required: true,
+					Validators: []validator.String{
+						stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
+					},
+					Description:         `valueState`, // custom MS Graph attribute name
+					MarkdownDescription: "Gets or sets a value indicating the encryption state of the Value property. / type tracking the encryption state of a secret setting value; possible values are: `invalid` (default invalid value), `notEncrypted` (secret value is not encrypted), `encryptedValueToken` (a token for the encrypted value is returned by the service)",
+				},
+			},
+			MarkdownDescription: "Graph model for a secret setting value / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta",
+		},
+	},
+	"string": generic.OdataDerivedTypeNestedAttributeRs{
+		DerivedType: "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+		SingleNestedAttribute: schema.SingleNestedAttribute{
+			Optional: true,
+			Attributes: map[string]schema.Attribute{ // deviceManagementConfigurationStringSettingValue
+				"value": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "Value of the string setting.",
+				},
+			},
+			MarkdownDescription: "Simple setting value / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta",
+		},
 	},
 }
 
@@ -312,18 +383,18 @@ var deviceManagementConfigurationPolicyDeviceManagementConfigurationSettingInsta
 	},
 	"children": schema.ListNestedAttribute{
 		Optional:            true,
-		NestedObject:        schema.NestedAttributeObject{Attributes: getTemplateReferenceChildAttributes()},
+		NestedObject:        schema.NestedAttributeObject{Attributes: templateReferenceChildAttributes()},
 		MarkdownDescription: "Collection of child setting instance template references.",
 	},
 }
 
 // Function to create simple setting collection instance attributes
-func getSimpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
+func simpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
-				Attributes: deviceManagementConfigurationPolicyDeviceManagementConfigurationSimpleSettingValueAttributes,
+				Attributes: deviceManagementConfigurationSimpleSettingValueAttributes,
 			},
 			Description:         `simpleSettingCollectionValue`,
 			MarkdownDescription: "Simple setting collection instance value",
@@ -332,11 +403,11 @@ func getSimpleSettingCollectionInstanceAttributes() map[string]schema.Attribute 
 }
 
 // Function to create simple setting instance attributes
-func getSimpleSettingInstanceAttributes() map[string]schema.Attribute {
+func simpleSettingInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
-			Attributes:          deviceManagementConfigurationPolicyDeviceManagementConfigurationSimpleSettingValueAttributes,
+			Attributes:          deviceManagementConfigurationSimpleSettingValueAttributes,
 			Description:         `simpleSettingValue`,
 			MarkdownDescription: "Simple setting instance value",
 		},
@@ -344,7 +415,7 @@ func getSimpleSettingInstanceAttributes() map[string]schema.Attribute {
 }
 
 // Function to create choice setting value attributes
-func getChoiceSettingValueAttributes() map[string]schema.Attribute {
+func choiceSettingValueAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"template_reference": schema.SingleNestedAttribute{
 			Optional:            true,
@@ -354,7 +425,7 @@ func getChoiceSettingValueAttributes() map[string]schema.Attribute {
 		},
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
-			NestedObject:        schema.NestedAttributeObject{Attributes: getSettingInstanceAttributes()},
+			NestedObject:        schema.NestedAttributeObject{Attributes: settingInstanceAttributes(depth + 1)},
 			PlanModifiers:       []planmodifier.List{planmodifiers.ListDefaultValueEmpty()},
 			Computed:            true,
 			MarkdownDescription: "Child settings.",
@@ -367,12 +438,12 @@ func getChoiceSettingValueAttributes() map[string]schema.Attribute {
 }
 
 // Function to create choice setting collection instance attributes
-func getChoiceSettingCollectionInstanceAttributes() map[string]schema.Attribute {
+func choiceSettingCollectionInstanceAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
-				Attributes: getChoiceSettingValueAttributes(),
+				Attributes: choiceSettingValueAttributes(depth),
 			},
 			Description:         `choiceSettingCollectionValue`,
 			MarkdownDescription: "Choice setting collection value",
@@ -381,7 +452,7 @@ func getChoiceSettingCollectionInstanceAttributes() map[string]schema.Attribute 
 }
 
 // Function to create group setting value attributes
-func getGroupSettingValueAttributes() map[string]schema.Attribute {
+func groupSettingValueAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"template_reference": schema.SingleNestedAttribute{
 			Optional:            true,
@@ -391,7 +462,7 @@ func getGroupSettingValueAttributes() map[string]schema.Attribute {
 		},
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
-			NestedObject:        schema.NestedAttributeObject{Attributes: getSettingInstanceAttributes()},
+			NestedObject:        schema.NestedAttributeObject{Attributes: settingInstanceAttributes(depth + 1)},
 			PlanModifiers:       []planmodifier.List{planmodifiers.ListDefaultValueEmpty()},
 			Computed:            true,
 			MarkdownDescription: "Collection of child setting instances",
@@ -400,12 +471,12 @@ func getGroupSettingValueAttributes() map[string]schema.Attribute {
 }
 
 // Function to create group setting collection instance attributes
-func getGroupSettingCollectionInstanceAttributes() map[string]schema.Attribute {
+func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
-				Attributes: getGroupSettingValueAttributes(),
+				Attributes: groupSettingValueAttributes(depth),
 			},
 			Description:         `groupSettingCollectionValue`,
 			MarkdownDescription: "Collection of group setting values",
@@ -414,11 +485,11 @@ func getGroupSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 }
 
 // Function to create choice setting instance attributes
-func getChoiceSettingInstanceAttributes() map[string]schema.Attribute {
+func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
-			Attributes:          getChoiceSettingValueAttributes(),
+			Attributes:          choiceSettingValueAttributes(depth),
 			Description:         `choiceSettingValue`,
 			MarkdownDescription: "Choice setting value",
 		},
@@ -426,11 +497,11 @@ func getChoiceSettingInstanceAttributes() map[string]schema.Attribute {
 }
 
 // Function to create group setting instance attributes
-func getGroupSettingInstanceAttributes() map[string]schema.Attribute {
+func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
-			Attributes:          getGroupSettingValueAttributes(),
+			Attributes:          groupSettingValueAttributes(depth),
 			Description:         `groupSettingValue`,
 			MarkdownDescription: "Group setting value",
 		},
@@ -438,7 +509,7 @@ func getGroupSettingInstanceAttributes() map[string]schema.Attribute {
 }
 
 // Function to create template reference attributes
-func getTemplateReferenceAttributes() map[string]schema.Attribute {
+func templateReferenceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"display_name": schema.StringAttribute{
 			Computed: true,
