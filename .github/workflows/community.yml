@@ -41,10 +41,11 @@ jobs:
         with:
           ref: ${{ inputs.git-ref }}
           fetch-depth: 0
-      - uses: actions/setup-go@v5.1.0
+      - uses: actions/setup-go@v5.1.0 
         with:
           go-version: ${{ inputs.setup-go-version }}
           go-version-file: ${{ inputs.setup-go-version-file }}
+          cache: false  # Disable caching to skip the post-cleanup step. saves circa 15 minutes
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6.2.0
