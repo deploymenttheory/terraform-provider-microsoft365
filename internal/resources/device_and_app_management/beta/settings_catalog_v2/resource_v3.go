@@ -31,9 +31,6 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
-
-	// Cache to prevent infinite recursion during schema definition
-	schemaDepthCache = make(map[int]map[string]schema.Attribute)
 )
 
 const (
@@ -188,32 +185,21 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 
 // settingInstance defines the nested attributes for each setting instance within settings catalog
 func settingInstance(depth int) map[string]schema.Attribute {
-
-	// Check if schema for this depth is already cached
-	if cachedSettings, exists := schemaDepthCache[depth]; exists {
-		return cachedSettings
-	}
-
-	// Prevent further recursion once max depth is reached
 	if depth >= maxDepth {
 		return map[string]schema.Attribute{}
 	}
 
-	settings := map[string]schema.Attribute{
+	return map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
 			Computed:            true,
 			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
 		},
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
-			Attributes:          settings(depth + 1),
+			Attributes:          settings(depth),
 			MarkdownDescription: "Defines a specific setting instance, containing setting definition ID and setting values like choice, simple, etc.",
 		},
 	}
-
-	// Cache the schema for the current depth
-	schemaDepthCache[depth] = settings
-	return settings
 }
 
 // settings contains nested attributes for each setting type within setting_instance
