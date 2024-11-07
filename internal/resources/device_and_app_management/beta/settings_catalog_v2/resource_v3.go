@@ -37,7 +37,7 @@ var (
 )
 
 const (
-	// Define maximum allowed depth for nested attributes
+	// Define maximum allowed depth for nested settings catalog settings
 	maxDepth = 5
 )
 
@@ -186,6 +186,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
+// settingInstance defines the nested attributes for each setting instance within settings catalog
 func settingInstance(depth int) map[string]schema.Attribute {
 
 	// Check if schema for this depth is already cached
@@ -199,6 +200,10 @@ func settingInstance(depth int) map[string]schema.Attribute {
 	}
 
 	settings := map[string]schema.Attribute{
+		"odata_type": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the provider during request construction.",
+		},
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
 			Attributes:          settings(depth + 1),
@@ -213,7 +218,32 @@ func settingInstance(depth int) map[string]schema.Attribute {
 
 // settings contains nested attributes for each setting type within setting_instance
 func settings(depth int) map[string]schema.Attribute {
+	if depth >= maxDepth {
+		return map[string]schema.Attribute{}
+	}
+
 	return map[string]schema.Attribute{
+		"odata_type": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The OData type of the setting instance. This must be specified and is used to determine the specific setting instance type.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					DeviceManagementConfigurationChoiceSettingInstance,
+					DeviceManagementConfigurationChoiceSettingCollectionInstance,
+					DeviceManagementConfigurationSimpleSettingInstance,
+					DeviceManagementConfigurationSimpleSettingCollectionInstance,
+					DeviceManagementConfigurationSettingGroupInstance,
+					DeviceManagementConfigurationGroupSettingInstance,
+					DeviceManagementConfigurationSettingGroupCollectionInstance,
+					DeviceManagementConfigurationGroupSettingCollectionInstance,
+				),
+			},
+		},
+		"setting_definition_id": schema.StringAttribute{
+			Required:            true,
+			Description:         "settingDefinitionId",
+			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
+		},
 		"choice": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: choiceSettingInstanceAttributes(depth + 1),
@@ -247,16 +277,36 @@ func settings(depth int) map[string]schema.Attribute {
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
 		},
 		"setting_group": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: map[string]schema.Attribute{},
+			Optional: true,
+			Attributes: map[string]schema.Attribute{
+				"children": schema.ListNestedAttribute{
+					Optional: true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: settings(depth + 1),
+					},
+					PlanModifiers: []planmodifier.List{
+						planmodifiers.DefaultListEmptyValue(),
+					},
+					Computed:            true,
+					MarkdownDescription: "Collection of child setting instances within the setting group",
+				},
+			},
 			MarkdownDescription: "Setting group instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
 				"For details, see [Setting Group Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta).",
 		},
 		"setting_group_collection": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: map[string]schema.Attribute{},
+			Optional: true,
+			Attributes: map[string]schema.Attribute{
+				"children": schema.ListNestedAttribute{
+					Required: true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: settings(depth + 1),
+					},
+					MarkdownDescription: "Collection of child setting instances within each group in the collection",
+				},
+			},
 			MarkdownDescription: "Setting group collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
 				"For details, see [Setting Group Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
@@ -281,89 +331,9 @@ func settings(depth int) map[string]schema.Attribute {
 	}
 }
 
-// Simple setting value attributes
-var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
-	"integer": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "Value of the integer setting.",
-			},
-		},
-		MarkdownDescription: "Simple setting value with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
-			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
-	},
-	"reference": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Value of the reference setting.",
-			},
-			"note": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "A note for contextual information provided by the admin.",
-			},
-		},
-		MarkdownDescription: "Model for ReferenceSettingValue with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationReferenceSettingValue.\n\n" +
-			"For more details, see [Reference Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta).",
-	},
-	"secret": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Value of the secret setting.",
-			},
-			"state": schema.StringAttribute{
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
-				},
-				Description: `valueState`,
-				MarkdownDescription: "Indicates the encryption state of the Value property, with possible values:\n\n" +
-					"- **invalid**: Default invalid value.\n" +
-					"- **notEncrypted**: Secret value is not encrypted.\n" +
-					"- **encryptedValueToken**: A token for the encrypted value is returned by the service.\n\n" +
-					"Model for SecretSettingValue with @odata.type: " +
-					"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
-					"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
-			},
-		},
-		MarkdownDescription: "Graph model for a secret setting value with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
-			"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
-	},
-	"string": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Value of the string setting.",
-			},
-		},
-		MarkdownDescription: "Simple setting value with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
-			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
-	},
-}
-
 // Function to create simple setting collection instance attributes
 func simpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
@@ -378,11 +348,6 @@ func simpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 // Function to create simple setting instance attributes
 func simpleSettingInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
 			Attributes:          deviceManagementConfigurationSimpleSettingValueAttributes,
@@ -420,11 +385,6 @@ func choiceSettingCollectionInstanceAttributes(depth int) map[string]schema.Attr
 	}
 
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
@@ -460,11 +420,6 @@ func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attri
 	}
 
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"values": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
@@ -483,16 +438,11 @@ func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
-			Attributes:          choiceSettingValueAttributes(depth + 1),
+			Attributes:          deviceManagementConfigurationChoiceSettingValueAttributes,
 			Description:         "choiceSettingValue",
-			MarkdownDescription: "Choice setting value",
+			MarkdownDescription: "Choice setting value with a string type.",
 		},
 	}
 }
@@ -504,11 +454,6 @@ func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	return map[string]schema.Attribute{
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
 		"value": schema.SingleNestedAttribute{
 			Required:            true,
 			Attributes:          groupSettingValueAttributes(depth + 1),
@@ -516,4 +461,81 @@ func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 			MarkdownDescription: "Group setting value",
 		},
 	}
+}
+
+// Simple setting value attributes
+var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
+	"integer_value": schema.Int64Attribute{
+		Optional: true,
+		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
+			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
+	},
+	"reference": schema.SingleNestedAttribute{
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"value": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Value of the reference setting.",
+			},
+			"note": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "A note for contextual information provided by the admin.",
+			},
+		},
+		MarkdownDescription: "Model for ReferenceSettingValue with @odata.type: " +
+			"#microsoft.graph.deviceManagementConfigurationReferenceSettingValue.\n\n" +
+			"For more details, see [Reference Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta).",
+	},
+	"secret": schema.SingleNestedAttribute{
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"value": schema.StringAttribute{ // TODO , need to define int's and strings etc
+				Optional:            true,
+				MarkdownDescription: "Value of the secret setting.",
+			},
+			"state": schema.StringAttribute{
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
+				},
+				Description: `valueState`,
+				MarkdownDescription: "Indicates the encryption state of the Value property, with possible values:\n\n" +
+					"- **invalid**: Default invalid value.\n" +
+					"- **notEncrypted**: Secret value is not encrypted.\n" +
+					"- **encryptedValueToken**: A token for the encrypted value is returned by the service.\n\n" +
+					"Model for SecretSettingValue with @odata.type: " +
+					"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
+					"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
+			},
+		},
+		MarkdownDescription: "Graph model for a secret setting value with @odata.type: " +
+			"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
+			"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
+	},
+	"string_value": schema.StringAttribute{
+		Optional: true,
+		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
+	},
+}
+
+// Choice setting value attributes for string-based choices
+var deviceManagementConfigurationChoiceSettingValueAttributes = map[string]schema.Attribute{
+	"integer_value": schema.Int64Attribute{
+		Optional: true,
+		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
+			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
+	},
+	"string_value": schema.StringAttribute{
+		Optional: true,
+		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
+	},
 }

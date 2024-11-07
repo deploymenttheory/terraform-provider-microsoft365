@@ -112,23 +112,30 @@ func constructSettingsCatalogSettings(ctx context.Context, settingConfigs []Devi
 func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	// Determine the setting type from ODataType and construct accordingly
 	switch instanceConfig.ODataType.ValueString() {
-	case DeviceManagementConfigurationSimpleSettingInstance:
-		return buildSimpleSettingInstance(instanceConfig)
 
 	case DeviceManagementConfigurationChoiceSettingInstance:
 		return buildChoiceSettingInstance(instanceConfig)
 
-	case DeviceManagementConfigurationSimpleSettingCollectionInstance:
-		return buildSimpleSettingCollectionInstance(instanceConfig)
-
 	case DeviceManagementConfigurationChoiceSettingCollectionInstance:
 		return buildChoiceSettingCollectionInstance(instanceConfig)
 
-	case DeviceManagementConfigurationSettingGroupInstance:
+	case DeviceManagementConfigurationGroupSettingInstance:
 		return buildGroupSettingInstance(instanceConfig)
 
-	case DeviceManagementConfigurationSettingGroupCollectionInstance:
+	case DeviceManagementConfigurationGroupSettingCollectionInstance:
 		return buildGroupSettingCollectionInstance(instanceConfig)
+
+	case DeviceManagementConfigurationSettingGroupInstance:
+		return buildSettingGroupInstance(instanceConfig)
+
+	case DeviceManagementConfigurationSettingGroupCollectionInstance:
+		return buildSettingGroupCollectionInstance(instanceConfig)
+
+	case DeviceManagementConfigurationSimpleSettingInstance:
+		return buildSimpleSettingInstance(instanceConfig)
+
+	case DeviceManagementConfigurationSimpleSettingCollectionInstance:
+		return buildSimpleSettingCollectionInstance(instanceConfig)
 
 	// Unsupported type
 	default:
@@ -499,5 +506,105 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 
 	values = append(values, value)
 	instance.SetGroupSettingCollectionValue(values)
+	return instance
+}
+
+// buildSettingGroupInstance constructs a setting group instance from the configuration.
+func buildSettingGroupInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	if instanceConfig.GroupSettingValue == nil {
+		return nil
+	}
+
+	instance := graphmodels.NewDeviceManagementConfigurationSettingGroupInstance()
+
+	odataType := DeviceManagementConfigurationSettingGroupInstance
+	instance.SetOdataType(&odataType)
+	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
+	instance.SetSettingDefinitionId(&settingDefinitionID)
+
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	//     templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	//     templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	//     templateRef.SetOdataType(&templateRefODataType)
+
+	//     if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	//         templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	//         templateRef.SetSettingInstanceTemplateId(&templateId)
+	//     }
+
+	//     instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
+
+	// For group settings, we use the base instance's additional data to store children
+	if len(instanceConfig.GroupSettingValue.Children) > 0 {
+		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		for _, child := range instanceConfig.GroupSettingValue.Children {
+			if childInstance := constructSettingInstance(child); childInstance != nil {
+				childInstances = append(childInstances, childInstance)
+			}
+		}
+
+		// Store children in additional data
+		additionalData := instance.GetAdditionalData()
+		additionalData["children"] = childInstances
+		instance.SetAdditionalData(additionalData)
+	}
+
+	return instance
+}
+
+// buildSettingGroupCollectionInstance constructs a setting group collection instance from the configuration.
+func buildSettingGroupCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	if instanceConfig.GroupCollectionValue == nil {
+		return nil
+	}
+
+	instance := graphmodels.NewDeviceManagementConfigurationSettingGroupCollectionInstance()
+
+	odataType := DeviceManagementConfigurationSettingGroupCollectionInstance
+	instance.SetOdataType(&odataType)
+	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
+	instance.SetSettingDefinitionId(&settingDefinitionID)
+
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	//     templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	//     templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	//     templateRef.SetOdataType(&templateRefODataType)
+
+	//     if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	//         templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	//         templateRef.SetSettingInstanceTemplateId(&templateId)
+	//     }
+
+	//     instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
+
+	collectionValue := instanceConfig.GroupCollectionValue
+	if len(collectionValue.Children) > 0 {
+		// Create an array of settings for the collection
+		var settingsArray []map[string]interface{}
+
+		for _, child := range collectionValue.Children {
+			if childInstance := constructSettingInstance(child); childInstance != nil {
+				// Create a single group setting with its children
+				groupSetting := map[string]interface{}{
+					"@odata.type": DeviceManagementConfigurationGroupSettingValue,
+					"children":    []graphmodels.DeviceManagementConfigurationSettingInstanceable{childInstance},
+				}
+				settingsArray = append(settingsArray, groupSetting)
+			}
+		}
+
+		// Add the settings array to additional data
+		if len(settingsArray) > 0 {
+			additionalData := instance.GetAdditionalData()
+			if additionalData == nil {
+				additionalData = make(map[string]interface{})
+			}
+			additionalData["settingValues"] = settingsArray
+			instance.SetAdditionalData(additionalData)
+		}
+	}
+
 	return instance
 }

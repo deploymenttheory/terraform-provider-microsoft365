@@ -40,12 +40,14 @@ type DeviceManagementConfigurationSettingInstance struct {
 	//SettingInstanceTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
 
 	// Different setting type values
-	ChoiceSettingValue    *DeviceManagementConfigurationChoiceSettingValueResourceModel    `tfsdk:"choice"`
-	ChoiceCollectionValue *DeviceManagementConfigurationChoiceCollectionValueResourceModel `tfsdk:"choice_collection"`
-	SimpleSettingValue    *DeviceManagementConfigurationSimpleSettingValueResourceModel    `tfsdk:"simple"`
-	SimpleCollectionValue *DeviceManagementConfigurationSimpleCollectionValueResourceModel `tfsdk:"simple_collection"`
-	GroupSettingValue     *DeviceManagementConfigurationGroupSettingValueResourceModel     `tfsdk:"group"`
-	GroupCollectionValue  *DeviceManagementConfigurationGroupCollectionValueResourceModel  `tfsdk:"group_collection"`
+	ChoiceSettingValue           *DeviceManagementConfigurationChoiceSettingValueResourceModel           `tfsdk:"choice"`
+	ChoiceCollectionValue        *DeviceManagementConfigurationChoiceCollectionValueResourceModel        `tfsdk:"choice_collection"`
+	SimpleSettingValue           *DeviceManagementConfigurationSimpleSettingValueResourceModel           `tfsdk:"simple"`
+	SimpleCollectionValue        *DeviceManagementConfigurationSimpleCollectionValueResourceModel        `tfsdk:"simple_collection"`
+	GroupSettingValue            *DeviceManagementConfigurationGroupSettingValueResourceModel            `tfsdk:"group"`
+	GroupCollectionValue         *DeviceManagementConfigurationGroupCollectionValueResourceModel         `tfsdk:"group_collection"`
+	SettingsGroupSettingValue    *DeviceManagementConfigurationSettingsGroupSettingValueResourceModel    `tfsdk:"setting_group"`
+	SettingsGroupCollectionValue *DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
 }
 
 // DeviceManagementConfigurationChoiceSettingValueResourceModel represents the choice setting value.
@@ -110,6 +112,20 @@ type DeviceManagementConfigurationGroupCollectionValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
 	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
 	Children []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+}
+
+// DeviceManagementConfigurationSettingsGroupSettingValueResourceModel represents the setting group instance.
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta
+type DeviceManagementConfigurationSettingsGroupSettingValueResourceModel struct {
+	ODataType types.String                                    `tfsdk:"odata_type"`
+	Children  []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+}
+
+// DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel represents the setting group collection instance.
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta
+type DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel struct {
+	ODataType types.String                                    `tfsdk:"odata_type"`
+	Children  []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationTemplateReferenceResourceModel represents the setting instance template reference.
