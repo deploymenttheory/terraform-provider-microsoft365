@@ -50,12 +50,11 @@ func NewSettingsCatalogResource() resource.Resource {
 }
 
 type SettingsCatalogResource struct {
-	client            *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName  string
-	TypeName          string
-	ReadPermissions   []string
-	WritePermissions  []string
-	maxRecursionDepth int
+	client           *msgraphbetasdk.GraphServiceClient
+	ProviderTypeName string
+	TypeName         string
+	ReadPermissions  []string
+	WritePermissions []string
 }
 
 // GetTypeName returns the type name of the resource from the state model.
@@ -190,7 +189,6 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
-// settingInstanceAttributes creates the schema for the settings catalog setting instance
 // settingInstanceAttributes creates the schema for the settings catalog setting instance
 func settingInstanceAttributes(depth int) map[string]schema.Attribute {
 	maxDepth := 5 // Maximum nesting depth
