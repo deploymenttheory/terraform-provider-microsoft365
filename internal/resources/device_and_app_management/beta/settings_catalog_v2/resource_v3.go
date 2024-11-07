@@ -202,7 +202,7 @@ func settingInstance(depth int) map[string]schema.Attribute {
 	settings := map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
 			Computed:            true,
-			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the provider during request construction.",
+			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
 		},
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
@@ -431,20 +431,30 @@ func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attri
 	}
 }
 
-// Function to create choice setting instance attributes
+// choiceSettingInstanceAttributes dynamically adds children to handle recursion
 func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
+	// Prevent further recursion once max depth is reached
 	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
+		return deviceManagementConfigurationChoiceSettingValueAttributes
 	}
 
-	return map[string]schema.Attribute{
-		"value": schema.SingleNestedAttribute{
-			Required:            true,
-			Attributes:          deviceManagementConfigurationChoiceSettingValueAttributes,
-			Description:         "choiceSettingValue",
-			MarkdownDescription: "Choice setting value with a string type.",
-		},
+	attributes := make(map[string]schema.Attribute)
+	for k, v := range deviceManagementConfigurationChoiceSettingValueAttributes {
+		attributes[k] = v
 	}
+
+	// Add the recursive children attribute
+	attributes["children"] = schema.ListNestedAttribute{
+		Optional: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: choiceSettingInstanceAttributes(depth + 1),
+		},
+		MarkdownDescription: "Collection of child setting instances, allowing nested configurations.",
+		PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
+		Computed:            true,
+	}
+
+	return attributes
 }
 
 // Function to create group setting instance attributes
@@ -465,6 +475,10 @@ func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 
 // Simple setting value attributes
 var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
+	"odata_type": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+	},
 	"integer_value": schema.Int64Attribute{
 		Optional: true,
 		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
@@ -491,12 +505,12 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 	"secret": schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{ // TODO , need to define int's and strings etc
-				Optional:            true,
+			"secret_value": schema.StringAttribute{
+				Required:            true,
 				MarkdownDescription: "Value of the secret setting.",
 			},
 			"state": schema.StringAttribute{
-				Computed: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
 				},
@@ -526,7 +540,11 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 
 // Choice setting value attributes for string-based choices
 var deviceManagementConfigurationChoiceSettingValueAttributes = map[string]schema.Attribute{
-	"integer_value": schema.Int64Attribute{
+	"odata_type": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+	},
+	"integer_value": schema.Int32Attribute{
 		Optional: true,
 		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
 			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +

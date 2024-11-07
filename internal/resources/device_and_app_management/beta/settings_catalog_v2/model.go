@@ -53,37 +53,32 @@ type DeviceManagementConfigurationSettingInstance struct {
 // DeviceManagementConfigurationChoiceSettingValueResourceModel represents the choice setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingValue?view=graph-rest-beta
 type DeviceManagementConfigurationChoiceSettingValueResourceModel struct {
-	ODataType types.String `tfsdk:"odata_type"`
-	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	IntValue    types.Int32                                     `tfsdk:"int_value"`
-	StringValue types.String                                    `tfsdk:"string_value"`
-	SecretValue types.String                                    `tfsdk:"secret_value"`
-	State       types.String                                    `tfsdk:"state"`    // Encryption state for secrets
-	Children    []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	ODataType   types.String                                   `tfsdk:"odata_type"`
+	IntValue    types.Int32                                    `tfsdk:"integer_value"`
+	StringValue types.String                                   `tfsdk:"string_value"`
+	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationChoiceCollectionValueResourceModel represents the choice collection setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionValue?view=graph-rest-beta
 type DeviceManagementConfigurationChoiceCollectionValueResourceModel struct {
-	ODataType types.String `tfsdk:"odata_type"`
-	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	IntValue    []types.Int32                                   `tfsdk:"int_value"`
-	StringValue []types.String                                  `tfsdk:"string_value"`
-	SecretValue types.String                                    `tfsdk:"secret_value"`
-	State       types.String                                    `tfsdk:"state"`    // Encryption state for secrets
-	Children    []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	ODataType   types.String                                   `tfsdk:"odata_type"`
+	IntValue    []types.Int32                                  `tfsdk:"integer_value"`
+	StringValue []types.String                                 `tfsdk:"string_value"`
+	SecretValue types.String                                   `tfsdk:"secret_value"`
+	State       types.String                                   `tfsdk:"state"`    // Encryption state for secrets
+	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationSimpleSettingValueResourceModel represents the simple setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingValue?view=graph-rest-beta
 type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
-	ODataType types.String `tfsdk:"odata_type"`
-	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	IntValue    types.Int32                                     `tfsdk:"int_value"`
-	StringValue types.String                                    `tfsdk:"string_value"`
-	SecretValue types.String                                    `tfsdk:"secret_value"`
-	State       types.String                                    `tfsdk:"state"`    // Encryption state for secrets
-	Children    []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	ODataType   types.String                                   `tfsdk:"odata_type"`
+	IntValue    types.Int32                                    `tfsdk:"integer_value"`
+	StringValue types.String                                   `tfsdk:"string_value"`
+	SecretValue types.String                                   `tfsdk:"secret_value"`
+	State       types.String                                   `tfsdk:"state"` // For secret value states like "notEncrypted"
+	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
 }
 
 // DeviceManagementConfigurationSimpleCollectionValueResourceModel represents the simple collection setting value.
@@ -91,11 +86,11 @@ type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
 type DeviceManagementConfigurationSimpleCollectionValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
 	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	IntValue    []types.Int32                                   `tfsdk:"int_value"`
-	StringValue []types.String                                  `tfsdk:"string_value"`
-	SecretValue types.String                                    `tfsdk:"secret_value"`
-	State       types.String                                    `tfsdk:"state"`    // Encryption state for secrets
-	Children    []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	IntValue    []types.Int32                                  `tfsdk:"integer_value"`
+	StringValue []types.String                                 `tfsdk:"string_value"`
+	SecretValue types.String                                   `tfsdk:"secret_value"`
+	State       types.String                                   `tfsdk:"state"`    // Encryption state for secrets
+	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationGroupSettingValueResourceModel represents the group setting value.
@@ -103,7 +98,7 @@ type DeviceManagementConfigurationSimpleCollectionValueResourceModel struct {
 type DeviceManagementConfigurationGroupSettingValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
 	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	Children []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	Children []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationGroupCollectionValueResourceModel represents the group collection setting value.
@@ -111,21 +106,21 @@ type DeviceManagementConfigurationGroupSettingValueResourceModel struct {
 type DeviceManagementConfigurationGroupCollectionValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
 	//SettingValueTemplateReference *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	Children []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	Children []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationSettingsGroupSettingValueResourceModel represents the setting group instance.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta
 type DeviceManagementConfigurationSettingsGroupSettingValueResourceModel struct {
-	ODataType types.String                                    `tfsdk:"odata_type"`
-	Children  []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	ODataType types.String                                   `tfsdk:"odata_type"`
+	Children  []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel represents the setting group collection instance.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta
 type DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel struct {
-	ODataType types.String                                    `tfsdk:"odata_type"`
-	Children  []*DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
+	ODataType types.String                                   `tfsdk:"odata_type"`
+	Children  []DeviceManagementConfigurationSettingInstance `tfsdk:"children"` // Recursive handling
 }
 
 // DeviceManagementConfigurationTemplateReferenceResourceModel represents the setting instance template reference.

@@ -235,7 +235,7 @@ func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 	if len(choiceValue.Children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, child := range choiceValue.Children {
-			if childInstance := constructSettingInstance(child); childInstance != nil {
+			if childInstance := constructSettingInstance(&child); childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}
 		}
@@ -372,7 +372,7 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 				if len(collectionValue.Children) > 0 {
 					var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 					for _, child := range collectionValue.Children {
-						if childInstance := constructSettingInstance(child); childInstance != nil {
+						if childInstance := constructSettingInstance(&child); childInstance != nil {
 							childInstances = append(childInstances, childInstance)
 						}
 					}
@@ -450,7 +450,7 @@ func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSett
 	if len(instanceConfig.GroupSettingValue.Children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, child := range instanceConfig.GroupSettingValue.Children {
-			if childInstance := constructSettingInstance(child); childInstance != nil {
+			if childInstance := constructSettingInstance(&child); childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}
 		}
@@ -497,7 +497,7 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 	if len(collectionValue.Children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, child := range collectionValue.Children {
-			if childInstance := constructSettingInstance(child); childInstance != nil {
+			if childInstance := constructSettingInstance(&child); childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}
 		}
@@ -539,7 +539,7 @@ func buildSettingGroupInstance(instanceConfig *DeviceManagementConfigurationSett
 	if len(instanceConfig.GroupSettingValue.Children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, child := range instanceConfig.GroupSettingValue.Children {
-			if childInstance := constructSettingInstance(child); childInstance != nil {
+			if childInstance := constructSettingInstance(&child); childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}
 		}
@@ -585,7 +585,7 @@ func buildSettingGroupCollectionInstance(instanceConfig *DeviceManagementConfigu
 		var settingsArray []map[string]interface{}
 
 		for _, child := range collectionValue.Children {
-			if childInstance := constructSettingInstance(child); childInstance != nil {
+			if childInstance := constructSettingInstance(&child); childInstance != nil {
 				// Create a single group setting with its children
 				groupSetting := map[string]interface{}{
 					"@odata.type": DeviceManagementConfigurationGroupSettingValue,
