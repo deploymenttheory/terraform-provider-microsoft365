@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	// Top-level setting type for Device Management Configuration Setting
+	// Top-level OData setting type for Device Management Configuration Setting
 	DeviceManagementConfigurationSetting = "#microsoft.graph.deviceManagementConfigurationSetting"
-	// Derived types for setting instances
+	// Derived OData types for setting instances
 	DeviceManagementConfigurationChoiceSettingInstance           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
 	DeviceManagementConfigurationChoiceSettingCollectionInstance = "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance"
 	DeviceManagementConfigurationSimpleSettingInstance           = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
@@ -23,14 +23,14 @@ const (
 	DeviceManagementConfigurationGroupSettingInstance            = "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance"
 	DeviceManagementConfigurationSettingGroupCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance"
 	DeviceManagementConfigurationGroupSettingCollectionInstance  = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
-	// Derived types from `Simple Setting Value Attributes`
+	// Derived OData types for values of setting instances
 	DeviceManagementConfigurationIntegerSettingValue   = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
 	DeviceManagementConfigurationReferenceSettingValue = "#microsoft.graph.deviceManagementConfigurationReferenceSettingValue"
 	DeviceManagementConfigurationSecretSettingValue    = "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"
 	DeviceManagementConfigurationStringSettingValue    = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
 	DeviceManagementConfigurationChoiceSettingValue    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 	DeviceManagementConfigurationGroupSettingValue     = "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
-	// Derived types from `Setting Value Template Reference Attributes`
+	// Derived OData types for values template references
 	DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType = "#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference"
 )
 

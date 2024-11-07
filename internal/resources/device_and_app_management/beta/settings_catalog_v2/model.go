@@ -14,11 +14,13 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 	Description          types.String                                                 `tfsdk:"description"`
 	Platforms            types.String                                                 `tfsdk:"platforms"`
 	Technologies         types.String                                                 `tfsdk:"technologies"`
-	SettingsCount        types.Int32                                                  `tfsdk:"settings_count"`
+	SettingsCount        types.Int64                                                  `tfsdk:"settings_count"`
 	RoleScopeTagIds      []types.String                                               `tfsdk:"role_scope_tag_ids"`
 	LastModifiedDateTime types.String                                                 `tfsdk:"last_modified_date_time"`
 	CreatedDateTime      types.String                                                 `tfsdk:"created_date_time"`
 	Settings             []DeviceManagementConfigurationSettingResourceModel          `tfsdk:"settings"`
+	IsAssigned           types.Bool                                                   `tfsdk:"is_assigned"`
+	TemplateReference    *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
 	Assignments          *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel `tfsdk:"assignments"`
 	Timeouts             timeouts.Value                                               `tfsdk:"timeouts"`
 }

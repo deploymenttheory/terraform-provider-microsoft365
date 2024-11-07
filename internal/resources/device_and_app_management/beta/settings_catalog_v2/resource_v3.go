@@ -142,17 +142,15 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Computed:            true,
 				MarkdownDescription: "Template reference information",
 			},
-
-			"role_scope_tag_ids": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.DefaultValueSet(
+			"role_scope_tag_ids": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "List of scope tag IDs for this Windows Settings Catalog profile.",
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListValue(
 						[]attr.Value{types.StringValue("0")},
 					),
 				},
-				MarkdownDescription: "List of Scope Tags for this Entity instance",
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
@@ -168,7 +166,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "Last modification date and time of the policy",
 			},
-			"setting_count": schema.Int64Attribute{
+			"settings_count": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					planmodifiers.UseStateForUnknownInt64(),
@@ -347,7 +345,7 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 				MarkdownDescription: "Value of the secret setting.",
 			},
 			"state": schema.StringAttribute{
-				Required: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
 				},
@@ -433,7 +431,7 @@ func choiceSettingValueAttributes(depth int) map[string]schema.Attribute {
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
 			NestedObject:        schema.NestedAttributeObject{Attributes: settingInstanceAttributes(depth + 1)},
-			PlanModifiers:       []planmodifier.List{planmodifiers.ListDefaultValueEmpty()},
+			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
 			Computed:            true,
 			MarkdownDescription: "Child settings.",
 		},
@@ -470,7 +468,7 @@ func groupSettingValueAttributes(depth int) map[string]schema.Attribute {
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
 			NestedObject:        schema.NestedAttributeObject{Attributes: settingInstanceAttributes(depth + 1)},
-			PlanModifiers:       []planmodifier.List{planmodifiers.ListDefaultValueEmpty()},
+			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
 			Computed:            true,
 			MarkdownDescription: "Collection of child setting instances",
 		},
