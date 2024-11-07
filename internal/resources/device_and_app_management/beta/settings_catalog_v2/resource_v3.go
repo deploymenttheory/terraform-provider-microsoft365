@@ -152,6 +152,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					),
 				},
 			},
+
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
