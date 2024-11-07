@@ -59,11 +59,6 @@ type SettingsCatalogResource struct {
 	WritePermissions []string
 }
 
-// GetTypeName returns the type name of the resource from the state model.
-func (r *SettingsCatalogResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog"
@@ -183,7 +178,6 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
-// settingInstance defines the nested attributes for each setting instance within settings catalog
 func settingInstance(depth int) map[string]schema.Attribute {
 	if depth >= maxDepth {
 		return map[string]schema.Attribute{}
@@ -192,127 +186,116 @@ func settingInstance(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
 			Computed:            true,
-			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+			MarkdownDescription: "The OData type of the setting instance. Always #microsoft.graph.deviceManagementConfigurationSetting",
 		},
 		"setting_instance": schema.SingleNestedAttribute{
-			Optional:            true,
-			Attributes:          settings(depth),
-			MarkdownDescription: "Defines a specific setting instance, containing setting definition ID and setting values like choice, simple, etc.",
-		},
-	}
-}
-
-// settings contains nested attributes for each setting type within setting_instance
-func settings(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
-	return map[string]schema.Attribute{
-		"odata_type": schema.StringAttribute{
-			Required:            true,
-			MarkdownDescription: "The OData type of the setting instance. This must be specified and is used to determine the specific setting instance type.",
-			Validators: []validator.String{
-				stringvalidator.OneOf(
-					DeviceManagementConfigurationChoiceSettingInstance,
-					DeviceManagementConfigurationChoiceSettingCollectionInstance,
-					DeviceManagementConfigurationSimpleSettingInstance,
-					DeviceManagementConfigurationSimpleSettingCollectionInstance,
-					DeviceManagementConfigurationSettingGroupInstance,
-					DeviceManagementConfigurationGroupSettingInstance,
-					DeviceManagementConfigurationSettingGroupCollectionInstance,
-					DeviceManagementConfigurationGroupSettingCollectionInstance,
-				),
-			},
-		},
-		"setting_definition_id": schema.StringAttribute{
-			Required:            true,
-			Description:         "settingDefinitionId",
-			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
-		},
-		"choice": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: choiceSettingInstanceAttributes(depth + 1),
-			MarkdownDescription: "Choice setting instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
-				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
-		},
-		"choice_collection": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: choiceSettingCollectionInstanceAttributes(depth + 1),
-			MarkdownDescription: "Choice setting collection instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance.\n\n" +
-				"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionInstance?view=graph-rest-beta).",
-		},
-		"group": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: groupSettingInstanceAttributes(depth + 1),
-			MarkdownDescription: "Group setting instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
-				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
-		},
-		"group_collection": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: groupSettingCollectionInstanceAttributes(depth + 1),
-			MarkdownDescription: "Group setting collection instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
-				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
-		},
-		"setting_group": schema.SingleNestedAttribute{
 			Optional: true,
 			Attributes: map[string]schema.Attribute{
-				"children": schema.ListNestedAttribute{
-					Optional: true,
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: settings(depth + 1),
+				"odata_type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "The OData type of the setting instance. This must be specified and is used to determine the specific setting instance type.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							DeviceManagementConfigurationChoiceSettingInstance,
+							DeviceManagementConfigurationChoiceSettingCollectionInstance,
+							DeviceManagementConfigurationSimpleSettingInstance,
+							DeviceManagementConfigurationSimpleSettingCollectionInstance,
+							DeviceManagementConfigurationSettingGroupInstance,
+							DeviceManagementConfigurationGroupSettingInstance,
+							DeviceManagementConfigurationSettingGroupCollectionInstance,
+							DeviceManagementConfigurationGroupSettingCollectionInstance,
+						),
 					},
-					PlanModifiers: []planmodifier.List{
-						planmodifiers.DefaultListEmptyValue(),
-					},
-					Computed:            true,
-					MarkdownDescription: "Collection of child setting instances within the setting group",
+				},
+				"setting_definition_id": schema.StringAttribute{
+					Required:            true,
+					Description:         "settingDefinitionId",
+					MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
+				},
+				"choice": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: choiceSettingInstanceAttributes(depth + 1),
+					MarkdownDescription: "Choice setting instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
+						"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
+				},
+				"choice_collection": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: choiceSettingCollectionInstanceAttributes(depth + 1),
+					MarkdownDescription: "Choice setting collection instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance.\n\n" +
+						"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionInstance?view=graph-rest-beta).",
+				},
+				"group": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: groupSettingInstanceAttributes(depth + 1),
+					MarkdownDescription: "Group setting instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
+						"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
+				},
+				"group_collection": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: groupSettingCollectionInstanceAttributes(depth + 1),
+					MarkdownDescription: "Group setting collection instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
+						"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
+				},
+				// "setting_group": schema.SingleNestedAttribute{
+				// 	Optional: true,
+				// 	Attributes: map[string]schema.Attribute{
+				// 		"children": schema.ListNestedAttribute{
+				// 			Required: true,
+				// 			NestedObject: schema.NestedAttributeObject{
+				// 				Attributes: settingInstance(depth + 1),
+				// 			},
+				// 			PlanModifiers: []planmodifier.List{
+				// 				planmodifiers.DefaultListEmptyValue(),
+				// 			},
+				// 			MarkdownDescription: "Collection of child setting instances within the setting group",
+				// 		},
+				// 	},
+				// 	MarkdownDescription: "Setting group instance with @odata.type: " +
+				// 		"#microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
+				// 		"For details, see [Setting Group Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+				// 		"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta).",
+				// },
+				// "setting_group_collection": schema.SingleNestedAttribute{
+				// 	Optional: true,
+				// 	Attributes: map[string]schema.Attribute{
+				// 		"children": schema.ListNestedAttribute{
+				// 			Required: true,
+				// 			NestedObject: schema.NestedAttributeObject{
+				// 				Attributes: settingInstance(depth + 1),
+				// 			},
+				// 			MarkdownDescription: "Collection of child setting instances within each group in the collection",
+				// 		},
+				// 	},
+				// 	MarkdownDescription: "Setting group collection instance with @odata.type: " +
+				// 		"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
+				// 		"For details, see [Setting Group Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+				// 		"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta).",
+				// },
+				"simple": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: simpleSettingInstanceAttributes(),
+					MarkdownDescription: "Simple setting instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance.\n\n" +
+						"For details, see [Simple Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingInstance?view=graph-rest-beta).",
+				},
+				"simple_collection": schema.SingleNestedAttribute{
+					Optional:   true,
+					Attributes: simpleSettingCollectionInstanceAttributes(),
+					MarkdownDescription: "Simple setting collection instance with @odata.type: " +
+						"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance.\n\n" +
+						"For details, see [Simple Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+						"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionInstance?view=graph-rest-beta).",
 				},
 			},
-			MarkdownDescription: "Setting group instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
-				"For details, see [Setting Group Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta).",
-		},
-		"setting_group_collection": schema.SingleNestedAttribute{
-			Optional: true,
-			Attributes: map[string]schema.Attribute{
-				"children": schema.ListNestedAttribute{
-					Required: true,
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: settings(depth + 1),
-					},
-					MarkdownDescription: "Collection of child setting instances within each group in the collection",
-				},
-			},
-			MarkdownDescription: "Setting group collection instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
-				"For details, see [Setting Group Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta).",
-		},
-		"simple": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: simpleSettingInstanceAttributes(),
-			MarkdownDescription: "Simple setting instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance.\n\n" +
-				"For details, see [Simple Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingInstance?view=graph-rest-beta).",
-		},
-		"simple_collection": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: simpleSettingCollectionInstanceAttributes(),
-			MarkdownDescription: "Simple setting collection instance with @odata.type: " +
-				"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance.\n\n" +
-				"For details, see [Simple Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionInstance?view=graph-rest-beta).",
 		},
 	}
 }
@@ -340,14 +323,15 @@ func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 				"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
 		},
-		"children": schema.ListNestedAttribute{
-			Optional: true,
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: choiceSettingInstanceAttributes(depth + 1),
-			},
-			MarkdownDescription: "Nested child settings instances, allowing recursive configurations.",
-			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
-		},
+		// "children": schema.ListNestedAttribute{
+		// 	Optional:    true,
+		// 	Description: "The child settings of this choice setting.",
+		// 	NestedObject: schema.NestedAttributeObject{
+		// 		Attributes: settingInstance(depth + 1),
+		// 	},
+		// 	MarkdownDescription: "Nested child settings instances, allowing recursive configurations.",
+		// 	PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
+		// },
 	}
 
 	return attributes
@@ -386,13 +370,13 @@ func choiceSettingValueAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	return map[string]schema.Attribute{
-		"children": schema.ListNestedAttribute{
-			Optional:            true,
-			NestedObject:        schema.NestedAttributeObject{Attributes: settings(depth + 1)},
-			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
-			Computed:            true,
-			MarkdownDescription: "Child settings.",
-		},
+		// "children": schema.ListNestedAttribute{
+		// 	Optional:            true,
+		// 	NestedObject:        schema.NestedAttributeObject{Attributes: settingInstance(depth + 1)},
+		// 	PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
+		// 	Computed:            true,
+		// 	MarkdownDescription: "Child settings.",
+		// },
 		"value": schema.StringAttribute{
 			Optional:            true,
 			MarkdownDescription: "Choice setting value: an OptionDefinition ItemId.",
@@ -427,7 +411,7 @@ func groupSettingValueAttributes(depth int) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
-			NestedObject:        schema.NestedAttributeObject{Attributes: settings(depth + 1)},
+			NestedObject:        schema.NestedAttributeObject{Attributes: settingInstance(depth + 1)},
 			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
 			Computed:            true,
 			MarkdownDescription: "Collection of child setting instances",
