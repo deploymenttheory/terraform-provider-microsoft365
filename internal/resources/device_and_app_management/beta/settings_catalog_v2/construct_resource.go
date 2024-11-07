@@ -149,18 +149,18 @@ func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 	simpleValue := instanceConfig.SimpleSettingValue
 
 	if !simpleValue.IntValue.IsNull() {
@@ -202,18 +202,18 @@ func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 
 	choiceValue := instanceConfig.ChoiceSettingValue
 	value := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
@@ -252,18 +252,18 @@ func buildSimpleSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 
 	collectionValue := instanceConfig.SimpleCollectionValue
 	var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
@@ -326,18 +326,18 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 
 	collectionValue := instanceConfig.ChoiceCollectionValue
 	var values []graphmodels.DeviceManagementConfigurationChoiceSettingValueable
@@ -352,15 +352,15 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 				val := stringVal.ValueString()
 				value.SetValue(&val)
 
-				if collectionValue.SettingValueTemplateReference != nil {
-					valTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
-					if !collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.IsNull() {
-						templateId := collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.ValueString()
-						valTemplateRef.SetSettingValueTemplateId(&templateId)
-					}
+				// if collectionValue.SettingValueTemplateReference != nil {
+				// 	valTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+				// 	if !collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.IsNull() {
+				// 		templateId := collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.ValueString()
+				// 		valTemplateRef.SetSettingValueTemplateId(&templateId)
+				// 	}
 
-					value.SetSettingValueTemplateReference(valTemplateRef)
-				}
+				// 	value.SetSettingValueTemplateReference(valTemplateRef)
+				// }
 
 				if len(collectionValue.Children) > 0 {
 					var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
@@ -388,15 +388,15 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 				strVal := strconv.FormatInt(int64(val), 10)
 				value.SetValue(&strVal)
 
-				if collectionValue.SettingValueTemplateReference != nil {
-					valTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
-					if !collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.IsNull() {
-						templateId := collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.ValueString()
-						valTemplateRef.SetSettingValueTemplateId(&templateId)
-					}
+				// if collectionValue.SettingValueTemplateReference != nil {
+				// 	valTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+				// 	if !collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.IsNull() {
+				// 		templateId := collectionValue.SettingValueTemplateReference.SettingInstanceTemplateId.ValueString()
+				// 		valTemplateRef.SetSettingValueTemplateId(&templateId)
+				// 	}
 
-					value.SetSettingValueTemplateReference(valTemplateRef)
-				}
+				// 	value.SetSettingValueTemplateReference(valTemplateRef)
+				// }
 
 				values = append(values, value)
 			}
@@ -423,18 +423,18 @@ func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSett
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 
 	value := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
 	groupValueODataType := DeviceManagementConfigurationGroupSettingValue
@@ -467,18 +467,18 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	if instanceConfig.SettingInstanceTemplateReference != nil {
-		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-		templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
-		templateRef.SetOdataType(&templateRefODataType)
+	// if instanceConfig.SettingInstanceTemplateReference != nil {
+	// 	templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	// 	templateRefODataType := DeviceManagementConfigurationSettingInstanceTemplateReferenceODataType
+	// 	templateRef.SetOdataType(&templateRefODataType)
 
-		if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
-			templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
-			templateRef.SetSettingInstanceTemplateId(&templateId)
-		}
+	// 	if !instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.IsNull() {
+	// 		templateId := instanceConfig.SettingInstanceTemplateReference.SettingInstanceTemplateId.ValueString()
+	// 		templateRef.SetSettingInstanceTemplateId(&templateId)
+	// 	}
 
-		instance.SetSettingInstanceTemplateReference(templateRef)
-	}
+	// 	instance.SetSettingInstanceTemplateReference(templateRef)
+	// }
 
 	collectionValue := instanceConfig.GroupCollectionValue
 	var values []graphmodels.DeviceManagementConfigurationGroupSettingValueable

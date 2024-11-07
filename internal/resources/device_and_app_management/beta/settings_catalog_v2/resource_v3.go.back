@@ -36,11 +36,6 @@ var (
 	schemaDepthCache = make(map[int]map[string]schema.Attribute)
 )
 
-const (
-	// Define maximum allowed depth for nested attributes
-	maxDepth = 5
-)
-
 func NewSettingsCatalogResource() resource.Resource {
 	return &SettingsCatalogResource{
 		ReadPermissions: []string{
@@ -140,6 +135,13 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Computed:            true,
 				MarkdownDescription: "Technologies for this policy",
 			},
+			// "template_reference": schema.SingleNestedAttribute{
+			// 	Optional:            true,
+			// 	Attributes:          templateReferenceAttributes(),
+			// 	PlanModifiers:       []planmodifier.Object{planmodifiers.DefaultValueObject(map[string]attr.Value{})},
+			// 	Computed:            true,
+			// 	MarkdownDescription: "Template reference information",
+			// },
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
@@ -187,13 +189,14 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 }
 
 func settingInstance(depth int) map[string]schema.Attribute {
+	maxDepth := 5 // Maximum nesting depth
 
-	// Check if schema for this depth is already cached
-	if cachedSettings, exists := schemaDepthCache[depth]; exists {
-		return cachedSettings
+	// Check cache first
+	if settings, exists := schemaDepthCache[depth]; exists {
+		return settings
 	}
 
-	// Prevent further recursion once max depth is reached
+	// Prevent infinite recursion
 	if depth >= maxDepth {
 		return map[string]schema.Attribute{}
 	}
@@ -206,7 +209,6 @@ func settingInstance(depth int) map[string]schema.Attribute {
 		},
 	}
 
-	// Cache the schema for the current depth
 	schemaDepthCache[depth] = settings
 	return settings
 }
@@ -280,6 +282,124 @@ func settings(depth int) map[string]schema.Attribute {
 		},
 	}
 }
+
+// // settingInstanceAttributes creates the schema for the settings catalog setting instance
+// func settingInstanceAttributes(depth int) map[string]schema.Attribute {
+// 	maxDepth := 5 // Maximum nesting depth
+
+// 	// Check cache first
+// 	if settings, exists := schemaDepthCache[depth]; exists {
+// 		return settings
+// 	}
+
+// 	// Prevent infinite recursion
+// 	if depth >= maxDepth {
+// 		return map[string]schema.Attribute{}
+// 	}
+
+// 	settings := map[string]schema.Attribute{
+// 		// "setting_definition_id": schema.StringAttribute{
+// 		// 	Required:    true,
+// 		// 	Description: `settingDefinitionId`,
+// 		// 	MarkdownDescription: "The settings catalog setting definition ID, e.g., " +
+// 		// 		"`device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
+// 		// },
+// 		// "template_reference": schema.SingleNestedAttribute{
+// 		// 	Optional:            true,
+// 		// 	Attributes:          deviceManagementConfigurationSettingInstanceTemplateReferenceAttributes,
+// 		// 	Description:         `settingInstanceTemplateReference`,
+// 		// 	MarkdownDescription: "Setting Instance Template Reference",
+// 		// },
+// 		"choice": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: choiceSettingInstanceAttributes(depth),
+// 			MarkdownDescription: "Choice setting instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
+// 				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
+// 		},
+// 		"choice_collection": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: choiceSettingCollectionInstanceAttributes(depth),
+// 			MarkdownDescription: "Choice setting collection instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance.\n\n" +
+// 				"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionInstance?view=graph-rest-beta).",
+// 		},
+// 		"group": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: groupSettingInstanceAttributes(depth),
+// 			MarkdownDescription: "Group setting instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
+// 				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
+// 		},
+// 		"group_collection": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: groupSettingCollectionInstanceAttributes(depth),
+// 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
+// 				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
+// 		},
+// 		"setting_group": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: map[string]schema.Attribute{},
+// 			MarkdownDescription: "Setting group instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
+// 				"For details, see [Setting Group Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta).",
+// 		},
+// 		"setting_group_collection": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: map[string]schema.Attribute{},
+// 			MarkdownDescription: "Setting group collection instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
+// 				"For details, see [Setting Group Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta).",
+// 		},
+// 		"simple": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: simpleSettingInstanceAttributes(),
+// 			MarkdownDescription: "Simple setting instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance.\n\n" +
+// 				"For details, see [Simple Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingInstance?view=graph-rest-beta).",
+// 		},
+// 		"simple_collection": schema.SingleNestedAttribute{
+// 			Optional:   true,
+// 			Attributes: simpleSettingCollectionInstanceAttributes(),
+// 			MarkdownDescription: "Simple setting collection instance with @odata.type: " +
+// 				"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance.\n\n" +
+// 				"For details, see [Simple Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionInstance?view=graph-rest-beta).",
+// 		},
+// 	}
+// 	schemaDepthCache[depth] = settings
+// 	return settings
+// }
+
+// Common template reference attributes
+// var deviceManagementConfigurationSettingValueTemplateReferenceAttributes = map[string]schema.Attribute{
+// 	"default_id": schema.StringAttribute{
+// 		Optional:            true,
+// 		MarkdownDescription: "Default Setting Definition ID to be applied when the template is instantiated.",
+// 	},
+// 	"children": schema.ListNestedAttribute{
+// 		Optional:            true,
+// 		NestedObject:        schema.NestedAttributeObject{Attributes: templateReferenceChildAttributes()},
+// 		MarkdownDescription: "Collection of child setting instance template references.",
+// 	},
+// }
+
+// func templateReferenceChildAttributes() map[string]schema.Attribute {
+// 	return map[string]schema.Attribute{
+// 		"default_id": schema.StringAttribute{
+// 			Optional:            true,
+// 			MarkdownDescription: "Default Setting Definition ID to be applied when the template is instantiated.",
+// 		},
+// 	}
+// }
 
 // Simple setting value attributes
 var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
@@ -356,6 +476,19 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 	},
 }
 
+// Template reference instance attributes
+// var deviceManagementConfigurationSettingInstanceTemplateReferenceAttributes = map[string]schema.Attribute{
+// 	"default_id": schema.StringAttribute{
+// 		Optional:            true,
+// 		MarkdownDescription: "Default Setting Definition ID to be applied when the template is instantiated.",
+// 	},
+// 	"children": schema.ListNestedAttribute{
+// 		Optional:            true,
+// 		NestedObject:        schema.NestedAttributeObject{Attributes: templateReferenceChildAttributes()},
+// 		MarkdownDescription: "Collection of child setting instance template references.",
+// 	},
+// }
+
 // Function to create simple setting collection instance attributes
 func simpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
@@ -394,11 +527,13 @@ func simpleSettingInstanceAttributes() map[string]schema.Attribute {
 
 // Function to create choice setting value attributes
 func choiceSettingValueAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
+		// "template_reference": schema.SingleNestedAttribute{
+		// 	Optional:            true,
+		// 	Attributes:          deviceManagementConfigurationSettingValueTemplateReferenceAttributes,
+		// 	Description:         `settingValueTemplateReference`,
+		// 	MarkdownDescription: "Setting value template reference",
+		// },
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
 			NestedObject:        schema.NestedAttributeObject{Attributes: settings(depth + 1)},
@@ -415,10 +550,6 @@ func choiceSettingValueAttributes(depth int) map[string]schema.Attribute {
 
 // Function to create choice setting collection instance attributes
 func choiceSettingCollectionInstanceAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
 		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
@@ -438,11 +569,13 @@ func choiceSettingCollectionInstanceAttributes(depth int) map[string]schema.Attr
 
 // Function to create group setting value attributes
 func groupSettingValueAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
+		// "template_reference": schema.SingleNestedAttribute{
+		// 	Optional:            true,
+		// 	Attributes:          deviceManagementConfigurationSettingValueTemplateReferenceAttributes,
+		// 	Description:         `settingValueTemplateReference`,
+		// 	MarkdownDescription: "Setting value template reference",
+		// },
 		"children": schema.ListNestedAttribute{
 			Optional:            true,
 			NestedObject:        schema.NestedAttributeObject{Attributes: settings(depth + 1)},
@@ -455,10 +588,6 @@ func groupSettingValueAttributes(depth int) map[string]schema.Attribute {
 
 // Function to create group setting collection instance attributes
 func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
 		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
@@ -478,10 +607,6 @@ func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attri
 
 // Function to create choice setting instance attributes
 func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
 		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
@@ -499,10 +624,6 @@ func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 
 // Function to create group setting instance attributes
 func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
-	if depth >= maxDepth {
-		return map[string]schema.Attribute{}
-	}
-
 	return map[string]schema.Attribute{
 		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
@@ -517,3 +638,62 @@ func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 		},
 	}
 }
+
+// Function to create template reference attributes
+// func templateReferenceAttributes() map[string]schema.Attribute {
+// 	return map[string]schema.Attribute{
+// 		"display_name": schema.StringAttribute{
+// 			Computed: true,
+// 			PlanModifiers: []planmodifier.String{
+// 				stringplanmodifier.UseStateForUnknown(),
+// 			},
+// 			Description: `templateDisplayName`,
+// 		},
+// 		"display_version": schema.StringAttribute{
+// 			Computed: true,
+// 			PlanModifiers: []planmodifier.String{
+// 				stringplanmodifier.UseStateForUnknown(),
+// 			},
+// 			Description: `templateDisplayVersion`,
+// 		},
+// 		"family": schema.StringAttribute{
+// 			Computed: true,
+// 			Validators: []validator.String{
+// 				stringvalidator.OneOf(
+// 					"none",
+// 					"endpointSecurityAntivirus",
+// 					"endpointSecurityDiskEncryption",
+// 					"endpointSecurityFirewall",
+// 					"endpointSecurityEndpointDetectionAndResponse",
+// 					"endpointSecurityAttackSurfaceReduction",
+// 					"endpointSecurityAccountProtection",
+// 					"endpointSecurityApplicationControl",
+// 					"endpointSecurityEndpointPrivilegeManagement",
+// 					"enrollmentConfiguration",
+// 					"appQuietTime",
+// 					"baseline",
+// 					"unknownFutureValue",
+// 					"deviceConfigurationScripts",
+// 					"deviceConfigurationPolicies",
+// 					"windowsOsRecoveryPolicies",
+// 					"companyPortal",
+// 				),
+// 			},
+// 			PlanModifiers: []planmodifier.String{
+// 				stringplanmodifier.UseStateForUnknown(),
+// 			},
+// 			Description:         `templateFamily`,
+// 			MarkdownDescription: "Describes the TemplateFamily for the Template entity",
+// 		},
+// 		"id": schema.StringAttribute{
+// 			Optional: true,
+// 			PlanModifiers: []planmodifier.String{
+// 				planmodifiers.DefaultValueString(""),
+// 				stringplanmodifier.RequiresReplace(),
+// 			},
+// 			Computed:            true,
+// 			Description:         `templateId`,
+// 			MarkdownDescription: "Template id",
+// 		},
+// 	}
+// }
