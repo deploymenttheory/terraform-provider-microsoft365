@@ -331,6 +331,42 @@ func settings(depth int) map[string]schema.Attribute {
 	}
 }
 
+// choiceSettingInstanceAttributes dynamically adds children to handle recursion
+func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
+	if depth >= maxDepth {
+		return map[string]schema.Attribute{}
+	}
+
+	attributes := map[string]schema.Attribute{
+		"odata_type": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+		},
+		"integer_value": schema.Int32Attribute{
+			Optional: true,
+			MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
+				"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
+		},
+		"string_value": schema.StringAttribute{
+			Optional: true,
+			MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+				"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
+		},
+		"children": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: choiceSettingInstanceAttributes(depth + 1),
+			},
+			MarkdownDescription: "Nested child settings instances, allowing recursive configurations.",
+			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
+		},
+	}
+
+	return attributes
+}
+
 // Function to create simple setting collection instance attributes
 func simpleSettingCollectionInstanceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
@@ -431,32 +467,6 @@ func groupSettingCollectionInstanceAttributes(depth int) map[string]schema.Attri
 	}
 }
 
-// choiceSettingInstanceAttributes dynamically adds children to handle recursion
-func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
-	// Prevent further recursion once max depth is reached
-	if depth >= maxDepth {
-		return deviceManagementConfigurationChoiceSettingValueAttributes
-	}
-
-	attributes := make(map[string]schema.Attribute)
-	for k, v := range deviceManagementConfigurationChoiceSettingValueAttributes {
-		attributes[k] = v
-	}
-
-	// Add the recursive children attribute
-	attributes["children"] = schema.ListNestedAttribute{
-		Optional: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: choiceSettingInstanceAttributes(depth + 1),
-		},
-		MarkdownDescription: "Collection of child setting instances, allowing nested configurations.",
-		PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
-		Computed:            true,
-	}
-
-	return attributes
-}
-
 // Function to create group setting instance attributes
 func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 	if depth >= maxDepth {
@@ -529,26 +539,6 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 			"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
 			"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
 			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
-	},
-	"string_value": schema.StringAttribute{
-		Optional: true,
-		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
-			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
-	},
-}
-
-// Choice setting value attributes for string-based choices
-var deviceManagementConfigurationChoiceSettingValueAttributes = map[string]schema.Attribute{
-	"odata_type": schema.StringAttribute{
-		Computed:            true,
-		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
-	},
-	"integer_value": schema.Int32Attribute{
-		Optional: true,
-		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
-			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
 	},
 	"string_value": schema.StringAttribute{
 		Optional: true,

@@ -189,7 +189,7 @@ func settingsSchema() schema.ListNestedAttribute {
 									Optional:    true,
 									Description: "The child settings of this choice setting.",
 									NestedObject: schema.NestedAttributeObject{
-										Attributes: settingInstanceSchema(0),
+										Attributes: settingSchema(0),
 									},
 								},
 							},
@@ -202,7 +202,7 @@ func settingsSchema() schema.ListNestedAttribute {
 }
 
 // settingInstanceSchema returns the schema for a setting instance, used recursively for children
-func settingInstanceSchema(depth int) map[string]schema.Attribute {
+func settingSchema(depth int) map[string]schema.Attribute {
 	if depth >= 10 {
 		return nil
 	}
@@ -233,7 +233,7 @@ func settingInstanceSchema(depth int) map[string]schema.Attribute {
 					Optional:    true,
 					Description: fmt.Sprintf("The child settings of this choice setting (level %d).", depth+2),
 					NestedObject: schema.NestedAttributeObject{
-						Attributes: settingInstanceSchema(depth + 1),
+						Attributes: settingSchema(depth + 1),
 					},
 				},
 			},
