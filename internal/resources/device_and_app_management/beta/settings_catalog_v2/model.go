@@ -10,7 +10,7 @@ import (
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta
 type WindowsSettingsCatalogProfileResourceModel struct {
 	ID                   types.String                                                 `tfsdk:"id"`
-	DisplayName          types.String                                                 `tfsdk:"display_name"`
+	Name                 types.String                                                 `tfsdk:"name"`
 	Description          types.String                                                 `tfsdk:"description"`
 	Platforms            types.String                                                 `tfsdk:"platforms"`
 	Technologies         types.String                                                 `tfsdk:"technologies"`

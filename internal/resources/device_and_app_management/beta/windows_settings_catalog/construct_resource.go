@@ -16,13 +16,11 @@ func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileR
 	tflog.Debug(ctx, "Constructing Windows Settings Catalog resource")
 	construct.DebugPrintStruct(ctx, "Constructed Windows Settings Catalog Resource from model", data)
 
-	// Initialize profile object
 	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	// Set basic properties from data model
-	displayName := data.DisplayName.ValueString()
+	Name := data.Name.ValueString()
 	description := data.Description.ValueString()
-	profile.SetName(&displayName)
+	profile.SetName(&Name)
 	profile.SetDescription(&description)
 
 	platformStr := data.Platforms.ValueString()

@@ -21,7 +21,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsSetting
 
 	// Map basic properties
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
+	data.Name = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
