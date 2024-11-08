@@ -189,8 +189,10 @@ func settingInstance(depth int) map[string]schema.Attribute {
 			MarkdownDescription: "The OData type of the setting instance. Always #microsoft.graph.deviceManagementConfigurationSetting",
 		},
 		"setting_instance": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: settingInstanceValueType(depth),
+			Optional:            true,
+			Attributes:          settingInstanceValueType(depth),
+			Description:         `settingInstance`, // custom MS Graph attribute name
+			MarkdownDescription: "Setting Instance / Setting instance within policy / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingInstance?view=graph-rest-beta",
 		},
 	}
 }
@@ -224,7 +226,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"choice": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: choiceSettingInstanceAttributes(depth + 1), // TODO "choice": GetChoiceSchema(),
+			Attributes: GetChoiceSchema(depth + 1).Attributes,
 			MarkdownDescription: "Choice setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
 				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
@@ -460,66 +462,66 @@ func groupSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 }
 
 // Simple setting value attributes
-var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
-	"odata_type": schema.StringAttribute{
-		Computed:            true,
-		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
-	},
-	"integer_value": schema.Int64Attribute{
-		Optional: true,
-		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
-			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
-	},
-	"reference": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Value of the reference setting.",
-			},
-			"note": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "A note for contextual information provided by the admin.",
-			},
-		},
-		MarkdownDescription: "Model for ReferenceSettingValue with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationReferenceSettingValue.\n\n" +
-			"For more details, see [Reference Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta).",
-	},
-	"secret": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"secret_value": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Value of the secret setting.",
-			},
-			"state": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
-				},
-				Description: `valueState`,
-				MarkdownDescription: "Indicates the encryption state of the Value property, with possible values:\n\n" +
-					"- **invalid**: Default invalid value.\n" +
-					"- **notEncrypted**: Secret value is not encrypted.\n" +
-					"- **encryptedValueToken**: A token for the encrypted value is returned by the service.\n\n" +
-					"Model for SecretSettingValue with @odata.type: " +
-					"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
-					"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
-			},
-		},
-		MarkdownDescription: "Graph model for a secret setting value with @odata.type: " +
-			"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
-			"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
-	},
-	"string_value": schema.StringAttribute{
-		Optional: true,
-		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
-			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
-	},
-}
+// var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schema.Attribute{
+// 	"odata_type": schema.StringAttribute{
+// 		Computed:            true,
+// 		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+// 	},
+// 	"integer_value": schema.Int64Attribute{
+// 		Optional: true,
+// 		MarkdownDescription: "Value of the integer setting with @odata.type: #microsoft.graph.deviceManagementConfigurationIntegerSettingValue.\n\n" +
+// 			"For more details, see [Intune Integer Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta).",
+// 	},
+// 	"reference": schema.SingleNestedAttribute{
+// 		Optional: true,
+// 		Attributes: map[string]schema.Attribute{
+// 			"value": schema.StringAttribute{
+// 				Optional:            true,
+// 				MarkdownDescription: "Value of the reference setting.",
+// 			},
+// 			"note": schema.StringAttribute{
+// 				Optional:            true,
+// 				MarkdownDescription: "A note for contextual information provided by the admin.",
+// 			},
+// 		},
+// 		MarkdownDescription: "Model for ReferenceSettingValue with @odata.type: " +
+// 			"#microsoft.graph.deviceManagementConfigurationReferenceSettingValue.\n\n" +
+// 			"For more details, see [Reference Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta).",
+// 	},
+// 	"secret": schema.SingleNestedAttribute{
+// 		Optional: true,
+// 		Attributes: map[string]schema.Attribute{
+// 			"secret_value": schema.StringAttribute{
+// 				Required:            true,
+// 				MarkdownDescription: "Value of the secret setting.",
+// 			},
+// 			"state": schema.StringAttribute{
+// 				Required: true,
+// 				Validators: []validator.String{
+// 					stringvalidator.OneOf("invalid", "notEncrypted", "encryptedValueToken"),
+// 				},
+// 				Description: `valueState`,
+// 				MarkdownDescription: "Indicates the encryption state of the Value property, with possible values:\n\n" +
+// 					"- **invalid**: Default invalid value.\n" +
+// 					"- **notEncrypted**: Secret value is not encrypted.\n" +
+// 					"- **encryptedValueToken**: A token for the encrypted value is returned by the service.\n\n" +
+// 					"Model for SecretSettingValue with @odata.type: " +
+// 					"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
+// 					"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
+// 			},
+// 		},
+// 		MarkdownDescription: "Graph model for a secret setting value with @odata.type: " +
+// 			"#microsoft.graph.deviceManagementConfigurationSecretSettingValue.\n\n" +
+// 			"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
+// 	},
+// 	"string_value": schema.StringAttribute{
+// 		Optional: true,
+// 		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+// 			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+// 			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
+// 	},
+// }
