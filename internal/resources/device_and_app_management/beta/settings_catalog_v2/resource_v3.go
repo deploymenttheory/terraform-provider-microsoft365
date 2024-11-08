@@ -323,15 +323,15 @@ func choiceSettingInstanceAttributes(depth int) map[string]schema.Attribute {
 				"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
 		},
-		// "children": schema.ListNestedAttribute{
-		// 	Optional:    true,
-		// 	Description: "The child settings of this choice setting.",
-		// 	NestedObject: schema.NestedAttributeObject{
-		// 		Attributes: settingInstance(depth + 1),
-		// 	},
-		// 	MarkdownDescription: "Nested child settings instances, allowing recursive configurations.",
-		// 	PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
-		// },
+		"children": schema.ListNestedAttribute{
+			Optional:    true,
+			Description: "The child settings of this choice setting.",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: settingInstance(depth + 1), // This creates a different structure
+			},
+			MarkdownDescription: "Nested child settings instances.",
+			PlanModifiers:       []planmodifier.List{planmodifiers.DefaultListEmptyValue()},
+		},
 	}
 
 	return attributes
