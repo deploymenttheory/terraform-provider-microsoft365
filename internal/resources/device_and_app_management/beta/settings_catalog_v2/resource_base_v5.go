@@ -191,7 +191,7 @@ func settingInstance(depth int) map[string]schema.Attribute {
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
 			Attributes:          settingInstanceValueType(depth),
-			Description:         `settingInstance`, // custom MS Graph attribute name
+			Description:         `settingInstance`,
 			MarkdownDescription: "Setting Instance / Setting instance within policy / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingInstance?view=graph-rest-beta",
 		},
 	}
