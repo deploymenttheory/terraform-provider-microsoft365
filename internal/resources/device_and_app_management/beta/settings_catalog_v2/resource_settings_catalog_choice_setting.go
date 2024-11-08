@@ -2,7 +2,9 @@ package graphBetaSettingsCatalog
 
 import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -46,7 +48,7 @@ func getChoiceValueAttributes(includeChildren bool, currentDepth int) ChoiceSche
 			MarkdownDescription: "Template reference for choice setting value information in Microsoft Graph.",
 		},
 		"value": schema.StringAttribute{
-			Optional:            true,
+			Required:            true,
 			Description:         "Identifier for choice setting value",
 			MarkdownDescription: "Specifies the unique identifier for choice setting value.",
 		},
@@ -70,7 +72,10 @@ func getChoiceChildSettingsAttribute(currentDepth int) schema.ListNestedAttribut
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: getChoiceInstanceAttributes(currentDepth),
 		},
-		Computed:            true,
+		Computed: true,
+		PlanModifiers: []planmodifier.List{
+			planmodifiers.DefaultListEmptyValue(),
+		},
 		Description:         "List of child setting configurations",
 		MarkdownDescription: "List of child setting instances under choice setting configuration.",
 	}
@@ -103,6 +108,9 @@ func getChoiceGroupCollectionInstance(currentDepth int) schema.SingleNestedAttri
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: getChoiceGroupSettingAttributes(currentDepth + 1),
+				},
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListEmptyValue(),
 				},
 				Description:         "Collection of GroupSetting values.",
 				MarkdownDescription: "Collection of values within a GroupSettingCollection instance in Microsoft Graph.",
@@ -148,6 +156,9 @@ func getChoiceSimpleCollectionInstance(currentDepth int) schema.SingleNestedAttr
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: deviceManagementConfigurationSimpleSettingValueAttributes,
 				},
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListEmptyValue(),
+				},
 				Description:         "Configuration of simple setting collection values.",
 				MarkdownDescription: "List of values within a SimpleSettingCollection instance, each representing simple settings.",
 			},
@@ -187,6 +198,22 @@ func getChoiceInstanceAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 	}
 
 	attrs := getChoiceBaseInstanceAttributes()
+
+	// Add validators to ensure only one setting type is used
+	validators := []validator.Object{
+		objectvalidator.ExactlyOneOf(
+			path.MatchRoot("choice"),
+			path.MatchRoot("choice_collection"),
+			path.MatchRoot("group"),
+			path.MatchRoot("group_collection"),
+			path.MatchRoot("setting_group"),
+			path.MatchRoot("setting_group_collection"),
+			path.MatchRoot("simple"),
+			path.MatchRoot("simple_collection"),
+		),
+	}
+
+	// All attributes remain Optional but with mutual exclusion enforced
 	attrs["choice"] = getChoiceSettingInstance(true, currentDepth+1)
 	attrs["choice_collection"] = getChoiceCollectionInstance(currentDepth + 1)
 	attrs["group"] = getChoiceGroupSetting(currentDepth + 1)
@@ -254,7 +281,10 @@ func getChoiceGroupSettingAttributes(currentDepth int) ChoiceSchemaAttributeMap 
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: getChoiceInstanceAttributes(currentDepth + 1),
 			},
-			Computed:            true,
+			Computed: true,
+			PlanModifiers: []planmodifier.List{
+				planmodifiers.DefaultListEmptyValue(),
+			},
 			Description:         "List of child setting instances within this GroupSetting.",
 			MarkdownDescription: "Collection of child settings within a GroupSetting instance, representing grouped nested configurations.",
 		},

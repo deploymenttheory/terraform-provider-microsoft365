@@ -112,7 +112,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 						"androidEnterprise", "aosp",
 					),
 				},
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("windows10")},
+				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("none")},
 				Computed:            true,
 				MarkdownDescription: "Platforms for this policy",
 			},
