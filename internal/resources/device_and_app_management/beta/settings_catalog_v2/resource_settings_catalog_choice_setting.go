@@ -2,9 +2,7 @@ package graphBetaSettingsCatalog
 
 import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
-	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -198,22 +196,6 @@ func getChoiceInstanceAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 	}
 
 	attrs := getChoiceBaseInstanceAttributes()
-
-	// Add validators to ensure only one setting type is used
-	validators := []validator.Object{
-		objectvalidator.ExactlyOneOf(
-			path.MatchRoot("choice"),
-			path.MatchRoot("choice_collection"),
-			path.MatchRoot("group"),
-			path.MatchRoot("group_collection"),
-			path.MatchRoot("setting_group"),
-			path.MatchRoot("setting_group_collection"),
-			path.MatchRoot("simple"),
-			path.MatchRoot("simple_collection"),
-		),
-	}
-
-	// All attributes remain Optional but with mutual exclusion enforced
 	attrs["choice"] = getChoiceSettingInstance(true, currentDepth+1)
 	attrs["choice_collection"] = getChoiceCollectionInstance(currentDepth + 1)
 	attrs["group"] = getChoiceGroupSetting(currentDepth + 1)
