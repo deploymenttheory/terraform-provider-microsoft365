@@ -224,7 +224,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"choice": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: choiceSettingInstanceAttributes(depth + 1),
+			Attributes: choiceSettingInstanceAttributes(depth + 1), // TODO "choice": GetChoiceSchema(),
 			MarkdownDescription: "Choice setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
 				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
