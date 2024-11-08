@@ -74,8 +74,7 @@ type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
 	IntValue    types.Int32  `tfsdk:"integer_value"`
 	StringValue types.String `tfsdk:"string_value"`
 	SecretValue types.String `tfsdk:"secret_value"`
-	State       types.String `tfsdk:"state"` // For secret value states like "notEncrypted"
-	//Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
+	State       types.String `tfsdk:"state"`
 }
 
 // DeviceManagementConfigurationSimpleCollectionValueResourceModel represents the simple collection setting value.
