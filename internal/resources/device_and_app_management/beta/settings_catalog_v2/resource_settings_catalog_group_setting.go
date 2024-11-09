@@ -83,7 +83,7 @@ func getGroupInstanceAttributes(currentDepth int) GroupSchemaAttributeMap {
 
 func getGroupBaseInstanceAttributes() GroupSchemaAttributeMap {
 	return GroupSchemaAttributeMap{
-		"definition_id": schema.StringAttribute{
+		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
 			Description:         `settingDefinitionId`,
 			MarkdownDescription: "Setting Definition Id (#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference)",

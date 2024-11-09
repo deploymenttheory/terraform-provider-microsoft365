@@ -68,7 +68,7 @@ func getGroupSettingChildrenAttribute(currentDepth int) schema.ListNestedAttribu
 // getGroupSettingChildAttributes defines attributes for nested child settings within a GroupSetting
 func getGroupSettingChildAttributes(currentDepth int) GroupCollectionSchemaAttributeMap {
 	attrs := GroupCollectionSchemaAttributeMap{
-		"definition_id": schema.StringAttribute{
+		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
 			Description:         "Setting Definition ID",
 			MarkdownDescription: "Unique identifier for the setting definition (#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference).",

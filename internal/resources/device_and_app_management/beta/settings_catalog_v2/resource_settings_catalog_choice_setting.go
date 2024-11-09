@@ -53,7 +53,7 @@ func GetChoiceSchema(currentDepth int) ChoiceSchemaAttributeMap {
 // GetChildrenAttributes returns the schema attributes for nested child settings
 func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 	attrs := ChoiceSchemaAttributeMap{
-		"definition_id": schema.StringAttribute{
+		"setting_definition_id": schema.StringAttribute{
 			Required:            true,
 			Description:         `settingDefinitionId`,
 			MarkdownDescription: "Setting Definition Id",

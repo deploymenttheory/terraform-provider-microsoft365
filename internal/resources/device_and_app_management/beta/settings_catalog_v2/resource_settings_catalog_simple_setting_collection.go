@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // SimpleCollectionSchemaAttributeMap defines the common type for schema attribute maps
@@ -18,20 +19,23 @@ func GetSimpleCollectionSchema() schema.SingleNestedAttribute {
 				Computed:            true,
 				MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
 			},
-			"string_value": schema.StringAttribute{
+			"string_value": schema.ListAttribute{
 				Optional:    true,
+				ElementType: types.StringType,
 				Description: "String setting configuration",
-				MarkdownDescription: "Simple string setting value. With @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+				MarkdownDescription: "List of simple string setting values.With @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
 					"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
 					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
 			},
-			"integer_value": schema.Int32Attribute{
+			"integer_value": schema.ListAttribute{
 				Optional:            true,
+				ElementType:         types.Int32Type,
 				MarkdownDescription: "Simple integer setting value (#microsoft.graph.deviceManagementConfigurationIntegerSettingValue) / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta",
 			},
-			"secret_value": schema.StringAttribute{
+			"secret_value": schema.ListAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value of the secret string setting.",
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of secret string setting values.",
 			},
 			"state": schema.StringAttribute{
 				Optional: true,
