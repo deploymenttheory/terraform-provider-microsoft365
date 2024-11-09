@@ -35,16 +35,16 @@ type DeviceManagementConfigurationSettingResourceModel struct {
 // DeviceManagementConfigurationSettingInstance represents a setting instance within the catalog.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementconfigurationsettinginstance?view=graph-rest-beta
 type DeviceManagementConfigurationSettingInstance struct {
-	ODataType             types.String                                                     `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
-	SettingDefinitionID   types.String                                                     `tfsdk:"setting_definition_id"`
-	ChoiceSettingValue    *DeviceManagementConfigurationChoiceSettingValueResourceModel    `tfsdk:"choice"`
-	ChoiceCollectionValue *DeviceManagementConfigurationChoiceCollectionValueResourceModel `tfsdk:"choice_collection"`
-	SimpleSettingValue    *DeviceManagementConfigurationSimpleSettingValueResourceModel    `tfsdk:"simple"`
-	SimpleCollectionValue *DeviceManagementConfigurationSimpleCollectionValueResourceModel `tfsdk:"simple_collection"`
-	GroupSettingValue     *DeviceManagementConfigurationGroupSettingValueResourceModel     `tfsdk:"group"`
-	GroupCollectionValue  *DeviceManagementConfigurationGroupCollectionValueResourceModel  `tfsdk:"group_collection"`
-	//SettingsGroupSettingValue    *DeviceManagementConfigurationSettingsGroupSettingValueResourceModel    `tfsdk:"setting_group"`
-	//SettingsGroupCollectionValue *DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
+	ODataType                    types.String                                                            `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
+	SettingDefinitionID          types.String                                                            `tfsdk:"setting_definition_id"`
+	ChoiceSettingValue           *DeviceManagementConfigurationChoiceSettingValueResourceModel           `tfsdk:"choice"`
+	ChoiceCollectionValue        *DeviceManagementConfigurationChoiceCollectionValueResourceModel        `tfsdk:"choice_collection"`
+	SimpleSettingValue           *DeviceManagementConfigurationSimpleSettingValueResourceModel           `tfsdk:"simple"`
+	SimpleCollectionValue        *DeviceManagementConfigurationSimpleCollectionValueResourceModel        `tfsdk:"simple_collection"`
+	GroupSettingValue            *DeviceManagementConfigurationGroupSettingValueResourceModel            `tfsdk:"group"`
+	GroupCollectionValue         *DeviceManagementConfigurationGroupCollectionValueResourceModel         `tfsdk:"group_collection"`
+	SettingsGroupSettingValue    *DeviceManagementConfigurationSettingsGroupSettingValueResourceModel    `tfsdk:"setting_group"`
+	SettingsGroupCollectionValue *DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
 }
 
 // DeviceManagementConfigurationChoiceSettingValueResourceModel represents the choice setting value.

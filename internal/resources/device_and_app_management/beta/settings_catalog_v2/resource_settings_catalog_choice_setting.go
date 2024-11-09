@@ -45,11 +45,10 @@ func getChoiceValueAttributes(includeChildren bool, currentDepth int) ChoiceSche
 			Description:         "Template reference for setting value",
 			MarkdownDescription: "Template reference for choice setting value information in Microsoft Graph.",
 		},
-		"value": schema.StringAttribute{
-			Required:            true,
-			Description:         "Identifier for choice setting value",
-			MarkdownDescription: "Specifies the unique identifier for choice setting value.",
-		},
+	}
+
+	for k, v := range deviceManagementConfigurationSimpleSettingValueAttributes {
+		attrs[k] = v
 	}
 
 	if includeChildren && currentDepth < MaxDepth {
@@ -324,21 +323,21 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 		Computed:            true,
 		MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
 	},
-	"integer_value": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "Value of the integer setting.",
-			},
-		},
-		Description:         "Integer setting configuration",
-		MarkdownDescription: "Simple setting value (#microsoft.graph.deviceManagementConfigurationIntegerSettingValue) / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta",
+	"string_value": schema.StringAttribute{
+		Optional:    true,
+		Description: "String setting configuration",
+		MarkdownDescription: "Simple string setting value. With @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
+			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
+			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
+	},
+	"integer_value": schema.Int64Attribute{
+		Optional:            true,
+		MarkdownDescription: "Simple integer setting value (#microsoft.graph.deviceManagementConfigurationIntegerSettingValue) / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationIntegerSettingValue?view=graph-rest-beta",
 	},
 	"reference": schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
+			"string_value": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Value of the string setting.",
 			},
@@ -353,9 +352,9 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 	"secret": schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: map[string]schema.Attribute{
-			"secret_value": schema.StringAttribute{
+			"string_value": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value of the secret setting.",
+				MarkdownDescription: "Value of the secret string setting.",
 			},
 			"state": schema.StringAttribute{
 				Required: true,
@@ -375,19 +374,6 @@ var deviceManagementConfigurationSimpleSettingValueAttributes = map[string]schem
 		},
 		Description:         "Secret setting configuration",
 		MarkdownDescription: "Graph model for a secret setting value (#microsoft.graph.deviceManagementConfigurationSecretSettingValue) / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta",
-	},
-	"string_value": schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: map[string]schema.Attribute{
-			"value": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Value of the string setting.",
-			},
-		},
-		Description: "String setting configuration",
-		MarkdownDescription: "Value of the string setting with @odata.type: #microsoft.graph.deviceManagementConfigurationStringSettingValue.\n\n" +
-			"For more details, see [String Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
-			"api/resources/intune-deviceconfigv2-deviceManagementConfigurationStringSettingValue?view=graph-rest-beta).",
 	},
 }
 
