@@ -14,7 +14,7 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation for Windows Settings Catalog resources.
+// Create handles the Create operation for Settings Catalog resources.
 //
 //   - Retrieves the planned configuration from the create request
 //   - Constructs the resource request body from the plan
@@ -28,7 +28,7 @@ import (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan WindowsSettingsCatalogProfileResourceModel
+	var plan SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -109,7 +109,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation for Windows Settings Catalog resources.
+// Read handles the Read operation for Settings Catalog resources.
 //
 //   - Retrieves the current state from the read request
 //   - Gets the base resource details from the API
@@ -124,7 +124,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state WindowsSettingsCatalogProfileResourceModel
+	var state SettingsCatalogProfileResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -193,7 +193,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation for Windows Settings Catalog resources.
+// Update handles the Update operation for Settings Catalog resources.
 //
 //   - Retrieves the planned changes from the update request
 //   - Constructs the resource request body from the plan
@@ -207,7 +207,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan WindowsSettingsCatalogProfileResourceModel
+	var plan SettingsCatalogProfileResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -287,7 +287,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation for Windows Settings Catalog resources.
+// Delete handles the Delete operation for Settings Catalog resources.
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
@@ -296,7 +296,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WindowsSettingsCatalogProfileResourceModel
+	var data SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

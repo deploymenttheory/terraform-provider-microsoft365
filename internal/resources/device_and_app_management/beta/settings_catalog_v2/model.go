@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// WindowsSettingsCatalogProfileResourceModel holds the configuration for a Settings Catalog profile.
+// SettingsCatalogProfileResourceModel holds the configuration for a Settings Catalog profile.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta
-type WindowsSettingsCatalogProfileResourceModel struct {
+type SettingsCatalogProfileResourceModel struct {
 	ID                   types.String                                        `tfsdk:"id"`
 	Name                 types.String                                        `tfsdk:"name"`
 	Description          types.String                                        `tfsdk:"description"`
@@ -25,51 +25,53 @@ type WindowsSettingsCatalogProfileResourceModel struct {
 	Timeouts    timeouts.Value                                               `tfsdk:"timeouts"`
 }
 
-// DeviceManagementConfigurationSettingResourceModel holds individual settings for the catalog configuration policy.
+// SettingResourceModel holds individual settings for the catalog configuration policy.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsetting?view=graph-rest-beta
 type DeviceManagementConfigurationSettingResourceModel struct {
-	ODataType       types.String                                  `tfsdk:"odata_type"`
-	SettingInstance *DeviceManagementConfigurationSettingInstance `tfsdk:"setting_instance"`
+	ODataType       types.String                                               `tfsdk:"odata_type"`
+	SettingInstance *DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"setting_instance"`
 }
 
-// DeviceManagementConfigurationSettingInstance represents a setting instance within the catalog.
+// DeviceManagementConfigurationSettingInstanceResourceModel  represents a setting instance within the catalog.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementconfigurationsettinginstance?view=graph-rest-beta
-type DeviceManagementConfigurationSettingInstance struct {
-	ODataType                    types.String                                                            `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
-	SettingDefinitionID          types.String                                                            `tfsdk:"setting_definition_id"`
-	ChoiceSettingValue           *DeviceManagementConfigurationChoiceSettingValueResourceModel           `tfsdk:"choice"`
-	ChoiceCollectionValue        *DeviceManagementConfigurationChoiceCollectionValueResourceModel        `tfsdk:"choice_collection"`
-	SimpleSettingValue           *DeviceManagementConfigurationSimpleSettingValueResourceModel           `tfsdk:"simple"`
-	SimpleCollectionValue        *DeviceManagementConfigurationSimpleCollectionValueResourceModel        `tfsdk:"simple_collection"`
-	GroupSettingValue            *DeviceManagementConfigurationGroupSettingValueResourceModel            `tfsdk:"group"`
-	GroupCollectionValue         *DeviceManagementConfigurationGroupCollectionValueResourceModel         `tfsdk:"group_collection"`
-	SettingsGroupSettingValue    *DeviceManagementConfigurationSettingsGroupSettingValueResourceModel    `tfsdk:"setting_group"`
-	SettingsGroupCollectionValue *DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
+type DeviceManagementConfigurationSettingInstanceResourceModel struct {
+	ODataType                   types.String                              `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
+	SettingDefinitionID         types.String                              `tfsdk:"setting_definition_id"`
+	ChoiceSettingValue          *ChoiceSettingValueResourceModel          `tfsdk:"choice"`
+	ChoiceCollectionValue       *ChoiceCollectionValueResourceModel       `tfsdk:"choice_collection"`
+	SimpleSettingValue          *SimpleSettingValueResourceModel          `tfsdk:"simple"`
+	SimpleCollectionValue       *SimpleCollectionValueResourceModel       `tfsdk:"simple_collection"`
+	GroupSettingValue           *GroupSettingValueResourceModel           `tfsdk:"group"`
+	GroupSettingCollectionValue *GroupSettingCollectionValueResourceModel `tfsdk:"group_collection"`
+	SettingGroupSettingValue    *SettingGroupSettingValueResourceModel    `tfsdk:"setting_group"`
+	SettingGroupCollectionValue *SettingGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
 }
 
 // DeviceManagementConfigurationChoiceSettingValueResourceModel represents the choice setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingValue?view=graph-rest-beta
-type DeviceManagementConfigurationChoiceSettingValueResourceModel struct {
-	ODataType   types.String                                   `tfsdk:"odata_type"`
-	IntValue    types.Int32                                    `tfsdk:"integer_value"`
-	StringValue types.String                                   `tfsdk:"string_value"`
-	Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
+type ChoiceSettingValueResourceModel struct {
+	ODataType   types.String                                                `tfsdk:"odata_type"` // The OData type of the choice setting instance. Generated By SDK.
+	IntValue    types.Int32                                                 `tfsdk:"integer_value"`
+	StringValue types.String                                                `tfsdk:"string_value"`
+	Children    []DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"children"` // Children in docs are always of the same type as the parent. ChoiceSetting
 }
 
 // DeviceManagementConfigurationChoiceCollectionValueResourceModel represents the choice collection setting value.
-// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionValue?view=graph-rest-beta
-type DeviceManagementConfigurationChoiceCollectionValueResourceModel struct {
-	ODataType   types.String   `tfsdk:"odata_type"`
-	IntValue    []types.Int32  `tfsdk:"integer_value"`
-	StringValue []types.String `tfsdk:"string_value"`
-	SecretValue types.String   `tfsdk:"secret_value"`
-	State       types.String   `tfsdk:"state"` // Encryption state for secrets
-	//Children    []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationchoicesettingcollectiondefinition?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationchoicesettingcollectioninstance?view=graph-rest-beta
+type ChoiceCollectionValueResourceModel struct {
+	ODataType   types.String                                                `tfsdk:"odata_type"` // The OData type of the choice collection setting instance. Generated By SDK.
+	IntValue    []types.Int32                                               `tfsdk:"integer_value"`
+	StringValue []types.String                                              `tfsdk:"string_value"`
+	Children    []DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"children"` // Children in docs are always of the same. ChoiceSetting.
 }
 
 // DeviceManagementConfigurationSimpleSettingValueResourceModel represents the simple setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingValue?view=graph-rest-beta
-type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationintegersettingvalue?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationstringsettingvalue?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsecretsettingvalue?view=graph-rest-beta
+type SimpleSettingValueResourceModel struct {
 	ODataType   types.String `tfsdk:"odata_type"` // The OData type of the simple setting instance. Generated By SDK.
 	IntValue    types.Int32  `tfsdk:"integer_value"`
 	StringValue types.String `tfsdk:"string_value"`
@@ -78,46 +80,42 @@ type DeviceManagementConfigurationSimpleSettingValueResourceModel struct {
 }
 
 // DeviceManagementConfigurationSimpleCollectionValueResourceModel represents the simple collection setting value.
-// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionValue?view=graph-rest-beta
-type DeviceManagementConfigurationSimpleCollectionValueResourceModel struct {
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationsimplesettingcollectiondefinition-create?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsimplesettingcollectioninstance?view=graph-rest-beta
+type SimpleCollectionValueResourceModel struct {
 	ODataType   types.String   `tfsdk:"odata_type"` // The OData type of the simple collection instance. Generated By SDK.
 	IntValue    []types.Int32  `tfsdk:"integer_value"`
 	StringValue []types.String `tfsdk:"string_value"`
-	SecretValue types.String   `tfsdk:"secret_value"`
-	State       types.String   `tfsdk:"state"`
+	SecretValue []types.String `tfsdk:"secret_value"`
+	State       []types.String `tfsdk:"state"`
+	//Children    []DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"children"` // docs says children are possible. but sdk doesn't support it ?
 }
 
-// DeviceManagementConfigurationGroupSettingValueResourceModel represents the group setting value.
+// GroupSettingValueResourceModel represents the group setting value.
+// Reference:
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingValue?view=graph-rest-beta
-type DeviceManagementConfigurationGroupSettingValueResourceModel struct {
-	ODataType types.String `tfsdk:"odata_type"`
-	//Children []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
+type GroupSettingValueResourceModel struct {
+	ODataType types.String                                                `tfsdk:"odata_type"`
+	Children  []DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"children"` // Can contain children of any other instance type
 }
 
-// DeviceManagementConfigurationGroupCollectionValueResourceModel represents the group collection setting value.
+// GroupCollectionValueResourceModel represents the group collection setting value.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionValue?view=graph-rest-beta
-type DeviceManagementConfigurationGroupCollectionValueResourceModel struct {
-	ODataType types.String `tfsdk:"odata_type"`
-	//Children []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
+type GroupSettingCollectionValueResourceModel struct {
+	ODataType types.String                                                `tfsdk:"odata_type"`
+	Children  []DeviceManagementConfigurationSettingInstanceResourceModel `tfsdk:"children"` // Can contain children of any other instance type
 }
 
-// DeviceManagementConfigurationSettingsGroupSettingValueResourceModel represents the setting group instance.
+// SettingsGroupSettingValueResourceModel represents the setting group instance.
+// Appears to be unused presently
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta
-type DeviceManagementConfigurationSettingsGroupSettingValueResourceModel struct {
+type SettingGroupSettingValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
-	//Children  []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
 }
 
-// DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel represents the setting group collection instance.
+// SettingsGroupCollectionValueResourceModel represents the setting group collection instance.
+// Appears to be unused presently
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta
-type DeviceManagementConfigurationSettingsGroupCollectionValueResourceModel struct {
+type SettingGroupCollectionValueResourceModel struct {
 	ODataType types.String `tfsdk:"odata_type"`
-	//Children  []DeviceManagementConfigurationSettingInstance `tfsdk:"children"`
 }
-
-// DeviceManagementConfigurationTemplateReferenceResourceModel represents the setting instance template reference.
-// Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingInstanceTemplateReference?view=graph-rest-beta
-// type DeviceManagementConfigurationTemplateReferenceResourceModel struct {
-// 	SettingInstanceTemplateId types.String `tfsdk:"setting_instance_template_id"`
-// 	UseTemplateDefault        types.Bool   `tfsdk:"use_template_default"`
-// }

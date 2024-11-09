@@ -9,7 +9,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel, remoteSettings graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) {
+func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, remoteSettings graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) {
 	if remoteSettings == nil {
 		tflog.Debug(ctx, "Remote settings is nil")
 		return
@@ -25,7 +25,7 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 					ODataType: types.StringValue(DeviceManagementConfigurationSetting),
 				}
 
-				settingInstance := &DeviceManagementConfigurationSettingInstance{
+				settingInstance := &DeviceManagementConfigurationSettingInstanceResourceModel{
 					SettingDefinitionID: types.StringValue(state.StringPtrToString(instance.GetSettingDefinitionId())),
 				}
 
@@ -72,9 +72,9 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *WindowsSetting
 
 // Helper functions for mapping specific setting types
 
-func mapSimpleSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
+func mapSimpleSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if simpleValue := instance.GetSimpleSettingValue(); simpleValue != nil {
-		simpleSettingValue := &DeviceManagementConfigurationSimpleSettingValueResourceModel{
+		simpleSettingValue := &SimpleSettingValueResourceModel{
 			ODataType: types.StringValue(DeviceManagementConfigurationSimpleSettingInstance),
 		}
 		switch v := simpleValue.(type) {
@@ -91,9 +91,9 @@ func mapSimpleSettingInstance(ctx context.Context, instance graphmodels.DeviceMa
 	}
 }
 
-func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
+func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if choiceValue := instance.GetChoiceSettingValue(); choiceValue != nil {
-		choiceSettingValue := &DeviceManagementConfigurationChoiceSettingValueResourceModel{
+		choiceSettingValue := &ChoiceSettingValueResourceModel{
 			ODataType:   types.StringValue(DeviceManagementConfigurationChoiceSettingValue),
 			StringValue: types.StringValue(state.StringPtrToString(choiceValue.GetValue())),
 		}
@@ -101,9 +101,9 @@ func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceMa
 	}
 }
 
-func mapSimpleSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
+func mapSimpleSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if collectionValues := instance.GetSimpleSettingCollectionValue(); len(collectionValues) > 0 {
-		simpleCollectionValue := &DeviceManagementConfigurationSimpleCollectionValueResourceModel{
+		simpleCollectionValue := &SimpleCollectionValueResourceModel{
 			ODataType: types.StringValue(DeviceManagementConfigurationSimpleSettingCollectionInstance),
 		}
 
@@ -124,9 +124,9 @@ func mapSimpleSettingCollectionInstance(ctx context.Context, instance graphmodel
 	}
 }
 
-func mapChoiceSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
+func mapChoiceSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if collectionValues := instance.GetChoiceSettingCollectionValue(); len(collectionValues) > 0 {
-		choiceCollectionValue := &DeviceManagementConfigurationChoiceCollectionValueResourceModel{
+		choiceCollectionValue := &ChoiceCollectionValueResourceModel{
 			ODataType: types.StringValue(DeviceManagementConfigurationChoiceSettingCollectionInstance),
 		}
 

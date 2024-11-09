@@ -12,7 +12,7 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return

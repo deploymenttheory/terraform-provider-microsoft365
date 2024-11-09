@@ -35,9 +35,9 @@ const (
 )
 
 // Main entry point to construct the settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *WindowsSettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, "Constructing Windows Settings Catalog resource")
-	construct.DebugPrintStruct(ctx, "Constructed Windows Settings Catalog Resource from model", data)
+func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
+	tflog.Debug(ctx, "Constructing Settings Catalog resource")
+	construct.DebugPrintStruct(ctx, "Constructed Settings Catalog Resource from model", data)
 
 	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
 
@@ -109,9 +109,15 @@ func constructSettingsCatalogSettings(ctx context.Context, settingConfigs []Devi
 }
 
 // Constructs a setting instance based on its ODataType, properly mapping values for each supported instance type.
-func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	// Determine the setting type from ODataType and construct accordingly
 	switch instanceConfig.ODataType.ValueString() {
+
+	case DeviceManagementConfigurationSimpleSettingInstance:
+		return buildSimpleSettingInstance(instanceConfig)
+
+	case DeviceManagementConfigurationSimpleSettingCollectionInstance:
+		return buildSimpleSettingCollectionInstance(instanceConfig)
 
 	case DeviceManagementConfigurationChoiceSettingInstance:
 		return buildChoiceSettingInstance(instanceConfig)
@@ -131,20 +137,16 @@ func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSetti
 	// case DeviceManagementConfigurationSettingGroupCollectionInstance:
 	// 	return buildSettingGroupCollectionInstance(instanceConfig)
 
-	case DeviceManagementConfigurationSimpleSettingInstance:
-		return buildSimpleSettingInstance(instanceConfig)
-
-	case DeviceManagementConfigurationSimpleSettingCollectionInstance:
-		return buildSimpleSettingCollectionInstance(instanceConfig)
-
 	// Unsupported type
 	default:
 		return nil
 	}
 }
 
+// simple settings
+
 // buildSimpleSettingInstance constructs a simple setting instance from the configuration.
-func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	if instanceConfig.SimpleSettingValue == nil {
 		return nil
 	}
@@ -178,53 +180,22 @@ func buildSimpleSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 		value.SetOdataType(&secretValueODataType)
 		secretVal := simpleValue.SecretValue.ValueString()
 		value.SetValue(&secretVal)
+
+		if !simpleValue.State.IsNull() {
+			stateStr := simpleValue.State.ValueString()
+			parsedState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(stateStr)
+			if err == nil && parsedState != nil {
+				value.SetValueState(parsedState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+			}
+		}
 		instance.SetSimpleSettingValue(value)
 	}
 
 	return instance
 }
 
-// buildChoiceSettingInstance constructs a choice setting instance from the configuration.
-func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-	if instanceConfig.ChoiceSettingValue == nil {
-		return nil
-	}
-
-	instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-
-	odataType := DeviceManagementConfigurationChoiceSettingInstance
-	instance.SetOdataType(&odataType)
-	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
-	instance.SetSettingDefinitionId(&settingDefinitionID)
-
-	choiceValue := instanceConfig.ChoiceSettingValue
-	value := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-	choiceODataType := DeviceManagementConfigurationChoiceSettingValue
-	value.SetOdataType(&choiceODataType)
-
-	if !choiceValue.StringValue.IsNull() {
-		val := choiceValue.StringValue.ValueString()
-		value.SetValue(&val)
-	}
-
-	// if len(choiceValue.Children) > 0 {
-	// 	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-	// 	for _, child := range choiceValue.Children {
-	// 		childInstance := buildChoiceSettingInstance(&child)
-	// 		if childInstance != nil {
-	// 			childInstances = append(childInstances, childInstance)
-	// 		}
-	// 	}
-	// 	value.SetChildren(childInstances)
-	// }
-
-	instance.SetChoiceSettingValue(value)
-	return instance
-
-}
-
 // buildSimpleSettingCollectionInstance constructs a simple collection setting instance from the configuration.
-func buildSimpleSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+func buildSimpleSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	if instanceConfig.SimpleCollectionValue == nil {
 		return nil
 	}
@@ -267,16 +238,30 @@ func buildSimpleSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 		}
 	}
 
-	// Handle secret value
-	if !collectionValue.SecretValue.IsNull() {
-		value := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-		secretValueODataType := DeviceManagementConfigurationSecretSettingValue
-		value.SetOdataType(&secretValueODataType)
-		secretVal := collectionValue.SecretValue.ValueString()
-		value.SetValue(&secretVal)
-		values = append(values, value)
+	// Handle secret values collection with state
+	if len(collectionValue.SecretValue) > 0 {
+		for i, secretVal := range collectionValue.SecretValue {
+			if !secretVal.IsNull() {
+				value := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
+				secretValueODataType := DeviceManagementConfigurationSecretSettingValue
+				value.SetOdataType(&secretValueODataType)
+				val := secretVal.ValueString()
+				value.SetValue(&val)
+
+				if i < len(collectionValue.State) && !collectionValue.State[i].IsNull() {
+					stateStr := collectionValue.State[i].ValueString()
+					parsedState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(stateStr)
+					if err == nil && parsedState != nil {
+						value.SetValueState(parsedState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+					}
+				}
+
+				values = append(values, value)
+			}
+		}
 	}
 
+	// Set the collection of values
 	if len(values) > 0 {
 		instance.SetSimpleSettingCollectionValue(values)
 	}
@@ -284,8 +269,54 @@ func buildSimpleSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 	return instance
 }
 
+// choice settings
+
+// buildChoiceSettingInstance constructs a choice setting instance from the configuration.
+func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	if instanceConfig.ChoiceSettingValue == nil {
+		return nil
+	}
+
+	instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+
+	odataType := DeviceManagementConfigurationChoiceSettingInstance
+	instance.SetOdataType(&odataType)
+	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
+	instance.SetSettingDefinitionId(&settingDefinitionID)
+
+	choiceValue := instanceConfig.ChoiceSettingValue
+	value := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+	choiceODataType := DeviceManagementConfigurationChoiceSettingValue
+	value.SetOdataType(&choiceODataType)
+
+	if !choiceValue.StringValue.IsNull() {
+		val := choiceValue.StringValue.ValueString()
+		value.SetValue(&val)
+	}
+
+	children := buildChoiceSettingChildren(choiceValue.Children)
+	value.SetChildren(children)
+
+	instance.SetChoiceSettingValue(value)
+	return instance
+}
+
+// buildChoiceSettingChildren recursively constructs child choice setting instances.
+func buildChoiceSettingChildren(childrenConfig []DeviceManagementConfigurationSettingInstanceResourceModel) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
+
+	for _, childConfig := range childrenConfig {
+		childInstance := buildChoiceSettingInstance(&childConfig)
+		if childSettingInstance, ok := childInstance.(graphmodels.DeviceManagementConfigurationSettingInstanceable); ok {
+			children = append(children, childSettingInstance)
+		}
+	}
+
+	return children
+}
+
 // buildChoiceSettingCollectionInstance constructs a choice collection setting instance from the configuration.
-func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	if instanceConfig.ChoiceCollectionValue == nil {
 		return nil
 	}
@@ -310,15 +341,7 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 				val := stringVal.ValueString()
 				value.SetValue(&val)
 
-				// if len(collectionValue.Children) > 0 {
-				// 	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-				// 	for _, child := range collectionValue.Children {
-				// 		if childInstance := constructSettingInstance(&child); childInstance != nil {
-				// 			childInstances = append(childInstances, childInstance)
-				// 		}
-				// 	}
-				// 	value.SetChildren(childInstances)
-				// }
+				buildChoiceSettingCollectionInstanceChildren(value, collectionValue.Children)
 
 				values = append(values, value)
 			}
@@ -336,11 +359,14 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 				strVal := strconv.FormatInt(int64(val), 10)
 				value.SetValue(&strVal)
 
+				buildChoiceSettingCollectionInstanceChildren(value, collectionValue.Children)
+
 				values = append(values, value)
 			}
 		}
 	}
 
+	// Set the collection of values
 	if len(values) > 0 {
 		instance.SetChoiceSettingCollectionValue(values)
 	}
@@ -348,14 +374,29 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 	return instance
 }
 
+// buildChoiceSettingCollectionInstanceChildren adds children to a choice setting value if children exist in the configuration.
+func buildChoiceSettingCollectionInstanceChildren(value *graphmodels.DeviceManagementConfigurationChoiceSettingValue, children []DeviceManagementConfigurationSettingInstanceResourceModel) {
+	if len(children) > 0 {
+		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		for _, childConfig := range children {
+			childInstance := buildChoiceSettingCollectionInstance(&childConfig) // Recursively handle child instance
+			if childInstance != nil {
+				childInstances = append(childInstances, childInstance)
+			}
+		}
+		value.SetChildren(childInstances)
+	}
+}
+
+// group settings
+
 // buildGroupSettingInstance constructs a group setting instance from the configuration.
-func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	if instanceConfig.GroupSettingValue == nil {
 		return nil
 	}
 
 	instance := graphmodels.NewDeviceManagementConfigurationGroupSettingInstance()
-
 	odataType := DeviceManagementConfigurationGroupSettingInstance
 	instance.SetOdataType(&odataType)
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
@@ -365,58 +406,104 @@ func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSett
 	groupValueODataType := DeviceManagementConfigurationGroupSettingValue
 	value.SetOdataType(&groupValueODataType)
 
-	// if len(instanceConfig.GroupSettingValue.Children) > 0 {
-	// 	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-	// 	for _, child := range instanceConfig.GroupSettingValue.Children {
-	// 		if childInstance := constructSettingInstance(&child); childInstance != nil {
-	// 			childInstances = append(childInstances, childInstance)
-	// 		}
-	// 	}
-	// 	value.SetChildren(childInstances)
-	// }
+	var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
 
+	for _, childConfig := range instanceConfig.GroupSettingValue.Children {
+		switch childConfig.ODataType.ValueString() {
+		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
+			// Add a ChoiceSettingInstance child
+			if choiceChild := buildChoiceSettingInstance(&childConfig); choiceChild != nil {
+				children = append(children, choiceChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+			// Add a SimpleSettingInstance child
+			if simpleChild := buildSimpleSettingInstance(&childConfig); simpleChild != nil {
+				children = append(children, simpleChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
+			// Add a GroupSettingCollectionInstance child
+			if groupCollectionChild := buildGroupSettingCollectionInstance(&childConfig); groupCollectionChild != nil {
+				children = append(children, groupCollectionChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance":
+			// Add a GroupSettingInstance child
+			if groupChild := buildGroupSettingInstance(&childConfig); groupChild != nil {
+				children = append(children, groupChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
+			// Add a ChoiceSettingCollectionInstance child
+			if choiceCollectionChild := buildChoiceSettingCollectionInstance(&childConfig); choiceCollectionChild != nil {
+				children = append(children, choiceCollectionChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+			// Add a SimpleSettingCollectionInstance child
+			if simpleCollectionChild := buildSimpleSettingCollectionInstance(&childConfig); simpleCollectionChild != nil {
+				children = append(children, simpleCollectionChild)
+			}
+		}
+	}
+
+	value.SetChildren(children)
 	instance.SetGroupSettingValue(value)
 	return instance
 }
 
-// buildGroupSettingCollectionInstance constructs a group collection setting instance from the configuration.
-func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-	if instanceConfig.GroupCollectionValue == nil {
+// buildGroupSettingCollectionInstance constructs a group setting collection instance from the configuration.
+func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+	if instanceConfig.GroupSettingCollectionValue == nil {
 		return nil
 	}
 
 	instance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-
 	odataType := DeviceManagementConfigurationGroupSettingCollectionInstance
 	instance.SetOdataType(&odataType)
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	//collectionValue := instanceConfig.GroupCollectionValue
-	var values []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+	var groupSettingValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
 
-	// Handle children recursively
-	// for _, child := range collectionValue.Children {
-	// 	childInstance := constructSettingInstance(&child)
-	// 	if childInstance != nil {
-	// 		value := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-	// 		groupValueODataType := DeviceManagementConfigurationGroupSettingValue
-	// 		value.SetOdataType(&groupValueODataType)
-	// 		value.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{childInstance})
-	// 		values = append(values, value)
-	// 	}
-	// }
+	// Process each child in GroupSettingCollectionValue's Children
+	for _, childConfig := range instanceConfig.GroupSettingCollectionValue.Children {
+		groupSettingValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
+		groupValueODataType := DeviceManagementConfigurationGroupSettingValue
+		groupSettingValue.SetOdataType(&groupValueODataType)
 
-	if len(values) > 0 {
-		instance.SetGroupSettingCollectionValue(values)
+		var nestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		switch childConfig.ODataType.ValueString() {
+		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
+			if choiceChild := buildChoiceSettingInstance(&childConfig); choiceChild != nil {
+				nestedChildren = append(nestedChildren, choiceChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+			if simpleChild := buildSimpleSettingInstance(&childConfig); simpleChild != nil {
+				nestedChildren = append(nestedChildren, simpleChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance":
+			if groupChild := buildGroupSettingInstance(&childConfig); groupChild != nil {
+				nestedChildren = append(nestedChildren, groupChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
+			if choiceCollectionChild := buildChoiceSettingCollectionInstance(&childConfig); choiceCollectionChild != nil {
+				nestedChildren = append(nestedChildren, choiceCollectionChild)
+			}
+		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+			if simpleCollectionChild := buildSimpleSettingCollectionInstance(&childConfig); simpleCollectionChild != nil {
+				nestedChildren = append(nestedChildren, simpleCollectionChild)
+			}
+		}
+
+		groupSettingValue.SetChildren(nestedChildren)
+		groupSettingValues = append(groupSettingValues, groupSettingValue)
 	}
 
+	instance.SetGroupSettingCollectionValue(groupSettingValues)
 	return instance
 }
 
 // buildSettingGroupInstance constructs a setting group instance from the configuration.
-func buildSettingGroupInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-	if instanceConfig.GroupSettingValue == nil {
+func buildSettingGroupInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	if instanceConfig.SettingGroupSettingValue == nil {
 		return nil
 	}
 
@@ -427,27 +514,12 @@ func buildSettingGroupInstance(instanceConfig *DeviceManagementConfigurationSett
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	// For group settings, we use the base instance's additional data to store children
-	// if len(instanceConfig.GroupSettingValue.Children) > 0 {
-	// 	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-	// 	for _, child := range instanceConfig.GroupSettingValue.Children {
-	// 		if childInstance := constructSettingInstance(&child); childInstance != nil {
-	// 			childInstances = append(childInstances, childInstance)
-	// 		}
-	// 	}
-
-	// 	// Store children in additional data
-	// 	additionalData := instance.GetAdditionalData()
-	// 	additionalData["children"] = childInstances
-	// 	instance.SetAdditionalData(additionalData)
-	// }
-
 	return instance
 }
 
 // buildSettingGroupCollectionInstance constructs a setting group collection instance from the configuration.
-func buildSettingGroupCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-	if instanceConfig.GroupCollectionValue == nil {
+func buildSettingGroupCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	if instanceConfig.SettingGroupCollectionValue == nil {
 		return nil
 	}
 
@@ -457,33 +529,6 @@ func buildSettingGroupCollectionInstance(instanceConfig *DeviceManagementConfigu
 	instance.SetOdataType(&odataType)
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
-
-	//collectionValue := instanceConfig.GroupCollectionValue
-	// if len(collectionValue.Children) > 0 {
-	// 	// Create an array of settings for the collection
-	// 	var settingsArray []map[string]interface{}
-
-	// 	for _, child := range collectionValue.Children {
-	// 		if childInstance := constructSettingInstance(&child); childInstance != nil {
-	// 			// Create a single group setting with its children
-	// 			groupSetting := map[string]interface{}{
-	// 				"@odata.type": DeviceManagementConfigurationGroupSettingValue,
-	// 				"children":    []graphmodels.DeviceManagementConfigurationSettingInstanceable{childInstance},
-	// 			}
-	// 			settingsArray = append(settingsArray, groupSetting)
-	// 		}
-	// 	}
-
-	// 	// Add the settings array to additional data
-	// 	if len(settingsArray) > 0 {
-	// 		additionalData := instance.GetAdditionalData()
-	// 		if additionalData == nil {
-	// 			additionalData = make(map[string]interface{})
-	// 		}
-	// 		additionalData["settingValues"] = settingsArray
-	// 		instance.SetAdditionalData(additionalData)
-	// 	}
-	// }
 
 	return instance
 }
