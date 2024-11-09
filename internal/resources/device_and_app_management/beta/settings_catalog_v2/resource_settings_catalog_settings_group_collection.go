@@ -6,7 +6,12 @@ import "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 type SettingGroupCollectionSchemaAttributeMap map[string]schema.Attribute
 
 // GetSettingGroupCollectionSchema returns the root schema for setting group collection data type
-func GetSettingGroupCollectionSchema() schema.SingleNestedAttribute {
+func GetSettingGroupCollectionSchema(currentDepth int) schema.SingleNestedAttribute {
+
+	if currentDepth >= MaxDepth {
+		return schema.SingleNestedAttribute{}
+	}
+
 	return schema.SingleNestedAttribute{
 		Optional:   true,
 		Attributes: SettingGroupCollectionSchemaAttributeMap{

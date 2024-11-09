@@ -131,11 +131,11 @@ func constructSettingInstance(instanceConfig *DeviceManagementConfigurationSetti
 	case DeviceManagementConfigurationGroupSettingCollectionInstance:
 		return buildGroupSettingCollectionInstance(instanceConfig)
 
-	// case DeviceManagementConfigurationSettingGroupInstance:
-	// 	return buildSettingGroupInstance(instanceConfig)
+	case DeviceManagementConfigurationSettingGroupInstance:
+		return buildSettingGroupInstance(instanceConfig)
 
-	// case DeviceManagementConfigurationSettingGroupCollectionInstance:
-	// 	return buildSettingGroupCollectionInstance(instanceConfig)
+	case DeviceManagementConfigurationSettingGroupCollectionInstance:
+		return buildSettingGroupCollectionInstance(instanceConfig)
 
 	// Unsupported type
 	default:

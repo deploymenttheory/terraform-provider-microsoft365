@@ -226,7 +226,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"choice": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetChoiceSchema(depth + 1).Attributes,
+			Attributes: GetChoiceSchema(depth + 1),
 			MarkdownDescription: "Choice setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
 				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
@@ -234,7 +234,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"choice_collection": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetChoiceCollectionSchema(depth + 1).Attributes,
+			Attributes: GetChoiceCollectionSchema(depth + 1),
 			MarkdownDescription: "Choice setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance.\n\n" +
 				"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
@@ -258,7 +258,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"setting_group": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetSettingGroupSchema().Attributes,
+			Attributes: GetSettingGroupSchema(depth + 1).Attributes,
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"##microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
 				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
@@ -266,7 +266,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"setting_group_collection": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetSettingGroupCollectionSchema().Attributes,
+			Attributes: GetSettingGroupCollectionSchema(depth + 1).Attributes,
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
 				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/" +

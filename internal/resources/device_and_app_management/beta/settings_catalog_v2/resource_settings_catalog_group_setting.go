@@ -33,12 +33,6 @@ func GetGroupSchema(currentDepth int) schema.SingleNestedAttribute {
 // getGroupValueAttributes returns group value attributes
 func getGroupValueAttributes(includeChildren bool, currentDepth int) GroupSchemaAttributeMap {
 	attrs := GroupSchemaAttributeMap{
-		"template_reference": schema.SingleNestedAttribute{
-			Optional:            true,
-			Attributes:          deviceManagementConfigurationSettingValueTemplateReferenceAttributes,
-			Description:         "Template reference for setting value",
-			MarkdownDescription: "Template reference for group setting value information (#microsoft.graph.deviceManagementConfigurationSettingValueTemplateReference).",
-		},
 		"value": schema.StringAttribute{
 			Optional:            true,
 			Description:         "Identifier for group setting value",
