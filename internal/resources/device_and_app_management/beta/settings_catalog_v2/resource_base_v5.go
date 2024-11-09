@@ -264,7 +264,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta) for more details.",
 		},
-		"setting _group_collection": schema.SingleNestedAttribute{
+		"setting_group_collection": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetSettingGroupCollectionSchema().Attributes,
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
