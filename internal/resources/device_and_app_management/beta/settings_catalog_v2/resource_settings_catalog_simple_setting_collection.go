@@ -52,6 +52,14 @@ func GetSimpleCollectionSchema() schema.SingleNestedAttribute {
 					"For more details, see [Secret Setting Value Documentation](https://learn.microsoft.com/en-us/graph/" +
 					"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSecretSettingValue?view=graph-rest-beta).",
 			},
+			"reference_value": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Schema for ReferenceSettingValue (#microsoft.graph.deviceManagementConfigurationReferenceSettingValue) / https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationReferenceSettingValue?view=graph-rest-beta",
+			},
+			"note": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "A note that admin can use to put some contextual information",
+			},
 		},
 		Description: "Simple setting collection instance configuration",
 		MarkdownDescription: "Configuration for a simple setting collection instance with @odata.type: " +
