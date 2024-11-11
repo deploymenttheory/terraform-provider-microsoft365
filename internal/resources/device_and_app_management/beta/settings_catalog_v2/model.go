@@ -37,7 +37,7 @@ type DeviceManagementConfigurationSettingResourceModel struct {
 type DeviceManagementConfigurationSettingInstanceResourceModel struct {
 	ODataType                   types.String                              `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
 	SettingDefinitionID         types.String                              `tfsdk:"setting_definition_id"`
-	ChoiceSettingValue          *ChoiceSettingValueResourceModel          `tfsdk:"choice"`
+	ChoiceSettingValue          *ChoiceSettingValueResourceModel          `tfsdk:"choice_setting_value"`
 	ChoiceCollectionValue       *ChoiceCollectionValueResourceModel       `tfsdk:"choice_collection"`
 	SimpleSettingValue          *SimpleSettingValueResourceModel          `tfsdk:"simple"`
 	SimpleCollectionValue       *SimpleCollectionValueResourceModel       `tfsdk:"simple_collection"`

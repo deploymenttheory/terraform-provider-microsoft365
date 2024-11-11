@@ -302,16 +302,20 @@ func buildChoiceSettingInstance(instanceConfig *DeviceManagementConfigurationSet
 }
 
 // buildChoiceSettingChildren recursively constructs child choice setting instances.
+// While the parent is a Choice Setting Instance, its children can be of any valid setting instance type
+// (Choice, Simple, Group etc). Therefore, we must route each child back through the main constructSettingInstance
+// function which acts as a type router, inspecting each child's ODataType and building it with the appropriate
+// constructor. This matches the Graph API's schema where a Choice Setting's children array can contain
+// heterogeneous setting instance types, each requiring different value structures and processing logic.
 func buildChoiceSettingChildren(childrenConfig []DeviceManagementConfigurationSettingInstanceResourceModel) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
 
 	for _, childConfig := range childrenConfig {
-		childInstance := buildChoiceSettingInstance(&childConfig)
-		if childSettingInstance, ok := childInstance.(graphmodels.DeviceManagementConfigurationSettingInstanceable); ok {
-			children = append(children, childSettingInstance)
+		childInstance := constructSettingInstance(&childConfig)
+		if childInstance != nil {
+			children = append(children, childInstance)
 		}
 	}
-
 	return children
 }
 
@@ -379,7 +383,7 @@ func buildChoiceSettingCollectionInstanceChildren(value *graphmodels.DeviceManag
 	if len(children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, childConfig := range children {
-			childInstance := buildChoiceSettingCollectionInstance(&childConfig) // Recursively handle child instance
+			childInstance := buildChoiceSettingCollectionInstance(&childConfig)
 			if childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}

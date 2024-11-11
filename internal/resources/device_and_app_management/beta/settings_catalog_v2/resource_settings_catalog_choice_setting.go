@@ -88,7 +88,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		return attrs
 	}
 
-	attrs["choice"] = schema.SingleNestedAttribute{
+	attrs["choice_setting_value"] = schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: ChoiceSchemaAttributeMap{
 			"value": schema.SingleNestedAttribute{
@@ -135,7 +135,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 					Attributes: map[string]schema.Attribute{
 						"odata_type": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The OData type of the child setting instance. This must be specified and is used to determine the specific setting instance type.",
+							MarkdownDescription: "The OData type of the group child setting instance. This must be specified and is used to determine the specific setting instance type.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									DeviceManagementConfigurationChoiceSettingInstance,
@@ -154,7 +154,6 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Description:         "Setting definition ID",
 							MarkdownDescription: "The unique identifier for the setting definition.",
 						},
-						// Child type-specific attributes
 						"choice_value": schema.SingleNestedAttribute{
 							Optional:   true,
 							Attributes: GetChoiceSchema(currentDepth + 1),
@@ -196,15 +195,17 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 					Attributes: map[string]schema.Attribute{
 						"odata_type": schema.StringAttribute{
 							Required:            true,
-							Description:         "The OData type of the child setting instance",
-							MarkdownDescription: "Specifies the type of device management configuration setting instance.",
+							MarkdownDescription: "The OData type of the group collection child setting instance. This must be specified and is used to determine the specific setting instance type.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
-									"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-									"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-									"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance",
-									"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
-									"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
+									DeviceManagementConfigurationChoiceSettingInstance,
+									DeviceManagementConfigurationChoiceSettingCollectionInstance,
+									DeviceManagementConfigurationSimpleSettingInstance,
+									DeviceManagementConfigurationSimpleSettingCollectionInstance,
+									DeviceManagementConfigurationSettingGroupInstance,
+									DeviceManagementConfigurationGroupSettingInstance,
+									DeviceManagementConfigurationSettingGroupCollectionInstance,
+									DeviceManagementConfigurationGroupSettingCollectionInstance,
 								),
 							},
 						},
@@ -213,7 +214,6 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Description:         "Setting definition ID",
 							MarkdownDescription: "The unique identifier for the setting definition.",
 						},
-						// Child type-specific attributes
 						"choice_value": schema.SingleNestedAttribute{
 							Optional:   true,
 							Attributes: GetChoiceSchema(currentDepth + 1),
