@@ -50,15 +50,25 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalo
 					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingCollectionInstance)
 					mapChoiceSettingCollectionInstance(ctx, inst, settingInstance)
 
-					// case graphmodels.DeviceManagementConfigurationSettingGroupInstanceable:
-					// 	tflog.Debug(ctx, "Mapping SettingGroupInstance")
-					// 	settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupInstance)
-					// 	mapGroupSettingInstance(ctx, inst, settingInstance)
+				case graphmodels.DeviceManagementConfigurationSettingGroupInstanceable:
+					tflog.Debug(ctx, "Mapping SettingGroupInstance")
+					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupInstance)
+					mapGroupSettingInstance(ctx, inst, settingInstance)
 
-					// case graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable:
-					// 	tflog.Debug(ctx, "Mapping SettingGroupCollectionInstance")
-					// 	settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupCollectionInstance)
-					// 	mapGroupSettingCollectionInstance(ctx, inst, settingInstance)
+				case graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable:
+					tflog.Debug(ctx, "Mapping SettingGroupCollectionInstance")
+					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupCollectionInstance)
+					mapGroupSettingCollectionInstance(ctx, inst, settingInstance)
+
+				case graphmodels.DeviceManagementConfigurationGroupSettingInstanceable:
+					tflog.Debug(ctx, "Mapping GroupSettingInstance")
+					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationGroupSettingInstance)
+					mapGroupSettingInstance(ctx, inst, settingInstance)
+
+				case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
+					tflog.Debug(ctx, "Mapping GroupSettingCollectionInstance")
+					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationGroupSettingCollectionInstance)
+					mapGroupSettingCollectionInstance(ctx, inst, settingInstance)
 				}
 
 				settingModel.SettingInstance = settingInstance
@@ -72,23 +82,45 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalo
 
 // Helper functions for mapping specific setting types
 
+// mapSimpleSettingInstance maps a simple setting instance to Terraform state
 func mapSimpleSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if simpleValue := instance.GetSimpleSettingValue(); simpleValue != nil {
 		simpleSettingValue := &SimpleSettingValueResourceModel{
 			ODataType: types.StringValue(DeviceManagementConfigurationSimpleSettingInstance),
 		}
+
 		switch v := simpleValue.(type) {
 		case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
 			if intVal := v.GetValue(); intVal != nil {
 				simpleSettingValue.IntValue = state.Int32PtrToTypeInt32(intVal)
 			}
+
 		case graphmodels.DeviceManagementConfigurationStringSettingValueable:
 			if strVal := v.GetValue(); strVal != nil {
 				simpleSettingValue.StringValue = types.StringValue(*strVal)
 			}
+
+		case graphmodels.DeviceManagementConfigurationSecretSettingValueable:
+			if secretVal := v.GetValue(); secretVal != nil {
+				simpleSettingValue.SecretValue = types.StringValue(*secretVal)
+			}
+			if state := v.GetValueState(); state != nil {
+				simpleSettingValue.State = types.StringValue(string(*state))
+			}
+
+		case graphmodels.DeviceManagementConfigurationReferenceSettingValueable:
+			if refVal := v.GetValue(); refVal != nil {
+				simpleSettingValue.ReferenceValue = types.StringValue(*refVal)
+			}
+			if note := v.GetNote(); note != nil {
+				simpleSettingValue.Note = types.StringValue(*note)
+			}
 		}
+
 		settingInstance.SimpleSettingValue = simpleSettingValue
 	}
+
+	tflog.Debug(ctx, "Mapped simple setting instance to Terraform state")
 }
 
 func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
@@ -99,6 +131,8 @@ func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceMa
 		}
 		settingInstance.ChoiceSettingValue = choiceSettingValue
 	}
+
+	tflog.Debug(ctx, "Mapped choice setting instance to Terraform state")
 }
 
 func mapSimpleSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
