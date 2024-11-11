@@ -1,12 +1,18 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the Entra ID tenant ID (Directory ID) where the application is registered")]
+    [ValidateNotNullOrEmpty()]
     [string]$TenantId,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the application (client) ID of the Entra ID app registration")]
+    [ValidateNotNullOrEmpty()]
     [string]$ClientId,
     
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the client secret of the Entra ID app registration")]
+    [ValidateNotNullOrEmpty()]
     [string]$ClientSecret
 )
 
