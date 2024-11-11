@@ -224,7 +224,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 			Description:         "settingDefinitionId",
 			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
 		},
-		"choice_setting_value": schema.SingleNestedAttribute{
+		"choice": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetChoiceSchema(depth + 1),
 			MarkdownDescription: "Choice setting instance with @odata.type: " +

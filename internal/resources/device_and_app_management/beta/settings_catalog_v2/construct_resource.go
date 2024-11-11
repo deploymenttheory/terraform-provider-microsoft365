@@ -379,11 +379,13 @@ func buildChoiceSettingCollectionInstance(instanceConfig *DeviceManagementConfig
 }
 
 // buildChoiceSettingCollectionInstanceChildren adds children to a choice setting value if children exist in the configuration.
+// Similar to buildChoiceSettingChildren, a choice setting collection's children can be of any valid setting instance type,
+// so we must route through constructSettingInstance to handle each child's specific setting type correctly.
 func buildChoiceSettingCollectionInstanceChildren(value *graphmodels.DeviceManagementConfigurationChoiceSettingValue, children []DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if len(children) > 0 {
 		var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
 		for _, childConfig := range children {
-			childInstance := buildChoiceSettingCollectionInstance(&childConfig)
+			childInstance := constructSettingInstance(&childConfig)
 			if childInstance != nil {
 				childInstances = append(childInstances, childInstance)
 			}

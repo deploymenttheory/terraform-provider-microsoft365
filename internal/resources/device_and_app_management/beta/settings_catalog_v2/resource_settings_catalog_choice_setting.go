@@ -39,12 +39,6 @@ func GetChoiceSchema(currentDepth int) ChoiceSchemaAttributeMap {
 	}
 
 	if currentDepth < MaxDepth {
-		// attrs["children"] = schema.SingleNestedAttribute{
-		// 	Optional:            true,
-		// 	Attributes:          GetChildrenAttributes(currentDepth + 1),
-		// 	Description:         "Child setting configuration",
-		// 	MarkdownDescription: "Child setting instance under choice setting configuration.",
-		// }
 		attrs["children"] = schema.ListNestedAttribute{
 			Optional: true,
 			NestedObject: schema.NestedAttributeObject{
@@ -88,7 +82,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		return attrs
 	}
 
-	attrs["choice_setting_value"] = schema.SingleNestedAttribute{
+	attrs["choice"] = schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: ChoiceSchemaAttributeMap{
 			"value": schema.SingleNestedAttribute{

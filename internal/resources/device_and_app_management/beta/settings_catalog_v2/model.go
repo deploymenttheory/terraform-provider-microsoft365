@@ -9,20 +9,19 @@ import (
 // SettingsCatalogProfileResourceModel holds the configuration for a Settings Catalog profile.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta
 type SettingsCatalogProfileResourceModel struct {
-	ID                   types.String                                        `tfsdk:"id"`
-	Name                 types.String                                        `tfsdk:"name"`
-	Description          types.String                                        `tfsdk:"description"`
-	Platforms            types.String                                        `tfsdk:"platforms"`
-	Technologies         types.String                                        `tfsdk:"technologies"`
-	SettingsCount        types.Int64                                         `tfsdk:"settings_count"`
-	RoleScopeTagIds      []types.String                                      `tfsdk:"role_scope_tag_ids"`
-	LastModifiedDateTime types.String                                        `tfsdk:"last_modified_date_time"`
-	CreatedDateTime      types.String                                        `tfsdk:"created_date_time"`
-	Settings             []DeviceManagementConfigurationSettingResourceModel `tfsdk:"settings"`
-	IsAssigned           types.Bool                                          `tfsdk:"is_assigned"`
-	//TemplateReference    *DeviceManagementConfigurationTemplateReferenceResourceModel `tfsdk:"template_reference"`
-	Assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel `tfsdk:"assignments"`
-	Timeouts    timeouts.Value                                               `tfsdk:"timeouts"`
+	ID                   types.String                                                 `tfsdk:"id"`
+	Name                 types.String                                                 `tfsdk:"name"`
+	Description          types.String                                                 `tfsdk:"description"`
+	Platforms            types.String                                                 `tfsdk:"platforms"`
+	Technologies         types.String                                                 `tfsdk:"technologies"`
+	SettingsCount        types.Int64                                                  `tfsdk:"settings_count"`
+	RoleScopeTagIds      []types.String                                               `tfsdk:"role_scope_tag_ids"`
+	LastModifiedDateTime types.String                                                 `tfsdk:"last_modified_date_time"`
+	CreatedDateTime      types.String                                                 `tfsdk:"created_date_time"`
+	Settings             []DeviceManagementConfigurationSettingResourceModel          `tfsdk:"settings"`
+	IsAssigned           types.Bool                                                   `tfsdk:"is_assigned"`
+	Assignments          *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel `tfsdk:"assignments"`
+	Timeouts             timeouts.Value                                               `tfsdk:"timeouts"`
 }
 
 // SettingResourceModel holds individual settings for the catalog configuration policy.
@@ -37,7 +36,7 @@ type DeviceManagementConfigurationSettingResourceModel struct {
 type DeviceManagementConfigurationSettingInstanceResourceModel struct {
 	ODataType                   types.String                              `tfsdk:"odata_type"` // The OData type of the setting instance. Must be supplied within HCL
 	SettingDefinitionID         types.String                              `tfsdk:"setting_definition_id"`
-	ChoiceSettingValue          *ChoiceSettingValueResourceModel          `tfsdk:"choice_setting_value"`
+	ChoiceSettingValue          *ChoiceSettingValueResourceModel          `tfsdk:"choice"`
 	ChoiceCollectionValue       *ChoiceCollectionValueResourceModel       `tfsdk:"choice_collection"`
 	SimpleSettingValue          *SimpleSettingValueResourceModel          `tfsdk:"simple"`
 	SimpleCollectionValue       *SimpleCollectionValueResourceModel       `tfsdk:"simple_collection"`
