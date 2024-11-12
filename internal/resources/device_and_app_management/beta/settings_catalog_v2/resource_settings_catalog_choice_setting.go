@@ -224,7 +224,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		},
 	}
 
-	attrs["group_setting_collection"] = schema.SingleNestedAttribute{
+	attrs["group_setting_collection_value"] = schema.SingleNestedAttribute{
 		Optional:            true,
 		Attributes:          GetGroupSettingCollectionSchema(currentDepth + 1),
 		Description:         "Group setting collection configuration",
