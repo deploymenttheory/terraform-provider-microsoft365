@@ -27,6 +27,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 
 	// Map enum values
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {

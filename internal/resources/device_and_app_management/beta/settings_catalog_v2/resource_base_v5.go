@@ -82,7 +82,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownString(),
 				},
 				MarkdownDescription: "The unique identifier for this policy",
 			},
@@ -187,6 +187,9 @@ func settingInstance(depth int) map[string]schema.Attribute {
 		"odata_type": schema.StringAttribute{
 			Computed:            true,
 			MarkdownDescription: "The OData type of the setting instance. Always #microsoft.graph.deviceManagementConfigurationSetting",
+			PlanModifiers: []planmodifier.String{
+				planmodifiers.UseStateForUnknownString(),
+			},
 		},
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
@@ -217,6 +220,9 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 					DeviceManagementConfigurationSettingGroupCollectionInstance,
 					DeviceManagementConfigurationGroupSettingCollectionInstance,
 				),
+			},
+			PlanModifiers: []planmodifier.String{
+				planmodifiers.UseStateForUnknownString(),
 			},
 		},
 		"setting_definition_id": schema.StringAttribute{

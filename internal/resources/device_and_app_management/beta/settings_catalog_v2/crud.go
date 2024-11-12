@@ -153,6 +153,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteResourceStateToTerraform(ctx, &state, respResource)
 
+	// Retrieve settings from the response
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -169,7 +170,10 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteSettingsStateToTerraform(ctx, &state, respSettings)
+	// Extract the list of settings from the collection response
+	settingsList := respSettings.GetValue()
+
+	MapRemoteSettingsStateToTerraform(ctx, &state, settingsList)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
