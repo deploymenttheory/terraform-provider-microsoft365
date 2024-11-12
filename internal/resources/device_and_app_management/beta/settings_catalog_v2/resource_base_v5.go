@@ -105,6 +105,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"platforms": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					customValidator.EnumValues(
 						"none", "android", "iOS", "macOS", "windows10X",
@@ -112,13 +113,14 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 						"androidEnterprise", "aosp",
 					),
 				},
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("none")},
-				Computed:            true,
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
+
 				MarkdownDescription: "Platforms for this policy",
 			},
 			"technologies": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Validators: []validator.List{
 					customValidator.EnumValuesList(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -132,7 +134,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers: []planmodifier.List{
 					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
 				},
-				MarkdownDescription: "List of technologies for this policy",
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,

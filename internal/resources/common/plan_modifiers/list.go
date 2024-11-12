@@ -36,7 +36,7 @@ type defaultValueList struct {
 }
 
 func (m defaultValueList) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	if !req.PlanValue.IsNull() {
+	if !req.PlanValue.IsNull() && len(req.PlanValue.Elements()) > 0 {
 		return
 	}
 	resp.PlanValue = m.defaultValue
