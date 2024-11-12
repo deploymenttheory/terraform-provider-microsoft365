@@ -18,6 +18,8 @@ func GetGroupSettingCollectionSchema(currentDepth int) GroupCollectionSchemaAttr
 			Required:            true,
 			MarkdownDescription: "The OData type of the setting instance.",
 		},
+		// Currently this might be a SingleNestedAttribute or similar
+		// Needs to be a ListNestedAttribute instead
 		"group_setting_collection_value": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
@@ -27,12 +29,9 @@ func GetGroupSettingCollectionSchema(currentDepth int) GroupCollectionSchemaAttr
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: GetChildrenAttributes(currentDepth + 1),
 						},
-						Description:         "List of child setting instances that will be included in the group collection value",
-						MarkdownDescription: "Collection of child settings that will be wrapped in a single group setting value.",
 					},
 				},
 			},
-			Description: "Array of group setting collection values",
 		},
 	}
 }

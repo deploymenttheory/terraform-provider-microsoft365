@@ -250,9 +250,18 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
 				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
 		},
-		"group_setting_collection_value": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: GetGroupSettingCollectionSchema(depth + 1),
+		"group_setting_collection_value": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"children": schema.ListNestedAttribute{
+						Required: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: GetChildrenAttributes(depth + 1),
+						},
+					},
+				},
+			},
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
 				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",

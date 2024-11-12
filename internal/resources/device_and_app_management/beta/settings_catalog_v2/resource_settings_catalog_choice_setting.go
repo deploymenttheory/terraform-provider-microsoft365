@@ -224,9 +224,18 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		},
 	}
 
-	attrs["group_setting_collection_value"] = schema.SingleNestedAttribute{
-		Optional:            true,
-		Attributes:          GetGroupSettingCollectionSchema(currentDepth + 1),
+	attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
+		Optional: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"children": schema.ListNestedAttribute{
+					Required: true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: GetChildrenAttributes(currentDepth + 1),
+					},
+				},
+			},
+		},
 		Description:         "Group setting collection configuration",
 		MarkdownDescription: "Configuration for the group setting collection value including odata type and children.",
 	}
