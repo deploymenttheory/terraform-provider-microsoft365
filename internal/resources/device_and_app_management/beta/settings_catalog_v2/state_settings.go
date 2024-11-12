@@ -124,51 +124,32 @@ func mapChoiceSettingInstance(ctx context.Context, instance graphmodels.DeviceMa
 			ODataType: types.StringValue("#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"),
 		}
 
-		// Log the initial ODataType for choice setting
-		tflog.Debug(ctx, fmt.Sprintf("Mapping choice setting instance with ODataType: %s", choiceSettingValue.ODataType.ValueString()))
-
-		// Map value and log it
+		// Map value and children
 		if value := choiceValue.GetValue(); value != nil {
 			choiceSettingValue.StringValue = types.StringValue(*value)
-			tflog.Debug(ctx, fmt.Sprintf("Mapped choice setting StringValue: %s", choiceSettingValue.StringValue.ValueString()))
-		} else {
-			tflog.Debug(ctx, "Choice setting StringValue is nil")
 		}
 
-		// Map children if they exist and log the process
+		// Map children if they exist
 		if children := choiceValue.GetChildren(); len(children) > 0 {
-			tflog.Debug(ctx, fmt.Sprintf("Mapping %d children for choice setting", len(children)))
 			childrenModels := make([]DeviceManagementConfigurationSettingInstanceResourceModel, len(children))
-
 			for i, child := range children {
 				childModel := DeviceManagementConfigurationSettingInstanceResourceModel{
 					ODataType:           types.StringValue(state.StringPtrToString(child.GetOdataType())),
 					SettingDefinitionID: types.StringValue(state.StringPtrToString(child.GetSettingDefinitionId())),
 				}
-				tflog.Debug(ctx, fmt.Sprintf("Child %d ODataType: %s, SettingDefinitionID: %s", i, childModel.ODataType.ValueString(), childModel.SettingDefinitionID.ValueString()))
-
-				// Ensure mapping based on child type and log child type
+				// Ensure mapping based on child type
 				switch childInst := child.(type) {
 				case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
-					tflog.Debug(ctx, fmt.Sprintf("Mapping child %d as DeviceManagementConfigurationSimpleSettingInstance", i))
 					mapSimpleSettingInstance(ctx, childInst, &childModel)
-				default:
-					tflog.Debug(ctx, fmt.Sprintf("Unknown child type for child %d: %T", i, childInst))
 				}
 				childrenModels[i] = childModel
 			}
 			choiceSettingValue.Children = childrenModels
-		} else {
-			tflog.Debug(ctx, "No children found for choice setting")
 		}
 
-		// Assign the mapped choice value and log final state
 		settingInstance.ChoiceSettingValue = choiceSettingValue
-		tflog.Debug(ctx, fmt.Sprintf("Mapped choice setting instance with ODataType: %s and children count: %d",
-			choiceSettingValue.ODataType.ValueString(), len(choiceSettingValue.Children)))
-	} else {
-		tflog.Debug(ctx, "Choice setting value is nil")
 	}
+	tflog.Debug(ctx, "Mapped choice setting instance to Terraform state")
 }
 
 func mapSimpleSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {

@@ -87,7 +87,6 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		}
 	}
 
-	// State initial base resource atts and append with content from hcl.
 	profile, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -98,8 +97,40 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
-
 	MapRemoteResourceStateToTerraform(ctx, &plan, profile)
+
+	respSettings, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Settings().
+		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
+				Expand: []string{""},
+			},
+		})
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
+		return
+	}
+
+	settingsList := respSettings.GetValue()
+	MapRemoteSettingsStateToTerraform(ctx, &plan, settingsList)
+
+	respAssignments, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Assignments().
+		Get(context.Background(), nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteAssignmentStateToTerraform(ctx, &plan, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

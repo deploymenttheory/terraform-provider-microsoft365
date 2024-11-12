@@ -185,11 +185,12 @@ func settingInstance(depth int) map[string]schema.Attribute {
 
 	return map[string]schema.Attribute{
 		"odata_type": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The OData type of the setting instance. Always #microsoft.graph.deviceManagementConfigurationSetting",
+			Computed: true,
 			PlanModifiers: []planmodifier.String{
+				planmodifiers.DefaultValueString("#microsoft.graph.deviceManagementConfigurationSetting"),
 				planmodifiers.UseStateForUnknownString(),
 			},
+			MarkdownDescription: "The OData type of the setting instance. Always #microsoft.graph.deviceManagementConfigurationSetting",
 		},
 		"setting_instance": schema.SingleNestedAttribute{
 			Optional:            true,
