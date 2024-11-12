@@ -1,8 +1,10 @@
 package graphBetaSettingsCatalog
 
 import (
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -18,6 +20,9 @@ func GetSimpleCollectionSchema() schema.SingleNestedAttribute {
 			"odata_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 			},
 			"string_value": schema.ListAttribute{
 				Optional:    true,

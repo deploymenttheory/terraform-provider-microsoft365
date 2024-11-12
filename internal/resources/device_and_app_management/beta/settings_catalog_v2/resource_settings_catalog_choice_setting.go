@@ -24,6 +24,9 @@ func GetChoiceSchema(currentDepth int) ChoiceSchemaAttributeMap {
 		"odata_type": schema.StringAttribute{
 			Computed:            true,
 			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+			PlanModifiers: []planmodifier.String{
+				planmodifiers.UseStateForUnknownString(),
+			},
 		},
 		"string_value": schema.StringAttribute{
 			Optional:    true,
