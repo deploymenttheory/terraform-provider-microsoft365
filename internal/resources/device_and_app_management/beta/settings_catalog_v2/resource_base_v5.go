@@ -247,7 +247,7 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 		},
 		"group": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetGroupSchema(depth + 1).Attributes,
+			Attributes: GetGroupSettingSchema(depth + 1),
 			MarkdownDescription: "Group setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
 				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +

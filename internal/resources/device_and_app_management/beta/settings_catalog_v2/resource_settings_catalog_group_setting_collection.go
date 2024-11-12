@@ -18,10 +18,17 @@ func GetGroupSettingCollectionSchema(currentDepth int) GroupCollectionSchemaAttr
 	return GroupCollectionSchemaAttributeMap{
 		"odata_type": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "The OData type of the group collection setting instance.",
+			MarkdownDescription: "The OData type of the setting instance.",
 			Validators: []validator.String{
 				stringvalidator.OneOf(
-					DeviceManagementConfigurationGroupSettingValue,
+					DeviceManagementConfigurationChoiceSettingInstance,
+					DeviceManagementConfigurationChoiceSettingCollectionInstance,
+					DeviceManagementConfigurationSimpleSettingInstance,
+					DeviceManagementConfigurationSimpleSettingCollectionInstance,
+					DeviceManagementConfigurationSettingGroupInstance,
+					DeviceManagementConfigurationGroupSettingInstance,
+					DeviceManagementConfigurationSettingGroupCollectionInstance,
+					DeviceManagementConfigurationGroupSettingCollectionInstance,
 				),
 			},
 		},
