@@ -85,11 +85,54 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		return attrs
 	}
 
+	// attrs["choice_setting_value"] = schema.SingleNestedAttribute{
+	// 	Optional: true,
+	// 	Attributes: ChoiceSchemaAttributeMap{
+	// 		"odata_type": schema.StringAttribute{
+	// 			Required:            true,
+	// 			MarkdownDescription: "The OData type of the child choice setting value.",
+	// 		},
+	// 		"string_value": schema.StringAttribute{
+	// 			Optional:            true,
+	// 			MarkdownDescription: "Child string-based choice setting values.",
+	// 		},
+	// 		"integer_value": schema.Int32Attribute{
+	// 			Optional:            true,
+	// 			MarkdownDescription: "Child integer-based choice setting values.",
+	// 		},
+	// 		"children": schema.ListNestedAttribute{
+	// 			Optional: true,
+	// 			NestedObject: schema.NestedAttributeObject{
+	// 				Attributes: GetChoiceSchema(currentDepth + 1),
+	// 			},
+	// 			Description:         "Child settings for each choice value",
+	// 			MarkdownDescription: "Nested settings configuration for choice values.",
+	// 		},
+	// 	},
+	// }
+
 	attrs["choice_setting_value"] = schema.SingleNestedAttribute{
-		Optional:            true,
-		Attributes:          GetChoiceSchema(currentDepth + 1),
-		Description:         "Choice setting configuration",
-		MarkdownDescription: "Configuration of the value for child choice setting.",
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"odata_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The OData type of the child choice setting value.",
+			},
+			"string_value": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Child string-based choice setting values.",
+			},
+			"integer_value": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Child integer-based choice setting values.",
+			},
+			"children": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: GetChildrenAttributes(currentDepth + 1),
+				},
+			},
+		},
 	}
 
 	attrs["choice_collection"] = schema.SingleNestedAttribute{
@@ -101,7 +144,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 				Description:         "Collection of string choice values",
 				MarkdownDescription: "List of string-based choice setting values.",
 			},
-			"int_value": schema.ListAttribute{
+			"integer_value": schema.ListAttribute{
 				Optional:            true,
 				ElementType:         types.Int32Type,
 				Description:         "Collection of integer choice values",

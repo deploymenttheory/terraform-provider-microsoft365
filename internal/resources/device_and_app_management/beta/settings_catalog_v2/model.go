@@ -41,7 +41,7 @@ type DeviceManagementConfigurationSettingInstanceResourceModel struct {
 	SimpleSettingValue          *SimpleSettingValueResourceModel          `tfsdk:"simple"`
 	SimpleCollectionValue       *SimpleCollectionValueResourceModel       `tfsdk:"simple_collection"`
 	GroupSettingValue           *GroupSettingValueResourceModel           `tfsdk:"group"`
-	GroupSettingCollectionValue *GroupSettingCollectionValueResourceModel `tfsdk:"group_setting_collection"`
+	GroupSettingCollectionValue *GroupSettingCollectionValueResourceModel `tfsdk:"group_setting_collection_value"`
 	SettingGroupSettingValue    *SettingGroupSettingValueResourceModel    `tfsdk:"setting_group"`
 	SettingGroupCollectionValue *SettingGroupCollectionValueResourceModel `tfsdk:"setting_group_collection"`
 }
