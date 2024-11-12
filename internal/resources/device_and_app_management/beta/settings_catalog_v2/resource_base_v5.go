@@ -148,21 +148,15 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: "Creation date and time of the policy",
+				MarkdownDescription: "Creation date and time of the settings catalog policy",
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "Last modification date and time of the policy",
+				Computed:            true,
+				MarkdownDescription: "Last modification date and time of the settings catalog policy",
 			},
 			"settings_count": schema.Int64Attribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
-				},
-				MarkdownDescription: "Number of settings in the policy",
+				Computed:            true,
+				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
 			},
 			"is_assigned": schema.BoolAttribute{
 				Computed: true,
