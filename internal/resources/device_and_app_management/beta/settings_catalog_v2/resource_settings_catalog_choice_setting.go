@@ -228,6 +228,10 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		Optional: true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
+				"odata_type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "The OData type of the group setting collection value.",
+				},
 				"children": schema.ListNestedAttribute{
 					Required: true,
 					NestedObject: schema.NestedAttributeObject{

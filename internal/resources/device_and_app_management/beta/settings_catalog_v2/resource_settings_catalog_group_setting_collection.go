@@ -15,22 +15,13 @@ func GetGroupSettingCollectionSchema(currentDepth int) GroupCollectionSchemaAttr
 
 	return GroupCollectionSchemaAttributeMap{
 		"odata_type": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
 			MarkdownDescription: "The OData type of the setting instance.",
 		},
-		// Currently this might be a SingleNestedAttribute or similar
-		// Needs to be a ListNestedAttribute instead
-		"group_setting_collection_value": schema.ListNestedAttribute{
+		"children": schema.ListNestedAttribute{
 			Required: true,
 			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"children": schema.ListNestedAttribute{
-						Required: true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: GetChildrenAttributes(currentDepth + 1),
-						},
-					},
-				},
+				Attributes: GetChildrenAttributes(currentDepth + 1),
 			},
 		},
 	}
