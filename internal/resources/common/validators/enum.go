@@ -32,7 +32,6 @@ func (v enumValidator) ValidateString(ctx context.Context, request validator.Str
 
 	configValue := request.ConfigValue
 	if configValue.IsNull() || configValue.IsUnknown() || configValue.ValueString() == "" {
-		// Skip validation if value is null, unknown, or an empty string
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -68,8 +69,12 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	}
 	profile.SetPlatforms(&platform)
 
-	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
-	profile.SetTechnologies(&technologies)
+	var technologiesStr []string
+	for _, tech := range data.Technologies {
+		technologiesStr = append(technologiesStr, tech.ValueString())
+	}
+	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
+	profile.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
 
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
