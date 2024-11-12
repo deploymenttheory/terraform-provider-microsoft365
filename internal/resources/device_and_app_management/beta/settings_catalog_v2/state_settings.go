@@ -53,12 +53,12 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalo
 				case graphmodels.DeviceManagementConfigurationSettingGroupInstanceable:
 					tflog.Debug(ctx, "Mapping SettingGroupInstance")
 					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupInstance)
-					mapGroupSettingInstance(ctx, inst, settingInstance)
+					mapSettingGroupInstance(ctx, inst, settingInstance)
 
 				case graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable:
 					tflog.Debug(ctx, "Mapping SettingGroupCollectionInstance")
 					settingInstance.ODataType = types.StringValue(DeviceManagementConfigurationSettingGroupCollectionInstance)
-					mapGroupSettingCollectionInstance(ctx, inst, settingInstance)
+					mapSettingGroupCollectionInstance(ctx, inst, settingInstance)
 
 				case graphmodels.DeviceManagementConfigurationGroupSettingInstanceable:
 					tflog.Debug(ctx, "Mapping GroupSettingInstance")
@@ -174,97 +174,105 @@ func mapChoiceSettingCollectionInstance(ctx context.Context, instance graphmodel
 	}
 }
 
-// func mapGroupSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingGroupInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
-// 	// Initialize the GroupSettingValue for Terraform state with the correct OData type
-// 	groupValue := &DeviceManagementConfigurationGroupSettingValueResourceModel{
-// 		ODataType: types.StringValue(DeviceManagementConfigurationSettingGroupInstance),
-// 	}
+func mapGroupSettingInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationGroupSettingInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
+	if groupValue := instance.GetGroupSettingValue(); groupValue != nil {
+		groupSettingValue := &GroupSettingValueResourceModel{
+			ODataType: types.StringValue(DeviceManagementConfigurationGroupSettingValue),
+		}
 
-// 	// Since we don't have direct access to children, let's assume handling is based on known instance types
-// 	instanceID := state.StringPtrToString(instance.GetSettingDefinitionId())
-// 	tflog.Debug(ctx, "Mapping GroupSettingInstance", map[string]interface{}{"SettingDefinitionID": instanceID})
+		// Map children if they exist
+		if children := groupValue.GetChildren(); len(children) > 0 {
+			childrenModels := make([]DeviceManagementConfigurationSettingInstanceResourceModel, 0, len(children))
 
-// 	// In the absence of child accessors, assume children are set in a predefined structure or need recursive construction.
-// 	childInstances := retrieveChildInstances(ctx, instance) // Define this helper based on custom logic.
-// 	for _, childInstance := range childInstances {
-// 		childModel := DeviceManagementConfigurationSettingInstance{
-// 			ODataType:           types.StringValue(state.StringPtrToString(childInstance.GetOdataType())),
-// 			SettingDefinitionID: types.StringValue(state.StringPtrToString(childInstance.GetSettingDefinitionId())),
-// 		}
+			for _, child := range children {
+				childModel := DeviceManagementConfigurationSettingInstanceResourceModel{
+					SettingDefinitionID: types.StringValue(state.StringPtrToString(child.GetSettingDefinitionId())),
+				}
 
-// 		// Recursively map each specific child type
-// 		switch child := childInstance.(type) {
-// 		case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
-// 			mapSimpleSettingInstance(ctx, child, &childModel)
-// 		case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
-// 			mapChoiceSettingInstance(ctx, child, &childModel)
-// 		case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
-// 			mapSimpleSettingCollectionInstance(ctx, child, &childModel)
-// 		case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
-// 			mapChoiceSettingCollectionInstance(ctx, child, &childModel)
-// 		case graphmodels.DeviceManagementConfigurationSettingGroupInstanceable:
-// 			mapGroupSettingInstance(ctx, child, &childModel)
-// 		case graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable:
-// 			mapGroupSettingCollectionInstance(ctx, child, &childModel)
-// 		}
+				// Determine child type and map accordingly
+				switch childInst := child.(type) {
+				case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
+					childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingInstance)
+					mapChoiceSettingInstance(ctx, childInst, &childModel)
 
-// 		// Append the mapped child model to the group's Children slice
-// 		groupValue.Children = append(groupValue.Children, childModel)
-// 	}
+				case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
+					childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingInstance)
+					mapSimpleSettingInstance(ctx, childInst, &childModel)
 
-// 	// Set the completed GroupSettingValue on the main setting instance
-// 	settingInstance.GroupSettingValue = groupValue
-// 	tflog.Debug(ctx, "Mapped group setting instance to Terraform state")
-// }
+				case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
+					childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingCollectionInstance)
+					mapChoiceSettingCollectionInstance(ctx, childInst, &childModel)
 
-// func mapGroupSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstance) {
-// 	// Retrieve and process values of the group setting collection
-// 	if collectionValues := instance.GetValue(); len(collectionValues) > 0 {
-// 		groupCollectionValue := &DeviceManagementConfigurationGroupCollectionValueResourceModel{
-// 			ODataType: types.StringValue(DeviceManagementConfigurationSettingGroupCollectionInstance),
-// 		}
+				case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
+					childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingCollectionInstance)
+					mapSimpleSettingCollectionInstance(ctx, childInst, &childModel)
+				}
 
-// 		// Iterate over each group setting within the collection
-// 		for _, groupSetting := range collectionValues {
-// 			groupValue := &DeviceManagementConfigurationGroupSettingValueResourceModel{
-// 				ODataType: types.StringValue(DeviceManagementConfigurationSettingGroupInstance),
-// 			}
+				childrenModels = append(childrenModels, childModel)
+			}
 
-// 			// Process child instances of each group setting
-// 			if children := groupSetting.GetValue(); len(children) > 0 {
-// 				for _, childInstance := range children {
-// 					childModel := DeviceManagementConfigurationSettingInstance{
-// 						ODataType:           types.StringValue(state.StringPtrToString(childInstance.GetOdataType())),
-// 						SettingDefinitionID: types.StringValue(state.StringPtrToString(childInstance.GetSettingDefinitionId())),
-// 					}
+			groupSettingValue.Children = childrenModels
+		}
 
-// 					// Map each specific child type using the correct mapping functions
-// 					switch child := childInstance.(type) {
-// 					case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
-// 						mapSimpleSettingInstance(ctx, child, &childModel)
-// 					case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
-// 						mapChoiceSettingInstance(ctx, child, &childModel)
-// 					case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
-// 						mapSimpleSettingCollectionInstance(ctx, child, &childModel)
-// 					case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
-// 						mapChoiceSettingCollectionInstance(ctx, child, &childModel)
-// 					case graphmodels.DeviceManagementConfigurationSettingGroupInstanceable:
-// 						mapGroupSettingInstance(ctx, child, &childModel)
-// 					case graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable:
-// 						mapGroupSettingCollectionInstance(ctx, child, &childModel)
-// 					}
+		settingInstance.GroupSettingValue = groupSettingValue
+	}
+	tflog.Debug(ctx, "Mapped group setting instance to Terraform state")
+}
 
-// 					// Append each mapped child model to the group's Children slice
-// 					groupValue.Children = append(groupValue.Children, childModel)
-// 				}
-// 			}
+func mapGroupSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
+	if collectionValues := instance.GetGroupSettingCollectionValue(); len(collectionValues) > 0 {
+		groupSettingCollectionValue := &GroupSettingCollectionValueResourceModel{
+			ODataType: types.StringValue(DeviceManagementConfigurationGroupSettingCollectionInstance),
+		}
 
-// 			// Append each mapped group value to the group collection's Children slice
-// 			groupCollectionValue.Children = append(groupCollectionValue.Children, *groupValue)
-// 		}
+		childrenModels := make([]DeviceManagementConfigurationSettingInstanceResourceModel, 0)
 
-// 		// Set the fully constructed group collection value on the main setting instance
-// 		settingInstance.GroupCollectionValue = groupCollectionValue
-// 		tflog.Debug(ctx, "Mapped group setting collection instance to Terraform state")
-// 	}
-// }
+		for _, collectionValue := range collectionValues {
+			if children := collectionValue.GetChildren(); len(children) > 0 {
+				for _, child := range children {
+					childModel := DeviceManagementConfigurationSettingInstanceResourceModel{
+						SettingDefinitionID: types.StringValue(state.StringPtrToString(child.GetSettingDefinitionId())),
+					}
+
+					switch childInst := child.(type) {
+					case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
+						childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingInstance)
+						mapChoiceSettingInstance(ctx, childInst, &childModel)
+
+					case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
+						childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingInstance)
+						mapSimpleSettingInstance(ctx, childInst, &childModel)
+
+					case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
+						childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingCollectionInstance)
+						mapChoiceSettingCollectionInstance(ctx, childInst, &childModel)
+
+					case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
+						childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingCollectionInstance)
+						mapSimpleSettingCollectionInstance(ctx, childInst, &childModel)
+					}
+
+					childrenModels = append(childrenModels, childModel)
+				}
+			}
+		}
+
+		groupSettingCollectionValue.Children = childrenModels
+		settingInstance.GroupSettingCollectionValue = groupSettingCollectionValue
+	}
+	tflog.Debug(ctx, "Mapped group setting collection instance to Terraform state")
+}
+
+func mapSettingGroupInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingGroupInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
+	settingInstance.SettingGroupSettingValue = &SettingGroupSettingValueResourceModel{
+		ODataType: types.StringValue(DeviceManagementConfigurationSettingGroupInstance),
+	}
+	tflog.Debug(ctx, "Mapped setting group instance to Terraform state")
+}
+
+func mapSettingGroupCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingGroupCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
+	settingInstance.SettingGroupCollectionValue = &SettingGroupCollectionValueResourceModel{
+		ODataType: types.StringValue(DeviceManagementConfigurationSettingGroupCollectionInstance),
+	}
+	tflog.Debug(ctx, "Mapped setting group collection instance to Terraform state")
+}

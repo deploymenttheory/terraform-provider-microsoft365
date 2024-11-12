@@ -18,25 +18,25 @@ param (
 
 # Helper function to generate reference ID from path
 function Get-PathBasedReferenceId {
-    param (
-        [string]$Path
-    )
-    
-    $segments = $Path -split '/' | Where-Object { $_ -ne '' }
-    $refParts = @()
-    
-    foreach ($segment in $segments) {
-        $segmentStr = [string]$segment
-        if ($segmentStr -match '{.*}') {
-            $paramName = $segmentStr -replace '{|}'
-            $paramName = $paramName -replace '-', '_'
-            $refParts += "BY_$([string]($paramName.ToUpper()))"
-        } else {
-            $refParts += [string]($segmentStr.ToUpper())
-        }
-    }
-    
-    return $refParts -join '_'
+  param (
+      [string]$Path
+  )
+  
+  $segments = $Path -split '/' | Where-Object { $_ -ne '' }
+  $refParts = @()
+  
+  foreach ($segment in $segments) {
+      $segmentStr = [string]$segment
+      if ($segmentStr -match '{.*}') {
+          $paramName = $segmentStr -replace '{|}'
+          $paramName = $paramName -replace '-', '_'
+          $refParts += "BY_$([string]($paramName.ToUpper()))"
+      } else {
+          $refParts += [string]($segmentStr.ToUpper())
+      }
+  }
+  
+  return $refParts -join '_'
 }
 
 # Script Setup
