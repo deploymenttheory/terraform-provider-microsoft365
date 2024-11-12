@@ -76,6 +76,26 @@ func EnumPtrToTypeString[T fmt.Stringer](e *T) types.String {
 	return types.StringValue((*e).String())
 }
 
+// EnumListPtrToTypeStringSlice converts a slice of pointers to enum-like constants to a slice of types.String.
+// It uses the String() method of the enum type to convert each value to a string.
+func EnumListPtrToTypeStringSlice[T fmt.Stringer](input []*T) []types.String {
+	if input == nil {
+		return nil
+	}
+
+	result := make([]types.String, len(input))
+	for i, v := range input {
+		if v == nil {
+			result[i] = types.StringNull()
+		} else {
+			// Dereference the pointer and call String()
+			result[i] = types.StringValue((*v).String())
+		}
+	}
+
+	return result
+}
+
 // Int32PtrToTypeInt64 converts a pointer to an int32 to a types.Int64.
 // This function is useful for converting nullable int32 values from the SDK to Terraform's types.Int64.
 func Int32PtrToTypeInt64(i *int32) types.Int64 {

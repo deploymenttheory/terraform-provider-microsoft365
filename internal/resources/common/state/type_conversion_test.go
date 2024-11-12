@@ -156,21 +156,21 @@ func TestBoolPtrToTypeBool(t *testing.T) {
 	})
 }
 
-type testEnum int
+type enumOneType int
 
 const (
-	EnumOne testEnum = iota
+	EnumOne enumOneType = iota
 	EnumTwo
 	EnumThree
 )
 
-func (e testEnum) String() string {
+func (e enumOneType) String() string {
 	return [...]string{"One", "Two", "Three"}[e]
 }
 
 func TestEnumPtrToTypeString(t *testing.T) {
 	t.Run("Nil enum pointer", func(t *testing.T) {
-		var input *testEnum
+		var input *enumOneType
 		result := EnumPtrToTypeString(input)
 		assert.True(t, result.IsNull(), "Should return types.StringNull() for nil input")
 	})
@@ -183,7 +183,7 @@ func TestEnumPtrToTypeString(t *testing.T) {
 
 	t.Run("Different enum values", func(t *testing.T) {
 		testCases := []struct {
-			input    testEnum
+			input    enumOneType
 			expected string
 		}{
 			{EnumOne, "One"},
@@ -195,6 +195,77 @@ func TestEnumPtrToTypeString(t *testing.T) {
 			result := EnumPtrToTypeString(&tc.input)
 			assert.Equal(t, types.StringValue(tc.expected), result, "Should return correct string for enum value")
 		}
+	})
+}
+
+type enumTwoType int
+
+const (
+	EnumApple enumTwoType = iota
+	EnumBanana
+	EnumCherry
+)
+
+func (e enumTwoType) String() string {
+	return [...]string{"Apple", "Banana", "Cherry"}[e]
+}
+
+func TestEnumListPtrToTypeStringSlice(t *testing.T) {
+	t.Run("Nil input slice", func(t *testing.T) {
+		var input []*enumTwoType
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Nil(t, result, "Should return nil for nil input")
+	})
+
+	t.Run("Empty input slice", func(t *testing.T) {
+		input := []*enumTwoType{}
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Equal(t, 0, len(result), "Should return an empty slice")
+	})
+
+	t.Run("Non-empty input slice with valid enum pointers", func(t *testing.T) {
+		apple := EnumApple
+		banana := EnumBanana
+		input := []*enumTwoType{&apple, &banana}
+		expected := []types.String{
+			types.StringValue("Apple"),
+			types.StringValue("Banana"),
+		}
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Equal(t, expected, result, "Should convert slice of enum pointers to slice of types.String")
+	})
+
+	t.Run("Input slice with nil enum pointers", func(t *testing.T) {
+		apple := EnumApple
+		input := []*enumTwoType{&apple, nil}
+		expected := []types.String{
+			types.StringValue("Apple"),
+			types.StringNull(),
+		}
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Equal(t, expected, result, "Should handle nil pointers correctly")
+	})
+
+	t.Run("Input slice with all nil enum pointers", func(t *testing.T) {
+		input := []*enumTwoType{nil, nil}
+		expected := []types.String{
+			types.StringNull(),
+			types.StringNull(),
+		}
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Equal(t, expected, result, "Should handle slice with only nil pointers correctly")
+	})
+
+	t.Run("Input slice with different enum values", func(t *testing.T) {
+		apple := EnumApple
+		cherry := EnumCherry
+		input := []*enumTwoType{&apple, &cherry}
+		expected := []types.String{
+			types.StringValue("Apple"),
+			types.StringValue("Cherry"),
+		}
+		result := EnumListPtrToTypeStringSlice(input)
+		assert.Equal(t, expected, result, "Should convert multiple different enum values correctly")
 	})
 }
 

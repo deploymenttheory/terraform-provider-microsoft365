@@ -13,7 +13,7 @@ type SettingsCatalogProfileResourceModel struct {
 	Name                 types.String                                                 `tfsdk:"name"`
 	Description          types.String                                                 `tfsdk:"description"`
 	Platforms            types.String                                                 `tfsdk:"platforms"`
-	Technologies         types.String                                                 `tfsdk:"technologies"`
+	Technologies         []types.String                                               `tfsdk:"technologies"`
 	SettingsCount        types.Int64                                                  `tfsdk:"settings_count"`
 	RoleScopeTagIds      []types.String                                               `tfsdk:"role_scope_tag_ids"`
 	LastModifiedDateTime types.String                                                 `tfsdk:"last_modified_date_time"`

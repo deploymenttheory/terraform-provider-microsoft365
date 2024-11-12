@@ -116,10 +116,11 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Computed:            true,
 				MarkdownDescription: "Platforms for this policy",
 			},
-			"technologies": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					customValidator.EnumValues(
+			"technologies": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Validators: []validator.List{
+					customValidator.EnumValuesList(
 						"none", "mdm", "windows10XManagement", "configManager",
 						"intuneManagementExtension", "thirdParty", "documentGateway",
 						"appleRemoteManagement", "microsoftSense", "exchangeOnline",
@@ -128,9 +129,10 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 						"windowsOsRecovery", "android",
 					),
 				},
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("mdm")},
-				Computed:            true,
-				MarkdownDescription: "Technologies for this policy",
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
+				},
+				MarkdownDescription: "List of technologies for this policy",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,

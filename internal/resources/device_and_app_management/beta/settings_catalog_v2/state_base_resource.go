@@ -35,10 +35,55 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 		data.Platforms = state.EnumPtrToTypeString(platforms)
 	}
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
-		data.Technologies = state.EnumPtrToTypeString(technologies)
+		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
 	}
-
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
+}
+
+func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfigurationTechnologies) []types.String {
+	var values []types.String
+
+	if technologies&graphmodels.NONE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("none"))
+	}
+	if technologies&graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("mdm"))
+	}
+	if technologies&graphmodels.WINDOWS10XMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("windows10XManagement"))
+	}
+	if technologies&graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("configManager"))
+	}
+	if technologies&graphmodels.APPLEREMOTEMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("appleRemoteManagement"))
+	}
+	if technologies&graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("microsoftSense"))
+	}
+	if technologies&graphmodels.EXCHANGEONLINE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("exchangeOnline"))
+	}
+	if technologies&graphmodels.MOBILEAPPLICATIONMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("mobileApplicationManagement"))
+	}
+	if technologies&graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("linuxMdm"))
+	}
+	if technologies&graphmodels.ENROLLMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("enrollment"))
+	}
+	if technologies&graphmodels.ENDPOINTPRIVILEGEMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("endpointPrivilegeManagement"))
+	}
+	if technologies&graphmodels.UNKNOWNFUTUREVALUE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("unknownFutureValue"))
+	}
+	if technologies&graphmodels.WINDOWSOSRECOVERY_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("windowsOsRecovery"))
+	}
+
+	return values
 }
