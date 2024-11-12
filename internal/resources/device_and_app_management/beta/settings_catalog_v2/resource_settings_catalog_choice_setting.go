@@ -85,7 +85,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		return attrs
 	}
 
-	attrs["choice"] = schema.SingleNestedAttribute{
+	attrs["choice_setting_value"] = schema.SingleNestedAttribute{
 		Optional:            true,
 		Attributes:          GetChoiceSchema(currentDepth + 1),
 		Description:         "Choice setting configuration",
@@ -149,7 +149,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Description:         "Setting definition ID",
 							MarkdownDescription: "The unique identifier for the setting definition.",
 						},
-						"choice_value": schema.SingleNestedAttribute{
+						"choice_setting_value": schema.SingleNestedAttribute{
 							Optional:   true,
 							Attributes: GetChoiceSchema(currentDepth + 1),
 						},
@@ -181,67 +181,11 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		},
 	}
 
-	attrs["group_collection"] = schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: ChoiceSchemaAttributeMap{
-			"children": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"odata_type": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The OData type of the group collection child setting instance. This must be specified and is used to determine the specific setting instance type.",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									DeviceManagementConfigurationChoiceSettingInstance,
-									DeviceManagementConfigurationChoiceSettingCollectionInstance,
-									DeviceManagementConfigurationSimpleSettingInstance,
-									DeviceManagementConfigurationSimpleSettingCollectionInstance,
-									DeviceManagementConfigurationSettingGroupInstance,
-									DeviceManagementConfigurationGroupSettingInstance,
-									DeviceManagementConfigurationSettingGroupCollectionInstance,
-									DeviceManagementConfigurationGroupSettingCollectionInstance,
-								),
-							},
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseStateForUnknownString(),
-							},
-						},
-						"setting_definition_id": schema.StringAttribute{
-							Required:            true,
-							Description:         "Setting definition ID",
-							MarkdownDescription: "The unique identifier for the setting definition.",
-						},
-						"choice_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: GetChoiceSchema(currentDepth + 1),
-						},
-						"simple_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: deviceManagementConfigurationSimpleSettingValueAttributes,
-						},
-						"group_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: getChoiceGroupSettingAttributes(currentDepth + 1),
-						},
-						"choice_collection_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: GetChoiceCollectionSchema(currentDepth + 1),
-						},
-						// "simple_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetSimpleCollectionSchema(currentDepth + 1),
-						// },
-						// "group_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetGroupCollectionSchema(currentDepth + 1),
-						// },
-					},
-				},
-				Description:         "Child settings that make up this group collection",
-				MarkdownDescription: "Collection of nested device management configuration settings that will be wrapped in group setting values.",
-			},
-		},
+	attrs["group_setting_collection"] = schema.SingleNestedAttribute{
+		Optional:            true,
+		Attributes:          GetGroupSettingCollectionSchema(currentDepth + 1),
+		Description:         "Group setting collection configuration",
+		MarkdownDescription: "Configuration for the group setting collection value including odata type and children.",
 	}
 
 	attrs["setting_group"] = schema.SingleNestedAttribute{

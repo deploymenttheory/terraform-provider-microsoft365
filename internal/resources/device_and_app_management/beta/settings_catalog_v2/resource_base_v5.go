@@ -35,7 +35,7 @@ var (
 
 const (
 	// Define maximum allowed depth for nested settings catalog settings
-	maxDepth = 5
+	maxDepth = 10
 )
 
 func NewSettingsCatalogResource() resource.Resource {
@@ -229,10 +229,10 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 			Description:         "settingDefinitionId",
 			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
 		},
-		"choice": schema.SingleNestedAttribute{
+		"choice_setting_value": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetChoiceSchema(depth + 1),
-			MarkdownDescription: "Choice setting instance with @odata.type: " +
+			MarkdownDescription: "Choice setting instance value with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
 				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
@@ -253,9 +253,9 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
 				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
 		},
-		"group_collection": schema.SingleNestedAttribute{
+		"group_setting_collection": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetGroupCollectionSchema(depth + 1),
+			Attributes: GetGroupSettingCollectionSchema(depth + 1),
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
 				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +

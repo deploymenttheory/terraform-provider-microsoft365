@@ -101,7 +101,6 @@ func constructSettingsCatalogSettings(ctx context.Context, settingConfigs []Devi
 	for _, settingConfig := range settingConfigs {
 		setting := graphmodels.NewDeviceManagementConfigurationSetting()
 		if settingConfig.SettingInstance != nil {
-			// Build setting instance based on the type and configuration
 			settingInstance := constructSettingInstance(settingConfig.SettingInstance)
 			if settingInstance != nil {
 				setting.SetSettingInstance(settingInstance)
@@ -461,7 +460,6 @@ func buildGroupSettingInstance(instanceConfig *DeviceManagementConfigurationSett
 
 // buildGroupSettingCollectionInstance constructs a group setting collection instance from the configuration.
 func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigurationSettingInstanceResourceModel) graphmodels.DeviceManagementConfigurationSettingInstanceable {
-
 	if instanceConfig.GroupSettingCollectionValue == nil {
 		return nil
 	}
@@ -472,43 +470,26 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	var groupSettingValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+	// Create a single group setting value that will contain all children
+	groupSettingValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
+	groupValueODataType := DeviceManagementConfigurationGroupSettingValue
+	groupSettingValue.SetOdataType(&groupValueODataType)
 
-	// Process each child in GroupSettingCollectionValue's Children
-	for _, childConfig := range instanceConfig.GroupSettingCollectionValue.Children {
-		groupSettingValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-		groupValueODataType := DeviceManagementConfigurationGroupSettingValue
-		groupSettingValue.SetOdataType(&groupValueODataType)
-
-		var nestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-		switch childConfig.ODataType.ValueString() {
-		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-			if choiceChild := buildChoiceSettingInstance(&childConfig); choiceChild != nil {
-				nestedChildren = append(nestedChildren, choiceChild)
-			}
-		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-			if simpleChild := buildSimpleSettingInstance(&childConfig); simpleChild != nil {
-				nestedChildren = append(nestedChildren, simpleChild)
-			}
-		case "#microsoft.graph.deviceManagementConfigurationGroupSettingInstance":
-			if groupChild := buildGroupSettingInstance(&childConfig); groupChild != nil {
-				nestedChildren = append(nestedChildren, groupChild)
-			}
-		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
-			if choiceCollectionChild := buildChoiceSettingCollectionInstance(&childConfig); choiceCollectionChild != nil {
-				nestedChildren = append(nestedChildren, choiceCollectionChild)
-			}
-		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-			if simpleCollectionChild := buildSimpleSettingCollectionInstance(&childConfig); simpleCollectionChild != nil {
-				nestedChildren = append(nestedChildren, simpleCollectionChild)
+	// Process all children - Each child could be any type of setting instance
+	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
+	if children := instanceConfig.GroupSettingCollectionValue.Children; len(children) > 0 {
+		for _, childConfig := range children {
+			if childInstance := constructSettingInstance(&childConfig); childInstance != nil {
+				childInstances = append(childInstances, childInstance)
 			}
 		}
-
-		groupSettingValue.SetChildren(nestedChildren)
-		groupSettingValues = append(groupSettingValues, groupSettingValue)
 	}
 
+	groupSettingValue.SetChildren(childInstances)
+
+	groupSettingValues := []graphmodels.DeviceManagementConfigurationGroupSettingValueable{groupSettingValue}
 	instance.SetGroupSettingCollectionValue(groupSettingValues)
+
 	return instance
 }
 

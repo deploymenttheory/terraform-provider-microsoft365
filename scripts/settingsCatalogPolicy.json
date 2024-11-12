@@ -1,0 +1,250 @@
+{
+  "settingCount": 2,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "name": "test",
+  "createdDateTime": "2024-11-12T10:04:59.8611355Z",
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateFamily": "none",
+    "templateId": "",
+    "templateDisplayName": null
+  },
+  "priorityMetaData": null,
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "technologies": "mdm,appleRemoteManagement",
+  "description": "",
+  "id": "93612eeb-a307-403c-af5e-cdc36be0d27f",
+  "platforms": "macOS",
+  "lastModifiedDateTime": "2024-11-12T10:04:59.8611355Z",
+  "creationSource": null,
+  "settingsDetails": [
+    {
+      "settingInstance": {
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "diskmanagement_diskmanagement",
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+        "groupSettingCollectionValue": [
+          {
+            "settingValueTemplateReference": null,
+            "children": [
+              {
+                "settingInstanceTemplateReference": null,
+                "settingDefinitionId": "diskmanagement_restrictions",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                "groupSettingCollectionValue": [
+                  {
+                    "settingValueTemplateReference": null,
+                    "children": [
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "diskmanagement_restrictions_externalstorage",
+                        "choiceSettingValue": {
+                          "value": "diskmanagement_restrictions_externalstorage_0",
+                          "children": [],
+                          "settingValueTemplateReference": null
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "diskmanagement_restrictions_networkstorage",
+                        "choiceSettingValue": {
+                          "value": "diskmanagement_restrictions_networkstorage_1",
+                          "children": [],
+                          "settingValueTemplateReference": null
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "mathsettings_mathsettings",
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+        "groupSettingCollectionValue": [
+          {
+            "settingValueTemplateReference": null,
+            "children": [
+              {
+                "settingInstanceTemplateReference": null,
+                "settingDefinitionId": "mathsettings_calculator",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                "groupSettingCollectionValue": [
+                  {
+                    "settingValueTemplateReference": null,
+                    "children": [
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_calculator_basicmode",
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                        "groupSettingCollectionValue": [
+                          {
+                            "settingValueTemplateReference": null,
+                            "children": [
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_basicmode_addsquareroot",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_basicmode_addsquareroot_false",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_calculator_inputmodes",
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                        "groupSettingCollectionValue": [
+                          {
+                            "settingValueTemplateReference": null,
+                            "children": [
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_inputmodes_rpn",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_inputmodes_rpn_false",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              },
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_inputmodes_unitconversion",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_inputmodes_unitconversion_true",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_calculator_mathnotesmode",
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                        "groupSettingCollectionValue": [
+                          {
+                            "settingValueTemplateReference": null,
+                            "children": [
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_mathnotesmode_enabled",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_mathnotesmode_enabled_true",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_calculator_programmermode",
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                        "groupSettingCollectionValue": [
+                          {
+                            "settingValueTemplateReference": null,
+                            "children": [
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_programmermode_enabled",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_programmermode_enabled_true",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_calculator_scientificmode",
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                        "groupSettingCollectionValue": [
+                          {
+                            "settingValueTemplateReference": null,
+                            "children": [
+                              {
+                                "settingInstanceTemplateReference": null,
+                                "settingDefinitionId": "mathsettings_calculator_scientificmode_enabled",
+                                "choiceSettingValue": {
+                                  "value": "mathsettings_calculator_scientificmode_enabled_false",
+                                  "children": [],
+                                  "settingValueTemplateReference": null
+                                },
+                                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "settingInstanceTemplateReference": null,
+                "settingDefinitionId": "mathsettings_systembehavior",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                "groupSettingCollectionValue": [
+                  {
+                    "settingValueTemplateReference": null,
+                    "children": [
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_systembehavior_keyboardsuggestions",
+                        "choiceSettingValue": {
+                          "value": "mathsettings_systembehavior_keyboardsuggestions_true",
+                          "children": [],
+                          "settingValueTemplateReference": null
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                      },
+                      {
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "mathsettings_systembehavior_mathnotes",
+                        "choiceSettingValue": {
+                          "value": "mathsettings_systembehavior_mathnotes_true",
+                          "children": [],
+                          "settingValueTemplateReference": null
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "id": "1"
+    }
+  ]
+}
