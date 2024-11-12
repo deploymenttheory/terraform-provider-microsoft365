@@ -86,15 +86,10 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 	}
 
 	attrs["choice"] = schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: ChoiceSchemaAttributeMap{
-			"value": schema.SingleNestedAttribute{
-				Required:            true,
-				Attributes:          GetChoiceSchema(currentDepth + 1),
-				Description:         "Choice setting value configuration",
-				MarkdownDescription: "Configuration of the value for choice setting.",
-			},
-		},
+		Optional:            true,
+		Attributes:          GetChoiceSchema(currentDepth + 1),
+		Description:         "Choice setting configuration",
+		MarkdownDescription: "Configuration of the value for child choice setting.",
 	}
 
 	attrs["choice_collection"] = schema.SingleNestedAttribute{
@@ -314,27 +309,4 @@ func getChoiceGroupSettingAttributes(currentDepth int) ChoiceSchemaAttributeMap 
 			MarkdownDescription: "Collection of child settings within a GroupSetting instance, representing grouped nested configurations.",
 		},
 	}
-}
-
-var deviceManagementConfigurationSettingInstanceTemplateReferenceAttributes = map[string]schema.Attribute{
-	"id": schema.StringAttribute{
-		Required:            true,
-		Description:         `settingInstanceTemplateId`,
-		MarkdownDescription: "Setting instance template id (#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference)",
-	},
-}
-
-var deviceManagementConfigurationSettingValueTemplateReferenceAttributes = map[string]schema.Attribute{
-	"id": schema.StringAttribute{
-		Required:            true,
-		Description:         `settingValueTemplateId`,
-		MarkdownDescription: "Setting value template id (#microsoft.graph.deviceManagementConfigurationSettingValueTemplateReference)",
-	},
-	"use_default": schema.BoolAttribute{
-		Optional:            true,
-		PlanModifiers:       []planmodifier.Bool{planmodifiers.BoolDefaultValue(false)},
-		Computed:            true,
-		Description:         `useTemplateDefault`,
-		MarkdownDescription: "Indicates whether to update policy setting value to match template setting default value",
-	},
 }

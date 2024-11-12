@@ -88,12 +88,6 @@ func getGroupBaseInstanceAttributes() GroupSchemaAttributeMap {
 			Description:         `settingDefinitionId`,
 			MarkdownDescription: "Setting Definition Id (#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference)",
 		},
-		"template_reference": schema.SingleNestedAttribute{
-			Optional:            true,
-			Attributes:          deviceManagementConfigurationSettingInstanceTemplateReferenceAttributes,
-			Description:         `settingInstanceTemplateReference`,
-			MarkdownDescription: "Setting Instance Template Reference (#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference).",
-		},
 	}
 }
 
