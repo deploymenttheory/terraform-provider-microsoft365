@@ -1,36 +1,42 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the Entra ID tenant ID (Directory ID) where the application is registered")]
+    [ValidateNotNullOrEmpty()]
     [string]$TenantId,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the application (client) ID of the Entra ID app registration")]
+    [ValidateNotNullOrEmpty()]
     [string]$ClientId,
     
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true,
+    HelpMessage="Specify the client secret of the Entra ID app registration")]
+    [ValidateNotNullOrEmpty()]
     [string]$ClientSecret
 )
 
 # Helper function to generate reference ID from path
 function Get-PathBasedReferenceId {
-    param (
-        [string]$Path
-    )
-    
-    $segments = $Path -split '/' | Where-Object { $_ -ne '' }
-    $refParts = @()
-    
-    foreach ($segment in $segments) {
-        $segmentStr = [string]$segment
-        if ($segmentStr -match '{.*}') {
-            $paramName = $segmentStr -replace '{|}'
-            $paramName = $paramName -replace '-', '_'
-            $refParts += "BY_$([string]($paramName.ToUpper()))"
-        } else {
-            $refParts += [string]($segmentStr.ToUpper())
-        }
-    }
-    
-    return $refParts -join '_'
+  param (
+      [string]$Path
+  )
+  
+  $segments = $Path -split '/' | Where-Object { $_ -ne '' }
+  $refParts = @()
+  
+  foreach ($segment in $segments) {
+      $segmentStr = [string]$segment
+      if ($segmentStr -match '{.*}') {
+          $paramName = $segmentStr -replace '{|}'
+          $paramName = $paramName -replace '-', '_'
+          $refParts += "BY_$([string]($paramName.ToUpper()))"
+      } else {
+          $refParts += [string]($segmentStr.ToUpper())
+      }
+  }
+  
+  return $refParts -join '_'
 }
 
 # Script Setup
