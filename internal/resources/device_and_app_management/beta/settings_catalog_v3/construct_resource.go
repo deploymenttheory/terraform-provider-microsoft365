@@ -108,6 +108,21 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 						ODataType           string `json:"@odata.type"`
 						SettingDefinitionId string `json:"settingDefinitionId"`
 
+						// For GroupSettingCollectionValue within Choice children
+						GroupSettingCollectionValue []struct {
+							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							Children                      []struct {
+								SimpleSettingValue *struct {
+									ODataType                     string                                                                     `json:"@odata.type"`
+									Value                         interface{}                                                                `json:"value"`
+									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+								} `json:"simpleSettingValue,omitempty"`
+								ODataType                        string                                                                     `json:"@odata.type"`
+								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+							} `json:"children"`
+						} `json:"groupSettingCollectionValue,omitempty"`
+
 						// For simple settings within choice children
 						SimpleSettingValue *struct {
 							ODataType                     string                                                                     `json:"@odata.type"`
@@ -288,6 +303,60 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 							nestedChoiceInstance.SetChoiceSettingValue(nestedChoiceValue)
 						}
 						children = append(children, nestedChoiceInstance)
+
+						// Add explicit handling for GroupSettingCollection within Choice
+					case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
+						groupCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
+						groupCollectionInstance.SetOdataType(&child.ODataType)
+						groupCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
+
+						// Handle group collection value
+						if len(child.GroupSettingCollectionValue) > 0 {
+							var groupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+							for _, groupItem := range child.GroupSettingCollectionValue {
+								groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
+
+								// Process children of each group item (key-value pairs)
+								var groupChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
+								for _, groupChild := range groupItem.Children {
+									if groupChild.ODataType == "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance" {
+										simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+										simpleInstance.SetOdataType(&groupChild.ODataType)
+										simpleInstance.SetSettingDefinitionId(&groupChild.SettingDefinitionId)
+
+										if groupChild.SimpleSettingValue != nil {
+											switch groupChild.SimpleSettingValue.ODataType {
+											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
+												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+												stringValue.SetOdataType(&groupChild.SimpleSettingValue.ODataType)
+												if strValue, ok := groupChild.SimpleSettingValue.Value.(string); ok {
+													stringValue.SetValue(&strValue)
+												}
+												simpleInstance.SetSimpleSettingValue(stringValue)
+											case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+												intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+												intValue.SetOdataType(&groupChild.SimpleSettingValue.ODataType)
+												if numValue, ok := groupChild.SimpleSettingValue.Value.(float64); ok {
+													int32Value := int32(numValue)
+													intValue.SetValue(&int32Value)
+												}
+												simpleInstance.SetSimpleSettingValue(intValue)
+											}
+										}
+										groupChildren = append(groupChildren, simpleInstance)
+									}
+								}
+
+								groupValue.SetChildren(groupChildren)
+								if groupItem.SettingValueTemplateReference != nil {
+									groupValue.SetSettingValueTemplateReference(groupItem.SettingValueTemplateReference)
+								}
+								groupValues = append(groupValues, groupValue)
+							}
+							groupCollectionInstance.SetGroupSettingCollectionValue(groupValues)
+						}
+
+						children = append(children, groupCollectionInstance)
 					}
 				}
 
