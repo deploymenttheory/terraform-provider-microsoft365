@@ -1,0 +1,402 @@
+{
+  "templateReference": {
+    "templateFamily": "none",
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateDisplayName": null
+  },
+  "createdDateTime": "2024-11-13T15:52:46.727548Z",
+  "id": "6e61a4aa-b948-401d-b81c-c9fb1d0bfa00",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "priorityMetaData": null,
+  "lastModifiedDateTime": "2024-11-13T15:58:18.1393393Z",
+  "creationSource": null,
+  "name": "test",
+  "technologies": "mdm",
+  "settingCount": 24,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "platforms": "windows10",
+  "description": "",
+  "settingsDetails": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_cleanupinvalidsessions_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_cleanupinvalidsessions",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "1",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": "thing3",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdcachedirectory_ccdcachedirectory",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdcachedirectory_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdcachedirectory",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "2",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": "thing2",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdproxydirectory_ccdproxydirectory",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdproxydirectory_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdproxydirectory",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "3",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": "thing",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdwritecachedirectory_ccdwritecachedirectory",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdwritecachedirectory_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~ccd_ccdwritecachedirectory",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "4",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingadcomputergroupprocess_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingadcomputergroupprocess",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "5",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingdriverinterface_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingdriverinterface",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "6",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingfrxlauncher_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingfrxlauncher",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "7",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingieplugin_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingieplugin",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "8",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingjavaruleeditor_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingjavaruleeditor",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "9",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingprofileconfigurationtool_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingprofileconfigurationtool",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "10",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingrulecompilation_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingrulecompilation",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "11",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingruleeditor_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingruleeditor",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "12",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingsearchplugin_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingsearchplugin",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "13",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingsearchroaming_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingsearchroaming",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "14",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingservices_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~logging_loggingservices",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "15",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": "",
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdlocations_profilesccdlocations",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdlocations_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdlocations",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "16",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdmaxcachesizeinmbs_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdmaxcachesizeinmbs",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "17",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": 1,
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdunregistertimeout_profilesccdunregistertimeout",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdunregistertimeout_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesccdunregistertimeout",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "18",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesclearcacheonforcedunregister_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesclearcacheonforcedunregister",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "19",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesclearcacheonlogoff_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profilesclearcacheonlogoff",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "20",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profileshealthyprovidersrequiredforregister_0",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profileshealthyprovidersrequiredforregister",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "21",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [
+            {
+              "simpleSettingValue": {
+                "value": 1,
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+                "settingValueTemplateReference": null
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profileshealthyprovidersrequiredforunregister_profileshealthyprovidersrequiredforunregister",
+              "settingInstanceTemplateReference": null
+            }
+          ],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profileshealthyprovidersrequiredforunregister_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix~profiles~profiles_ccd_profileshealthyprovidersrequiredforunregister",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "22",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_roamrecyclebin_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_roamrecyclebin",
+        "settingInstanceTemplateReference": null
+      }
+    },
+    {
+      "id": "23",
+      "settingInstance": {
+        "choiceSettingValue": {
+          "children": [],
+          "value": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_vhdcompactdisk_1",
+          "settingValueTemplateReference": null
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_fslogixv1~policy~fslogix_vhdcompactdisk",
+        "settingInstanceTemplateReference": null
+      }
+    }
+  ]
+}
