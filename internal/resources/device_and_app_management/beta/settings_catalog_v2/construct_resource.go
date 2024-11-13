@@ -470,26 +470,26 @@ func buildGroupSettingCollectionInstance(instanceConfig *DeviceManagementConfigu
 	settingDefinitionID := instanceConfig.SettingDefinitionID.ValueString()
 	instance.SetSettingDefinitionId(&settingDefinitionID)
 
-	// Create a single group setting value that will contain all children
+	var groupSettingValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+
+	// Create a group setting value for the collection
 	groupSettingValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
 	groupValueODataType := DeviceManagementConfigurationGroupSettingValue
 	groupSettingValue.SetOdataType(&groupValueODataType)
 
-	// Process all children - Each child could be any type of setting instance
 	var childInstances []graphmodels.DeviceManagementConfigurationSettingInstanceable
-	if children := instanceConfig.GroupSettingCollectionValue.Children; len(children) > 0 {
-		for _, childConfig := range children {
-			if childInstance := constructSettingInstance(&childConfig); childInstance != nil {
-				childInstances = append(childInstances, childInstance)
-			}
+
+	// Process the nested children which contain choice settings
+	for _, childConfig := range instanceConfig.GroupSettingCollectionValue.Children {
+		if childInstance := constructSettingInstance(&childConfig); childInstance != nil {
+			childInstances = append(childInstances, childInstance)
 		}
 	}
 
 	groupSettingValue.SetChildren(childInstances)
+	groupSettingValues = append(groupSettingValues, groupSettingValue)
 
-	groupSettingValues := []graphmodels.DeviceManagementConfigurationGroupSettingValueable{groupSettingValue}
 	instance.SetGroupSettingCollectionValue(groupSettingValues)
-
 	return instance
 }
 

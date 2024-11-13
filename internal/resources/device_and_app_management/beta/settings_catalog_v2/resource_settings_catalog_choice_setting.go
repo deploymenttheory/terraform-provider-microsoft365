@@ -22,8 +22,9 @@ func GetChoiceSchema(currentDepth int) ChoiceSchemaAttributeMap {
 
 	attrs := ChoiceSchemaAttributeMap{
 		"odata_type": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+			Computed:            true, // Computed when setting type is first in the hierachy
+			Optional:            true, // Used when setting type is nested
+			MarkdownDescription: "The OData type of the choice setting value instance. e.g #microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
 			PlanModifiers: []planmodifier.String{
 				planmodifiers.UseStateForUnknownString(),
 			},
@@ -208,14 +209,6 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Optional:   true,
 							Attributes: GetChoiceCollectionSchema(currentDepth + 1),
 						},
-						// "simple_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetSimpleCollectionSchema(currentDepth + 1),
-						// },
-						// "group_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetGroupCollectionSchema(currentDepth + 1),
-						// },
 					},
 				},
 				Description:         "Child settings of various types that can be nested within this group",
@@ -247,23 +240,19 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 	// 	Description:         "Group setting collection configuration",
 	// 	MarkdownDescription: "Configuration for the group setting collection value including odata type and children.",
 	// }
-	attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
-		Optional: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"odata_type": schema.StringAttribute{
-					Required:            true,
-					MarkdownDescription: "The OData type of the group setting collection value.",
-				},
-				"children": schema.ListNestedAttribute{
-					Required: true,
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: GetChildrenAttributes(currentDepth + 1),
-					},
-				},
-			},
-		},
-	}
+	// attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
+	// 	Optional: true,
+	// 	NestedObject: schema.NestedAttributeObject{
+	// 		Attributes: map[string]schema.Attribute{
+	// 			"children": schema.ListNestedAttribute{
+	// 				Required: true,
+	// 				NestedObject: schema.NestedAttributeObject{
+	// 					Attributes: GetChildrenAttributes(currentDepth + 1),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// }
 
 	attrs["setting_group"] = schema.SingleNestedAttribute{
 		Optional:            true,
