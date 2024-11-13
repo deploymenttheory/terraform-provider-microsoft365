@@ -32,11 +32,6 @@ var (
 	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
 )
 
-const (
-	// Define maximum allowed depth for nested settings catalog settings
-	maxDepth = 10
-)
-
 func NewSettingsCatalogResource() resource.Resource {
 	return &SettingsCatalogResource{
 		ReadPermissions: []string{
@@ -60,7 +55,7 @@ type SettingsCatalogResource struct {
 
 // Metadata returns the resource type name.
 func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog"
+	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog_v3"
 }
 
 // Configure sets the client for the resource.
