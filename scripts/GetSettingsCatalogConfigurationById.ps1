@@ -60,9 +60,9 @@ $catalogItemData = Get-SettingsCatalogPolicyById -CatalogItemId $CatalogItemId
 
 if ($null -ne $catalogItemData) {
     Write-Host "`nFull JSON output for settings catalog policy:"
-    $jsonString = $catalogItemData | ConvertTo-Json -Depth 1000 -Compress
+    $jsonString = $catalogItemData | ConvertTo-Json -Depth 100 -Compress
     
-    $jsonFormatted = $jsonString | ConvertFrom-Json | ConvertTo-Json -Depth 1000
+    $jsonFormatted = $jsonString | ConvertFrom-Json | ConvertTo-Json -Depth 100
     
     Write-Output $jsonFormatted
     

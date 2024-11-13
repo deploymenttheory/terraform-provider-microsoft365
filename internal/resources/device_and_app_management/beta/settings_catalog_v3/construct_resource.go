@@ -108,6 +108,13 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 						ODataType           string `json:"@odata.type"`
 						SettingDefinitionId string `json:"settingDefinitionId"`
 
+						// For SimpleSettingCollectionValue within Choice children
+						SimpleSettingCollectionValue []struct {
+							ODataType                     string                                                                     `json:"@odata.type"`
+							Value                         string                                                                     `json:"value"`
+							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						} `json:"simpleSettingCollectionValue,omitempty"`
+
 						// For GroupSettingCollectionValue within Choice children
 						GroupSettingCollectionValue []struct {
 							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
@@ -304,7 +311,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 						}
 						children = append(children, nestedChoiceInstance)
 
-						// Add explicit handling for GroupSettingCollection within Choice
+						// Handling for GroupSettingCollection within Choice
 					case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
 						groupCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
 						groupCollectionInstance.SetOdataType(&child.ODataType)
@@ -357,6 +364,25 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 						}
 
 						children = append(children, groupCollectionInstance)
+
+						// For SimpleSettingCollection within Choice
+					case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+						simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
+						simpleCollectionInstance.SetOdataType(&child.ODataType)
+						simpleCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
+
+						if len(child.SimpleSettingCollectionValue) > 0 {
+							var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+							for _, v := range child.SimpleSettingCollectionValue {
+								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+								stringValue.SetOdataType(&v.ODataType)
+								stringValue.SetValue(&v.Value)
+								values = append(values, stringValue)
+							}
+							simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
+						}
+
+						children = append(children, simpleCollectionInstance)
 					}
 				}
 
