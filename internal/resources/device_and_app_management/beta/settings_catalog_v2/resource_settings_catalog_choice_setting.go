@@ -22,8 +22,9 @@ func GetChoiceSchema(currentDepth int) ChoiceSchemaAttributeMap {
 
 	attrs := ChoiceSchemaAttributeMap{
 		"odata_type": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The OData type of the setting instance. This is automatically set by the graph SDK during request construction.",
+			Computed:            true, // Computed when setting type is first in the hierachy
+			Optional:            true, // Used when setting type is nested
+			MarkdownDescription: "The OData type of the choice setting value instance. e.g #microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
 			PlanModifiers: []planmodifier.String{
 				planmodifiers.UseStateForUnknownString(),
 			},
@@ -85,11 +86,54 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		return attrs
 	}
 
-	attrs["choice"] = schema.SingleNestedAttribute{
-		Optional:            true,
-		Attributes:          GetChoiceSchema(currentDepth + 1),
-		Description:         "Choice setting configuration",
-		MarkdownDescription: "Configuration of the value for child choice setting.",
+	// attrs["choice_setting_value"] = schema.SingleNestedAttribute{
+	// 	Optional: true,
+	// 	Attributes: ChoiceSchemaAttributeMap{
+	// 		"odata_type": schema.StringAttribute{
+	// 			Required:            true,
+	// 			MarkdownDescription: "The OData type of the child choice setting value.",
+	// 		},
+	// 		"string_value": schema.StringAttribute{
+	// 			Optional:            true,
+	// 			MarkdownDescription: "Child string-based choice setting values.",
+	// 		},
+	// 		"integer_value": schema.Int32Attribute{
+	// 			Optional:            true,
+	// 			MarkdownDescription: "Child integer-based choice setting values.",
+	// 		},
+	// 		"children": schema.ListNestedAttribute{
+	// 			Optional: true,
+	// 			NestedObject: schema.NestedAttributeObject{
+	// 				Attributes: GetChoiceSchema(currentDepth + 1),
+	// 			},
+	// 			Description:         "Child settings for each choice value",
+	// 			MarkdownDescription: "Nested settings configuration for choice values.",
+	// 		},
+	// 	},
+	// }
+
+	attrs["choice_setting_value"] = schema.SingleNestedAttribute{
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"odata_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The OData type of the child choice setting value.",
+			},
+			"string_value": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Child string-based choice setting values.",
+			},
+			"integer_value": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Child integer-based choice setting values.",
+			},
+			"children": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: GetChildrenAttributes(currentDepth + 1),
+				},
+			},
+		},
 	}
 
 	attrs["choice_collection"] = schema.SingleNestedAttribute{
@@ -101,7 +145,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 				Description:         "Collection of string choice values",
 				MarkdownDescription: "List of string-based choice setting values.",
 			},
-			"int_value": schema.ListAttribute{
+			"integer_value": schema.ListAttribute{
 				Optional:            true,
 				ElementType:         types.Int32Type,
 				Description:         "Collection of integer choice values",
@@ -149,7 +193,7 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Description:         "Setting definition ID",
 							MarkdownDescription: "The unique identifier for the setting definition.",
 						},
-						"choice_value": schema.SingleNestedAttribute{
+						"choice_setting_value": schema.SingleNestedAttribute{
 							Optional:   true,
 							Attributes: GetChoiceSchema(currentDepth + 1),
 						},
@@ -165,14 +209,6 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 							Optional:   true,
 							Attributes: GetChoiceCollectionSchema(currentDepth + 1),
 						},
-						// "simple_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetSimpleCollectionSchema(currentDepth + 1),
-						// },
-						// "group_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetGroupCollectionSchema(currentDepth + 1),
-						// },
 					},
 				},
 				Description:         "Child settings of various types that can be nested within this group",
@@ -181,68 +217,42 @@ func GetChildrenAttributes(currentDepth int) ChoiceSchemaAttributeMap {
 		},
 	}
 
-	attrs["group_collection"] = schema.SingleNestedAttribute{
-		Optional: true,
-		Attributes: ChoiceSchemaAttributeMap{
-			"children": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"odata_type": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The OData type of the group collection child setting instance. This must be specified and is used to determine the specific setting instance type.",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									DeviceManagementConfigurationChoiceSettingInstance,
-									DeviceManagementConfigurationChoiceSettingCollectionInstance,
-									DeviceManagementConfigurationSimpleSettingInstance,
-									DeviceManagementConfigurationSimpleSettingCollectionInstance,
-									DeviceManagementConfigurationSettingGroupInstance,
-									DeviceManagementConfigurationGroupSettingInstance,
-									DeviceManagementConfigurationSettingGroupCollectionInstance,
-									DeviceManagementConfigurationGroupSettingCollectionInstance,
-								),
-							},
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.UseStateForUnknownString(),
-							},
-						},
-						"setting_definition_id": schema.StringAttribute{
-							Required:            true,
-							Description:         "Setting definition ID",
-							MarkdownDescription: "The unique identifier for the setting definition.",
-						},
-						"choice_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: GetChoiceSchema(currentDepth + 1),
-						},
-						"simple_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: deviceManagementConfigurationSimpleSettingValueAttributes,
-						},
-						"group_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: getChoiceGroupSettingAttributes(currentDepth + 1),
-						},
-						"choice_collection_value": schema.SingleNestedAttribute{
-							Optional:   true,
-							Attributes: GetChoiceCollectionSchema(currentDepth + 1),
-						},
-						// "simple_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetSimpleCollectionSchema(currentDepth + 1),
-						// },
-						// "group_collection_value": schema.SingleNestedAttribute{
-						// 	Optional:   true,
-						// 	Attributes: GetGroupCollectionSchema(currentDepth + 1),
-						// },
-					},
-				},
-				Description:         "Child settings that make up this group collection",
-				MarkdownDescription: "Collection of nested device management configuration settings that will be wrapped in group setting values.",
-			},
-		},
-	}
+	// attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
+	// 	Optional: true,
+	// 	NestedObject: schema.NestedAttributeObject{
+	// 		Attributes: GetGroupSettingCollectionSchema(currentDepth + 1),
+	// 	},
+	// 	Description:         "Group setting collection configuration",
+	// 	MarkdownDescription: "Configuration for the group setting collection value including odata type and children.",
+	// }
+	// attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
+	// 	Optional: true,
+	// 	NestedObject: schema.NestedAttributeObject{
+	// 		Attributes: map[string]schema.Attribute{
+	// 			"children": schema.ListNestedAttribute{
+	// 				Required: true,
+	// 				NestedObject: schema.NestedAttributeObject{
+	// 					Attributes: GetChildrenAttributes(currentDepth + 1),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// 	Description:         "Group setting collection configuration",
+	// 	MarkdownDescription: "Configuration for the group setting collection value including odata type and children.",
+	// }
+	// attrs["group_setting_collection_value"] = schema.ListNestedAttribute{
+	// 	Optional: true,
+	// 	NestedObject: schema.NestedAttributeObject{
+	// 		Attributes: map[string]schema.Attribute{
+	// 			"children": schema.ListNestedAttribute{
+	// 				Required: true,
+	// 				NestedObject: schema.NestedAttributeObject{
+	// 					Attributes: GetChildrenAttributes(currentDepth + 1),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// }
 
 	attrs["setting_group"] = schema.SingleNestedAttribute{
 		Optional:            true,

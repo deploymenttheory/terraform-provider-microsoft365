@@ -238,34 +238,32 @@ func mapGroupSettingInstance(ctx context.Context, instance graphmodels.DeviceMan
 
 func mapGroupSettingCollectionInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {
 	if collectionValues := instance.GetGroupSettingCollectionValue(); len(collectionValues) > 0 {
-		groupSettingCollectionValue := &GroupSettingCollectionValueResourceModel{
-			ODataType: types.StringValue(DeviceManagementConfigurationGroupSettingCollectionInstance),
-		}
-
+		groupSettingCollectionValue := &GroupSettingCollectionValueResourceModel{}
 		childrenModels := make([]DeviceManagementConfigurationSettingInstanceResourceModel, 0)
 
 		for _, collectionValue := range collectionValues {
 			if children := collectionValue.GetChildren(); len(children) > 0 {
 				for _, child := range children {
 					childModel := DeviceManagementConfigurationSettingInstanceResourceModel{
+						ODataType:           types.StringValue(getODataType(child)), // Helper function needed
 						SettingDefinitionID: types.StringValue(state.StringPtrToString(child.GetSettingDefinitionId())),
 					}
 
+					// Map the appropriate value based on the type
 					switch childInst := child.(type) {
 					case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
-						childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingInstance)
 						mapChoiceSettingInstance(ctx, childInst, &childModel)
 
-					case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
-						childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingInstance)
-						mapSimpleSettingInstance(ctx, childInst, &childModel)
+					case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
+						mapGroupSettingCollectionInstance(ctx, childInst, &childModel)
 
 					case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
-						childModel.ODataType = types.StringValue(DeviceManagementConfigurationChoiceSettingCollectionInstance)
 						mapChoiceSettingCollectionInstance(ctx, childInst, &childModel)
 
+					case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
+						mapSimpleSettingInstance(ctx, childInst, &childModel)
+
 					case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
-						childModel.ODataType = types.StringValue(DeviceManagementConfigurationSimpleSettingCollectionInstance)
 						mapSimpleSettingCollectionInstance(ctx, childInst, &childModel)
 					}
 
@@ -278,6 +276,24 @@ func mapGroupSettingCollectionInstance(ctx context.Context, instance graphmodels
 		settingInstance.GroupSettingCollectionValue = groupSettingCollectionValue
 	}
 	tflog.Debug(ctx, "Mapped group setting collection instance to Terraform state")
+}
+
+// Helper function to get OData type
+func getODataType(instance interface{}) string {
+	switch instance.(type) {
+	case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
+		return DeviceManagementConfigurationChoiceSettingInstance
+	case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
+		return DeviceManagementConfigurationGroupSettingCollectionInstance
+	case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
+		return DeviceManagementConfigurationChoiceSettingCollectionInstance
+	case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
+		return DeviceManagementConfigurationSimpleSettingInstance
+	case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
+		return DeviceManagementConfigurationSimpleSettingCollectionInstance
+	default:
+		return ""
+	}
 }
 
 // func mapSettingGroupInstance(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingGroupInstanceable, settingInstance *DeviceManagementConfigurationSettingInstanceResourceModel) {

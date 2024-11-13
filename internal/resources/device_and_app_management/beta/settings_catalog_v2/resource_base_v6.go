@@ -35,7 +35,7 @@ var (
 
 const (
 	// Define maximum allowed depth for nested settings catalog settings
-	maxDepth = 5
+	maxDepth = 10
 )
 
 func NewSettingsCatalogResource() resource.Resource {
@@ -229,69 +229,63 @@ func settingInstanceValueType(depth int) map[string]schema.Attribute {
 			Description:         "settingDefinitionId",
 			MarkdownDescription: "The settings catalog setting definition ID, e.g., `device_vendor_msft_bitlocker_removabledrivesexcludedfromencryption`.",
 		},
-		"choice": schema.SingleNestedAttribute{
+		"choice_setting_value": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetChoiceSchema(depth + 1),
-			MarkdownDescription: "Choice setting instance with @odata.type: " +
+			MarkdownDescription: "Choice setting instance value with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance.\n\n" +
-				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
+				"For details, see [Choice Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingInstance?view=graph-rest-beta).",
 		},
 		"choice_collection": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetChoiceCollectionSchema(depth + 1),
 			MarkdownDescription: "Choice setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance.\n\n" +
-				"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionInstance?view=graph-rest-beta).",
+				"For details, see [Choice Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationChoiceSettingCollectionInstance?view=graph-rest-beta).",
 		},
 		"group": schema.SingleNestedAttribute{
 			Optional:   true,
-			Attributes: GetGroupSchema(depth + 1).Attributes,
+			Attributes: GetGroupSettingSchema(depth + 1),
 			MarkdownDescription: "Group setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingInstance.\n\n" +
-				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
+				"For details, see [Group Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingInstance?view=graph-rest-beta).",
 		},
-		"group_collection": schema.SingleNestedAttribute{
-			Optional:   true,
-			Attributes: GetGroupCollectionSchema(depth + 1),
+		"group_setting_collection_value": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: GetGroupSettingCollectionSchema(depth + 1),
+			},
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance.\n\n" +
-				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
+				"For details, see [Group Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationGroupSettingCollectionInstance?view=graph-rest-beta).",
 		},
 		"setting_group": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetSettingGroupSchema(depth + 1).Attributes,
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"##microsoft.graph.deviceManagementConfigurationSettingGroupInstance.\n\n" +
-				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta) for more details.",
+				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupInstance?view=graph-rest-beta) for more details.",
 		},
 		"setting_group_collection": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetSettingGroupCollectionSchema(depth + 1).Attributes,
 			MarkdownDescription: "Group setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionInstance.\n\n" +
-				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta) for more details.",
+				"For details, see [Setting Group Collection Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSettingGroupCollectionInstance?view=graph-rest-beta) for more details.",
 		},
 		"simple": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetSimpleSchema().Attributes,
 			MarkdownDescription: "Simple setting instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance.\n\n" +
-				"For details, see [Simple Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingInstance?view=graph-rest-beta).",
+				"For details, see [Simple Setting Instance Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingInstance?view=graph-rest-beta).",
 		},
 		"simple_collection": schema.SingleNestedAttribute{
 			Optional:   true,
 			Attributes: GetSimpleCollectionSchema().Attributes,
 			MarkdownDescription: "Simple setting collection instance with @odata.type: " +
 				"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance.\n\n" +
-				"For details, see [Simple Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/" +
-				"api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionInstance?view=graph-rest-beta).",
+				"For details, see [Simple Setting Collection Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-deviceManagementConfigurationSimpleSettingCollectionInstance?view=graph-rest-beta).",
 		},
 	}
 }
