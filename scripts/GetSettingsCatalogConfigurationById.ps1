@@ -21,6 +21,30 @@ param (
     [string]$CatalogItemId
 )
 
+# Helper function to retrieve all pages of settings
+function Get-Paginated {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$InitialUri
+    )
+
+    $allSettings = @()
+    $currentUri = $InitialUri
+
+    do {
+        $response = Invoke-MgGraphRequest -Method GET -Uri $currentUri
+        
+        if ($response.value) {
+            $allSettings += $response.value
+        }
+        
+        # Get the next page URL if it exists
+        $currentUri = $response.'@odata.nextLink'
+    } while ($currentUri)
+
+    return $allSettings
+}
+
 # Helper function to retrieve a specific settings catalog policy by ID
 function Get-SettingsCatalogPolicyById {
     param (
@@ -33,9 +57,9 @@ function Get-SettingsCatalogPolicyById {
         $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
 
         $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$CatalogItemId/settings"
-        $settings = Invoke-MgGraphRequest -Method GET -Uri $settingsUri
+        $allSettings = Get-Paginated -InitialUri $settingsUri
 
-        $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $settings.value
+        $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $allSettings
 
         return $policy
     }
