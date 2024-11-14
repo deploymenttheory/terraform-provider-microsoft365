@@ -1,3 +1,5 @@
+# Device Management Configuration Setting (Settings Catalog) Map of current type support and nesting.
+
 switch detail.SettingInstance.ODataType:
 ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
 │   └── choiceSettingValue.children[] switch ODataType:
@@ -7,7 +9,7 @@ switch detail.SettingInstance.ODataType:
 │       │       └── case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
 │       ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
 │       │   └── choiceSettingValue
-│       │       └── children[] switch ODataType: 
+│       │       └── children[] switch ODataType:
 │       │           ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
 │       │           └── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
 │       ├── case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
