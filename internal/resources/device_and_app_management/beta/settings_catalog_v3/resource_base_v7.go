@@ -95,6 +95,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string, supporting up to 20 levels of nesting. Provide JSON-encoded settings structure.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
+					//customValidator.SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
