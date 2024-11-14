@@ -237,19 +237,6 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 							Children []struct {
 								ODataType           string `json:"@odata.type"`
 								SettingDefinitionId string `json:"settingDefinitionId"`
-								SimpleSettingValue  *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-								ChoiceSettingValue *struct {
-									Value    string `json:"value"`
-									Children []struct {
-										ODataType           string `json:"@odata.type"`
-										SettingDefinitionId string `json:"settingDefinitionId"`
-									} `json:"children"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"choiceSettingValue,omitempty"`
 							} `json:"children"`
 							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
 						} `json:"choiceSettingValue,omitempty"`
@@ -753,44 +740,9 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 							if child.ChoiceSettingValue != nil {
 								choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+								choiceOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
+								choiceValue.SetOdataType(&choiceOdataType)
 								choiceValue.SetValue(&child.ChoiceSettingValue.Value)
-
-								var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-								for _, choiceChild := range child.ChoiceSettingValue.Children {
-									switch choiceChild.ODataType {
-									case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-										nestedChoice := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-										nestedChoice.SetOdataType(&choiceChild.ODataType)
-										nestedChoice.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-										if choiceChild.ChoiceSettingValue != nil {
-											nestedChoiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-											nestedChoiceValue.SetValue(&choiceChild.ChoiceSettingValue.Value)
-											nestedChoiceValue.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{})
-											nestedChoice.SetChoiceSettingValue(nestedChoiceValue)
-										}
-										choiceChildren = append(choiceChildren, nestedChoice)
-
-									case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-										simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-										simpleInstance.SetOdataType(&choiceChild.ODataType)
-										simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-										if choiceChild.SimpleSettingValue != nil {
-											switch choiceChild.SimpleSettingValue.ODataType {
-											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-												stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-												if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
-													stringValue.SetValue(&strValue)
-												}
-												simpleInstance.SetSimpleSettingValue(stringValue)
-											}
-										}
-										choiceChildren = append(choiceChildren, simpleInstance)
-									}
-								}
-								choiceValue.SetChildren(choiceChildren)
 								choiceInstance.SetChoiceSettingValue(choiceValue)
 							}
 							children = append(children, choiceInstance)
