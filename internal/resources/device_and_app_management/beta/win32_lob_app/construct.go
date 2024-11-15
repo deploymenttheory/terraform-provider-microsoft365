@@ -11,7 +11,6 @@ import (
 
 func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (graphmodels.Win32LobAppable, error) {
 	tflog.Debug(ctx, "Constructing Win32LobApp resource")
-	construct.DebugPrintStruct(ctx, "Constructed Win32LobApp Resource from model", data)
 
 	win32LobApp := graphmodels.NewWin32LobApp()
 
@@ -218,6 +217,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 			return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
 		}
 		win32LobApp.SetMsiInformation(msiInformation)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", win32LobApp); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	tflog.Debug(ctx, "Finished constructing Win32LobApp resource")

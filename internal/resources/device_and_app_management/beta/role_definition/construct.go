@@ -8,30 +8,30 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// constructResource constructs a RoleDefinition resource using data from the Terraform model.
 func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
 	tflog.Debug(ctx, "Constructing RoleDefinition resource")
-	construct.DebugPrintStruct(ctx, "Constructed RoleDefinition Resource from model", data)
 
-	roleDef := models.NewRoleDefinition()
+	requestBody := models.NewRoleDefinition()
 
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
-		roleDef.SetDisplayName(&displayName)
+		requestBody.SetDisplayName(&displayName)
 	}
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		description := data.Description.ValueString()
-		roleDef.SetDescription(&description)
+		requestBody.SetDescription(&description)
 	}
 
 	if !data.IsBuiltIn.IsNull() && !data.IsBuiltIn.IsUnknown() {
 		isBuiltIn := data.IsBuiltIn.ValueBool()
-		roleDef.SetIsBuiltIn(&isBuiltIn)
+		requestBody.SetIsBuiltIn(&isBuiltIn)
 	}
 
 	if !data.IsBuiltInRoleDefinition.IsNull() && !data.IsBuiltInRoleDefinition.IsUnknown() {
 		isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
-		roleDef.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
+		requestBody.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
 	}
 
 	if len(data.RolePermissions) > 0 {
@@ -77,7 +77,7 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 
 			rolePermissions = append(rolePermissions, rolePermission)
 		}
-		roleDef.SetRolePermissions(rolePermissions)
+		requestBody.SetRolePermissions(rolePermissions)
 	}
 
 	if len(data.RoleScopeTagIds) > 0 {
@@ -87,8 +87,14 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 				roleScopeTagIds = append(roleScopeTagIds, id.ValueString())
 			}
 		}
-		roleDef.SetRoleScopeTagIds(roleScopeTagIds)
+		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	return roleDef, nil
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }

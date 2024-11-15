@@ -13,9 +13,8 @@ import (
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.M365AppsInstallationOptionsable, error) {
 	tflog.Debug(ctx, "Constructing M365AppsInstallationOptions Resource")
-	construct.DebugPrintStruct(ctx, "Constructed M365AppsInstallationOptions Resource from model", data)
 
-	installationOptions := models.NewM365AppsInstallationOptions()
+	requestBody := models.NewM365AppsInstallationOptions()
 
 	if !data.UpdateChannel.IsNull() {
 		updateChannelStr := data.UpdateChannel.ValueString()
@@ -24,7 +23,7 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 			return nil, fmt.Errorf("error parsing update channel: %s", err)
 		}
 		if updateChannel != nil {
-			installationOptions.SetUpdateChannel(updateChannel.(*models.AppsUpdateChannelType))
+			requestBody.SetUpdateChannel(updateChannel.(*models.AppsUpdateChannelType))
 		}
 	}
 
@@ -34,15 +33,21 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 		appsForWindows.SetIsProjectEnabled(data.AppsForWindows.IsProjectEnabled.ValueBoolPointer())
 		appsForWindows.SetIsSkypeForBusinessEnabled(data.AppsForWindows.IsSkypeForBusinessEnabled.ValueBoolPointer())
 		appsForWindows.SetIsVisioEnabled(data.AppsForWindows.IsVisioEnabled.ValueBoolPointer())
-		installationOptions.SetAppsForWindows(appsForWindows)
+		requestBody.SetAppsForWindows(appsForWindows)
 	}
 
 	if data.AppsForMac != nil {
 		appsForMac := models.NewAppsInstallationOptionsForMac()
 		appsForMac.SetIsMicrosoft365AppsEnabled(data.AppsForMac.IsMicrosoft365AppsEnabled.ValueBoolPointer())
 		appsForMac.SetIsSkypeForBusinessEnabled(data.AppsForMac.IsSkypeForBusinessEnabled.ValueBoolPointer())
-		installationOptions.SetAppsForMac(appsForMac)
+		requestBody.SetAppsForMac(appsForMac)
 	}
 
-	return installationOptions, nil
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }

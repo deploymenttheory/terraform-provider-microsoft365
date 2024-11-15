@@ -11,25 +11,24 @@ import (
 )
 
 func constructResource(ctx context.Context, data *DeviceManagementScriptResourceModel) (models.DeviceManagementScriptable, error) {
-	tflog.Debug(ctx, "Constructing DeviceManagementScript resource")
-	construct.DebugPrintStruct(ctx, "Constructed DeviceManagementScript resource from model", data)
+	tflog.Debug(ctx, "Constructed Device Management Script resource from modele")
 
-	script := models.NewDeviceManagementScript()
+	requestBody := models.NewDeviceManagementScript()
 
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
-		script.SetDisplayName(&displayName)
+		requestBody.SetDisplayName(&displayName)
 	}
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		description := data.Description.ValueString()
-		script.SetDescription(&description)
+		requestBody.SetDescription(&description)
 	}
 
 	if !data.ScriptContent.IsNull() && !data.ScriptContent.IsUnknown() {
 		encodedContent := base64.StdEncoding.EncodeToString([]byte(data.ScriptContent.ValueString()))
 		scriptContent := []byte(encodedContent)
-		script.SetScriptContent(scriptContent)
+		requestBody.SetScriptContent(scriptContent)
 	}
 
 	if !data.RunAsAccount.IsNull() && !data.RunAsAccount.IsUnknown() {
@@ -43,18 +42,18 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for RunAsAccount: %T", runAsAccountAny)
 			}
-			script.SetRunAsAccount(runAsAccount)
+			requestBody.SetRunAsAccount(runAsAccount)
 		}
 	}
 
 	if !data.EnforceSignatureCheck.IsNull() && !data.EnforceSignatureCheck.IsUnknown() {
 		enforceSignatureCheck := data.EnforceSignatureCheck.ValueBool()
-		script.SetEnforceSignatureCheck(&enforceSignatureCheck)
+		requestBody.SetEnforceSignatureCheck(&enforceSignatureCheck)
 	}
 
 	if !data.FileName.IsNull() && !data.FileName.IsUnknown() {
 		fileName := data.FileName.ValueString()
-		script.SetFileName(&fileName)
+		requestBody.SetFileName(&fileName)
 	}
 
 	if len(data.RoleScopeTagIds) > 0 {
@@ -65,16 +64,22 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 			}
 		}
 		if len(roleScopeTagIds) > 0 {
-			script.SetRoleScopeTagIds(roleScopeTagIds)
+			requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 		}
 	}
 
 	if !data.RunAs32Bit.IsNull() && !data.RunAs32Bit.IsUnknown() {
 		runAs32Bit := data.RunAs32Bit.ValueBool()
-		script.SetRunAs32Bit(&runAs32Bit)
+		requestBody.SetRunAs32Bit(&runAs32Bit)
 	}
 
-	return script, nil
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }
 
 func constructAssignments(ctx context.Context, assignments []DeviceManagementScriptAssignmentResourceModel) ([]models.DeviceManagementScriptAssignmentable, error) {

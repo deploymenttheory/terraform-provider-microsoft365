@@ -8,22 +8,20 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Main entry point to construct the settings catalog profile resource for the Terraform provider.
+// Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
 func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, "Constructing Settings Catalog resource")
-	construct.DebugPrintStruct(ctx, "Constructed Settings Catalog Resource from model", data)
+	tflog.Debug(ctx, "Constructing Intune Settings Catalog resource")
 
-	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
+	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
 	Name := data.Name.ValueString()
 	description := data.Description.ValueString()
-	profile.SetName(&Name)
-	profile.SetDescription(&description)
+	requestBody.SetName(&Name)
+	requestBody.SetDescription(&description)
 
 	platformStr := data.Platforms.ValueString()
 	var platform graphmodels.DeviceManagementConfigurationPlatforms
@@ -45,246 +43,286 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	case "windows10X":
 		platform = graphmodels.WINDOWS10X_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
 	}
-	profile.SetPlatforms(&platform)
+	requestBody.SetPlatforms(&platform)
 
 	var technologiesStr []string
 	for _, tech := range data.Technologies {
 		technologiesStr = append(technologiesStr, tech.ValueString())
 	}
 	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
-	profile.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
 
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
 		for _, tag := range data.RoleScopeTagIds {
 			tagIds = append(tagIds, tag.ValueString())
 		}
-		profile.SetRoleScopeTagIds(tagIds)
+		requestBody.SetRoleScopeTagIds(tagIds)
 	} else {
-		profile.SetRoleScopeTagIds([]string{"0"})
+		requestBody.SetRoleScopeTagIds([]string{"0"})
 	}
 
-	// Construct settings and set them to profile
 	settings := constructSettingsCatalogSettings(ctx, data.Settings)
-	profile.SetSettings(settings)
+	requestBody.SetSettings(settings)
 
-	// Create serialization writer to see the final JSON
-	factory := jsonserialization.NewJsonSerializationWriterFactory()
-	writer, _ := factory.GetSerializationWriter("application/json")
-
-	// Write the profile to JSON
-	_ = writer.WriteObjectValue("", profile)
-
-	// Get the JSON bytes
-	jsonBytes, _ := writer.GetSerializedContent()
-
-	// Pretty print the JSON for debugging
-	var prettyJSON map[string]interface{}
-	_ = json.Unmarshal(jsonBytes, &prettyJSON)
-	debugJSON, _ := json.MarshalIndent(prettyJSON, "", "  ")
-
-	tflog.Debug(ctx, "Final JSON to be sent to API", map[string]interface{}{
-		"json": string(debugJSON),
-	})
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
-	return profile, nil
+	return requestBody, nil
+}
+
+// settingsCatalogModel is a struct that represents the JSON structure of settings catalog settings.
+// This struct is used to unmarshal the settings JSON string into a structured format.
+// It represents windows, macOS, and iOS settings settings catalog settings.
+var settingsCatalogModel struct {
+	SettingsDetails []struct {
+		ID              string `json:"id"`
+		SettingInstance struct {
+			ODataType           string `json:"@odata.type"`
+			SettingDefinitionId string `json:"settingDefinitionId"`
+
+			// For choice settings
+			ChoiceSettingValue *struct {
+				Children []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For SimpleSettingCollectionValue within Choice children
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					// For GroupSettingCollectionValue within Choice children
+					GroupSettingCollectionValue []struct {
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+						} `json:"children"`
+					} `json:"groupSettingCollectionValue,omitempty"`
+
+					// For simple settings within choice children
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested choice settings within choice children
+					ChoiceSettingValue *struct {
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							ODataType           string `json:"@odata.type"`
+							SettingDefinitionId string `json:"settingDefinitionId"`
+						} `json:"children"`
+					} `json:"choiceSettingValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"choiceSettingValue,omitempty"`
+
+			// For choice setting collections
+			ChoiceSettingCollectionValue []struct {
+				Children []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For nested simple settings within choice setting collection
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested simple setting collection within choice setting collection
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"choiceSettingCollectionValue,omitempty"`
+
+			// For group setting collections (Level 1)
+			GroupSettingCollectionValue []struct {
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+				Children                      []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For nested group setting collections within group setting collection (Level 2)
+					GroupSettingCollectionValue []struct {
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+							// For nested group setting collections within group setting collection within group setting collection (Level 3)
+							GroupSettingCollectionValue []struct {
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+								Children                      []struct {
+									ODataType                        string                                                                     `json:"@odata.type"`
+									SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+									SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+									// For nested choice settings within group setting collection within group setting collection within group setting collection (Level 4)
+									ChoiceSettingValue *struct {
+										Value    string `json:"value"`
+										Children []struct {
+											ODataType                        string                                                                     `json:"@odata.type"`
+											SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+											SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference,omitempty"`
+
+											// For nested simple settings within choice settings within group setting collection within group setting collection within group setting collection (Level 5)
+											SimpleSettingValue *struct {
+												ODataType                     string                                                                     `json:"@odata.type"`
+												Value                         interface{}                                                                `json:"value"`
+												SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+											} `json:"simpleSettingValue,omitempty"`
+										} `json:"children"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"choiceSettingValue,omitempty"`
+
+									// For simple settings within group setting collection within group setting collection within group setting collection (Level 4)
+									SimpleSettingValue *struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         interface{}                                                                `json:"value"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingValue,omitempty"`
+
+									// For simple settings collection within group setting collection within group setting collection within group setting collection (Level 4)
+									SimpleSettingCollectionValue []struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         string                                                                     `json:"value"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingCollectionValue,omitempty"`
+								} `json:"children"`
+							} `json:"groupSettingCollectionValue,omitempty"`
+
+							// For nested simple settings within group setting collection within group setting collection (Level 3)
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								ValueState                    string                                                                     `json:"valueState,omitempty"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+
+							// For nested simple setting collections within group setting collection within group setting collection (Level 3)
+							SimpleSettingCollectionValue []struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         string                                                                     `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingCollectionValue,omitempty"`
+
+							// For nested choice settings within group setting collection within group setting collection (Level 3)
+							ChoiceSettingValue *struct {
+								Value    string `json:"value"`
+								Children []struct {
+									ODataType           string `json:"@odata.type"`
+									SettingDefinitionId string `json:"settingDefinitionId"`
+									// For nested simple setting within choice settings within group setting collection within group setting collection (Level 4)
+									SimpleSettingValue *struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         interface{}                                                                `json:"value"`
+										ValueState                    string                                                                     `json:"valueState,omitempty"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingValue,omitempty"`
+								} `json:"children"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"choiceSettingValue,omitempty"`
+						} `json:"children"`
+					} `json:"groupSettingCollectionValue,omitempty"`
+
+					// For nested simple settings (string, integer, secret) within group setting collection  (Level 2)
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						ValueState                    string                                                                     `json:"valueState,omitempty"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested choice settings within group setting collection (Level 2)
+					ChoiceSettingValue *struct {
+						Value    string `json:"value"`
+						Children []struct {
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+
+							ChoiceSettingValue *struct {
+								Value    string `json:"value"`
+								Children []struct {
+									ODataType           string `json:"@odata.type"`
+									SettingDefinitionId string `json:"settingDefinitionId"`
+								} `json:"children"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"choiceSettingValue,omitempty"`
+						} `json:"children"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"choiceSettingValue,omitempty"`
+
+					// For nested simple setting collections within group setting collection (Level 2)
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+			} `json:"groupSettingCollectionValue,omitempty"`
+
+			// For simple settings
+			SimpleSettingValue *struct {
+				ODataType                     string                                                                     `json:"@odata.type"`
+				Value                         interface{}                                                                `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"simpleSettingValue,omitempty"`
+
+			// For simple collection settings
+			SimpleSettingCollectionValue []struct {
+				ODataType                     string                                                                     `json:"@odata.type"`
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"simpleSettingCollectionValue,omitempty"`
+
+			SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+		} `json:"settingInstance"`
+	} `json:"settingsDetails"`
 }
 
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	// Parse the settings structure with settingsDetails array
-	var settingsData struct {
-		SettingsDetails []struct {
-			ID              string `json:"id"`
-			SettingInstance struct {
-				ODataType           string `json:"@odata.type"`
-				SettingDefinitionId string `json:"settingDefinitionId"`
-
-				// For choice settings
-				ChoiceSettingValue *struct {
-					Children []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For SimpleSettingCollectionValue within Choice children
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						// For GroupSettingCollectionValue within Choice children
-						GroupSettingCollectionValue []struct {
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								SimpleSettingValue *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-								ODataType                        string                                                                     `json:"@odata.type"`
-								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-							} `json:"children"`
-						} `json:"groupSettingCollectionValue,omitempty"`
-
-						// For simple settings within choice children
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested choice settings within choice children
-						ChoiceSettingValue *struct {
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								ODataType           string `json:"@odata.type"`
-								SettingDefinitionId string `json:"settingDefinitionId"`
-							} `json:"children"`
-						} `json:"choiceSettingValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"choiceSettingValue,omitempty"`
-
-				// For choice setting collections
-				ChoiceSettingCollectionValue []struct {
-					Children []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For nested simple settings within choice setting collection
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested simple setting collection within choice setting collection
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"choiceSettingCollectionValue,omitempty"`
-
-				// For group setting collections
-				GroupSettingCollectionValue []struct {
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-					Children                      []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For nested group setting collections within group setting collection
-						GroupSettingCollectionValue []struct {
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								ODataType                        string                                                                     `json:"@odata.type"`
-								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-
-								// For nested simple settings within group setting collection within group setting collection
-								SimpleSettingValue *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									ValueState                    string                                                                     `json:"valueState,omitempty"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-
-								// For nested simple setting collections within group setting collection within group setting collection
-								SimpleSettingCollectionValue []struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         string                                                                     `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingCollectionValue,omitempty"`
-
-								// For nested choice settings within group setting collection within group setting collection
-								ChoiceSettingValue *struct {
-									Value    string `json:"value"`
-									Children []struct {
-										ODataType           string `json:"@odata.type"`
-										SettingDefinitionId string `json:"settingDefinitionId"`
-									} `json:"children"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"choiceSettingValue,omitempty"`
-							} `json:"children"`
-						} `json:"groupSettingCollectionValue,omitempty"`
-
-						// For nested simple settings (string, integer, secret) within group setting collection
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							ValueState                    string                                                                     `json:"valueState,omitempty"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested choice settings within group setting collection
-						ChoiceSettingValue *struct {
-							Value    string `json:"value"`
-							Children []struct {
-								ODataType           string `json:"@odata.type"`
-								SettingDefinitionId string `json:"settingDefinitionId"`
-								SimpleSettingValue  *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-								ChoiceSettingValue *struct {
-									Value    string `json:"value"`
-									Children []struct {
-										ODataType           string `json:"@odata.type"`
-										SettingDefinitionId string `json:"settingDefinitionId"`
-									} `json:"children"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"choiceSettingValue,omitempty"`
-							} `json:"children"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"choiceSettingValue,omitempty"`
-
-						// For nested simple setting collections within group setting collection
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-				} `json:"groupSettingCollectionValue,omitempty"`
-
-				// For simple settings
-				SimpleSettingValue *struct {
-					ODataType                     string                                                                     `json:"@odata.type"`
-					Value                         interface{}                                                                `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"simpleSettingValue,omitempty"`
-
-				// For simple collection settings
-				SimpleSettingCollectionValue []struct {
-					ODataType                     string                                                                     `json:"@odata.type"`
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"simpleSettingCollectionValue,omitempty"`
-
-				SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-			} `json:"settingInstance"`
-		} `json:"settingsDetails"`
-	}
-
-	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &settingsData); err != nil {
+	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &settingsCatalogModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -293,12 +331,12 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
-		"data": settingsData,
+		"data": settingsCatalogModel,
 	})
 
 	settingsCollection := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	for _, detail := range settingsData.SettingsDetails {
+	for _, detail := range settingsCatalogModel.SettingsDetails {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 
 		switch detail.SettingInstance.ODataType {
@@ -560,33 +598,33 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 			baseSetting.SetSettingInstance(instance)
 
-			// Handling for GroupSettingCollection
+			// Handling for GroupSettingCollection (Level 1)
 		case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-			instance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-			instance.SetOdataType(&detail.SettingInstance.ODataType)
-			instance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
+			groupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
+			groupSettingCollectionInstance.SetOdataType(&detail.SettingInstance.ODataType)
+			groupSettingCollectionInstance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
 
 			if len(detail.SettingInstance.GroupSettingCollectionValue) > 0 {
 				var groupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
 
-				for _, groupItem := range detail.SettingInstance.GroupSettingCollectionValue {
+				for _, groupSettingValueItem := range detail.SettingInstance.GroupSettingCollectionValue {
 					groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
 					groupOdataType := "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
 					groupValue.SetOdataType(&groupOdataType)
 
-					if groupItem.SettingValueTemplateReference != nil {
-						groupValue.SetSettingValueTemplateReference(groupItem.SettingValueTemplateReference)
+					if groupSettingValueItem.SettingValueTemplateReference != nil {
+						groupValue.SetSettingValueTemplateReference(groupSettingValueItem.SettingValueTemplateReference)
 					}
 
 					var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
-					for _, child := range groupItem.Children {
+					for _, child := range groupSettingValueItem.Children {
 						switch child.ODataType {
 
-						// For nested group setting collections within group setting collection
+						// For nested group setting collections within group setting collection (Level 2)
 						case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-							nestedGroupInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-							nestedGroupInstance.SetOdataType(&child.ODataType)
-							nestedGroupInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
+							nestedGroupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
+							nestedGroupSettingCollectionInstance.SetOdataType(&child.ODataType)
+							nestedGroupSettingCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
 
 							if len(child.GroupSettingCollectionValue) > 0 {
 								var nestedGroupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
@@ -598,6 +636,159 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 									var nestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
 									for _, nestedChild := range nestedGroupItem.Children {
 										switch nestedChild.ODataType {
+										// Handle group settings collection within group setting collection within group setting collection within group setting collection (Level 3)
+										case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
+											nestedNestedGroupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
+											nestedNestedGroupSettingCollectionInstance.SetOdataType(&nestedChild.ODataType)
+											nestedNestedGroupSettingCollectionInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
+
+											if len(nestedChild.GroupSettingCollectionValue) > 0 {
+												var level3Values []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+												for _, level3Item := range nestedChild.GroupSettingCollectionValue {
+													level3Value := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
+													level3OdataType := "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
+													level3Value.SetOdataType(&level3OdataType)
+
+													var nestedNestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
+													for _, level3Child := range level3Item.Children {
+														switch level3Child.ODataType {
+														// Handle choice settings within group setting collection within group setting collection within group setting collection (Level 4)
+														case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
+															choiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+															choiceInstance.SetOdataType(&level3Child.ODataType)
+															choiceInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
+
+															if level3Child.ChoiceSettingValue != nil {
+																choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+																choiceOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
+																choiceValue.SetOdataType(&choiceOdataType)
+																choiceValue.SetValue(&level3Child.ChoiceSettingValue.Value)
+
+																if level3Child.ChoiceSettingValue.SettingValueTemplateReference != nil {
+																	choiceValue.SetSettingValueTemplateReference(level3Child.ChoiceSettingValue.SettingValueTemplateReference)
+																}
+
+																var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
+																for _, choiceChild := range level3Child.ChoiceSettingValue.Children {
+																	switch choiceChild.ODataType {
+																	// Handle simple setting within choice settings within group setting collection within group setting collection within group setting collection (Level 5)
+																	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+																		simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+																		simpleInstance.SetOdataType(&choiceChild.ODataType)
+																		simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
+
+																		if choiceChild.SimpleSettingValue != nil {
+																			switch choiceChild.SimpleSettingValue.ODataType {
+																			case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
+																				stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+																				stringOdataType := "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+																				stringValue.SetOdataType(&stringOdataType)
+																				if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
+																					stringValue.SetValue(&strValue)
+																				}
+																				if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
+																					stringValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
+																				}
+																				simpleInstance.SetSimpleSettingValue(stringValue)
+
+																			case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+																				intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+																				intOdataType := "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+																				intValue.SetOdataType(&intOdataType)
+																				if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
+																					int32Value := int32(numValue)
+																					intValue.SetValue(&int32Value)
+																				}
+																				simpleInstance.SetSimpleSettingValue(intValue)
+																			}
+																		}
+																		choiceChildren = append(choiceChildren, simpleInstance)
+																	}
+																}
+																choiceValue.SetChildren(choiceChildren)
+																choiceInstance.SetChoiceSettingValue(choiceValue)
+															}
+															nestedNestedChildren = append(nestedNestedChildren, choiceInstance)
+														// Handle simple settings within group setting collection within group setting collection within group setting collection (Level 4)
+														case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+															simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+															simpleInstance.SetOdataType(&level3Child.ODataType)
+															simpleInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
+
+															if level3Child.SimpleSettingValue != nil {
+																switch level3Child.SimpleSettingValue.ODataType {
+																case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
+																	stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+																	stringValue.SetOdataType(&level3Child.SimpleSettingValue.ODataType)
+																	if strValue, ok := level3Child.SimpleSettingValue.Value.(string); ok {
+																		stringValue.SetValue(&strValue)
+																	}
+																	if level3Child.SimpleSettingValue.SettingValueTemplateReference != nil {
+																		stringValue.SetSettingValueTemplateReference(level3Child.SimpleSettingValue.SettingValueTemplateReference)
+																	}
+																	simpleInstance.SetSimpleSettingValue(stringValue)
+
+																case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+																	intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+																	intValue.SetOdataType(&level3Child.SimpleSettingValue.ODataType)
+																	if numValue, ok := level3Child.SimpleSettingValue.Value.(float64); ok {
+																		int32Value := int32(numValue)
+																		intValue.SetValue(&int32Value)
+																	}
+																	if level3Child.SimpleSettingValue.SettingValueTemplateReference != nil {
+																		intValue.SetSettingValueTemplateReference(level3Child.SimpleSettingValue.SettingValueTemplateReference)
+																	}
+																	simpleInstance.SetSimpleSettingValue(intValue)
+
+																case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
+																	secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
+																	secretValue.SetOdataType(&child.SimpleSettingValue.ODataType)
+																	if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
+																		secretValue.SetValue(&strValue)
+																		if child.SimpleSettingValue.ValueState != "" {
+																			valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(child.SimpleSettingValue.ValueState)
+																			if err == nil {
+																				secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+																			}
+																		}
+																	}
+																	simpleInstance.SetSimpleSettingValue(secretValue)
+																}
+															}
+															nestedNestedChildren = append(nestedNestedChildren, simpleInstance)
+
+														case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+															simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
+															simpleCollectionInstance.SetOdataType(&level3Child.ODataType)
+															simpleCollectionInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
+
+															if len(level3Child.SimpleSettingCollectionValue) > 0 {
+																var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+																for _, v := range level3Child.SimpleSettingCollectionValue {
+																	stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+																	stringValue.SetOdataType(&v.ODataType)
+																	stringValue.SetValue(&v.Value)
+																	if v.SettingValueTemplateReference != nil {
+																		stringValue.SetSettingValueTemplateReference(v.SettingValueTemplateReference)
+																	}
+																	values = append(values, stringValue)
+																}
+																simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
+															}
+															nestedNestedChildren = append(nestedNestedChildren, simpleCollectionInstance)
+														}
+													}
+
+													if level3Item.SettingValueTemplateReference != nil {
+														level3Value.SetSettingValueTemplateReference(level3Item.SettingValueTemplateReference)
+													}
+													level3Value.SetChildren(nestedNestedChildren)
+													level3Values = append(level3Values, level3Value)
+												}
+												nestedNestedGroupSettingCollectionInstance.SetGroupSettingCollectionValue(level3Values)
+											}
+											nestedChildren = append(nestedChildren, nestedNestedGroupSettingCollectionInstance)
+											// Handle Simple setting within group setting collection within group setting collection (Level 3)
 										case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
 											simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
 											simpleInstance.SetOdataType(&nestedChild.ODataType)
@@ -639,7 +830,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 												}
 											}
 											nestedChildren = append(nestedChildren, simpleInstance)
-
+											// Handle Simple setting collection within group setting collection within group setting collection (Level 3)
 										case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
 											simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
 											simpleCollectionInstance.SetOdataType(&nestedChild.ODataType)
@@ -656,7 +847,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 												simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
 											}
 											nestedChildren = append(nestedChildren, simpleCollectionInstance)
-
+											// Handle choice setting within group setting collection within group setting collection (Level 3)
 										case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
 											choiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 											choiceInstance.SetOdataType(&nestedChild.ODataType)
@@ -668,9 +859,59 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 												choiceValue.SetOdataType(&choiceOdataType)
 												choiceValue.SetValue(&nestedChild.ChoiceSettingValue.Value)
 
-												// Always include empty children array for choice settings
-												choiceValue.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{})
+												var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
+												for _, choiceChild := range nestedChild.ChoiceSettingValue.Children {
+													switch choiceChild.ODataType {
+													// Handle simple setting within choice setting within group setting collection within group setting collection (Level 4)
+													case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+														simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+														simpleInstance.SetOdataType(&choiceChild.ODataType)
+														simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
 
+														if choiceChild.SimpleSettingValue != nil {
+															switch choiceChild.SimpleSettingValue.ODataType {
+															case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
+																stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+																stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
+																if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
+																	stringValue.SetValue(&strValue)
+																}
+																if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
+																	stringValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
+																}
+																simpleInstance.SetSimpleSettingValue(stringValue)
+
+															case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+																intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+																intValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
+																if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
+																	int32Value := int32(numValue)
+																	intValue.SetValue(&int32Value)
+																}
+																if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
+																	intValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
+																}
+																simpleInstance.SetSimpleSettingValue(intValue)
+
+															case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
+																secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
+																secretValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
+																if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
+																	secretValue.SetValue(&strValue)
+																	if choiceChild.SimpleSettingValue.ValueState != "" {
+																		valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(choiceChild.SimpleSettingValue.ValueState)
+																		if err == nil {
+																			secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+																		}
+																	}
+																}
+																simpleInstance.SetSimpleSettingValue(secretValue)
+															}
+														}
+														choiceChildren = append(choiceChildren, simpleInstance)
+													}
+												}
+												choiceValue.SetChildren(choiceChildren)
 												choiceInstance.SetChoiceSettingValue(choiceValue)
 											}
 											nestedChildren = append(nestedChildren, choiceInstance)
@@ -679,9 +920,9 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 									nestedGroupValue.SetChildren(nestedChildren)
 									nestedGroupValues = append(nestedGroupValues, nestedGroupValue)
 								}
-								nestedGroupInstance.SetGroupSettingCollectionValue(nestedGroupValues)
+								nestedGroupSettingCollectionInstance.SetGroupSettingCollectionValue(nestedGroupValues)
 							}
-							children = append(children, nestedGroupInstance)
+							children = append(children, nestedGroupSettingCollectionInstance)
 
 							// For nested simple setting collections within group setting collection
 						case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
@@ -689,7 +930,6 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 							simpleCollectionInstance.SetOdataType(&child.ODataType)
 							simpleCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
 
-							// Handle simpleSettingCollectionValue
 							if len(child.SimpleSettingCollectionValue) > 0 {
 								var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
 								for _, valueItem := range child.SimpleSettingCollectionValue {
@@ -778,6 +1018,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 										if choiceChild.SimpleSettingValue != nil {
 											switch choiceChild.SimpleSettingValue.ODataType {
+
 											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
 												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
 												stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
@@ -785,6 +1026,15 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 													stringValue.SetValue(&strValue)
 												}
 												simpleInstance.SetSimpleSettingValue(stringValue)
+
+											case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+												intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+												intValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
+												if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
+													int32Value := int32(numValue)
+													intValue.SetValue(&int32Value)
+												}
+												simpleInstance.SetSimpleSettingValue(intValue)
 											}
 										}
 										choiceChildren = append(choiceChildren, simpleInstance)
@@ -800,17 +1050,16 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 					groupValue.SetChildren(children)
 					groupValues = append(groupValues, groupValue)
 				}
-				instance.SetGroupSettingCollectionValue(groupValues)
+				groupSettingCollectionInstance.SetGroupSettingCollectionValue(groupValues)
 			}
 
-			baseSetting.SetSettingInstance(instance)
+			baseSetting.SetSettingInstance(groupSettingCollectionInstance)
 
 		}
 
 		settingsCollection = append(settingsCollection, baseSetting)
 	}
 
-	// Debug logging before returning
 	tflog.Debug(ctx, "Constructed settings collection", map[string]interface{}{
 		"count": len(settingsCollection),
 	})

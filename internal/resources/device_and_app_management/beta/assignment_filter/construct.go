@@ -6,14 +6,14 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
-
-	construct.DebugPrintStruct(ctx, "Constructing Assignment Filter resource from model", data)
+	tflog.Debug(ctx, "Constructing Assignment Filter resource from model")
 
 	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
 
@@ -60,6 +60,12 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		}
 	}
 	requestBody.SetRoleScopeTags(roleScopeTags)
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	return requestBody, nil
 }

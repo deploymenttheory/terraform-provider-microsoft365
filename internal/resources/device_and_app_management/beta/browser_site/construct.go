@@ -5,22 +5,23 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (models.BrowserSiteable, error) {
-	construct.DebugPrintStruct(ctx, "Constructing Browser Site resource from model", data)
+	tflog.Debug(ctx, "Constructing Intune Browser Site from model")
 
-	site := models.NewBrowserSite()
+	requestBody := models.NewBrowserSite()
 
 	if !data.AllowRedirect.IsNull() && !data.AllowRedirect.IsUnknown() {
 		allowRedirect := data.AllowRedirect.ValueBool()
-		site.SetAllowRedirect(&allowRedirect)
+		requestBody.SetAllowRedirect(&allowRedirect)
 	}
 
 	if !data.Comment.IsNull() && !data.Comment.IsUnknown() {
 		comment := data.Comment.ValueString()
-		site.SetComment(&comment)
+		requestBody.SetComment(&comment)
 	}
 
 	if !data.CompatibilityMode.IsNull() && !data.CompatibilityMode.IsUnknown() {
@@ -34,7 +35,7 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for CompatibilityMode: %T", compatibilityModeAny)
 			}
-			site.SetCompatibilityMode(compatibilityMode)
+			requestBody.SetCompatibilityMode(compatibilityMode)
 		}
 	}
 
@@ -49,7 +50,7 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for MergeType: %T", mergeTypeAny)
 			}
-			site.SetMergeType(mergeType)
+			requestBody.SetMergeType(mergeType)
 		}
 	}
 
@@ -64,14 +65,20 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for TargetEnvironment: %T", targetEnvironmentAny)
 			}
-			site.SetTargetEnvironment(targetEnvironment)
+			requestBody.SetTargetEnvironment(targetEnvironment)
 		}
 	}
 
 	if !data.WebUrl.IsNull() && !data.WebUrl.IsUnknown() {
 		webUrl := data.WebUrl.ValueString()
-		site.SetWebUrl(&webUrl)
+		requestBody.SetWebUrl(&webUrl)
 	}
 
-	return site, nil
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }

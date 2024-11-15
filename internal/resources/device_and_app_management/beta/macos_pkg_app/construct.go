@@ -9,75 +9,75 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// constructResource constructs a MacOSPkgApp resource using data from the Terraform model.
 func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (models.MacOSPkgAppable, error) {
 	tflog.Debug(ctx, "Constructing MacOSPkgApp resource")
-	construct.DebugPrintStruct(ctx, "Constructed MacOSPkgAp Resource from model", data)
 
-	app := models.NewMacOSPkgApp()
+	requestBody := models.NewMacOSPkgApp()
 
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
-		app.SetDisplayName(&displayName)
+		requestBody.SetDisplayName(&displayName)
 	}
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		description := data.Description.ValueString()
-		app.SetDescription(&description)
+		requestBody.SetDescription(&description)
 	}
 
 	if !data.Publisher.IsNull() && !data.Publisher.IsUnknown() {
 		publisher := data.Publisher.ValueString()
-		app.SetPublisher(&publisher)
+		requestBody.SetPublisher(&publisher)
 	}
 
 	if !data.PrivacyInformationUrl.IsNull() && !data.PrivacyInformationUrl.IsUnknown() {
 		privacyUrl := data.PrivacyInformationUrl.ValueString()
-		app.SetPrivacyInformationUrl(&privacyUrl)
+		requestBody.SetPrivacyInformationUrl(&privacyUrl)
 	}
 
 	if !data.InformationUrl.IsNull() && !data.InformationUrl.IsUnknown() {
 		infoUrl := data.InformationUrl.ValueString()
-		app.SetInformationUrl(&infoUrl)
+		requestBody.SetInformationUrl(&infoUrl)
 	}
 
 	if !data.Owner.IsNull() && !data.Owner.IsUnknown() {
 		owner := data.Owner.ValueString()
-		app.SetOwner(&owner)
+		requestBody.SetOwner(&owner)
 	}
 
 	if !data.Developer.IsNull() && !data.Developer.IsUnknown() {
 		developer := data.Developer.ValueString()
-		app.SetDeveloper(&developer)
+		requestBody.SetDeveloper(&developer)
 	}
 
 	if !data.Notes.IsNull() && !data.Notes.IsUnknown() {
 		notes := data.Notes.ValueString()
-		app.SetNotes(&notes)
+		requestBody.SetNotes(&notes)
 	}
 
 	if !data.FileName.IsNull() && !data.FileName.IsUnknown() {
 		fileName := data.FileName.ValueString()
-		app.SetFileName(&fileName)
+		requestBody.SetFileName(&fileName)
 	}
 
 	if !data.PrimaryBundleId.IsNull() && !data.PrimaryBundleId.IsUnknown() {
 		primaryBundleId := data.PrimaryBundleId.ValueString()
-		app.SetPrimaryBundleId(&primaryBundleId)
+		requestBody.SetPrimaryBundleId(&primaryBundleId)
 	}
 
 	if !data.PrimaryBundleVersion.IsNull() && !data.PrimaryBundleVersion.IsUnknown() {
 		primaryBundleVersion := data.PrimaryBundleVersion.ValueString()
-		app.SetPrimaryBundleVersion(&primaryBundleVersion)
+		requestBody.SetPrimaryBundleVersion(&primaryBundleVersion)
 	}
 
 	if !data.IgnoreVersionDetection.IsNull() && !data.IgnoreVersionDetection.IsUnknown() {
 		ignoreVersionDetection := data.IgnoreVersionDetection.ValueBool()
-		app.SetIgnoreVersionDetection(&ignoreVersionDetection)
+		requestBody.SetIgnoreVersionDetection(&ignoreVersionDetection)
 	}
 
 	if !data.IsFeatured.IsNull() && !data.IsFeatured.IsUnknown() {
 		isFeatured := data.IsFeatured.ValueBool()
-		app.SetIsFeatured(&isFeatured)
+		requestBody.SetIsFeatured(&isFeatured)
 	}
 
 	if len(data.RoleScopeTagIds) > 0 {
@@ -88,7 +88,7 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 			}
 		}
 		if len(roleScopeTagIds) > 0 {
-			app.SetRoleScopeTagIds(roleScopeTagIds)
+			requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 		}
 	}
 
@@ -96,7 +96,7 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 		largeIcon := models.NewMimeContent()
 		//largeIcon.SetType(data.LargeIcon.Type.ValueStringPointer()) // TODO: field not in sdk yet, but is in data model
 		largeIcon.SetValue([]byte(data.LargeIcon.Value.ValueString()))
-		app.SetLargeIcon(largeIcon)
+		requestBody.SetLargeIcon(largeIcon)
 	}
 
 	if len(data.IncludedApps) > 0 {
@@ -107,7 +107,7 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 			includedApp.SetBundleVersion(v.BundleVersion.ValueStringPointer())
 			includedApps = append(includedApps, includedApp)
 		}
-		app.SetIncludedApps(includedApps)
+		requestBody.SetIncludedApps(includedApps)
 	}
 
 	minOS := models.NewMacOSMinimumOperatingSystem()
@@ -124,19 +124,25 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 	minOS.SetV120(data.MinimumSupportedOperatingSystem.V12_0.ValueBoolPointer())
 	minOS.SetV130(data.MinimumSupportedOperatingSystem.V13_0.ValueBoolPointer())
 	minOS.SetV140(data.MinimumSupportedOperatingSystem.V14_0.ValueBoolPointer())
-	app.SetMinimumSupportedOperatingSystem(minOS)
+	requestBody.SetMinimumSupportedOperatingSystem(minOS)
 
 	if data.PreInstallScript.ScriptContent != types.StringNull() {
 		preInstallScript := models.NewMacOSAppScript()
 		preInstallScript.SetScriptContent(data.PreInstallScript.ScriptContent.ValueStringPointer())
-		app.SetPreInstallScript(preInstallScript)
+		requestBody.SetPreInstallScript(preInstallScript)
 	}
 
 	if data.PostInstallScript.ScriptContent != types.StringNull() {
 		postInstallScript := models.NewMacOSAppScript()
 		postInstallScript.SetScriptContent(data.PostInstallScript.ScriptContent.ValueStringPointer())
-		app.SetPostInstallScript(postInstallScript)
+		requestBody.SetPostInstallScript(postInstallScript)
 	}
 
-	return app, nil
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }
