@@ -1,4 +1,4 @@
-# Device Management Configuration Setting (Settings Catalog) Map of current type support and nesting.
+# Device Management Configuration Setting (Settings Catalog) Map of current type support and nesting
 
 switch detail.SettingInstance.ODataType:
 ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
@@ -52,6 +52,18 @@ switch detail.SettingInstance.ODataType:
             ├── case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
             │   └── groupSettingCollectionValue[]
             │       └── children[] switch ODataType:
+            │           ├── case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
+            │           │   └── groupSettingCollectionValue[]
+            │           │       └── children[] switch ODataType:
+            │           │           ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+            │           │           │   └── choiceSettingValue
+            │           │           │       └── children[] // Empty in code for calculator settings
+            │           │           ├── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+            │           │           │   └── simpleSettingValue switch ODataType:
+            │           │           │       ├── case "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+            │           │           │       └── case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+            │           │           └── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
+            │           │               └── simpleSettingCollectionValue[] // String values only
             │           ├── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
             │           │   └── simpleSettingValue switch ODataType:
             │           │       ├── case "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
