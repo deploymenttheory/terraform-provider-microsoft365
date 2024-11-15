@@ -18,7 +18,7 @@ param (
     [Parameter(Mandatory=$true,
     HelpMessage="Specify the ID of the settings catalog policy to retrieve")]
     [ValidateNotNullOrEmpty()]
-    [string]$CatalogItemId
+    [string]$SettingsCatalogItemId
 )
 
 # Helper function to retrieve all pages of settings
@@ -49,14 +49,14 @@ function Get-Paginated {
 function Get-SettingsCatalogPolicyById {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$CatalogItemId
+        [string]$SettingsCatalogItemId
     )
 
     try {
-        $policyUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$CatalogItemId"
+        $policyUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId"
         $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
 
-        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$CatalogItemId/settings"
+        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId/settings"
         $allSettings = Get-Paginated -InitialUri $settingsUri
 
         $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $allSettings
@@ -79,13 +79,13 @@ Write-Host "Connecting to Microsoft Graph..."
 Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $TenantId
 
 # Retrieve and output the specified catalog policy
-Write-Host "Retrieving catalog policy with ID: $CatalogItemId"
-$catalogItemData = Get-SettingsCatalogPolicyById -CatalogItemId $CatalogItemId
+Write-Host "Retrieving catalog policy with ID: $SettingsCatalogItemId"
+$catalogItemData = Get-SettingsCatalogPolicyById -CatalogItemId $SettingsCatalogItemId
 
 if ($null -ne $catalogItemData) {
     Write-Host "`nFull JSON output for settings catalog policy:"
     $jsonString = $catalogItemData | ConvertTo-Json -Depth 100 -Compress
-    
+    # Format the JSON for readability
     $jsonFormatted = $jsonString | ConvertFrom-Json | ConvertTo-Json -Depth 100
     
     Write-Output $jsonFormatted

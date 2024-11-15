@@ -87,7 +87,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		}
 	}
 
-	profile, err := r.client.
+	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
@@ -97,7 +97,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
-	MapRemoteResourceStateToTerraform(ctx, &plan, profile)
+	MapRemoteResourceStateToTerraform(ctx, &plan, respResource)
 
 	respSettings, err := r.client.
 		DeviceManagement().

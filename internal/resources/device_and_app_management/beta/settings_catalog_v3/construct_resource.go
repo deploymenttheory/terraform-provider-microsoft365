@@ -12,9 +12,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Main entry point to construct the settings catalog profile resource for the Terraform provider.
+// Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
 func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, "Constructing Settings Catalog resource")
+	tflog.Debug(ctx, "Constructing Intune Settings Catalog resource")
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
