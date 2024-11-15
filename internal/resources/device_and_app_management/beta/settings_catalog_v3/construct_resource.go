@@ -682,6 +682,20 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 																		intValue.SetSettingValueTemplateReference(level3Child.SimpleSettingValue.SettingValueTemplateReference)
 																	}
 																	simpleInstance.SetSimpleSettingValue(intValue)
+
+																case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
+																	secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
+																	secretValue.SetOdataType(&child.SimpleSettingValue.ODataType)
+																	if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
+																		secretValue.SetValue(&strValue)
+																		if child.SimpleSettingValue.ValueState != "" {
+																			valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(child.SimpleSettingValue.ValueState)
+																			if err == nil {
+																				secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+																			}
+																		}
+																	}
+																	simpleInstance.SetSimpleSettingValue(secretValue)
 																}
 															}
 															level3Children = append(level3Children, simpleInstance)
