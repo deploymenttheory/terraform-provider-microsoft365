@@ -46,18 +46,18 @@ func DebugLogGraphObject(ctx context.Context, message string, object serializati
 		return err
 	}
 
-	var prettyJSON map[string]interface{}
-	if err := json.Unmarshal(jsonBytes, &prettyJSON); err != nil {
+	var rawJSON interface{}
+	if err := json.Unmarshal(jsonBytes, &rawJSON); err != nil {
 		return err
 	}
 
-	debugJSON, err := json.MarshalIndent(prettyJSON, "", "  ")
+	debugJSON, err := json.MarshalIndent(rawJSON, "", "    ")
 	if err != nil {
 		return err
 	}
 
 	tflog.Debug(ctx, message, map[string]interface{}{
-		"json": string(debugJSON),
+		"json": "\n" + string(debugJSON),
 	})
 
 	return nil
