@@ -250,13 +250,16 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 						ChoiceSettingValue *struct {
 							Value    string `json:"value"`
 							Children []struct {
-								ODataType           string `json:"@odata.type"`
-								SettingDefinitionId string `json:"settingDefinitionId"`
-								SimpleSettingValue  *struct {
+								ODataType                        string                                                                     `json:"@odata.type"`
+								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+								SimpleSettingValue *struct {
 									ODataType                     string                                                                     `json:"@odata.type"`
 									Value                         interface{}                                                                `json:"value"`
 									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
 								} `json:"simpleSettingValue,omitempty"`
+
 								ChoiceSettingValue *struct {
 									Value    string `json:"value"`
 									Children []struct {
@@ -894,6 +897,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 										if choiceChild.SimpleSettingValue != nil {
 											switch choiceChild.SimpleSettingValue.ODataType {
+
 											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
 												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
 												stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
@@ -901,6 +905,15 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 													stringValue.SetValue(&strValue)
 												}
 												simpleInstance.SetSimpleSettingValue(stringValue)
+
+											case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+												intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+												intValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
+												if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
+													int32Value := int32(numValue)
+													intValue.SetValue(&int32Value)
+												}
+												simpleInstance.SetSimpleSettingValue(intValue)
 											}
 										}
 										choiceChildren = append(choiceChildren, simpleInstance)

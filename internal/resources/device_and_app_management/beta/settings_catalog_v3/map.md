@@ -29,7 +29,7 @@ switch detail.SettingInstance.ODataType:
 ├── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
 │   └── simpleSettingValue switch ODataType:
 │       ├── case "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-│       └──  case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+│       └── case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
 │
 ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance"
 │   └── choiceSettingCollectionValue[]
@@ -39,16 +39,17 @@ switch detail.SettingInstance.ODataType:
 │
 └── case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
     └── groupSettingCollectionValue[]
-        └── children[] switch ODataType:
-            ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-            │   └── choiceSettingValue
-            │       └── children[] switch ODataType:
-            │           ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-            │           │   └── choiceSettingValue
-            │           │       └── children[] // Empty in code
-            │           └── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-            │               └── simpleSettingValue switch ODataType:
-            │                   └── case "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+          └── children[] switch ODataType:
+              ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+              │   └── choiceSettingValue
+              │       └── children[] switch ODataType:
+              │           ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+              │           │   └── choiceSettingValue
+              │           │       └── children[] // Empty in code
+              │           └── case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+              │               └── simpleSettingValue switch ODataType:
+              │                   ├── case "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+              │                   └── case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
             ├── case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
             │   └── groupSettingCollectionValue[]
             │       └── children[] switch ODataType:
