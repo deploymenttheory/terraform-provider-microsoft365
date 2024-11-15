@@ -1,4 +1,7 @@
-# Device Management Configuration Setting (Settings Catalog) Map of current type support and nesting
+# Device Management Configuration Setting (Settings Catalog) Map
+
+This map represents the current supported odata hierarachy supported within this terraform resource.
+It will updated as new requirements are identified.
 
 switch detail.SettingInstance.ODataType:
 ├── case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"

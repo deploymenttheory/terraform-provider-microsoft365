@@ -75,252 +75,254 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	return requestBody, nil
 }
 
+// settingsCatalogModel is a struct that represents the JSON structure of settings catalog settings.
+// This struct is used to unmarshal the settings JSON string into a structured format.
+// It represents windows, macOS, and iOS settings settings catalog settings.
+var settingsCatalogModel struct {
+	SettingsDetails []struct {
+		ID              string `json:"id"`
+		SettingInstance struct {
+			ODataType           string `json:"@odata.type"`
+			SettingDefinitionId string `json:"settingDefinitionId"`
+
+			// For choice settings
+			ChoiceSettingValue *struct {
+				Children []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For SimpleSettingCollectionValue within Choice children
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					// For GroupSettingCollectionValue within Choice children
+					GroupSettingCollectionValue []struct {
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+						} `json:"children"`
+					} `json:"groupSettingCollectionValue,omitempty"`
+
+					// For simple settings within choice children
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested choice settings within choice children
+					ChoiceSettingValue *struct {
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							ODataType           string `json:"@odata.type"`
+							SettingDefinitionId string `json:"settingDefinitionId"`
+						} `json:"children"`
+					} `json:"choiceSettingValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"choiceSettingValue,omitempty"`
+
+			// For choice setting collections
+			ChoiceSettingCollectionValue []struct {
+				Children []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For nested simple settings within choice setting collection
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested simple setting collection within choice setting collection
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"choiceSettingCollectionValue,omitempty"`
+
+			// For group setting collections (Level 1)
+			GroupSettingCollectionValue []struct {
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+				Children                      []struct {
+					ODataType           string `json:"@odata.type"`
+					SettingDefinitionId string `json:"settingDefinitionId"`
+
+					// For nested group setting collections within group setting collection (Level 2)
+					GroupSettingCollectionValue []struct {
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+						Children                      []struct {
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+							// For nested group setting collections within group setting collection within group setting collection (Level 3)
+							GroupSettingCollectionValue []struct {
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+								Children                      []struct {
+									ODataType                        string                                                                     `json:"@odata.type"`
+									SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+									SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+									// For nested choice settings within group setting collection within group setting collection within group setting collection (Level 4)
+									ChoiceSettingValue *struct {
+										Value    string `json:"value"`
+										Children []struct {
+											ODataType                        string                                                                     `json:"@odata.type"`
+											SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+											SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference,omitempty"`
+
+											// For nested simple settings within choice settings within group setting collection within group setting collection within group setting collection (Level 5)
+											SimpleSettingValue *struct {
+												ODataType                     string                                                                     `json:"@odata.type"`
+												Value                         interface{}                                                                `json:"value"`
+												SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+											} `json:"simpleSettingValue,omitempty"`
+										} `json:"children"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"choiceSettingValue,omitempty"`
+
+									// For simple settings within group setting collection within group setting collection within group setting collection (Level 4)
+									SimpleSettingValue *struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         interface{}                                                                `json:"value"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingValue,omitempty"`
+
+									// For simple settings collection within group setting collection within group setting collection within group setting collection (Level 4)
+									SimpleSettingCollectionValue []struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         string                                                                     `json:"value"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingCollectionValue,omitempty"`
+								} `json:"children"`
+							} `json:"groupSettingCollectionValue,omitempty"`
+
+							// For nested simple settings within group setting collection within group setting collection (Level 3)
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								ValueState                    string                                                                     `json:"valueState,omitempty"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+
+							// For nested simple setting collections within group setting collection within group setting collection (Level 3)
+							SimpleSettingCollectionValue []struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         string                                                                     `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingCollectionValue,omitempty"`
+
+							// For nested choice settings within group setting collection within group setting collection (Level 3)
+							ChoiceSettingValue *struct {
+								Value    string `json:"value"`
+								Children []struct {
+									ODataType           string `json:"@odata.type"`
+									SettingDefinitionId string `json:"settingDefinitionId"`
+									// For nested simple setting within choice settings within group setting collection within group setting collection (Level 4)
+									SimpleSettingValue *struct {
+										ODataType                     string                                                                     `json:"@odata.type"`
+										Value                         interface{}                                                                `json:"value"`
+										ValueState                    string                                                                     `json:"valueState,omitempty"`
+										SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+									} `json:"simpleSettingValue,omitempty"`
+								} `json:"children"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"choiceSettingValue,omitempty"`
+						} `json:"children"`
+					} `json:"groupSettingCollectionValue,omitempty"`
+
+					// For nested simple settings (string, integer, secret) within group setting collection  (Level 2)
+					SimpleSettingValue *struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         interface{}                                                                `json:"value"`
+						ValueState                    string                                                                     `json:"valueState,omitempty"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingValue,omitempty"`
+
+					// For nested choice settings within group setting collection (Level 2)
+					ChoiceSettingValue *struct {
+						Value    string `json:"value"`
+						Children []struct {
+							ODataType                        string                                                                     `json:"@odata.type"`
+							SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
+							SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+
+							SimpleSettingValue *struct {
+								ODataType                     string                                                                     `json:"@odata.type"`
+								Value                         interface{}                                                                `json:"value"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"simpleSettingValue,omitempty"`
+
+							ChoiceSettingValue *struct {
+								Value    string `json:"value"`
+								Children []struct {
+									ODataType           string `json:"@odata.type"`
+									SettingDefinitionId string `json:"settingDefinitionId"`
+								} `json:"children"`
+								SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+							} `json:"choiceSettingValue,omitempty"`
+						} `json:"children"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"choiceSettingValue,omitempty"`
+
+					// For nested simple setting collections within group setting collection (Level 2)
+					SimpleSettingCollectionValue []struct {
+						ODataType                     string                                                                     `json:"@odata.type"`
+						Value                         string                                                                     `json:"value"`
+						SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+					} `json:"simpleSettingCollectionValue,omitempty"`
+
+					SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+				} `json:"children"`
+			} `json:"groupSettingCollectionValue,omitempty"`
+
+			// For simple settings
+			SimpleSettingValue *struct {
+				ODataType                     string                                                                     `json:"@odata.type"`
+				Value                         interface{}                                                                `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"simpleSettingValue,omitempty"`
+
+			// For simple collection settings
+			SimpleSettingCollectionValue []struct {
+				ODataType                     string                                                                     `json:"@odata.type"`
+				Value                         string                                                                     `json:"value"`
+				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
+			} `json:"simpleSettingCollectionValue,omitempty"`
+
+			SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
+		} `json:"settingInstance"`
+	} `json:"settingsDetails"`
+}
+
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	// Parse the settings structure with settingsDetails array
-	var settingsData struct {
-		SettingsDetails []struct {
-			ID              string `json:"id"`
-			SettingInstance struct {
-				ODataType           string `json:"@odata.type"`
-				SettingDefinitionId string `json:"settingDefinitionId"`
-
-				// For choice settings
-				ChoiceSettingValue *struct {
-					Children []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For SimpleSettingCollectionValue within Choice children
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						// For GroupSettingCollectionValue within Choice children
-						GroupSettingCollectionValue []struct {
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								SimpleSettingValue *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-								ODataType                        string                                                                     `json:"@odata.type"`
-								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-							} `json:"children"`
-						} `json:"groupSettingCollectionValue,omitempty"`
-
-						// For simple settings within choice children
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested choice settings within choice children
-						ChoiceSettingValue *struct {
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								ODataType           string `json:"@odata.type"`
-								SettingDefinitionId string `json:"settingDefinitionId"`
-							} `json:"children"`
-						} `json:"choiceSettingValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"choiceSettingValue,omitempty"`
-
-				// For choice setting collections
-				ChoiceSettingCollectionValue []struct {
-					Children []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For nested simple settings within choice setting collection
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested simple setting collection within choice setting collection
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"choiceSettingCollectionValue,omitempty"`
-
-				// For group setting collections (Level 1)
-				GroupSettingCollectionValue []struct {
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-					Children                      []struct {
-						ODataType           string `json:"@odata.type"`
-						SettingDefinitionId string `json:"settingDefinitionId"`
-
-						// For nested group setting collections within group setting collection (Level 2)
-						GroupSettingCollectionValue []struct {
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-							Children                      []struct {
-								ODataType                        string                                                                     `json:"@odata.type"`
-								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-
-								// For nested group setting collections within group setting collection within group setting collection (Level 3)
-								GroupSettingCollectionValue []struct {
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-									Children                      []struct {
-										ODataType                        string                                                                     `json:"@odata.type"`
-										SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-										SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-
-										// For nested choice settings within group setting collection within group setting collection within group setting collection (Level 4)
-										ChoiceSettingValue *struct {
-											Value    string `json:"value"`
-											Children []struct {
-												ODataType                        string                                                                     `json:"@odata.type"`
-												SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-												SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference,omitempty"`
-
-												// For nested simple settings within choice settings within group setting collection within group setting collection within group setting collection (Level 5)
-												SimpleSettingValue *struct {
-													ODataType                     string                                                                     `json:"@odata.type"`
-													Value                         interface{}                                                                `json:"value"`
-													SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-												} `json:"simpleSettingValue,omitempty"`
-											} `json:"children"`
-											SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-										} `json:"choiceSettingValue,omitempty"`
-
-										// For simple settings within group setting collection within group setting collection within group setting collection (Level 4)
-										SimpleSettingValue *struct {
-											ODataType                     string                                                                     `json:"@odata.type"`
-											Value                         interface{}                                                                `json:"value"`
-											SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-										} `json:"simpleSettingValue,omitempty"`
-
-										// For simple settings collection within group setting collection within group setting collection within group setting collection (Level 4)
-										SimpleSettingCollectionValue []struct {
-											ODataType                     string                                                                     `json:"@odata.type"`
-											Value                         string                                                                     `json:"value"`
-											SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-										} `json:"simpleSettingCollectionValue,omitempty"`
-									} `json:"children"`
-								} `json:"groupSettingCollectionValue,omitempty"`
-
-								// For nested simple settings within group setting collection within group setting collection (Level 3)
-								SimpleSettingValue *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									ValueState                    string                                                                     `json:"valueState,omitempty"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-
-								// For nested simple setting collections within group setting collection within group setting collection (Level 3)
-								SimpleSettingCollectionValue []struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         string                                                                     `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingCollectionValue,omitempty"`
-
-								// For nested choice settings within group setting collection within group setting collection (Level 3)
-								ChoiceSettingValue *struct {
-									Value    string `json:"value"`
-									Children []struct {
-										ODataType           string `json:"@odata.type"`
-										SettingDefinitionId string `json:"settingDefinitionId"`
-										// For nested simple setting within choice settings within group setting collection within group setting collection (Level 4)
-										SimpleSettingValue *struct {
-											ODataType                     string                                                                     `json:"@odata.type"`
-											Value                         interface{}                                                                `json:"value"`
-											ValueState                    string                                                                     `json:"valueState,omitempty"`
-											SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-										} `json:"simpleSettingValue,omitempty"`
-									} `json:"children"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"choiceSettingValue,omitempty"`
-							} `json:"children"`
-						} `json:"groupSettingCollectionValue,omitempty"`
-
-						// For nested simple settings (string, integer, secret) within group setting collection  (Level 2)
-						SimpleSettingValue *struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         interface{}                                                                `json:"value"`
-							ValueState                    string                                                                     `json:"valueState,omitempty"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingValue,omitempty"`
-
-						// For nested choice settings within group setting collection (Level 2)
-						ChoiceSettingValue *struct {
-							Value    string `json:"value"`
-							Children []struct {
-								ODataType                        string                                                                     `json:"@odata.type"`
-								SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
-								SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-
-								SimpleSettingValue *struct {
-									ODataType                     string                                                                     `json:"@odata.type"`
-									Value                         interface{}                                                                `json:"value"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"simpleSettingValue,omitempty"`
-
-								ChoiceSettingValue *struct {
-									Value    string `json:"value"`
-									Children []struct {
-										ODataType           string `json:"@odata.type"`
-										SettingDefinitionId string `json:"settingDefinitionId"`
-									} `json:"children"`
-									SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-								} `json:"choiceSettingValue,omitempty"`
-							} `json:"children"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"choiceSettingValue,omitempty"`
-
-						// For nested simple setting collections within group setting collection (Level 2)
-						SimpleSettingCollectionValue []struct {
-							ODataType                     string                                                                     `json:"@odata.type"`
-							Value                         string                                                                     `json:"value"`
-							SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-						} `json:"simpleSettingCollectionValue,omitempty"`
-
-						SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-					} `json:"children"`
-				} `json:"groupSettingCollectionValue,omitempty"`
-
-				// For simple settings
-				SimpleSettingValue *struct {
-					ODataType                     string                                                                     `json:"@odata.type"`
-					Value                         interface{}                                                                `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"simpleSettingValue,omitempty"`
-
-				// For simple collection settings
-				SimpleSettingCollectionValue []struct {
-					ODataType                     string                                                                     `json:"@odata.type"`
-					Value                         string                                                                     `json:"value"`
-					SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
-				} `json:"simpleSettingCollectionValue,omitempty"`
-
-				SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
-			} `json:"settingInstance"`
-		} `json:"settingsDetails"`
-	}
-
-	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &settingsData); err != nil {
+	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &settingsCatalogModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -329,12 +331,12 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
-		"data": settingsData,
+		"data": settingsCatalogModel,
 	})
 
 	settingsCollection := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	for _, detail := range settingsData.SettingsDetails {
+	for _, detail := range settingsCatalogModel.SettingsDetails {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 
 		switch detail.SettingInstance.ODataType {
