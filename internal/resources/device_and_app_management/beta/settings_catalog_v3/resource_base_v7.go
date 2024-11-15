@@ -55,7 +55,7 @@ type SettingsCatalogResource struct {
 
 // Metadata returns the resource type name.
 func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog_v3"
+	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog"
 }
 
 // Configure sets the client for the resource.

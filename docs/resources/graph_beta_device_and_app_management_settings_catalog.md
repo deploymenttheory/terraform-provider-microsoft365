@@ -1,10 +1,10 @@
 ---
-page_title: "Resource: microsoft365_graph_beta_device_and_app_management_settings_catalog_v3"
+page_title: "Resource: microsoft365_graph_beta_device_and_app_management_settings_catalog"
 description: |-
     Manages a Settings Catalog profile in Microsoft Intune.
 ---
 
-# Resource: microsoft365_graph_beta_device_and_app_management_settings_catalog_v3
+# Resource: microsoft365_graph_beta_device_and_app_management_settings_catalog
 
 Manages a Settings Catalog profile in Microsoft Intune.
 
@@ -16,7 +16,7 @@ Manages a Settings Catalog profile in Microsoft Intune.
 ### Required
 
 - `name` (String) Policy name
-- `settings` (String) Settings Catalog Policy settings defined as a valid JSON string, supporting up to 20 levels of nesting. Provide JSON-encoded settings structure.
+- `settings` (String) Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using an Intune gui export to JSON, via a script such as[this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
 
 ### Optional
 
