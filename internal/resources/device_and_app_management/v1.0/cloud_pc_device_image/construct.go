@@ -12,7 +12,6 @@ import (
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *CloudPcDeviceImageResourceModel) (*models.CloudPcDeviceImage, error) {
 	tflog.Debug(ctx, "Constructing CloudPcDeviceImage Resource")
-	construct.DebugPrintStruct(ctx, "Constructed CloudPcDeviceImage Resource from model", data)
 
 	requestBody := models.NewCloudPcDeviceImage()
 
@@ -29,6 +28,12 @@ func constructResource(ctx context.Context, data *CloudPcDeviceImageResourceMode
 	if !data.Version.IsNull() {
 		version := data.Version.ValueString()
 		requestBody.SetVersion(&version)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return requestBody, nil

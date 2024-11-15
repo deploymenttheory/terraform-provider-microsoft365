@@ -13,11 +13,10 @@ import (
 // constructResource constructs a WinGetApp resource using data from the Terraform model.
 // It fetches additional details from the Microsoft Store using FetchStoreAppDetails.
 func constructResource(ctx context.Context, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
-	construct.DebugPrintStruct(ctx, "Constructing WinGet App resource from model", data)
+	tflog.Debug(ctx, "Constructing Microsoft Store For Business WinGetApp resource from model")
 
 	requestBody := models.NewWinGetApp()
 
-	// Set the packageIdentifier
 	packageIdentifier := data.PackageIdentifier.ValueString()
 	upperPackageIdentifier := utils.ToUpperCase(packageIdentifier)
 	requestBody.SetPackageIdentifier(&upperPackageIdentifier)
@@ -36,12 +35,10 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		return nil, fmt.Errorf(errMsg)
 	}
 
-	// Set the fetched title, description, and publisher
 	requestBody.SetDisplayName(&title)
 	requestBody.SetDescription(&description)
 	requestBody.SetPublisher(&publisher)
 
-	// Attempt to download and set the large icon from the msft app store
 	if imageURL != "" {
 		iconBytes, err := utils.DownloadImage(imageURL)
 		if err != nil {
@@ -80,7 +77,6 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		requestBody.SetManifestHash(data.ManifestHash.ValueStringPointer())
 	}
 
-	// Set role scope tag IDs if provided
 	if len(data.RoleScopeTagIds) > 0 {
 		roleScopeTagIds := make([]string, len(data.RoleScopeTagIds))
 		for i, id := range data.RoleScopeTagIds {
@@ -89,13 +85,11 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	// Set additional data
 	additionalData := map[string]interface{}{
 		"repositoryType": "microsoftStore",
 	}
 	requestBody.SetAdditionalData(additionalData)
 
-	// Set the install experience
 	if data.InstallExperience != nil && !data.InstallExperience.RunAsAccount.IsNull() {
 		installExperience := models.NewWinGetAppInstallExperience()
 		runAsAccount := data.InstallExperience.RunAsAccount.ValueString()
@@ -112,6 +106,12 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 			installExperience.SetRunAsAccount(&defaultRunAs)
 		}
 		requestBody.SetInstallExperience(installExperience)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return requestBody, nil

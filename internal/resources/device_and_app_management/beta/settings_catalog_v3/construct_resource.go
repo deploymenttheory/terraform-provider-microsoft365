@@ -8,7 +8,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,14 +15,13 @@ import (
 // Main entry point to construct the settings catalog profile resource for the Terraform provider.
 func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, "Constructing Settings Catalog resource")
-	construct.DebugPrintStruct(ctx, "Constructed Settings Catalog Resource from model", data)
 
-	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
+	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
 	Name := data.Name.ValueString()
 	description := data.Description.ValueString()
-	profile.SetName(&Name)
-	profile.SetDescription(&description)
+	requestBody.SetName(&Name)
+	requestBody.SetDescription(&description)
 
 	platformStr := data.Platforms.ValueString()
 	var platform graphmodels.DeviceManagementConfigurationPlatforms
@@ -45,50 +43,36 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	case "windows10X":
 		platform = graphmodels.WINDOWS10X_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS
 	}
-	profile.SetPlatforms(&platform)
+	requestBody.SetPlatforms(&platform)
 
 	var technologiesStr []string
 	for _, tech := range data.Technologies {
 		technologiesStr = append(technologiesStr, tech.ValueString())
 	}
 	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
-	profile.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
 
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
 		for _, tag := range data.RoleScopeTagIds {
 			tagIds = append(tagIds, tag.ValueString())
 		}
-		profile.SetRoleScopeTagIds(tagIds)
+		requestBody.SetRoleScopeTagIds(tagIds)
 	} else {
-		profile.SetRoleScopeTagIds([]string{"0"})
+		requestBody.SetRoleScopeTagIds([]string{"0"})
 	}
 
-	// Construct settings and set them to profile
 	settings := constructSettingsCatalogSettings(ctx, data.Settings)
-	profile.SetSettings(settings)
+	requestBody.SetSettings(settings)
 
-	// Create serialization writer to see the final JSON
-	factory := jsonserialization.NewJsonSerializationWriterFactory()
-	writer, _ := factory.GetSerializationWriter("application/json")
-
-	// Write the profile to JSON
-	_ = writer.WriteObjectValue("", profile)
-
-	// Get the JSON bytes
-	jsonBytes, _ := writer.GetSerializedContent()
-
-	// Pretty print the JSON for debugging
-	var prettyJSON map[string]interface{}
-	_ = json.Unmarshal(jsonBytes, &prettyJSON)
-	debugJSON, _ := json.MarshalIndent(prettyJSON, "", "  ")
-
-	tflog.Debug(ctx, "Final JSON to be sent to API", map[string]interface{}{
-		"json": string(debugJSON),
-	})
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
-	return profile, nil
+	return requestBody, nil
 }
 
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {

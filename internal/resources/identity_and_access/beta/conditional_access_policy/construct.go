@@ -14,7 +14,6 @@ import (
 // constructResource maps the Terraform schema to the graph beta SDK model
 func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (*models.ConditionalAccessPolicy, error) {
 	tflog.Debug(ctx, "Constructing ConditionalAccessPolicy Resource")
-	construct.DebugPrintStruct(ctx, "Constructed ConditionalAccessPolicy Resource from model", data)
 
 	requestBody := models.NewConditionalAccessPolicy()
 
@@ -63,6 +62,12 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 			return nil, fmt.Errorf("error constructing session controls: %s", err)
 		}
 		requestBody.SetSessionControls(sessionControls)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return requestBody, nil

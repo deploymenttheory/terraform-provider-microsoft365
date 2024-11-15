@@ -38,7 +38,6 @@ const (
 // Main entry point to construct the settings catalog profile resource for the Terraform provider.
 func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, "Constructing Settings Catalog resource")
-	construct.DebugPrintStruct(ctx, "Constructed Settings Catalog Resource from model", data)
 
 	profile := graphmodels.NewDeviceManagementConfigurationPolicy()
 
@@ -86,9 +85,14 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 		profile.SetRoleScopeTagIds([]string{"0"})
 	}
 
-	// Construct settings and set them to profile
 	settings := constructSettingsCatalogSettings(ctx, data.Settings)
 	profile.SetSettings(settings)
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", profile); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
 	return profile, nil

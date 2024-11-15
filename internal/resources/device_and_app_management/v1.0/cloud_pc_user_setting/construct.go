@@ -11,7 +11,6 @@ import (
 
 func constructResource(ctx context.Context, data *CloudPcUserSettingResourceModel) (*models.CloudPcUserSetting, error) {
 	tflog.Debug(ctx, "Constructing CloudPcUserSetting resource")
-	construct.DebugPrintStruct(ctx, "Constructed CloudPcUserSetting Resource from model", data)
 
 	requestBody := models.NewCloudPcUserSetting()
 
@@ -36,6 +35,12 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 			return nil, fmt.Errorf("error constructing restore point setting: %v", err)
 		}
 		requestBody.SetRestorePointSetting(restorePointSetting)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return requestBody, nil

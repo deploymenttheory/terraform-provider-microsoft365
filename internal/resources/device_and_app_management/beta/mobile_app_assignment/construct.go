@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // ConstructResource maps the Terraform schema to the SDK model
 func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
-	construct.DebugPrintStruct(ctx, "Constructing Mobile App Assignment resource from model", data)
+	tflog.Debug(ctx, "Constructing Mobile App Assignment resource from model")
 
 	requestBody := models.NewMobileAppAssignment()
 
@@ -117,6 +118,12 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	if !data.SourceID.IsNull() {
 		sourceID := data.SourceID.ValueString()
 		requestBody.SetSourceId(&sourceID)
+	}
+
+	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return requestBody, nil
