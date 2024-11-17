@@ -12,8 +12,8 @@ import (
 
 // constructResource constructs a WinGetApp resource using data from the Terraform model.
 // It fetches additional details from the Microsoft Store using FetchStoreAppDetails.
-func constructResource(ctx context.Context, typeName string, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
+func constructResource(ctx context.Context, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewWinGetApp()
 
@@ -108,13 +108,13 @@ func constructResource(ctx context.Context, typeName string, data *WinGetAppReso
 		requestBody.SetInstallExperience(installExperience)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

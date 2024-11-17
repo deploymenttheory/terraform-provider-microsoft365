@@ -18,6 +18,10 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
+const (
+	ResourceName = "graph_beta_device_and_app_management_settings_catalog"
+)
+
 var (
 	// Basic resource interface (CRUD operations)
 	_ resource.Resource = &SettingsCatalogResource{}
@@ -55,7 +59,7 @@ type SettingsCatalogResource struct {
 
 // Metadata returns the resource type name.
 func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_settings_catalog"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
@@ -99,7 +103,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					//customValidator.SettingsCatalogValidator(),
+					//SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),

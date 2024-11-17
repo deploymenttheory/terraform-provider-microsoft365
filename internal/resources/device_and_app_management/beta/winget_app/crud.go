@@ -30,7 +30,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -146,7 +146,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

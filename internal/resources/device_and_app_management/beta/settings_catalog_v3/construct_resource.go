@@ -14,8 +14,8 @@ import (
 )
 
 // Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, typeName string, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
+func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
@@ -66,13 +66,13 @@ func constructResource(ctx context.Context, typeName string, data *SettingsCatal
 	settings := constructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }
@@ -80,7 +80,7 @@ func constructResource(ctx context.Context, typeName string, data *SettingsCatal
 // settingsCatalogModel is a struct that represents the JSON structure of settings catalog settings.
 // This struct is used to unmarshal the settings JSON string into a structured format.
 // It represents windows, macOS, and iOS settings settings catalog settings.
-var settingsCatalogModel struct {
+var SettingsCatalogModel struct {
 	SettingsDetails []struct {
 		ID              string `json:"id"`
 		SettingInstance struct {
@@ -324,7 +324,7 @@ var settingsCatalogModel struct {
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &settingsCatalogModel); err != nil {
+	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &SettingsCatalogModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -333,12 +333,12 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
-		"data": settingsCatalogModel,
+		"data": SettingsCatalogModel,
 	})
 
 	settingsCollection := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	for _, detail := range settingsCatalogModel.SettingsDetails {
+	for _, detail := range SettingsCatalogModel.SettingsDetails {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 
 		switch detail.SettingInstance.ODataType {
