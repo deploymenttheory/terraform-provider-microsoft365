@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"

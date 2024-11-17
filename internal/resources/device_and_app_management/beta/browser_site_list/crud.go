@@ -1,4 +1,4 @@
-package graphbetabrowsersite
+package graphBetaBrowserSiteList
 
 import (
 	"context"

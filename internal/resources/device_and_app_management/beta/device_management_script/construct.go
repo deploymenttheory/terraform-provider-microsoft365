@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func constructResource(ctx context.Context, data *DeviceManagementScriptResourceModel) (models.DeviceManagementScriptable, error) {
-	tflog.Debug(ctx, "Constructed Device Management Script resource from modele")
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewDeviceManagementScript()
 
@@ -73,11 +73,13 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 		requestBody.SetRunAs32Bit(&runAs32Bit)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

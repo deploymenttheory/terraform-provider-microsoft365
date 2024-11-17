@@ -1,4 +1,4 @@
-package graphbetaroledefinition
+package graphBetaRoleDefinition
 
 import (
 	"context"

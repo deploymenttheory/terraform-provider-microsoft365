@@ -16,9 +16,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &WinGetAppResource{}
-var _ resource.ResourceWithConfigure = &WinGetAppResource{}
-var _ resource.ResourceWithImportState = &WinGetAppResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_win_get_app"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &WinGetAppResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &WinGetAppResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &WinGetAppResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &WinGetAppResource{}
+)
 
 func NewWinGetAppResource() resource.Resource {
 	return &WinGetAppResource{
@@ -41,19 +55,9 @@ type WinGetAppResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *WinGetAppResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *WinGetAppResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *WinGetAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_win_get_app"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
@@ -66,6 +70,7 @@ func (r *WinGetAppResource) ImportState(ctx context.Context, req resource.Import
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// Schema returns the schema for the resource.
 func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	// Create an instance of MobileAppAssignmentResource
 	mobileAppAssignmentResource := graphBetaMobileAppAssignment.NewMobileAppAssignmentResource()

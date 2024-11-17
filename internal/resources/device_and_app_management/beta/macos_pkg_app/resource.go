@@ -1,4 +1,4 @@
-package graphbetamacospkgapp
+package graphBetaMacosPkgApp
 
 import (
 	"context"
@@ -12,10 +12,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &MacOSPkgAppResource{}
-var _ resource.ResourceWithConfigure = &MacOSPkgAppResource{}
-var _ resource.ResourceWithImportState = &MacOSPkgAppResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_macos_pkg_app"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &MacOSPkgAppResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &MacOSPkgAppResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &MacOSPkgAppResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &MacOSPkgAppResource{}
+)
 
 func NewMacOSPkgAppResource() resource.Resource {
 	return &MacOSPkgAppResource{
@@ -38,19 +51,9 @@ type MacOSPkgAppResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *MacOSPkgAppResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *MacOSPkgAppResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *MacOSPkgAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_macos_pkg_app"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

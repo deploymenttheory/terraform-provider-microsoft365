@@ -1,7 +1,8 @@
-package graphroledefinition
+package graphRoleDefinition
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -9,7 +10,7 @@ import (
 )
 
 func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
-	tflog.Debug(ctx, "Constructing RoleDefinition resource")
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewRoleDefinition()
 
@@ -64,11 +65,13 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		requestBody.SetRolePermissions(rolePermissions)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

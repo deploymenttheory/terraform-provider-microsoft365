@@ -14,9 +14,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &Win32LobAppResource{}
-var _ resource.ResourceWithConfigure = &Win32LobAppResource{}
-var _ resource.ResourceWithImportState = &Win32LobAppResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_win32_lob_app"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &Win32LobAppResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &Win32LobAppResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &Win32LobAppResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &Win32LobAppResource{}
+)
 
 func NewWin32LobAppResource() resource.Resource {
 	return &Win32LobAppResource{
@@ -39,9 +53,9 @@ type Win32LobAppResource struct {
 	WritePermissions []string
 }
 
-// GetTypeName returns the type name of the resource from the state model.
-func (r *Win32LobAppResource) GetTypeName() string {
-	return r.TypeName
+// Metadata returns the resource type name.
+func (r *Win32LobAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
@@ -54,10 +68,7 @@ func (r *Win32LobAppResource) ImportState(ctx context.Context, req resource.Impo
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *Win32LobAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_win32_lob_app"
-}
-
+// Function to create the full device management win32 lob app schema
 func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Win32 LOB App in Microsoft Intune.",

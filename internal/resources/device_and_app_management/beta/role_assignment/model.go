@@ -1,4 +1,4 @@
-package graphbetaroleassignment
+package graphBetaRoleAssignment
 
 type RoleAssignmentResourceModel struct {
 	ODataType      string   `json:"@odata.type"`

@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta
-package graphbetabrowsersite
+package graphBetaBrowserSite
 
 import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"

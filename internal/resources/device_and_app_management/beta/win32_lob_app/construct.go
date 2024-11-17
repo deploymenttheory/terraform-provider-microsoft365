@@ -10,19 +10,19 @@ import (
 )
 
 func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (graphmodels.Win32LobAppable, error) {
-	tflog.Debug(ctx, "Constructing Win32LobApp resource")
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	win32LobApp := graphmodels.NewWin32LobApp()
+	requestBody := graphmodels.NewWin32LobApp()
 
 	// Set string properties using the helper function
-	construct.SetStringProperty(data.DisplayName, win32LobApp.SetDisplayName)
-	construct.SetStringProperty(data.Description, win32LobApp.SetDescription)
-	construct.SetStringProperty(data.Publisher, win32LobApp.SetPublisher)
-	construct.SetStringProperty(data.FileName, win32LobApp.SetFileName)
-	construct.SetStringProperty(data.InstallCommandLine, win32LobApp.SetInstallCommandLine)
-	construct.SetStringProperty(data.UninstallCommandLine, win32LobApp.SetUninstallCommandLine)
-	construct.SetStringProperty(data.SetupFilePath, win32LobApp.SetSetupFilePath)
-	construct.SetStringProperty(data.CommittedContentVersion, win32LobApp.SetCommittedContentVersion)
+	construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	construct.SetStringProperty(data.Description, requestBody.SetDescription)
+	construct.SetStringProperty(data.Publisher, requestBody.SetPublisher)
+	construct.SetStringProperty(data.FileName, requestBody.SetFileName)
+	construct.SetStringProperty(data.InstallCommandLine, requestBody.SetInstallCommandLine)
+	construct.SetStringProperty(data.UninstallCommandLine, requestBody.SetUninstallCommandLine)
+	construct.SetStringProperty(data.SetupFilePath, requestBody.SetSetupFilePath)
+	construct.SetStringProperty(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
 
 	// Handle MinimumSupportedOperatingSystem
 	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
@@ -42,7 +42,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		construct.SetBoolProperty(minOS.V10_2H20, minSupportedOS.SetV102H20)
 		construct.SetBoolProperty(minOS.V10_21H1, minSupportedOS.SetV1021H1)
 
-		win32LobApp.SetMinimumSupportedOperatingSystem(minSupportedOS)
+		requestBody.SetMinimumSupportedOperatingSystem(minSupportedOS)
 	}
 
 	// Handle DetectionRules
@@ -109,7 +109,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				detectionRules[i] = powershellRule
 			}
 		}
-		win32LobApp.SetDetectionRules(detectionRules)
+		requestBody.SetDetectionRules(detectionRules)
 	}
 
 	// Handle RequirementRules
@@ -136,7 +136,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			requirementRules[i] = registryRequirement
 		}
-		win32LobApp.SetRequirementRules(requirementRules)
+		requestBody.SetRequirementRules(requirementRules)
 	}
 
 	// Handle Rules
@@ -163,7 +163,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			rules[i] = registryRule
 		}
-		win32LobApp.SetRules(rules)
+		requestBody.SetRules(rules)
 	}
 
 	// Handle Install Experience
@@ -182,7 +182,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 		construct.SetInt32Property(installExperience.MaxRunTimeInMinutes, installExp.SetMaxRunTimeInMinutes)
 
-		win32LobApp.SetInstallExperience(installExp)
+		requestBody.SetInstallExperience(installExp)
 	}
 
 	// Handle Return Codes
@@ -200,7 +200,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			returnCodes[i] = returnCode
 		}
-		win32LobApp.SetReturnCodes(returnCodes)
+		requestBody.SetReturnCodes(returnCodes)
 	}
 
 	// Handle MSI Information
@@ -216,15 +216,16 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
 		}
-		win32LobApp.SetMsiInformation(msiInformation)
+		requestBody.SetMsiInformation(msiInformation)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", win32LobApp); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, "Finished constructing Win32LobApp resource")
-	return win32LobApp, nil
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+
+	return requestBody, nil
 }

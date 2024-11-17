@@ -11,7 +11,7 @@ import (
 
 // constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel) (*models.CloudPcProvisioningPolicy, error) {
-	tflog.Debug(ctx, "Constructing CloudPcProvisioningPolicy Resource")
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
 
@@ -133,11 +133,13 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

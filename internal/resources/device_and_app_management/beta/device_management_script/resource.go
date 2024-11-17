@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"context"
@@ -14,9 +14,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &DeviceManagementScriptResource{}
-var _ resource.ResourceWithConfigure = &DeviceManagementScriptResource{}
-var _ resource.ResourceWithImportState = &DeviceManagementScriptResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_device_management_script"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &DeviceManagementScriptResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &DeviceManagementScriptResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &DeviceManagementScriptResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &DeviceManagementScriptResource{}
+)
 
 func NewDeviceManagementScriptResource() resource.Resource {
 	return &DeviceManagementScriptResource{
@@ -49,7 +63,7 @@ func (r *DeviceManagementScriptResource) GetTypeName() string {
 
 // Metadata returns the resource type name.
 func (r *DeviceManagementScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_device_management_script"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

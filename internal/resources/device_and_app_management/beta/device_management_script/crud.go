@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"context"

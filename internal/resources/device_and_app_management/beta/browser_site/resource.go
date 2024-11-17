@@ -1,4 +1,4 @@
-package graphbetabrowsersite
+package graphBetaBrowserSite
 
 import (
 	"context"
@@ -14,9 +14,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &BrowserSiteResource{}
-var _ resource.ResourceWithConfigure = &BrowserSiteResource{}
-var _ resource.ResourceWithImportState = &BrowserSiteResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_browser_site"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &BrowserSiteResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &BrowserSiteResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &BrowserSiteResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &BrowserSiteResource{}
+)
 
 func NewBrowserSiteResource() resource.Resource {
 	return &BrowserSiteResource{
@@ -37,19 +51,9 @@ type BrowserSiteResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *BrowserSiteResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *BrowserSiteResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *BrowserSiteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_browser_site"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

@@ -13,5 +13,5 @@ func (r *SettingsCatalogResource) ModifyPlan(ctx context.Context, req resource.M
 		return
 	}
 
-	tflog.Debug(ctx, "ModifyPlan TODO")
+	tflog.Debug(ctx, "Modify Plan Place holder")
 }

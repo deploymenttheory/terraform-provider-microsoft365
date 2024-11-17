@@ -15,9 +15,23 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-var _ resource.Resource = &CloudPcDeviceImageResource{}
-var _ resource.ResourceWithConfigure = &CloudPcDeviceImageResource{}
-var _ resource.ResourceWithImportState = &CloudPcDeviceImageResource{}
+const (
+	ResourceName = "graph_device_and_app_management_cloud_pc_device_image"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &CloudPcDeviceImageResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &CloudPcDeviceImageResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &CloudPcDeviceImageResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &CloudPcDeviceImageResource{}
+)
 
 func NewCloudPcDeviceImageResource() resource.Resource {
 	return &CloudPcDeviceImageResource{
@@ -38,24 +52,14 @@ type CloudPcDeviceImageResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *CloudPcDeviceImageResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *CloudPcDeviceImageResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *CloudPcDeviceImageResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_cloud_pc_device_image"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *CloudPcDeviceImageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClientForResource(ctx, req, resp, "CloudPcDeviceImageResource")
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.

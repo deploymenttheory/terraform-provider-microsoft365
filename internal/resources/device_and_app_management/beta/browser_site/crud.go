@@ -1,4 +1,4 @@
-package graphbetabrowsersite
+package graphBetaBrowserSite
 
 import (
 	"context"
