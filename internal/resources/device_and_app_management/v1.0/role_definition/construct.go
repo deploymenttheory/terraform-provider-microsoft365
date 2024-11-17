@@ -1,4 +1,4 @@
-package graphroledefinition
+package graphRoleDefinition
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, typeName string, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
+func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewRoleDefinition()
 
@@ -65,13 +65,13 @@ func constructResource(ctx context.Context, typeName string, data *RoleDefinitio
 		requestBody.SetRolePermissions(rolePermissions)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

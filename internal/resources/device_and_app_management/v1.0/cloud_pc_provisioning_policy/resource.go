@@ -15,9 +15,23 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-var _ resource.Resource = &CloudPcProvisioningPolicyResource{}
-var _ resource.ResourceWithConfigure = &CloudPcProvisioningPolicyResource{}
-var _ resource.ResourceWithImportState = &CloudPcProvisioningPolicyResource{}
+const (
+	ResourceName = "graph_device_and_app_management_cloud_pc_provisioning_policy"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &CloudPcProvisioningPolicyResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &CloudPcProvisioningPolicyResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &CloudPcProvisioningPolicyResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &CloudPcProvisioningPolicyResource{}
+)
 
 func NewCloudPcProvisioningPolicyResource() resource.Resource {
 	return &CloudPcProvisioningPolicyResource{
@@ -38,24 +52,14 @@ type CloudPcProvisioningPolicyResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *CloudPcProvisioningPolicyResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *CloudPcProvisioningPolicyResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *CloudPcProvisioningPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_cloud_pc_provisioning_policy"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *CloudPcProvisioningPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphStableClientForResource(ctx, req, resp, "CloudPcProvisioningPolicyResource")
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.

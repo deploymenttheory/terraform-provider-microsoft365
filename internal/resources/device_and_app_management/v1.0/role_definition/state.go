@@ -1,4 +1,4 @@
-package graphroledefinition
+package graphRoleDefinition
 
 import (
 	"context"

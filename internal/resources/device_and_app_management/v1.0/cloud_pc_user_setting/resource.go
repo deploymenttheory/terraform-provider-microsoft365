@@ -14,9 +14,23 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-var _ resource.Resource = &CloudPcUserSettingResource{}
-var _ resource.ResourceWithConfigure = &CloudPcUserSettingResource{}
-var _ resource.ResourceWithImportState = &CloudPcUserSettingResource{}
+const (
+	ResourceName = "graph_device_and_app_management_cloud_pc_user_setting"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &CloudPcUserSettingResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &CloudPcUserSettingResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &CloudPcUserSettingResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &CloudPcUserSettingResource{}
+)
 
 func NewCloudPcUserSettingResource() resource.Resource {
 	return &CloudPcUserSettingResource{
@@ -37,19 +51,9 @@ type CloudPcUserSettingResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *CloudPcUserSettingResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *CloudPcUserSettingResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *CloudPcUserSettingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_cloud_pc_user_setting"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

@@ -29,7 +29,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -119,7 +119,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

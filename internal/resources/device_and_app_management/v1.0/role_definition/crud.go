@@ -1,4 +1,4 @@
-package graphroledefinition
+package graphRoleDefinition
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	roleDef, err := constructResource(ctx, r.TypeName, &plan)
+	roleDef, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -117,7 +117,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

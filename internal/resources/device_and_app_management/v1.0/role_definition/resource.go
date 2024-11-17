@@ -1,4 +1,4 @@
-package graphroledefinition
+package graphRoleDefinition
 
 import (
 	"context"
@@ -12,10 +12,23 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &RoleDefinitionResource{}
-var _ resource.ResourceWithConfigure = &RoleDefinitionResource{}
-var _ resource.ResourceWithImportState = &RoleDefinitionResource{}
+const (
+	ResourceName = "graph_device_and_app_management_role_definition"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &RoleDefinitionResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &RoleDefinitionResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &RoleDefinitionResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &RoleDefinitionResource{}
+)
 
 func NewRoleDefinitionResource() resource.Resource {
 	return &RoleDefinitionResource{
@@ -36,19 +49,9 @@ type RoleDefinitionResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *RoleDefinitionResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *RoleDefinitionResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *RoleDefinitionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_device_and_app_management_role_definition"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
