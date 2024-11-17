@@ -1,6 +1,6 @@
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementscript?view=graph-rest-beta
 
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"

@@ -14,9 +14,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &M365AppsInstallationOptionsResource{}
-var _ resource.ResourceWithConfigure = &M365AppsInstallationOptionsResource{}
-var _ resource.ResourceWithImportState = &M365AppsInstallationOptionsResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_m365_apps_installation_options"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &M365AppsInstallationOptionsResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &M365AppsInstallationOptionsResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &M365AppsInstallationOptionsResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &M365AppsInstallationOptionsResource{}
+)
 
 func NewM365AppsInstallationOptionsResource() resource.Resource {
 	return &M365AppsInstallationOptionsResource{
@@ -37,19 +51,9 @@ type M365AppsInstallationOptionsResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *M365AppsInstallationOptionsResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *M365AppsInstallationOptionsResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *M365AppsInstallationOptionsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_m365_apps_installation_options"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
