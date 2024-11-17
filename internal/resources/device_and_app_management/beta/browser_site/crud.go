@@ -1,4 +1,4 @@
-package graphbetabrowsersite
+package graphBetaBrowserSite
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing browser site",
@@ -134,7 +134,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing browser site",

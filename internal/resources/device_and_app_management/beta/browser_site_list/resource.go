@@ -1,4 +1,4 @@
-package graphbetabrowsersite
+package graphBetaBrowserSiteList
 
 import (
 	"context"
@@ -16,9 +16,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &BrowserSiteListResource{}
-var _ resource.ResourceWithConfigure = &BrowserSiteListResource{}
-var _ resource.ResourceWithImportState = &BrowserSiteListResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_browser_site_list"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &BrowserSiteListResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &BrowserSiteListResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &BrowserSiteListResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &BrowserSiteListResource{}
+)
 
 func NewBrowserSiteListResource() resource.Resource {
 	return &BrowserSiteListResource{
@@ -51,7 +65,7 @@ func (r *BrowserSiteListResource) GetTypeName() string {
 
 // Metadata returns the resource type name.
 func (r *BrowserSiteListResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_browser_site_list"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

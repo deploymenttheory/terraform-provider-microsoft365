@@ -17,9 +17,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &AssignmentFilterResource{}
-var _ resource.ResourceWithConfigure = &AssignmentFilterResource{}
-var _ resource.ResourceWithImportState = &AssignmentFilterResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_assignment_filter"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &AssignmentFilterResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &AssignmentFilterResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &AssignmentFilterResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &AssignmentFilterResource{}
+)
 
 func NewAssignmentFilterResource() resource.Resource {
 	return &AssignmentFilterResource{
@@ -42,7 +56,7 @@ type AssignmentFilterResource struct {
 
 // Metadata returns the resource type name.
 func (r *AssignmentFilterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_assignment_filter"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

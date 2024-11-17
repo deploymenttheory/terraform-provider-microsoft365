@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/browsersitelist?view=graph-rest-beta
-package graphbetabrowsersite
+package graphBetaBrowserSiteList
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
