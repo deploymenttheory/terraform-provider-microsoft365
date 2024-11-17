@@ -31,7 +31,7 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 	}
 	defer cancel()
 
-	mobileAppAssignment, err := ConstructResource(ctx, &plan)
+	mobileAppAssignment, err := ConstructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -143,7 +143,7 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 	}
 	defer cancel()
 
-	mobileAppAssignment, err := ConstructResource(ctx, &plan)
+	mobileAppAssignment, err := ConstructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

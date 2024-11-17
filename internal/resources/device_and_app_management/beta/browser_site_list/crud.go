@@ -29,7 +29,7 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -120,7 +120,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

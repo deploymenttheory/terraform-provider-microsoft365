@@ -2,6 +2,7 @@ package graphbetamacospkgapp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,8 +11,8 @@ import (
 )
 
 // constructResource constructs a MacOSPkgApp resource using data from the Terraform model.
-func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (models.MacOSPkgAppable, error) {
-	tflog.Debug(ctx, "Constructing MacOSPkgApp resource")
+func constructResource(ctx context.Context, typeName string, data *MacOSPkgAppResourceModel) (models.MacOSPkgAppable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
 
 	requestBody := models.NewMacOSPkgApp()
 
@@ -138,11 +139,13 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 		requestBody.SetPostInstallScript(postInstallScript)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
 
 	return requestBody, nil
 }

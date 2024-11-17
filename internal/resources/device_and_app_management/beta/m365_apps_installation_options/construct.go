@@ -11,8 +11,8 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.M365AppsInstallationOptionsable, error) {
-	tflog.Debug(ctx, "Constructing M365AppsInstallationOptions Resource")
+func constructResource(ctx context.Context, typeName string, data *M365AppsInstallationOptionsResourceModel) (models.M365AppsInstallationOptionsable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
 
 	requestBody := models.NewM365AppsInstallationOptions()
 
@@ -43,11 +43,13 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 		requestBody.SetAppsForMac(appsForMac)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
 
 	return requestBody, nil
 }

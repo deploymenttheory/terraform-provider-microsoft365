@@ -2,14 +2,15 @@ package graphbetabrowsersite
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) (models.BrowserSiteListable, error) {
-	tflog.Debug(ctx, "Constructing Intune Browser Site List resource")
+func constructResource(ctx context.Context, typeName string, data *BrowserSiteListResourceModel) (models.BrowserSiteListable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
 
 	requestBody := models.NewBrowserSiteList()
 
@@ -23,11 +24,13 @@ func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) 
 		requestBody.SetDisplayName(&displayName)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
 
 	return requestBody, nil
 }

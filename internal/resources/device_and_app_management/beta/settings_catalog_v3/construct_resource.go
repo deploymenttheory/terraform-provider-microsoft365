@@ -3,6 +3,7 @@ package graphBetaSettingsCatalog
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
@@ -13,8 +14,8 @@ import (
 )
 
 // Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, "Constructing Intune Settings Catalog resource")
+func constructResource(ctx context.Context, typeName string, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
@@ -65,13 +66,14 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	settings := constructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, "Finished constructing Windows Settings Catalog resource")
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+
 	return requestBody, nil
 }
 

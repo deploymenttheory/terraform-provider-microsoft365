@@ -29,7 +29,7 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -119,7 +119,7 @@ func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.Up
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

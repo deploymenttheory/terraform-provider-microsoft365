@@ -9,8 +9,8 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *CloudPcUserSettingResourceModel) (*models.CloudPcUserSetting, error) {
-	tflog.Debug(ctx, "Constructing CloudPcUserSetting resource")
+func constructResource(ctx context.Context, typeName string, data *CloudPcUserSettingResourceModel) (*models.CloudPcUserSetting, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
 
 	requestBody := models.NewCloudPcUserSetting()
 
@@ -37,11 +37,13 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 		requestBody.SetRestorePointSetting(restorePointSetting)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
 
 	return requestBody, nil
 }

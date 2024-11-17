@@ -29,7 +29,7 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -117,7 +117,7 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

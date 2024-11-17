@@ -43,7 +43,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -256,7 +256,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.TypeName, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
