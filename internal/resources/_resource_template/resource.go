@@ -11,9 +11,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &ResourceTemplateResource{}
-var _ resource.ResourceWithConfigure = &ResourceTemplateResource{}
-var _ resource.ResourceWithImportState = &ResourceTemplateResource{}
+const (
+	ResourceName = "graph_apitype_resource_type_resource_name"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &ResourceTemplateResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &ResourceTemplateResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &ResourceTemplateResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &ResourceTemplateResource{}
+)
 
 func NewResourceTemplateResource() resource.Resource {
 	return &ResourceTemplateResource{
@@ -36,7 +50,7 @@ type ResourceTemplateResource struct {
 
 // Metadata returns the resource type name.
 func (r *ResourceTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_apitype_resource_type_resource_name"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
@@ -49,6 +63,7 @@ func (r *ResourceTemplateResource) ImportState(ctx context.Context, req resource
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// Function to create the full device management win32 lob app schema
 func (r *ResourceTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "The resource `resource_name` manages a graph api resource of type `resource_name`",
