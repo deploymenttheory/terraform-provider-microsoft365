@@ -1,4 +1,4 @@
-package graphbetamacospkgapp
+package graphBetaMacosPkgApp
 
 import (
 	"context"

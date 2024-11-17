@@ -1,4 +1,4 @@
-package graphbetaroledefinition
+package graphBetaRoleDefinition
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
-func constructResource(ctx context.Context, typeName string, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
+func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewRoleDefinition()
 
@@ -91,13 +91,13 @@ func constructResource(ctx context.Context, typeName string, data *RoleDefinitio
 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

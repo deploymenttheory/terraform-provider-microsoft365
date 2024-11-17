@@ -11,8 +11,8 @@ import (
 )
 
 // ConstructResource maps the Terraform schema to the SDK model
-func ConstructResource(ctx context.Context, typeName string, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", typeName))
+func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewMobileAppAssignment()
 
@@ -119,13 +119,13 @@ func ConstructResource(ctx context.Context, typeName string, data *MobileAppAssi
 		requestBody.SetSourceId(&sourceID)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", typeName), requestBody); err != nil {
+	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", typeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

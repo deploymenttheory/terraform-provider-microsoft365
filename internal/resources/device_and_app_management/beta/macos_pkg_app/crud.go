@@ -1,4 +1,4 @@
-package graphbetamacospkgapp
+package graphBetaMacosPkgApp
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 	defer cancel()
 
-	app, err := constructResource(ctx, r.TypeName, &plan)
+	app, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -134,7 +134,7 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.TypeName, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

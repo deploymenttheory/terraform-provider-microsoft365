@@ -13,9 +13,20 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &MobileAppAssignmentResource{}
-var _ resource.ResourceWithConfigure = &MobileAppAssignmentResource{}
-var _ resource.ResourceWithImportState = &MobileAppAssignmentResource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_mobile_app_assignment"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &MobileAppAssignmentResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &MobileAppAssignmentResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &MobileAppAssignmentResource{}
+)
 
 func NewMobileAppAssignmentResource() resource.Resource {
 	return &MobileAppAssignmentResource{
@@ -38,19 +49,9 @@ type MobileAppAssignmentResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *MobileAppAssignmentResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *MobileAppAssignmentResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *MobileAppAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_mobile_app_assignment"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

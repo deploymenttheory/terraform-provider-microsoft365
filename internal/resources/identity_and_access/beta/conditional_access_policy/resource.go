@@ -18,9 +18,23 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &ConditionalAccessPolicyResource{}
-var _ resource.ResourceWithConfigure = &ConditionalAccessPolicyResource{}
-var _ resource.ResourceWithImportState = &ConditionalAccessPolicyResource{}
+const (
+	ResourceName = "graph_beta_identity_and_access_conditional_access_policy"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &ConditionalAccessPolicyResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &ConditionalAccessPolicyResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &ConditionalAccessPolicyResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &ConditionalAccessPolicyResource{}
+)
 
 func NewConditionalAccessPolicyResource() resource.Resource {
 	return &ConditionalAccessPolicyResource{
@@ -41,19 +55,9 @@ type ConditionalAccessPolicyResource struct {
 	WritePermissions []string
 }
 
-// GetID returns the ID of a resource from the state model.
-func (s *ConditionalAccessPolicyResourceModel) GetID() string {
-	return s.ID.ValueString()
-}
-
-// GetTypeName returns the type name of the resource from the state model.
-func (r *ConditionalAccessPolicyResource) GetTypeName() string {
-	return r.TypeName
-}
-
 // Metadata returns the resource type name.
 func (r *ConditionalAccessPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_identity_and_access_conditional_access_policy"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

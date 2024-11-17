@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-roledefinition?view=graph-rest-beta
-package graphbetaroledefinition
+package graphBetaRoleDefinition
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
