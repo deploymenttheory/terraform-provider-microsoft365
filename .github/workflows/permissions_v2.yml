@@ -28,10 +28,11 @@ jobs:
           -v ${{ github.workspace }}/scripts/Export:/app/Export \
           graph-permissions
 
-    - name: Move exported file
+    - name: Set permissions and move file
       run: |
-        mkdir -p internal/metadata
-        mv scripts/Export/ExportedGraphPermissions.json internal/metadata/
+        sudo mkdir -p internal/metadata
+        sudo mv scripts/Export/ExportedGraphPermissions.json internal/metadata/
+        sudo chown -R $USER:$USER internal/metadata
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
