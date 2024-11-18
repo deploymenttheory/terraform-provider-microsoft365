@@ -100,10 +100,23 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
 					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
-					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.",
+					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
+					"A correctly formatted field in the HCL begins like this:\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settingsDetails\": [\n" +
+					"    {\n" +
+					"        # ... settings configuration ...\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n" +
+					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
+					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
+					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					//SettingsCatalogValidator(),
+					SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
