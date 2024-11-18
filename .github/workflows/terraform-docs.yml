@@ -1,8 +1,8 @@
 name: generate terraform docs
 
 on:
-  pull_request:
-    branches:
+  push:
+    branches-ignore:
       - main
     paths-ignore:
       - '.github/**/*'
@@ -24,13 +24,14 @@ jobs:
 
     - uses: actions/checkout@v4.2.2
       with:
-        ref: ${{ github.event.pull_request.head.ref }}
+        ref: ${{ github.ref }}
     # Creates provider documentation for registry.terraform.io
-    - name: Render terraform docs for microsoft365_graph
+    - name: Render terraform docs for microsoft365 graph v1.0 + beta
       uses: terraform-docs/gh-actions@v1.3.0
       with:
-        working-dir: examples/
-        find-dir: .
+        config-file: .terraform-docs.yml
+        find-dir: examples/
+        # recursive: true
         indention: 3
         output-file: README.md
         output-method: inject
