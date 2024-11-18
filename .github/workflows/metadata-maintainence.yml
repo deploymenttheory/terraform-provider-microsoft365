@@ -11,7 +11,7 @@ env:
   TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
 jobs:
-  extract-permissions:
+  extract-graph-metadata:
     runs-on: ubuntu-latest
     
     steps:
