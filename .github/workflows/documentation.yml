@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/**'
-      - 'scripts/**'
+      - '.github/**/*'
+      - 'scripts/**/*'
 
 permissions:
   contents: write  # Required to update documentation in the repo
