@@ -34,7 +34,7 @@ jobs:
     - name: Move exported file to correct location
       run: |
         $sourceFile = "${{ github.workspace }}\scripts\Export\ExportedGraphPermissions.json"
-        $destinationPath = "${{ github.workspace }}\internal\permissions"
+        $destinationPath = "${{ github.workspace }}\internal\metadata"
         $destinationFile = "ExportedGraphPermissions.json"
         
         # Create the destination directory if it doesn't exist
