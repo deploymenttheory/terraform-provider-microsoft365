@@ -53,7 +53,7 @@ jobs:
         go build -v .
   
   # ensure docs are generated
-  gencheck:
+  gendoccheck:
     name: Check Generated Docs
     needs: test-build
     runs-on: ubuntu-latest
