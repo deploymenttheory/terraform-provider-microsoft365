@@ -64,6 +64,7 @@ jobs:
     - uses: actions/checkout@v4.2.2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
+    
     # Creates provider documentation for godoc.org and pkg.go.dev
     - name: Generate Go Docs 
       run: go generate ./...
