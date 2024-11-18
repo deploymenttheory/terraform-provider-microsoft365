@@ -1,0 +1,59 @@
+name: generate terraform docs
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**/*'
+      - 'scripts/**/*'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # Required to update documentation in the repo
+  pull-requests: write
+  
+jobs:
+  tf-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.10.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@v4.2.2
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+    # Creates provider documentation for registry.terraform.io
+    - name: Render terraform docs for microsoft365_provider
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/microsoft365_provider
+        indention: 3
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
+    
+    - name: Render terraform docs for microsoft365_graph
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/microsoft365_graph
+        recursive: true
+        #recursive-path: microsoft365_graph/
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
+  
+    - name: Render terraform docs for microsoft365_graph_beta
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/microsoft365_graph_beta
+        recursive: true
+        #recursive-path: microsoft365_graph_beta/
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
