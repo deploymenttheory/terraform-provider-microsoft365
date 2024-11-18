@@ -1,24 +1,9 @@
 <!-- BEGIN_TF_DOCS -->
-### Requirements
-
-No requirements.
-
 ### Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_microsoft365"></a> [microsoft365](#provider_microsoft365) | n/a |
-
-### Modules
-
-No modules.
-
-### Resources
-
-| Name | Type |
-|------|------|
-| [microsoft365_device_and_app_management_cloud_pc_device_image.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/device_and_app_management_cloud_pc_device_image) | resource |
-| [microsoft365_cloud_pc_device_image.existing](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/data-sources/cloud_pc_device_image) | data source |
 
 ### Inputs
 

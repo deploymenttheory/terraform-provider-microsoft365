@@ -1,21 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-### Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_microsoft365"></a> [microsoft365](#requirement_microsoft365) | ~> 1.0.0 |
-
 ### Providers
 
 No providers.
-
-### Modules
-
-No modules.
-
-### Resources
-
-No resources.
 
 ### Inputs
 
