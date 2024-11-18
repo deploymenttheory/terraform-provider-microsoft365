@@ -35,6 +35,8 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+        git-push-user-name: "github-actions[bot]"
+        git-push-user-email: "github-actions[bot]@users.noreply.github.com"
     
     - name: Render terraform docs for microsoft365_graph
       uses: terraform-docs/gh-actions@v1.3.0
@@ -45,6 +47,8 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+        git-push-user-name: "github-actions[bot]"
+        git-push-user-email: "github-actions[bot]@users.noreply.github.com"
   
     - name: Render terraform docs for microsoft365_graph_beta
       uses: terraform-docs/gh-actions@v1.3.0
@@ -56,3 +60,5 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+        git-push-user-name: "github-actions[bot]"
+        git-push-user-email: "github-actions[bot]@users.noreply.github.com"
