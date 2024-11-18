@@ -26,36 +26,15 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
     # Creates provider documentation for registry.terraform.io
-    - name: Render terraform docs for microsoft365_provider
-      uses: terraform-docs/gh-actions@v1.3.0
-      with:
-        working-dir: examples/microsoft365_provider
-        indention: 3
-        output-file: README.md
-        output-method: inject
-        git-push: "false"
-    
     - name: Render terraform docs for microsoft365_graph
       uses: terraform-docs/gh-actions@v1.3.0
       with:
         working-dir: examples/
         find-dir: .
+        indention: 3
         output-file: README.md
         output-method: inject
-        git-push: "false"
-
-    - name: Commit changes
-      uses: stefanzweifel/git-auto-commit-action@v5.0.1
-      with:
-        commit_message: "terraform-docs: automated update"
-        file_pattern: '.'
-        commit_options: '--no-verify --signoff'
-        commit_user_name: "GitHub Actions Bot"
-        commit_user_email: "github-actions[bot]@users.noreply.github.com"
-        commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
-        status_options: '--untracked-files=no'
-        add_options: '-u'
-        push_options: '--force'
-        skip_dirty_check: false
-        skip_fetch: true 
-        skip_checkout: true
+        git-push: "true"
+        git-commit-message: "terraform-docs: automated action"
+        git-push-user-name: "github-actions[bot]"
+        git-push-user-email: "github-actions[bot]@users.noreply.github.com"
