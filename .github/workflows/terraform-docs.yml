@@ -38,18 +38,8 @@ jobs:
     - name: Render terraform docs for microsoft365_graph
       uses: terraform-docs/gh-actions@v1.3.0
       with:
-        working-dir: examples/microsoft365_graph
+        working-dir: examples/
         find-dir: .
-        output-file: README.md
-        output-method: inject
-        git-push: "false"
-  
-    - name: Render terraform docs for microsoft365_graph_beta
-      uses: terraform-docs/gh-actions@v1.3.0
-      with:
-        working-dir: examples/microsoft365_graph_beta
-        recursive: true
-        recursive-path: "/*"
         output-file: README.md
         output-method: inject
         git-push: "false"
