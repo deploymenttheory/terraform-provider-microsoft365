@@ -1,4 +1,4 @@
-name: Extract Graph Permissions V2
+name: Extract Graph Permissions v2
 
 on:
   workflow_dispatch:
@@ -13,33 +13,31 @@ env:
 jobs:
   extract-permissions:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/microsoftgraph/powershell:latest
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4.2.2
 
-    - name: Run Graph Permissions Script
+    - name: Build and run Docker container
       run: |
-        pwsh -Command "${{ github.workspace }}/scripts/ExportGraphPermissions.ps1 \
-          -ClientId $env:CLIENT_ID \
-          -ClientSecret $env:CLIENT_SECRET \
-          -TenantId $env:TENANT_ID"
-  
+        docker build -t graph-permissions .
+        docker run --rm \
+          -e CLIENT_ID=${{ env.CLIENT_ID }} \
+          -e CLIENT_SECRET=${{ env.CLIENT_SECRET }} \
+          -e TENANT_ID=${{ env.TENANT_ID }} \
+          -v ${{ github.workspace }}/scripts/Export:/app/Export \
+          graph-permissions
+
     - name: Move exported file
       run: |
-        pwsh -Command "
-        $destinationPath = '${{ github.workspace }}/internal/metadata'
-        New-Item -ItemType Directory -Force -Path $destinationPath
-        Move-Item -Path '${{ github.workspace }}/scripts/Export/ExportedGraphPermissions.json' \
-          -Destination '$destinationPath/ExportedGraphPermissions.json' -Force"
+        mkdir -p internal/metadata
+        mv scripts/Export/ExportedGraphPermissions.json internal/metadata/
 
     - name: Upload JSON artifact
       uses: actions/upload-artifact@v4.4.3
       with:
         name: graph-permissions
-        path: ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
+        path: internal/metadata/ExportedGraphPermissions.json
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
@@ -50,6 +48,8 @@ jobs:
         body: |
           This is an automated pull request to update the Graph permissions data.
           
+          Generated on: ${{ format(github.event.schedule, 'dddd, MMMM D, YYYY HH:mm:ss UTC') }}
+          
           Please review the changes and merge if everything looks correct.
-        branch: update-graph-permissions
+        branch: update-graph-permissions 
         base: main
