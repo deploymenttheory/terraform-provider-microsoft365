@@ -4,6 +4,7 @@ on:
   push:
     branches: [ '*' ]
     paths-ignore:
+      - '**/*.yml'
       - '**/*.md'
       - '**/*.yml'
       - 'LICENSE'
@@ -23,7 +24,7 @@ on:
       - 'Makefile'
       - 'scripts/**'
       - '.dockerignore'
-      - 'Dockerfile'
+      - 'dockerfile'
 
 jobs:
   test:
