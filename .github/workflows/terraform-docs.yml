@@ -44,10 +44,18 @@ jobs:
         output-method: inject
         git-push: "false"
 
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add .
-        git commit -m "terraform-docs: automated update" || echo "No changes to commit"
-        git push
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v5.0.1
+      with:
+        commit_message: "terraform-docs: automated update"
+        file_pattern: '.'
+        commit_options: '--no-verify --signoff'
+        commit_user_name: "GitHub Actions Bot"
+        commit_user_email: "github-actions[bot]@users.noreply.github.com"
+        commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+        status_options: '--untracked-files=no'
+        add_options: '-u'
+        push_options: '--force'
+        skip_dirty_check: false
+        skip_fetch: true 
+        skip_checkout: true
