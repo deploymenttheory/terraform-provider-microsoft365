@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/**'
-      - 'scripts/**'
+      - '.github/**/*'
+      - 'scripts/**/*'
 
 permissions:
   contents: write  # Required to update documentation in the repo
@@ -40,6 +40,7 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+        args: "--terraform-docs-version 0.19.0"
   
     - name: Render terraform docs for microsoft365_graph_beta
       uses: terraform-docs/gh-actions@v1.3.0
@@ -51,6 +52,7 @@ jobs:
         output-method: inject
         git-push: "true"
         git-commit-message: "terraform-docs: automated action"
+        args: "--terraform-docs-version 0.19.0"
 
 
   go-docs:
