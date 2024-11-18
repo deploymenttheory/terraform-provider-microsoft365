@@ -1,29 +1,29 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+### Requirements
 
 No requirements.
 
-## Providers
+### Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_microsoft365"></a> [microsoft365](#provider_microsoft365) | n/a |
 
-## Modules
+### Modules
 
 No modules.
 
-## Resources
+### Resources
 
 | Name | Type |
 |------|------|
 | [microsoft365_graph_device_and_app_management_cloud_pc_user_setting.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_device_and_app_management_cloud_pc_user_setting) | resource |
 
-## Inputs
+### Inputs
 
 No inputs.
 
-## Outputs
+### Outputs
 
 No outputs.
 <!-- END_TF_DOCS -->
