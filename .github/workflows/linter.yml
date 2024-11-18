@@ -16,10 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.1
+        with:
+          egress-policy: audit
+
       - name: Checkout Code
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
+          
       - name: Lint Code Base with Super-Linter
         uses: super-linter/super-linter@v7.1.0
         env:

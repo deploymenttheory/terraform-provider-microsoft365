@@ -31,6 +31,11 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.1
+        with:
+          egress-policy: audit
+          
       - uses: actions/checkout@v4.2.2
       - uses: actions/setup-go@v5.1.0
         with:
