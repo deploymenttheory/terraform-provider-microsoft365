@@ -1,4 +1,4 @@
-name: Extract Graph Permissions v2
+name: Extract Graph Metadata
 
 on:
   workflow_dispatch:
