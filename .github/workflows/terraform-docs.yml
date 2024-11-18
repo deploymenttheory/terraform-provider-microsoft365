@@ -40,8 +40,7 @@ jobs:
       uses: terraform-docs/gh-actions@v1.3.0
       with:
         working-dir: examples/microsoft365_graph
-        recursive: true
-        recursive-path: "*/"
+        find-dir: .
         output-file: README.md
         output-method: inject
         git-push: "true"
@@ -52,7 +51,7 @@ jobs:
       with:
         working-dir: examples/microsoft365_graph_beta
         recursive: true
-        recursive-path: "*/"
+        recursive-path: "/*"
         output-file: README.md
         output-method: inject
         git-push: "true"
