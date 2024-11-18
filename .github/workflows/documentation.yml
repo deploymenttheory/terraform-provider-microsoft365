@@ -39,9 +39,9 @@ jobs:
     - name: Render terraform docs for microsoft365_graph
       uses: terraform-docs/gh-actions@v1.3.0
       with:
-        working-dir: examples/
+        working-dir: examples/microsoft365_graph
         recursive: true
-        recursive-path: microsoft365_graph/
+        #recursive-path: microsoft365_graph/
         output-file: README.md
         output-method: inject
         git-push: "true"
@@ -50,9 +50,9 @@ jobs:
     - name: Render terraform docs for microsoft365_graph_beta
       uses: terraform-docs/gh-actions@v1.3.0
       with:
-        working-dir: examples/
+        working-dir: examples/microsoft365_graph_beta
         recursive: true
-        recursive-path: microsoft365_graph_beta/
+        #recursive-path: microsoft365_graph_beta/
         output-file: README.md
         output-method: inject
         git-push: "true"
