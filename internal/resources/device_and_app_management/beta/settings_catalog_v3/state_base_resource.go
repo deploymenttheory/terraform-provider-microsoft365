@@ -20,7 +20,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	// Map basic properties
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
 	data.Name = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
@@ -30,7 +29,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
 	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 
-	// Map enum values
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)
 	}

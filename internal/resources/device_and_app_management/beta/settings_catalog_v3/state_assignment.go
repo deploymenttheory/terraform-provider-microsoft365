@@ -106,7 +106,6 @@ func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSetting
 				GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
 			}
 
-			// Handle filter ID and type
 			if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
 				includeGroup.IncludeGroupsFilterId = types.StringValue(*filterId)
 				if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {

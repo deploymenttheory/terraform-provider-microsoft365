@@ -1,6 +1,11 @@
-version: '0.19'
+version: ">= 0.19.0, < 1.0.0"
 
 formatter: markdown
+
+sort:
+  enabled: true
+  by: name
+
 output:
   file: README.md
   mode: inject
@@ -9,11 +14,29 @@ output:
     {{ .Content }}
     <!-- END_TF_DOCS -->
 
+sections:
+  show:
+    - providers
+    - inputs
+    - outputs
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: false
+  escape: false
+  hide-empty: false
+  html: true
+  indent: 3
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
+
 templates:
   data_source: templates/data_sources.md.tmpl
   resource: templates/resources.md.tmpl
   index: templates/index.md.tmpl
 
-settings:
-  indent: 3
-  escape: false

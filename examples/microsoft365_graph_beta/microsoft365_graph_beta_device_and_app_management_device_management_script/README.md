@@ -1,31 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
-
-No requirements.
-
-## Providers
+### Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_azuread"></a> [azuread](#provider_azuread) | n/a |
 | <a name="provider_microsoft365"></a> [microsoft365](#provider_microsoft365) | n/a |
 
-## Modules
-
-No modules.
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [microsoft365_graph_beta_device_and_app_management_device_management_script.example](https://registry.terraform.io/providers/hashicorp/microsoft365/latest/docs/resources/graph_beta_device_and_app_management_device_management_script) | resource |
-| [azuread_group.example_group](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |
-
-## Inputs
+### Inputs
 
 No inputs.
 
-## Outputs
+### Outputs
 
 | Name | Description |
 |------|-------------|

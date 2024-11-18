@@ -21,7 +21,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ResourceTemplateResour
 	})
 
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	// add more fields here as needed
+	// add more fields here as needed. use the helpers from the state package as needed.
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
