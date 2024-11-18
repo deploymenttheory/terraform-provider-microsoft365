@@ -1,6 +1,7 @@
 version: '0.19'
 
 formatter: markdown
+
 output:
   file: README.md
   mode: inject
@@ -9,11 +10,16 @@ output:
     {{ .Content }}
     <!-- END_TF_DOCS -->
 
+settings:
+  indent: 3
+  escape: false
+  anchor: true
+  provider:
+    name: microsoft365
+    registry_hostname: registry.terraform.io
+    source: deploymenttheory/microsoft365
+
 templates:
   data_source: templates/data_sources.md.tmpl
   resource: templates/resources.md.tmpl
   index: templates/index.md.tmpl
-
-settings:
-  indent: 3
-  escape: false
