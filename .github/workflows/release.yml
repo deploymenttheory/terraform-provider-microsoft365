@@ -79,7 +79,7 @@ jobs:
       - name: Generate docs and check for differences
         run: |
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-          tfplugindocs generate --provider-name powerplatform --rendered-provider-name "Power Platform"
+          tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
           git diff HEAD --exit-code -- docs/
           
   # Release for Partner and Community Providers
