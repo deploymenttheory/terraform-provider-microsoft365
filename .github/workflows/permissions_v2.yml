@@ -1,0 +1,55 @@
+name: Extract Graph Permissions V2
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+jobs:
+  extract-permissions:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/microsoftgraph/powershell:latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.2.2
+
+    - name: Run Graph Permissions Script
+      run: |
+        pwsh -Command "${{ github.workspace }}/scripts/ExportGraphPermissions.ps1 \
+          -ClientId $env:CLIENT_ID \
+          -ClientSecret $env:CLIENT_SECRET \
+          -TenantId $env:TENANT_ID"
+  
+    - name: Move exported file
+      run: |
+        pwsh -Command "
+        $destinationPath = '${{ github.workspace }}/internal/metadata'
+        New-Item -ItemType Directory -Force -Path $destinationPath
+        Move-Item -Path '${{ github.workspace }}/scripts/Export/ExportedGraphPermissions.json' \
+          -Destination '$destinationPath/ExportedGraphPermissions.json' -Force"
+
+    - name: Upload JSON artifact
+      uses: actions/upload-artifact@v4.4.3
+      with:
+        name: graph-permissions
+        path: ${{ github.workspace }}/internal/permissions/ExportedGraphPermissions.json
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7.0.5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update Graph permissions data
+        title: 'Update Graph Permissions Data'
+        body: |
+          This is an automated pull request to update the Graph permissions data.
+          
+          Please review the changes and merge if everything looks correct.
+        branch: update-graph-permissions
+        base: main
