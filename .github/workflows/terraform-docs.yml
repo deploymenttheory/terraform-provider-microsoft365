@@ -26,7 +26,7 @@ jobs:
       with:
         ref: main
     # Creates provider documentation for registry.terraform.io
-    - name: Render terraform docs for microsoft365_graph
+    - name: Render terraform docs for microsoft365 graph v1.0 + beta
       uses: terraform-docs/gh-actions@v1.3.0
       with:
         config-file: .terraform-docs.yml
