@@ -35,8 +35,8 @@ settings:
   sensitive: true
   type: true
 
-# templates:
-#   data_source: templates/data_sources.md.tmpl
-#   resource: templates/resources.md.tmpl
-#   index: templates/index.md.tmpl
+templates:
+  data_source: templates/data_sources.md.tmpl
+  resource: templates/resources.md.tmpl
+  index: templates/index.md.tmpl
 
