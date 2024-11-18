@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 60
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.10.2
+      uses: step-security/harden-runner@v2.10.1
       with:
         egress-policy: audit
 
@@ -51,7 +51,37 @@ jobs:
     - name: Go build
       run: |
         go build -v .
+  
+  # ensure docs are generated
+  gencheck:
+    name: Check Generated Docs
+    needs: test-build
+    runs-on: ubuntu-latest
+    steps:
 
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.2
+        with:
+          egress-policy: audit
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5.1.0
+        with:
+          cache: true
+          go-version-file: 'go.mod'
+        id: go
+
+      - name: Generate docs and check for differences
+        run: |
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+          tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
+          git diff HEAD --exit-code -- docs/
+          
   # Release for Partner and Community Providers
   # https://goreleaser.com/cmd/goreleaser_release/#see-also
   terraform-provider-release:
@@ -72,7 +102,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        uses: step-security/harden-runner@v2.10.2
         with:
           egress-policy: audit
           
