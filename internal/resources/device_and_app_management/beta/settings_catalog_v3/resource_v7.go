@@ -75,7 +75,7 @@ func (r *SettingsCatalogResource) ImportState(ctx context.Context, req resource.
 // Function to create the full device management configuration policy schema
 func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Settings Catalog profile in Microsoft Intune.",
+		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

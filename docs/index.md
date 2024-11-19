@@ -4,7 +4,7 @@ description: |-
   
 ---
 
-# Microsoft 365 Provider
+# terraform-provider-microsoft365 Provider
 
 The community Microsoft 365 provider allows managing environments and other resources within [Power Platform](https://powerplatform.microsoft.com/).
 
