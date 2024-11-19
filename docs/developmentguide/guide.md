@@ -10,32 +10,34 @@ The next decision, beyond this top level grouping, is to ignore any sub categori
 
 files and folder names are seperated with _
 
-resources use the 
-
 The resource folder hierarchy for this project is organized as follows:
 
-```
+```bash
 internal/
 └── resources/
     ├── users/
     │   ├── beta/
     │   │   └── user/
+    │   │       ├── resource_docs/
     │   │       ├── construct.go
     │   │       ├── crud.go
     │   │       ├── model.go
+    │   │       ├── plan_modify.go
     │   │       ├── resource_model.json
     │   │       ├── resource.go
     │   │       ├── state.go
-    │   │       └── validators.go
+    │   │       └── validate_resource_name.go
     │   └── v1.0/
     │       └── user/
+    │           ├── resource_docs/
     │           ├── construct.go
     │           ├── crud.go
     │           ├── model.go
+    │           ├── plan_modify.go
     │           ├── resource_model.json
     │           ├── resource.go
     │           ├── state.go
-    │           └── validators.go
+    │           └── validate_resource_name.go
     ├── groups/
     ├── applications/
     ├── backup_storage/

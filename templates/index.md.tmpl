@@ -205,7 +205,11 @@ For a complete list of client options, refer to the provider documentation.
 
 > **Security Note**: Store sensitive values like client secrets, certificates, and passwords using environment variables or Terraform's encrypted state management features. Never commit these values directly in your configuration files.
 
+## Example Usage
 
+{{ tffile "examples/microsoft365_provider/provider.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
 
 
 # Resources and Data Sources
