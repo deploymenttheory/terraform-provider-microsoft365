@@ -37,8 +37,8 @@ jobs:
     - name: Get current time
       id: current-time
       run: |
-        echo "time=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
-      
+        echo "time=$(date -u '+%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+    
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
       with:
