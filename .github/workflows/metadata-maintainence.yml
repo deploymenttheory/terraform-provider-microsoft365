@@ -20,6 +20,7 @@ jobs:
 
     - name: Build and run MS Graph Docker container
       run: |
+        docker build -t graph-permissions .
         docker run --rm \
           -e CLIENT_ID=${{ env.CLIENT_ID }} \
           -e CLIENT_SECRET=${{ env.CLIENT_SECRET }} \
