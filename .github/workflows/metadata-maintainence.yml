@@ -37,8 +37,8 @@ jobs:
     - name: Get current time
       id: current-time
       run: |
-        echo "time=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
-      
+        echo "time=$(date -u '+%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+    
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
       with:
@@ -46,7 +46,7 @@ jobs:
         commit-message: Update MS Graph Metadata
         title: 'Update Graph Metadata - ${{ steps.current-time.outputs.time }}'
         body: |
-          This is an automated pull request to update the Graph meta data.
+          This is an automated pull request to update graph meta data.
           
           Generated on: ${{ steps.current-time.outputs.time }}
           

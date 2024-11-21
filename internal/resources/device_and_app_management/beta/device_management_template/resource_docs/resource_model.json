@@ -1,0 +1,12 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementTemplate",
+  "displayName": "Display Name value",
+  "description": "Description value",
+  "versionInfo": "Version Info value",
+  "isDeprecated": true,
+  "intentCount": 11,
+  "templateType": "specializedDevices",
+  "platformType": "androidForWork",
+  "templateSubtype": "firewall",
+  "publishedDateTime": "2016-12-31T23:58:16.1180489-08:00"
+}

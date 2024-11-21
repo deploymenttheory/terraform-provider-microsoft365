@@ -1,0 +1,1 @@
+https://memv.ennbee.uk/posts/automate-endpoint-privilege-management/

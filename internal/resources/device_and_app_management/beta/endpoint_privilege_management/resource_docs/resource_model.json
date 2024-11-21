@@ -1,0 +1,29 @@
+{
+  "@odata.type": "#microsoft.graph.privilegeManagementElevationRequest",
+  "id": "String (identifier)",
+  "requestedByUserId": "String",
+  "requestedOnDeviceId": "String",
+  "requestedByUserPrincipalName": "String",
+  "deviceName": "String",
+  "requestCreatedDateTime": "String (timestamp)",
+  "requestLastModifiedDateTime": "String (timestamp)",
+  "requestJustification": "String",
+  "applicationDetail": {
+    "@odata.type": "microsoft.graph.elevationRequestApplicationDetail",
+    "fileHash": "String",
+    "fileName": "String",
+    "filePath": "String",
+    "fileDescription": "String",
+    "publisherName": "String",
+    "publisherCert": "String",
+    "productName": "String",
+    "productInternalName": "String",
+    "productVersion": "String"
+  },
+  "status": "String",
+  "reviewCompletedByUserId": "String",
+  "reviewCompletedByUserPrincipalName": "String",
+  "reviewCompletedDateTime": "String (timestamp)",
+  "requestExpiryDateTime": "String (timestamp)",
+  "reviewerJustification": "String"
+}
