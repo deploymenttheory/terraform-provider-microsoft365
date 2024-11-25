@@ -35,6 +35,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
 		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
 	}
+
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})

@@ -12,7 +12,7 @@ import (
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *DeviceManagementScriptResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
+func constructAssignment(ctx context.Context, data *DeviceManagementScriptResourceModel) (devicemanagement.DeviceManagementScriptsItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
@@ -24,8 +24,8 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 		return nil, err
 	}
 
-	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
-	assignments := make([]graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
+	requestBody := devicemanagement.NewDeviceManagementScriptsItemAssignPostRequestBody()
+	assignments := make([]graphsdkmodels.DeviceManagementScriptAssignmentable, 0)
 
 	hasAssignments := false
 
@@ -67,7 +67,7 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 
 	// Always set assignments (will be empty array if no active assignments)
 	// as update http method is a post not patch.
-	requestBody.SetAssignments(assignments)
+	requestBody.SetDeviceManagementScriptAssignments(assignments)
 
 	tflog.Debug(ctx, "Assignment construction complete", map[string]interface{}{
 		"has_assignments":    hasAssignments,
@@ -82,8 +82,8 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 }
 
 // constructAllDevicesAssignment constructs and returns a DeviceManagementConfigurationPolicyAssignment object for all devices
-func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementScriptAssignmentable {
+	assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 	target := graphsdkmodels.NewAllDevicesAssignmentTarget()
 
 	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
@@ -107,8 +107,8 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Set
 }
 
 // constructAllUsersAssignment constructs and returns a DeviceManagementConfigurationPolicyAssignment object for all licensed users
-func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) graphsdkmodels.DeviceManagementScriptAssignmentable {
+	assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 	target := graphsdkmodels.NewAllLicensedUsersAssignmentTarget()
 
 	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
@@ -132,11 +132,11 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Setti
 }
 
 // constructGroupIncludeAssignments constructs and returns a list of DeviceManagementConfigurationPolicyAssignment objects for included groups
-func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
+func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementScriptAssignmentable {
+	var assignments []graphsdkmodels.DeviceManagementScriptAssignmentable
 
 	for _, groupFilter := range config.IncludeGroups {
-		assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+		assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 		target := graphsdkmodels.NewGroupAssignmentTarget()
 
 		construct.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
@@ -163,8 +163,8 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 	return assignments
 }
 
-func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
-	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
+func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementScriptAssignmentable {
+	var assignments []graphsdkmodels.DeviceManagementScriptAssignmentable
 
 	// Check if we have any non-null, non-empty values
 	hasValidExcludes := false
@@ -179,7 +179,7 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 	if hasValidExcludes {
 		for _, groupId := range config.ExcludeGroupIds {
 			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
-				assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
+				assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
 
 				// Use construct helper for setting the group ID

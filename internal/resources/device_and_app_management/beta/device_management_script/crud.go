@@ -158,7 +158,7 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 		Assignments().
 		Get(ctx, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading assignments", fmt.Sprintf("Could not read assignments for device management script %s: %s", state.ID.ValueString(), err.Error()))
+		resp.Diagnostics.AddError("Error reading assignments", fmt.Sprintf("Could not read assignments for device management script %s: %s", object.ID.ValueString(), err.Error()))
 		return
 	}
 
@@ -170,7 +170,7 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 		GroupAssignments().
 		Get(ctx, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading group assignments", fmt.Sprintf("Could not read group assignments for device management script %s: %s", state.ID.ValueString(), err.Error()))
+		resp.Diagnostics.AddError("Error reading group assignments", fmt.Sprintf("Could not read group assignments for device management script %s: %s", object.ID.ValueString(), err.Error()))
 		return
 	}
 
@@ -236,25 +236,46 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// Update assignments
-	err = r.updateAssignments(ctx, &object, &state)
+	requestAssignment, err := constructAssignment(ctx, &object)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating assignments", err.Error())
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		)
 		return
 	}
 
-	err = r.updateGroupAssignments(ctx, &plan, &state)
+	_, err = r.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(object.ID.ValueString()).Assignments()
+	Assign().
+		Post(ctx, requestAssignment, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating group assignments", err.Error())
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, requestBody)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, resource.ReadRequest{
+		State:        resp.State,
+		ProviderMeta: req.ProviderMeta,
+	}, readResp)
+
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.State = readResp.State
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
