@@ -7,28 +7,28 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (models.M365AppsInstallationOptionsable, error) {
+func constructResource(ctx context.Context, data *M365AppsInstallationOptionsResourceModel) (graphmodels.M365AppsInstallationOptionsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewM365AppsInstallationOptions()
+	requestBody := graphmodels.NewM365AppsInstallationOptions()
 
 	if !data.UpdateChannel.IsNull() {
 		updateChannelStr := data.UpdateChannel.ValueString()
-		updateChannel, err := models.ParseAppsUpdateChannelType(updateChannelStr)
+		updateChannel, err := graphmodels.ParseAppsUpdateChannelType(updateChannelStr)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing update channel: %s", err)
 		}
 		if updateChannel != nil {
-			requestBody.SetUpdateChannel(updateChannel.(*models.AppsUpdateChannelType))
+			requestBody.SetUpdateChannel(updateChannel.(*graphmodels.AppsUpdateChannelType))
 		}
 	}
 
 	if data.AppsForWindows != nil {
-		appsForWindows := models.NewAppsInstallationOptionsForWindows()
+		appsForWindows := graphmodels.NewAppsInstallationOptionsForWindows()
 		appsForWindows.SetIsMicrosoft365AppsEnabled(data.AppsForWindows.IsMicrosoft365AppsEnabled.ValueBoolPointer())
 		appsForWindows.SetIsProjectEnabled(data.AppsForWindows.IsProjectEnabled.ValueBoolPointer())
 		appsForWindows.SetIsSkypeForBusinessEnabled(data.AppsForWindows.IsSkypeForBusinessEnabled.ValueBoolPointer())
@@ -37,7 +37,7 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 	}
 
 	if data.AppsForMac != nil {
-		appsForMac := models.NewAppsInstallationOptionsForMac()
+		appsForMac := graphmodels.NewAppsInstallationOptionsForMac()
 		appsForMac.SetIsMicrosoft365AppsEnabled(data.AppsForMac.IsMicrosoft365AppsEnabled.ValueBoolPointer())
 		appsForMac.SetIsSkypeForBusinessEnabled(data.AppsForMac.IsSkypeForBusinessEnabled.ValueBoolPointer())
 		requestBody.SetAppsForMac(appsForMac)

@@ -7,22 +7,22 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // ConstructResource maps the Terraform schema to the SDK model
-func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*models.MobileAppAssignment, error) {
+func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceModel) (*graphmodels.MobileAppAssignment, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewMobileAppAssignment()
+	requestBody := graphmodels.NewMobileAppAssignment()
 
 	// Set Intent
-	intentValue, err := models.ParseInstallIntent(data.Intent.ValueString())
+	intentValue, err := graphmodels.ParseInstallIntent(data.Intent.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("invalid intent: %s", err)
 	}
 	if intentValue != nil {
-		intent, ok := intentValue.(*models.InstallIntent)
+		intent, ok := intentValue.(*graphmodels.InstallIntent)
 		if !ok {
 			return nil, fmt.Errorf("unexpected type for intent: %T", intentValue)
 		}
@@ -30,18 +30,18 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	}
 
 	// Set Target
-	target := models.NewAllLicensedUsersAssignmentTarget()
+	target := graphmodels.NewAllLicensedUsersAssignmentTarget()
 	if !data.Target.DeviceAndAppManagementAssignmentFilterID.IsNull() {
 		filterID := data.Target.DeviceAndAppManagementAssignmentFilterID.ValueString()
 		target.SetDeviceAndAppManagementAssignmentFilterId(&filterID)
 	}
 	if !data.Target.DeviceAndAppManagementAssignmentFilterType.IsNull() {
-		filterTypeValue, err := models.ParseDeviceAndAppManagementAssignmentFilterType(data.Target.DeviceAndAppManagementAssignmentFilterType.ValueString())
+		filterTypeValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentFilterType(data.Target.DeviceAndAppManagementAssignmentFilterType.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("invalid device and app management assignment filter type: %s", err)
 		}
 		if filterTypeValue != nil {
-			filterType, ok := filterTypeValue.(*models.DeviceAndAppManagementAssignmentFilterType)
+			filterType, ok := filterTypeValue.(*graphmodels.DeviceAndAppManagementAssignmentFilterType)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for filter type: %T", filterTypeValue)
 			}
@@ -51,14 +51,14 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	requestBody.SetTarget(target)
 
 	// Set Settings
-	settings := models.NewWinGetAppAssignmentSettings()
+	settings := graphmodels.NewWinGetAppAssignmentSettings()
 	if !data.Settings.Notifications.IsNull() {
-		notificationsValue, err := models.ParseWinGetAppNotification(data.Settings.Notifications.ValueString())
+		notificationsValue, err := graphmodels.ParseWinGetAppNotification(data.Settings.Notifications.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("invalid notifications setting: %s", err)
 		}
 		if notificationsValue != nil {
-			notifications, ok := notificationsValue.(*models.WinGetAppNotification)
+			notifications, ok := notificationsValue.(*graphmodels.WinGetAppNotification)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for notifications: %T", notificationsValue)
 			}
@@ -67,7 +67,7 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	}
 
 	// Set Restart Settings
-	restartSettings := models.NewWinGetAppRestartSettings()
+	restartSettings := graphmodels.NewWinGetAppRestartSettings()
 	if !data.Settings.RestartSettings.GracePeriodInMinutes.IsNull() {
 		gracePeriod := int32(data.Settings.RestartSettings.GracePeriodInMinutes.ValueInt64())
 		restartSettings.SetGracePeriodInMinutes(&gracePeriod)
@@ -83,7 +83,7 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	settings.SetRestartSettings(restartSettings)
 
 	// Set Install Time Settings
-	installTimeSettings := models.NewWinGetAppInstallTimeSettings()
+	installTimeSettings := graphmodels.NewWinGetAppInstallTimeSettings()
 	if !data.Settings.InstallTimeSettings.UseLocalTime.IsNull() {
 		useLocalTime := data.Settings.InstallTimeSettings.UseLocalTime.ValueBool()
 		installTimeSettings.SetUseLocalTime(&useLocalTime)
@@ -101,12 +101,12 @@ func ConstructResource(ctx context.Context, data *MobileAppAssignmentResourceMod
 	requestBody.SetSettings(settings)
 
 	if !data.Source.IsNull() {
-		sourceValue, err := models.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
+		sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("invalid source: %s", err)
 		}
 		if sourceValue != nil {
-			source, ok := sourceValue.(*models.DeviceAndAppManagementAssignmentSource)
+			source, ok := sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for source: %T", sourceValue)
 			}

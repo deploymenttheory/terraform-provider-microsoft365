@@ -20,8 +20,9 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
 	Name := data.Name.ValueString()
-	description := data.Description.ValueString()
 	requestBody.SetName(&Name)
+
+	description := data.Description.ValueString()
 	requestBody.SetDescription(&description)
 
 	platformStr := data.Platforms.ValueString()

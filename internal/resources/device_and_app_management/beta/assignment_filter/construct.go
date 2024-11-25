@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
+func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*graphmodels.DeviceAndAppManagementAssignmentFilter, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
+	requestBody := graphmodels.NewDeviceAndAppManagementAssignmentFilter()
 
 	displayName := data.DisplayName.ValueString()
 	requestBody.SetDisplayName(&displayName)
@@ -27,12 +27,12 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 
 	if !data.Platform.IsNull() {
 		platformStr := data.Platform.ValueString()
-		platform, err := models.ParseDevicePlatformType(platformStr)
+		platform, err := graphmodels.ParseDevicePlatformType(platformStr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid platform: %s", err)
 		}
 		if platform != nil {
-			requestBody.SetPlatform(platform.(*models.DevicePlatformType))
+			requestBody.SetPlatform(platform.(*graphmodels.DevicePlatformType))
 		}
 	}
 
@@ -41,12 +41,12 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 
 	if !data.AssignmentFilterManagementType.IsNull() {
 		assignmentFilterManagementTypeStr := data.AssignmentFilterManagementType.ValueString()
-		assignmentFilterManagementType, err := models.ParseAssignmentFilterManagementType(assignmentFilterManagementTypeStr)
+		assignmentFilterManagementType, err := graphmodels.ParseAssignmentFilterManagementType(assignmentFilterManagementTypeStr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid assignment filter management type: %s", err)
 		}
 		if assignmentFilterManagementType != nil {
-			requestBody.SetAssignmentFilterManagementType(assignmentFilterManagementType.(*models.AssignmentFilterManagementType))
+			requestBody.SetAssignmentFilterManagementType(assignmentFilterManagementType.(*graphmodels.AssignmentFilterManagementType))
 		}
 	}
 

@@ -15,8 +15,13 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
+var (
+	// mutex needed to lock Create requests during parallel runs to avoid overwhelming api and resulting in stating issues
+	mu sync.Mutex
+
+	// object is the resource model for the Endpoint Privilege Management resource
+	object EndpointPrivilegeManagementResourceModel
+)
 
 // Create handles the Create operation for Endpoint Privilege Management resources.
 //
@@ -32,25 +37,24 @@ var mu sync.Mutex
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan EndpointPrivilegeManagementResourceModel
 
 	mu.Lock()
 	defer mu.Unlock()
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -69,10 +73,10 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		return
 	}
 
-	plan.ID = types.StringValue(*requestResource.GetId())
+	object.ID = types.StringValue(*requestResource.GetId())
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for create method",
@@ -84,7 +88,7 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -97,19 +101,19 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(context.Background(), nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
-	MapRemoteResourceStateToTerraform(ctx, &plan, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Settings().
 		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
 			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
@@ -123,12 +127,12 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 	}
 
 	settingsList := respSettings.GetValue()
-	MapRemoteSettingsStateToTerraform(ctx, &plan, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(context.Background(), nil)
 
@@ -137,9 +141,9 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &plan, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -162,17 +166,17 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state EndpointPrivilegeManagementResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -181,7 +185,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -189,13 +193,13 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &state, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
 	// Retrieve settings from the response
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Settings().
 		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
 			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
@@ -211,12 +215,12 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	// Extract the list of settings from the collection response
 	settingsList := respSettings.GetValue()
 
-	MapRemoteSettingsStateToTerraform(ctx, &state, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(context.Background(), nil)
 
@@ -225,9 +229,9 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &state, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -249,21 +253,21 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan EndpointPrivilegeManagementResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -275,7 +279,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 	putRequest := client.CustomPutRequestConfig{
 		APIVersion:  client.GraphAPIBeta,
 		Endpoint:    "deviceManagement/configurationPolicies",
-		ResourceID:  plan.ID.ValueString(),
+		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
@@ -285,7 +289,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		return
 	}
 
-	requestAssignment, err := constructAssignment(ctx, &plan)
+	requestAssignment, err := constructAssignment(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment for update method",
@@ -297,7 +301,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assign().
 		Post(ctx, requestAssignment, nil)
 
@@ -306,7 +310,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -338,16 +342,15 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *EndpointPrivilegeManagementResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data EndpointPrivilegeManagementResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -356,7 +359,7 @@ func (r *EndpointPrivilegeManagementResource) Delete(ctx context.Context, req re
 	err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(data.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

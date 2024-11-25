@@ -7,15 +7,15 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs a WinGetApp resource using data from the Terraform model.
 // It fetches additional details from the Microsoft Store using FetchStoreAppDetails.
-func constructResource(ctx context.Context, data *WinGetAppResourceModel) (models.WinGetAppable, error) {
+func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graphmodels.WinGetAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewWinGetApp()
+	requestBody := graphmodels.NewWinGetApp()
 
 	packageIdentifier := data.PackageIdentifier.ValueString()
 	upperPackageIdentifier := utils.ToUpperCase(packageIdentifier)
@@ -44,7 +44,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 		if err != nil {
 			tflog.Warn(ctx, fmt.Sprintf("Failed to download icon image from URL '%s': %v. Continuing without setting the icon.", imageURL, err))
 		} else {
-			largeIcon := models.NewMimeContent()
+			largeIcon := graphmodels.NewMimeContent()
 			iconType := "image/png"
 			largeIcon.SetTypeEscaped(&iconType)
 			largeIcon.SetValue(iconBytes)
@@ -91,18 +91,18 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (model
 	requestBody.SetAdditionalData(additionalData)
 
 	if data.InstallExperience != nil && !data.InstallExperience.RunAsAccount.IsNull() {
-		installExperience := models.NewWinGetAppInstallExperience()
+		installExperience := graphmodels.NewWinGetAppInstallExperience()
 		runAsAccount := data.InstallExperience.RunAsAccount.ValueString()
 		switch runAsAccount {
 		case "system":
-			systemAccount := models.SYSTEM_RUNASACCOUNTTYPE
+			systemAccount := graphmodels.SYSTEM_RUNASACCOUNTTYPE
 			installExperience.SetRunAsAccount(&systemAccount)
 		case "user":
-			userAccount := models.USER_RUNASACCOUNTTYPE
+			userAccount := graphmodels.USER_RUNASACCOUNTTYPE
 			installExperience.SetRunAsAccount(&userAccount)
 		default:
 			tflog.Warn(ctx, fmt.Sprintf("Unknown runAsAccount value '%s'. Defaulting to 'user'.", runAsAccount))
-			defaultRunAs := models.USER_RUNASACCOUNTTYPE
+			defaultRunAs := graphmodels.USER_RUNASACCOUNTTYPE
 			installExperience.SetRunAsAccount(&defaultRunAs)
 		}
 		requestBody.SetInstallExperience(installExperience)

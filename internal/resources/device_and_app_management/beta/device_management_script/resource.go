@@ -119,63 +119,8 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 				Description: "A value indicating whether the PowerShell script should run as 32-bit.",
 				Optional:    true,
 			},
-			"assignments": schema.ListNestedAttribute{
-				Description: "The assignments of the device management script.",
-				Optional:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Description: "Key of the device management script assignment entity. This property is read-only.",
-							Computed:    true,
-						},
-						"target": schema.SingleNestedAttribute{
-							Description: "The target of the assignment.",
-							Required:    true,
-							Attributes: map[string]schema.Attribute{
-								"device_and_app_management_assignment_filter_id": schema.StringAttribute{
-									Description: "The Id of the filter for the target assignment.",
-									Optional:    true,
-								},
-								"device_and_app_management_assignment_filter_type": schema.StringAttribute{
-									Description: "The type of filter of the target assignment i.e. Exclude or Include. Possible values are: `none`, `include`, `exclude`.",
-									Optional:    true,
-									Validators: []validator.String{
-										stringvalidator.OneOf("none", "include", "exclude"),
-									},
-								},
-								"target_type": schema.StringAttribute{
-									Description: "The target type of the assignment.",
-									Required:    true,
-									Validators: []validator.String{
-										stringvalidator.OneOf("user"),
-									},
-								},
-								"entra_object_id": schema.StringAttribute{
-									Description: "The ID of the Azure Active Directory object.",
-									Optional:    true,
-								},
-							},
-						},
-					},
-				},
-			},
-			"group_assignments": schema.ListNestedAttribute{
-				Description: "The group assignments of the device management script.",
-				Optional:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Description: "Key of the device management script group assignment entity. This property is read-only.",
-							Computed:    true,
-						},
-						"target_group_id": schema.StringAttribute{
-							Description: "The Id of the Azure Active Directory group we are targeting the script to.",
-							Required:    true,
-						},
-					},
-				},
-			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": commonschema.AssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
