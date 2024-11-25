@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/device_management_script"
+	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/windows_device_management_script"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )

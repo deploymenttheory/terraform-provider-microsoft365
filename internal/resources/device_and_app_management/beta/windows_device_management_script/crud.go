@@ -187,21 +187,27 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 
 // Update handles the Update operation for Device Management Script resources.
 //
-//   - Retrieves the planned changes from the update request
-//   - Constructs the resource request body from the plan
-//   - Sends PUT request to update the base resource and settings
-//   - Constructs the assignment request body from the plan
-//   - Sends POST request to update the assignments
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+//   - Deletes the existing resource
+//   - Creates a new resource with the updated settings and assignments
+//   - Updates the Terraform state with the new resource ID and settings
 //
-// The function ensures that both the settings and assignments are updated atomically,
-// and the final state reflects the actual state of the resource on the server.
+// NOTE: The Update operation is implemented as a delete followed by a create operation.
+// This is because the Microsoft Graph Beta API does not support updating the settings of a device management script
+// resource directly despite what the SDK and documentation may suggest.
+// https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-update?view=graph-rest-beta
+// Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
+// Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
 func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
+	// Get current state
+	var state DeviceManagementScriptResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get planned changes
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -213,68 +219,97 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
+	// First delete the existing resource using the API but don't remove from state
+	err := r.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(state.ID.ValueString()).
+		Delete(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update - Delete", r.WritePermissions)
+		return
+	}
+
+	// Then create new resource
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	_, err = r.client.
+	// create resource
+	requestResource, err := r.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		Post(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
+
+	object.ID = types.StringValue(*requestResource.GetId())
+
+	// create assignments
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for create method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			DeviceManagementScripts().
+			ByDeviceManagementScriptId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, requestAssignment, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
+	}
+
+	// Update state with the new resource ID
+	respResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
+		Get(context.Background(), nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for update method",
-			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
-	}
-
-	err = r.client.
+	respAssignments, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
+		Assignments().
+		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
 		return
 	}
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.State = readResp.State
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete handles the Delete operation for Device Management Script resources.

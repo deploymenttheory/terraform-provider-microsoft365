@@ -2,62 +2,55 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_device_management_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune Device Management Script"
 description: |-
-  The resource device_management_script manages an Intune device management script
+  The resource device_management_script manages an Intune windows platform script
 ---
 
 # microsoft365_graph_beta_device_and_app_management_device_management_script (Resource)
 
-The resource `device_management_script` manages an Intune device management script
+The resource `device_management_script` manages an Intune windows platform script
 
 ## Example Usage
 
 ```terraform
-# Example: Device Management Script Resource
-
-# Data source for Azure AD group (assuming you have this data source available)
-data "azuread_group" "example_group" {
-  display_name = "Example Group"
-}
+// Example: Device Management Script Resource
 
 resource "microsoft365_graph_beta_device_and_app_management_device_management_script" "example" {
-  display_name = "Example Device Management Script"
-  description  = "This is an example device management script"
+  display_name       = "Example Device Management Script 1"
+  description        = "This is an example device management script"
+  role_scope_tag_ids = ["0"]
 
-  # The actual script content (PowerShell in this example)
+  # The actual script content (should be PowerShell script content only)
   script_content = <<EOT
     # Your PowerShell script here
     Write-Host "Hello from device management script!"
     # Add more PowerShell commands as needed
   EOT
 
-  run_as_account           = "system"  # Can be "system" or "user"
-  enforce_signature_check  = false
-  file_name                = "example_script.ps1"
-  run_as_32_bit            = false
+  run_as_account         = "system" # Can be "system" or "user"
+  enforce_signature_check = false
+  file_name              = "example_script.ps1"
+  run_as_32_bit          = false
 
-  role_scope_tag_ids = ["tag1", "tag2"]
-
-  # Example assignment
   assignments = {
-    target = {
-      target_type                                     = "user"
-      device_and_app_management_assignment_filter_id   = "filter-id-123"
-      device_and_app_management_assignment_filter_type = "include"
-      entra_object_id                                  = "user-object-id-456"
-    }
+    all_devices = false
+    all_users   = false
+
+    include_group_ids = [
+      "51a96cdd-4b9b-4849-b416-8c94a6d88797",
+      "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+    ]
+
+    exclude_group_ids = [
+      "b8c661c2-fa9a-4351-af86-adc1729c343f",
+      "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f"
+    ]
   }
 
-  # Example group assignment
-  group_assignments = {
-    target_group_id = data.azuread_group.example_group.object_id
-  }
-
-  # Optional: Define custom timeouts
   timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "30m"
+    create = "1m"
+    read   = "1m"
+    update = "1m"
+    delete = "1m"
   }
 }
 ```
@@ -74,10 +67,9 @@ resource "microsoft365_graph_beta_device_and_app_management_device_management_sc
 
 ### Optional
 
-- `assignments` (Attributes List) The assignments of the device management script. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the device management script.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
-- `group_assignments` (Attributes List) The group assignments of the device management script. (see [below for nested schema](#nestedatt--group_assignments))
 - `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
 - `run_as_32_bit` (Boolean) A value indicating whether the PowerShell script should run as 32-bit.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -91,39 +83,12 @@ resource "microsoft365_graph_beta_device_and_app_management_device_management_sc
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
-Required:
-
-- `target` (Attributes) The target of the assignment. (see [below for nested schema](#nestedatt--assignments--target))
-
-Read-Only:
-
-- `id` (String) Key of the device management script assignment entity. This property is read-only.
-
-<a id="nestedatt--assignments--target"></a>
-### Nested Schema for `assignments.target`
-
-Required:
-
-- `target_type` (String) The target type of the assignment.
-
 Optional:
 
-- `device_and_app_management_assignment_filter_id` (String) The Id of the filter for the target assignment.
-- `device_and_app_management_assignment_filter_type` (String) The type of filter of the target assignment i.e. Exclude or Include. Possible values are: `none`, `include`, `exclude`.
-- `entra_object_id` (String) The ID of the Azure Active Directory object.
-
-
-
-<a id="nestedatt--group_assignments"></a>
-### Nested Schema for `group_assignments`
-
-Required:
-
-- `target_group_id` (String) The Id of the Azure Active Directory group we are targeting the script to.
-
-Read-Only:
-
-- `id` (String) Key of the device management script group assignment entity. This property is read-only.
+- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_users`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `exclude_group_ids`.
+- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_devices`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `exclude_group_ids`.
+- `exclude_group_ids` (Set of String) A set of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
+- `include_group_ids` (Set of String) A set of entra id group Id's to include in the assignment.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -141,8 +106,6 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-#!/bin/bash
-
 # Using the provider-default project ID, the import ID is:
 # {resource_id}
 terraform terraform import microsoft365_graph_beta_device_and_app_management_device_management_script.example device-management-script-id

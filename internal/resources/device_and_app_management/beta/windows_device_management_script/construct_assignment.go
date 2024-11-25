@@ -28,12 +28,12 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 
 	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
-		assignments = append(assignments, constructAllDevicesAssignment(ctx, data.Assignments))
+		assignments = append(assignments, constructAllDevicesAssignment())
 	}
 
 	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
-		assignments = append(assignments, constructAllUsersAssignment(ctx, data.Assignments))
+		assignments = append(assignments, constructAllUsersAssignment())
 	}
 
 	// Check Include Groups
@@ -42,7 +42,7 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 		len(data.Assignments.IncludeGroupIds) > 0 {
 		for _, id := range data.Assignments.IncludeGroupIds {
 			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
-				assignments = append(assignments, constructGroupIncludeAssignments(ctx, data.Assignments)...)
+				assignments = append(assignments, constructGroupIncludeAssignments(data.Assignments)...)
 				break
 			}
 		}
@@ -73,7 +73,7 @@ func constructAssignment(ctx context.Context, data *DeviceManagementScriptResour
 }
 
 // constructAllDevicesAssignment constructs and returns a DeviceManagementScriptAssignment object for all devices
-func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) graphsdkmodels.DeviceManagementScriptAssignmentable {
+func constructAllDevicesAssignment() graphsdkmodels.DeviceManagementScriptAssignmentable {
 	assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 	target := graphsdkmodels.NewAllDevicesAssignmentTarget()
 
@@ -82,7 +82,7 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Dev
 }
 
 // constructAllUsersAssignment constructs and returns a DeviceManagementScriptAssignment object for all licensed users
-func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) graphsdkmodels.DeviceManagementScriptAssignmentable {
+func constructAllUsersAssignment() graphsdkmodels.DeviceManagementScriptAssignmentable {
 	assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 	target := graphsdkmodels.NewAllLicensedUsersAssignmentTarget()
 
@@ -91,7 +91,7 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Devic
 }
 
 // constructGroupIncludeAssignments constructs and returns a list of DeviceManagementConfigurationPolicyAssignment objects for included groups
-func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) []graphsdkmodels.DeviceManagementScriptAssignmentable {
+func constructGroupIncludeAssignments(config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) []graphsdkmodels.DeviceManagementScriptAssignmentable {
 	var assignments []graphsdkmodels.DeviceManagementScriptAssignmentable
 
 	for _, groupId := range config.IncludeGroupIds {
