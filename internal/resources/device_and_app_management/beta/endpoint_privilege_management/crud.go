@@ -3,6 +3,7 @@ package graphBetaEndpointPrivilegeManagement
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -13,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
+
+// Create requires a mutex need to lock Create requests during parallel runs
+var mu sync.Mutex
 
 // Create handles the Create operation for Endpoint Privilege Management resources.
 //
@@ -29,6 +33,9 @@ import (
 // as they are required for a successful deployment, while assignments are optional.
 func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan EndpointPrivilegeManagementResourceModel
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

@@ -11,7 +11,7 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, typeName string, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
+func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*models.DeviceAndAppManagementAssignmentFilter, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewDeviceAndAppManagementAssignmentFilter()
