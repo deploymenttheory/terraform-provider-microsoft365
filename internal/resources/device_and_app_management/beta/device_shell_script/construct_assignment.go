@@ -23,7 +23,7 @@ func constructAssignment(ctx context.Context, data *DeviceShellScriptResourceMod
 		return nil, err
 	}
 
-	requestBody := devicemanagement.NewDeviceManagementScriptsItemAssignPostRequestBody()
+	requestBody := devicemanagement.NewDeviceShellScriptsItemAssignPostRequestBody()
 	assignments := make([]graphsdkmodels.DeviceManagementScriptAssignmentable, 0)
 
 	// Check All Devices
