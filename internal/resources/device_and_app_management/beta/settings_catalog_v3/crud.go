@@ -15,8 +15,13 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
+var (
+	// mutex needed to lock Create requests during parallel runs to avoid overwhelming api and resulting in stating issues
+	mu sync.Mutex
+
+	// object is the resource model for the Endpoint Privilege Management resource
+	object SettingsCatalogProfileResourceModel
+)
 
 // Create handles the Create operation for Settings Catalog resources.
 //
@@ -32,25 +37,24 @@ var mu sync.Mutex
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan SettingsCatalogProfileResourceModel
 
 	mu.Lock()
 	defer mu.Unlock()
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -69,10 +73,10 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	plan.ID = types.StringValue(*requestResource.GetId())
+	object.ID = types.StringValue(*requestResource.GetId())
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for create method",
@@ -84,7 +88,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -97,19 +101,19 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(context.Background(), nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
-	MapRemoteResourceStateToTerraform(ctx, &plan, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Settings().
 		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
 			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
@@ -123,12 +127,12 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	settingsList := respSettings.GetValue()
-	MapRemoteSettingsStateToTerraform(ctx, &plan, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(context.Background(), nil)
 
@@ -137,9 +141,9 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &plan, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -156,23 +160,22 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 //   - Maps the settings configuration to Terraform state
 //   - Gets the assignments configuration from the API
 //   - Maps the assignments configuration to Terraform state
-//   - Updates the final Terraform state with all mapped data
 //
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state SettingsCatalogProfileResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -181,7 +184,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	respResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -189,13 +192,13 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &state, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
 	// Retrieve settings from the response
 	respSettings, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Settings().
 		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
 			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
@@ -211,12 +214,12 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	// Extract the list of settings from the collection response
 	settingsList := respSettings.GetValue()
 
-	MapRemoteSettingsStateToTerraform(ctx, &state, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(context.Background(), nil)
 
@@ -225,9 +228,9 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &state, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -249,21 +252,21 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan SettingsCatalogProfileResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -275,7 +278,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	putRequest := client.CustomPutRequestConfig{
 		APIVersion:  client.GraphAPIBeta,
 		Endpoint:    "deviceManagement/configurationPolicies",
-		ResourceID:  plan.ID.ValueString(),
+		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
@@ -285,7 +288,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	requestAssignment, err := constructAssignment(ctx, &plan)
+	requestAssignment, err := constructAssignment(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment for update method",
@@ -297,7 +300,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assign().
 		Post(ctx, requestAssignment, nil)
 
@@ -306,7 +309,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -338,16 +341,15 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -356,7 +358,7 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 	err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(data.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
