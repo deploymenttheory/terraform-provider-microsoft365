@@ -18,7 +18,6 @@ func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResour
 	}
 
 	tflog.Debug(ctx, "Starting assignment construction")
-	logAssignmentDetails(ctx, data.Assignments)
 
 	if err := validateAssignmentConfig(data.Assignments); err != nil {
 		return nil, err
@@ -27,17 +26,13 @@ func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResour
 	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
 	assignments := make([]graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
 
-	hasAssignments := false
-
 	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
-		hasAssignments = true
 		assignments = append(assignments, constructAllDevicesAssignment(ctx, data.Assignments))
 	}
 
 	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
-		hasAssignments = true
 		assignments = append(assignments, constructAllUsersAssignment(ctx, data.Assignments))
 	}
 
@@ -47,7 +42,6 @@ func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResour
 		len(data.Assignments.IncludeGroups) > 0 {
 		for _, group := range data.Assignments.IncludeGroups {
 			if !group.GroupId.IsNull() && !group.GroupId.IsUnknown() && group.GroupId.ValueString() != "" {
-				hasAssignments = true
 				assignments = append(assignments, constructGroupIncludeAssignments(ctx, data.Assignments)...)
 				break
 			}
@@ -58,7 +52,6 @@ func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResour
 	if len(data.Assignments.ExcludeGroupIds) > 0 {
 		for _, id := range data.Assignments.ExcludeGroupIds {
 			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
-				hasAssignments = true
 				assignments = append(assignments, constructGroupExcludeAssignments(data.Assignments)...)
 				break
 			}
@@ -69,14 +62,12 @@ func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResour
 	// as update http method is a post not patch.
 	requestBody.SetAssignments(assignments)
 
-	tflog.Debug(ctx, "Assignment construction complete", map[string]interface{}{
-		"has_assignments":    hasAssignments,
-		"total_assignments":  len(assignments),
-		"all_devices":        data.Assignments.AllDevices.ValueBool(),
-		"all_users":          data.Assignments.AllUsers.ValueBool(),
-		"include_groups_len": len(data.Assignments.IncludeGroups),
-		"exclude_ids_len":    len(data.Assignments.ExcludeGroupIds),
-	})
+	// Debug log the final request body
+	if err := construct.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	return requestBody, nil
 }
@@ -192,48 +183,4 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 	}
 
 	return assignments
-}
-
-// logAssignmentDetails logs detailed information about the assignments configuration
-func logAssignmentDetails(ctx context.Context, assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) {
-	tflog.Debug(ctx, "Policy Assignment Configuration Details", map[string]interface{}{
-		// All Devices fields
-		"all_devices":             assignments.AllDevices.ValueBool(),
-		"all_devices_filter_id":   assignments.AllDevicesFilterId.ValueString(),
-		"all_devices_filter_type": assignments.AllDevicesFilterType.ValueString(),
-
-		// All Users fields
-		"all_users":             assignments.AllUsers.ValueBool(),
-		"all_users_filter_id":   assignments.AllUsersFilterId.ValueString(),
-		"all_users_filter_type": assignments.AllUsersFilterType.ValueString(),
-
-		// Include Groups count
-		"include_groups_count": len(assignments.IncludeGroups),
-
-		// Exclude Groups count
-		"exclude_groups_count": len(assignments.ExcludeGroupIds),
-	})
-
-	// Log each include group separately
-	if len(assignments.IncludeGroups) > 0 {
-		for i, group := range assignments.IncludeGroups {
-			tflog.Debug(ctx, "Include Group Details", map[string]interface{}{
-				"index":                      i,
-				"group_id":                   group.GroupId.ValueString(),
-				"include_groups_filter_id":   group.IncludeGroupsFilterId.ValueString(),
-				"include_groups_filter_type": group.IncludeGroupsFilterType.ValueString(),
-			})
-		}
-	}
-
-	// Log exclude groups
-	if len(assignments.ExcludeGroupIds) > 0 {
-		excludeIds := make([]string, 0, len(assignments.ExcludeGroupIds))
-		for _, id := range assignments.ExcludeGroupIds {
-			excludeIds = append(excludeIds, id.ValueString())
-		}
-		tflog.Debug(ctx, "Exclude Group Details", map[string]interface{}{
-			"exclude_group_ids": excludeIds,
-		})
-	}
 }

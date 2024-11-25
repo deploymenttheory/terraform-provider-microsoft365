@@ -10,17 +10,27 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ datasource.DataSource = &DeviceManagementScriptDataSource{}
-var _ datasource.DataSourceWithConfigure = &DeviceManagementScriptDataSource{}
+var (
+	// Basic resource interface (CRUD operations)
+	_ datasource.DataSource = &DeviceManagementScriptDataSource{}
+
+	// Allows the resource to be configured with the provider client
+	_ datasource.DataSourceWithConfigure = &DeviceManagementScriptDataSource{}
+)
 
 func NewDeviceManagementScriptDataSource() datasource.DataSource {
-	return &DeviceManagementScriptDataSource{}
+	return &DeviceManagementScriptDataSource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+	}
 }
 
 type DeviceManagementScriptDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
 }
 
 func (d *DeviceManagementScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

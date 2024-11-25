@@ -119,7 +119,7 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 				Description: "A value indicating whether the PowerShell script should run as 32-bit.",
 				Optional:    true,
 			},
-			"assignments": commonschema.AssignmentsSchema(),
+			"assignments": commonschema.ScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

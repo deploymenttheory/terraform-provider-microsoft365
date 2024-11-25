@@ -2,6 +2,7 @@ package graphBetaDeviceManagementScript
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -23,7 +24,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceManageme
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
 	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.ScriptContent = types.StringValue(state.ByteToString(remoteResource.GetScriptContent()))
+	decoded, err := base64.StdEncoding.DecodeString(string(remoteResource.GetScriptContent()))
+	if err != nil {
+		tflog.Warn(ctx, "Failed to decode base64 script content", map[string]interface{}{
+			"error": err.Error(),
+		})
+		data.ScriptContent = types.StringValue(string(remoteResource.GetScriptContent())) // Use original if decode fails
+		return
+	}
+	data.ScriptContent = types.StringValue(string(decoded))
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())

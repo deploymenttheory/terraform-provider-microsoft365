@@ -17,7 +17,7 @@ var (
 	// mutex needed to lock Create requests during parallel runs to avoid overwhelming api and resulting in stating issues
 	mu sync.Mutex
 
-	// object is the resource model for the Endpoint Privilege Management resource
+	// object is the resource model for the device management script resource
 	object DeviceManagementScriptResourceModel
 )
 
