@@ -25,6 +25,6 @@ type IncludeGroup struct {
 type DeviceManagementScriptAssignmentResourceModel struct {
 	AllDevices      types.Bool     `tfsdk:"all_devices"`
 	AllUsers        types.Bool     `tfsdk:"all_users"`
-	IncludeGroupIds []types.String `tfsdk:"include_groups_ids"`
+	IncludeGroupIds []types.String `tfsdk:"include_group_ids"`
 	ExcludeGroupIds []types.String `tfsdk:"exclude_group_ids"`
 }
