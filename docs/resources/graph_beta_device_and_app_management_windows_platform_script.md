@@ -76,9 +76,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
 
 ### Read-Only
 
-- `created_date_time` (String) The date and time the device management script was created. This property is read-only.
 - `id` (String) Unique Identifier for the device management script.
-- `last_modified_date_time` (String) The date and time the device management script was last modified. This property is read-only.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
