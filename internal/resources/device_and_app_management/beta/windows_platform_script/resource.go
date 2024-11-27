@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_device_management_script"
+	ResourceName = "graph_beta_device_and_app_management_windows_platform_script"
 )
 
 var (
@@ -68,7 +68,7 @@ func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req re
 
 func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune windows platform script",
+		Description: "Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Unique Identifier for the device management script.",
