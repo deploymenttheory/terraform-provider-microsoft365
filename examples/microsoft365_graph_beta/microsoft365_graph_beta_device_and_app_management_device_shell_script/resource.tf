@@ -1,22 +1,27 @@
 // Example: Device Shell Script Resource
 
 resource "microsoft365_graph_beta_device_and_app_management_device_shell_script" "example" {
-  display_name       = "Example Device Shell Script 1"
-  description        = "This is an example device management script"
-  role_scope_tag_ids = ["0"]
-
-  # The actual script content (should be PowerShell script content only)
+  # Required fields
+  display_name = "MacOS Shell Script 2"
+  description  = "Example shell script for MacOS devices"
+  
   script_content = <<EOT
-    # Your PowerShell script here
-    Write-Host "Hello from device management script!"
-    # Add more PowerShell commands as needed
+    #!/bin/bash
+    echo "Hello World"
   EOT
-
-  run_as_account         = "system" # Can be "system" or "user"
-  enforce_signature_check = false
-  file_name              = "example_script.ps1"
-  run_as_32_bit          = false
-
+  
+  run_as_account = "system"  # Possible values: "system" or "user"
+  file_name      = "example_script.sh"
+  
+  # Optional fields
+  block_execution_notifications = false
+  execution_frequency          = "P1D"  # ISO 8601 duration format (e.g., P1D for 1 day, PT1H for 1 hour)
+  retry_count                  = 3
+  
+  # Role scope tag IDs (optional)
+  role_scope_tag_ids = ["0"]
+  
+  # Script assignments (optional)
   assignments = {
     all_devices = false
     all_users   = false
@@ -32,10 +37,11 @@ resource "microsoft365_graph_beta_device_and_app_management_device_shell_script"
     ]
   }
 
+  # Timeouts configuration (optional)
   timeouts = {
-    create = "1m"
-    read   = "1m"
-    update = "1m"
-    delete = "1m"
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "30m"
   }
 }
