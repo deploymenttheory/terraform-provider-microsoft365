@@ -80,7 +80,7 @@ Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $Tenan
 
 # Retrieve and output the specified catalog policy
 Write-Host "Retrieving catalog policy with ID: $SettingsCatalogItemId"
-$catalogItemData = Get-SettingsCatalogPolicyById -CatalogItemId $SettingsCatalogItemId
+$catalogItemData = Get-SettingsCatalogPolicyById -SettingsCatalogItemId $SettingsCatalogItemId
 
 if ($null -ne $catalogItemData) {
     Write-Host "`nFull JSON output for settings catalog policy:"

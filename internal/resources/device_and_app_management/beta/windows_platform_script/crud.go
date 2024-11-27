@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementScript
+package graphBetaWindowsPlatformScript
 
 import (
 	"context"
@@ -18,11 +18,11 @@ var (
 	mu sync.Mutex
 
 	// object is the resource model for the device management script resource
-	object DeviceManagementScriptResourceModel
+	object WindowsPlatformScriptResourceModel
 )
 
 // Create handles the Create operation.
-func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
 	mu.Lock()
 	defer mu.Unlock()
@@ -131,7 +131,7 @@ func (r *DeviceManagementScriptResource) Create(ctx context.Context, req resourc
 // The function ensures that all components (base resource and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
-func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -197,11 +197,11 @@ func (r *DeviceManagementScriptResource) Read(ctx context.Context, req resource.
 // https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-update?view=graph-rest-beta
 // Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
 // Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
-func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	// Get current state
-	var state DeviceManagementScriptResourceModel
+	var state WindowsPlatformScriptResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -320,7 +320,7 @@ func (r *DeviceManagementScriptResource) Update(ctx context.Context, req resourc
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *DeviceManagementScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

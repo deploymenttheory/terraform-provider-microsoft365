@@ -43,7 +43,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementMobileAppAssignment.NewMobileAppAssignmentResource,
 		graphBetaDeviceAndAppManagementSettingsCatalog.NewSettingsCatalogResource,
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
-		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewDeviceManagementScriptResource,
+		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,

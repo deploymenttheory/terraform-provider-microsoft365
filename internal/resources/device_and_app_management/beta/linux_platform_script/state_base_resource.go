@@ -1,4 +1,4 @@
-package graphBetaWindowsPlatformScript
+package graphBetaLinuxPlatformScript
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a SettingsCatalogProfileResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatformScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -29,14 +29,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatfor
 		tflog.Warn(ctx, "Failed to decode base64 script content", map[string]interface{}{
 			"error": err.Error(),
 		})
-		data.ScriptContent = types.StringValue(string(remoteResource.GetScriptContent())) // Use original if decode fails
+		data.ScriptContent = types.StringValue(string(remoteResource.GetScriptContent()))
 		return
 	}
 	data.ScriptContent = types.StringValue(string(decoded))
-	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
-	data.EnforceSignatureCheck = types.BoolValue(state.BoolPtrToBool(remoteResource.GetEnforceSignatureCheck()))
-	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))
-	data.RunAs32Bit = types.BoolValue(state.BoolPtrToBool(remoteResource.GetRunAs32Bit()))
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{

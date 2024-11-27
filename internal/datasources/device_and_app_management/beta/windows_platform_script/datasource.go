@@ -10,34 +10,39 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var (
-	// Basic resource interface (CRUD operations)
-	_ datasource.DataSource = &DeviceManagementScriptDataSource{}
-
-	// Allows the resource to be configured with the provider client
-	_ datasource.DataSourceWithConfigure = &DeviceManagementScriptDataSource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_windows_platform_script"
 )
 
-func NewDeviceManagementScriptDataSource() datasource.DataSource {
-	return &DeviceManagementScriptDataSource{
+var (
+	// Basic resource interface (CRUD operations)
+	_ datasource.DataSource = &WindowsPlatformScriptDataSource{}
+
+	// Allows the resource to be configured with the provider client
+	_ datasource.DataSourceWithConfigure = &WindowsPlatformScriptDataSource{}
+)
+
+func NewWindowsPlatformScriptDataSource() datasource.DataSource {
+	return &WindowsPlatformScriptDataSource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
 	}
 }
 
-type DeviceManagementScriptDataSource struct {
+type WindowsPlatformScriptDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
 	ReadPermissions  []string
 }
 
-func (d *DeviceManagementScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_device_management_script"
+// Metadata returns the resource type name.
+func (r *WindowsPlatformScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
-func (d *DeviceManagementScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Retrieves information about a device management script.",
 		Attributes: map[string]schema.Attribute{
@@ -141,6 +146,6 @@ func (d *DeviceManagementScriptDataSource) Schema(ctx context.Context, req datas
 	}
 }
 
-func (d *DeviceManagementScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *WindowsPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

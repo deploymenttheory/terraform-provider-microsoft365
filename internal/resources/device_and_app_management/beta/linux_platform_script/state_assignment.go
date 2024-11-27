@@ -1,17 +1,18 @@
-package graphBetaWindowsPlatformScript
+package graphBetaLinuxPlatformScript
 
 import (
 	"context"
 	"sort"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsPlatformScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *LinuxPlatformScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return
@@ -19,7 +20,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsPlatf
 
 	tflog.Debug(ctx, "Starting to map policy assignment to Terraform state")
 
-	assignments := &sharedmodels.DeviceManagementScriptAssignmentResourceModel{
+	assignments := &sharedmodels.SettingsCatalogSettingsAssignmentResourceModel{
 		AllDevices: types.BoolValue(false),
 		AllUsers:   types.BoolValue(false),
 	}
@@ -46,44 +47,55 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsPlatf
 }
 
 // MapAllDeviceAssignments maps the all devices assignment configuration to the assignments model
-func MapAllDeviceAssignments(assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementScriptAssignmentable) {
+func MapAllDeviceAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(allDeviceAssignments) > 0 {
 		assignments.AllDevices = types.BoolValue(true)
 	}
 }
 
 // MapAllUserAssignments maps the all users assignment configuration to the assignments model
-func MapAllUserAssignments(assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel, allUserAssignments []models.DeviceManagementScriptAssignmentable) {
+func MapAllUserAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allUserAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(allUserAssignments) > 0 {
 		assignments.AllUsers = types.BoolValue(true)
 	}
 }
 
 // MapIncludeGroupAssignments maps the include groups assignment configuration to the assignments model
-func MapIncludeGroupAssignments(assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
+func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(includeGroupAssignments) == 0 {
 		return
 	}
 
-	includeGroupIds := make([]types.String, 0)
+	assignments.IncludeGroups = make([]sharedmodels.IncludeGroup, 0, len(includeGroupAssignments))
+
 	for _, assignment := range includeGroupAssignments {
 		if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
-			if groupId := target.GetGroupId(); groupId != nil {
-				includeGroupIds = append(includeGroupIds, types.StringValue(*groupId))
+			includeGroup := sharedmodels.IncludeGroup{
+				GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
 			}
+
+			if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
+				includeGroup.IncludeGroupsFilterId = types.StringValue(*filterId)
+				if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
+					includeGroup.IncludeGroupsFilterType = state.EnumPtrToTypeString(filterType)
+				}
+			} else {
+				includeGroup.IncludeGroupsFilterId = types.StringNull()
+				includeGroup.IncludeGroupsFilterType = types.StringValue("none")
+			}
+
+			assignments.IncludeGroups = append(assignments.IncludeGroups, includeGroup)
 		}
 	}
 
-	// Sort include group IDs alphanumerically
-	sort.Slice(includeGroupIds, func(i, j int) bool {
-		return includeGroupIds[i].ValueString() < includeGroupIds[j].ValueString()
+	// Sort IncludeGroups by GroupId
+	sort.Slice(assignments.IncludeGroups, func(i, j int) bool {
+		return assignments.IncludeGroups[i].GroupId.ValueString() < assignments.IncludeGroups[j].GroupId.ValueString()
 	})
-
-	assignments.IncludeGroupIds = includeGroupIds
 }
 
 // MapExcludeGroupAssignments maps the exclude groups assignment configuration to the assignments model
-func MapExcludeGroupAssignments(assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
+func MapExcludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(excludeGroupAssignments) == 0 {
 		return
 	}

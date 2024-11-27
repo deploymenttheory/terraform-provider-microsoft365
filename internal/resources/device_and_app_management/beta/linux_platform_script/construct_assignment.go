@@ -1,4 +1,4 @@
-package graphBetaEndpointPrivilegeManagement
+package graphBetaLinuxPlatformScript
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *EndpointPrivilegeManagementResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
+func constructAssignment(ctx context.Context, data *LinuxPlatformScriptResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
@@ -28,13 +28,11 @@ func constructAssignment(ctx context.Context, data *EndpointPrivilegeManagementR
 
 	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
-
 		assignments = append(assignments, constructAllDevicesAssignment(ctx, data.Assignments))
 	}
 
 	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
-
 		assignments = append(assignments, constructAllUsersAssignment(ctx, data.Assignments))
 	}
 
@@ -79,23 +77,8 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Set
 	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 	target := graphsdkmodels.NewAllDevicesAssignmentTarget()
 
-	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
-		config.AllDevicesFilterId.ValueString() != "" {
-		construct.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
-
-		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
-			err := construct.ParseEnum(config.AllDevicesFilterType,
-				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-				target.SetDeviceAndAppManagementAssignmentFilterType)
-			if err != nil {
-				tflog.Warn(ctx, "Failed to parse all devices filter type", map[string]interface{}{
-					"error": err.Error(),
-				})
-			}
-		}
-	}
-
 	assignment.SetTarget(target)
+
 	return assignment
 }
 
@@ -104,23 +87,8 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Setti
 	assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 	target := graphsdkmodels.NewAllLicensedUsersAssignmentTarget()
 
-	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
-		config.AllUsersFilterId.ValueString() != "" {
-		construct.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
-
-		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
-			err := construct.ParseEnum(config.AllUsersFilterType,
-				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-				target.SetDeviceAndAppManagementAssignmentFilterType)
-			if err != nil {
-				tflog.Warn(ctx, "Failed to parse all users filter type", map[string]interface{}{
-					"error": err.Error(),
-				})
-			}
-		}
-	}
-
 	assignment.SetTarget(target)
+
 	return assignment
 }
 
@@ -134,21 +102,6 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 
 		construct.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
 
-		if !groupFilter.IncludeGroupsFilterId.IsNull() && !groupFilter.IncludeGroupsFilterType.IsNull() {
-			construct.SetStringProperty(groupFilter.IncludeGroupsFilterId,
-				target.SetDeviceAndAppManagementAssignmentFilterId)
-
-			err := construct.ParseEnum(groupFilter.IncludeGroupsFilterType,
-				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-				target.SetDeviceAndAppManagementAssignmentFilterType)
-			if err != nil {
-				tflog.Warn(ctx, "Failed to parse include groups filter type", map[string]interface{}{
-					"error":   err.Error(),
-					"groupId": groupFilter.GroupId.ValueString(),
-				})
-			}
-		}
-
 		assignment.SetTarget(target)
 		assignments = append(assignments, assignment)
 	}
@@ -156,6 +109,7 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 	return assignments
 }
 
+// constructGroupExcludeAssignments constructs and returns a list of DeviceManagementConfigurationPolicyAssignment objects for excluded groups
 func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
 	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
 
@@ -168,14 +122,12 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 		}
 	}
 
-	// Only process if we have valid excludes
 	if hasValidExcludes {
 		for _, groupId := range config.ExcludeGroupIds {
 			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
 				assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
 
-				// Use construct helper for setting the group ID
 				construct.SetStringProperty(groupId, target.SetGroupId)
 
 				assignment.SetTarget(target)
