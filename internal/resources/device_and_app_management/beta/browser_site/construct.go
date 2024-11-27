@@ -6,14 +6,14 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs an assignment filter resource using data from the Terraform model.
-func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (models.BrowserSiteable, error) {
+func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (graphmodels.BrowserSiteable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewBrowserSite()
+	requestBody := graphmodels.NewBrowserSite()
 
 	if !data.AllowRedirect.IsNull() && !data.AllowRedirect.IsUnknown() {
 		allowRedirect := data.AllowRedirect.ValueBool()
@@ -27,12 +27,12 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 
 	if !data.CompatibilityMode.IsNull() && !data.CompatibilityMode.IsUnknown() {
 		compatibilityModeStr := data.CompatibilityMode.ValueString()
-		compatibilityModeAny, err := models.ParseBrowserSiteCompatibilityMode(compatibilityModeStr)
+		compatibilityModeAny, err := graphmodels.ParseBrowserSiteCompatibilityMode(compatibilityModeStr)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing CompatibilityMode: %v", err)
 		}
 		if compatibilityModeAny != nil {
-			compatibilityMode, ok := compatibilityModeAny.(*models.BrowserSiteCompatibilityMode)
+			compatibilityMode, ok := compatibilityModeAny.(*graphmodels.BrowserSiteCompatibilityMode)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for CompatibilityMode: %T", compatibilityModeAny)
 			}
@@ -42,12 +42,12 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 
 	if !data.MergeType.IsNull() && !data.MergeType.IsUnknown() {
 		mergeTypeStr := data.MergeType.ValueString()
-		mergeTypeAny, err := models.ParseBrowserSiteMergeType(mergeTypeStr)
+		mergeTypeAny, err := graphmodels.ParseBrowserSiteMergeType(mergeTypeStr)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing MergeType: %v", err)
 		}
 		if mergeTypeAny != nil {
-			mergeType, ok := mergeTypeAny.(*models.BrowserSiteMergeType)
+			mergeType, ok := mergeTypeAny.(*graphmodels.BrowserSiteMergeType)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for MergeType: %T", mergeTypeAny)
 			}
@@ -57,12 +57,12 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (mod
 
 	if !data.TargetEnvironment.IsNull() && !data.TargetEnvironment.IsUnknown() {
 		targetEnvironmentStr := data.TargetEnvironment.ValueString()
-		targetEnvironmentAny, err := models.ParseBrowserSiteTargetEnvironment(targetEnvironmentStr)
+		targetEnvironmentAny, err := graphmodels.ParseBrowserSiteTargetEnvironment(targetEnvironmentStr)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing TargetEnvironment: %v", err)
 		}
 		if targetEnvironmentAny != nil {
-			targetEnvironment, ok := targetEnvironmentAny.(*models.BrowserSiteTargetEnvironment)
+			targetEnvironment, ok := targetEnvironmentAny.(*graphmodels.BrowserSiteTargetEnvironment)
 			if !ok {
 				return nil, fmt.Errorf("unexpected type for TargetEnvironment: %T", targetEnvironmentAny)
 			}

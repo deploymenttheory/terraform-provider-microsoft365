@@ -7,14 +7,14 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs a MacOSPkgApp resource using data from the Terraform model.
-func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (models.MacOSPkgAppable, error) {
+func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (graphmodels.MacOSPkgAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewMacOSPkgApp()
+	requestBody := graphmodels.NewMacOSPkgApp()
 
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
@@ -94,16 +94,16 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 	}
 
 	if data.LargeIcon.Type != types.StringNull() && data.LargeIcon.Value != types.StringNull() {
-		largeIcon := models.NewMimeContent()
+		largeIcon := graphmodels.NewMimeContent()
 		//largeIcon.SetType(data.LargeIcon.Type.ValueStringPointer()) // TODO: field not in sdk yet, but is in data model
 		largeIcon.SetValue([]byte(data.LargeIcon.Value.ValueString()))
 		requestBody.SetLargeIcon(largeIcon)
 	}
 
 	if len(data.IncludedApps) > 0 {
-		includedApps := make([]models.MacOSIncludedAppable, 0, len(data.IncludedApps))
+		includedApps := make([]graphmodels.MacOSIncludedAppable, 0, len(data.IncludedApps))
 		for _, v := range data.IncludedApps {
-			includedApp := models.NewMacOSIncludedApp()
+			includedApp := graphmodels.NewMacOSIncludedApp()
 			includedApp.SetBundleId(v.BundleId.ValueStringPointer())
 			includedApp.SetBundleVersion(v.BundleVersion.ValueStringPointer())
 			includedApps = append(includedApps, includedApp)
@@ -111,7 +111,7 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 		requestBody.SetIncludedApps(includedApps)
 	}
 
-	minOS := models.NewMacOSMinimumOperatingSystem()
+	minOS := graphmodels.NewMacOSMinimumOperatingSystem()
 	minOS.SetV107(data.MinimumSupportedOperatingSystem.V10_7.ValueBoolPointer())
 	minOS.SetV108(data.MinimumSupportedOperatingSystem.V10_8.ValueBoolPointer())
 	minOS.SetV109(data.MinimumSupportedOperatingSystem.V10_9.ValueBoolPointer())
@@ -128,13 +128,13 @@ func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (mod
 	requestBody.SetMinimumSupportedOperatingSystem(minOS)
 
 	if data.PreInstallScript.ScriptContent != types.StringNull() {
-		preInstallScript := models.NewMacOSAppScript()
+		preInstallScript := graphmodels.NewMacOSAppScript()
 		preInstallScript.SetScriptContent(data.PreInstallScript.ScriptContent.ValueStringPointer())
 		requestBody.SetPreInstallScript(preInstallScript)
 	}
 
 	if data.PostInstallScript.ScriptContent != types.StringNull() {
-		postInstallScript := models.NewMacOSAppScript()
+		postInstallScript := graphmodels.NewMacOSAppScript()
 		postInstallScript.SetScriptContent(data.PostInstallScript.ScriptContent.ValueStringPointer())
 		requestBody.SetPostInstallScript(postInstallScript)
 	}

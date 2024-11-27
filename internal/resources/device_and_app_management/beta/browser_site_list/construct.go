@@ -6,13 +6,13 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) (models.BrowserSiteListable, error) {
+func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) (graphmodels.BrowserSiteListable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewBrowserSiteList()
+	requestBody := graphmodels.NewBrowserSiteList()
 
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		description := data.Description.ValueString()

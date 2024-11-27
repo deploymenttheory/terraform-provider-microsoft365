@@ -6,14 +6,14 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
-func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (models.RoleDefinitionable, error) {
+func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (graphmodels.RoleDefinitionable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := models.NewRoleDefinition()
+	requestBody := graphmodels.NewRoleDefinition()
 
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
@@ -36,9 +36,9 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 	}
 
 	if len(data.RolePermissions) > 0 {
-		rolePermissions := make([]models.RolePermissionable, 0, len(data.RolePermissions))
+		rolePermissions := make([]graphmodels.RolePermissionable, 0, len(data.RolePermissions))
 		for _, v := range data.RolePermissions {
-			rolePermission := models.NewRolePermission()
+			rolePermission := graphmodels.NewRolePermission()
 
 			if len(v.Actions) > 0 {
 				actions := make([]string, 0, len(v.Actions))
@@ -51,9 +51,9 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 			}
 
 			if len(v.ResourceActions) > 0 {
-				resourceActions := make([]models.ResourceActionable, 0, len(v.ResourceActions))
+				resourceActions := make([]graphmodels.ResourceActionable, 0, len(v.ResourceActions))
 				for _, ra := range v.ResourceActions {
-					resourceAction := models.NewResourceAction()
+					resourceAction := graphmodels.NewResourceAction()
 
 					var allowedActions []string
 					for _, a := range ra.AllowedResourceActions {

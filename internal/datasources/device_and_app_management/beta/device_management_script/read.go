@@ -6,58 +6,67 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/device_management_script"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func (d *DeviceManagementScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data resource.DeviceManagementScriptResourceModel
+var (
+	// object is the resource model for the device management script resource
+	object resource.DeviceManagementScriptResourceModel
+)
 
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+func (d *DeviceManagementScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	scriptId := data.ID.ValueString()
-	tflog.Info(ctx, fmt.Sprintf("Reading Device Management Script with ID: %s", scriptId))
+	// Read base resource
+	respResource, err := d.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	script, err := d.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(scriptId).Get(ctx, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Device Management Script, got error: %s", err))
+		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 		return
 	}
 
-	// Map the response to the data model using the resource's mapping function
-	resource.MapRemoteStateToTerraform(ctx, &data, script)
+	resource.MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	assignments, err := d.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(scriptId).Assignments().Get(ctx, nil)
+	// Read assignments
+	respAssignments, err := d.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddWarning("Client Error", fmt.Sprintf("Unable to read Device Management Script assignments, got error: %s", err))
-	} else {
-		// Iterate over assignments and map each one
-		for _, assignment := range assignments.GetValue() {
-			resource.MapAssignmentsRemoteStateToTerraform(assignment)
-		}
+		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+		return
 	}
 
-	groupAssignments, err := d.client.DeviceManagement().DeviceManagementScripts().ByDeviceManagementScriptId(scriptId).GroupAssignments().Get(ctx, nil)
-	if err != nil {
-		resp.Diagnostics.AddWarning("Client Error", fmt.Sprintf("Unable to read Device Management Script group assignments, got error: %s", err))
-	} else {
-		// Iterate over group assignments and map each one
-		for _, groupAssignment := range groupAssignments.GetValue() {
-			resource.MapGroupAssignmentsRemoteStateToTerraform(groupAssignment)
-		}
+	resource.MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s", d.ProviderTypeName, d.TypeName))
 }

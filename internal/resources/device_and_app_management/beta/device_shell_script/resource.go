@@ -1,7 +1,8 @@
-package graphBetaDeviceManagementScript
+package graphBetaDeviceShellScript
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -15,25 +16,25 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_device_management_script"
+	ResourceName = "graph_beta_device_and_app_management_device_shell_script"
 )
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceManagementScriptResource{}
+	_ resource.Resource = &DeviceShellScriptResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithConfigure = &DeviceShellScriptResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithImportState = &DeviceShellScriptResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithModifyPlan = &DeviceShellScriptResource{}
 )
 
-func NewDeviceManagementScriptResource() resource.Resource {
-	return &DeviceManagementScriptResource{
+func NewDeviceShellScriptResource() resource.Resource {
+	return &DeviceShellScriptResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -43,7 +44,7 @@ func NewDeviceManagementScriptResource() resource.Resource {
 	}
 }
 
-type DeviceManagementScriptResource struct {
+type DeviceShellScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -52,23 +53,23 @@ type DeviceManagementScriptResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceManagementScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DeviceShellScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceManagementScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DeviceShellScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DeviceShellScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DeviceShellScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune windows platform script",
+		Description: "Manages an Intune macOS platform script",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Unique Identifier for the device management script.",
@@ -102,10 +103,6 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 					stringvalidator.OneOf("system", "user"),
 				},
 			},
-			"enforce_signature_check": schema.BoolAttribute{
-				Description: "Indicate whether the script signature needs be checked.",
-				Optional:    true,
-			},
 			"file_name": schema.StringAttribute{
 				Description: "Script file name.",
 				Required:    true,
@@ -115,8 +112,22 @@ func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resourc
 				Optional:    true,
 				ElementType: types.StringType,
 			},
-			"run_as_32_bit": schema.BoolAttribute{
-				Description: "A value indicating whether the PowerShell script should run as 32-bit.",
+			"block_execution_notifications": schema.BoolAttribute{
+				Description: "Does not notify the user a script is being executed.",
+				Optional:    true,
+			},
+			"execution_frequency": schema.StringAttribute{
+				Optional:    true,
+				Description: "The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$`),
+						"must be a valid ISO 8601 duration",
+					),
+				},
+			},
+			"retry_count": schema.Int32Attribute{
+				Description: "Number of times for the script to be retried if it fails.",
 				Optional:    true,
 			},
 			"assignments": commonschema.ScriptAssignmentsSchema(),
