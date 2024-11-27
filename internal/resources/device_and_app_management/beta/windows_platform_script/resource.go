@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementScript
+package graphBetaWindowsPlatformScript
 
 import (
 	"context"
@@ -20,20 +20,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceManagementScriptResource{}
+	_ resource.Resource = &WindowsPlatformScriptResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithConfigure = &WindowsPlatformScriptResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithImportState = &WindowsPlatformScriptResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceManagementScriptResource{}
+	_ resource.ResourceWithModifyPlan = &WindowsPlatformScriptResource{}
 )
 
-func NewDeviceManagementScriptResource() resource.Resource {
-	return &DeviceManagementScriptResource{
+func NewWindowsPlatformScriptResource() resource.Resource {
+	return &WindowsPlatformScriptResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -43,7 +43,7 @@ func NewDeviceManagementScriptResource() resource.Resource {
 	}
 }
 
-type DeviceManagementScriptResource struct {
+type WindowsPlatformScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -52,21 +52,21 @@ type DeviceManagementScriptResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceManagementScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsPlatformScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceManagementScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsPlatformScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsPlatformScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{

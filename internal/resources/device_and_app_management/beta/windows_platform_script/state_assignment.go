@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementScript
+package graphBetaWindowsPlatformScript
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *DeviceManagementScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *WindowsPlatformScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return

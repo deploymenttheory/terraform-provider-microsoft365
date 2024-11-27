@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementScript
+package graphBetaWindowsPlatformScript
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a SettingsCatalogProfileResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceManagementScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatformScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

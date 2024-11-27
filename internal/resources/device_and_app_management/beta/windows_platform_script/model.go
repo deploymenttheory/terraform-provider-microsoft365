@@ -1,6 +1,6 @@
 // https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementscript?view=graph-rest-beta
 
-package graphBetaDeviceManagementScript
+package graphBetaWindowsPlatformScript
 
 import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type DeviceManagementScriptResourceModel struct {
+type WindowsPlatformScriptResourceModel struct {
 	ID                    types.String                                                `tfsdk:"id"`
 	DisplayName           types.String                                                `tfsdk:"display_name"`
 	Description           types.String                                                `tfsdk:"description"`
