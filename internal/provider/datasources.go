@@ -23,7 +23,7 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
-		graphBetaWindowsPlatformScript.NewDeviceManagementScriptDataSource,
+		graphBetaWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 
 		// Add microsoft 365 provider datasources here

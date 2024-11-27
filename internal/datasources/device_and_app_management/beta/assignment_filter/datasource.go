@@ -10,21 +10,35 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ datasource.DataSource = &AssignmentFilterDataSource{}
-var _ datasource.DataSourceWithConfigure = &AssignmentFilterDataSource{}
+const (
+	ResourceName = "graph_beta_device_and_app_management_assignment_filter"
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ datasource.DataSource = &AssignmentFilterDataSource{}
+
+	// Allows the resource to be configured with the provider client
+	_ datasource.DataSourceWithConfigure = &AssignmentFilterDataSource{}
+)
 
 func NewAssignmentFilterDataSource() datasource.DataSource {
-	return &AssignmentFilterDataSource{}
+	return &AssignmentFilterDataSource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+	}
 }
 
 type AssignmentFilterDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
 }
 
 func (d *AssignmentFilterDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_beta_device_and_app_management_assignment_filter"
+	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
