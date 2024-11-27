@@ -322,6 +322,7 @@ var SettingsCatalogModel struct {
 	} `json:"settingsDetails"`
 }
 
+// constructSettingsCatalogSettings is a helper function to construct the settings catalog settings from the JSON data.
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
