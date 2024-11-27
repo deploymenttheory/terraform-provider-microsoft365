@@ -69,7 +69,7 @@ func (r *DeviceShellScriptResource) ImportState(ctx context.Context, req resourc
 
 func (r *DeviceShellScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The resource `device_management_script` manages an Intune macOS platform script",
+		Description: "Manages an Intune macOS platform script",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Unique Identifier for the device management script.",
@@ -126,7 +126,7 @@ func (r *DeviceShellScriptResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-			"retry_count": schema.Int64Attribute{
+			"retry_count": schema.Int32Attribute{
 				Description: "Number of times for the script to be retried if it fails.",
 				Optional:    true,
 			},

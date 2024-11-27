@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 var (
@@ -23,7 +24,6 @@ var (
 
 // Create handles the Create operation.
 func (r *DeviceShellScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -86,31 +86,23 @@ func (r *DeviceShellScriptResource) Create(ctx context.Context, req resource.Cre
 		}
 	}
 
-	// Update state with the new resource ID
+	// resource and assignments are found within the same call
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
 		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(context.Background(), nil)
+		Get(context.Background(), &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
+
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -123,16 +115,13 @@ func (r *DeviceShellScriptResource) Create(ctx context.Context, req resource.Cre
 // Read handles the Read operation for device management script resources.
 //
 //   - Retrieves the current state from the read request
-//   - Gets the base resource details from the API
-//   - Maps the base resource details to Terraform state
-//   - Gets the assignments configuration from the API
-//   - Maps the assignments configuration to Terraform state
+//   - Gets the resource details including assignments from the API using expand
+//   - Maps both resource and assignment details to Terraform state
 //
-// The function ensures that all components (base resource and assignments)
-// are properly read and mapped into the Terraform state, providing a complete view
-// of the resource's current configuration on the server.
+// The function ensures all components are properly read and mapped into the
+// Terraform state in a single API call, providing a complete view of the
+// resource's current configuration on the server.
 func (r *DeviceShellScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -148,12 +137,16 @@ func (r *DeviceShellScriptResource) Read(ctx context.Context, req resource.ReadR
 	}
 	defer cancel()
 
-	// Read base resource
+	// Read resource with expanded assignments
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
 		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -161,21 +154,6 @@ func (r *DeviceShellScriptResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	// Read assignments
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -187,27 +165,25 @@ func (r *DeviceShellScriptResource) Read(ctx context.Context, req resource.ReadR
 
 // Update handles the Update operation for Device Management Script resources.
 //
-//   - Deletes the existing resource
-//   - Creates a new resource with the updated settings and assignments
-//   - Updates the Terraform state with the new resource ID and settings
+// The function performs the following operations:
+//   - Patches the existing script resource with updated settings using PATCH
+//   - Updates assignments using POST if they are defined
+//   - Retrieves the updated resource with expanded assignments
+//   - Maps the remote state back to Terraform
 //
-// NOTE: The Update operation is implemented as a delete followed by a create operation.
-// This is because the Microsoft Graph Beta API does not support updating the settings of a device management script
-// resource directly despite what the SDK and documentation may suggest.
-// https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-update?view=graph-rest-beta
-// Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
-// Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
+// The Microsoft Graph Beta API supports direct updates of device shell script resources
+// through PATCH operations for the base resource, while assignments are handled through
+// a separate POST operation to the assign endpoint. This allows for atomic updates
+// of both the script properties and its assignments.
 func (r *DeviceShellScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	// Get current state
 	var state DeviceShellScriptResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get planned changes
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -219,19 +195,6 @@ func (r *DeviceShellScriptResource) Update(ctx context.Context, req resource.Upd
 	}
 	defer cancel()
 
-	// First delete the existing resource using the API but don't remove from state
-	err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(state.ID.ValueString()).
-		Delete(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update - Delete", r.WritePermissions)
-		return
-	}
-
-	// Then create new resource
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -241,25 +204,22 @@ func (r *DeviceShellScriptResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// create resource
-	requestResource, err := r.client.
+	_, err = r.client.
 		DeviceManagement().
 		DeviceShellScripts().
-		Post(ctx, requestBody, nil)
+		ByDeviceShellScriptId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*requestResource.GetId())
-
-	// create assignments
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for create method",
+				"Error constructing assignment for update method",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
@@ -268,48 +228,39 @@ func (r *DeviceShellScriptResource) Update(ctx context.Context, req resource.Upd
 		err = r.client.
 			DeviceManagement().
 			DeviceShellScripts().
-			ByDeviceShellScriptId(object.ID.ValueString()).
+			ByDeviceShellScriptId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 			return
 		}
 	}
 
-	// Update state with the new resource ID
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(context.Background(), nil)
+		ByDeviceShellScriptId(state.ID.ValueString()).
+		Get(ctx, &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update - Get", r.WritePermissions)
 		return
 	}
+
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete handles the Delete operation for Device Management Script resources.

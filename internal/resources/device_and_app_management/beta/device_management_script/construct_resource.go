@@ -2,7 +2,6 @@ package graphBetaDeviceManagementScript
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
@@ -27,8 +26,7 @@ func constructResource(ctx context.Context, data *DeviceManagementScriptResource
 	}
 
 	if !data.ScriptContent.IsNull() {
-		encodedContent := base64.StdEncoding.EncodeToString([]byte(data.ScriptContent.ValueString()))
-		scriptContent := []byte(encodedContent)
+		scriptContent := []byte(data.ScriptContent.ValueString())
 		requestBody.SetScriptContent(scriptContent)
 	}
 

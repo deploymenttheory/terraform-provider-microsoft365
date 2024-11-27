@@ -68,7 +68,7 @@ func (r *DeviceManagementScriptResource) ImportState(ctx context.Context, req re
 
 func (r *DeviceManagementScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The resource `device_management_script` manages an Intune windows platform script",
+		Description: "Manages an Intune windows platform script",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Unique Identifier for the device management script.",
