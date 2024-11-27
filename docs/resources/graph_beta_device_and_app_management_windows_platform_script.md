@@ -1,41 +1,36 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_device_shell_script Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_windows_platform_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune Device Management Script"
 description: |-
-  Manages an Intune macOS platform script
+  Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
 ---
 
-# microsoft365_graph_beta_device_and_app_management_device_shell_script (Resource)
+# microsoft365_graph_beta_device_and_app_management_windows_platform_script (Resource)
 
-Manages an Intune macOS platform script
+Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
 
 ## Example Usage
 
 ```terraform
-// Example: Device Shell Script Resource
+// Example: Device Management Script Resource
 
-resource "microsoft365_graph_beta_device_and_app_management_device_shell_script" "example" {
-  # Required fields
-  display_name = "MacOS Shell Script 2"
-  description  = "Example shell script for MacOS devices"
-  
-  script_content = <<EOT
-    #!/bin/bash
-    echo "Hello World"
-  EOT
-  
-  run_as_account = "system"  # Possible values: "system" or "user"
-  file_name      = "example_script.sh"
-  
-  # Optional fields
-  block_execution_notifications = false
-  execution_frequency          = "P1D"  # ISO 8601 duration format (e.g., P1D for 1 day, PT1H for 1 hour)
-  retry_count                  = 3
-  
-  # Role scope tag IDs (optional)
+resource "microsoft365_graph_beta_device_and_app_management_windows_platform_script" "example" {
+  display_name       = "Example Device Management Script"
+  description        = "This is an example device management script"
   role_scope_tag_ids = ["0"]
-  
-  # Script assignments (optional)
+
+  # The actual script content (should be PowerShell script content only)
+  script_content = <<EOT
+    # Your PowerShell script here
+    Write-Host "Hello from device management script!"
+    # Add more PowerShell commands as needed
+  EOT
+
+  run_as_account         = "system" # Can be "system" or "user"
+  enforce_signature_check = false
+  file_name              = "example_script.ps1"
+  run_as_32_bit          = false
+
   assignments = {
     all_devices = false
     all_users   = false
@@ -51,12 +46,11 @@ resource "microsoft365_graph_beta_device_and_app_management_device_shell_script"
     ]
   }
 
-  # Timeouts configuration (optional)
   timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "30m"
+    create = "1m"
+    read   = "1m"
+    update = "1m"
+    delete = "1m"
   }
 }
 ```
@@ -74,11 +68,10 @@ resource "microsoft365_graph_beta_device_and_app_management_device_shell_script"
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
-- `block_execution_notifications` (Boolean) Does not notify the user a script is being executed.
 - `description` (String) Optional description for the device management script.
-- `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.
-- `retry_count` (Number) Number of times for the script to be retried if it fails.
+- `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
 - `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
+- `run_as_32_bit` (Boolean) A value indicating whether the PowerShell script should run as 32-bit.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -115,6 +108,6 @@ Import is supported using the following syntax:
 ```shell
 # Using the provider-default project ID, the import ID is:
 # {resource_id}
-terraform terraform import microsoft365_graph_beta_device_and_app_management_device_shell_script.example device-shell-script-id
+terraform terraform import microsoft365_graph_beta_device_and_app_management_device_management_script.example device-management-script-id
 ```
 

@@ -1,8 +1,8 @@
 // Example: Device Shell Script Resource
 
-resource "microsoft365_graph_beta_device_and_app_management_device_shell_script" "example" {
+resource "microsoft365_graph_beta_device_and_app_management_macos_platform_script" "example" {
   # Required fields
-  display_name = "MacOS Shell Script 2"
+  display_name = "MacOS Shell Script"
   description  = "Example shell script for MacOS devices"
   
   script_content = <<EOT

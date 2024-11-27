@@ -4,7 +4,7 @@ import (
 	"context"
 
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/assignment_filter"
-	graphBetaDeviceManagementScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/device_management_script"
+	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/beta/windows_platform_script"
 	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/v1.0/cloud_pc_device_image"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -23,7 +23,7 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
-		graphBetaDeviceManagementScript.NewDeviceManagementScriptDataSource,
+		graphBetaWindowsPlatformScript.NewDeviceManagementScriptDataSource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 
 		// Add microsoft 365 provider datasources here
