@@ -87,14 +87,6 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 				Required:    true,
 				Sensitive:   true,
 			},
-			"created_date_time": schema.StringAttribute{
-				Description: "The date and time the device management script was created. This property is read-only.",
-				Computed:    true,
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Description: "The date and time the device management script was last modified. This property is read-only.",
-				Computed:    true,
-			},
 			"run_as_account": schema.StringAttribute{
 				Description: "Indicates the type of execution context. Possible values are: `system`, `user`.",
 				Required:    true,

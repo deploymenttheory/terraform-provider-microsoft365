@@ -33,8 +33,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatfor
 		return
 	}
 	data.ScriptContent = types.StringValue(string(decoded))
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
 	data.EnforceSignatureCheck = types.BoolValue(state.BoolPtrToBool(remoteResource.GetEnforceSignatureCheck()))
 	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))

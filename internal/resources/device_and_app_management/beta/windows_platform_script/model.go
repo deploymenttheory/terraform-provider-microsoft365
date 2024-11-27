@@ -13,8 +13,6 @@ type WindowsPlatformScriptResourceModel struct {
 	DisplayName           types.String                                                `tfsdk:"display_name"`
 	Description           types.String                                                `tfsdk:"description"`
 	ScriptContent         types.String                                                `tfsdk:"script_content"`
-	CreatedDateTime       types.String                                                `tfsdk:"created_date_time"`
-	LastModifiedDateTime  types.String                                                `tfsdk:"last_modified_date_time"`
 	RunAsAccount          types.String                                                `tfsdk:"run_as_account"`
 	EnforceSignatureCheck types.Bool                                                  `tfsdk:"enforce_signature_check"`
 	FileName              types.String                                                `tfsdk:"file_name"`
