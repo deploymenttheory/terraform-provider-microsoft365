@@ -1,7 +1,7 @@
 // Example: Device Management Script Resource
 
-resource "microsoft365_graph_beta_device_and_app_management_device_management_script" "example" {
-  display_name       = "Example Device Management Script 1"
+resource "microsoft365_graph_beta_device_and_app_management_windows_platform_script" "example" {
+  display_name       = "Example Device Management Script"
   description        = "This is an example device management script"
   role_scope_tag_ids = ["0"]
 
