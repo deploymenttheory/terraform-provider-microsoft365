@@ -41,7 +41,7 @@ var standardErrorDescriptions = map[int]ErrorDescription{
 	},
 	403: {
 		Summary: "Forbidden - 403",
-		Detail:  "You don't have permission to perform this action.",
+		Detail:  "Your credentials do not have permission to perform this action.",
 	},
 	404: {
 		Summary: "Not Found - 404",
