@@ -55,7 +55,7 @@ jobs:
     - name: Generate and check docs
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --provider-name microsoft365 --rendered-provider-name "Microsoft 365"
+        tfplugindocs generate --examples-dir examples
         git diff HEAD --exit-code -- docs/
 
   # Release for Partner and Community Providers
