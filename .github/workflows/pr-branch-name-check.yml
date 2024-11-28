@@ -12,12 +12,12 @@ jobs:
       - name: Check Branch Name
         run: |
           BRANCH_NAME="${{ github.head_ref }}"
-          PATTERN="^(feat|fix|docs|style|refactor|test|chore|build|ci|perf)-[a-zA-Z0-9._-]+$"
+          PATTERN="^([Ff]eat|[Ff]ix|[Dd]ocs|[Ss]tyle|[Rr]efactor|[Tt]est|[Cc]hore|[Bb]uild|[Cc]i|[Pp]erf)-[a-zA-Z0-9._-]+$"
           
           if ! echo "$BRANCH_NAME" | grep -qE "$PATTERN"; then
             echo "ERROR: Branch name '$BRANCH_NAME' does not follow the conventional format."
-            echo "Branch names must start with one of: feat-, fix-, docs-, style-, refactor-, test-, chore-, build-, ci-, perf-"
-            echo "Example: feat-add-new-resource"
+            echo "Branch names must start with one of: feat-, fix-, docs-, style-, refactor-, test-, chore-, build-, ci-, perf- (or their capitalized versions Feat-, Fix-, etc.)"
+            echo "Example: feat-add-new-resource or Feat-add-new-resource"
             exit 1
           fi
           
