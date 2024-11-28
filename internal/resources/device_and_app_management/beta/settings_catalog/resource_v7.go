@@ -39,13 +39,12 @@ var (
 func NewSettingsCatalogResource() resource.Resource {
 	return &SettingsCatalogResource{
 		ReadPermissions: []string{
-			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementApps.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/configurationPolicies",
 	}
 }
 
@@ -55,6 +54,7 @@ type SettingsCatalogResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

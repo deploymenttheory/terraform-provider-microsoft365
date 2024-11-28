@@ -44,6 +44,7 @@ func NewWinGetAppResource() resource.Resource {
 			"DeviceManagementApps.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceAppManagement/mobileApps",
 	}
 }
 
@@ -53,6 +54,7 @@ type WinGetAppResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

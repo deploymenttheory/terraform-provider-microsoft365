@@ -38,6 +38,7 @@ const (
 // 		WritePermissions: []string{
 // 			"DeviceManagementConfiguration.ReadWrite.All",
 // 		},
+// 		ResourcePath: "/deviceManagement/configurationPolicies",
 // 	}
 // }
 
@@ -47,6 +48,7 @@ type LinuxPlatformScriptResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

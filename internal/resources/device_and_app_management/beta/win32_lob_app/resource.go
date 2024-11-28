@@ -35,13 +35,12 @@ var (
 func NewWin32LobAppResource() resource.Resource {
 	return &Win32LobAppResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementApps.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementConfiguration.ReadWrite.All",
 			"DeviceManagementApps.ReadWrite.All",
 		},
+		ResourcePath: "/deviceAppManagement/mobileApps",
 	}
 }
 
@@ -51,6 +50,7 @@ type Win32LobAppResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

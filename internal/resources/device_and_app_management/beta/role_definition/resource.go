@@ -40,6 +40,7 @@ func NewRoleDefinitionResource() resource.Resource {
 			"DeviceManagementRBAC.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/roleDefinitions",
 	}
 }
 
@@ -49,6 +50,7 @@ type RoleDefinitionResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
