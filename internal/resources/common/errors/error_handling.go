@@ -32,31 +32,31 @@ type GraphErrorInfo struct {
 // standardErrorDescriptions provides consistent error messaging across the provider
 var standardErrorDescriptions = map[int]ErrorDescription{
 	400: {
-		Summary: "Bad Request",
+		Summary: "Bad Request - 400",
 		Detail:  "The request was invalid or malformed. Please check the request parameters and try again.",
 	},
 	401: {
-		Summary: "Unauthorized",
+		Summary: "Unauthorized - 401",
 		Detail:  "Authentication failed. Please check your credentials and permissions.",
 	},
 	403: {
-		Summary: "Forbidden",
+		Summary: "Forbidden - 403",
 		Detail:  "You don't have permission to perform this action.",
 	},
 	404: {
-		Summary: "Not Found",
+		Summary: "Not Found - 404",
 		Detail:  "The requested resource was not found.",
 	},
 	409: {
-		Summary: "Conflict",
+		Summary: "Conflict - 409",
 		Detail:  "The request conflicts with the current state of the server.",
 	},
 	429: {
-		Summary: "Too Many Requests",
+		Summary: "Too Many Requests - 429",
 		Detail:  "Too many requests. Please try again later.",
 	},
 	500: {
-		Summary: "Internal Server Error",
+		Summary: "Internal Server Error - 500",
 		Detail:  "An internal server error occurred. Please try again later.",
 	},
 }
@@ -95,6 +95,7 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 
 // Utility functions
 
+// parseStatusCode extracts the status code from an error message
 func parseStatusCode(errMsg string) int {
 	if strings.Contains(errMsg, "status code") {
 		parts := strings.Split(errMsg, "status code")
