@@ -37,11 +37,11 @@ var standardErrorDescriptions = map[int]ErrorDescription{
 	},
 	401: {
 		Summary: "Unauthorized - 401",
-		Detail:  "Authentication failed. Please check your credentials and permissions.",
+		Detail:  "Authentication failed. Please check your Entra ID credentials and permissions.",
 	},
 	403: {
 		Summary: "Forbidden - 403",
-		Detail:  "Your credentials do not have permission to perform this action.",
+		Detail:  "Your credentials lack sufficient authorisation to perform this operation. Grant the required Microsoft Graph permissions to your Entra ID authentication method.",
 	},
 	404: {
 		Summary: "Not Found - 404",
@@ -49,15 +49,15 @@ var standardErrorDescriptions = map[int]ErrorDescription{
 	},
 	409: {
 		Summary: "Conflict - 409",
-		Detail:  "The request conflicts with the current state of the server.",
+		Detail:  "The operation failed due to a conflicts with the current state of the target resource. this might be due to multiple clients modifying the same resource simultaneously,the requested resource may not be in the state that was expected, or the request itself may create a conflict if it is completed.",
 	},
 	429: {
 		Summary: "Too Many Requests - 429",
-		Detail:  "Too many requests. Please try again later.",
+		Detail:  "Request throttled by Microsoft Graph API rate limits. Please try again later.",
 	},
 	500: {
 		Summary: "Internal Server Error - 500",
-		Detail:  "An internal server error occurred. Please try again later.",
+		Detail:  "Microsoft Graph API encountered an internal error.. Please try again later.",
 	},
 }
 
@@ -185,15 +185,14 @@ func constructErrorDetail(standardDetail, specificMessage string) string {
 // handlePermissionError processes permission-related errors
 func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}, operation string, requiredPermissions []string) {
 	var permissionMsg string
-	if len(requiredPermissions) > 0 {
-		if strings.ToLower(operation) == "read" {
-			readPerm := strings.Replace(requiredPermissions[0], "ReadWrite", "Read", 1)
-			permissionMsg = fmt.Sprintf("Required permissions: %s or %s", readPerm, requiredPermissions[0])
-		} else {
-			permissionMsg = fmt.Sprintf("Required permissions: %s", strings.Join(requiredPermissions, ", "))
-		}
+
+	// Format the message based on number of permissions
+	if len(requiredPermissions) == 1 {
+		permissionMsg = fmt.Sprintf("%s operation requires permission: %s", operation, requiredPermissions[0])
+	} else if len(requiredPermissions) > 1 {
+		permissionMsg = fmt.Sprintf("%s operation requires one of the following permission options: %s", operation, strings.Join(requiredPermissions, ", "))
 	} else {
-		permissionMsg = "No specific permissions provided."
+		permissionMsg = fmt.Sprintf("%s operation: No specific permissions defined. Please check microsoft documentation.", operation)
 	}
 
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
