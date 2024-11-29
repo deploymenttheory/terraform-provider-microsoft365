@@ -460,6 +460,86 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 			expected: `{"settingsDetails":[{"settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"numeric_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":1}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"date_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"2024-10-31T00:00:00"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"mixed_settings"}}]}`,
 			wantErr:  false,
 		},
+		{
+			name: "Nested Group Collections With Multiple Settings",
+			input: `{
+				"settingsDetails": [
+					{
+						"id": "0",
+						"settingInstance": {
+							"choiceSettingValue": {
+								"children": [
+									{
+										"groupSettingCollectionValue": [
+											{
+												"settingValueTemplateReference": null,
+												"children": [
+													{
+														"simpleSettingValue": {
+															"value": "thing",
+															"@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+															"settingValueTemplateReference": null
+														},
+														"@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+														"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key",
+														"settingInstanceTemplateReference": null
+													},
+													{
+														"simpleSettingValue": {
+															"value": "value1",
+															"@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+															"settingValueTemplateReference": null
+														},
+														"@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+														"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value",
+														"settingInstanceTemplateReference": null
+													}
+												]
+											},
+											{
+												"settingValueTemplateReference": null,
+												"children": [
+													{
+														"simpleSettingValue": {
+															"value": "thing2",
+															"@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+															"settingValueTemplateReference": null
+														},
+														"@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+														"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key",
+														"settingInstanceTemplateReference": null
+													},
+													{
+														"simpleSettingValue": {
+															"value": "value2",
+															"@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+															"settingValueTemplateReference": null
+														},
+														"@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+														"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value",
+														"settingInstanceTemplateReference": null
+													}
+												]
+											}
+										],
+										"@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+										"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt",
+										"settingInstanceTemplateReference": null
+									}
+								],
+								"value": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_1",
+								"settingValueTemplateReference": null
+							},
+							"@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+							"settingDefinitionId": "device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt",
+							"settingInstanceTemplateReference": null
+						}
+					}
+				]
+			}`,
+			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value1"}}],"settingValueTemplateReference":null},{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing2"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value2"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_1"},"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt","settingInstanceTemplateReference":null}}]}`,
+			wantErr:  false,
+		},
 	}
 
 	for _, tt := range tests {

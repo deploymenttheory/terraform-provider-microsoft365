@@ -119,7 +119,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
+					planmodifiers.NormalizeJSONPlanModifier{},
 				},
 			},
 			"platforms": schema.StringAttribute{

@@ -5,9 +5,16 @@ import (
 	"sort"
 )
 
-// JSONAlphabetically normalizes the JSON structure by sorting all keys alphabetically recursively
+// JSONAlphabetically normalizes the JSON structure by recursively sorting the keys
+// of all objects (maps) in alphabetical order. It ensures that:
+//  1. All keys within objects are sorted consistently across all nesting levels.
+//  2. Arrays (slices) retain their original order and are not sorted. However, any
+//     nested objects within arrays are normalized by sorting their keys alphabetically.
+//
+// This approach preserves the semantics of JSON arrays while ensuring consistent
+// ordering of keys in objects for easier comparison or processing.
 func JSONAlphabetically(input string) (string, error) {
-	var data map[string]interface{}
+	var data interface{}
 	if err := json.Unmarshal([]byte(input), &data); err != nil {
 		return "", err
 	}
@@ -16,6 +23,7 @@ func JSONAlphabetically(input string) (string, error) {
 	normalize = func(v interface{}) interface{} {
 		switch v := v.(type) {
 		case map[string]interface{}:
+			// Sort keys in maps
 			sorted := make(map[string]interface{})
 			keys := make([]string, 0, len(v))
 			for k := range v {
@@ -23,18 +31,20 @@ func JSONAlphabetically(input string) (string, error) {
 			}
 			sort.Strings(keys)
 			for _, k := range keys {
-				sorted[k] = normalize(v[k])
+				sorted[k] = normalize(v[k]) // Normalize recursively
 			}
 			return sorted
 
 		case []interface{}:
-			sortedArray := make([]interface{}, len(v))
+			// Retain array order but normalize nested objects within the array
+			normalizedArray := make([]interface{}, len(v))
 			for i, val := range v {
-				sortedArray[i] = normalize(val)
+				normalizedArray[i] = normalize(val) // Normalize each element
 			}
-			return sortedArray
+			return normalizedArray
 
 		default:
+			// Return primitive types as-is
 			return v
 		}
 	}
