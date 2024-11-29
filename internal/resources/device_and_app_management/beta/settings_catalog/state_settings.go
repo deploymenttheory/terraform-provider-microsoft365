@@ -9,6 +9,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteSettingsStateToTerraform maps the remote settings catalog settings state to the Terraform state
+// using the shared DeviceConfigV2GraphServiceMode used also for requests.
 func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, remoteSettings []graphmodels.DeviceManagementConfigurationSettingable) {
 	if remoteSettings == nil {
 		tflog.Debug(ctx, "Remote settings are nil")
