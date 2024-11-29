@@ -78,9 +78,12 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	return requestBody, nil
 }
 
-// DeviceConfigV2GraphServiceModel is a struct that represents the JSON structure of settings catalog settings.
-// This struct is used to unmarshal the settings JSON string into a structured format.
-// It represents windows, macOS, and iOS settings settings catalog settings.
+// DeviceConfigV2GraphServiceModel is a struct that represents the JSON structure of settings catalog settings
+// fors windows, linux, macOS, and iOS.
+// This struct is used for both marshalling and unmarshalling the settings JSON string into a structured format.
+// Keys are ordered alphabetically to ensure consistent ordering. This differs from the graph schema.
+// This doesn't affect requests to the Graph API, but it ensures that the state is consistent and can be compared
+// when using plan modifers.
 var DeviceConfigV2GraphServiceModel struct {
 	SettingsDetails []struct {
 		ID              string `json:"id"`
