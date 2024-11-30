@@ -33,13 +33,12 @@ var (
 func NewMacOSPkgAppResource() resource.Resource {
 	return &MacOSPkgAppResource{
 		ReadPermissions: []string{
-			"DeviceManagementApps.Read.All",
-			"DeviceManagementConfiguration.Read.All",
+			"BrowserSiteLists.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementApps.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
+			"BrowserSiteLists.ReadWrite.All",
 		},
+		ResourcePath: "/admin/edge/internetExplorerMode/siteLists/{browserSiteList-id}/sites",
 	}
 }
 
@@ -49,6 +48,7 @@ type MacOSPkgAppResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

@@ -40,6 +40,7 @@ func NewBrowserSiteResource() resource.Resource {
 		WritePermissions: []string{
 			"BrowserSiteLists.ReadWrite.All",
 		},
+		ResourcePath: "/admin/edge/internetExplorerMode/siteLists/{browserSiteList-id}/sites",
 	}
 }
 
@@ -49,6 +50,7 @@ type BrowserSiteResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

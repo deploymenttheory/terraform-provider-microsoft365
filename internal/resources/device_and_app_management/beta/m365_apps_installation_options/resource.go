@@ -40,6 +40,7 @@ func NewM365AppsInstallationOptionsResource() resource.Resource {
 		WritePermissions: []string{
 			"OrgSettings-Microsoft365Install.ReadWrite.All",
 		},
+		ResourcePath: "/admin/microsoft365Apps/installationOptions",
 	}
 }
 
@@ -49,6 +50,7 @@ type M365AppsInstallationOptionsResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

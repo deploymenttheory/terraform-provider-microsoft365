@@ -38,7 +38,8 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 		return
 	}
 
-	options, err := r.client.Admin().
+	options, err := r.client.
+		Admin().
 		Microsoft365Apps().
 		InstallationOptions().
 		Patch(ctx, requestBody, nil)

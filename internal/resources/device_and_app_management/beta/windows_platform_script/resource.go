@@ -35,11 +35,14 @@ var (
 func NewWindowsPlatformScriptResource() resource.Resource {
 	return &WindowsPlatformScriptResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementScripts.ReadWrite.All",
+			"DeviceManagementManagedDevices.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/deviceManagementScripts",
 	}
 }
 
@@ -49,6 +52,7 @@ type WindowsPlatformScriptResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

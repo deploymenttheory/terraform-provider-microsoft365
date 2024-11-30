@@ -3,7 +3,6 @@ package errors
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,32 +31,32 @@ type GraphErrorInfo struct {
 // standardErrorDescriptions provides consistent error messaging across the provider
 var standardErrorDescriptions = map[int]ErrorDescription{
 	400: {
-		Summary: "Bad Request",
+		Summary: "Bad Request - 400",
 		Detail:  "The request was invalid or malformed. Please check the request parameters and try again.",
 	},
 	401: {
-		Summary: "Unauthorized",
-		Detail:  "Authentication failed. Please check your credentials and permissions.",
+		Summary: "Unauthorized - 401",
+		Detail:  "Authentication failed. Please check your Entra ID credentials and permissions.",
 	},
 	403: {
-		Summary: "Forbidden",
-		Detail:  "You don't have permission to perform this action.",
+		Summary: "Forbidden - 403",
+		Detail:  "Your credentials lack sufficient authorisation to perform this operation. Grant the required Microsoft Graph permissions to your Entra ID authentication method.",
 	},
 	404: {
-		Summary: "Not Found",
+		Summary: "Not Found - 404",
 		Detail:  "The requested resource was not found.",
 	},
 	409: {
-		Summary: "Conflict",
-		Detail:  "The request conflicts with the current state of the server.",
+		Summary: "Conflict - 409",
+		Detail:  "The operation failed due to a conflicts with the current state of the target resource. this might be due to multiple clients modifying the same resource simultaneously,the requested resource may not be in the state that was expected, or the request itself may create a conflict if it is completed.",
 	},
 	429: {
-		Summary: "Too Many Requests",
-		Detail:  "Too many requests. Please try again later.",
+		Summary: "Too Many Requests - 429",
+		Detail:  "Request throttled by Microsoft Graph API rate limits. Please try again later.",
 	},
 	500: {
-		Summary: "Internal Server Error",
-		Detail:  "An internal server error occurred. Please try again later.",
+		Summary: "Internal Server Error - 500",
+		Detail:  "Microsoft Graph API encountered an internal error.. Please try again later.",
 	},
 }
 
@@ -95,21 +94,6 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 
 // Utility functions
 
-func parseStatusCode(errMsg string) int {
-	if strings.Contains(errMsg, "status code") {
-		parts := strings.Split(errMsg, "status code")
-		if len(parts) > 1 {
-			remaining := strings.Trim(parts[1], " :")
-			for _, word := range strings.Fields(remaining) {
-				if code, err := strconv.Atoi(word); err == nil {
-					return code
-				}
-			}
-		}
-	}
-	return 0
-}
-
 // GraphError extracts and processes error information from Graph API errors
 func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	errorInfo := GraphErrorInfo{
@@ -119,6 +103,8 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	if err == nil {
 		return errorInfo
 	}
+
+	errorInfo.ErrorMessage = err.Error()
 
 	tflog.Debug(ctx, "Processing error", map[string]interface{}{
 		"error_type": fmt.Sprintf("%T", err),
@@ -144,18 +130,45 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 				if code := mainError.GetCode(); code != nil {
 					errorInfo.ErrorCode = *code
 				}
-				if message := mainError.GetMessage(); message != nil {
+				if message := mainError.GetMessage(); message != nil && *message != "" {
 					errorInfo.ErrorMessage = *message
 				}
+
+				details := mainError.GetDetails()
+				if len(details) > 0 {
+					var detailMessages []string
+					for _, detail := range details {
+						if msg := detail.GetMessage(); msg != nil && *msg != "" {
+							detailMessages = append(detailMessages, *msg)
+						}
+					}
+					if len(detailMessages) > 0 {
+						errorInfo.ErrorMessage += "\nDetails: " + strings.Join(detailMessages, "; ")
+					}
+				}
+
+				if innerError := mainError.GetInnerError(); innerError != nil {
+					if reqID := innerError.GetRequestId(); reqID != nil {
+						errorInfo.AdditionalData["request_id"] = *reqID
+					}
+					if clientReqID := innerError.GetClientRequestId(); clientReqID != nil {
+						errorInfo.AdditionalData["client_request_id"] = *clientReqID
+					}
+					if date := innerError.GetDate(); date != nil {
+						errorInfo.AdditionalData["error_date"] = date.String()
+					}
+				}
 			}
-			errorInfo.AdditionalData = odataErr.GetAdditionalData()
 		} else if apiBaseErr, ok := apiErr.(*abstractions.ApiError); ok {
-			errorInfo.ErrorMessage = apiBaseErr.Message
+			if apiBaseErr.Message != "" {
+				errorInfo.ErrorMessage = apiBaseErr.Message
+			}
 		}
-	} else {
-		// Handle non-API errors
+	}
+
+	// If after all processing we still don't have an error message, use the original error
+	if errorInfo.ErrorMessage == "" {
 		errorInfo.ErrorMessage = err.Error()
-		errorInfo.StatusCode = parseStatusCode(err.Error())
 	}
 
 	logErrorDetails(ctx, &errorInfo)
@@ -184,19 +197,18 @@ func constructErrorDetail(standardDetail, specificMessage string) string {
 // handlePermissionError processes permission-related errors
 func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}, operation string, requiredPermissions []string) {
 	var permissionMsg string
-	if len(requiredPermissions) > 0 {
-		if strings.ToLower(operation) == "read" {
-			readPerm := strings.Replace(requiredPermissions[0], "ReadWrite", "Read", 1)
-			permissionMsg = fmt.Sprintf("Required permissions: %s or %s", readPerm, requiredPermissions[0])
-		} else {
-			permissionMsg = fmt.Sprintf("Required permissions: %s", strings.Join(requiredPermissions, ", "))
-		}
+
+	// Format the message based on number of permissions
+	if len(requiredPermissions) == 1 {
+		permissionMsg = fmt.Sprintf("%s operation requires permission: %s", operation, requiredPermissions[0])
+	} else if len(requiredPermissions) > 1 {
+		permissionMsg = fmt.Sprintf("%s operation requires one of the following permission options: %s", operation, strings.Join(requiredPermissions, ", "))
 	} else {
-		permissionMsg = "No specific permissions provided."
+		permissionMsg = fmt.Sprintf("%s operation: No specific permissions defined. Please check microsoft documentation.", operation)
 	}
 
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
-	detail := fmt.Sprintf("%s\n%s\nOriginal error: %s",
+	detail := fmt.Sprintf("%s\n%s\nGraph API Error: %s",
 		errorDesc.Detail,
 		permissionMsg,
 		errorInfo.ErrorMessage)

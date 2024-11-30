@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 var (
@@ -110,24 +109,48 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	respSettings, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-				Expand: []string{""},
-			},
-		})
+	// respSettings, err := r.client.
+	// 	DeviceManagement().
+	// 	ConfigurationPolicies().
+	// 	ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+	// 	Settings().
+	// 	Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
+	// 		QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
+	// 			Expand: []string{""},
+	// 		},
+	// 	})
+
+	// if err != nil {
+	// 	errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
+	// 	return
+	// }
+
+	// settingsList := respSettings.GetValue()
+	// MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
+
+	settingsConfig := client.CustomGetRequestConfig{
+		APIVersion:        client.GraphAPIBeta,
+		Endpoint:          "deviceManagement/configurationPolicies",
+		EndpointSuffix:    "/settings",
+		ResourceIDPattern: "('id')",
+		ResourceID:        object.ID.ValueString(),
+		QueryParameters: map[string]string{
+			"$expand": "children",
+		},
+	}
+
+	respSettings, err := client.SendCustomGetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
 		return
 	}
 
-	settingsList := respSettings.GetValue()
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
@@ -194,27 +217,51 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// Retrieve settings from the response
-	respSettings, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-				Expand: []string{""}, // Expand all related settings
-			},
-		})
+	// // Retrieve settings from the response
+	// respSettings, err := r.client.
+	// 	DeviceManagement().
+	// 	ConfigurationPolicies().
+	// 	ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+	// 	Settings().
+	// 	Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
+	// 		QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
+	// 			Expand: []string{""}, // Expand all related settings
+	// 		},
+	// 	})
+
+	// if err != nil {
+	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+	// 	return
+	// }
+
+	// // Extract the list of settings from the collection response
+	// settingsList := respSettings.GetValue()
+
+	// MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
+
+	settingsConfig := client.CustomGetRequestConfig{
+		APIVersion:        client.GraphAPIBeta,
+		Endpoint:          "deviceManagement/configurationPolicies",
+		EndpointSuffix:    "/settings",
+		ResourceIDPattern: "('id')",
+		ResourceID:        object.ID.ValueString(),
+		QueryParameters: map[string]string{
+			"$expand": "children",
+		},
+	}
+
+	respSettings, err := client.SendCustomGetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
 		return
 	}
 
-	// Extract the list of settings from the collection response
-	settingsList := respSettings.GetValue()
-
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
 
 	respAssignments, err := r.client.
 		DeviceManagement().

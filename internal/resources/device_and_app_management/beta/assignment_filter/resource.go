@@ -43,6 +43,7 @@ func NewAssignmentFilterResource() resource.Resource {
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "deviceManagement/assignmentFilters",
 	}
 }
 
@@ -52,6 +53,7 @@ type AssignmentFilterResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

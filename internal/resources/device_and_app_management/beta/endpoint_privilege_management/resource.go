@@ -37,6 +37,7 @@ func NewEndpointPrivilegeManagementResource() resource.Resource {
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/configurationPolicies",
 	}
 }
 
@@ -46,6 +47,7 @@ type EndpointPrivilegeManagementResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.

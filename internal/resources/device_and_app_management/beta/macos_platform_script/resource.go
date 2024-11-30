@@ -37,10 +37,13 @@ func NewDeviceShellScriptResource() resource.Resource {
 	return &DeviceShellScriptResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementManagedDevices.Read.All",
 		},
 		WritePermissions: []string{
+			"DeviceManagementManagedDevices.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/deviceShellScripts",
 	}
 }
 
@@ -50,6 +53,7 @@ type DeviceShellScriptResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
+	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
