@@ -28,34 +28,51 @@ import (
 // }
 
 func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, resp []byte) {
-	// Parse the raw response into a temporary map
+	// Parse the raw response
 	var rawResponse map[string]interface{}
 	if err := json.Unmarshal(resp, &rawResponse); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal settings response", map[string]interface{}{"error": err.Error()})
-		return
+		// Try parsing as array if map fails
+		var arrayResponse []interface{}
+		if err := json.Unmarshal(resp, &arrayResponse); err != nil {
+			tflog.Error(ctx, "Failed to unmarshal settings response", map[string]interface{}{"error": err.Error()})
+			return
+		}
+		rawResponse = map[string]interface{}{"value": arrayResponse}
 	}
 
-	// Extract the "value" property, if it exists
-	value, ok := rawResponse["value"]
-	if !ok {
-		tflog.Error(ctx, "Response does not contain 'value' field", nil)
-		return
+	// Extract the actual settings content
+	var settingsContent interface{}
+	if value, ok := rawResponse["value"]; ok {
+		settingsContent = value
+	} else if details, ok := rawResponse["settingsDetails"]; ok {
+		settingsContent = details
+	} else {
+		// If neither exists, assume the content is the settings
+		settingsContent = rawResponse
 	}
 
-	// Marshal the extracted "value" back to JSON for storage
-	valueJSON, err := json.Marshal(value)
+	// Create properly structured content
+	structuredContent := map[string]interface{}{
+		"settingsDetails": settingsContent,
+	}
+
+	// Convert to JSON
+	jsonBytes, err := json.Marshal(structuredContent)
 	if err != nil {
-		tflog.Error(ctx, "Failed to marshal 'value' field", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to marshal structured content", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
-	// Normalize the JSON
-	normalizedJSON, err := normalize.JSONAlphabetically(string(valueJSON))
+	// Apply alphabetical normalization
+	normalizedJSON, err := normalize.JSONAlphabetically(string(jsonBytes))
 	if err != nil {
-		tflog.Error(ctx, "Failed to normalize JSON", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to normalize JSON alphabetically", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
-	// Store the normalized JSON string in Terraform state
+	// Log the before/after for debugging if needed
+	tflog.Debug(ctx, "Original settings", map[string]interface{}{"settings": string(resp)})
+	tflog.Debug(ctx, "Normalized settings", map[string]interface{}{"settings": normalizedJSON})
+
 	data.Settings = types.StringValue(normalizedJSON)
 }

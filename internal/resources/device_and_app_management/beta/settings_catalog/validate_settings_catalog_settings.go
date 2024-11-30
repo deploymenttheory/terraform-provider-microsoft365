@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -33,7 +34,6 @@ func (v settingsCatalogValidator) ValidateString(ctx context.Context, req valida
 		return
 	}
 
-	// Parse the JSON into a generic map structure
 	var jsonData interface{}
 	if err := json.Unmarshal([]byte(req.ConfigValue.ValueString()), &jsonData); err != nil {
 		resp.Diagnostics.AddAttributeError(
@@ -46,22 +46,22 @@ func (v settingsCatalogValidator) ValidateString(ctx context.Context, req valida
 
 	// Validate all secret settings in the JSON structure
 	validateSecretSettings(req.Path, jsonData, resp)
+
+	// Validate settings catalog ID sequence and initial ID value is 0
+	validateSettingsCatalogIDSequences(req.Path, jsonData, resp)
 }
 
 // validateSecretSettings recursively searches through the JSON structure for secret settings
 func validateSecretSettings(path path.Path, data interface{}, resp *validator.StringResponse) {
 	switch v := data.(type) {
 	case map[string]interface{}:
-		// Check if this is a secret setting value
 		if isSecretSetting(v) {
 			validateSecretSettingState(path, v, resp)
 		}
-		// Recursively check all map values
 		for _, value := range v {
 			validateSecretSettings(path, value, resp)
 		}
 	case []interface{}:
-		// Recursively check all array elements
 		for _, elem := range v {
 			validateSecretSettings(path, elem, resp)
 		}
@@ -107,12 +107,11 @@ func validateSecretSettingState(path path.Path, secretSetting map[string]interfa
 
 // findSettingDefinitionId attempts to find the settingDefinitionId associated with a secret setting
 func findSettingDefinitionId(m map[string]interface{}) string {
-	// Check if settingDefinitionId is directly in the parent object
+
 	if id, ok := m["settingDefinitionId"].(string); ok {
 		return id
 	}
 
-	// If not found and there's a parent property, check the parent
 	if parent, ok := m["parent"].(map[string]interface{}); ok {
 		if id, ok := parent["settingDefinitionId"].(string); ok {
 			return id
@@ -120,4 +119,83 @@ func findSettingDefinitionId(m map[string]interface{}) string {
 	}
 
 	return ""
+}
+
+// validateSettingsCatalogIDSequences validates that settings IDs start at 0 and increment sequentially
+func validateSettingsCatalogIDSequences(path path.Path, data interface{}, resp *validator.StringResponse) {
+
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	settingsDetails, ok := dataMap["settingsDetails"].([]interface{})
+	if !ok || len(settingsDetails) == 0 {
+		return
+	}
+
+	if firstSetting, ok := settingsDetails[0].(map[string]interface{}); ok {
+		if id, ok := firstSetting["id"].(string); ok {
+			if id != "0" {
+				resp.Diagnostics.AddAttributeError(
+					path,
+					"Invalid Initial Settings Catalog Settings ID",
+					fmt.Sprintf("Got '%s', expected '0'. Settings catalog setting instances must start from 0", id),
+				)
+				return
+			}
+		}
+	}
+
+	// Validate sequential ordering
+	for i := 1; i < len(settingsDetails); i++ {
+		setting, ok := settingsDetails[i].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		currentID, ok := setting["id"].(string)
+		if !ok {
+			continue
+		}
+
+		prevSetting, ok := settingsDetails[i-1].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		previousID, ok := prevSetting["id"].(string)
+		if !ok {
+			continue
+		}
+
+		curr, err := strconv.Atoi(currentID)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				path,
+				"Invalid Settings ID Format",
+				fmt.Sprintf("Settings ID must be a number: %s", currentID),
+			)
+			return
+		}
+
+		prev, err := strconv.Atoi(previousID)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				path,
+				"Invalid Settings ID Format",
+				fmt.Sprintf("Settings ID must be a number: %s", previousID),
+			)
+			return
+		}
+
+		if curr != prev+1 {
+			resp.Diagnostics.AddAttributeError(
+				path,
+				"Non-sequential Settings ID",
+				fmt.Sprintf("Settings IDs must increment by 1. Found ID %d after ID %d", curr, prev),
+			)
+			return
+		}
+	}
 }
