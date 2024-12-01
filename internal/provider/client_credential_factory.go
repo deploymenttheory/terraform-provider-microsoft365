@@ -38,7 +38,9 @@ func CredentialFactory(authMethod string) (CredentialStrategy, error) {
 	}
 }
 
-// obtainCredential is now a wrapper that uses the CredentialFactory and CredentialStrategy
+// obtainCredential performs the necessary steps to obtain a TokenCredential based on the provider configuration.
+// It uses the CredentialFactory and CredentialStrategy to create the appropriate credential type based on the authentication method
+// defined within the provider configuraton.
 func obtainCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	tflog.Info(ctx, "Obtaining credential", map[string]interface{}{
 		"auth_method": config.AuthMethod.ValueString(),
@@ -66,7 +68,7 @@ type CredentialStrategy interface {
 	GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error)
 }
 
-// ClientSecretStrategy implements CredentialStrategy for client secret authentication
+// ClientSecretStrategy implements the credential strategy for client secret authentication
 type ClientSecretStrategy struct{}
 
 func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
@@ -87,7 +89,7 @@ func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *M365Pr
 		})
 }
 
-// ClientCertificateStrategy implements CredentialStrategy for client certificate authentication
+// ClientCertificateStrategy implements the credential strategy for client certificate authentication
 type ClientCertificateStrategy struct{}
 
 func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
@@ -129,7 +131,7 @@ func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *M
 		})
 }
 
-// UsernamePasswordStrategy implements CredentialStrategy for username/password authentication
+// UsernamePasswordStrategy implements the credential strategy for username/password authentication
 type UsernamePasswordStrategy struct{}
 
 func (s *UsernamePasswordStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
@@ -152,7 +154,7 @@ func (s *UsernamePasswordStrategy) GetCredential(ctx context.Context, config *M3
 		})
 }
 
-// DeviceCodeStrategy implements CredentialStrategy for device code authentication
+// DeviceCodeStrategy implements the credential strategy for device code authentication
 type DeviceCodeStrategy struct{}
 
 func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
@@ -178,7 +180,7 @@ func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *M365Prov
 	})
 }
 
-// InteractiveBrowserStrategy implements CredentialStrategy for interactive browser authentication
+// InteractiveBrowserStrategy implements the credential strategy for interactive browser authentication
 type InteractiveBrowserStrategy struct{}
 
 func (s *InteractiveBrowserStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {

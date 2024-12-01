@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_assignment_filter Resource - terraform-provider-microsoft365"
-subcategory: "Intune Assignment Filter"
+subcategory: "Intune: Assignment Filter"
 description: |-
   Manages Assignment Filters in Microsoft Intune.
 ---

@@ -19,7 +19,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_settings_catalog"
+	ResourceName  = "graph_beta_device_and_app_management_settings_catalog"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

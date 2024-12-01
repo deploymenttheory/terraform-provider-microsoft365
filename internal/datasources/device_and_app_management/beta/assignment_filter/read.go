@@ -12,6 +12,7 @@ import (
 	betamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// Read handles the Read operation for the AssignmentFilterDataSource.
 func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state resource.AssignmentFilterResourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
@@ -19,7 +20,7 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, resource.ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

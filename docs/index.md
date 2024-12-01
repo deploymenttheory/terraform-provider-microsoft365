@@ -6,7 +6,7 @@ description: |-
 
 # terraform-provider-microsoft365 Provider
 
-The community Microsoft 365 provider allows managing environments and other resources within [Power Platform](https://powerplatform.microsoft.com/).
+The community Microsoft 365 provider allows managing environments and other resources within [Microsoft 365](https://www.microsoft.com/en-gb/microsoft-365/products-apps-services).
 
 !> This code is made available as a public preview. Features are being actively developed and may have restricted or limited functionality. Future updates may introduce breaking changes, but we follow [Semantic Versioning](https://semver.org/) to help mitigate this. The software may contain bugs, errors, or other issues that could cause service interruption or data loss. We recommend backing up your data and testing in non-production environments. Your feedback is valuable to us, so please share any issues or suggestions you encounter via GitHub issues.
 
@@ -192,7 +192,7 @@ The provider supports additional configuration options for client behavior, tele
 provider "microsoft365" {
   # ... authentication configuration ...
   
-  debug_mode = false              # ENV: M365_DEBUG_MODE
+  debug_mode = false             # ENV: M365_DEBUG_MODE
   telemetry_optout = false       # ENV: M365_TELEMETRY_OPTOUT
   
   client_options = {
@@ -270,7 +270,7 @@ variable "cloud" {
 variable "tenant_id" {
   description = "The M365 tenant ID for the Entra ID application. This ID uniquely identifies your Entra ID (EID) instance. It can be found in the Azure portal under Entra ID > Properties. Can also be set using the `M365_TENANT_ID` environment variable."
   type        = string
-  default     = "2fd6bb84-1234-abcd-9369-1235b25c1234"
+  default     = ""
 }
 
 variable "auth_method" {

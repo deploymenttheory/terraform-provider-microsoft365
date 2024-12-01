@@ -19,7 +19,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_identity_and_access_conditional_access_policy"
+	ResourceName  = "graph_beta_identity_and_access_conditional_access_policy"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

@@ -13,7 +13,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_device_and_app_management_role_definition"
+	ResourceName  = "graph_device_and_app_management_role_definition"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (
