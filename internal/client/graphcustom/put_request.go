@@ -28,6 +28,11 @@ type PutRequestConfig struct {
 	RequestBody s.Parsable
 }
 
+type PutResponse struct {
+	StatusCode int
+	Error      error
+}
+
 // PutRequestByResourceId performs a custom PUT request using the Microsoft Graph SDK when the operation
 // is not available in the generated SDK methods. This function supports both Beta and V1.0 Graph API versions
 // and expects a 204 No Content response from the server on success.
@@ -78,7 +83,7 @@ func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 
 	err = adapter.SendNoContent(ctx, requestInfo, nil)
 	if err != nil {
-		return fmt.Errorf("error sending request: %v", err)
+		return err
 	}
 
 	return nil

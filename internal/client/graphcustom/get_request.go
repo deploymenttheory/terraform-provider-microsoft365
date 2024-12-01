@@ -179,7 +179,7 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
 	nativeReq, err := adapter.ConvertToNativeRequest(ctx, requestInfo)
 	if err != nil {
-		return nil, fmt.Errorf("error converting to native request: %w", err)
+		return nil, fmt.Errorf("error converting to native HTTP request: %w", err)
 	}
 
 	httpReq := nativeReq.(*http.Request)
@@ -191,7 +191,7 @@ func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, reque
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
+		return nil, fmt.Errorf("error executing GET request: %w", err)
 	}
 	defer resp.Body.Close()
 

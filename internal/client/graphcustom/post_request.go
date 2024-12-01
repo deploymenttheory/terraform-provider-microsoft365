@@ -68,7 +68,7 @@ func PostRequest(
 	// Send the request using the adapter's Send method
 	result, err := adapter.Send(ctx, requestInfo, factory, errorMappings)
 	if err != nil {
-		return nil, fmt.Errorf("error sending request: %v", err)
+		return nil, err
 	}
 
 	return result, nil
@@ -106,7 +106,7 @@ func PostRequestNoContent(ctx context.Context, adapter abstractions.RequestAdapt
 	// Use SendNoContent for requests that don't return a response body
 	err = adapter.SendNoContent(ctx, requestInfo, nil)
 	if err != nil {
-		return fmt.Errorf("error sending post request: %v", err)
+		return err
 	}
 
 	return nil
