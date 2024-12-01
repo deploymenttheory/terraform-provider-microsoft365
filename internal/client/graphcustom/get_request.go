@@ -191,13 +191,13 @@ func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, reque
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("error executing GET request: %w", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response: %w", err)
+		return nil, err
 	}
 
 	return body, nil
