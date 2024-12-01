@@ -109,28 +109,9 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// respSettings, err := r.client.
-	// 	DeviceManagement().
-	// 	ConfigurationPolicies().
-	// 	ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-	// 	Settings().
-	// 	Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-	// 		QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-	// 			Expand: []string{""},
-	// 		},
-	// 	})
-
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
-	// 	return
-	// }
-
-	// settingsList := respSettings.GetValue()
-	// MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
-
 	settingsConfig := client.CustomGetRequestConfig{
 		APIVersion:        client.GraphAPIBeta,
-		Endpoint:          "deviceManagement/configurationPolicies",
+		Endpoint:          r.ResourcePath,
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
 		ResourceID:        object.ID.ValueString(),
@@ -217,31 +198,9 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// // Retrieve settings from the response
-	// respSettings, err := r.client.
-	// 	DeviceManagement().
-	// 	ConfigurationPolicies().
-	// 	ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-	// 	Settings().
-	// 	Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-	// 		QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-	// 			Expand: []string{""}, // Expand all related settings
-	// 		},
-	// 	})
-
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-	// 	return
-	// }
-
-	// // Extract the list of settings from the collection response
-	// settingsList := respSettings.GetValue()
-
-	// MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
-
 	settingsConfig := client.CustomGetRequestConfig{
 		APIVersion:        client.GraphAPIBeta,
-		Endpoint:          "deviceManagement/configurationPolicies",
+		Endpoint:          r.ResourcePath,
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
 		ResourceID:        object.ID.ValueString(),
@@ -324,7 +283,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 
 	putRequest := client.CustomPutRequestConfig{
 		APIVersion:  client.GraphAPIBeta,
-		Endpoint:    "deviceManagement/configurationPolicies",
+		Endpoint:    r.ResourcePath,
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}

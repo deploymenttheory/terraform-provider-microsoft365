@@ -67,7 +67,7 @@ func SendCustomPutRequestByResourceId(ctx context.Context, adapter abstractions.
 	requestInfo.Method = abstractions.PUT
 	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint + "('{id}')"
 	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
+		"baseurl": fmt.Sprintf("https://graph.microsoft.com%s", config.APIVersion),
 		"id":      config.ResourceID,
 	}
 
