@@ -12,6 +12,7 @@ import (
 	models "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
+// Read handles the Read operation for the CloudPcDeviceImageDataSource.
 func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state resource.CloudPcDeviceImageResourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
@@ -19,7 +20,7 @@ func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, resource.ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -27,7 +28,10 @@ func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading assignment filter with display name: %s", state.DisplayName.ValueString()))
 
-	filters := d.client.DeviceManagement().VirtualEndpoint().DeviceImages()
+	filters := d.client.
+		DeviceManagement().
+		VirtualEndpoint().
+		DeviceImages()
 	result, err := filters.Get(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
