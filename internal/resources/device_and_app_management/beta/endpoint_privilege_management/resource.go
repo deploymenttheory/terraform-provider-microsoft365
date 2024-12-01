@@ -12,7 +12,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_privilege_management_elevations"
+	ResourceName  = "graph_beta_device_and_app_management_privilege_management_elevations"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

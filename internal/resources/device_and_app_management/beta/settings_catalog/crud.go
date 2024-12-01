@@ -3,7 +3,6 @@ package graphBetaSettingsCatalog
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
@@ -13,14 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-)
-
-var (
-	// mutex needed to lock Create requests during parallel runs to avoid overwhelming api and resulting in stating issues
-	mu sync.Mutex
-
-	// object is the resource model for the Endpoint Privilege Management resource
-	object SettingsCatalogProfileResourceModel
 )
 
 // Create handles the Create operation for Settings Catalog resources.
@@ -38,8 +29,7 @@ var (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	mu.Lock()
-	defer mu.Unlock()
+	var object SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -48,7 +38,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -68,7 +58,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		requestBody, opErr = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			Post(context.Background(), requestBody, nil)
+			Post(ctx, requestBody, nil)
 		return opErr
 	})
 
@@ -142,6 +132,8 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object SettingsCatalogProfileResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -151,7 +143,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -210,7 +202,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Assignments().
-			Get(context.Background(), nil)
+			Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -245,6 +237,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object SettingsCatalogProfileResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -252,7 +246,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -341,6 +335,8 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object SettingsCatalogProfileResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -348,7 +344,7 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

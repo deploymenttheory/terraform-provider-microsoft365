@@ -15,7 +15,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_device_and_app_management_cloud_pc_user_setting"
+	ResourceName  = "graph_device_and_app_management_cloud_pc_user_setting"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

@@ -15,7 +15,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_win32_lob_app"
+	ResourceName  = "graph_beta_device_and_app_management_win32_lob_app"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

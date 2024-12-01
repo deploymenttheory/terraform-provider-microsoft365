@@ -24,10 +24,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	data.Name = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
-	// data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
-	// data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	// data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	// data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
+	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
+	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
+	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
 
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)

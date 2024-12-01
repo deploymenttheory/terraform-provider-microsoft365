@@ -15,7 +15,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_browser_site"
+	ResourceName  = "graph_beta_device_and_app_management_browser_site"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (

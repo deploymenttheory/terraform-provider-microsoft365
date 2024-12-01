@@ -20,7 +20,7 @@ func RetryableAssignmentOperation(ctx context.Context, operation string, fn func
 		tenSecondLimit = 500   // requests per 10 seconds per app per tenant
 		hourlyLimit    = 15000 // requests per hour per app per tenant
 		maxBackoff     = 10 * time.Second
-		baseDelay      = 3 * time.Second // Higher base delay for assignments
+		baseDelay      = 3 * time.Second
 	)
 
 	for {

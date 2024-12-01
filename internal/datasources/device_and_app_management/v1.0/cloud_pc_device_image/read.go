@@ -19,7 +19,7 @@ func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, 30*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

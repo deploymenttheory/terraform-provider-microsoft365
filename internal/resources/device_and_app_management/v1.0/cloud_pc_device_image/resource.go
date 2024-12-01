@@ -16,7 +16,11 @@ import (
 )
 
 const (
-	ResourceName = "graph_device_and_app_management_cloud_pc_device_image"
+	ResourceName  = "graph_device_and_app_management_cloud_pc_device_image"
+	CreateTimeout = 180
+	UpdateTimeout = 180
+	ReadTimeout   = 180
+	DeleteTimeout = 180
 )
 
 var (
