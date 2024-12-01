@@ -20,7 +20,7 @@ const (
 type CustomPutRequestConfig struct {
 	// The API version to use (beta or v1.0)
 	APIVersion GraphAPIVersion
-	// The base endpoint (e.g., "deviceManagement/configurationPolicies")
+	// The base endpoint (e.g., "/deviceManagement/configurationPolicies")
 	Endpoint string
 	// The ID of the resource
 	ResourceID string
@@ -65,9 +65,9 @@ type CustomPutRequestConfig struct {
 func SendCustomPutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config CustomPutRequestConfig) error {
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.PUT
-	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint + "('{id}')"
+	requestInfo.UrlTemplate = "{+baseurl}" + config.Endpoint + "('{id}')"
 	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com%s", config.APIVersion),
+		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
 		"id":      config.ResourceID,
 	}
 

@@ -28,9 +28,17 @@ type CustomGetRequestConfig struct {
 	QueryParameters map[string]string
 }
 
+// ODataResponse represents the structure of an OData response
+type ODataResponse struct {
+	// Value is the array of JSON messages returned by the request
+	Value []json.RawMessage `json:"value"`
+	//  NextLink is the URL for the next page of results used by pagination
+	NextLink string `json:"@odata.nextLink,omitempty"`
+}
+
 // SendCustomGetRequestByResourceId performs a custom GET request using the Microsoft Graph SDK when the operation
-// is not available in the generated SDK methods or when using raw json is easier to handle for response handling during stating operations.
-// This function supports both Beta and V1.0 Graph API versions.
+// is not available in the generated SDK methods or when using raw json is easier to handle for response handling.
+// This function supports both Beta and V1.0 Graph API versions and automatically handles OData pagination if present.
 //
 // e.g., GET https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('191056b1-4c4a-4871-8518-162a105d011a')/settings
 //
@@ -38,6 +46,8 @@ type CustomGetRequestConfig struct {
 // - Construction of the Graph API URL with proper formatting
 // - Setting up the GET request with optional query parameters
 // - Sending the request with proper authentication
+// - Automatic pagination if the response is an OData response with a nextLink
+// - Combining paginated results into a single response
 // - Returning the raw JSON response
 //
 // Parameters:
@@ -45,44 +55,41 @@ type CustomGetRequestConfig struct {
 //   - adapter: The request adapter for sending the request
 //   - config: CustomGetRequestConfig containing:
 //   - APIVersion: The Graph API version to use (Beta or V1.0)
-//   - Endpoint: The resource endpoint path (e.g., "deviceManagement/configurationPolicies")
+//   - Endpoint: The resource endpoint path (e.g., "/deviceManagement/configurationPolicies")
 //   - ResourceID: The ID of the resource to retrieve
+//   - ResourceIDPattern: The format for the resource ID (e.g., "('id')" or "(id)")
+//   - EndpointSuffix: Optional suffix to append after the resource ID (e.g., "/settings")
 //   - QueryParameters: Optional query parameters for the request
 //
 // Returns:
-//   - json.RawMessage: The raw JSON response from the GET request
+//   - json.RawMessage: The raw JSON response from the GET request. For paginated responses,
+//     returns a combined response with all results in the "value" array
 //   - error: Returns nil if the request was successful, otherwise an error describing what went wrong
 //
 // Example Usage:
 //
-//		config := CustomGetRequestConfig{
-//		APIVersion: GraphAPIBeta,
-//		Endpoint:   "deviceManagement/configurationPolicies('{id}')/settings",
-//		ResourceID: "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
+//	config := CustomGetRequestConfig{
+//		APIVersion:        GraphAPIBeta,
+//		Endpoint:         "/deviceManagement/configurationPolicies",
+//		ResourceID:       "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
+//		ResourceIDPattern: "('id')",
+//		EndpointSuffix:   "/settings",
 //		QueryParameters: map[string]string{
-//				"$expand": "children",
+//			"$expand": "children",
 //		},
 //	}
 //
-// response, err := SendCustomGetRequestByResourceId(ctx, adapter, config, factory, errorMappings)
-//
+//	response, err := SendCustomGetRequestByResourceId(ctx, adapter, config)
 //	if err != nil {
 //		log.Fatalf("Error: %v", err)
 //	}
 //
-// fmt.Printf("Response: %+v\n", response)
+//	fmt.Printf("Response: %+v\n", response)
 func SendCustomGetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig CustomGetRequestConfig) (json.RawMessage, error) {
+
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.GET
-
-	// Build endpoint with ID syntax
-	idFormat := strings.ReplaceAll(reqConfig.ResourceIDPattern, "id", reqConfig.ResourceID)
-	endpoint := reqConfig.Endpoint + idFormat
-	if reqConfig.EndpointSuffix != "" {
-		endpoint += reqConfig.EndpointSuffix
-	}
-
-	requestInfo.UrlTemplate = "{+baseurl}/" + endpoint
+	requestInfo.UrlTemplate = ByIDRequestUrlTemplate(reqConfig)
 	requestInfo.PathParameters = map[string]string{
 		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", reqConfig.APIVersion),
 	}
@@ -90,10 +97,111 @@ func SendCustomGetRequestByResourceId(ctx context.Context, adapter abstractions.
 
 	if reqConfig.QueryParameters != nil {
 		for key, value := range reqConfig.QueryParameters {
-			requestInfo.QueryParametersAny[key] = value
+			requestInfo.QueryParameters[key] = value
 		}
 	}
 
+	// Make initial request
+	body, err := makeRequest(ctx, adapter, requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// Try to parse as OData response to check for pagination
+	var firstResponse ODataResponse
+	if err := json.Unmarshal(body, &firstResponse); err != nil {
+		// Not an OData response, return the raw body
+		return body, nil
+	}
+
+	// If no NextLink or no Value array, this isn't a paginated response
+	if firstResponse.NextLink == "" || firstResponse.Value == nil {
+		return body, nil
+	}
+
+	// Handle pagination
+	var allResults []json.RawMessage
+	allResults = append(allResults, firstResponse.Value...)
+	nextLink := firstResponse.NextLink
+
+	tflog.Debug(ctx, "Pagination detected, retrieving additional pages", map[string]interface{}{
+		"itemsRetrieved": len(allResults),
+	})
+
+	for nextLink != "" {
+		requestInfo = abstractions.NewRequestInformation()
+		requestInfo.Method = abstractions.GET
+		requestInfo.UrlTemplate = nextLink
+		requestInfo.Headers.Add("Accept", "application/json")
+
+		body, err = makeRequest(ctx, adapter, requestInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		var pageResponse ODataResponse
+		if err := json.Unmarshal(body, &pageResponse); err != nil {
+			return nil, fmt.Errorf("error parsing paginated response: %w", err)
+		}
+
+		allResults = append(allResults, pageResponse.Value...)
+		nextLink = pageResponse.NextLink
+
+		tflog.Debug(ctx, "Retrieved additional page", map[string]interface{}{
+			"itemsRetrieved": len(allResults),
+			"hasNextPage":    nextLink != "",
+		})
+	}
+
+	combinedResponse := map[string]interface{}{
+		"value": allResults,
+	}
+
+	return json.Marshal(combinedResponse)
+}
+
+// ByIDRequestUrlTemplate constructs a URL template for a single resource request using the provided configuration.
+// The function combines the endpoint path with a resource ID and optional suffix to create a complete URL template.
+// For example, if the config contains:
+//   - Endpoint: "/deviceManagement/configurationPolicies"
+//   - ResourceIDPattern: "('id')"
+//   - ResourceID: "12345"
+//   - EndpointSuffix: "/settings"
+//
+// The resulting template would be: "{+baseurl}/deviceManagement/configurationPolicies('12345')/settings"
+//
+// Parameters:
+//   - reqConfig: CustomGetRequestConfig containing the endpoint path, resource ID pattern, actual ID, and optional suffix
+//
+// Returns:
+//   - string: The constructed URL template ready for use with the Kiota request adapter
+func ByIDRequestUrlTemplate(reqConfig CustomGetRequestConfig) string {
+	idFormat := strings.ReplaceAll(reqConfig.ResourceIDPattern, "id", reqConfig.ResourceID)
+	endpoint := reqConfig.Endpoint + idFormat
+	if reqConfig.EndpointSuffix != "" {
+		endpoint += reqConfig.EndpointSuffix
+	}
+	return "{+baseurl}" + endpoint
+}
+
+// makeRequest executes an HTTP request using the provided Kiota request adapter and request information.
+// This helper function handles the conversion of Kiota's RequestInformation into a native HTTP request,
+// executes the request, and returns the raw response body.
+//
+// Parameters:
+//   - ctx: The context for the request, which can be used for cancellation and timeout
+//   - adapter: The Kiota request adapter that converts RequestInformation to a native request
+//   - requestInfo: The Kiota RequestInformation containing the request configuration
+//
+// Returns:
+//   - []byte: The raw response body from the HTTP request
+//   - error: Returns nil if the request was successful, otherwise an error describing what went wrong
+//
+// The function performs the following steps:
+// 1. Converts the Kiota RequestInformation to a native HTTP request
+// 2. Executes the HTTP request using a standard http.Client
+// 3. Reads and returns the complete response body
+func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
 	nativeReq, err := adapter.ConvertToNativeRequest(ctx, requestInfo)
 	if err != nil {
 		return nil, fmt.Errorf("error converting to native request: %w", err)
@@ -102,15 +210,15 @@ func SendCustomGetRequestByResourceId(ctx context.Context, adapter abstractions.
 	httpReq := nativeReq.(*http.Request)
 	client := &http.Client{}
 
+	tflog.Debug(ctx, "Making request", map[string]interface{}{
+		"url": httpReq.URL.String(),
+	})
+
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	defer resp.Body.Close()
-
-	tflog.Debug(ctx, "Request URL", map[string]interface{}{
-		"url": httpReq.URL.String(),
-	})
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

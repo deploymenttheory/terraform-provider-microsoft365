@@ -47,17 +47,20 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalo
 		"settingsDetails": settingsContent,
 	}
 
-	preserveSecretSettings(configSettings, structuredContent)
+	if err := normalize.PreserveSecretSettings(configSettings, structuredContent); err != nil {
+		tflog.Error(ctx, "Error stating settings catalog secret settings from HCL", map[string]interface{}{"error": err.Error()})
+		return
+	}
 
 	jsonBytes, err := json.Marshal(structuredContent)
 	if err != nil {
-		tflog.Error(ctx, "Failed to marshal structured content", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to marshal JSON structured content during preparation for normalization", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
 	normalizedJSON, err := normalize.JSONAlphabetically(string(jsonBytes))
 	if err != nil {
-		tflog.Error(ctx, "Failed to normalize JSON alphabetically", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to normalize settings catalog JSON alphabetically", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
@@ -65,45 +68,4 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalo
 	tflog.Debug(ctx, "Normalized settings", map[string]interface{}{"settings": normalizedJSON})
 
 	data.Settings = types.StringValue(normalizedJSON)
-}
-
-// preserveSecretSettings recursively searches through settings catalog HCL JSON structure for secret settings
-// and preserves the value and valueState from the config settings. This is used to ensure that secret values
-// within the state match the original config settings and do not cause unnecessary updates.
-func preserveSecretSettings(config, resp interface{}) {
-	switch configV := config.(type) {
-	case map[string]interface{}:
-		respV, ok := resp.(map[string]interface{})
-		if !ok {
-			return
-		}
-
-		if odataType, ok := configV["@odata.type"].(string); ok &&
-			odataType == "#microsoft.graph.deviceManagementConfigurationSecretSettingValue" {
-			if value, ok := configV["value"]; ok {
-				respV["value"] = value
-			}
-			if valueState, ok := configV["valueState"]; ok {
-				respV["valueState"] = valueState
-			}
-			return
-		}
-
-		for k, v := range configV {
-			if respChild, ok := respV[k]; ok {
-				preserveSecretSettings(v, respChild)
-			}
-		}
-
-	case []interface{}:
-		respV, ok := resp.([]interface{})
-		if !ok {
-			return
-		}
-		for i := range configV {
-			if i < len(respV) {
-				preserveSecretSettings(configV[i], respV[i])
-			}
-		}
-	}
 }

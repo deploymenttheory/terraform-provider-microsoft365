@@ -12,7 +12,7 @@ import (
 type CustomPostRequestConfig struct {
 	// The API version to use (beta or v1.0)
 	APIVersion GraphAPIVersion
-	// The base endpoint (e.g., "deviceManagement/configurationPolicies")
+	// The base endpoint (e.g., "/deviceManagement/configurationPolicies")
 	Endpoint string
 	// The request body
 	RequestBody s.Parsable
