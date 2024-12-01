@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 var (
@@ -23,17 +22,18 @@ var (
 	object EndpointPrivilegeManagementResourceModel
 )
 
-// Create handles the Create operation for Endpoint Privilege Management resources.
+// Create handles the Create operation for Settings Catalog resources.
 //
 //   - Retrieves the planned configuration from the create request
 //   - Constructs the resource request body from the plan
 //   - Sends POST request to create the base resource and settings
 //   - Captures the new resource ID from the response
 //   - Constructs and sends assignment configuration if specified
-//   - Maps the created resource state to Terraform
-//   - Updates the final state with all resource data
+//   - Sets initial state with planned values
+//   - Calls Read operation to fetch the latest state from the API
+//   - Updates the final state with the fresh data from the API
 //
-// The function ensures that both the Endpoint Privilege Management profile and its assignments
+// The function ensures that both the settings catalog profile and its assignments
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -98,60 +98,30 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		}
 	}
 
-	respResource, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-		return
-	}
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respSettings, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-				Expand: []string{""},
-			},
-		})
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
-		return
-	}
-
-	settingsList := respSettings.GetValue()
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, resource.ReadRequest{
+		State:        resp.State,
+		ProviderMeta: req.ProviderMeta,
+	}, readResp)
+
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.State = readResp.State
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation for Endpoint Privilege Management resources.
+// Read handles the Read operation for Settings Catalog resources.
 //
 //   - Retrieves the current state from the read request
 //   - Gets the base resource details from the API
@@ -160,7 +130,6 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 //   - Maps the settings configuration to Terraform state
 //   - Gets the assignments configuration from the API
 //   - Maps the assignments configuration to Terraform state
-//   - Updates the final Terraform state with all mapped data
 //
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
@@ -195,27 +164,29 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// Retrieve settings from the response
-	respSettings, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(context.Background(), &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &msgraphsdk.ConfigurationPoliciesItemSettingsRequestBuilderGetQueryParameters{
-				Expand: []string{""}, // Expand all related settings
-			},
-		})
+	settingsConfig := graphcustom.GetRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		EndpointSuffix:    "/settings",
+		ResourceIDPattern: "('id')",
+		ResourceID:        object.ID.ValueString(),
+		QueryParameters: map[string]string{
+			"$expand": "children",
+		},
+	}
+
+	respSettings, err := graphcustom.GetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
 		return
 	}
 
-	// Extract the list of settings from the collection response
-	settingsList := respSettings.GetValue()
-
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsList)
+	MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
@@ -239,7 +210,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation for Endpoint Privilege Management resources.
+// Update handles the Update operation for Settings Catalog resources.
 //
 //   - Retrieves the planned changes from the update request
 //   - Constructs the resource request body from the plan
@@ -278,7 +249,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 
 	putRequest := graphcustom.PutRequestConfig{
 		APIVersion:  graphcustom.GraphAPIBeta,
-		Endpoint:    "deviceManagement/configurationPolicies",
+		Endpoint:    r.ResourcePath,
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
@@ -333,7 +304,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation for Endpoint Privilege Management resources.
+// Delete handles the Delete operation for Settings Catalog resources.
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration

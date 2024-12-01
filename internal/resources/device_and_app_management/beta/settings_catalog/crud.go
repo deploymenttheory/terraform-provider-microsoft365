@@ -29,8 +29,9 @@ var (
 //   - Sends POST request to create the base resource and settings
 //   - Captures the new resource ID from the response
 //   - Constructs and sends assignment configuration if specified
-//   - Maps the created resource state to Terraform
-//   - Updates the final state with all resource data
+//   - Sets initial state with planned values
+//   - Calls Read operation to fetch the latest state from the API
+//   - Updates the final state with the fresh data from the API
 //
 // The function ensures that both the settings catalog profile and its assignments
 // (if specified) are created properly. The settings must be defined during creation
@@ -97,62 +98,27 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		}
 	}
 
-	respResource, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-		return
-	}
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	settingsConfig := graphcustom.GetRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
-		Endpoint:          r.ResourcePath,
-		EndpointSuffix:    "/settings",
-		ResourceIDPattern: "('id')",
-		ResourceID:        object.ID.ValueString(),
-		QueryParameters: map[string]string{
-			"$expand": "children",
-		},
-	}
-
-	respSettings, err := graphcustom.GetRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		settingsConfig,
-	)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
-		return
-	}
-
-	MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, resource.ReadRequest{
+		State:        resp.State,
+		ProviderMeta: req.ProviderMeta,
+	}, readResp)
+
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.State = readResp.State
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Read handles the Read operation for Settings Catalog resources.
