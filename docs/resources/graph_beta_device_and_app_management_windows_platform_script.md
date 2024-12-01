@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_windows_platform_script Resource - terraform-provider-microsoft365"
-subcategory: "Intune Device Management Script"
+subcategory: "Intune: Device Platform Script"
 description: |-
   Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
 ---

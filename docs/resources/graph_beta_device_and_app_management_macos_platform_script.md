@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_macos_platform_script Resource - terraform-provider-microsoft365"
-subcategory: "Intune Device Management Script"
+subcategory: "Intune: Device Platform Script"
 description: |-
   Manages an Intune macOS platform script using the 'deviceShellScripts' Graph Beta API.
 ---
