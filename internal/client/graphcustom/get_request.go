@@ -1,4 +1,4 @@
-package client
+package graphcustom
 
 import (
 	"context"
@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 )
 
-// CustomGetRequestConfig contains the configuration for a custom GET request
-type CustomGetRequestConfig struct {
+// GetRequestConfig contains the configuration for a custom GET request
+type GetRequestConfig struct {
 	// The API version to use (beta or v1.0)
 	APIVersion GraphAPIVersion
 	// The base endpoint (e.g., "deviceManagement/configurationPolicies")
@@ -36,7 +35,7 @@ type ODataResponse struct {
 	NextLink string `json:"@odata.nextLink,omitempty"`
 }
 
-// SendCustomGetRequestByResourceId performs a custom GET request using the Microsoft Graph SDK when the operation
+// GetRequestByResourceId performs a custom GET request using the Microsoft Graph SDK when the operation
 // is not available in the generated SDK methods or when using raw json is easier to handle for response handling.
 // This function supports both Beta and V1.0 Graph API versions and automatically handles OData pagination if present.
 //
@@ -53,7 +52,7 @@ type ODataResponse struct {
 // Parameters:
 //   - ctx: The context for the request, which can be used for cancellation and timeout
 //   - adapter: The request adapter for sending the request
-//   - config: CustomGetRequestConfig containing:
+//   - config: GetRequestConfig containing:
 //   - APIVersion: The Graph API version to use (Beta or V1.0)
 //   - Endpoint: The resource endpoint path (e.g., "/deviceManagement/configurationPolicies")
 //   - ResourceID: The ID of the resource to retrieve
@@ -68,7 +67,7 @@ type ODataResponse struct {
 //
 // Example Usage:
 //
-//	config := CustomGetRequestConfig{
+//	config := GetRequestConfig{
 //		APIVersion:        GraphAPIBeta,
 //		Endpoint:         "/deviceManagement/configurationPolicies",
 //		ResourceID:       "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
@@ -79,13 +78,13 @@ type ODataResponse struct {
 //		},
 //	}
 //
-//	response, err := SendCustomGetRequestByResourceId(ctx, adapter, config)
+//	response, err := GetRequestByResourceId(ctx, adapter, config)
 //	if err != nil {
 //		log.Fatalf("Error: %v", err)
 //	}
 //
 //	fmt.Printf("Response: %+v\n", response)
-func SendCustomGetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig CustomGetRequestConfig) (json.RawMessage, error) {
+func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig GetRequestConfig) (json.RawMessage, error) {
 
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.GET
@@ -158,30 +157,6 @@ func SendCustomGetRequestByResourceId(ctx context.Context, adapter abstractions.
 	}
 
 	return json.Marshal(combinedResponse)
-}
-
-// ByIDRequestUrlTemplate constructs a URL template for a single resource request using the provided configuration.
-// The function combines the endpoint path with a resource ID and optional suffix to create a complete URL template.
-// For example, if the config contains:
-//   - Endpoint: "/deviceManagement/configurationPolicies"
-//   - ResourceIDPattern: "('id')"
-//   - ResourceID: "12345"
-//   - EndpointSuffix: "/settings"
-//
-// The resulting template would be: "{+baseurl}/deviceManagement/configurationPolicies('12345')/settings"
-//
-// Parameters:
-//   - reqConfig: CustomGetRequestConfig containing the endpoint path, resource ID pattern, actual ID, and optional suffix
-//
-// Returns:
-//   - string: The constructed URL template ready for use with the Kiota request adapter
-func ByIDRequestUrlTemplate(reqConfig CustomGetRequestConfig) string {
-	idFormat := strings.ReplaceAll(reqConfig.ResourceIDPattern, "id", reqConfig.ResourceID)
-	endpoint := reqConfig.Endpoint + idFormat
-	if reqConfig.EndpointSuffix != "" {
-		endpoint += reqConfig.EndpointSuffix
-	}
-	return "{+baseurl}" + endpoint
 }
 
 // makeRequest executes an HTTP request using the provided Kiota request adapter and request information.

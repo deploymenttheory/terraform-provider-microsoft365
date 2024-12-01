@@ -1,4 +1,4 @@
-package client
+package graphcustom
 
 import (
 	"context"
@@ -16,8 +16,8 @@ const (
 	GraphAPIV1   GraphAPIVersion = "v1.0"
 )
 
-// CustomPutRequestConfig contains the configuration for a custom PUT request
-type CustomPutRequestConfig struct {
+// PutRequestConfig contains the configuration for a custom PUT request
+type PutRequestConfig struct {
 	// The API version to use (beta or v1.0)
 	APIVersion GraphAPIVersion
 	// The base endpoint (e.g., "/deviceManagement/configurationPolicies")
@@ -28,7 +28,7 @@ type CustomPutRequestConfig struct {
 	RequestBody s.Parsable
 }
 
-// SendCustomPutRequestByResourceId performs a custom PUT request using the Microsoft Graph SDK when the operation
+// PutRequestByResourceId performs a custom PUT request using the Microsoft Graph SDK when the operation
 // is not available in the generated SDK methods. This function supports both Beta and V1.0 Graph API versions
 // and expects a 204 No Content response from the server on success.
 //
@@ -61,8 +61,8 @@ type CustomPutRequestConfig struct {
 //	    ResourceID: "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
 //	    RequestBody: myRequestBody,
 //	}
-//	err := SendCustomPutRequestByResourceId(ctx, clients, config)
-func SendCustomPutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config CustomPutRequestConfig) error {
+//	err := PutRequestByResourceId(ctx, clients, config)
+func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PutRequestConfig) error {
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.PUT
 	requestInfo.UrlTemplate = "{+baseurl}" + config.Endpoint + "('{id}')"

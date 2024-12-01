@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -276,14 +276,14 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		return
 	}
 
-	putRequest := client.CustomPutRequestConfig{
-		APIVersion:  client.GraphAPIBeta,
+	putRequest := graphcustom.PutRequestConfig{
+		APIVersion:  graphcustom.GraphAPIBeta,
 		Endpoint:    "deviceManagement/configurationPolicies",
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
-	err = client.SendCustomPutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
+	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return

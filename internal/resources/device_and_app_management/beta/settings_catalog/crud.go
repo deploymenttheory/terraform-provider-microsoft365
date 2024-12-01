@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -109,8 +109,8 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	settingsConfig := client.CustomGetRequestConfig{
-		APIVersion:        client.GraphAPIBeta,
+	settingsConfig := graphcustom.GetRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
@@ -120,7 +120,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		},
 	}
 
-	respSettings, err := client.SendCustomGetRequestByResourceId(
+	respSettings, err := graphcustom.GetRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		settingsConfig,
@@ -198,8 +198,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	settingsConfig := client.CustomGetRequestConfig{
-		APIVersion:        client.GraphAPIBeta,
+	settingsConfig := graphcustom.GetRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
@@ -209,7 +209,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		},
 	}
 
-	respSettings, err := client.SendCustomGetRequestByResourceId(
+	respSettings, err := graphcustom.GetRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		settingsConfig,
@@ -281,14 +281,14 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	putRequest := client.CustomPutRequestConfig{
-		APIVersion:  client.GraphAPIBeta,
+	putRequest := graphcustom.PutRequestConfig{
+		APIVersion:  graphcustom.GraphAPIBeta,
 		Endpoint:    r.ResourcePath,
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
-	err = client.SendCustomPutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
+	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
