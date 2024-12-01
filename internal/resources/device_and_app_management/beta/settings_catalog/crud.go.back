@@ -9,7 +9,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/retry"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,6 +37,7 @@ var (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -63,21 +63,17 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	err = retry.RetryableIntuneOperation(ctx, "create resource", retry.IntuneWrite, func() error {
-		var opErr error
-		requestBody, opErr = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			Post(context.Background(), requestBody, nil)
-		return opErr
-	})
+	requestResource, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		Post(context.Background(), requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*requestBody.GetId())
+	object.ID = types.StringValue(*requestResource.GetId())
 
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
@@ -89,15 +85,12 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 			return
 		}
 
-		err = retry.RetryableAssignmentOperation(ctx, "create assignment", func() error {
-			_, err := r.client.
-				DeviceManagement().
-				ConfigurationPolicies().
-				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			return err
-		})
+		_, err = r.client.
+			DeviceManagement().
+			ConfigurationPolicies().
+			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, requestAssignment, nil)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -125,7 +118,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 
 	resp.State = readResp.State
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Read handles the Read operation for Settings Catalog resources.
@@ -142,6 +135,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -157,23 +151,18 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	err := retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
-		respResource, err := r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-		MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-		return nil
-	})
+	respResource, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
+
+	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
 	settingsConfig := graphcustom.GetRequestConfig{
 		APIVersion:        graphcustom.GraphAPIBeta,
@@ -186,42 +175,32 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		},
 	}
 
-	err = retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
-		respSettings, err := graphcustom.GetRequestByResourceId(
-			ctx,
-			r.client.GetAdapter(),
-			settingsConfig,
-		)
-		if err != nil {
-			return err
-		}
-		MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
-		return nil
-	})
+	respSettings, err := graphcustom.GetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create - Settings Fetch", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
+
+	respAssignments, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(context.Background(), nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	err = retry.RetryableAssignmentOperation(ctx, "read resource", func() error {
-		respAssignments, err := r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assignments().
-			Get(context.Background(), nil)
-		if err != nil {
-			return err
-		}
-		MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-		return nil
-	})
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -245,6 +224,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -274,11 +254,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		RequestBody: requestBody,
 	}
 
-	// Use retryableOperation for main resource update
-	err = retry.RetryableIntuneOperation(ctx, "update resource", retry.IntuneWrite, func() error {
-		return graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
-	})
-
+	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
@@ -293,16 +269,12 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// Use retryableAssignmentOperation for assignment update
-	err = retry.RetryableAssignmentOperation(ctx, "update assignment", func() error {
-		_, err := r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-		return err
-	})
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -341,6 +313,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -354,13 +327,11 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	err := retry.RetryableIntuneOperation(ctx, "delete resource", retry.IntuneWrite, func() error {
-		return r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Delete(ctx, nil)
-	})
+	err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)

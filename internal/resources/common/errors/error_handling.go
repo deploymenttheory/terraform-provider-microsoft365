@@ -26,6 +26,7 @@ type GraphErrorInfo struct {
 	AdditionalData map[string]interface{}
 	Headers        *abstractions.ResponseHeaders
 	RequestDetails string
+	RetryAfter     string
 }
 
 // standardErrorDescriptions provides consistent error messaging across the provider
@@ -84,6 +85,9 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 
 	case 401, 403:
 		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
+
+	case 429:
+		handleRateLimitError(ctx, errorInfo, resp)
 
 	default:
 		// Handle all other cases
@@ -214,6 +218,27 @@ func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp i
 		errorInfo.ErrorMessage)
 
 	addErrorToDiagnostics(ctx, resp, errorDesc.Summary, detail)
+}
+
+// handleRateLimitError processes rate limit errors and adds retry information to the error message
+func handleRateLimitError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}) GraphErrorInfo {
+	if headers := errorInfo.Headers; headers != nil {
+		retryValues := headers.Get("Retry-After")
+		if len(retryValues) > 0 {
+			errorInfo.RetryAfter = retryValues[0]
+		}
+	}
+
+	tflog.Warn(ctx, "Rate limit exceeded", map[string]interface{}{
+		"retry_after": errorInfo.RetryAfter,
+		"details":     errorInfo.ErrorMessage,
+	})
+
+	errorDesc := getErrorDescription(429)
+	detail := constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage)
+	addErrorToDiagnostics(ctx, resp, errorDesc.Summary, detail)
+
+	return errorInfo
 }
 
 // addErrorToDiagnostics adds an error to the response diagnostics

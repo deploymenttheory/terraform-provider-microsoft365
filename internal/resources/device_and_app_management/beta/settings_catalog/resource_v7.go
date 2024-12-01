@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -166,28 +165,28 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 			},
 
-			"created_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "Creation date and time of the settings catalog policy",
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Last modification date and time of the settings catalog policy",
-			},
-			"settings_count": schema.Int64Attribute{
-				Computed:            true,
-				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
-			},
-			"is_assigned": schema.BoolAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.UseStateForUnknownBool(),
-				},
-				MarkdownDescription: "Indicates if the policy is assigned to any scope",
-			},
+			// "created_date_time": schema.StringAttribute{
+			// 	Computed: true,
+			// 	PlanModifiers: []planmodifier.String{
+			// 		stringplanmodifier.UseStateForUnknown(),
+			// 	},
+			// 	MarkdownDescription: "Creation date and time of the settings catalog policy",
+			// },
+			// "last_modified_date_time": schema.StringAttribute{
+			// 	Computed:            true,
+			// 	MarkdownDescription: "Last modification date and time of the settings catalog policy",
+			// },
+			// "settings_count": schema.Int64Attribute{
+			// 	Computed:            true,
+			// 	MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
+			// },
+			// "is_assigned": schema.BoolAttribute{
+			// 	Computed: true,
+			// 	PlanModifiers: []planmodifier.Bool{
+			// 		planmodifiers.UseStateForUnknownBool(),
+			// 	},
+			// 	MarkdownDescription: "Indicates if the policy is assigned to any scope",
+			// },
 			"assignments": commonschema.SettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
