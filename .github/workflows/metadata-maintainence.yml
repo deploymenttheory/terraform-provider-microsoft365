@@ -12,7 +12,7 @@ env:
 
 jobs:
   extract-graph-metadata:
-    name: Extract Graph Metadata
+    name: '🔄 Extract Graph Metadata'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
