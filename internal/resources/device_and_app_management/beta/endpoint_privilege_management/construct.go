@@ -100,6 +100,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 
 		switch detail.SettingInstance.ODataType {
+		// Handle ChoiceSettings
 		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
 			instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 			instance.SetOdataType(&detail.SettingInstance.ODataType)
@@ -261,6 +262,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 			baseSetting.SetSettingInstance(instance)
 
+		// Handle SimpleSettingCollection
 		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
 			instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
 			instance.SetOdataType(&detail.SettingInstance.ODataType)
@@ -279,6 +281,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 			baseSetting.SetSettingInstance(instance)
 
+		// Handle SimpleSettingInstance
 		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
 			instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
 			instance.SetOdataType(&detail.SettingInstance.ODataType)
@@ -315,6 +318,7 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 			baseSetting.SetSettingInstance(instance)
 
+		// Handle ChoiceSettingCollection
 		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
 			instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
 			instance.SetOdataType(&detail.SettingInstance.ODataType)

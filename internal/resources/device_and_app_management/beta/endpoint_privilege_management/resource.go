@@ -120,7 +120,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					SettingsCatalogValidator(),
+					//SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
