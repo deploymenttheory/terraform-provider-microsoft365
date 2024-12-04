@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   pre-release-checks:
-    name: Pre-release Validation
+    name: '🚦 Pre-release Validation'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -61,7 +61,7 @@ jobs:
   # Release for Partner and Community Providers
   # https://goreleaser.com/cmd/goreleaser_release/#see-also
   terraform-provider-release:
-    name: 'Terraform Provider Release'
+    name: '📦 Terraform Provider Release'
     needs: [pre-release-checks]
     uses:  ./.github/workflows/community.yml
     secrets:

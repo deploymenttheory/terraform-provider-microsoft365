@@ -6,6 +6,7 @@ permissions:
 
 jobs:
   dependency-review:
+    name: '🔎 Dependency Review'
     runs-on: ubuntu-latest
     steps:
 

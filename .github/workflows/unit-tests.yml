@@ -28,7 +28,7 @@ on:
 
 jobs:
   test:
-    name: Run Tests
+    name: '🧪 Run Unit Tests'
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
