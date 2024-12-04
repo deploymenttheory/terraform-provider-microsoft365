@@ -187,12 +187,12 @@ func TestPreserveSecretSettings(t *testing.T) {
 }
 
 func TestPreserveSecretSettings_UnsupportedType(t *testing.T) {
-	// Test with unsupported type
+	// Test with string type mismatch
 	config := "string"
-	resp := "string"
+	resp := 123 // Different type to trigger error
 	err := PreserveSecretSettings(config, resp)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported type")
+	assert.Contains(t, err.Error(), "type mismatch")
 }
 
 func TestPreserveSecretSettings_NilValues(t *testing.T) {
@@ -222,6 +222,57 @@ func TestPreserveSecretSettings_NilValues(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := PreserveSecretSettings(tt.config, tt.resp)
 			assert.Error(t, err)
+		})
+	}
+}
+
+func TestPreserveSecretSettings_PrimitiveTypes(t *testing.T) {
+	tests := []struct {
+		name        string
+		config      interface{}
+		resp        interface{}
+		expectError bool
+	}{
+		{
+			name:        "matching strings",
+			config:      "test",
+			resp:        "different",
+			expectError: false,
+		},
+		{
+			name:        "matching numbers",
+			config:      123.45,
+			resp:        678.90,
+			expectError: false,
+		},
+		{
+			name:        "matching booleans",
+			config:      true,
+			resp:        false,
+			expectError: false,
+		},
+		{
+			name:        "type mismatch string-number",
+			config:      "test",
+			resp:        123,
+			expectError: true,
+		},
+		{
+			name:        "type mismatch number-bool",
+			config:      123,
+			resp:        true,
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := PreserveSecretSettings(tt.config, tt.resp)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
