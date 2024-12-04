@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -82,7 +83,7 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &DeviceConfigV2GraphServiceModel); err != nil {
+	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &sharedmodels.DeviceConfigV2GraphServiceModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -91,12 +92,12 @@ func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
-		"data": DeviceConfigV2GraphServiceModel,
+		"data": sharedmodels.DeviceConfigV2GraphServiceModel,
 	})
 
 	settingsCollection := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	for _, detail := range DeviceConfigV2GraphServiceModel.SettingsDetails {
+	for _, detail := range sharedmodels.DeviceConfigV2GraphServiceModel.SettingsDetails {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 
 		switch detail.SettingInstance.ODataType {
