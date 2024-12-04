@@ -1,4 +1,4 @@
-name: extract graph metadata
+name: Extract Graph Metadata
 
 on:
   workflow_dispatch:

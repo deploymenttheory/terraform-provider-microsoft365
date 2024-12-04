@@ -1,4 +1,4 @@
-name: generate go docs
+name: Generate go Docs
 
 on:
   pull_request:
