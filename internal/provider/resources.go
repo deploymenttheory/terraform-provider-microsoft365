@@ -6,6 +6,7 @@ import (
 	graphBetaDeviceAndAppManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/assignment_filter"
 	graphBetaDeviceAndAppManagementBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/browser_site"
 	graphBetaDeviceAndAppManagementBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/browser_site_list"
+	graphBetaDeviceAndAppManagementEndpointPrivilegeManagement "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/endpoint_privilege_management"
 	graphBetaDeviceAndAppManagementM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/m365_apps_installation_options"
 	graphBetaDeviceAndAppManagementmacOSPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/macos_platform_script"
 	graphBetaDeviceAndAppManagementMobileAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/beta/mobile_app_assignment"
@@ -35,9 +36,11 @@ import (
 // Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		// Graph Beta - Intune resources
 		graphBetaDeviceAndAppManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceAndAppManagementBrowserSite.NewBrowserSiteResource,
 		graphBetaDeviceAndAppManagementBrowserSiteList.NewBrowserSiteListResource,
+		graphBetaDeviceAndAppManagementEndpointPrivilegeManagement.NewEndpointPrivilegeManagementResource,
 		graphBetaDeviceAndAppManagementmacOSPlatformScript.NewDeviceShellScriptResource,
 		graphBetaDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		graphBetaDeviceAndAppManagementMobileAppAssignment.NewMobileAppAssignmentResource,
@@ -45,7 +48,9 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
+		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		// Graph v1.0 - Intune resources
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
