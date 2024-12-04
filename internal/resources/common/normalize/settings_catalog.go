@@ -48,6 +48,10 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			}
 		}
 
+	// Primitive types like strings or numbers cannot contain secret values - they are just simple values.
+	case string, float64, bool, nil:
+		return nil
+
 	default:
 		return fmt.Errorf("unsupported type: %s", reflect.TypeOf(config))
 	}

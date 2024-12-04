@@ -47,26 +47,36 @@ function Get-Paginated {
 
 # Helper function to retrieve a specific settings catalog policy by ID
 function Get-SettingsCatalogPolicyById {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$SettingsCatalogItemId
-    )
+  param (
+      [Parameter(Mandatory=$true)]
+      [string]$SettingsCatalogItemId
+  )
 
-    try {
-        $policyUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId"
-        $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
+  try {
+      $policyUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId"
+      $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
 
-        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId/settings"
-        $allSettings = Get-Paginated -InitialUri $settingsUri
+      $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$SettingsCatalogItemId/settings"
+      $allSettings = Get-Paginated -InitialUri $settingsUri
 
-        $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $allSettings
+      # Arrange the settings into the expected format with sequential IDs for each setting
+      $formattedSettings = @()
+      for($i = 0; $i -lt $allSettings.Count; $i++) {
+          $formattedSettings += @{
+              id = $i.ToString()
+              settingInstance = $allSettings[$i].settingInstance
+          }
+      }
 
-        return $policy
-    }
-    catch {
-        Write-Error "Error retrieving settings catalog policy by ID: $_"
-        return $null
-    }
+      # Add the formatted settings array to the policy object
+      $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $formattedSettings
+
+      return $policy
+  }
+  catch {
+      Write-Error "Error retrieving settings catalog policy by ID: $_"
+      return $null
+  }
 }
 
 # Script Setup
@@ -78,7 +88,6 @@ $clientSecretCredential = New-Object -TypeName System.Management.Automation.PSCr
 Write-Host "Connecting to Microsoft Graph..."
 Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $TenantId
 
-# Retrieve and output the specified catalog policy
 Write-Host "Retrieving catalog policy with ID: $SettingsCatalogItemId"
 $catalogItemData = Get-SettingsCatalogPolicyById -SettingsCatalogItemId $SettingsCatalogItemId
 
