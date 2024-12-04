@@ -5,7 +5,7 @@ on:
 
 jobs:
   auto-merge:
-    name: Auto-Merge Dependabot
+    name: '🤖 Auto-Merge Dependabot'
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
