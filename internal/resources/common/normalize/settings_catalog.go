@@ -9,11 +9,15 @@ import (
 // and preserves the value and valueState from the config settings. This is performed recursively throughout the JSON
 // settings catalog and It returns an error if any unexpected data types or mismatches are encountered.
 func PreserveSecretSettings(config, resp interface{}) error {
+	if config == nil || resp == nil {
+		return fmt.Errorf("nil values not supported")
+	}
+
 	switch configV := config.(type) {
 	case map[string]interface{}:
 		respV, ok := resp.(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("expected map[string]interface{} in response, got %s", reflect.TypeOf(resp))
+			return fmt.Errorf("expected map[string]interface{} in response, got %T", resp)
 		}
 
 		if odataType, ok := configV["@odata.type"].(string); ok &&
@@ -38,7 +42,7 @@ func PreserveSecretSettings(config, resp interface{}) error {
 	case []interface{}:
 		respV, ok := resp.([]interface{})
 		if !ok {
-			return fmt.Errorf("expected []interface{} in response, got %s", reflect.TypeOf(resp))
+			return fmt.Errorf("expected []interface{} in response, got %T", resp)
 		}
 		for i := range configV {
 			if i < len(respV) {
@@ -48,12 +52,12 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			}
 		}
 
-	// Primitive types like strings or numbers cannot contain secret values - they are just simple values.
-	case string, float64, bool, nil:
-		return nil
-
 	default:
-		return fmt.Errorf("unsupported type: %s", reflect.TypeOf(config))
+		// For primitive types, check if they match
+		if reflect.TypeOf(config) != reflect.TypeOf(resp) {
+			return fmt.Errorf("type mismatch: config is %T, response is %T", config, resp)
+		}
+		return nil
 	}
 
 	return nil
