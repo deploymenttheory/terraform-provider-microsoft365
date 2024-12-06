@@ -3,7 +3,6 @@ package graphBetaEndpointPrivilegeManagement
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -48,8 +47,12 @@ func constructResource(ctx context.Context, data *EndpointPrivilegeManagementRes
 	for _, tech := range data.Technologies {
 		technologiesStr = append(technologiesStr, tech.ValueString())
 	}
-	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
-	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+
+	technologies := graphmodels.DeviceManagementConfigurationTechnologies(
+		graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES |
+			graphmodels.ENDPOINTPRIVILEGEMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+	)
+	requestBody.SetTechnologies(&technologies)
 
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string

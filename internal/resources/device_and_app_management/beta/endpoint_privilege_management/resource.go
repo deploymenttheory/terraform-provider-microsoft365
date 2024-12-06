@@ -142,8 +142,8 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 			},
 			"technologies": schema.ListAttribute{
 				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
+				//Optional:    true,
+				Computed: true,
 				Validators: []validator.List{
 					customValidator.EnumValuesList(
 						"none", "mdm", "windows10XManagement", "configManager",
