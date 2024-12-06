@@ -23,11 +23,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *EndpointPrivil
 	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
 	data.Name = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
+	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
-	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
 
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)
@@ -35,6 +35,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *EndpointPrivil
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
 		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
 	}
+
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})

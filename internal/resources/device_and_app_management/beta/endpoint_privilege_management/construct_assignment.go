@@ -28,13 +28,11 @@ func constructAssignment(ctx context.Context, data *EndpointPrivilegeManagementR
 
 	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
-
 		assignments = append(assignments, constructAllDevicesAssignment(ctx, data.Assignments))
 	}
 
 	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
-
 		assignments = append(assignments, constructAllUsersAssignment(ctx, data.Assignments))
 	}
 

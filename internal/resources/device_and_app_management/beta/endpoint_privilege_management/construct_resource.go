@@ -1,18 +1,16 @@
-package graphBetaSettingsCatalog
+package graphBetaEndpointPrivilegeManagement
 
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
+func constructResource(ctx context.Context, data *EndpointPrivilegeManagementResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
@@ -45,12 +43,11 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	}
 	requestBody.SetPlatforms(&platform)
 
-	var technologiesStr []string
-	for _, tech := range data.Technologies {
-		technologiesStr = append(technologiesStr, tech.ValueString())
-	}
-	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
-	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+	technologies := graphmodels.DeviceManagementConfigurationTechnologies(
+		graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES |
+			graphmodels.ENDPOINTPRIVILEGEMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+	)
+	requestBody.SetTechnologies(&technologies)
 
 	if len(data.RoleScopeTagIds) > 0 {
 		var tagIds []string
