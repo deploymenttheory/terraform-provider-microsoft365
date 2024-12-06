@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaDeviceManagementTemplate
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *SettingsCatalogProfileResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
+func constructAssignment(ctx context.Context, data *DeviceManagementTemplateResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
