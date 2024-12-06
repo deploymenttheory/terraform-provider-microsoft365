@@ -245,8 +245,16 @@ func handleSimpleSettingCollection(collectionValues []sharedmodels.SimpleSetting
 	return values
 }
 
-// Helper function to handle choice setting children recursively
-// Unified recursive function to handle choice setting children
+// handleChoiceSettingChildren recursively processes a list of choice setting children.
+// Each child is converted into a setting instance based on its OData type and configuration,
+// supporting nested recursive structures.
+//
+// Parameters:
+// - ctx: The context for logging and operations.
+// - children: A slice of sharedmodels.ChoiceSettingChild representing the choice setting children to process.
+//
+// Returns:
+// - []graphmodels.DeviceManagementConfigurationSettingInstanceable: A slice of processed setting instances.
 func handleChoiceSettingChildren(ctx context.Context, children []sharedmodels.ChoiceSettingChild) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	var result []graphmodels.DeviceManagementConfigurationSettingInstanceable
 
@@ -269,7 +277,16 @@ func handleChoiceSettingChildren(ctx context.Context, children []sharedmodels.Ch
 	return result
 }
 
-// Helper function to handle nested group settings recursively
+// handleGroupSettingCollection recursively processes a list of group setting collections.
+// Each group item and its children are converted into setting instances based on their OData type
+// and configuration, supporting deeply nested group structures.
+//
+// Parameters:
+// - ctx: The context for logging and operations.
+// - groupValues: A slice of sharedmodels.GroupSettingCollectionStruct representing the group setting collections to process.
+//
+// Returns:
+// - []graphmodels.DeviceManagementConfigurationGroupSettingValueable: A slice of processed group setting values.
 func handleGroupSettingCollection(ctx context.Context, groupValues []sharedmodels.GroupSettingCollectionStruct) []graphmodels.DeviceManagementConfigurationGroupSettingValueable {
 	var values []graphmodels.DeviceManagementConfigurationGroupSettingValueable
 
@@ -417,7 +434,21 @@ func handleSettingInstance(ctx context.Context, instance sharedmodels.SettingIns
 	return nil
 }
 
-// Helper function to create and set instance template references
+// setInstanceTemplateReference creates and assigns a SettingInstanceTemplateReference to a setting instance.
+// This function adds the template reference metadata to a given setting instance if the reference is provided.
+//
+// Parameters:
+// - instance: The setting instance implementing DeviceManagementConfigurationSettingInstanceable.
+// - ref: The SettingInstanceTemplateReference containing the template ID.
+//
+// Example:
+// Input:
+//
+//	{
+//	    "settingInstanceTemplateReference": {
+//	        "settingInstanceTemplateId": "template-id-123"
+//	    }
+//	}
 func setInstanceTemplateReference(instance graphmodels.DeviceManagementConfigurationSettingInstanceable, ref *sharedmodels.SettingInstanceTemplateReference) {
 	if ref != nil {
 		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
@@ -426,7 +457,37 @@ func setInstanceTemplateReference(instance graphmodels.DeviceManagementConfigura
 	}
 }
 
-// Helper function to create and set value template references
+// setValueTemplateReference creates and assigns a SettingValueTemplateReference to a value object.
+// This function adds the template reference metadata to a value object if the reference is provided.
+// It supports group, choice, and simple setting value types.
+//
+// Parameters:
+// - value: The value object implementing one of the supported interfaces (Group, Choice, or Simple setting values).
+// - ref: The SettingValueTemplateReference containing the template ID and `useTemplateDefault` flag.
+//
+// Example:
+// Input:
+//
+//	{
+//	    "value": "example-value",
+//	    "settingValueTemplateReference": {
+//	        "settingValueTemplateId": "template-id-456",
+//	        "useTemplateDefault": true
+//	    }
+//	}
+//
+// Effect:
+// The `value` will have its SettingValueTemplateReference field set to:
+//
+//	{
+//	    "settingValueTemplateId": "template-id-456",
+//	    "useTemplateDefault": true
+//	}
+//
+// Supported Value Types:
+// - GroupSettingValue
+// - ChoiceSettingValue
+// - SimpleSettingValue
 func setValueTemplateReference(value interface{}, ref *sharedmodels.SettingValueTemplateReference) {
 	if ref != nil {
 		templateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
