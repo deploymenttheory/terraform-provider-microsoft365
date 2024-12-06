@@ -10,7 +10,7 @@ import (
 // Keys are ordered alphabetically to ensure consistent ordering. This differs from the graph schema.
 // This doesn't affect requests to the Graph API, but it ensures that the state is consistent and can be compared
 // when using plan modifers.
-var DeviceConfigV2GraphServiceModel struct {
+type DeviceConfigV2GraphServiceModel struct {
 	SettingsDetails []struct {
 		ID              string `json:"id"`
 		SettingInstance struct {
@@ -203,6 +203,7 @@ var DeviceConfigV2GraphServiceModel struct {
 				SettingValueTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingValueTemplateReference"`
 			} `json:"groupSettingCollectionValue,omitempty"`
 
+			// Setting instance Odata and template reference
 			ODataType                        string                                                                     `json:"@odata.type"`
 			SettingDefinitionId              string                                                                     `json:"settingDefinitionId"`
 			SettingInstanceTemplateReference graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable `json:"settingInstanceTemplateReference"`
