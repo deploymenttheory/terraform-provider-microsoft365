@@ -15,7 +15,6 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
 	var configModel sharedmodels.DeviceConfigV2GraphServiceModel
-
 	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &configModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
 			"error": err.Error(),
@@ -23,6 +22,7 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		return nil
 	}
 
+	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
 		"data": configModel,
 	})
