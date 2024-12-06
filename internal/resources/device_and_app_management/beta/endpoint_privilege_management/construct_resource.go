@@ -43,11 +43,6 @@ func constructResource(ctx context.Context, data *EndpointPrivilegeManagementRes
 	}
 	requestBody.SetPlatforms(&platform)
 
-	var technologiesStr []string
-	for _, tech := range data.Technologies {
-		technologiesStr = append(technologiesStr, tech.ValueString())
-	}
-
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(
 		graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES |
 			graphmodels.ENDPOINTPRIVILEGEMANAGEMENT_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
