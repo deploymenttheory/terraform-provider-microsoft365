@@ -1,4 +1,4 @@
-package graphBetaEndpointPrivilegeManagement
+package validators
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 )
 
-// ValidateAssignmentConfiguration validates the assignment configuration
+// ValidateDeviceConfiguationAssignmentSettings validates the assignment configuration
 // - if all_devices is false, device filter settings should not be set
 // - if all_users is false, user filter settings should not be set
 // - if all_devices is true and all_devices_filter_id is nil, then all_devices_filter_type must set to "none"
@@ -24,7 +24,7 @@ import (
 // - No group is used more than once across include and exclude assignments
 // - AllDevices and IncludeGroups cannot be used at the same time
 // - AllUsers and IncludeGroups cannot be used at the same time
-func validateAssignmentConfig(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) error {
+func ValidateDeviceConfiguationAssignmentSettings(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) error {
 	// Validate filter types have valid values
 	validFilterTypes := map[string]bool{
 		"include": true,
