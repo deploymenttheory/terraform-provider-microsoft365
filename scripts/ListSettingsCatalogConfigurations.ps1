@@ -58,7 +58,6 @@ function Get-SettingsCatalogPolicies {
     )
 
     try {
-        # Build the base URI
         $baseUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
         
         # Add select parameters - reordered to put name first, then id
@@ -74,7 +73,6 @@ function Get-SettingsCatalogPolicies {
             $filter = "&`$filter=templateReference/TemplateFamily eq '$encodedTemplate'"
         }
 
-        # Combine URI
         $uri = $baseUri + $select + $topParameter + $filter
 
         # Get all policies
