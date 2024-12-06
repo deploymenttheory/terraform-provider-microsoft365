@@ -10,7 +10,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// ConstructSettingsCatalogSettings is a helper function to construct the settings catalog settings from the JSON data.
+// ConstructSettingsCatalogSettings constructs a collection of settings catalog settings from a JSON string
+// it supports simple, choice, simpleCollection, choiceCollection, and groupCollection settings and nested
+// settings within choice and group collections recursively.
 func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
@@ -22,7 +24,6 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		return nil
 	}
 
-	// Add debug logging after unmarshaling
 	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
 		"data": configModel,
 	})
@@ -31,735 +32,414 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 	for _, detail := range configModel.SettingsDetails {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+		instance, instanceType := createBaseInstance(ctx, detail.SettingInstance.ODataType, detail.SettingInstance.SettingDefinitionId)
 
-		switch detail.SettingInstance.ODataType {
-		// Handle ChoiceSettings
-		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-			instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-			instance.SetOdataType(&detail.SettingInstance.ODataType)
-			instance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
+		if instance == nil {
+			continue
+		}
 
+		switch instanceType {
+		case "simple":
+			simpleInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable)
+			if detail.SettingInstance.SimpleSettingValue != nil {
+				simpleInstance.SetSimpleSettingValue(handleSimpleValue(ctx, detail.SettingInstance.SimpleSettingValue))
+			}
+			setInstanceTemplateReference(simpleInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			baseSetting.SetSettingInstance(simpleInstance)
+
+		case "choice":
+			choiceInstance := instance.(graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable)
 			if detail.SettingInstance.ChoiceSettingValue != nil {
 				choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
 				choiceValue.SetValue(&detail.SettingInstance.ChoiceSettingValue.Value)
+				setValueTemplateReference(choiceValue, detail.SettingInstance.ChoiceSettingValue.SettingValueTemplateReference)
 
-				var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
-				for _, child := range detail.SettingInstance.ChoiceSettingValue.Children {
-					switch child.ODataType {
-					case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-						// Handle SimpleSettingInstance within ChoiceSettingValue
-						simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-						simpleInstance.SetOdataType(&child.ODataType)
-						simpleInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-						if child.SimpleSettingValue != nil {
-							switch child.SimpleSettingValue.ODataType {
-							case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								stringValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-
-								if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
-									stringValue.SetValue(&strValue)
-								}
-								simpleInstance.SetSimpleSettingValue(stringValue)
-							case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-								intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-								intValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-
-								if numValue, ok := child.SimpleSettingValue.Value.(float64); ok {
-									int32Value := int32(numValue)
-									intValue.SetValue(&int32Value)
-								}
-								simpleInstance.SetSimpleSettingValue(intValue)
-							}
-						}
-						children = append(children, simpleInstance)
-
-					case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-						// Handle nested ChoiceSettingInstance within ChoiceSettingValue
-						nestedChoiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-						nestedChoiceInstance.SetOdataType(&child.ODataType)
-						nestedChoiceInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-						if child.ChoiceSettingValue != nil {
-							nestedChoiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-							nestedChoiceValue.SetValue(&child.ChoiceSettingValue.Value)
-
-							// Process nested children within the nested ChoiceSettingValue
-							var nestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-							for _, nestedChild := range child.ChoiceSettingValue.Children {
-								switch nestedChild.ODataType {
-								case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-									nestedChoiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-									nestedChoiceInstance.SetOdataType(&nestedChild.ODataType)
-									nestedChoiceInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-									nestedChildren = append(nestedChildren, nestedChoiceInstance)
-
-								case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-									nestedSimpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-									nestedSimpleInstance.SetOdataType(&nestedChild.ODataType)
-									nestedSimpleInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-									nestedChildren = append(nestedChildren, nestedSimpleInstance)
-
-								// Handle other types if necessary
-								default:
-									tflog.Warn(ctx, "Unhandled @odata.type for nested child", map[string]interface{}{
-										"odata_type": nestedChild.ODataType,
-									})
-								}
-							}
-
-							nestedChoiceValue.SetChildren(nestedChildren)
-							nestedChoiceInstance.SetChoiceSettingValue(nestedChoiceValue)
-						}
-						children = append(children, nestedChoiceInstance)
-
-						// Handling for GroupSettingCollection within Choice
-					case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-						groupCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-						groupCollectionInstance.SetOdataType(&child.ODataType)
-						groupCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-						// Handle group collection value
-						if len(child.GroupSettingCollectionValue) > 0 {
-							var groupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
-							for _, groupItem := range child.GroupSettingCollectionValue {
-								groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-
-								// Process children of each group item (key-value pairs)
-								var groupChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-								for _, groupChild := range groupItem.Children {
-									if groupChild.ODataType == "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance" {
-										simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-										simpleInstance.SetOdataType(&groupChild.ODataType)
-										simpleInstance.SetSettingDefinitionId(&groupChild.SettingDefinitionId)
-
-										if groupChild.SimpleSettingValue != nil {
-											switch groupChild.SimpleSettingValue.ODataType {
-											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-												stringValue.SetOdataType(&groupChild.SimpleSettingValue.ODataType)
-												if strValue, ok := groupChild.SimpleSettingValue.Value.(string); ok {
-													stringValue.SetValue(&strValue)
-												}
-												simpleInstance.SetSimpleSettingValue(stringValue)
-											case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-												intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-												intValue.SetOdataType(&groupChild.SimpleSettingValue.ODataType)
-												if numValue, ok := groupChild.SimpleSettingValue.Value.(float64); ok {
-													int32Value := int32(numValue)
-													intValue.SetValue(&int32Value)
-												}
-												simpleInstance.SetSimpleSettingValue(intValue)
-											}
-										}
-										groupChildren = append(groupChildren, simpleInstance)
-									}
-								}
-
-								groupValue.SetChildren(groupChildren)
-								if groupItem.SettingValueTemplateReference != nil {
-									groupValue.SetSettingValueTemplateReference(groupItem.SettingValueTemplateReference)
-								}
-								groupValues = append(groupValues, groupValue)
-							}
-							groupCollectionInstance.SetGroupSettingCollectionValue(groupValues)
-						}
-
-						children = append(children, groupCollectionInstance)
-
-						// For SimpleSettingCollection within Choice
-					case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-						simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-						simpleCollectionInstance.SetOdataType(&child.ODataType)
-						simpleCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-						if len(child.SimpleSettingCollectionValue) > 0 {
-							var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-							for _, v := range child.SimpleSettingCollectionValue {
-								stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								stringValue.SetOdataType(&v.ODataType)
-								stringValue.SetValue(&v.Value)
-								values = append(values, stringValue)
-							}
-							simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
-						}
-
-						children = append(children, simpleCollectionInstance)
-					}
+				if len(detail.SettingInstance.ChoiceSettingValue.Children) > 0 {
+					choiceChildren := handleChoiceSettingChildren(ctx, detail.SettingInstance.ChoiceSettingValue.Children)
+					choiceValue.SetChildren(choiceChildren)
 				}
 
-				choiceValue.SetChildren(children)
-				instance.SetChoiceSettingValue(choiceValue)
+				choiceInstance.SetChoiceSettingValue(choiceValue)
 			}
+			setInstanceTemplateReference(choiceInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			baseSetting.SetSettingInstance(choiceInstance)
 
-			baseSetting.SetSettingInstance(instance)
-
-		// Handle SimpleSettingCollection
-		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-			instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-			instance.SetOdataType(&detail.SettingInstance.ODataType)
-			instance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
-
+		case "simpleCollection":
+			collectionInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable)
 			if len(detail.SettingInstance.SimpleSettingCollectionValue) > 0 {
-				var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-				for _, v := range detail.SettingInstance.SimpleSettingCollectionValue {
-					stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-					stringValue.SetOdataType(&v.ODataType)
-					stringValue.SetValue(&v.Value)
-					values = append(values, stringValue)
-				}
-				instance.SetSimpleSettingCollectionValue(values)
+				values := handleSimpleSettingCollection(detail.SettingInstance.SimpleSettingCollectionValue)
+				collectionInstance.SetSimpleSettingCollectionValue(values)
 			}
+			setInstanceTemplateReference(collectionInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			baseSetting.SetSettingInstance(collectionInstance)
 
-			baseSetting.SetSettingInstance(instance)
-
-		// Handle SimpleSettingInstance
-		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-			instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-			instance.SetOdataType(&detail.SettingInstance.ODataType)
-			instance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
-
-			if detail.SettingInstance.SimpleSettingValue != nil {
-				switch detail.SettingInstance.SimpleSettingValue.ODataType {
-				case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-					value := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-					value.SetOdataType(&detail.SettingInstance.SimpleSettingValue.ODataType)
-					if stringValue, ok := detail.SettingInstance.SimpleSettingValue.Value.(string); ok {
-						value.SetValue(&stringValue)
-					} else {
-						tflog.Error(ctx, "Expected string value but got different type", map[string]interface{}{
-							"value": detail.SettingInstance.SimpleSettingValue.Value,
-						})
-					}
-					instance.SetSimpleSettingValue(value)
-
-				case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-					value := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-					value.SetOdataType(&detail.SettingInstance.SimpleSettingValue.ODataType)
-					if intValue, ok := detail.SettingInstance.SimpleSettingValue.Value.(float64); ok {
-						intVal := int32(intValue)
-						value.SetValue(&intVal)
-					} else {
-						tflog.Error(ctx, "Expected integer value but got different type", map[string]interface{}{
-							"value": detail.SettingInstance.SimpleSettingValue.Value,
-						})
-					}
-					instance.SetSimpleSettingValue(value)
-				}
-			}
-
-			baseSetting.SetSettingInstance(instance)
-
-		// Handle ChoiceSettingCollection
-		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
-			instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
-			instance.SetOdataType(&detail.SettingInstance.ODataType)
-			instance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
-
+		case "choiceCollection":
+			collectionInstance := instance.(graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable)
 			if len(detail.SettingInstance.ChoiceSettingCollectionValue) > 0 {
-				var collectionValues []graphmodels.DeviceManagementConfigurationChoiceSettingValueable
-				for _, choiceItem := range detail.SettingInstance.ChoiceSettingCollectionValue {
-					choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-					choiceValue.SetValue(&choiceItem.Value)
-
-					// Process children within each choice item
-					var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
-					for _, child := range choiceItem.Children {
-						childInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-						childInstance.SetOdataType(&child.ODataType)
-						childInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-						// Handle SimpleSettingValue based on type (string or integer)
-						if child.SimpleSettingValue != nil {
-							if stringValue, ok := child.SimpleSettingValue.Value.(string); ok {
-								simpleValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-								simpleValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-								simpleValue.SetValue(&stringValue)
-								childInstance.SetSimpleSettingValue(simpleValue)
-							} else if intValue, ok := child.SimpleSettingValue.Value.(float64); ok {
-								intVal := int32(intValue)
-								intValueSetting := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-								intValueSetting.SetOdataType(&child.SimpleSettingValue.ODataType)
-								intValueSetting.SetValue(&intVal)
-								childInstance.SetSimpleSettingValue(intValueSetting)
-							}
-						}
-						children = append(children, childInstance)
-					}
-					choiceValue.SetChildren(children)
-					collectionValues = append(collectionValues, choiceValue)
-				}
-				instance.SetChoiceSettingCollectionValue(collectionValues)
+				values := handleChoiceCollectionValue(ctx, detail.SettingInstance.ChoiceSettingCollectionValue)
+				collectionInstance.SetChoiceSettingCollectionValue(values)
 			}
+			setInstanceTemplateReference(collectionInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			baseSetting.SetSettingInstance(collectionInstance)
 
-			baseSetting.SetSettingInstance(instance)
-
-			// Handling for GroupSettingCollection (Level 1)
-		case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-			groupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-			groupSettingCollectionInstance.SetOdataType(&detail.SettingInstance.ODataType)
-			groupSettingCollectionInstance.SetSettingDefinitionId(&detail.SettingInstance.SettingDefinitionId)
-
+		case "groupCollection":
+			groupInstance := instance.(graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable)
 			if len(detail.SettingInstance.GroupSettingCollectionValue) > 0 {
-				var groupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
-
-				for _, groupSettingValueItem := range detail.SettingInstance.GroupSettingCollectionValue {
-					groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-					groupOdataType := "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
-					groupValue.SetOdataType(&groupOdataType)
-
-					if groupSettingValueItem.SettingValueTemplateReference != nil {
-						groupValue.SetSettingValueTemplateReference(groupSettingValueItem.SettingValueTemplateReference)
-					}
-
-					var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
-					for _, child := range groupSettingValueItem.Children {
-						switch child.ODataType {
-
-						// For nested group setting collections within group setting collection (Level 2)
-						case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-							nestedGroupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-							nestedGroupSettingCollectionInstance.SetOdataType(&child.ODataType)
-							nestedGroupSettingCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-							if len(child.GroupSettingCollectionValue) > 0 {
-								var nestedGroupValues []graphmodels.DeviceManagementConfigurationGroupSettingValueable
-								for _, nestedGroupItem := range child.GroupSettingCollectionValue {
-									nestedGroupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-									nestedGroupOdataType := "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
-									nestedGroupValue.SetOdataType(&nestedGroupOdataType)
-
-									var nestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-									for _, nestedChild := range nestedGroupItem.Children {
-										switch nestedChild.ODataType {
-										// Handle group settings collection within group setting collection within group setting collection within group setting collection (Level 3)
-										case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
-											nestedNestedGroupSettingCollectionInstance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-											nestedNestedGroupSettingCollectionInstance.SetOdataType(&nestedChild.ODataType)
-											nestedNestedGroupSettingCollectionInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-
-											if len(nestedChild.GroupSettingCollectionValue) > 0 {
-												var level3Values []graphmodels.DeviceManagementConfigurationGroupSettingValueable
-												for _, level3Item := range nestedChild.GroupSettingCollectionValue {
-													level3Value := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-													level3OdataType := "#microsoft.graph.deviceManagementConfigurationGroupSettingValue"
-													level3Value.SetOdataType(&level3OdataType)
-
-													var nestedNestedChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-													for _, level3Child := range level3Item.Children {
-														switch level3Child.ODataType {
-														// Handle choice settings within group setting collection within group setting collection within group setting collection (Level 4)
-														case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-															choiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-															choiceInstance.SetOdataType(&level3Child.ODataType)
-															choiceInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
-
-															if level3Child.ChoiceSettingValue != nil {
-																choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-																choiceOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
-																choiceValue.SetOdataType(&choiceOdataType)
-																choiceValue.SetValue(&level3Child.ChoiceSettingValue.Value)
-
-																if level3Child.ChoiceSettingValue.SettingValueTemplateReference != nil {
-																	choiceValue.SetSettingValueTemplateReference(level3Child.ChoiceSettingValue.SettingValueTemplateReference)
-																}
-
-																var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-																for _, choiceChild := range level3Child.ChoiceSettingValue.Children {
-																	switch choiceChild.ODataType {
-																	// Handle simple setting within choice settings within group setting collection within group setting collection within group setting collection (Level 5)
-																	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-																		simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-																		simpleInstance.SetOdataType(&choiceChild.ODataType)
-																		simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-																		if choiceChild.SimpleSettingValue != nil {
-																			switch choiceChild.SimpleSettingValue.ODataType {
-																			case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-																				stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-																				stringOdataType := "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-																				stringValue.SetOdataType(&stringOdataType)
-																				if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
-																					stringValue.SetValue(&strValue)
-																				}
-																				if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
-																					stringValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
-																				}
-																				simpleInstance.SetSimpleSettingValue(stringValue)
-
-																			case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-																				intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-																				intOdataType := "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
-																				intValue.SetOdataType(&intOdataType)
-																				if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
-																					int32Value := int32(numValue)
-																					intValue.SetValue(&int32Value)
-																				}
-																				simpleInstance.SetSimpleSettingValue(intValue)
-																			}
-																		}
-																		choiceChildren = append(choiceChildren, simpleInstance)
-																	}
-																}
-																choiceValue.SetChildren(choiceChildren)
-																choiceInstance.SetChoiceSettingValue(choiceValue)
-															}
-															nestedNestedChildren = append(nestedNestedChildren, choiceInstance)
-														// Handle simple settings within group setting collection within group setting collection within group setting collection (Level 4)
-														case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-															simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-															simpleInstance.SetOdataType(&level3Child.ODataType)
-															simpleInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
-
-															if level3Child.SimpleSettingValue != nil {
-																switch level3Child.SimpleSettingValue.ODataType {
-																case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-																	stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-																	stringValue.SetOdataType(&level3Child.SimpleSettingValue.ODataType)
-																	if strValue, ok := level3Child.SimpleSettingValue.Value.(string); ok {
-																		stringValue.SetValue(&strValue)
-																	}
-																	if level3Child.SimpleSettingValue.SettingValueTemplateReference != nil {
-																		stringValue.SetSettingValueTemplateReference(level3Child.SimpleSettingValue.SettingValueTemplateReference)
-																	}
-																	simpleInstance.SetSimpleSettingValue(stringValue)
-
-																case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-																	intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-																	intValue.SetOdataType(&level3Child.SimpleSettingValue.ODataType)
-																	if numValue, ok := level3Child.SimpleSettingValue.Value.(float64); ok {
-																		int32Value := int32(numValue)
-																		intValue.SetValue(&int32Value)
-																	}
-																	if level3Child.SimpleSettingValue.SettingValueTemplateReference != nil {
-																		intValue.SetSettingValueTemplateReference(level3Child.SimpleSettingValue.SettingValueTemplateReference)
-																	}
-																	simpleInstance.SetSimpleSettingValue(intValue)
-
-																case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
-																	secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-																	secretValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-																	if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
-																		secretValue.SetValue(&strValue)
-																		if child.SimpleSettingValue.ValueState != "" {
-																			valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(child.SimpleSettingValue.ValueState)
-																			if err == nil {
-																				secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
-																			}
-																		}
-																	}
-																	simpleInstance.SetSimpleSettingValue(secretValue)
-																}
-															}
-															nestedNestedChildren = append(nestedNestedChildren, simpleInstance)
-
-														case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-															simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-															simpleCollectionInstance.SetOdataType(&level3Child.ODataType)
-															simpleCollectionInstance.SetSettingDefinitionId(&level3Child.SettingDefinitionId)
-
-															if len(level3Child.SimpleSettingCollectionValue) > 0 {
-																var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-																for _, v := range level3Child.SimpleSettingCollectionValue {
-																	stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-																	stringValue.SetOdataType(&v.ODataType)
-																	stringValue.SetValue(&v.Value)
-																	if v.SettingValueTemplateReference != nil {
-																		stringValue.SetSettingValueTemplateReference(v.SettingValueTemplateReference)
-																	}
-																	values = append(values, stringValue)
-																}
-																simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
-															}
-															nestedNestedChildren = append(nestedNestedChildren, simpleCollectionInstance)
-														}
-													}
-
-													if level3Item.SettingValueTemplateReference != nil {
-														level3Value.SetSettingValueTemplateReference(level3Item.SettingValueTemplateReference)
-													}
-													level3Value.SetChildren(nestedNestedChildren)
-													level3Values = append(level3Values, level3Value)
-												}
-												nestedNestedGroupSettingCollectionInstance.SetGroupSettingCollectionValue(level3Values)
-											}
-											nestedChildren = append(nestedChildren, nestedNestedGroupSettingCollectionInstance)
-											// Handle Simple setting within group setting collection within group setting collection (Level 3)
-										case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-											simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-											simpleInstance.SetOdataType(&nestedChild.ODataType)
-											simpleInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-
-											if nestedChild.SimpleSettingValue != nil {
-												switch nestedChild.SimpleSettingValue.ODataType {
-
-												case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-													stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-													stringValue.SetOdataType(&nestedChild.SimpleSettingValue.ODataType)
-													if strValue, ok := nestedChild.SimpleSettingValue.Value.(string); ok {
-														stringValue.SetValue(&strValue)
-													}
-													simpleInstance.SetSimpleSettingValue(stringValue)
-
-												case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-													intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-													intValue.SetOdataType(&nestedChild.SimpleSettingValue.ODataType)
-													if numValue, ok := nestedChild.SimpleSettingValue.Value.(float64); ok {
-														int32Value := int32(numValue)
-														intValue.SetValue(&int32Value)
-													}
-													simpleInstance.SetSimpleSettingValue(intValue)
-
-												case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
-													secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-													secretValue.SetOdataType(&nestedChild.SimpleSettingValue.ODataType)
-													if strValue, ok := nestedChild.SimpleSettingValue.Value.(string); ok {
-														secretValue.SetValue(&strValue)
-														if nestedChild.SimpleSettingValue.ValueState != "" {
-															valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(nestedChild.SimpleSettingValue.ValueState)
-															if err == nil {
-																secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
-															}
-														}
-													}
-													simpleInstance.SetSimpleSettingValue(secretValue)
-												}
-											}
-											nestedChildren = append(nestedChildren, simpleInstance)
-											// Handle Simple setting collection within group setting collection within group setting collection (Level 3)
-										case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-											simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-											simpleCollectionInstance.SetOdataType(&nestedChild.ODataType)
-											simpleCollectionInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-
-											if len(nestedChild.SimpleSettingCollectionValue) > 0 {
-												var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-												for _, v := range nestedChild.SimpleSettingCollectionValue {
-													stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-													stringValue.SetOdataType(&v.ODataType)
-													stringValue.SetValue(&v.Value)
-													values = append(values, stringValue)
-												}
-												simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
-											}
-											nestedChildren = append(nestedChildren, simpleCollectionInstance)
-											// Handle choice setting within group setting collection within group setting collection (Level 3)
-										case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-											choiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-											choiceInstance.SetOdataType(&nestedChild.ODataType)
-											choiceInstance.SetSettingDefinitionId(&nestedChild.SettingDefinitionId)
-
-											if nestedChild.ChoiceSettingValue != nil {
-												choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-												choiceOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
-												choiceValue.SetOdataType(&choiceOdataType)
-												choiceValue.SetValue(&nestedChild.ChoiceSettingValue.Value)
-
-												var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-												for _, choiceChild := range nestedChild.ChoiceSettingValue.Children {
-													switch choiceChild.ODataType {
-													// Handle simple setting within choice setting within group setting collection within group setting collection (Level 4)
-													case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-														simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-														simpleInstance.SetOdataType(&choiceChild.ODataType)
-														simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-														if choiceChild.SimpleSettingValue != nil {
-															switch choiceChild.SimpleSettingValue.ODataType {
-															case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-																stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-																stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-																if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
-																	stringValue.SetValue(&strValue)
-																}
-																if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
-																	stringValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
-																}
-																simpleInstance.SetSimpleSettingValue(stringValue)
-
-															case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-																intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-																intValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-																if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
-																	int32Value := int32(numValue)
-																	intValue.SetValue(&int32Value)
-																}
-																if choiceChild.SimpleSettingValue.SettingValueTemplateReference != nil {
-																	intValue.SetSettingValueTemplateReference(choiceChild.SimpleSettingValue.SettingValueTemplateReference)
-																}
-																simpleInstance.SetSimpleSettingValue(intValue)
-
-															case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
-																secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-																secretValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-																if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
-																	secretValue.SetValue(&strValue)
-																	if choiceChild.SimpleSettingValue.ValueState != "" {
-																		valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(choiceChild.SimpleSettingValue.ValueState)
-																		if err == nil {
-																			secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
-																		}
-																	}
-																}
-																simpleInstance.SetSimpleSettingValue(secretValue)
-															}
-														}
-														choiceChildren = append(choiceChildren, simpleInstance)
-													}
-												}
-												choiceValue.SetChildren(choiceChildren)
-												choiceInstance.SetChoiceSettingValue(choiceValue)
-											}
-											nestedChildren = append(nestedChildren, choiceInstance)
-										}
-									}
-									nestedGroupValue.SetChildren(nestedChildren)
-									nestedGroupValues = append(nestedGroupValues, nestedGroupValue)
-								}
-								nestedGroupSettingCollectionInstance.SetGroupSettingCollectionValue(nestedGroupValues)
-							}
-							children = append(children, nestedGroupSettingCollectionInstance)
-
-							// For nested simple setting collections within group setting collection
-						case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
-							simpleCollectionInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-							simpleCollectionInstance.SetOdataType(&child.ODataType)
-							simpleCollectionInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-							if len(child.SimpleSettingCollectionValue) > 0 {
-								var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
-								for _, valueItem := range child.SimpleSettingCollectionValue {
-									stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-									stringValue.SetOdataType(&valueItem.ODataType)
-									stringValue.SetValue(&valueItem.Value)
-									values = append(values, stringValue)
-								}
-								simpleCollectionInstance.SetSimpleSettingCollectionValue(values)
-							}
-
-							children = append(children, simpleCollectionInstance)
-
-							// For nested simple settings within group setting collection
-						case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-							simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-							simpleInstance.SetOdataType(&child.ODataType)
-							simpleInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-							if child.SimpleSettingValue != nil {
-								switch child.SimpleSettingValue.ODataType {
-								case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-									stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-									stringValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-									if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
-										stringValue.SetValue(&strValue)
-									}
-									simpleInstance.SetSimpleSettingValue(stringValue)
-
-								case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-									intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-									intValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-									if numValue, ok := child.SimpleSettingValue.Value.(float64); ok {
-										int32Value := int32(numValue)
-										intValue.SetValue(&int32Value)
-									}
-									simpleInstance.SetSimpleSettingValue(intValue)
-
-								case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
-									secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-									secretValue.SetOdataType(&child.SimpleSettingValue.ODataType)
-									if strValue, ok := child.SimpleSettingValue.Value.(string); ok {
-										secretValue.SetValue(&strValue)
-										if child.SimpleSettingValue.ValueState != "" {
-											valueState, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(child.SimpleSettingValue.ValueState)
-											if err == nil {
-												secretValue.SetValueState(valueState.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
-											}
-										}
-									}
-									simpleInstance.SetSimpleSettingValue(secretValue)
-								}
-							}
-							children = append(children, simpleInstance)
-
-							// For nested choice settings within group setting collection
-						case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-							choiceInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-							choiceInstance.SetOdataType(&child.ODataType)
-							choiceInstance.SetSettingDefinitionId(&child.SettingDefinitionId)
-
-							if child.ChoiceSettingValue != nil {
-								choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-								choiceValue.SetValue(&child.ChoiceSettingValue.Value)
-
-								var choiceChildren []graphmodels.DeviceManagementConfigurationSettingInstanceable
-								for _, choiceChild := range child.ChoiceSettingValue.Children {
-									switch choiceChild.ODataType {
-									case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-										nestedChoice := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-										nestedChoice.SetOdataType(&choiceChild.ODataType)
-										nestedChoice.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-										if choiceChild.ChoiceSettingValue != nil {
-											nestedChoiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-											nestedChoiceValue.SetValue(&choiceChild.ChoiceSettingValue.Value)
-											nestedChoiceValue.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{})
-											nestedChoice.SetChoiceSettingValue(nestedChoiceValue)
-										}
-										choiceChildren = append(choiceChildren, nestedChoice)
-
-									case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-										simpleInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-										simpleInstance.SetOdataType(&choiceChild.ODataType)
-										simpleInstance.SetSettingDefinitionId(&choiceChild.SettingDefinitionId)
-
-										if choiceChild.SimpleSettingValue != nil {
-											switch choiceChild.SimpleSettingValue.ODataType {
-
-											case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
-												stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-												stringValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-												if strValue, ok := choiceChild.SimpleSettingValue.Value.(string); ok {
-													stringValue.SetValue(&strValue)
-												}
-												simpleInstance.SetSimpleSettingValue(stringValue)
-
-											case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
-												intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-												intValue.SetOdataType(&choiceChild.SimpleSettingValue.ODataType)
-												if numValue, ok := choiceChild.SimpleSettingValue.Value.(float64); ok {
-													int32Value := int32(numValue)
-													intValue.SetValue(&int32Value)
-												}
-												simpleInstance.SetSimpleSettingValue(intValue)
-											}
-										}
-										choiceChildren = append(choiceChildren, simpleInstance)
-									}
-								}
-								choiceValue.SetChildren(choiceChildren)
-								choiceInstance.SetChoiceSettingValue(choiceValue)
-							}
-							children = append(children, choiceInstance)
-						}
-					}
-
-					groupValue.SetChildren(children)
-					groupValues = append(groupValues, groupValue)
-				}
-				groupSettingCollectionInstance.SetGroupSettingCollectionValue(groupValues)
+				values := handleGroupSettingCollection(ctx, detail.SettingInstance.GroupSettingCollectionValue)
+				groupInstance.SetGroupSettingCollectionValue(values)
 			}
-
-			baseSetting.SetSettingInstance(groupSettingCollectionInstance)
-
+			setInstanceTemplateReference(groupInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			baseSetting.SetSettingInstance(groupInstance)
 		}
 
 		settingsCollection = append(settingsCollection, baseSetting)
 	}
 
-	tflog.Debug(ctx, "Constructed settings collection", map[string]interface{}{
+	tflog.Debug(ctx, "Constructed settings catalog settings", map[string]interface{}{
 		"count": len(settingsCollection),
 	})
 
 	return settingsCollection
+}
+
+// createBaseInstance creates and initializes a new setting instance based on the provided OData type and setting definition ID.
+// The function dynamically determines the appropriate type of the instance to create and returns it along with its type as a string.
+// Supported types include:
+// - Simple Setting Instance
+// - Choice Setting Instance
+// - Simple Setting Collection Instance
+// - Choice Setting Collection Instance
+// - Group Setting Collection Instance
+//
+// Parameters:
+// - odataType: The OData type of the setting instance (e.g., "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance").
+// - settingDefinitionId: The ID of the setting definition associated with this instance.
+//
+// Returns:
+// - interface{}: The newly created setting instance, or nil if the OData type is unsupported.
+// - string: A string identifier for the type of the instance (e.g., "simple", "choice").
+func createBaseInstance(ctx context.Context, odataType string, settingDefinitionId string) (interface{}, string) {
+	if odataType == "" {
+		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]interface{}{
+			"odataType": odataType,
+		})
+		return nil, ""
+	}
+
+	switch odataType {
+	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+		instance.SetOdataType(&odataType)
+		instance.SetSettingDefinitionId(&settingDefinitionId)
+		return instance, "simple"
+
+	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+		instance.SetOdataType(&odataType)
+		instance.SetSettingDefinitionId(&settingDefinitionId)
+		return instance, "choice"
+
+	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
+		instance.SetOdataType(&odataType)
+		instance.SetSettingDefinitionId(&settingDefinitionId)
+		return instance, "simpleCollection"
+
+	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
+		instance.SetOdataType(&odataType)
+		instance.SetSettingDefinitionId(&settingDefinitionId)
+		return instance, "choiceCollection"
+
+	case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
+		instance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
+		instance.SetOdataType(&odataType)
+		instance.SetSettingDefinitionId(&settingDefinitionId)
+		return instance, "groupCollection"
+	}
+
+	return nil, ""
+}
+
+// handleSimpleValue processes a simple setting value and returns the corresponding model instance.
+// It supports various types of simple settings such as string, integer, and secret values, and dynamically
+// creates the appropriate setting value instance based on the OData type.
+//
+// Parameters:
+// - ctx: The context for logging and other operations.
+// - valueStruct: A pointer to the SimpleSettingStruct containing the value to process and its associated metadata.
+//
+// Supported OData types:
+// - "#microsoft.graph.deviceManagementConfigurationStringSettingValue" (string values)
+// - "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue" (integer values)
+// - "#microsoft.graph.deviceManagementConfigurationSecretSettingValue" (secret values with value state)
+//
+// Returns:
+//   - graphmodels.DeviceManagementConfigurationSimpleSettingValueable: The processed setting value instance,
+//     or nil if the OData type is unsupported or an error occurs.
+//
+// Logs:
+//   - Logs an error if the function is unable to process the provided valueStruct due to an unsupported type
+//     or invalid value.
+func handleSimpleValue(ctx context.Context, valueStruct *sharedmodels.SimpleSettingStruct) graphmodels.DeviceManagementConfigurationSimpleSettingValueable {
+	if valueStruct == nil {
+		return nil
+	}
+
+	var result graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+
+	switch valueStruct.ODataType {
+	case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
+		if strValue, ok := valueStruct.Value.(string); ok {
+			stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+			stringValue.SetOdataType(&valueStruct.ODataType)
+			stringValue.SetValue(&strValue)
+			result = stringValue
+		}
+
+	case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
+		if numValue, ok := valueStruct.Value.(float64); ok {
+			intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
+			intValue.SetOdataType(&valueStruct.ODataType)
+			int32Value := int32(numValue)
+			intValue.SetValue(&int32Value)
+			result = intValue
+		}
+
+	case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
+		if strValue, ok := valueStruct.Value.(string); ok {
+			secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
+			secretValue.SetOdataType(&valueStruct.ODataType)
+			secretValue.SetValue(&strValue)
+			if valueStruct.ValueState != "" {
+				if state, err := graphmodels.ParseDeviceManagementConfigurationSecretSettingValueState(valueStruct.ValueState); err == nil {
+					secretValue.SetValueState(state.(*graphmodels.DeviceManagementConfigurationSecretSettingValueState))
+				}
+			}
+			result = secretValue
+		}
+	}
+
+	if result != nil {
+		setValueTemplateReference(result, valueStruct.SettingValueTemplateReference)
+		return result
+	}
+
+	tflog.Error(ctx, "Failed to handle simple setting value", map[string]interface{}{
+		"type":  valueStruct.ODataType,
+		"value": valueStruct.Value,
+	})
+	return nil
+}
+
+// Helper function to handle simple setting collections
+func handleSimpleSettingCollection(collectionValues []sharedmodels.SimpleSettingCollectionStruct) []graphmodels.DeviceManagementConfigurationSimpleSettingValueable {
+	var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
+	for _, v := range collectionValues {
+		stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+		stringValue.SetOdataType(&v.ODataType)
+		stringValue.SetValue(&v.Value)
+		setValueTemplateReference(stringValue, v.SettingValueTemplateReference)
+		values = append(values, stringValue)
+	}
+	return values
+}
+
+// Helper function to handle choice setting children recursively
+// Unified recursive function to handle choice setting children
+func handleChoiceSettingChildren(ctx context.Context, children []sharedmodels.ChoiceSettingChild) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	var result []graphmodels.DeviceManagementConfigurationSettingInstanceable
+
+	for _, child := range children {
+		instance := handleSettingInstance(ctx, sharedmodels.SettingInstance{
+			ODataType:                        child.ODataType,
+			SettingDefinitionId:              child.SettingDefinitionId,
+			SettingInstanceTemplateReference: child.SettingInstanceTemplateReference,
+			SimpleSettingValue:               child.SimpleSettingValue,
+			SimpleSettingCollectionValue:     child.SimpleSettingCollectionValue,
+			ChoiceSettingValue:               child.ChoiceSettingValue,
+			ChoiceSettingCollectionValue:     child.ChoiceSettingCollectionValue,
+			GroupSettingCollectionValue:      child.GroupSettingCollectionValue,
+		})
+		if instance != nil {
+			result = append(result, instance)
+		}
+	}
+
+	return result
+}
+
+// Helper function to handle nested group settings recursively
+func handleGroupSettingCollection(ctx context.Context, groupValues []sharedmodels.GroupSettingCollectionStruct) []graphmodels.DeviceManagementConfigurationGroupSettingValueable {
+	var values []graphmodels.DeviceManagementConfigurationGroupSettingValueable
+
+	for _, groupItem := range groupValues {
+		groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
+		var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
+
+		for _, child := range groupItem.Children {
+			instance := handleSettingInstance(ctx, sharedmodels.SettingInstance{
+				ODataType:                        child.ODataType,
+				SettingDefinitionId:              child.SettingDefinitionId,
+				SettingInstanceTemplateReference: child.SettingInstanceTemplateReference,
+				SimpleSettingValue:               child.SimpleSettingValue,
+				SimpleSettingCollectionValue:     child.SimpleSettingCollectionValue,
+				ChoiceSettingValue:               child.ChoiceSettingValue,
+				ChoiceSettingCollectionValue:     child.ChoiceSettingCollectionValue,
+				GroupSettingCollectionValue:      child.GroupSettingCollectionValue,
+			})
+			if instance != nil {
+				children = append(children, instance)
+			}
+		}
+
+		groupValue.SetChildren(children)
+		setValueTemplateReference(groupValue, groupItem.SettingValueTemplateReference)
+		values = append(values, groupValue)
+	}
+
+	return values
+}
+
+// Helper function to handle choice collection values recursively
+func handleChoiceCollectionValue(ctx context.Context, collectionValues []sharedmodels.ChoiceSettingCollectionStruct) []graphmodels.DeviceManagementConfigurationChoiceSettingValueable {
+	var values []graphmodels.DeviceManagementConfigurationChoiceSettingValueable
+
+	for _, choiceItem := range collectionValues {
+		choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+		choiceValue.SetValue(&choiceItem.Value)
+		setValueTemplateReference(choiceValue, choiceItem.SettingValueTemplateReference)
+
+		var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		for _, child := range choiceItem.Children {
+			instance, instanceType := createBaseInstance(ctx, child.ODataType, child.SettingDefinitionId)
+			if instance == nil {
+				continue
+			}
+
+			switch instanceType {
+			case "simple":
+				simpleInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable)
+				if child.SimpleSettingValue != nil {
+					simpleInstance.SetSimpleSettingValue(handleSimpleValue(ctx, child.SimpleSettingValue))
+				}
+				setInstanceTemplateReference(simpleInstance, child.SettingInstanceTemplateReference)
+				children = append(children, simpleInstance)
+
+			case "simpleCollection":
+				collectionInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable)
+				if len(child.SimpleSettingCollectionValue) > 0 {
+					simpleValues := handleSimpleSettingCollection(child.SimpleSettingCollectionValue)
+					collectionInstance.SetSimpleSettingCollectionValue(simpleValues)
+				}
+				setInstanceTemplateReference(collectionInstance, child.SettingInstanceTemplateReference)
+				children = append(children, collectionInstance)
+			}
+		}
+
+		choiceValue.SetChildren(children)
+		values = append(values, choiceValue)
+	}
+
+	return values
+}
+
+// handleSettingInstance processes a given setting instance by creating and configuring
+// the appropriate type based on its OData type and setting definition ID. This function
+// supports recursive handling of nested settings, including simple, choice, collection,
+// and group settings.
+//
+// Parameters:
+// - ctx: The context for logging and operations.
+// - instance: A sharedmodels.SettingInstance object representing the setting to process.
+//
+// Returns:
+// - graphmodels.DeviceManagementConfigurationSettingInstanceable: The configured setting instance, or nil if the input is invalid or unsupported.
+func handleSettingInstance(ctx context.Context, instance sharedmodels.SettingInstance) graphmodels.DeviceManagementConfigurationSettingInstanceable {
+	baseInstance, instanceType := createBaseInstance(ctx, instance.ODataType, instance.SettingDefinitionId)
+	if baseInstance == nil {
+		return nil
+	}
+
+	switch instanceType {
+	case "simple":
+		simpleInstance := baseInstance.(graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable)
+		if instance.SimpleSettingValue != nil {
+			simpleInstance.SetSimpleSettingValue(handleSimpleValue(ctx, instance.SimpleSettingValue))
+		}
+		setInstanceTemplateReference(simpleInstance, instance.SettingInstanceTemplateReference)
+		return simpleInstance
+
+	case "choice":
+		choiceInstance := baseInstance.(graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable)
+		if instance.ChoiceSettingValue != nil {
+			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+			choiceValue.SetValue(&instance.ChoiceSettingValue.Value)
+			setValueTemplateReference(choiceValue, instance.ChoiceSettingValue.SettingValueTemplateReference)
+
+			if len(instance.ChoiceSettingValue.Children) > 0 {
+				children := handleChoiceSettingChildren(ctx, instance.ChoiceSettingValue.Children)
+				choiceValue.SetChildren(children)
+			}
+			choiceInstance.SetChoiceSettingValue(choiceValue)
+		}
+		setInstanceTemplateReference(choiceInstance, instance.SettingInstanceTemplateReference)
+		return choiceInstance
+
+	case "simpleCollection":
+		collectionInstance := baseInstance.(graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable)
+		if len(instance.SimpleSettingCollectionValue) > 0 {
+			values := handleSimpleSettingCollection(instance.SimpleSettingCollectionValue)
+			collectionInstance.SetSimpleSettingCollectionValue(values)
+		}
+		setInstanceTemplateReference(collectionInstance, instance.SettingInstanceTemplateReference)
+		return collectionInstance
+
+	case "choiceCollection":
+		collectionInstance := baseInstance.(graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable)
+		if len(instance.ChoiceSettingCollectionValue) > 0 {
+			values := handleChoiceCollectionValue(ctx, instance.ChoiceSettingCollectionValue)
+			collectionInstance.SetChoiceSettingCollectionValue(values)
+		}
+		setInstanceTemplateReference(collectionInstance, instance.SettingInstanceTemplateReference)
+		return collectionInstance
+
+	case "groupCollection":
+		groupInstance := baseInstance.(graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable)
+		if len(instance.GroupSettingCollectionValue) > 0 {
+			values := handleGroupSettingCollection(ctx, instance.GroupSettingCollectionValue)
+			groupInstance.SetGroupSettingCollectionValue(values)
+		}
+		setInstanceTemplateReference(groupInstance, instance.SettingInstanceTemplateReference)
+		return groupInstance
+	}
+
+	return nil
+}
+
+// Helper function to create and set instance template references
+func setInstanceTemplateReference(instance graphmodels.DeviceManagementConfigurationSettingInstanceable, ref *sharedmodels.SettingInstanceTemplateReference) {
+	if ref != nil {
+		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+		templateRef.SetSettingInstanceTemplateId(&ref.SettingInstanceTemplateId)
+		instance.SetSettingInstanceTemplateReference(templateRef)
+	}
+}
+
+// Helper function to create and set value template references
+func setValueTemplateReference(value interface{}, ref *sharedmodels.SettingValueTemplateReference) {
+	if ref != nil {
+		templateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+		templateRef.SetSettingValueTemplateId(&ref.SettingValueTemplateId)
+		templateRef.SetUseTemplateDefault(&ref.UseTemplateDefault)
+
+		switch v := value.(type) {
+		case graphmodels.DeviceManagementConfigurationGroupSettingValueable:
+			v.SetSettingValueTemplateReference(templateRef)
+		case graphmodels.DeviceManagementConfigurationChoiceSettingValueable:
+			v.SetSettingValueTemplateReference(templateRef)
+		case graphmodels.DeviceManagementConfigurationSimpleSettingValueable:
+			v.SetSettingValueTemplateReference(templateRef)
+		}
+	}
 }
