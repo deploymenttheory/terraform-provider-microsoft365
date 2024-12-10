@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Settings Catalog resources.
@@ -136,6 +137,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
+	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -143,23 +145,23 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
+	// Handle timeout
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	err := retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
-		respResource, err := r.client.
+	// 1. Get Base Resource Data
+	var baseResource models.DeviceManagementConfigurationPolicyable
+	err := retry.RetryableIntuneOperation(ctx, "read base resource", retry.IntuneRead, func() error {
+		var err error
+		baseResource, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-		MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-		return nil
+		return err
 	})
 
 	if err != nil {
@@ -167,6 +169,10 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	// State the base resource data
+	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
+
+	// 2. Get Settings Data
 	settingsConfig := graphcustom.GetRequestConfig{
 		APIVersion:        graphcustom.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
@@ -178,17 +184,15 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		},
 	}
 
-	err = retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
-		respSettings, err := graphcustom.GetRequestByResourceId(
+	var settingsResponse []byte
+	err = retry.RetryableIntuneOperation(ctx, "read settings", retry.IntuneRead, func() error {
+		var err error
+		settingsResponse, err = graphcustom.GetRequestByResourceId(
 			ctx,
 			r.client.GetAdapter(),
 			settingsConfig,
 		)
-		if err != nil {
-			return err
-		}
-		MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
-		return nil
+		return err
 	})
 
 	if err != nil {
@@ -196,18 +200,20 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	err = retry.RetryableAssignmentOperation(ctx, "read resource", func() error {
-		respAssignments, err := r.client.
+	// State the settings data
+	MapRemoteSettingsStateToTerraform(ctx, &object, settingsResponse)
+
+	// 3. Get Assignment Data
+	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
+	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
+		var err error
+		assignmentsResponse, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Assignments().
 			Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-		MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-		return nil
+		return err
 	})
 
 	if err != nil {
@@ -215,6 +221,10 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	// State the assignments data
+	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
+
+	// Save final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
