@@ -356,13 +356,15 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessUsersSchema() map[str
 		},
 		"include_users": schema.ListAttribute{
 			Optional:    true,
-			Description: "User IDs in scope of policy unless explicitly excluded, None, All, or GuestsOrExternalUsers.",
+			Description: "List of users in scope for this conditional access policy. Can contain Entra ID User IDs (GUIDs) or one of the scope values: 'None', 'All', or 'GuestsOrExternalUsers'.",
 			ElementType: types.StringType,
 			Validators: []validator.List{
 				listvalidator.ValueStringsAre(
 					stringvalidator.Any(
 						stringvalidator.OneOf("None", "All", "GuestsOrExternalUsers"),
-						stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`), "must be a valid UUID"),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`),
+							"must be either one of ['None', 'All', 'GuestsOrExternalUsers'] or a valid UUID"),
 					),
 				),
 			},
