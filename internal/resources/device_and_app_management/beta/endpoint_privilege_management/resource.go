@@ -7,6 +7,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -129,23 +130,24 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 			"platforms": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				MarkdownDescription: "Platform type for this settings catalog policy." +
+					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
+					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
 				Validators: []validator.String{
-					customValidator.EnumValues(
+					stringvalidator.OneOf(
 						"none", "android", "iOS", "macOS", "windows10X",
 						"windows10", "linux", "unknownFutureValue",
 						"androidEnterprise", "aosp",
 					),
 				},
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
-
-				MarkdownDescription: "Platforms for this policy",
 			},
 			"technologies": schema.ListAttribute{
-				ElementType: types.StringType,
-				//Optional:    true,
-				Computed: true,
+				ElementType:         types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 				Validators: []validator.List{
-					customValidator.EnumValuesList(
+					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
 						"intuneManagementExtension", "thirdParty", "documentGateway",
 						"appleRemoteManagement", "microsoftSense", "exchangeOnline",
@@ -157,7 +159,6 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				PlanModifiers: []planmodifier.List{
 					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
 				},
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
