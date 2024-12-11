@@ -11,6 +11,7 @@ name: release-please
 
 jobs:
   release-please:
+    name: '🔖 Release Please'
     runs-on: ubuntu-latest
     steps:
     - uses: googleapis/release-please-action@v4.1.3
