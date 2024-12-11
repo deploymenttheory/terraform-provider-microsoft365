@@ -137,7 +137,6 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -145,14 +144,12 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	// Handle timeout
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// 1. Get Base Resource Data
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	err := retry.RetryableIntuneOperation(ctx, "read base resource", retry.IntuneRead, func() error {
 		var err error
@@ -169,10 +166,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	// State the base resource data
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	// 2. Get Settings Data
 	settingsConfig := graphcustom.GetRequestConfig{
 		APIVersion:        graphcustom.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
@@ -200,10 +195,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	// State the settings data
 	MapRemoteSettingsStateToTerraform(ctx, &object, settingsResponse)
 
-	// 3. Get Assignment Data
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
 		var err error
@@ -221,10 +214,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	// State the assignments data
 	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
 
-	// Save final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
