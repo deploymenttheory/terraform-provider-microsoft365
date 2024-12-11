@@ -63,7 +63,7 @@ jobs:
   terraform-provider-release:
     name: '📦 Terraform Provider Release'
     needs: [pre-release-checks]
-    uses:  ./.github/workflows/community.yml
+    uses:  ./.github/workflows/tf-registry-goreleaser.yml
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable

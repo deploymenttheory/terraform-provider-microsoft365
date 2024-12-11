@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphsdkmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -19,7 +20,7 @@ func constructAssignment(ctx context.Context, data *EndpointPrivilegeManagementR
 
 	tflog.Debug(ctx, "Starting assignment construction")
 
-	if err := validateAssignmentConfig(data.Assignments); err != nil {
+	if err := validators.ValidateDeviceConfiguationAssignmentSettings(data.Assignments); err != nil {
 		return nil, err
 	}
 

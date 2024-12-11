@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -292,11 +293,11 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessUsersSchema() map[str
 	return map[string]schema.Attribute{
 		"exclude_groups": schema.ListAttribute{
 			Optional:    true,
-			Description: "Group IDs excluded from scope of policy.",
+			Description: "Group IDs excluded from scope of conditional access policy.",
 			ElementType: types.StringType,
 			Validators: []validator.List{
 				listvalidator.ValueStringsAre(
-					stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`), "must be a valid UUID"),
+					validators.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`), "supplied value must be a valid UUID of an group for exclusion."),
 				),
 			},
 		},
@@ -355,13 +356,15 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessUsersSchema() map[str
 		},
 		"include_users": schema.ListAttribute{
 			Optional:    true,
-			Description: "User IDs in scope of policy unless explicitly excluded, None, All, or GuestsOrExternalUsers.",
+			Description: "List of users in scope for this conditional access policy. Can contain Entra ID User IDs (GUIDs) or one of the scope values: 'None', 'All', or 'GuestsOrExternalUsers'.",
 			ElementType: types.StringType,
 			Validators: []validator.List{
 				listvalidator.ValueStringsAre(
 					stringvalidator.Any(
 						stringvalidator.OneOf("None", "All", "GuestsOrExternalUsers"),
-						stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`), "must be a valid UUID"),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`),
+							"must be either one of ['None', 'All', 'GuestsOrExternalUsers'] or a valid UUID"),
 					),
 				),
 			},

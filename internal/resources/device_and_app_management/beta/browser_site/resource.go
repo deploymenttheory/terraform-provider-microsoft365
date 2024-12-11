@@ -96,7 +96,17 @@ func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "Controls what compatibility setting is used for specific sites or domains.",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("default", "internetExplorer8Enterprise", "internetExplorer7Enterprise", "internetExplorer11", "internetExplorer10", "internetExplorer9", "internetExplorer8", "internetExplorer7", "internetExplorer5", "unknownFutureValue"),
+					stringvalidator.OneOf(
+						"default",
+						"internetExplorer8Enterprise",
+						"internetExplorer7Enterprise",
+						"internetExplorer11",
+						"internetExplorer10",
+						"internetExplorer9",
+						"internetExplorer8",
+						"internetExplorer7",
+						"internetExplorer5",
+						"unknownFutureValue"),
 				},
 			},
 			"created_date_time": schema.StringAttribute{

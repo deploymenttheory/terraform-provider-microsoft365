@@ -109,7 +109,11 @@ func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.Schem
 				Description: "The current status of the site list.",
 				Computed:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("draft", "published", "pending", "unknownFutureValue"),
+					stringvalidator.OneOf(
+						"draft",
+						"published",
+						"pending",
+						"unknownFutureValue"),
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),

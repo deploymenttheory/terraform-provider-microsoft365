@@ -15,6 +15,7 @@ permissions:
   
 jobs:
   go-docs:
+    name: '📚 Generate Go Docs'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4.2.2
@@ -22,7 +23,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
     
     # Creates provider documentation for godoc.org and pkg.go.dev
-    - name: '📚 Generate Go Docs'
+    - name: 'go generate'
       run: go generate ./...
 
     - name: Check for changes in generated Go docs

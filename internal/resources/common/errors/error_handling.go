@@ -66,17 +66,19 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 	errorInfo := GraphError(ctx, err)
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
 
-	// Log the handling attempt
-	tflog.Debug(ctx, "Handling Graph error", map[string]interface{}{
-		"status_code": errorInfo.StatusCode,
-		"operation":   operation,
+	tflog.Debug(ctx, "Handling Graph error:", map[string]interface{}{
+		"status_code":    errorInfo.StatusCode,
+		"operation":      operation,
+		"error_code":     errorInfo.ErrorCode,
+		"error_message":  errorInfo.ErrorMessage,
+		"is_odata_error": errorInfo.IsODataError,
 	})
 
 	// Handle special cases first
 	switch errorInfo.StatusCode {
-	case 404:
+	case 400:
 		if operation == "Read" {
-			tflog.Warn(ctx, "Resource not found, removing from state")
+			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
 		}
@@ -84,10 +86,31 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
 	case 401, 403:
-		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
+		if operation == "Read" {
+			tflog.Warn(ctx, "Permission error on read operation, check required Graph permissions")
+			handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
+
+	case 404:
+		if operation == "Read" {
+			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
+			removeResourceFromState(ctx, resp)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
 	case 429:
-		handleRateLimitError(ctx, errorInfo, resp)
+		if operation == "Read" {
+			tflog.Warn(ctx, "Rate limit exceeded on read operation, retrying")
+			handleRateLimitError(ctx, errorInfo, resp)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
 	default:
 		// Handle all other cases

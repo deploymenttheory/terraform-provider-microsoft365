@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaDeviceManagementTemplate
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Settings Catalog resources.
@@ -26,11 +25,11 @@ import (
 //   - Calls Read operation to fetch the latest state from the API
 //   - Updates the final state with the fresh data from the API
 //
-// The function ensures that both the settings catalog profile and its assignments
+// The function ensures that both the settings catalog template and its assignments
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
-func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object SettingsCatalogProfileResourceModel
+func (r *DeviceManagementTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object DeviceManagementTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -132,8 +131,8 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
-func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object SettingsCatalogProfileResourceModel
+func (r *DeviceManagementTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceManagementTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -150,23 +149,23 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	var baseResource models.DeviceManagementConfigurationPolicyable
-	err := retry.RetryableIntuneOperation(ctx, "read base resource", retry.IntuneRead, func() error {
-		var err error
-		baseResource, err = r.client.
+	err := retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
+		respResource, err := r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Get(ctx, nil)
-		return err
+		if err != nil {
+			return err
+		}
+		MapRemoteResourceStateToTerraform(ctx, &object, respResource)
+		return nil
 	})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
-
-	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
 	settingsConfig := graphcustom.GetRequestConfig{
 		APIVersion:        graphcustom.GraphAPIBeta,
@@ -179,15 +178,17 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		},
 	}
 
-	var settingsResponse []byte
-	err = retry.RetryableIntuneOperation(ctx, "read settings", retry.IntuneRead, func() error {
-		var err error
-		settingsResponse, err = graphcustom.GetRequestByResourceId(
+	err = retry.RetryableIntuneOperation(ctx, "read resource", retry.IntuneRead, func() error {
+		respSettings, err := graphcustom.GetRequestByResourceId(
 			ctx,
 			r.client.GetAdapter(),
 			settingsConfig,
 		)
-		return err
+		if err != nil {
+			return err
+		}
+		MapRemoteSettingsStateToTerraform(ctx, &object, respSettings)
+		return nil
 	})
 
 	if err != nil {
@@ -195,26 +196,24 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsResponse)
-
-	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
-	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
-		var err error
-		assignmentsResponse, err = r.client.
+	err = retry.RetryableAssignmentOperation(ctx, "read resource", func() error {
+		respAssignments, err := r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			Assignments().
 			Get(ctx, nil)
-		return err
+		if err != nil {
+			return err
+		}
+		MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
+		return nil
 	})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -237,8 +236,8 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 //
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
-func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object SettingsCatalogProfileResourceModel
+func (r *DeviceManagementTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object DeviceManagementTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -335,8 +334,8 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object SettingsCatalogProfileResourceModel
+func (r *DeviceManagementTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceManagementTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

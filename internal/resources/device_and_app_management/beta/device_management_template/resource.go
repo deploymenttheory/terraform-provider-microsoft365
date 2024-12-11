@@ -1,4 +1,4 @@
-package graphBetaEndpointPrivilegeManagement
+package graphBetaDeviceManagementTemplate
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_endpoint_privilege_management"
+	ResourceName  = "graph_beta_device_and_app_management_settings_catalog"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -29,20 +29,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &EndpointPrivilegeManagementResource{}
+	_ resource.Resource = &DeviceManagementTemplateResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &EndpointPrivilegeManagementResource{}
+	_ resource.ResourceWithConfigure = &DeviceManagementTemplateResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &EndpointPrivilegeManagementResource{}
+	_ resource.ResourceWithImportState = &DeviceManagementTemplateResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &EndpointPrivilegeManagementResource{}
+	_ resource.ResourceWithModifyPlan = &DeviceManagementTemplateResource{}
 )
 
-func NewEndpointPrivilegeManagementResource() resource.Resource {
-	return &EndpointPrivilegeManagementResource{
+func NewDeviceManagementTemplateResource() resource.Resource {
+	return &DeviceManagementTemplateResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -53,7 +53,7 @@ func NewEndpointPrivilegeManagementResource() resource.Resource {
 	}
 }
 
-type EndpointPrivilegeManagementResource struct {
+type DeviceManagementTemplateResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -63,22 +63,22 @@ type EndpointPrivilegeManagementResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *EndpointPrivilegeManagementResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DeviceManagementTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *EndpointPrivilegeManagementResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DeviceManagementTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *EndpointPrivilegeManagementResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DeviceManagementTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Function to create the full device management win32 lob app schema
-func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+// Function to create the full device management configuration policy schema
+func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
@@ -103,7 +103,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				Required: true,
 				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
+					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetDeviceManagementTemplateConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
@@ -121,7 +121,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					//SettingsCatalogValidator(),
+					SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
@@ -143,9 +143,9 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -159,6 +159,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				PlanModifiers: []planmodifier.List{
 					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
 				},
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
