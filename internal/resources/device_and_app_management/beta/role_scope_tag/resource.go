@@ -1,4 +1,4 @@
-package graphBetaRoleScopeTags
+package graphBetaRoleScopeTag
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_settings_catalog"
+	ResourceName  = "graph_beta_device_and_app_management_role_scope_tag"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -23,31 +23,33 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &RoleScopeTagsResource{}
+	_ resource.Resource = &RoleScopeTagResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &RoleScopeTagsResource{}
+	_ resource.ResourceWithConfigure = &RoleScopeTagResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &RoleScopeTagsResource{}
+	_ resource.ResourceWithImportState = &RoleScopeTagResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &RoleScopeTagsResource{}
+	_ resource.ResourceWithModifyPlan = &RoleScopeTagResource{}
 )
 
-func NewRoleScopeTagsResource() resource.Resource {
-	return &RoleScopeTagsResource{
+func NewRoleScopeTagResource() resource.Resource {
+	return &RoleScopeTagResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementRBAC.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementRBAC.ReadWrite.All",
 		},
-		ResourcePath: "/deviceManagement/configurationPolicies",
+		ResourcePath: "/deviceManagement/roleScopeTags",
 	}
 }
 
-type RoleScopeTagsResource struct {
+type RoleScopeTagResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -57,22 +59,22 @@ type RoleScopeTagsResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *RoleScopeTagsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *RoleScopeTagResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *RoleScopeTagsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RoleScopeTagResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *RoleScopeTagsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RoleScopeTagResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Function to create the role scope tags schema
-func (r *RoleScopeTagsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages Role Scope Tags in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{

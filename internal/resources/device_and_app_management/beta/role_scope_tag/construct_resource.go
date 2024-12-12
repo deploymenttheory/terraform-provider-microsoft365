@@ -1,4 +1,4 @@
-package graphBetaRoleScopeTags
+package graphBetaRoleScopeTag
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // constructResource constructs a role scope tag resource for the Microsoft Graph API
-func constructResource(ctx context.Context, data *RoleScopeTagsProfileResourceModel) (graphmodels.RoleScopeTagable, error) {
+func constructResource(ctx context.Context, data *RoleScopeTagResourceModel) (graphmodels.RoleScopeTagable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewRoleScopeTag()

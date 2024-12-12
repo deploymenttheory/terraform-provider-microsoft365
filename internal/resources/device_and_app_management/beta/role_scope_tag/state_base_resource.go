@@ -1,4 +1,4 @@
-package graphBetaRoleScopeTags
+package graphBetaRoleScopeTag
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the properties of a RoleScopeTag from Graph API to Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleScopeTagsProfileResourceModel, remoteResource graphmodels.RoleScopeTagable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleScopeTagResourceModel, remoteResource graphmodels.RoleScopeTagable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

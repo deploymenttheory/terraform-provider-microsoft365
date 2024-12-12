@@ -1,4 +1,4 @@
-package graphBetaRoleScopeTags
+package graphBetaRoleScopeTag
 
 import (
 	"context"
@@ -21,8 +21,8 @@ import (
 // - Sends a POST request to create the role scope tag in Intune
 // - Maps the response to the Terraform state
 // - Performs a Read operation to ensure state consistency
-func (r *RoleScopeTagsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object RoleScopeTagsProfileResourceModel
+func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object RoleScopeTagResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -91,8 +91,8 @@ func (r *RoleScopeTagsResource) Create(ctx context.Context, req resource.CreateR
 // - Maps the role scope tag properties (display name, description, isBuiltIn)
 // - Maps any auto-assignments if they exist
 // - Updates the Terraform state with the current Intune configuration
-func (r *RoleScopeTagsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object RoleScopeTagsProfileResourceModel
+func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object RoleScopeTagResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -143,8 +143,8 @@ func (r *RoleScopeTagsResource) Read(ctx context.Context, req resource.ReadReque
 // - Sends a PATCH request to update the role scope tag in Intune
 // - Performs a Read operation to refresh the Terraform state
 // Note: Built-in role scope tags cannot be modified
-func (r *RoleScopeTagsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object RoleScopeTagsProfileResourceModel
+func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object RoleScopeTagResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -212,8 +212,8 @@ func (r *RoleScopeTagsResource) Update(ctx context.Context, req resource.UpdateR
 // - Sends a DELETE request to remove the role scope tag from Intune
 // - Removes the resource from the Terraform state
 // Note: Built-in role scope tags cannot be deleted
-func (r *RoleScopeTagsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object RoleScopeTagsProfileResourceModel
+func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object RoleScopeTagResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
