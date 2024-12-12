@@ -1,6 +1,6 @@
 ---
 page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
-subcategory: "Intune"
+subcategory: "Intune: Assignment Filters"
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
