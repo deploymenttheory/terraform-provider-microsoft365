@@ -163,8 +163,8 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 					},
 				},
 			},
-			"role_assignments": commonschema.RoleAssignmentsSchema(),
-			"timeouts":         commonschema.Timeouts(ctx),
+			"assignments": commonschema.RoleAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
