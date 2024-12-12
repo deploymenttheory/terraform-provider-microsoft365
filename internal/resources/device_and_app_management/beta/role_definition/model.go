@@ -1,4 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-roledefinition?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolepermission?view=graph-rest-beta
 package graphBetaRoleDefinition
 
 import (

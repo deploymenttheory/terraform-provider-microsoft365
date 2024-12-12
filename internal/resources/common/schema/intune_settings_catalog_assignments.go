@@ -81,9 +81,9 @@ func SettingsCatalogAssignmentsSchema() schema.SingleNestedAttribute {
 					),
 				},
 			},
-			"include_groups": schema.ListNestedAttribute{
+			"include_groups": schema.SetNestedAttribute{
 				Optional: true,
-				MarkdownDescription: "A list of entra id group Id's to include in the assignment. " +
+				MarkdownDescription: "A set of entra id group Id's to include in the assignment. " +
 					"Each group can have its own filter type and filter ID.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
