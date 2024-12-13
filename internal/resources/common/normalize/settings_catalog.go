@@ -2,15 +2,13 @@ package normalize
 
 import (
 	"fmt"
-	"reflect"
 )
 
-// PreserveSecretSettings recursively searches through settings catalog HCL JSON structure for secret settings
-// and preserves the value and valueState from the config settings. This is performed recursively throughout the JSON
-// settings catalog and It returns an error if any unexpected data types or mismatches are encountered.
+// PreserveSecretSettings recursively searches through the server response for settings catalog and if a match for
+// #microsoft.graph.deviceManagementConfigurationSecretSettingValue is found, it preserves the original secret value and state from the config settings.
 func PreserveSecretSettings(config, resp interface{}) error {
 	if config == nil || resp == nil {
-		return fmt.Errorf("nil values not supported")
+		return nil
 	}
 
 	switch configV := config.(type) {
@@ -20,6 +18,7 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			return fmt.Errorf("expected map[string]interface{} in response, got %T", resp)
 		}
 
+		// If this is a secret setting, preserve the config values
 		if odataType, ok := configV["@odata.type"].(string); ok &&
 			odataType == "#microsoft.graph.deviceManagementConfigurationSecretSettingValue" {
 			if value, ok := configV["value"]; ok {
@@ -31,11 +30,10 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			return nil
 		}
 
+		// Continue searching through the structure
 		for k, v := range configV {
 			if respChild, ok := respV[k]; ok {
-				if err := PreserveSecretSettings(v, respChild); err != nil {
-					return fmt.Errorf("error in key %q: %w", k, err)
-				}
+				PreserveSecretSettings(v, respChild)
 			}
 		}
 
@@ -44,20 +42,12 @@ func PreserveSecretSettings(config, resp interface{}) error {
 		if !ok {
 			return fmt.Errorf("expected []interface{} in response, got %T", resp)
 		}
+
 		for i := range configV {
 			if i < len(respV) {
-				if err := PreserveSecretSettings(configV[i], respV[i]); err != nil {
-					return fmt.Errorf("error in array index %d: %w", i, err)
-				}
+				PreserveSecretSettings(configV[i], respV[i])
 			}
 		}
-
-	default:
-		// For primitive types, check if they match
-		if reflect.TypeOf(config) != reflect.TypeOf(resp) {
-			return fmt.Errorf("type mismatch: config is %T, response is %T", config, resp)
-		}
-		return nil
 	}
 
 	return nil
