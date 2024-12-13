@@ -45,4 +45,4 @@ jobs:
             exit 1
           fi
           
-          echo "✅ PR title '$PR_TITLE' follows the conventional format"
+          echo "✅ PR title '$PR_TITLE' follows the conventional commit format and is compatible with the release-please"
