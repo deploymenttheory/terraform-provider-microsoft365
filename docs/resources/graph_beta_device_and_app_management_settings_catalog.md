@@ -427,9 +427,9 @@ Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Policy description
-- `platforms` (String) Platforms for this policy
+- `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
 - `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
-- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.
+- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -458,7 +458,7 @@ Optional:
 - `exclude`: Do not apply the assignment to users that match the filter.
 - `none`: No filter applied.
 - `exclude_group_ids` (List of String) A list of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
-- `include_groups` (Attributes List) A list of entra id group Id's to include in the assignment. Each group can have its own filter type and filter ID. (see [below for nested schema](#nestedatt--assignments--include_groups))
+- `include_groups` (Attributes Set) A set of entra id group Id's to include in the assignment. Each group can have its own filter type and filter ID. (see [below for nested schema](#nestedatt--assignments--include_groups))
 
 <a id="nestedatt--assignments--include_groups"></a>
 ### Nested Schema for `assignments.include_groups`

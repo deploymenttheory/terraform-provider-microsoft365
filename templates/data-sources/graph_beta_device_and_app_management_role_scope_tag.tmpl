@@ -1,0 +1,16 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune: Role Scope Tags"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The Microsoft 365 Intune role scope tag data source provides information about a specific scope tag.
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_role_scope_tag/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

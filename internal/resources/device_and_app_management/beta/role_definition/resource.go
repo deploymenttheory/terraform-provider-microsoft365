@@ -74,60 +74,57 @@ func (r *RoleDefinitionResource) ImportState(ctx context.Context, req resource.I
 
 func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The resource `role_definition` manages a Role Definition in Microsoft 365",
+		MarkdownDescription: "The resource `role_definition` manages a Role Definition in Microsoft 365",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Key of the entity. This is read-only and automatically generated.",
-				Computed:    true,
+				MarkdownDescription: "Key of the entity. This is read-only and automatically generated.",
+				Computed:            true,
 			},
 			"display_name": schema.StringAttribute{
-				Description: "Display Name of the Role definition.",
-				Required:    true,
+				MarkdownDescription: "Display Name of the Role definition.",
+				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Description of the Role definition.",
-				Optional:    true,
+				MarkdownDescription: "Description of the Role definition.",
+				Optional:            true,
 			},
 			"is_built_in": schema.BoolAttribute{
-				Description: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Optional:    true,
+				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
+				Optional:            true,
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
-				Description: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Optional:    true,
+				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
+				Optional:            true,
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
-				Description: "List of scope tag ids for the role definition",
-				Optional:    true,
-				ElementType: types.StringType,
+				MarkdownDescription: "List of Scope Tags for this Entity instance.",
+				Optional:            true,
+				ElementType:         types.StringType,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"role_permissions": schema.ListNestedBlock{
-				Description: "List of Role Permissions this role is allowed to perform.",
-				NestedObject: schema.NestedBlockObject{
+			"permissions": schema.ListNestedAttribute{
+				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"actions": schema.ListAttribute{
-							Description: "Allowed actions",
-							Optional:    true,
-							ElementType: types.StringType,
+							MarkdownDescription: "Allowed actions for this role permission",
+							Optional:            true,
+							ElementType:         types.StringType,
 						},
-					},
-					Blocks: map[string]schema.Block{
-						"resource_actions": schema.ListNestedBlock{
-							Description: "Resource actions for this role permission",
-							NestedObject: schema.NestedBlockObject{
+						"resource_actions": schema.ListNestedAttribute{
+							MarkdownDescription: "Resource actions for this role permission",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"allowed_resource_actions": schema.ListAttribute{
-										Description: "Allowed Resource Actions",
-										Optional:    true,
-										ElementType: types.StringType,
+										MarkdownDescription: "Allowed Resource Actions",
+										Optional:            true,
+										ElementType:         types.StringType,
 									},
 									"not_allowed_resource_actions": schema.ListAttribute{
-										Description: "Not Allowed Resource Actions",
-										Optional:    true,
-										ElementType: types.StringType,
+										MarkdownDescription: "Not Allowed Resource Actions",
+										Optional:            true,
+										ElementType:         types.StringType,
 									},
 								},
 							},
@@ -135,6 +132,39 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 					},
 				},
 			},
+			"role_permissions": schema.ListNestedAttribute{
+				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"actions": schema.ListAttribute{
+							MarkdownDescription: "Allowed actions for this role permission",
+							Optional:            true,
+							ElementType:         types.StringType,
+						},
+						"resource_actions": schema.ListNestedAttribute{
+							MarkdownDescription: "Resource actions for this role permission",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"allowed_resource_actions": schema.ListAttribute{
+										MarkdownDescription: "Allowed Resource Actions",
+										Optional:            true,
+										ElementType:         types.StringType,
+									},
+									"not_allowed_resource_actions": schema.ListAttribute{
+										MarkdownDescription: "Not Allowed Resource Actions",
+										Optional:            true,
+										ElementType:         types.StringType,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"assignments": commonschema.RoleAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

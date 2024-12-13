@@ -55,12 +55,12 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	err = retry.RetryableIntuneOperation(ctx, "create resource", retry.IntuneWrite, func() error {
-		var opErr error
-		requestBody, opErr = r.client.
+		var reqErr error
+		requestBody, reqErr = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			Post(ctx, requestBody, nil)
-		return opErr
+		return reqErr
 	})
 
 	if err != nil {

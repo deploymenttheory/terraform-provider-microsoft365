@@ -1,0 +1,7 @@
+{
+  "@odata.type": "#microsoft.graph.roleScopeTag",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "isBuiltIn": true
+}

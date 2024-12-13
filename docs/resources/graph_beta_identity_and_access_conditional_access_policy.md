@@ -82,14 +82,14 @@ Required:
 
 Optional:
 
-- `exclude_groups` (List of String) Group IDs excluded from scope of policy.
+- `exclude_groups` (List of String) Group IDs excluded from scope of conditional access policy.
 - `exclude_guests_or_external_users` (Attributes) Internal guests or external users excluded from the policy scope. Optionally populated. (see [below for nested schema](#nestedatt--conditions--users--exclude_guests_or_external_users))
 - `exclude_roles` (List of String) Role IDs excluded from scope of policy.
 - `exclude_users` (List of String) User IDs excluded from scope of policy and/or GuestsOrExternalUsers.
 - `include_groups` (List of String) Group IDs in scope of policy unless explicitly excluded.
 - `include_guests_or_external_users` (Attributes) Internal guests or external users included in the policy scope. Optionally populated. (see [below for nested schema](#nestedatt--conditions--users--include_guests_or_external_users))
 - `include_roles` (List of String) Role IDs in scope of policy unless explicitly excluded.
-- `include_users` (List of String) User IDs in scope of policy unless explicitly excluded, None, All, or GuestsOrExternalUsers.
+- `include_users` (List of String) List of users in scope for this conditional access policy. Can contain Entra ID User IDs (GUIDs) or one of the scope values: 'None', 'All', or 'GuestsOrExternalUsers'.
 
 <a id="nestedatt--conditions--users--exclude_guests_or_external_users"></a>
 ### Nested Schema for `conditions.users.exclude_guests_or_external_users`

@@ -12,15 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var (
-	// object is the resource model for the device management script resource
-	object resource.WindowsPlatformScriptResourceModel
-)
-
 // Read handles the Read operation for the WindowsPlatformScriptDataSource.
 func (d *WindowsPlatformScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var object resource.WindowsPlatformScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Datasource Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -49,7 +45,6 @@ func (d *WindowsPlatformScriptDataSource) Read(ctx context.Context, req datasour
 
 	resource.MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// Read assignments
 	respAssignments, err := d.client.
 		DeviceManagement().
 		DeviceManagementScripts().

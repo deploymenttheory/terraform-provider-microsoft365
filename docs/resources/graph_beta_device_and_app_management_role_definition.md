@@ -21,26 +21,65 @@ The resource `role_definition` manages a Role Definition in Microsoft 365
 
 ### Optional
 
+- `assignments` (Attributes) The Role Assignment configuration for managing role assignments in Microsoft 365. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Description of the Role definition.
 - `is_built_in` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
 - `is_built_in_role_definition` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
-- `role_permissions` (Block List) List of Role Permissions this role is allowed to perform. (see [below for nested schema](#nestedblock--role_permissions))
-- `role_scope_tag_ids` (List of String) List of scope tag ids for the role definition
+- `permissions` (Attributes List) List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission. (see [below for nested schema](#nestedatt--permissions))
+- `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission. (see [below for nested schema](#nestedatt--role_permissions))
+- `role_scope_tag_ids` (List of String) List of Scope Tags for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `id` (String) Key of the entity. This is read-only and automatically generated.
 
-<a id="nestedblock--role_permissions"></a>
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `display_name` (String) The display or friendly name of the role Assignment.
+
+Optional:
+
+- `description` (String) Description of the Role Assignment.
+- `resource_scopes` (Set of String) List of ids of role scope member security groups. These are IDs from Azure Active Directory.
+- `scope_members` (Set of String) List of ids of role scope member security groups. These are IDs from Azure Active Directory.
+- `scope_type` (String) Specifies the type of scope for a Role Assignment. Default type 'ResourceScope' allows assignment of ResourceScopes. For 'AllDevices', 'AllLicensedUsers', and 'AllDevicesAndLicensedUsers', the ResourceScopes property should be left empty. Possible values are: `resourceScope`, `allDevices`, `allLicensedUsers`, `allDevicesAndLicensedUsers`.
+
+Read-Only:
+
+- `id` (String) Key of the entity. This is read-only and automatically generated.
+
+
+<a id="nestedatt--permissions"></a>
+### Nested Schema for `permissions`
+
+Optional:
+
+- `actions` (List of String) Allowed actions for this role permission
+- `resource_actions` (Attributes List) Resource actions for this role permission (see [below for nested schema](#nestedatt--permissions--resource_actions))
+
+<a id="nestedatt--permissions--resource_actions"></a>
+### Nested Schema for `permissions.resource_actions`
+
+Optional:
+
+- `allowed_resource_actions` (List of String) Allowed Resource Actions
+- `not_allowed_resource_actions` (List of String) Not Allowed Resource Actions
+
+
+
+<a id="nestedatt--role_permissions"></a>
 ### Nested Schema for `role_permissions`
 
 Optional:
 
-- `actions` (List of String) Allowed actions
-- `resource_actions` (Block List) Resource actions for this role permission (see [below for nested schema](#nestedblock--role_permissions--resource_actions))
+- `actions` (List of String) Allowed actions for this role permission
+- `resource_actions` (Attributes List) Resource actions for this role permission (see [below for nested schema](#nestedatt--role_permissions--resource_actions))
 
-<a id="nestedblock--role_permissions--resource_actions"></a>
+<a id="nestedatt--role_permissions--resource_actions"></a>
 ### Nested Schema for `role_permissions.resource_actions`
 
 Optional:
