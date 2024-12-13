@@ -99,7 +99,6 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		}
 	}
 
-	// Set initial state with what we know
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
