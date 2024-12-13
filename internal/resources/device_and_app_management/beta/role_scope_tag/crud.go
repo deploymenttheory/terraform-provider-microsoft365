@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/retry"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -58,6 +59,34 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
+	}
+
+	object.ID = types.StringValue(*requestBody.GetId())
+
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for create method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		err = retry.RetryableAssignmentOperation(ctx, "create assignment", func() error {
+			_, err := r.client.
+				DeviceManagement().
+				RoleScopeTags().
+				ByRoleScopeTagId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+			return err
+		})
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -127,6 +156,25 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
+	var assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable
+	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
+		var err error
+		assignmentsResponse, err = r.client.
+			DeviceManagement().
+			RoleScopeTags().
+			ByRoleScopeTagId(object.ID.ValueString()).
+			Assignments().
+			Get(ctx, nil)
+		return err
+	})
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,7 +216,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	err = retry.RetryableAssignmentOperation(ctx, "update assignment", func() error {
+	err = retry.RetryableAssignmentOperation(ctx, "update resource", func() error {
 		_, err := r.client.
 			DeviceManagement().
 			RoleScopeTags().
@@ -180,6 +228,33 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	// Handle assignments update if they exist
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for update method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		err = retry.RetryableAssignmentOperation(ctx, "update assignment", func() error {
+			_, err := r.client.
+				DeviceManagement().
+				RoleScopeTags().
+				ByRoleScopeTagId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+			return err
+		})
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)

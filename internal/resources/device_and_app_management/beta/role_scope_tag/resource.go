@@ -99,6 +99,18 @@ func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed:            true,
 				MarkdownDescription: "Description of the Role Scope Tag. This property is read-only.",
 			},
+			"assignments": schema.SetNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "The list of group assignments for the Intune Role Scope Tag.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"group_id": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "The ID of the Microsoft Entra ID group to assign the Intune role scope tag to.",
+						},
+					},
+				},
+			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}

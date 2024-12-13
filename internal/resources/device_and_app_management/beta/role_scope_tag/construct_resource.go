@@ -19,7 +19,6 @@ func constructResource(ctx context.Context, data *RoleScopeTagResourceModel) (gr
 	displayName := data.DisplayName.ValueString()
 	requestBody.SetDisplayName(&displayName)
 
-	// Set description if provided
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		description := data.Description.ValueString()
 		requestBody.SetDescription(&description)
