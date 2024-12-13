@@ -7,10 +7,10 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/retry"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -38,6 +38,9 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -47,40 +50,40 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	err = retry.RetryableIntuneOperation(ctx, "create resource", retry.IntuneWrite, func() error {
-		var reqErr error
-		requestBody, reqErr = r.client.
-			DeviceManagement().
-			RoleScopeTags().
-			Post(ctx, requestBody, nil)
-		return reqErr
-	})
+	createdResource, err := r.client.
+		DeviceManagement().
+		RoleScopeTags().
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*requestBody.GetId())
+	object.ID = types.StringValue(*createdResource.GetId())
 
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for create method",
+				"Error constructing assignment for Create Method",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
 		}
 
-		err = retry.RetryableAssignmentOperation(ctx, "create assignment", func() error {
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			_, err := r.client.
 				DeviceManagement().
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
 				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-			return err
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
 		})
 
 		if err != nil {
@@ -89,26 +92,28 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
 		return
 	}
-
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.State = readResp.State
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -122,6 +127,8 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 // - Updates the Terraform state with the current Intune configuration
 func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleScopeTagResourceModel
+	var baseResource graphmodels.RoleScopeTagable
+	var assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -138,16 +145,11 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 	}
 	defer cancel()
 
-	var baseResource graphmodels.RoleScopeTagable
-	err := retry.RetryableIntuneOperation(ctx, "read base resource", retry.IntuneRead, func() error {
-		var err error
-		baseResource, err = r.client.
-			DeviceManagement().
-			RoleScopeTags().
-			ByRoleScopeTagId(object.ID.ValueString()).
-			Get(ctx, nil)
-		return err
-	})
+	baseResource, err := r.client.
+		DeviceManagement().
+		RoleScopeTags().
+		ByRoleScopeTagId(object.ID.ValueString()).
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -156,17 +158,12 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	var assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable
-	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
-		var err error
-		assignmentsResponse, err = r.client.
-			DeviceManagement().
-			RoleScopeTags().
-			ByRoleScopeTagId(object.ID.ValueString()).
-			Assignments().
-			Get(ctx, nil)
-		return err
-	})
+	assignmentsResponse, err = r.client.
+		DeviceManagement().
+		RoleScopeTags().
+		ByRoleScopeTagId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -207,6 +204,9 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -216,14 +216,11 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	err = retry.RetryableAssignmentOperation(ctx, "update resource", func() error {
-		_, err := r.client.
-			DeviceManagement().
-			RoleScopeTags().
-			ByRoleScopeTagId(object.ID.ValueString()).
-			Patch(ctx, requestBody, nil)
-		return err
-	})
+	_, err = r.client.
+		DeviceManagement().
+		RoleScopeTags().
+		ByRoleScopeTagId(object.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -234,20 +231,23 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
+				"Error constructing assignment for Update Method",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
 		}
 
-		err = retry.RetryableAssignmentOperation(ctx, "update assignment", func() error {
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			_, err := r.client.
 				DeviceManagement().
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
 				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-			return err
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
+			}
+			return nil
 		})
 
 		if err != nil {
@@ -256,25 +256,28 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
 		return
 	}
-
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.State = readResp.State
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -302,13 +305,11 @@ func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 	defer cancel()
 
-	err := retry.RetryableIntuneOperation(ctx, "delete resource", retry.IntuneWrite, func() error {
-		return r.client.
-			DeviceManagement().
-			RoleScopeTags().
-			ByRoleScopeTagId(object.ID.ValueString()).
-			Delete(ctx, nil)
-	})
+	err := r.client.
+		DeviceManagement().
+		RoleScopeTags().
+		ByRoleScopeTagId(object.ID.ValueString()).
+		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)

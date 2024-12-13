@@ -8,10 +8,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/retry"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -21,9 +21,9 @@ import (
 //   - Constructs the resource request body from the plan
 //   - Sends POST request to create the base resource and settings
 //   - Captures the new resource ID from the response
-//   - Constructs and sends assignment configuration if specified
+//   - Constructs and sends assignment configuration if specified with retry
 //   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
+//   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 //
 // The function ensures that both the settings catalog profile and its assignments
@@ -45,49 +45,52 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Create method",
+			"Error constructing resource for Create Method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	err = retry.RetryableIntuneOperation(ctx, "create resource", retry.IntuneWrite, func() error {
-		var reqErr error
-		requestBody, reqErr = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			Post(ctx, requestBody, nil)
-		return reqErr
-	})
+	createdResource, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*requestBody.GetId())
+	object.ID = types.StringValue(*createdResource.GetId())
 
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for create method",
+				"Error constructing assignment for Create Method",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
 		}
 
-		err = retry.RetryableAssignmentOperation(ctx, "create assignment", func() error {
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			_, err := r.client.
 				DeviceManagement().
 				ConfigurationPolicies().
 				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
-			return err
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
 		})
 
 		if err != nil {
@@ -96,26 +99,34 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		}
 	}
 
+	// Set initial state with what we know
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
 		return
 	}
-
-	resp.State = readResp.State
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -134,6 +145,8 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object SettingsCatalogProfileResourceModel
+	var baseResource models.DeviceManagementConfigurationPolicyable
+	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -150,16 +163,11 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	var baseResource models.DeviceManagementConfigurationPolicyable
-	err := retry.RetryableIntuneOperation(ctx, "read base resource", retry.IntuneRead, func() error {
-		var err error
-		baseResource, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Get(ctx, nil)
-		return err
-	})
+	baseResource, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -180,15 +188,11 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	var settingsResponse []byte
-	err = retry.RetryableIntuneOperation(ctx, "read settings", retry.IntuneRead, func() error {
-		var err error
-		settingsResponse, err = graphcustom.GetRequestByResourceId(
-			ctx,
-			r.client.GetAdapter(),
-			settingsConfig,
-		)
-		return err
-	})
+	settingsResponse, err = graphcustom.GetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -197,17 +201,12 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteSettingsStateToTerraform(ctx, &object, settingsResponse)
 
-	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
-	err = retry.RetryableAssignmentOperation(ctx, "read assignments", func() error {
-		var err error
-		assignmentsResponse, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assignments().
-			Get(ctx, nil)
-		return err
-	})
+	assignmentsResponse, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -232,7 +231,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 //   - Constructs the assignment request body from the plan
 //   - Sends POST request to update the assignments
 //   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
+//   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 //
 // The function ensures that both the settings and assignments are updated atomically,
@@ -253,10 +252,13 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Update method",
+			"Error constructing resource for Update Method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -269,60 +271,64 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		RequestBody: requestBody,
 	}
 
-	// Use retryableOperation for main resource update
-	err = retry.RetryableIntuneOperation(ctx, "update resource", retry.IntuneWrite, func() error {
-		return graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
-	})
-
+	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for update method",
-			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
-		return
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for Update Method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			_, err := r.client.
+				DeviceManagement().
+				ConfigurationPolicies().
+				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
+			}
+			return nil
+		})
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
 	}
 
-	// Use retryableAssignmentOperation for assignment update
-	err = retry.RetryableAssignmentOperation(ctx, "update assignment", func() error {
-		_, err := r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-		return err
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
 	})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
-
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.State = readResp.State
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
@@ -351,20 +357,18 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	err := retry.RetryableIntuneOperation(ctx, "delete resource", retry.IntuneWrite, func() error {
-		return r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Delete(ctx, nil)
-	})
+	err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
