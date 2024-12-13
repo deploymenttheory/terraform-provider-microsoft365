@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -99,17 +100,10 @@ func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed:            true,
 				MarkdownDescription: "Description of the Role Scope Tag. This property is read-only.",
 			},
-			"assignments": schema.SetNestedAttribute{
+			"assignments": schema.SetAttribute{
 				Optional:            true,
+				ElementType:         types.StringType,
 				MarkdownDescription: "The list of group assignments for the Intune Role Scope Tag.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The ID of the Microsoft Entra ID group to assign the Intune role scope tag to.",
-						},
-					},
-				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

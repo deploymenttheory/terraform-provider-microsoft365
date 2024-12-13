@@ -9,6 +9,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteAssignmentStateToTerraform maps the assignment remote state to the Terraform model
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleScopeTagResourceModel, assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		terraform.Assignments = nil
@@ -21,14 +22,13 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleSco
 		return
 	}
 
-	var terraformAssignments []AssignmentModel
+	var groupIDs []types.String
 	for _, assignment := range assignments {
 		target := assignment.GetTarget()
 		if target == nil {
 			continue
 		}
 
-		// Check if it's a group assignment target
 		if target.GetOdataType() != nil && *target.GetOdataType() == "#microsoft.graph.groupAssignmentTarget" {
 			groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable)
 			if !ok {
@@ -37,17 +37,14 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleSco
 			}
 
 			if groupTarget.GetGroupId() != nil {
-				terraformAssignments = append(terraformAssignments, AssignmentModel{
-					GroupID: types.StringValue(*groupTarget.GetGroupId()),
-				})
+				groupIDs = append(groupIDs, types.StringValue(*groupTarget.GetGroupId()))
 			}
 		}
 	}
 
-	// Sort assignments by group ID to ensure consistent ordering
-	sort.Slice(terraformAssignments, func(i, j int) bool {
-		return terraformAssignments[i].GroupID.ValueString() < terraformAssignments[j].GroupID.ValueString()
+	sort.Slice(groupIDs, func(i, j int) bool {
+		return groupIDs[i].ValueString() < groupIDs[j].ValueString()
 	})
 
-	terraform.Assignments = terraformAssignments
+	terraform.Assignments = groupIDs
 }

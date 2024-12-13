@@ -230,7 +230,6 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	// Handle assignments update if they exist
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {

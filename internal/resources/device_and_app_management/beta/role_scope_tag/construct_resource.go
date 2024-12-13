@@ -15,7 +15,6 @@ func constructResource(ctx context.Context, data *RoleScopeTagResourceModel) (gr
 
 	requestBody := graphmodels.NewRoleScopeTag()
 
-	// Set display name
 	displayName := data.DisplayName.ValueString()
 	requestBody.SetDisplayName(&displayName)
 
