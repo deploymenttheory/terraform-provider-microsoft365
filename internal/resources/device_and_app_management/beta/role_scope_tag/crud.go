@@ -79,7 +79,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
-				Post(ctx, requestAssignment, nil)
+				PostAsAssignPostResponse(ctx, requestAssignment, nil)
 			return err
 		})
 
@@ -246,7 +246,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
-				Post(ctx, requestAssignment, nil)
+				PostAsAssignPostResponse(ctx, requestAssignment, nil)
 			return err
 		})
 
