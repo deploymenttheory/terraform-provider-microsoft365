@@ -126,7 +126,10 @@ func TestPreserveSecretSettings(t *testing.T) {
 			response: `{
                 "setting": "not an array"
             }`,
-			expectError: true,
+			expected: `{
+                "setting": "not an array"
+            }`,
+			expectError: false, // if the type mismatch is not a secret setting, it should skip and not error
 		},
 		{
 			name: "non-matching structure",
@@ -187,12 +190,33 @@ func TestPreserveSecretSettings(t *testing.T) {
 }
 
 func TestPreserveSecretSettings_UnsupportedType(t *testing.T) {
-	// Test with string type mismatch
-	config := "string"
-	resp := 123 // Different type to trigger error
-	err := PreserveSecretSettings(config, resp)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "type mismatch")
+	tests := []struct {
+		name     string
+		config   interface{}
+		resp     interface{}
+		expected interface{}
+	}{
+		{
+			name:     "unsupported primitive types",
+			config:   "string",
+			resp:     123,
+			expected: 123,
+		},
+		{
+			name:     "unsupported complex types",
+			config:   struct{ Key string }{Key: "value"},
+			resp:     map[string]interface{}{"key": "value"},
+			expected: map[string]interface{}{"key": "value"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := PreserveSecretSettings(tt.config, tt.resp)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, tt.resp)
+		})
+	}
 }
 
 func TestPreserveSecretSettings_NilValues(t *testing.T) {
@@ -221,7 +245,7 @@ func TestPreserveSecretSettings_NilValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := PreserveSecretSettings(tt.config, tt.resp)
-			assert.Error(t, err)
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -231,37 +255,43 @@ func TestPreserveSecretSettings_PrimitiveTypes(t *testing.T) {
 		name        string
 		config      interface{}
 		resp        interface{}
+		expected    interface{}
 		expectError bool
 	}{
 		{
 			name:        "matching strings",
 			config:      "test",
 			resp:        "different",
+			expected:    "different",
 			expectError: false,
 		},
 		{
 			name:        "matching numbers",
 			config:      123.45,
 			resp:        678.90,
+			expected:    678.90,
 			expectError: false,
 		},
 		{
 			name:        "matching booleans",
 			config:      true,
 			resp:        false,
+			expected:    false,
 			expectError: false,
 		},
 		{
 			name:        "type mismatch string-number",
 			config:      "test",
 			resp:        123,
-			expectError: true,
+			expected:    123,
+			expectError: false,
 		},
 		{
 			name:        "type mismatch number-bool",
 			config:      123,
 			resp:        true,
-			expectError: true,
+			expected:    true,
+			expectError: false,
 		},
 	}
 
@@ -272,6 +302,7 @@ func TestPreserveSecretSettings_PrimitiveTypes(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, tt.resp)
 			}
 		})
 	}
