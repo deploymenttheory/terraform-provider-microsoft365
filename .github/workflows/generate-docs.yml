@@ -62,6 +62,7 @@ jobs:
       with:
         commit_message: "chore: update go documentation, provider documentation and format terraform files"
         file_pattern: '**/*.go **/*.tf docs/**/*'
+
         commit_options: '--no-verify --signoff'
         commit_user_name: "GitHub Actions Bot"
         commit_user_email: "github-actions[bot]@users.noreply.github.com"
