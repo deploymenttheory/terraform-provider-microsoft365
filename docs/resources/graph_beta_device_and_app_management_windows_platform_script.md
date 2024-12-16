@@ -26,10 +26,10 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
     # Add more PowerShell commands as needed
   EOT
 
-  run_as_account         = "system" # Can be "system" or "user"
+  run_as_account          = "system" # Can be "system" or "user"
   enforce_signature_check = false
-  file_name              = "example_script.ps1"
-  run_as_32_bit          = false
+  file_name               = "example_script.ps1"
+  run_as_32_bit           = false
 
   assignments = {
     all_devices = false

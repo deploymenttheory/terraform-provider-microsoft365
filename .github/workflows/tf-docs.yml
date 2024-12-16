@@ -1,0 +1,43 @@
+name: Terraform Docs Generation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fmt-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-go@v5.1.0
+        with:
+          cache: true
+          go-version-file: 'go.mod'
+
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: '1.10.2'
+          terraform_wrapper: true
+
+      - name: Generate and check docs
+        run: |
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+          tfplugindocs generate --examples-dir examples
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "docs: update terraform provider documentation"
+          title: "docs: update terraform provider documentation"
+          branch: automated-tf-docs-update
+          delete-branch: true
+          labels: documentation
+          base: ${{ github.head_ref }}
