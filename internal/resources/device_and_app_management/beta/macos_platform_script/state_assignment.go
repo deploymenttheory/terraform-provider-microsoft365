@@ -1,4 +1,4 @@
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *DeviceShellScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *MacOSPlatformScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return

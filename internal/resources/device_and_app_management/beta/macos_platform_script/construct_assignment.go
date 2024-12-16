@@ -1,4 +1,4 @@
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *DeviceShellScriptResourceModel) (devicemanagement.DeviceManagementScriptsItemAssignPostRequestBodyable, error) {
+func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceModel) (devicemanagement.DeviceManagementScriptsItemAssignPostRequestBodyable, error) {
 	if data.Assignments == nil {
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}

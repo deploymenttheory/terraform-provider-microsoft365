@@ -1,5 +1,5 @@
 // Main entry point to construct the intune windows device management script resource for the Terraform provider.
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // Main entry point to construct the intune windows device management script resource for the Terraform provider.
-func constructResource(ctx context.Context, data *DeviceShellScriptResourceModel) (graphmodels.DeviceShellScriptable, error) {
+func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceModel) (graphmodels.DeviceShellScriptable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceShellScript()

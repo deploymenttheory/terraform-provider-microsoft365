@@ -1,5 +1,5 @@
 // MapRemoteResourceStateToTerraform states the base properties of a SettingsCatalogProfileResourceModel to a Terraform state
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform maps the base properties of a DeviceShellScriptResourceModel to a Terraform state.
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceShellScriptResourceModel, remoteResource graphmodels.DeviceShellScriptable) {
+// MapRemoteResourceStateToTerraform maps the base properties of a MacOSPlatformScriptResourceModel to a Terraform state.
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformScriptResourceModel, remoteResource graphmodels.DeviceShellScriptable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

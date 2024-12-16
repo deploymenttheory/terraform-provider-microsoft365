@@ -1,6 +1,6 @@
-// https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-deviceshellscript?view=graph-rest-beta
+// https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-MacOSPlatformScript?view=graph-rest-beta
 
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type DeviceShellScriptResourceModel struct {
+type MacOSPlatformScriptResourceModel struct {
 	ID                          types.String                                                `tfsdk:"id"`
 	DisplayName                 types.String                                                `tfsdk:"display_name"`
 	Description                 types.String                                                `tfsdk:"description"`
