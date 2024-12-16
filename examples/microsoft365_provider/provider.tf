@@ -3,7 +3,7 @@ terraform {
   required_providers {
     microsoft365 = {
       source  = "deploymenttheory/terraform-provider-microsoft365"
-      version = "~> 1.0.0"  
+      version = "~> 1.0.0"
     }
   }
 }
@@ -17,16 +17,16 @@ provider "microsoft365" {
   debug_mode       = var.debug_mode
 
   entra_id_options = {
-    client_id                     = var.client_id
-    client_secret                 = var.client_secret
-    client_certificate            = var.client_certificate
-    client_certificate_password   = var.client_certificate_password
-    send_certificate_chain        = var.send_certificate_chain
-    username                      = var.username
-    password                      = var.password
-    disable_instance_discovery    = var.disable_instance_discovery
-    additionally_allowed_tenants  = var.additionally_allowed_tenants
-    redirect_url                  = var.redirect_url
+    client_id                    = var.client_id
+    client_secret                = var.client_secret
+    client_certificate           = var.client_certificate
+    client_certificate_password  = var.client_certificate_password
+    send_certificate_chain       = var.send_certificate_chain
+    username                     = var.username
+    password                     = var.password
+    disable_instance_discovery   = var.disable_instance_discovery
+    additionally_allowed_tenants = var.additionally_allowed_tenants
+    redirect_url                 = var.redirect_url
   }
 
   client_options = {
