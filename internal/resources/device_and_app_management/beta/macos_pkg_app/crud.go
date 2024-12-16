@@ -15,22 +15,22 @@ import (
 
 // Create handles the Create operation for the MacOSPkgApp resource.
 func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan MacOSPkgAppResourceModel
+	var object MacOSPkgAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	app, err := constructResource(ctx, &plan)
+	app, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -49,7 +49,7 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	plan.ID = types.StringValue(*createdApp.GetId())
+	object.ID = types.StringValue(*createdApp.GetId())
 
 	macOSPkgApp, ok := app.(models.MacOSPkgAppable)
 	if !ok {
@@ -60,9 +60,9 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, macOSPkgApp)
+	MapRemoteStateToTerraform(ctx, &object, macOSPkgApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -72,17 +72,18 @@ func (r *MacOSPkgAppResource) Create(ctx context.Context, req resource.CreateReq
 
 // Read handles the Read operation for the MacOSPkgApp resource.
 func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state MacOSPkgAppResourceModel
+	var object MacOSPkgAppResourceModel
+
 	tflog.Debug(ctx, "Starting Read method for macOS PKG app")
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading macOS PKG app with ID: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading macOS PKG app with ID: %s", object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -91,7 +92,7 @@ func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest
 	app, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(state.ID.ValueString()).
+		ByMobileAppId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -109,32 +110,32 @@ func (r *MacOSPkgAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, macOSPkgApp)
+	MapRemoteStateToTerraform(ctx, &object, macOSPkgApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles the Update operation for the MacOSPkgApp resource.
 func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state MacOSPkgAppResourceModel
+	var object MacOSPkgAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -146,7 +147,7 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(plan.ID.ValueString()).
+		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -163,9 +164,9 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, macOSPkgApp)
+	MapRemoteStateToTerraform(ctx, &object, macOSPkgApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -175,16 +176,16 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 
 // Delete handles the Delete operation for the MacOSPkgApp resource.
 func (r *MacOSPkgAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data MacOSPkgAppResourceModel
+	var object MacOSPkgAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -193,7 +194,7 @@ func (r *MacOSPkgAppResource) Delete(ctx context.Context, req resource.DeleteReq
 	err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(data.ID.ValueString()).
+		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

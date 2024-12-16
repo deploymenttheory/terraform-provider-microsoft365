@@ -15,22 +15,22 @@ import (
 
 // Create handles the Create operation.
 func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan WinGetAppResourceModel
+	var object WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -49,7 +49,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.ID = types.StringValue(*resource.GetId())
+	object.ID = types.StringValue(*resource.GetId())
 
 	resourceAsWinGetApp, ok := resource.(models.WinGetAppable)
 	if !ok {
@@ -61,9 +61,9 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
+	MapRemoteStateToTerraform(ctx, &object, resourceAsWinGetApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -132,21 +132,22 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update handles the Update operation.
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan WinGetAppResourceModel
+	var object WinGetAppResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -158,7 +159,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	resource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(plan.ID.ValueString()).
+		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -188,9 +189,9 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, resourceAsWinGetApp)
+	MapRemoteStateToTerraform(ctx, &object, resourceAsWinGetApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -200,16 +201,16 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 
 // Delete handles the Delete operation.
 func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WinGetAppResourceModel
+	var object WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -217,7 +218,7 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	err := r.client.DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(data.ID.ValueString()).
+		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
