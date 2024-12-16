@@ -1,9 +1,9 @@
 resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsapp" {
-  package_identifier = "9NKSQGP7F2NH"  # The unique identifier for the app obtained from msft app store
+  package_identifier = "9NKSQGP7F2NH" # The unique identifier for the app obtained from msft app store
 
   # Install experience settings
   install_experience = {
-    run_as_account = "user"  # Can be 'system' or 'user'
+    run_as_account = "user" # Can be 'system' or 'user'
   }
 
   # Optional fields
