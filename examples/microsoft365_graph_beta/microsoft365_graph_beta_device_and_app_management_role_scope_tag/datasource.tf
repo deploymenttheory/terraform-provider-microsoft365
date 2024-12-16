@@ -24,7 +24,7 @@ output "role_scope_tag_details" {
 resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "clone" {
   display_name = "Clone - ${data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.display_name}"
   description  = "Cloned from: ${data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.description}"
-  
+
   timeouts = {
     create = "180s"
     read   = "180s"
@@ -36,10 +36,10 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "clo
 # Use Case 2: Conditional tag creation based on built-in status
 resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "conditional" {
   count = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.is_built_in ? 0 : 1
-  
+
   display_name = "Custom - ${data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.display_name}"
   description  = "Custom version of non-built-in tag"
-  
+
   timeouts = {
     create = "180s"
     read   = "180s"
@@ -60,18 +60,18 @@ data "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "level2"
 output "support_tags_comparison" {
   value = {
     level1 = {
-      id          = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.id
+      id           = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.id
       display_name = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.display_name
       is_built_in  = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.is_built_in
     }
     level2 = {
-      id          = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level2.id
+      id           = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level2.id
       display_name = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level2.display_name
       is_built_in  = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level2.is_built_in
     }
     comparison = {
       both_built_in = (
-        data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.is_built_in && 
+        data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level1.is_built_in &&
         data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.level2.is_built_in
       )
     }
@@ -82,8 +82,8 @@ output "support_tags_comparison" {
 output "tag_summary" {
   value = {
     tag_info = {
-      name        = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.display_name
-      type        = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.is_built_in ? "Built-in" : "Custom"
+      name            = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.display_name
+      type            = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.is_built_in ? "Built-in" : "Custom"
       has_description = data.microsoft365_graph_beta_device_and_app_management_role_scope_tag.by_name.description != ""
     }
   }

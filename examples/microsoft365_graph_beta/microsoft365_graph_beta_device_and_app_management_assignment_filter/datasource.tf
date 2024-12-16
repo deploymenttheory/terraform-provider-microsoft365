@@ -5,7 +5,7 @@ data "microsoft365_graph_beta_device_and_app_management_assignment_filter" "by_n
 
 # Look up by ID
 data "microsoft365_graph_beta_device_and_app_management_assignment_filter" "windows_vdi" {
-  id = "2983b1c2-8ec2-45d3-84ed-deca619d2c04"
+  id = "00000000-0000-0000-0000-000000000001"
 }
 
 # Example: Create new filter based on existing one (using name lookup)
@@ -114,7 +114,7 @@ output "all_filters_export" {
 resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "prod_clone" {
   display_name = "PROD - ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.display_name}"
   description  = "Production clone of: ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.description}"
-  
+
   platform                          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform
   rule                              = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule
   assignment_filter_management_type = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.assignment_filter_management_type
@@ -131,7 +131,7 @@ resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "
 resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "dev_clone" {
   display_name = "DEV - ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.display_name}"
   description  = "Development clone of: ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.description}"
-  
+
   platform                          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform
   rule                              = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule
   assignment_filter_management_type = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.assignment_filter_management_type
@@ -149,8 +149,8 @@ resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "
 resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "enhanced_vdi_filter" {
   display_name = "Enhanced - ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.display_name}"
   description  = "Enhanced version with additional conditions"
-  
-  platform                          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform
+
+  platform = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform
   # Original rule with additional conditions
   rule                              = "${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule} and (device.manufacturer -eq \"Microsoft\")"
   assignment_filter_management_type = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.assignment_filter_management_type
@@ -168,15 +168,15 @@ resource "microsoft365_graph_beta_device_and_app_management_assignment_filter" "
 output "filter_comparison" {
   value = {
     original_vs_enhanced = {
-      original_rule  = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule
+      original_rule = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule
       enhanced_rule = "${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.rule} and (device.manufacturer -eq \"Microsoft\")"
       differences = {
         platform_same = (
-          data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform == 
+          data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.platform ==
           data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.platform
         )
         management_type_same = (
-          data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.assignment_filter_management_type == 
+          data.microsoft365_graph_beta_device_and_app_management_assignment_filter.windows_vdi.assignment_filter_management_type ==
           data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.assignment_filter_management_type
         )
       }
