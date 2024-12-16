@@ -13,6 +13,12 @@ import (
 func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleScopeTagResourceModel, remoteResource graphmodels.RoleScopeTagable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
+		// Initialize with empty/default values
+		data.ID = types.StringNull()
+		data.DisplayName = types.StringNull()
+		data.Description = types.StringNull()
+		data.IsBuiltIn = types.BoolNull()
+		data.Assignments = make([]types.String, 0)
 		return
 	}
 

@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -47,23 +49,29 @@ func (d *RoleScopeTagDataSource) Schema(ctx context.Context, req datasource.Sche
 		Description: "Retrieves information about a Role Scope Tag in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The unique identifier for the Role Scope Tag.",
-				Optional:    true,
-				Computed:    true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The unique identifier for the Role Scope Tag.",
 			},
 			"display_name": schema.StringAttribute{
-				Description: "The display or friendly name of the Role Scope Tag.",
-				Optional:    true,
-				Computed:    true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The display or friendly name of the Role Scope Tag.",
 			},
 			"description": schema.StringAttribute{
-				Description: "Description of the Role Scope Tag.",
-				Computed:    true,
+				Computed:            true,
+				MarkdownDescription: "Description of the Role Scope Tag.",
 			},
 			"is_built_in": schema.BoolAttribute{
-				Description: "Indicates whether this is a built-in Role Scope Tag. This property is read-only.",
-				Computed:    true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether this is a built-in Role Scope Tag. This property is read-only.",
 			},
+			"assignments": schema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The list of group assignments for the Intune Role Scope Tag.",
+			},
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

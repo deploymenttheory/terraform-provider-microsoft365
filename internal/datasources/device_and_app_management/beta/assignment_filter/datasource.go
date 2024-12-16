@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,42 +46,45 @@ func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.Sc
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unique identifier of the assignment filter.",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The unique identifier of the assignment filter.",
 			},
 			"display_name": schema.StringAttribute{
-				Required:    true,
-				Description: "The display name of the assignment filter.",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The display name of the assignment filter.",
 			},
 			"description": schema.StringAttribute{
-				Computed:    true,
-				Description: "The description of the assignment filter.",
+				Computed:            true,
+				MarkdownDescription: "The description of the assignment filter.",
 			},
 			"platform": schema.StringAttribute{
-				Computed:    true,
-				Description: "The Intune device management type (platform) for the assignment filter.",
+				Computed:            true,
+				MarkdownDescription: "The Intune device management type (platform) for the assignment filter.",
 			},
 			"rule": schema.StringAttribute{
-				Computed:    true,
-				Description: "Rule definition of the assignment filter.",
+				Computed:            true,
+				MarkdownDescription: "Rule definition of the assignment filter.",
 			},
 			"assignment_filter_management_type": schema.StringAttribute{
-				Computed:    true,
-				Description: "Indicates filter is applied to either 'devices' or 'apps' management type.",
+				Computed:            true,
+				MarkdownDescription: "Indicates filter is applied to either 'devices' or 'apps' management type.",
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed:    true,
-				Description: "The creation time of the assignment filter.",
+				Computed:            true,
+				MarkdownDescription: "The creation time of the assignment filter.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Computed:    true,
-				Description: "Last modified time of the assignment filter.",
+				Computed:            true,
+				MarkdownDescription: "Last modified time of the assignment filter.",
 			},
 			"role_scope_tags": schema.ListAttribute{
-				Computed:    true,
-				Description: "Indicates role scope tags assigned for the assignment filter.",
-				ElementType: types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Indicates role scope tags assigned for the assignment filter.",
+				ElementType:         types.StringType,
 			},
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

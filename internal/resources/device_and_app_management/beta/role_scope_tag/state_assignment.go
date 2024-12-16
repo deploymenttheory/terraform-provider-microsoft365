@@ -12,17 +12,17 @@ import (
 // MapRemoteAssignmentStateToTerraform maps the assignment remote state to the Terraform model
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleScopeTagResourceModel, assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
-		terraform.Assignments = nil
+		terraform.Assignments = make([]types.String, 0)
 		return
 	}
 
 	assignments := assignmentsResponse.GetValue()
 	if assignments == nil {
-		terraform.Assignments = nil
+		terraform.Assignments = make([]types.String, 0)
 		return
 	}
 
-	var groupIDs []types.String
+	groupIDs := make([]types.String, 0)
 	for _, assignment := range assignments {
 		target := assignment.GetTarget()
 		if target == nil {
