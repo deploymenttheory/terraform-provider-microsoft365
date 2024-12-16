@@ -12,12 +12,12 @@ resource "microsoft365_graph_device_and_app_management_cloud_pc_provisioning_pol
   local_admin_enabled   = false
 
   domain_join_configurations = [
-  {
-    domain_join_type          = "azureADJoin"
-    on_premises_connection_id = "12345678-1234-1234-1234-123456789012"
-    region_name               = "eastus"
-  }
-]
+    {
+      domain_join_type          = "azureADJoin"
+      on_premises_connection_id = "12345678-1234-1234-1234-123456789012"
+      region_name               = "eastus"
+    }
+  ]
 
   microsoft_managed_desktop = {
     managed_type = "premiumManaged"

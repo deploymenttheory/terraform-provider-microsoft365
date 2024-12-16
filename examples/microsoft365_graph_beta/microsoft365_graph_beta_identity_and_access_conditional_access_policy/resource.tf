@@ -18,8 +18,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     users {
-      include_users = ["All"]
-      exclude_users = ["11111111-1111-1111-1111-111111111111"]
+      include_users  = ["All"]
+      exclude_users  = ["11111111-1111-1111-1111-111111111111"]
       include_groups = ["22222222-2222-2222-2222-222222222222"]
     }
 
@@ -63,18 +63,18 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   }
 
   grant_controls {
-    operator = "OR"
-    built_in_controls = ["mfa", "compliantDevice"]
+    operator                      = "OR"
+    built_in_controls             = ["mfa", "compliantDevice"]
     custom_authentication_factors = ["77777777-7777-7777-7777-777777777777"]
-    terms_of_use = ["88888888-8888-8888-8888-888888888888"]
+    terms_of_use                  = ["88888888-8888-8888-8888-888888888888"]
 
     authentication_strength {
-      id                   = "99999999-9999-9999-9999-999999999999"
-      display_name         = "Example Authentication Strength"
-      description          = "A description for the authentication strength."
-      policy_type          = "required"
+      id                     = "99999999-9999-9999-9999-999999999999"
+      display_name           = "Example Authentication Strength"
+      description            = "A description for the authentication strength."
+      policy_type            = "required"
       requirements_satisfied = "mfa"
-      allowed_combinations = ["password", "biometric"]
+      allowed_combinations   = ["password", "biometric"]
     }
   }
 
@@ -84,8 +84,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     cloud_app_security {
-      is_enabled                = true
-      cloud_app_security_type   = "monitorOnly"
+      is_enabled              = true
+      cloud_app_security_type = "monitorOnly"
     }
 
     continuous_access_evaluation {
@@ -98,11 +98,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     sign_in_frequency {
-      is_enabled            = true
-      type                  = "days"
-      value                 = 1
-      authentication_type   = "primaryAndSecondaryAuthentication"
-      frequency_interval    = "timeBased"
+      is_enabled          = true
+      type                = "days"
+      value               = 1
+      authentication_type = "primaryAndSecondaryAuthentication"
+      frequency_interval  = "timeBased"
     }
 
     disable_resilience_defaults = false

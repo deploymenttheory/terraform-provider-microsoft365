@@ -15,7 +15,7 @@ Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iP
 resource "microsoft365_graph_beta_device_and_app_management_settings_catalog" "test_macOS" {
   name               = "Test Settings Catalog Profile - macOS"
   description        = ""
-  platforms          = "macOS" 
+  platforms          = "macOS"
   technologies       = ["mdm", "appleRemoteManagement"]
   role_scope_tag_ids = ["0"]
 
