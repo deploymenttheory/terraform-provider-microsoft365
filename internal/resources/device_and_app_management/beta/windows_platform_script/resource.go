@@ -79,15 +79,15 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 		Description: "Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Unique Identifier for the device management script.",
+				Description: "Unique Identifier for the windows platform script.",
 				Computed:    true,
 			},
 			"display_name": schema.StringAttribute{
-				Description: "Name of the device management script.",
+				Description: "Name of the windows platform script.",
 				Required:    true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Optional description for the device management script.",
+				Description: "Optional description for the windows platform script.",
 				Optional:    true,
 			},
 			"script_content": schema.StringAttribute{

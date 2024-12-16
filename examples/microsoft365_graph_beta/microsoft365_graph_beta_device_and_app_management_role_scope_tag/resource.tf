@@ -2,7 +2,7 @@
 resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "helpdesk" {
   display_name = "Helpdesk Support Tag"
   description  = "Role scope tag for helpdesk support staff"
-  
+
   assignments = ["00000000-0000-0000-0000-000000000001"]
 
   timeouts = {
@@ -17,18 +17,25 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "hel
 resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "it_support" {
   display_name = "IT Support Tag"
   description  = "Role scope tag for IT support teams"
-  
+
   assignments = ["00000000-0000-0000-0000-000000000002"]
 }
 
 resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "device_management" {
   display_name = "Device Management Tag"
   description  = "Role scope tag for device management teams"
-  
+
   assignments = [
     "00000000-0000-0000-0000-000000000003",
     "00000000-0000-0000-0000-000000000004"
   ]
+
+  timeouts = {
+    create = "180s"
+    read   = "180s"
+    update = "180s"
+    delete = "180s"
+  }
 }
 
 # Example showing data source usage to reference an existing role scope tag
@@ -64,6 +71,13 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "sup
   display_name = each.value.name
   description  = each.value.description
   assignments  = each.value.group_ids
+
+  timeouts = {
+    create = "180s"
+    read   = "180s"
+    update = "180s"
+    delete = "180s"
+  }
 }
 
 # Output examples
@@ -85,7 +99,15 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "env
   display_name = "Environment-Specific Support Tag"
   description  = "Role scope tag for ${var.environment} environment"
 
-  assignments = var.environment == "production" ? 
-    ["00000000-0000-0000-0000-000000000008"] : 
-    ["00000000-0000-0000-0000-000000000009"]
+  assignments = (var.environment == "production"
+    ? ["00000000-0000-0000-0000-000000000008"]
+    : ["00000000-0000-0000-0000-000000000009"]
+  )
+
+  timeouts = {
+    create = "180s"
+    read   = "180s"
+    update = "180s"
+    delete = "180s"
+  }
 }

@@ -21,6 +21,7 @@ Manages Role Scope Tags in Microsoft Intune.
 
 ### Optional
 
+- `assignments` (Set of String) The list of group assignments for the Intune Role Scope Tag.
 - `description` (String) Description of the Role Scope Tag.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

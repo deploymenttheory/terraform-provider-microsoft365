@@ -60,7 +60,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
 
 ### Required
 
-- `display_name` (String) Name of the device management script.
+- `display_name` (String) Name of the windows platform script.
 - `file_name` (String) Script file name.
 - `run_as_account` (String) Indicates the type of execution context. Possible values are: `system`, `user`.
 - `script_content` (String, Sensitive) The script content.
@@ -68,7 +68,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the device management script.
+- `description` (String) Optional description for the windows platform script.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
 - `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
 - `run_as_32_bit` (Boolean) A value indicating whether the PowerShell script should run as 32-bit.
@@ -76,7 +76,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
 
 ### Read-Only
 
-- `id` (String) Unique Identifier for the device management script.
+- `id` (String) Unique Identifier for the windows platform script.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

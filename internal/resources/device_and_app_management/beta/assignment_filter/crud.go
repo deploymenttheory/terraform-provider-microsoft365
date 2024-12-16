@@ -10,26 +10,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Assignment filter resources.
+//
+//   - Retrieves the planned configuration from the create request
+//   - Constructs the resource request body from the plan
+//   - Sends POST request to create the base resource and settings
+//   - Sets initial state with planned values
+//   - Calls Read operation to fetch the latest state from the API with retry
+//   - Updates the final state with the fresh data from the API
 func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AssignmentFilterResourceModel
+	var object AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -38,7 +49,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	resource, err := r.client.
+	baseResource, err := r.client.
 		DeviceManagement().
 		AssignmentFilters().
 		Post(ctx, requestBody, nil)
@@ -48,32 +59,57 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	plan.ID = types.StringValue(*resource.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, resource)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
+		return
+	}
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Assignment Filter resources.
+//
+//   - Retrieves the current state from the read request
+//   - Gets the base resource details from the API
+//   - Maps the base resource details to Terraform state
 func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state AssignmentFilterResourceModel
+	var object AssignmentFilterResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -82,7 +118,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 	resource, err := r.client.
 		DeviceManagement().
 		AssignmentFilters().
-		ByDeviceAndAppManagementAssignmentFilterId(state.ID.ValueString()).
+		ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -90,9 +126,9 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, resource)
+	MapRemoteStateToTerraform(ctx, &object, resource)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -102,22 +138,25 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 
 // Update handles the Update operation.
 func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan AssignmentFilterResourceModel
+	var object AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -129,7 +168,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 	_, err = r.client.
 		DeviceManagement().
 		AssignmentFilters().
-		ByDeviceAndAppManagementAssignmentFilterId(plan.ID.ValueString()).
+		ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -137,26 +176,49 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Assignment Filter resources.
+//
+//   - Retrieves the current state from the delete request
+//   - Validates the state data and timeout configuration
+//   - Sends DELETE request to remove the resource from the API
+//   - Cleans up by removing the resource from Terraform state
 func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data AssignmentFilterResourceModel
+	var object AssignmentFilterResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -165,7 +227,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	err := r.client.
 		DeviceManagement().
 		AssignmentFilters().
-		ByDeviceAndAppManagementAssignmentFilterId(data.ID.ValueString()).
+		ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

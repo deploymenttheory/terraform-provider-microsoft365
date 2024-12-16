@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_macos_platform_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune: Device Platform Script"
 description: |-
-  Manages an Intune macOS platform script using the 'deviceShellScripts' Graph Beta API.
+  Manages an Intune macOS platform script using the 'MacOSPlatformScripts' Graph Beta API.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_platform_script (Resource)
 
-Manages an Intune macOS platform script using the 'deviceShellScripts' Graph Beta API.
+Manages an Intune macOS platform script using the 'MacOSPlatformScripts' Graph Beta API.
 
 ## Example Usage
 
@@ -66,7 +66,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_platform_scrip
 
 ### Required
 
-- `display_name` (String) Name of the device management script.
+- `display_name` (String) Name of the macOS Platform Script.
 - `file_name` (String) Script file name.
 - `run_as_account` (String) Indicates the type of execution context. Possible values are: `system`, `user`.
 - `script_content` (String, Sensitive) The script content.
@@ -75,7 +75,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_platform_scrip
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `block_execution_notifications` (Boolean) Does not notify the user a script is being executed.
-- `description` (String) Optional description for the device management script.
+- `description` (String) Optional description for the macOS Platform Script.
 - `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.
 - `retry_count` (Number) Number of times for the script to be retried if it fails.
 - `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
@@ -83,9 +83,9 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_platform_scrip
 
 ### Read-Only
 
-- `created_date_time` (String) The date and time the device management script was created. This property is read-only.
-- `id` (String) Unique Identifier for the device management script.
-- `last_modified_date_time` (String) The date and time the device management script was last modified. This property is read-only.
+- `created_date_time` (String) The date and time the macOS Platform Script was created. This property is read-only.
+- `id` (String) Unique Identifier for the macOS Platform Script.
+- `last_modified_date_time` (String) The date and time the macOS Platform Script was last modified. This property is read-only.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

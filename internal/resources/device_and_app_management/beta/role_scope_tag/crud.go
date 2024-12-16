@@ -92,6 +92,11 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		}
 	}
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}
 		r.Read(ctx, resource.ReadRequest{

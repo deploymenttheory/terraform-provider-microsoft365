@@ -1,4 +1,4 @@
-package graphBetaDeviceShellScript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -25,20 +25,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceShellScriptResource{}
+	_ resource.Resource = &MacOSPlatformScriptResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceShellScriptResource{}
+	_ resource.ResourceWithConfigure = &MacOSPlatformScriptResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceShellScriptResource{}
+	_ resource.ResourceWithImportState = &MacOSPlatformScriptResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceShellScriptResource{}
+	_ resource.ResourceWithModifyPlan = &MacOSPlatformScriptResource{}
 )
 
-func NewDeviceShellScriptResource() resource.Resource {
-	return &DeviceShellScriptResource{
+func NewMacOSPlatformScriptResource() resource.Resource {
+	return &MacOSPlatformScriptResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementManagedDevices.Read.All",
@@ -47,11 +47,11 @@ func NewDeviceShellScriptResource() resource.Resource {
 			"DeviceManagementManagedDevices.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
-		ResourcePath: "/deviceManagement/deviceShellScripts",
+		ResourcePath: "/deviceManagement/MacOSPlatformScripts",
 	}
 }
 
-type DeviceShellScriptResource struct {
+type MacOSPlatformScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -61,34 +61,34 @@ type DeviceShellScriptResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceShellScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *MacOSPlatformScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceShellScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *MacOSPlatformScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceShellScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *MacOSPlatformScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DeviceShellScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune macOS platform script using the 'deviceShellScripts' Graph Beta API.",
+		Description: "Manages an Intune macOS platform script using the 'MacOSPlatformScripts' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Unique Identifier for the device management script.",
+				Description: "Unique Identifier for the macOS Platform Script.",
 				Computed:    true,
 			},
 			"display_name": schema.StringAttribute{
-				Description: "Name of the device management script.",
+				Description: "Name of the macOS Platform Script.",
 				Required:    true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Optional description for the device management script.",
+				Description: "Optional description for the macOS Platform Script.",
 				Optional:    true,
 			},
 			"script_content": schema.StringAttribute{
@@ -97,11 +97,11 @@ func (r *DeviceShellScriptResource) Schema(ctx context.Context, req resource.Sch
 				Sensitive:   true,
 			},
 			"created_date_time": schema.StringAttribute{
-				Description: "The date and time the device management script was created. This property is read-only.",
+				Description: "The date and time the macOS Platform Script was created. This property is read-only.",
 				Computed:    true,
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Description: "The date and time the device management script was last modified. This property is read-only.",
+				Description: "The date and time the macOS Platform Script was last modified. This property is read-only.",
 				Computed:    true,
 			},
 			"run_as_account": schema.StringAttribute{
