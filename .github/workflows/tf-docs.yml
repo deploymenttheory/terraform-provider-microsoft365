@@ -1,4 +1,4 @@
-name: Terraform Docs Generation
+name: '📚 Terraform Docs Generation'
 
 on:
   pull_request:
