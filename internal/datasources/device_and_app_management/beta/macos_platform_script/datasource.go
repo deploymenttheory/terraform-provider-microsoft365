@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaMacOSPlatformScript
 
 import (
 	"context"
@@ -17,21 +17,22 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ datasource.DataSource = &WindowsPlatformScriptDataSource{}
+	_ datasource.DataSource = &MacOSPlatformScriptDataSource{}
 
 	// Allows the resource to be configured with the provider client
-	_ datasource.DataSourceWithConfigure = &WindowsPlatformScriptDataSource{}
+	_ datasource.DataSourceWithConfigure = &MacOSPlatformScriptDataSource{}
 )
 
-func NewWindowsPlatformScriptDataSource() datasource.DataSource {
-	return &WindowsPlatformScriptDataSource{
+func NewMacOSPlatformScriptDataSource() datasource.DataSource {
+	return &MacOSPlatformScriptDataSource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementManagedDevices.Read.All",
 		},
 	}
 }
 
-type WindowsPlatformScriptDataSource struct {
+type MacOSPlatformScriptDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -39,53 +40,65 @@ type WindowsPlatformScriptDataSource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *WindowsPlatformScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *MacOSPlatformScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
-func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *MacOSPlatformScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about a windows platform script.",
+		MarkdownDescription: "Manages an Intune macOS platform script using the 'MacOSPlatformScripts' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the windows platform script.",
-				Optional:            true,
 				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Unique Identifier for the macOS Platform Script.",
 			},
 			"display_name": schema.StringAttribute{
-				MarkdownDescription: "Name of the windows platform script.",
-				Optional:            true,
 				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Name of the macOS Platform Script.",
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the windows platform script.",
+				MarkdownDescription: "Optional description for the macOS Platform Script.",
+				Optional:            true,
+			},
+			"script_content": schema.StringAttribute{
+				MarkdownDescription: "The script content.",
+				Computed:            true,
+				Sensitive:           true,
+			},
+			"created_date_time": schema.StringAttribute{
+				MarkdownDescription: "The date and time the macOS Platform Script was created. This property is read-only.",
+				Computed:            true,
+			},
+			"last_modified_date_time": schema.StringAttribute{
+				MarkdownDescription: "The date and time the macOS Platform Script was last modified. This property is read-only.",
 				Computed:            true,
 			},
 			"run_as_account": schema.StringAttribute{
-				MarkdownDescription: "Indicates the type of execution context.",
-				Computed:            true,
-			},
-			"enforce_signature_check": schema.BoolAttribute{
-				MarkdownDescription: "Indicate whether the script signature needs be checked.",
+				MarkdownDescription: "Indicates the type of execution context. Possible values are: `system`, `user`.",
 				Computed:            true,
 			},
 			"file_name": schema.StringAttribute{
 				MarkdownDescription: "Script file name.",
 				Computed:            true,
 			},
-			"run_as_32_bit": schema.BoolAttribute{
-				MarkdownDescription: "A value indicating whether the PowerShell script should run as 32-bit.",
-				Computed:            true,
-			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				MarkdownDescription: "List of Scope Tag IDs for this PowerShellScript instance.",
-				Computed:            true,
+				Optional:            true,
 				ElementType:         types.StringType,
 			},
-			"script_content": schema.StringAttribute{
-				MarkdownDescription: "The script content.",
-				Computed:            true,
-				Sensitive:           true,
+			"block_execution_notifications": schema.BoolAttribute{
+				MarkdownDescription: "Does not notify the user a script is being executed.",
+				Optional:            true,
+			},
+			"execution_frequency": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.",
+			},
+			"retry_count": schema.Int32Attribute{
+				MarkdownDescription: "Number of times for the script to be retried if it fails.",
+				Optional:            true,
 			},
 			"assignments": commonschema.ScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
@@ -93,6 +106,6 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 	}
 }
 
-func (d *WindowsPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *MacOSPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

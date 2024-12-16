@@ -1,4 +1,4 @@
-// https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-MacOSPlatformScript?view=graph-rest-beta
+// https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-deviceshellScript?view=graph-rest-beta
 
 package graphBetaMacOSPlatformScript
 

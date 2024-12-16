@@ -1,4 +1,4 @@
-// Example: Device Shell Script Resource
+// Example: macOS Platform Script Resource
 
 resource "microsoft365_graph_beta_device_and_app_management_macos_platform_script" "example" {
   # Required fields
