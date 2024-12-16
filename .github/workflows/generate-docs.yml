@@ -15,7 +15,7 @@ permissions:
   
 jobs:
   go-docs:
-    name: '📚 Generate Docs'
+    name: '📚 Generate Go and TF Provider Docs'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4.2.2
