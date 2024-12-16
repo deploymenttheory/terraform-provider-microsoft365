@@ -22,7 +22,7 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         
-    - uses: actions/setup-go@v5.1.0
+    - uses: actions/setup-go@v5.2.0
       with:
         cache: true
         go-version-file: 'go.mod'
@@ -56,11 +56,11 @@ jobs:
           echo "changes=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Commit changes in Go docs and Terraform formatting
+    - name: Commit changes in Go + provider docs and Terraform formatting
       if: steps.go-gen-check.outputs.changes == 'true'
       uses: stefanzweifel/git-auto-commit-action@v5.0.1
       with:
-        commit_message: "chore: update documentation and format terraform files"
+        commit_message: "chore: update go documentation, provider documentation and format terraform files"
         file_pattern: '**/*.go **/*.tf'
         commit_options: '--no-verify --signoff'
         commit_user_name: "GitHub Actions Bot"
