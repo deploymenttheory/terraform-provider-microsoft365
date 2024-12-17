@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
         with:
-          ref: ${{ inputs.git-ref }}
+          ref: ${{ inputs.git-ref || github.ref }}
           fetch-depth: 0
       - uses: actions/setup-go@v5.2.0 
         with:
