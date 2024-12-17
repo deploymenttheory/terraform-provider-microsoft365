@@ -3,7 +3,6 @@ package graphVersionResourceTemplate
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
@@ -13,15 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
-
 // Create handles the Create operation.
 func (r *ResourceTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceTemplateResourceModel
-
-	mu.Lock()
-	defer mu.Unlock()
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
