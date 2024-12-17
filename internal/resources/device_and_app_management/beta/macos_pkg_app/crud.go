@@ -151,7 +151,7 @@ func (r *MacOSPkgAppResource) Update(ctx context.Context, req resource.UpdateReq
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (r *MacOSPkgAppResource) Delete(ctx context.Context, req resource.DeleteReq
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

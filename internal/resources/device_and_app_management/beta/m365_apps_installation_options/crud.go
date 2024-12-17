@@ -135,7 +135,7 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 

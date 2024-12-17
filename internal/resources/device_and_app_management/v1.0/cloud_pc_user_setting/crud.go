@@ -136,7 +136,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 	resp.State.RemoveResource(ctx)

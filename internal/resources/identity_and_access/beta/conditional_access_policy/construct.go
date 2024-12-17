@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -11,7 +12,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the graph beta SDK model
+// constructResource maps the Terraform schema values to the graph beta SDK model and sets the values for  the request to the Graph API
 func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (*models.ConditionalAccessPolicy, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -75,7 +76,7 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 	return requestBody, nil
 }
 
-// Helper functions to construct nested objects
+// constructConditions constructs the ConditionalAccessConditionSet object
 func constructConditions(data *ConditionalAccessConditionsModel) (*models.ConditionalAccessConditionSet, error) {
 	if data == nil {
 		return nil, nil
@@ -257,6 +258,7 @@ func constructConditions(data *ConditionalAccessConditionsModel) (*models.Condit
 	return conditions, nil
 }
 
+// constructApplications constructs the ConditionalAccessApplicationsable object
 func constructApplications(data *ConditionalAccessApplicationsModel) (models.ConditionalAccessApplicationsable, error) {
 	if data == nil {
 		return nil, nil
@@ -288,9 +290,41 @@ func constructApplications(data *ConditionalAccessApplicationsModel) (models.Con
 		applications.SetIncludeUserActions(userActions)
 	}
 
+	if len(data.IncludeAuthenticationContextClassReferences) > 0 {
+		authRefs := make([]string, len(data.IncludeAuthenticationContextClassReferences))
+		for i, ref := range data.IncludeAuthenticationContextClassReferences {
+			authRefs[i] = ref.ValueString()
+		}
+		applications.SetIncludeAuthenticationContextClassReferences(authRefs)
+	}
+
+	if data.ApplicationFilter != nil {
+		filter := models.NewConditionalAccessFilter()
+		if !data.ApplicationFilter.Mode.IsNull() {
+			modeStr := data.ApplicationFilter.Mode.ValueString()
+			modeAny, err := models.ParseFilterMode(modeStr)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing filter mode: %v", err)
+			}
+			if modeAny != nil {
+				mode := modeAny.(*models.FilterMode)
+				filter.SetMode(mode)
+			}
+		}
+		if !data.ApplicationFilter.Rule.IsNull() {
+			rule := data.ApplicationFilter.Rule.ValueString()
+			filter.SetRule(&rule)
+		}
+		applications.SetApplicationFilter(filter)
+	}
+
+	additionalData := make(map[string]interface{})
+	applications.SetAdditionalData(additionalData)
+
 	return applications, nil
 }
 
+// constructAuthenticationFlows constructs the ConditionalAccessAuthenticationFlowsable object
 func constructAuthenticationFlows(data *ConditionalAccessAuthenticationFlowsModel) (models.ConditionalAccessAuthenticationFlowsable, error) {
 	if data == nil {
 		return nil, nil
@@ -298,20 +332,27 @@ func constructAuthenticationFlows(data *ConditionalAccessAuthenticationFlowsMode
 
 	authFlows := models.NewConditionalAccessAuthenticationFlows()
 
-	if !data.TransferMethods.IsNull() {
-		transferMethodsStr := data.TransferMethods.ValueString()
-		transferMethods, err := models.ParseConditionalAccessTransferMethods(transferMethodsStr)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing transfer methods: %v", err)
+	if len(data.TransferMethods) > 0 {
+		// Create a combined transfer methods value
+		var combinedMethods models.ConditionalAccessTransferMethods
+		for i, method := range data.TransferMethods {
+			methodAny, err := models.ParseConditionalAccessTransferMethods(method.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing transfer methods: %v", err)
+			}
+			if methodAny != nil {
+				if i == 0 {
+					combinedMethods = *methodAny.(*models.ConditionalAccessTransferMethods)
+				} else {
+					combinedMethods |= *methodAny.(*models.ConditionalAccessTransferMethods)
+				}
+			}
 		}
-		if transferMethods != nil {
-			authFlows.SetTransferMethods(transferMethods.(*models.ConditionalAccessTransferMethods))
-		}
+		authFlows.SetTransferMethods(&combinedMethods)
 	}
 
 	return authFlows, nil
 }
-
 func constructUsers(data *ConditionalAccessUsersModel) (models.ConditionalAccessUsersable, error) {
 	if data == nil {
 		return nil, nil
@@ -386,6 +427,46 @@ func constructUsers(data *ConditionalAccessUsersModel) (models.ConditionalAccess
 	return users, nil
 }
 
+// constructGuestsOrExternalUsers constructs a ConditionalAccessGuestsOrExternalUsers object
+// for the Microsoft Graph SDK based on the data provided from the Terraform model.
+//
+// This function processes the HCL input for `exclude_guests_or_external_users` or
+// `include_guests_or_external_users` and maps the list of `guest_or_external_user_types`
+// into a comma-separated string. The string is parsed using the Microsoft Graph SDK's
+// `ParseConditionalAccessGuestOrExternalUserTypes` function, which combines the individual
+// flags into a single bitmask value.
+//
+// Parameters:
+//   - data: *ConditionalAccessGuestsOrExternalUsersModel
+//     The Terraform model containing the input data for GuestOrExternalUserTypes
+//     and ExternalTenants.
+//
+// Returns:
+//   - models.ConditionalAccessGuestsOrExternalUsersable: The constructed object
+//     that can be sent to the Microsoft Graph API.
+//   - error: If an error occurs while parsing the guest or external user types.
+//
+// Behavior:
+//   - If `guest_or_external_user_types` contains a list of strings (e.g., ["b2bCollaborationGuest", "b2bCollaborationMember"]),
+//     they are combined into a single comma-separated string and parsed into the corresponding SDK enum bitmask.
+//   - If `external_tenants` is provided, it is mapped using the helper function `constructConditionalAccessExternalTenants`.
+//   - Handles cases where no data is provided for `guest_or_external_user_types` or `external_tenants` by safely returning nil.
+//
+// Example Input (HCL):
+//
+//	exclude_guests_or_external_users = {
+//	  guest_or_external_user_types = ["b2bCollaborationGuest", "b2bCollaborationMember"]
+//	  external_tenants = {
+//	    membership_kind = "all"
+//	  }
+//	}
+//
+// Errors:
+// - Returns an error if a value in `guest_or_external_user_types` cannot be parsed into a valid enum.
+//
+// Notes:
+// - The Microsoft Graph SDK uses a bitmask-based enum for GuestOrExternalUserTypes.
+// - This implementation ensures that Terraform's list input aligns correctly with the SDK's expected format.
 func constructGuestsOrExternalUsers(data *ConditionalAccessGuestsOrExternalUsersModel) (models.ConditionalAccessGuestsOrExternalUsersable, error) {
 	if data == nil {
 		return nil, nil
@@ -393,17 +474,25 @@ func constructGuestsOrExternalUsers(data *ConditionalAccessGuestsOrExternalUsers
 
 	guestsOrExternalUsers := models.NewConditionalAccessGuestsOrExternalUsers()
 
-	if !data.GuestOrExternalUserTypes.IsNull() {
-		userTypesAny, err := models.ParseConditionalAccessGuestOrExternalUserTypes(data.GuestOrExternalUserTypes.ValueString())
+	if len(data.GuestOrExternalUserTypes) > 0 {
+		var userTypesStrings []string
+		for _, userType := range data.GuestOrExternalUserTypes {
+			userTypesStrings = append(userTypesStrings, userType.ValueString())
+		}
+
+		combinedTypesString := strings.Join(userTypesStrings, ",")
+
+		parsedAny, err := models.ParseConditionalAccessGuestOrExternalUserTypes(combinedTypesString)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing guest or external user types: %v", err)
 		}
-		if userTypesAny != nil {
-			userTypes, ok := userTypesAny.(*models.ConditionalAccessGuestOrExternalUserTypes)
+
+		if parsedAny != nil {
+			parsedType, ok := parsedAny.(*models.ConditionalAccessGuestOrExternalUserTypes)
 			if !ok {
-				return nil, fmt.Errorf("unexpected type for guest or external user types: %T", userTypesAny)
+				return nil, fmt.Errorf("unexpected type for guest or external user types: %T", parsedAny)
 			}
-			guestsOrExternalUsers.SetGuestOrExternalUserTypes(userTypes)
+			guestsOrExternalUsers.SetGuestOrExternalUserTypes(parsedType)
 		}
 	}
 
@@ -491,23 +580,23 @@ func constructDevices(data *ConditionalAccessDevicesModel) (models.ConditionalAc
 		devices.SetExcludeDevices(excludeDevices)
 	}
 
-	if data.IncludeStates != nil {
-		if len(data.IncludeStates) > 0 {
-			includeStates := make([]string, len(data.IncludeStates))
-			for i, state := range data.IncludeStates {
-				includeStates[i] = state.ValueString()
-			}
-			devices.SetIncludeDeviceStates(includeStates)
-		}
+	// if data.IncludeStates != nil {
+	// 	if len(data.IncludeStates) > 0 {
+	// 		includeStates := make([]string, len(data.IncludeStates))
+	// 		for i, state := range data.IncludeStates {
+	// 			includeStates[i] = state.ValueString()
+	// 		}
+	// 		devices.SetIncludeDeviceStates(includeStates)
+	// 	}
 
-		if len(data.ExcludeStates) > 0 {
-			excludeStates := make([]string, len(data.ExcludeStates))
-			for i, state := range data.ExcludeStates {
-				excludeStates[i] = state.ValueString()
-			}
-			devices.SetExcludeDeviceStates(excludeStates)
-		}
-	}
+	// 	if len(data.ExcludeStates) > 0 {
+	// 		excludeStates := make([]string, len(data.ExcludeStates))
+	// 		for i, state := range data.ExcludeStates {
+	// 			excludeStates[i] = state.ValueString()
+	// 		}
+	// 		devices.SetExcludeDeviceStates(excludeStates)
+	// 	}
+	// }
 
 	if data.DeviceFilter != nil {
 		filter := models.NewConditionalAccessFilter()

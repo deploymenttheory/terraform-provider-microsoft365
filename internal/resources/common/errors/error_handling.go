@@ -86,13 +86,20 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
 	case 401, 403:
-		if operation == "Read" {
-			tflog.Warn(ctx, "Permission error on read operation, check required Graph permissions")
-			handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
-			return
+		tflog.Warn(ctx, fmt.Sprintf("Permission error on %s operation, check required Graph permissions", operation))
+
+		var requiredPermissionsToReport []string
+		switch operation {
+		case "Read":
+			requiredPermissionsToReport = requiredPermissions
+		case "Create", "Update", "Delete":
+			requiredPermissionsToReport = requiredPermissions
+		default:
+			requiredPermissionsToReport = []string{}
 		}
-		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
-			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
+
+		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissionsToReport)
+		return
 
 	case 404:
 		if operation == "Read" {

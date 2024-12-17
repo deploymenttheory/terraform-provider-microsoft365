@@ -45,7 +45,8 @@ jobs:
     - name: Generate tf docs
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --examples-dir examples
+        cd $GITHUB_WORKSPACE
+        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check
