@@ -274,15 +274,18 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessApplicationsSchema() 
 
 func (r *ConditionalAccessPolicyResource) conditionalAccessAuthenticationFlowsSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"transfer_methods": schema.StringAttribute{
+		"transfer_methods": schema.ListAttribute{
 			Optional:    true,
 			Description: "Represents the transfer methods in scope for the policy. The possible values are: none, deviceCodeFlow, authenticationTransfer, unknownFutureValue.",
-			Validators: []validator.String{
-				stringvalidator.OneOf(
-					"none",
-					"deviceCodeFlow",
-					"authenticationTransfer",
-					"unknownFutureValue",
+			ElementType: types.StringType,
+			Validators: []validator.List{
+				listvalidator.ValueStringsAre(
+					stringvalidator.OneOf(
+						"none",
+						"deviceCodeFlow",
+						"authenticationTransfer",
+						"unknownFutureValue",
+					),
 				),
 			},
 		},
@@ -457,29 +460,29 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessDevicesSchema() map[s
 		"device_filter": filterSchema(
 			"Filter that defines the dynamic-device-syntax rule to include/exclude devices. A filter can use device properties (such as extension attributes) to include/exclude them. Cannot be set if includeDevices or excludeDevices is set.",
 		),
-		"include_device_states": schema.ListAttribute{
-			Optional:           true,
-			Description:        "(Deprecated) States in the scope of the policy. 'All' is the only allowed value.",
-			DeprecationMessage: "This field is deprecated. Use include_devices instead.",
-			ElementType:        types.StringType,
-			Validators: []validator.List{
-				listvalidator.SizeAtMost(1),
-				listvalidator.ValueStringsAre(
-					stringvalidator.OneOf("All"),
-				),
-			},
-		},
-		"exclude_device_states": schema.ListAttribute{
-			Optional:           true,
-			Description:        "(Deprecated) States excluded from the scope of the policy. Possible values: 'Compliant', 'DomainJoined'.",
-			DeprecationMessage: "This field is deprecated. Use exclude_devices instead.",
-			ElementType:        types.StringType,
-			Validators: []validator.List{
-				listvalidator.ValueStringsAre(
-					stringvalidator.OneOf("Compliant", "DomainJoined"),
-				),
-			},
-		},
+		// "include_device_states": schema.ListAttribute{
+		// 	Optional:           true,
+		// 	Description:        "(Deprecated) States in the scope of the policy. 'All' is the only allowed value.",
+		// 	DeprecationMessage: "This field is deprecated. Use include_devices instead.",
+		// 	ElementType:        types.StringType,
+		// 	Validators: []validator.List{
+		// 		listvalidator.SizeAtMost(1),
+		// 		listvalidator.ValueStringsAre(
+		// 			stringvalidator.OneOf("All"),
+		// 		),
+		// 	},
+		// },
+		// "exclude_device_states": schema.ListAttribute{
+		// 	Optional:           true,
+		// 	Description:        "(Deprecated) States excluded from the scope of the policy. Possible values: 'Compliant', 'DomainJoined'.",
+		// 	DeprecationMessage: "This field is deprecated. Use exclude_devices instead.",
+		// 	ElementType:        types.StringType,
+		// 	Validators: []validator.List{
+		// 		listvalidator.ValueStringsAre(
+		// 			stringvalidator.OneOf("Compliant", "DomainJoined"),
+		// 		),
+		// 	},
+		// },
 	}
 }
 
@@ -562,19 +565,22 @@ func (r *ConditionalAccessPolicyResource) conditionalAccessGuestsOrExternalUsers
 				},
 			},
 		},
-		"guest_or_external_user_types": schema.StringAttribute{
+		"guest_or_external_user_types": schema.ListAttribute{
 			Required:    true,
 			Description: "Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.",
-			Validators: []validator.String{
-				stringvalidator.OneOf(
-					"none",
-					"internalGuest",
-					"b2bCollaborationGuest",
-					"b2bCollaborationMember",
-					"b2bDirectConnectUser",
-					"otherExternalUser",
-					"serviceProvider",
-					"unknownFutureValue",
+			ElementType: types.StringType,
+			Validators: []validator.List{
+				listvalidator.ValueStringsAre(
+					stringvalidator.OneOf(
+						"none",
+						"internalGuest",
+						"b2bCollaborationGuest",
+						"b2bCollaborationMember",
+						"b2bDirectConnectUser",
+						"otherExternalUser",
+						"serviceProvider",
+						"unknownFutureValue",
+					),
 				),
 			},
 		},

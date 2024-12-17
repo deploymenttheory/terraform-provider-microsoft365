@@ -3,7 +3,6 @@ package graphBetaWindowsPlatformScript
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
@@ -13,19 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var (
-	// mutex needed to lock Create requests during parallel runs to avoid overwhelming api and resulting in stating issues
-	mu sync.Mutex
-
-	// object is the resource model for the device management script resource
-	object WindowsPlatformScriptResourceModel
-)
-
 // Create handles the Create operation.
 func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-
-	mu.Lock()
-	defer mu.Unlock()
+	var object WindowsPlatformScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -132,7 +121,7 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
+	var object WindowsPlatformScriptResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -198,6 +187,7 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 // Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
 // Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
 func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object WindowsPlatformScriptResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	// Get current state
@@ -321,7 +311,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
+	var object WindowsPlatformScriptResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -342,7 +332,7 @@ func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

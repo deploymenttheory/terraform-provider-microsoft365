@@ -36,10 +36,11 @@ type ConditionalAccessConditionsModel struct {
 }
 
 type ConditionalAccessApplicationsModel struct {
-	IncludeApplications []types.String                `tfsdk:"include_applications"`
-	ExcludeApplications []types.String                `tfsdk:"exclude_applications"`
-	ApplicationFilter   *ConditionalAccessFilterModel `tfsdk:"application_filter"`
-	IncludeUserActions  []types.String                `tfsdk:"include_user_actions"`
+	IncludeApplications                         []types.String                `tfsdk:"include_applications"`
+	ExcludeApplications                         []types.String                `tfsdk:"exclude_applications"`
+	ApplicationFilter                           *ConditionalAccessFilterModel `tfsdk:"application_filter"`
+	IncludeUserActions                          []types.String                `tfsdk:"include_user_actions"`
+	IncludeAuthenticationContextClassReferences []types.String                `tfsdk:"include_authentication_context_class_references"`
 }
 
 type ConditionalAccessUsersModel struct {
@@ -55,7 +56,7 @@ type ConditionalAccessUsersModel struct {
 
 type ConditionalAccessGuestsOrExternalUsersModel struct {
 	ExternalTenants          *ConditionalAccessExternalTenantsModel `tfsdk:"external_tenants"`
-	GuestOrExternalUserTypes types.String                           `tfsdk:"guest_or_external_user_types"`
+	GuestOrExternalUserTypes []types.String                         `tfsdk:"guest_or_external_user_types"` // Change to a slice
 }
 
 type ConditionalAccessExternalTenantsModel struct {
@@ -74,11 +75,11 @@ type ConditionalAccessDeviceStatesModel struct {
 }
 
 type ConditionalAccessDevicesModel struct {
-	IncludeDevices []types.String                `tfsdk:"include_devices"`
-	ExcludeDevices []types.String                `tfsdk:"exclude_devices"`
-	IncludeStates  []types.String                `tfsdk:"include_states"` // TODO - validate this. sdk different to msft docs
-	ExcludeStates  []types.String                `tfsdk:"exclude_states"` // TODO - validate this. sdk different to msft docs
-	DeviceFilter   *ConditionalAccessFilterModel `tfsdk:"device_filter"`
+	IncludeDevices []types.String `tfsdk:"include_devices"`
+	ExcludeDevices []types.String `tfsdk:"exclude_devices"`
+	//IncludeStates  []types.String                `tfsdk:"include_device_states"` // TODO - validate this. sdk different to msft docs
+	//ExcludeStates  []types.String                `tfsdk:"exclude_device_states"` // TODO - validate this. sdk different to msft docs
+	DeviceFilter *ConditionalAccessFilterModel `tfsdk:"device_filter"`
 }
 
 type ConditionalAccessLocationsModel struct {
@@ -92,7 +93,7 @@ type ConditionalAccessPlatformsModel struct {
 }
 
 type ConditionalAccessAuthenticationFlowsModel struct {
-	TransferMethods types.String `tfsdk:"transfer_methods"`
+	TransferMethods []types.String `tfsdk:"transfer_methods"`
 }
 
 type ConditionalAccessFilterModel struct {

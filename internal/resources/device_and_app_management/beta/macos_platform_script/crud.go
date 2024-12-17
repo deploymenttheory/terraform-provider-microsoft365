@@ -303,7 +303,7 @@ func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.D
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

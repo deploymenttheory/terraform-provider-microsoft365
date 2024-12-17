@@ -140,7 +140,7 @@ func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.Upda
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -176,7 +176,7 @@ func (r *ResourceTemplateResource) Delete(ctx context.Context, req resource.Dele
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

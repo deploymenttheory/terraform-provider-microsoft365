@@ -2,6 +2,7 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -154,19 +155,21 @@ func mapAuthenticationFlows(ctx context.Context, authFlows models.ConditionalAcc
 
 	tflog.Debug(ctx, "Starting to map authentication flows")
 
-	var transferMethodsString string
+	var transferMethods []types.String
 	if authFlows.GetTransferMethods() != nil {
-		transferMethodsString = authFlows.GetTransferMethods().String()
-	} else {
-		transferMethodsString = ""
+		methods := authFlows.GetTransferMethods()
+		// TransferMethods is a bitmask enum: split into separate methods
+		for _, method := range methods.String() {
+			transferMethods = append(transferMethods, types.StringValue(string(method)))
+		}
 	}
 
 	result := &ConditionalAccessAuthenticationFlowsModel{
-		TransferMethods: types.StringValue(transferMethodsString),
+		TransferMethods: transferMethods,
 	}
 
 	tflog.Debug(ctx, "Finished mapping authentication flows", map[string]interface{}{
-		"transferMethods": result.TransferMethods.ValueString(),
+		"transferMethodsCount": len(result.TransferMethods),
 	})
 
 	return result
@@ -180,21 +183,26 @@ func mapGuestsOrExternalUsers(ctx context.Context, guestsOrExternalUsers models.
 
 	tflog.Debug(ctx, "Starting to map guests or external users")
 
-	var guestOrExternalUserTypesString string
+	// Extract and split GuestOrExternalUserTypes into a list of strings
+	var guestOrExternalUserTypes []types.String
 	if guestsOrExternalUsers.GetGuestOrExternalUserTypes() != nil {
-		guestOrExternalUserTypesString = guestsOrExternalUsers.GetGuestOrExternalUserTypes().String()
-	} else {
-		guestOrExternalUserTypesString = ""
+		typesString := guestsOrExternalUsers.GetGuestOrExternalUserTypes().String() // Returns a comma-separated string
+		for _, userType := range strings.Split(typesString, ",") {
+			guestOrExternalUserTypes = append(guestOrExternalUserTypes, types.StringValue(strings.TrimSpace(userType)))
+		}
 	}
 
+	// Map ExternalTenants
+	externalTenants := mapExternalTenants(ctx, guestsOrExternalUsers.GetExternalTenants())
+
 	result := &ConditionalAccessGuestsOrExternalUsersModel{
-		ExternalTenants:          mapExternalTenants(ctx, guestsOrExternalUsers.GetExternalTenants()),
-		GuestOrExternalUserTypes: types.StringValue(guestOrExternalUserTypesString),
+		ExternalTenants:          externalTenants,
+		GuestOrExternalUserTypes: guestOrExternalUserTypes,
 	}
 
 	tflog.Debug(ctx, "Finished mapping guests or external users", map[string]interface{}{
-		"guestOrExternalUserTypes": result.GuestOrExternalUserTypes.ValueString(),
-		"hasExternalTenants":       result.ExternalTenants != nil,
+		"guestOrExternalUserTypesCount": len(result.GuestOrExternalUserTypes),
+		"hasExternalTenants":            result.ExternalTenants != nil,
 	})
 
 	return result
@@ -260,17 +268,17 @@ func mapDevices(ctx context.Context, devices models.ConditionalAccessDevicesable
 	result := &ConditionalAccessDevicesModel{
 		IncludeDevices: state.SliceToTypeStringSlice(devices.GetIncludeDevices()),
 		ExcludeDevices: state.SliceToTypeStringSlice(devices.GetExcludeDevices()),
-		IncludeStates:  state.SliceToTypeStringSlice(devices.GetIncludeDeviceStates()),
-		ExcludeStates:  state.SliceToTypeStringSlice(devices.GetExcludeDeviceStates()),
-		DeviceFilter:   mapFilter(ctx, devices.GetDeviceFilter()),
+		//IncludeStates:  state.SliceToTypeStringSlice(devices.GetIncludeDeviceStates()),
+		//ExcludeStates:  state.SliceToTypeStringSlice(devices.GetExcludeDeviceStates()),
+		DeviceFilter: mapFilter(ctx, devices.GetDeviceFilter()),
 	}
 
 	tflog.Debug(ctx, "Finished mapping devices", map[string]interface{}{
 		"includeDevicesCount": len(result.IncludeDevices),
 		"excludeDevicesCount": len(result.ExcludeDevices),
-		"includeStatesCount":  len(result.IncludeStates),
-		"excludeStatesCount":  len(result.ExcludeStates),
-		"hasDeviceFilter":     result.DeviceFilter != nil,
+		//"includeStatesCount":  len(result.IncludeStates),
+		//"excludeStatesCount":  len(result.ExcludeStates),
+		"hasDeviceFilter": result.DeviceFilter != nil,
 	})
 
 	return result

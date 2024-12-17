@@ -283,7 +283,7 @@ package graphBetaLinuxPlatformScript
 
 // 	err = client.SendCustomPutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
 // 	if err != nil {
-// 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+// 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 // 		return
 // 	}
 
@@ -361,7 +361,7 @@ package graphBetaLinuxPlatformScript
 // 		Delete(ctx, nil)
 
 // 	if err != nil {
-// 		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+// 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 // 		return
 // 	}
 
