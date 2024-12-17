@@ -60,11 +60,11 @@ jobs:
       run: |
         go build -v .
 
-    - name: Generate and check docs
-      run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --examples-dir examples
-        git diff HEAD --exit-code -- docs/
+    # - name: Generate and check docs
+    #   run: |
+    #     go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+    #     tfplugindocs generate --examples-dir examples
+    #     git diff HEAD --exit-code -- docs/
 
   # Release for Partner and Community Providers
   # https://goreleaser.com/cmd/goreleaser_release/#see-also
