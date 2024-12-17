@@ -14,22 +14,22 @@ import (
 
 // Create handles the Create operation.
 func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan ConditionalAccessPolicyResourceModel
+	var object ConditionalAccessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -49,11 +49,11 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	plan.ID = types.StringValue(*conditionalAccessPolicy.GetId())
+	object.ID = types.StringValue(*conditionalAccessPolicy.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
+	MapRemoteStateToTerraform(ctx, &object, conditionalAccessPolicy)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -63,18 +63,19 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 
 // Read handles the Read operation.
 func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state ConditionalAccessPolicyResourceModel
+	var object ConditionalAccessPolicyResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -84,7 +85,7 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		Identity().
 		ConditionalAccess().
 		Policies().
-		ByConditionalAccessPolicyId(state.ID.ValueString()).
+		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -92,9 +93,9 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, conditionalAccessPolicy)
+	MapRemoteStateToTerraform(ctx, &object, conditionalAccessPolicy)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -104,22 +105,22 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 // Update handles the Update operation.
 func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan ConditionalAccessPolicyResourceModel
+	var object ConditionalAccessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -132,7 +133,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		Identity().
 		ConditionalAccess().
 		Policies().
-		ByConditionalAccessPolicyId(plan.ID.ValueString()).
+		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -140,9 +141,9 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, conditionalAccessPolicy)
+	MapRemoteStateToTerraform(ctx, &object, conditionalAccessPolicy)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -152,16 +153,16 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 // Delete handles the Delete operation.
 func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data ConditionalAccessPolicyResourceModel
+	var object ConditionalAccessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -171,7 +172,7 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 		Identity().
 		ConditionalAccess().
 		Policies().
-		ByConditionalAccessPolicyId(data.ID.ValueString()).
+		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

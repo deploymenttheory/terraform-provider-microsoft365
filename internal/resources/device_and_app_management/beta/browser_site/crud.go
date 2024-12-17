@@ -14,22 +14,22 @@ import (
 
 // Create handles the Create operation.
 func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan BrowserSiteResourceModel
+	var object BrowserSiteResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing browser site",
@@ -38,7 +38,7 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
+	browserSiteListId := object.BrowserSiteListAssignmentID.ValueString()
 
 	createdSite, err := r.client.
 		Admin().
@@ -53,17 +53,16 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	plan.ID = types.StringValue(*createdSite.GetId())
+	object.ID = types.StringValue(*createdSite.GetId())
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, createdSite)
+	MapRemoteStateToTerraform(ctx, &object, createdSite)
 
-	// Explicitly set BrowserSiteListAssignmentID in the state as it's not in the resp.
-	plan.BrowserSiteListAssignmentID = types.StringValue(browserSiteListId)
+	object.BrowserSiteListAssignmentID = types.StringValue(browserSiteListId)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -73,24 +72,25 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 
 // Read handles the Read operation.
 func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state BrowserSiteResourceModel
+	var object BrowserSiteResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	browserSiteListId := state.BrowserSiteListAssignmentID.ValueString()
+	browserSiteListId := object.BrowserSiteListAssignmentID.ValueString()
 
 	browserSite, err := r.client.
 		Admin().
@@ -99,7 +99,7 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
-		ByBrowserSiteId(state.ID.ValueString()).
+		ByBrowserSiteId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -107,9 +107,9 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, browserSite)
+	MapRemoteStateToTerraform(ctx, &object, browserSite)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -119,22 +119,22 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update handles the Update operation.
 func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan BrowserSiteResourceModel
+	var object BrowserSiteResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing browser site",
@@ -143,7 +143,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	browserSiteListId := plan.BrowserSiteListAssignmentID.ValueString()
+	browserSiteListId := object.BrowserSiteListAssignmentID.ValueString()
 
 	_, err = r.client.
 		Admin().
@@ -152,7 +152,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
-		ByBrowserSiteId(plan.ID.ValueString()).
+		ByBrowserSiteId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -160,7 +160,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -170,22 +170,22 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 
 // Delete handles the Delete operation.
 func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data BrowserSiteResourceModel
+	var object BrowserSiteResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	browserSiteListId := data.BrowserSiteListAssignmentID.ValueString()
+	browserSiteListId := object.BrowserSiteListAssignmentID.ValueString()
 
 	err := r.client.
 		Admin().
@@ -194,7 +194,7 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 		SiteLists().
 		ByBrowserSiteListId(browserSiteListId).
 		Sites().
-		ByBrowserSiteId(data.ID.ValueString()).
+		ByBrowserSiteId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

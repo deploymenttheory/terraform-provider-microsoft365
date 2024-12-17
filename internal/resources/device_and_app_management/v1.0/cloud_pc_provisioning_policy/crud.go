@@ -14,22 +14,22 @@ import (
 
 // Create handles the Create operation.
 func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan CloudPcProvisioningPolicyResourceModel
+	var object CloudPcProvisioningPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -49,11 +49,11 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	plan.ID = types.StringValue(*provisioningPolicy.GetId())
+	object.ID = types.StringValue(*provisioningPolicy.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, provisioningPolicy)
+	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -63,18 +63,19 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 
 // Read handles the Read operation.
 func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state CloudPcProvisioningPolicyResourceModel
+	var object CloudPcProvisioningPolicyResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -84,7 +85,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -92,9 +93,9 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, provisioningPolicy)
+	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -104,22 +105,22 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 // Update handles the Update operation.
 func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan CloudPcProvisioningPolicyResourceModel
+	var object CloudPcProvisioningPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -132,7 +133,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).
+		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -140,7 +141,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -150,16 +151,16 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 
 // Delete handles the Delete operation.
 func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data CloudPcProvisioningPolicyResourceModel
+	var object CloudPcProvisioningPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -169,7 +170,7 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(data.ID.ValueString()).
+		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

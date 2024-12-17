@@ -14,22 +14,22 @@ import (
 
 // Create handles the Create operation.
 func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan M365AppsInstallationOptionsResourceModel
+	var object M365AppsInstallationOptionsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -49,11 +49,11 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 		return
 	}
 
-	plan.ID = types.StringValue(*options.GetId())
+	object.ID = types.StringValue(*options.GetId())
 
-	MapRemoteStateToTerraform(ctx, &plan, options)
+	MapRemoteStateToTerraform(ctx, &object, options)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -63,18 +63,19 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 
 // Read handles the Read operation.
 func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state M365AppsInstallationOptionsResourceModel
+	var object M365AppsInstallationOptionsResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -91,9 +92,9 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, resource)
+	MapRemoteStateToTerraform(ctx, &object, resource)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -103,22 +104,22 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 
 // Update handles the Update operation.
 func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan M365AppsInstallationOptionsResourceModel
+	var object M365AppsInstallationOptionsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -138,9 +139,9 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &plan, options)
+	MapRemoteStateToTerraform(ctx, &object, options)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -150,17 +151,17 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 
 // Delete handles the Delete operation.
 func (r *M365AppsInstallationOptionsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data M365AppsInstallationOptionsResourceModel
+	var object M365AppsInstallationOptionsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Since there's no Delete API, we'll just remove the resource from Terraform state
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s_%s from Terraform state", r.ProviderTypeName, r.TypeName))
+	// Since there's no Delete API, we'll just remove the resource from Terraform object
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s_%s from Terraform object", r.ProviderTypeName, r.TypeName))
 
 	resp.State.RemoveResource(ctx)
 
