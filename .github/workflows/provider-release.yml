@@ -11,6 +11,7 @@ on:
         required: true
         default: 'v0.0.0-alpha'
 
+
 permissions:
   contents: write
   id-token: write
