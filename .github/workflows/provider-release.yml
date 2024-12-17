@@ -7,9 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'TF Provider Release version to publish'
+        description: 'TF Provider Release version to publish. Requires an existing repo release and must be formatted as a semver tag.'
         required: true
-        default: 'v0.0.0'
+        default: 'v0.0.0-alpha'
+
 
 permissions:
   contents: write
@@ -29,8 +30,9 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4.2.2
       with:
-        fetch-depth: 2
-
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release_version || github.ref }}
+        
     - name: Set up Go
       uses: actions/setup-go@v5.2.0
       with:
