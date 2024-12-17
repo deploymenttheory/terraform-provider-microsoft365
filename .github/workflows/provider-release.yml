@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'Release version to publish'
+        description: 'TF Provider Release version to publish'
         required: true
         default: 'v0.0.0'
 
