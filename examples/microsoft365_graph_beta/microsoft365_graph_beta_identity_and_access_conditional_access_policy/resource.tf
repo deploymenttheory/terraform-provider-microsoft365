@@ -1,95 +1,81 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "example_policy" {
-  display_name = "Example Conditional Access Policy"
-  state        = "enabled"
+  display_name = "test"
+  state        = "disabled"
 
   conditions = {
     applications = {
       include_applications = ["All"]
-      exclude_applications = ["MicrosoftAdminPortals"]
-      application_filter = {
-        mode = "include"
-        rule = "(appId -eq '11111111-1111-1111-1111-111111111111')"
-      }
-      include_user_actions = ["urn:user:registersecurityinfo"]
-    }
-
-    authentication_flows = {
-      transfer_methods = "deviceCodeFlow"
+      exclude_applications = []
+      include_user_actions = []
+      application_filter   = null
     }
 
     users = {
       include_users  = ["All"]
       exclude_users  = ["11111111-1111-1111-1111-111111111111"]
-      include_groups = ["22222222-2222-2222-2222-222222222222"]
-    }
-
-    client_applications = {
-      include_service_principals = ["ServicePrincipalsInMyTenant"]
-      exclude_service_principals = ["33333333-3333-3333-3333-333333333333"]
-      service_principal_filter = {
-        mode = "include"
-        rule = "(servicePrincipalId -eq '44444444-4444-4444-4444-444444444444')"
+      include_groups = []
+      exclude_groups = ["11111111-1111-1111-1111-111111111111"]
+      exclude_roles = [
+        "11111111-1111-1111-1111-111111111111",
+        "11111111-1111-1111-1111-111111111111"
+      ]
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["b2bCollaborationGuest", "b2bCollaborationMember"]
+        external_tenants = {
+          membership_kind = "all"
+        }
       }
-    }
-
-    client_app_types = ["all"]
-
-    locations = {
-      include_locations = ["All"]
-      exclude_locations = ["55555555-5555-5555-5555-555555555555"]
     }
 
     platforms = {
-      include_platforms = ["android", "iOS"]
-      exclude_platforms = ["windows"]
+      include_platforms = ["iOS", "windows", "windowsPhone"]
+      exclude_platforms = []
     }
 
-    device_states = {
-      include_states = ["All"]
-      exclude_states = ["Compliant"]
+    locations = {
+      include_locations = [
+        "11111111-1111-1111-1111-111111111111",
+        "11111111-1111-1111-1111-111111111111"
+      ]
+      exclude_locations = []
     }
+
+    client_app_types = ["browser", "mobileAppsAndDesktopClients", "exchangeActiveSync", "other"]
 
     devices = {
-      include_devices = ["All"]
-      exclude_devices = ["DomainJoined"]
       device_filter = {
-        mode = "exclude"
-        rule = "(device.deviceId -eq '66666666-6666-6666-6666-666666666666')"
+        mode = "include"
+        rule = "device.deviceId -eq \"thing\""
       }
+      include_devices = []
+      exclude_devices = []
     }
 
-    sign_in_risk_levels = ["medium", "high"]
-    user_risk_levels    = ["low", "medium"]
+    user_risk_levels    = ["high"]
+    sign_in_risk_levels = ["none"]
+
+    authentication_flows = {
+      transfer_methods = ["deviceCodeFlow", "authenticationTransfer"]
+    }
   }
 
   grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = ["mfa", "compliantDevice"]
-    custom_authentication_factors = ["77777777-7777-7777-7777-777777777777"]
-    terms_of_use                  = ["88888888-8888-8888-8888-888888888888"]
-
-    authentication_strength = {
-      id                     = "99999999-9999-9999-9999-999999999999"
-      display_name           = "Example Authentication Strength"
-      description            = "A description for the authentication strength."
-      policy_type            = "required"
-      requirements_satisfied = "mfa"
-      allowed_combinations   = ["password", "biometric"]
-    }
+    operator          = "AND"
+    built_in_controls = ["mfa", "approvedApplication"]
   }
 
   session_controls = {
-    application_enforced_restrictions = {
-      is_enabled = true
-    }
-
     cloud_app_security = {
       is_enabled              = true
       cloud_app_security_type = "monitorOnly"
     }
 
-    continuous_access_evaluation = {
-      mode = "strictEnforcement"
+    sign_in_frequency = {
+      is_enabled          = true
+      type                = "hours"
+      value               = 5
+      frequency_interval  = "timeBased"
+      authentication_type = "primaryAndSecondaryAuthentication"
     }
 
     persistent_browser = {
@@ -97,20 +83,13 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       mode       = "always"
     }
 
-    sign_in_frequency = {
-      is_enabled          = true
-      type                = "days"
-      value               = 1
-      authentication_type = "primaryAndSecondaryAuthentication"
-      frequency_interval  = "timeBased"
+    continuous_access_evaluation = {
+      mode = "strictLocation"
     }
 
-    disable_resilience_defaults = false
-
-    secure_sign_in_session = {
-      is_enabled = true
-    }
+    disable_resilience_defaults = true
   }
+
   # Optional: Define custom timeouts
   timeouts = {
     create = "30m"
