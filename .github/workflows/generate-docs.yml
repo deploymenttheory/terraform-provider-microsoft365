@@ -14,7 +14,7 @@ permissions:
   pull-requests: write
   
 jobs:
-  go-docs:
+  provider-docs:
     name: '📚 Generate Go and TF Provider Docs'
     runs-on: ubuntu-latest
     steps:
