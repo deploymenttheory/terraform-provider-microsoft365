@@ -96,7 +96,7 @@ Optional:
 
 Required:
 
-- `guest_or_external_user_types` (String) Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.
+- `guest_or_external_user_types` (List of String) Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.
 
 Optional:
 
@@ -116,7 +116,7 @@ Required:
 
 Required:
 
-- `guest_or_external_user_types` (String) Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.
+- `guest_or_external_user_types` (List of String) Indicates internal guests or external user types. Possible values are: none, internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider, unknownFutureValue.
 
 Optional:
 
@@ -137,7 +137,7 @@ Required:
 
 Optional:
 
-- `transfer_methods` (String) Represents the transfer methods in scope for the policy. The possible values are: none, deviceCodeFlow, authenticationTransfer, unknownFutureValue.
+- `transfer_methods` (List of String) Represents the transfer methods in scope for the policy. The possible values are: none, deviceCodeFlow, authenticationTransfer, unknownFutureValue.
 
 
 <a id="nestedatt--conditions--client_applications"></a>
@@ -174,9 +174,7 @@ Optional:
 Optional:
 
 - `device_filter` (Attributes) Filter that defines the dynamic-device-syntax rule to include/exclude devices. A filter can use device properties (such as extension attributes) to include/exclude them. Cannot be set if includeDevices or excludeDevices is set. (see [below for nested schema](#nestedatt--conditions--devices--device_filter))
-- `exclude_device_states` (List of String, Deprecated) (Deprecated) States excluded from the scope of the policy. Possible values: 'Compliant', 'DomainJoined'.
 - `exclude_devices` (List of String) States excluded from the scope of the policy. Possible values: 'Compliant', 'DomainJoined'. Cannot be set if deviceFilter is set.
-- `include_device_states` (List of String, Deprecated) (Deprecated) States in the scope of the policy. 'All' is the only allowed value.
 - `include_devices` (List of String) States in the scope of the policy. 'All' is the only allowed value. Cannot be set if deviceFilter is set.
 
 <a id="nestedatt--conditions--devices--device_filter"></a>
