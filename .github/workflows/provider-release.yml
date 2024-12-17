@@ -43,7 +43,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.9.4'
+        terraform_version: '1.10.2'
         terraform_wrapper: false
 
     - name: Run 'go mod tidy' and check for differences
