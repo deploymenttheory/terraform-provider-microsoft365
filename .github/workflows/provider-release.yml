@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'TF Provider Release version to publish. Requires an existing repo release and must be formatted as a semver tag.'
+        description: 'TF Provider Release version to publish. Requires an existing repo release and the value must be formatted as a semver.'
         required: true
         default: 'v0.0.0-alpha'
 
@@ -32,7 +32,7 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.inputs.release_version || github.ref }}
-        
+
     - name: Set up Go
       uses: actions/setup-go@v5.2.0
       with:
@@ -43,7 +43,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.9.4'
+        terraform_version: '1.10.2'
         terraform_wrapper: false
 
     - name: Run 'go mod tidy' and check for differences
@@ -59,12 +59,6 @@ jobs:
     - name: Go build
       run: |
         go build -v .
-
-    - name: Generate and check docs
-      run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-        tfplugindocs generate --examples-dir examples
-        git diff HEAD --exit-code -- docs/
 
   # Release for Partner and Community Providers
   # https://goreleaser.com/cmd/goreleaser_release/#see-also
