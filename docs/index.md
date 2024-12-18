@@ -756,15 +756,15 @@ To find or create a client ID:
 4. The client ID is listed as 'Application (client) ID' in the Overview page
 
 Using Azure CLI:
+
 ```bash
 az ad app list --query "[].{appId:appId, displayName:displayName}"
 ```
 
 Using Microsoft Graph PowerShell:
+
 ```powershell
 Get-MgApplication -Filter "displayName eq 'Your App Name'" | Select-Object AppId, DisplayName
-```
-
 ```
 
 **Example usage:**

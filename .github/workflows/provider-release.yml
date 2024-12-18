@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'TF Provider Release version to publish. Requires an existing repo release and the value must be formatted as a semver.'
+        description: 'TF Provider Release version to publish. Requires an pre-existing repo release and the provided value must be formatted as a semver.'
         required: true
         default: 'v0.0.0-alpha'
 
