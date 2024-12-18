@@ -86,7 +86,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 	mobileAppAssignmentResource.Schema(ctx, resource.SchemaRequest{}, &mobileAppAssignmentResp)
 
 	resp.Schema = schema.Schema{
-		Description: "Manages a WinGet application in Microsoft Intune.",
+		Description: "Manages an Intune Microsoft Store app (new) resource aka winget, using the mobileapps graph beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
