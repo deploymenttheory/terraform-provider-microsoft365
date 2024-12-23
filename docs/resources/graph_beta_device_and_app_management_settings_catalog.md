@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_settings_catalog Resource - terraform-provider-microsoft365"
-subcategory: "Intune: Device Configuration"
+subcategory: "Intune"
 description: |-
   Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
 ---
