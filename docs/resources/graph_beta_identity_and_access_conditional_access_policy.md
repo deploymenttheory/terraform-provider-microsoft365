@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_identity_and_access_conditional_access_policy Resource - terraform-provider-microsoft365"
-subcategory: "Identity & Access: Conditional Access Policy"
+subcategory: "Identity & Access"
 description: |-
   
 ---
