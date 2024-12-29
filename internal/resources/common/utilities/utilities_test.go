@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync/atomic"
 	"testing"
 )
@@ -414,4 +415,85 @@ func compareByteSlices(a, b []byte) bool {
 		}
 	}
 	return true
+}
+
+// TestIsDebugMode tests the IsDebugMode function with various environment variable settings.
+func TestIsDebugMode(t *testing.T) {
+	// Save the original environment variable value to restore it later
+	originalValue, originalExists := os.LookupEnv("M365_DEBUG_MODE")
+
+	// Clean up function to restore the original environment after tests
+	defer func() {
+		if originalExists {
+			os.Setenv("M365_DEBUG_MODE", originalValue)
+		} else {
+			os.Unsetenv("M365_DEBUG_MODE")
+		}
+	}()
+
+	tests := []struct {
+		name     string
+		envValue string
+		setEnv   bool
+		want     bool
+	}{
+		{
+			name:     "Debug mode enabled with 'true'",
+			envValue: "true",
+			setEnv:   true,
+			want:     true,
+		},
+		{
+			name:     "Debug mode enabled with 'TRUE'",
+			envValue: "TRUE",
+			setEnv:   true,
+			want:     true,
+		},
+		{
+			name:     "Debug mode enabled with 'True'",
+			envValue: "True",
+			setEnv:   true,
+			want:     true,
+		},
+		{
+			name:     "Debug mode disabled with 'false'",
+			envValue: "false",
+			setEnv:   true,
+			want:     false,
+		},
+		{
+			name:     "Debug mode disabled with empty string",
+			envValue: "",
+			setEnv:   true,
+			want:     false,
+		},
+		{
+			name:     "Debug mode disabled with invalid value",
+			envValue: "invalid",
+			setEnv:   true,
+			want:     false,
+		},
+		{
+			name:     "Environment variable not set",
+			envValue: "",
+			setEnv:   false,
+			want:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set or unset environment variable based on test case
+			if tt.setEnv {
+				os.Setenv("M365_DEBUG_MODE", tt.envValue)
+			} else {
+				os.Unsetenv("M365_DEBUG_MODE")
+			}
+
+			got := IsDebugMode()
+			if got != tt.want {
+				t.Errorf("IsDebugMode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

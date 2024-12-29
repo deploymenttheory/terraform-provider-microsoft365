@@ -14,6 +14,8 @@ import (
 )
 
 // Create handles the Create operation.
+// When there are multiple api calls within the Create method, it is recommended to use retry.RetryContext to handle transient errors.
+// This approach should also be used for the call to the Read method.
 func (r *ResourceTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceTemplateResourceModel
 
@@ -82,6 +84,8 @@ func (r *ResourceTemplateResource) Create(ctx context.Context, req resource.Crea
 }
 
 // Read handles the Read operation.
+// It's used by terraform plan to refresh the state of the resource. It should also be used by the Create and update methods.
+// This ensures that the read logic is consistent across all operations.
 func (r *ResourceTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceTemplateResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -121,7 +125,9 @@ func (r *ResourceTemplateResource) Read(ctx context.Context, req resource.ReadRe
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation. This method is by the terraform apply command.
+// Typically, during multiple api call scenarios within the function you should not require retries as the id of the resource will not change.
+// However, like the Create method, it is recommended to use retry.RetryContext to have concistent read logic.
 func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ResourceTemplateResourceModel
 
@@ -184,7 +190,9 @@ func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.Upda
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation.This method is called by the terraform destroy command.
+// Typically you only need to delete the resource from the provider and all associated resources will be deleted by the provider.
+// e.g assignments etc.
 func (r *ResourceTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data ResourceTemplateResourceModel
 

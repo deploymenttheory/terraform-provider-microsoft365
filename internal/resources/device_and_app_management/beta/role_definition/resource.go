@@ -163,7 +163,7 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 					},
 				},
 			},
-			"assignments": commonschema.RoleAssignmentsSchema(),
+			"assignments": commonschema.IntuneRoleAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

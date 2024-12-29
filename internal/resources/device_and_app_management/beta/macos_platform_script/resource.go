@@ -77,7 +77,7 @@ func (r *MacOSPlatformScriptResource) ImportState(ctx context.Context, req resou
 
 func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune macOS platform script using the 'MacOSPlatformScripts' Graph Beta API.",
+		Description: "Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Unique Identifier for the macOS Platform Script.",
@@ -138,7 +138,7 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "Number of times for the script to be retried if it fails.",
 				Optional:    true,
 			},
-			"assignments": commonschema.ScriptAssignmentsSchema(),
+			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

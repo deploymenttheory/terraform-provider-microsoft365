@@ -22,7 +22,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 	requestBody.SetPackageIdentifier(&upperPackageIdentifier)
 
 	// Fetch metadata from the Microsoft Store using the packageIdentifier
-	title, imageURL, description, publisher, err := FetchStoreAppDetails(packageIdentifier)
+	title, imageURL, description, publisher, err := FetchStoreAppDetails(ctx, packageIdentifier)
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Failed to fetch store details for packageIdentifier '%s': %v", packageIdentifier, err))
 		return nil, fmt.Errorf("failed to fetch store details for packageIdentifier '%s': %v", packageIdentifier, err)
@@ -32,7 +32,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 	if title == "" || description == "" || publisher == "" {
 		errMsg := fmt.Sprintf("Incomplete store details for packageIdentifier '%s'. Missing required fields: Title='%s', Description='%s', Publisher='%s'", packageIdentifier, title, description, publisher)
 		tflog.Error(ctx, errMsg)
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("incomplete store details for packageIdentifier '%s'. Missing required fields: Title='%s', Description='%s', Publisher='%s'", packageIdentifier, title, description, publisher)
 	}
 
 	requestBody.SetDisplayName(&title)

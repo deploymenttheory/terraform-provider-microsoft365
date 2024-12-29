@@ -119,7 +119,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 				Description: "A value indicating whether the PowerShell script should run as 32-bit.",
 				Optional:    true,
 			},
-			"assignments": commonschema.ScriptAssignmentsSchema(),
+			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

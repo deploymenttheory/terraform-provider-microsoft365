@@ -157,7 +157,7 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "The ID of the configuration policy template reference.",
 				Required:    true,
 			},
-			"assignments": commonschema.ScriptAssignmentsSchema(),
+			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation.
@@ -30,7 +31,10 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
+	createdResource, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -39,58 +43,100 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	resource, err := r.client.
+	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(context.Background(), requestBody, nil)
+		Post(context.Background(), createdResource, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*resource.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
 
-	resourceAsWinGetApp, ok := resource.(models.WinGetAppable)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, resource),
-		)
-		return
+	if object.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for Create Method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			err := r.client.
+				DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
+		})
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
 	}
-
-	MapRemoteStateToTerraform(ctx, &object, resourceAsWinGetApp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
+		return
+	}
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Read handles the Read operation.
 func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state WinGetAppResourceModel
+	var object WinGetAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	resource, err := r.client.DeviceAppManagement().MobileApps().
-		ByMobileAppId(state.ID.ValueString()).
+	resource, err := r.client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -98,31 +144,32 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Resource type: %T", resource))
-
-	mobileApp, ok := resource.(models.MobileAppable)
+	//
+	winGetApp, ok := resource.(graphmodels.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type MobileApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, resource),
+			"Resource type mismatch",
+			fmt.Sprintf("Expected resource of type WinGetAppable but got %T", resource),
 		)
 		return
 	}
 
-	resourceAsWinGetApp, ok := mobileApp.(models.WinGetAppable)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, mobileApp),
-		)
+	MapRemoteResourceStateToTerraform(ctx, &object, winGetApp)
+
+	respAssignments, err := r.client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read Assignments", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, resourceAsWinGetApp)
+	MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -132,7 +179,7 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update handles the Update operation.
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WinGetAppResourceModel
+	var object, state WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -147,6 +194,9 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -156,7 +206,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	resource, err := r.client.
+	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
@@ -167,32 +217,56 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Resource type after update: %T", resource))
+	if object.Assignments != nil && state.Assignments != nil && !state.Assignments.ID.IsNull() {
+		requestAssignment, err := constructAssignment(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for Update Method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
 
-	mobileApp, ok := resource.(models.MobileAppable)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type MobileApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, resource),
-		)
-		return
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			err := r.client.
+				DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
+		})
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
 	}
 
-	resourceAsWinGetApp, ok := mobileApp.(models.WinGetAppable)
-	if !ok {
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Type Assertion Error",
-			fmt.Sprintf("Expected resource of type WinGetApp for %s_%s, but got %T",
-				r.ProviderTypeName, r.TypeName, mobileApp),
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
 		)
-		return
-	}
-
-	MapRemoteStateToTerraform(ctx, &object, resourceAsWinGetApp)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -216,7 +290,8 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	defer cancel()
 
-	err := r.client.DeviceAppManagement().
+	err := r.client.
+		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)

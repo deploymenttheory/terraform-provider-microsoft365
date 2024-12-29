@@ -87,7 +87,7 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 				Sensitive:           true,
 			},
-			"assignments": commonschema.ScriptAssignmentsSchema(),
+			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
