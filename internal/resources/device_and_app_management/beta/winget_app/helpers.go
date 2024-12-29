@@ -17,7 +17,6 @@ import (
 func FetchStoreAppDetails(packageIdentifier string) (string, string, string, string, error) {
 
 	storeURL := fmt.Sprintf("https://apps.microsoft.com/detail/%s?hl=en-gb&gl=GB", strings.ToLower(packageIdentifier))
-
 	resp, err := http.Get(storeURL)
 	if err != nil {
 		return "", "", "", "", fmt.Errorf("failed to fetch store page: %v", err)
