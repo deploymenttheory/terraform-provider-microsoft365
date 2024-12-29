@@ -194,7 +194,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschema.SettingsCatalogAssignmentsSchema(),
+			"assignments": commonschema.IntuneSettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

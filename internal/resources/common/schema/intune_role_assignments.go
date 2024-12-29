@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func RoleAssignmentsSchema() schema.SingleNestedAttribute {
+func IntuneRoleAssignmentsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:            true,
 		MarkdownDescription: "The Role Assignment configuration for managing role assignments in Microsoft 365.",

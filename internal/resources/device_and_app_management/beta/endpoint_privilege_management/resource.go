@@ -193,7 +193,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschema.SettingsCatalogAssignmentsSchema(),
+			"assignments": commonschema.IntuneSettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

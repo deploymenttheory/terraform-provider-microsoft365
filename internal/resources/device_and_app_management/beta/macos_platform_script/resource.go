@@ -138,7 +138,7 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "Number of times for the script to be retried if it fails.",
 				Optional:    true,
 			},
-			"assignments": commonschema.ScriptAssignmentsSchema(),
+			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

@@ -194,7 +194,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschema.SettingsCatalogAssignmentsSchema(),
+			"assignments": commonschema.IntuneSettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
