@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel, remoteResource graphmodels.WinGetAppable) {
+// MapRemoteResourceStateToTerraform maps the remote WinGetApp resource to the Terraform state
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResourceModel, remoteResource graphmodels.WinGetAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -40,36 +40,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WinGetAppResourceModel
 	data.DependentAppCount = state.Int32PtrToTypeInt64(remoteResource.GetDependentAppCount())
 	data.SupersedingAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
-
-	// Handle LargeIcon
-	// largeIconObj := types.ObjectNull(
-	// 	map[string]attr.Type{
-	// 		"type":  types.StringType,
-	// 		"value": types.StringType,
-	// 	},
-	// )
-
-	// if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-	// 	largeIconObj, _ = types.ObjectValue(
-	// 		map[string]attr.Type{
-	// 			"type":  types.StringType,
-	// 			"value": types.StringType,
-	// 		},
-	// 		map[string]attr.Value{
-	// 			"type":  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
-	// 			"value": types.StringValue(state.ByteToString(largeIcon.GetValue())),
-	// 		},
-	// 	)
-	// }
-
-	// data.LargeIcon = largeIconObj
-
-	data.LargeIcon = types.ObjectNull(
-		map[string]attr.Type{
-			"type":  types.StringType,
-			"value": types.StringType,
-		},
-	)
 
 	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {

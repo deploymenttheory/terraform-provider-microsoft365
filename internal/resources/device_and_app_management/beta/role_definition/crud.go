@@ -114,7 +114,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	defer cancel()
 
 	// Get the role definition
-	roleDef, err := r.client.
+	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
@@ -125,7 +125,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, roleDef)
+	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
 	respAssignments, err := r.client.
 		DeviceManagement().
@@ -151,23 +151,23 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 
 // Update handles the Update operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state RoleDefinitionResourceModel
+	var object, state RoleDefinitionResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -179,7 +179,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	_, err = r.client.
 		DeviceManagement().
 		RoleDefinitions().
-		ByRoleDefinitionId(plan.ID.ValueString()).
+		ByRoleDefinitionId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -187,11 +187,11 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	if plan.Assignments != nil && state.Assignments != nil && !state.Assignments.ID.IsNull() {
-		requestAssignment, err := constructAssignment(ctx, &plan)
+	if object.Assignments != nil && state.Assignments != nil && !state.Assignments.ID.IsNull() {
+		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
+				"Error constructing assignment for Update method",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
@@ -200,7 +200,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		_, err = r.client.
 			DeviceManagement().
 			RoleDefinitions().
-			ByRoleDefinitionId(plan.ID.ValueString()).
+			ByRoleDefinitionId(object.ID.ValueString()).
 			RoleAssignments().
 			ByRoleAssignmentId(state.Assignments.ID.ValueString()).
 			Patch(ctx, requestAssignment, nil)

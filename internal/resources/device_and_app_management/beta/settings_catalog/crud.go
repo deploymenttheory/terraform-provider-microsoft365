@@ -57,7 +57,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	createdResource, err := r.client.
+	baseResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(ctx, requestBody, nil)
@@ -67,7 +67,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
 
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
