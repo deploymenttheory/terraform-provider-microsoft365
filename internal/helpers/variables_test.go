@@ -49,22 +49,22 @@ func withEnvironment(_ *testing.T, env map[string]string, testFunc func()) {
 	testFunc()
 }
 
-func TestLookupFirstNonEmptyEnvOrDefault(t *testing.T) {
+func TestGetFirstEnvString(t *testing.T) {
 	t.Run("No environment variables set", func(t *testing.T) {
-		result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+		result := GetFirstEnvString([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 		assert.Equal(t, "default", result)
 	})
 
 	t.Run("First environment variable set", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR1": "value1"}, func() {
-			result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+			result := GetFirstEnvString([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 			assert.Equal(t, "value1", result)
 		})
 	})
 
 	t.Run("Second environment variable set", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR2": "value2"}, func() {
-			result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+			result := GetFirstEnvString([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 			assert.Equal(t, "value2", result)
 		})
 	})

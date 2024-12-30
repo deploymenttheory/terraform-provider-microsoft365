@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// LookupFirstNonEmptyEnvOrDefault is a helper function that returns the value of the first
+// GetFirstEnvString is a helper function that returns the value of the first
 // environment variable in the given list that returns a non-empty value. If
 // none of the environment variables return a value, the default value is returned.
-func LookupFirstNonEmptyEnvOrDefault(ks []string, defaultValue string) string {
+func GetFirstEnvString(ks []string, defaultValue string) string {
 	for _, k := range ks {
 		if v := os.Getenv(k); v != "" {
 			return v
