@@ -75,7 +75,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"cloud": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				MarkdownDescription: "Specifies the Microsoft cloud environment for authentication and API requests. " +
 					"This setting determines the endpoints used for Microsoft Graph and Graph Beta APIs. " +
 					"Valid values:\n" +
@@ -92,7 +92,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"tenant_id": schema.StringAttribute{
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 				MarkdownDescription: "The Microsoft 365 tenant ID for the Entra ID (formerly Azure AD) application. " +
 					"This GUID uniquely identifies your Entra ID instance." +
@@ -112,7 +112,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				},
 			},
 			"auth_method": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
 					"- `device_code`: Uses a device code flow for authentication.\n" +

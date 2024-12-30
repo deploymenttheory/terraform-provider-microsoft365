@@ -11,17 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// schemaToAttrTypes converts a map of schema.Attribute to a map of attr.Type
-func schemaToAttrTypes(schemaMap map[string]schema.Attribute) map[string]attr.Type {
-	attrTypes := make(map[string]attr.Type)
-	for k, v := range schemaMap {
-		if v.GetType() != nil {
-			attrTypes[k] = v.GetType()
-		}
-	}
-	return attrTypes
-}
-
 // populateProviderData populates the M365ProviderModel with values from the configuration
 // or environment variables, using helper functions for default values.
 func populateProviderData(ctx context.Context, config M365ProviderModel) (M365ProviderModel, diag.Diagnostics) {
@@ -118,4 +107,15 @@ func populateClientOptions(ctx context.Context, config types.Object) (types.Obje
 		"chaos_status_code":         helpers.GetEnvInt64("M365_CHAOS_STATUS_CODE", clientOptions.ChaosStatusCode),
 		"chaos_status_message":      types.StringValue(helpers.GetEnvString("M365_CHAOS_STATUS_MESSAGE", clientOptions.ChaosStatusMessage.ValueString())),
 	}), diags
+}
+
+// schemaToAttrTypes converts a map of schema.Attribute to a map of attr.Type
+func schemaToAttrTypes(schemaMap map[string]schema.Attribute) map[string]attr.Type {
+	attrTypes := make(map[string]attr.Type)
+	for k, v := range schemaMap {
+		if v.GetType() != nil {
+			attrTypes[k] = v.GetType()
+		}
+	}
+	return attrTypes
 }
