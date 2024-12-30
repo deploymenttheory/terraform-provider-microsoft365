@@ -96,3 +96,12 @@ func SetStringList(ctx context.Context, list types.List, setter func([]string)) 
 	setter(result)
 	return nil
 }
+
+// SetBytesProperty sets the value of a byte slice property if the value is not null or unknown.
+// It converts a basetypes.StringValue (Terraform SDK type) to a []byte and passes it to the setter function.
+func SetBytesProperty(value basetypes.StringValue, setter func([]byte)) {
+	if !value.IsNull() && !value.IsUnknown() {
+		val := []byte(value.ValueString())
+		setter(val)
+	}
+}

@@ -18,13 +18,8 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 	requestBody := graphmodels.NewDeviceShellScript()
 
 	construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-
 	construct.SetStringProperty(data.Description, requestBody.SetDescription)
-
-	if !data.ScriptContent.IsNull() {
-		scriptContent := []byte(data.ScriptContent.ValueString())
-		requestBody.SetScriptContent(scriptContent)
-	}
+	construct.SetBytesProperty(data.ScriptContent, requestBody.SetScriptContent)
 
 	if err := construct.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
 		return nil, fmt.Errorf("invalid run as account type: %s", err)
@@ -32,26 +27,11 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 
 	construct.SetStringProperty(data.FileName, requestBody.SetFileName)
 
-	// if len(data.RoleScopeTagIds) > 0 {
-	// 	roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
-	// 	for _, v := range data.RoleScopeTagIds {
-	// 		if !v.IsNull() && !v.IsUnknown() {
-	// 			roleScopeTagIds = append(roleScopeTagIds, v.ValueString())
-	// 		}
-	// 	}
-	// 	if len(roleScopeTagIds) > 0 {
-	// 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
-	// 	}
-	// }
-
 	if err := construct.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	if !data.BlockExecutionNotifications.IsNull() {
-		blockNotifications := data.BlockExecutionNotifications.ValueBool()
-		requestBody.SetBlockExecutionNotifications(&blockNotifications)
-	}
+	construct.SetBoolProperty(data.BlockExecutionNotifications, requestBody.SetBlockExecutionNotifications)
 
 	if !data.ExecutionFrequency.IsNull() {
 		isoDuration, err := serialization.ParseISODuration(data.ExecutionFrequency.ValueString())
@@ -61,10 +41,7 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 		requestBody.SetExecutionFrequency(isoDuration)
 	}
 
-	if !data.RetryCount.IsNull() {
-		retryCount := data.RetryCount.ValueInt32()
-		requestBody.SetRetryCount(&retryCount)
-	}
+	construct.SetInt32Property(data.RetryCount, requestBody.SetRetryCount)
 
 	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

@@ -172,3 +172,41 @@ func TestSetEnumProperty(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSetBytesProperty(t *testing.T) {
+	var result []byte
+
+	// Case: Valid string value
+	result = nil
+	optString := types.StringValue("test content")
+	SetBytesProperty(optString, func(val []byte) {
+		result = val
+	})
+	assert.NotNil(t, result, "Setter should be called for a valid string value")
+	assert.Equal(t, []byte("test content"), result, "Setter should receive the correct byte slice")
+
+	// Case: Empty string value
+	result = nil
+	optString = types.StringValue("")
+	SetBytesProperty(optString, func(val []byte) {
+		result = val
+	})
+	assert.NotNil(t, result, "Setter should be called for an empty string value")
+	assert.Equal(t, []byte(""), result, "Setter should receive an empty byte slice")
+
+	// Case: Null value
+	result = nil
+	optString = types.StringNull()
+	SetBytesProperty(optString, func(val []byte) {
+		result = val
+	})
+	assert.Nil(t, result, "Setter should not be called for a null value")
+
+	// Case: Unknown value
+	result = nil
+	optString = types.StringUnknown()
+	SetBytesProperty(optString, func(val []byte) {
+		result = val
+	})
+	assert.Nil(t, result, "Setter should not be called for an unknown value")
+}
