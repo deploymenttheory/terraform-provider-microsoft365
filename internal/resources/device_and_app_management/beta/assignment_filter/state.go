@@ -30,7 +30,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 
-	// Special handling for RoleScopeTags
 	var roleScopeTagIds []attr.Value
 	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTags()) {
 		roleScopeTagIds = append(roleScopeTagIds, v)
