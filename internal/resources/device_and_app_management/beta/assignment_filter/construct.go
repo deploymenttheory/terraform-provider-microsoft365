@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,49 +16,23 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 
 	requestBody := graphmodels.NewDeviceAndAppManagementAssignmentFilter()
 
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
+	construct.SetStringProperty(data.Description, requestBody.SetDescription)
+
+	if err := construct.SetEnumProperty(data.Platform, graphmodels.ParseDevicePlatformType, requestBody.SetPlatform); err != nil {
+		return nil, fmt.Errorf("invalid device platform type: %s", err)
 	}
 
-	if !data.Platform.IsNull() {
-		platformStr := data.Platform.ValueString()
-		platform, err := graphmodels.ParseDevicePlatformType(platformStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid platform: %s", err)
-		}
-		if platform != nil {
-			requestBody.SetPlatform(platform.(*graphmodels.DevicePlatformType))
-		}
+	construct.SetStringProperty(data.Rule, requestBody.SetRule)
+
+	if err := construct.SetEnumProperty(data.AssignmentFilterManagementType, graphmodels.ParseAssignmentFilterManagementType, requestBody.SetAssignmentFilterManagementType); err != nil {
+		return nil, fmt.Errorf("invalid assignment filter management type: %s", err)
 	}
 
-	rule := data.Rule.ValueString()
-	requestBody.SetRule(&rule)
-
-	if !data.AssignmentFilterManagementType.IsNull() {
-		assignmentFilterManagementTypeStr := data.AssignmentFilterManagementType.ValueString()
-		assignmentFilterManagementType, err := graphmodels.ParseAssignmentFilterManagementType(assignmentFilterManagementTypeStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid assignment filter management type: %s", err)
-		}
-		if assignmentFilterManagementType != nil {
-			requestBody.SetAssignmentFilterManagementType(assignmentFilterManagementType.(*graphmodels.AssignmentFilterManagementType))
-		}
+	if err := construct.SetStringList(ctx, data.RoleScopeTags, requestBody.SetRoleScopeTags); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
-
-	roleScopeTags := make([]string, 0)
-	if !data.RoleScopeTags.IsNull() {
-		for _, tag := range data.RoleScopeTags.Elements() {
-			tagValue := tag.(types.String).ValueString()
-			if tagValue != "0" {
-				roleScopeTags = append(roleScopeTags, tagValue)
-			}
-		}
-	}
-	requestBody.SetRoleScopeTags(roleScopeTags)
 
 	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -124,7 +125,7 @@ func TestSetInt64Property(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func TestParseEnum(t *testing.T) {
+func TestSetEnumProperty(t *testing.T) {
 	var result *string
 
 	// Parser that returns the expected type `any`, simulating a valid string enum parsing result.
@@ -138,7 +139,7 @@ func TestParseEnum(t *testing.T) {
 	// Case: Valid enum value
 	result = nil
 	optEnum := types.StringValue("valid") // Simulate a valid StringValue from Terraform SDK
-	err := ParseEnum[string](optEnum, parser, func(val string) {
+	err := SetEnumProperty[string](optEnum, parser, func(val string) {
 		result = &val
 	})
 	assert.NoError(t, err)
@@ -148,7 +149,7 @@ func TestParseEnum(t *testing.T) {
 	// Case: Invalid enum value
 	result = nil
 	optEnum = types.StringValue("invalid") // Simulate an invalid enum value
-	err = ParseEnum[string](optEnum, parser, func(val string) {
+	err = SetEnumProperty[string](optEnum, parser, func(val string) {
 		result = &val
 	})
 	assert.Error(t, err)
@@ -157,7 +158,7 @@ func TestParseEnum(t *testing.T) {
 	// Case: Null value
 	result = nil
 	optEnum = types.StringNull() // Simulate a null StringValue
-	err = ParseEnum[string](optEnum, parser, func(val string) {
+	err = SetEnumProperty[string](optEnum, parser, func(val string) {
 		result = &val
 	})
 	assert.NoError(t, err)
@@ -166,79 +167,88 @@ func TestParseEnum(t *testing.T) {
 	// Case: Unknown value
 	result = nil
 	optEnum = types.StringUnknown() // Simulate an unknown StringValue
-	err = ParseEnum[string](optEnum, parser, func(val string) {
+	err = SetEnumProperty[string](optEnum, parser, func(val string) {
 		result = &val
 	})
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
 
-func TestSetArrayProperty(t *testing.T) {
-	var result []string
+func TestSetBytesProperty(t *testing.T) {
+	var result []byte
 
-	// Case: Valid array with all valid strings
+	// Case: Valid string value
 	result = nil
-	validArray := []types.String{
-		types.StringValue("test1"),
-		types.StringValue("test2"),
-		types.StringValue("test3"),
-	}
-	SetArrayProperty(validArray, func(val []string) {
+	optString := types.StringValue("test content")
+	SetBytesProperty(optString, func(val []byte) {
 		result = val
 	})
-	assert.NotNil(t, result)
-	assert.Equal(t, []string{"test1", "test2", "test3"}, result)
+	assert.NotNil(t, result, "Setter should be called for a valid string value")
+	assert.Equal(t, []byte("test content"), result, "Setter should receive the correct byte slice")
 
-	// Case: Array with mix of valid, null, and unknown values
+	// Case: Empty string value
 	result = nil
-	mixedArray := []types.String{
-		types.StringValue("test1"),
-		types.StringNull(),
-		types.StringValue("test3"),
-		types.StringUnknown(),
-	}
-	SetArrayProperty(mixedArray, func(val []string) {
+	optString = types.StringValue("")
+	SetBytesProperty(optString, func(val []byte) {
 		result = val
 	})
-	assert.NotNil(t, result)
-	assert.Equal(t, []string{"test1", "test3"}, result)
+	assert.NotNil(t, result, "Setter should be called for an empty string value")
+	assert.Equal(t, []byte(""), result, "Setter should receive an empty byte slice")
 
-	// Case: Empty array
+	// Case: Null value
 	result = nil
-	emptyArray := []types.String{}
-	SetArrayProperty(emptyArray, func(val []string) {
+	optString = types.StringNull()
+	SetBytesProperty(optString, func(val []byte) {
 		result = val
 	})
-	assert.Nil(t, result)
+	assert.Nil(t, result, "Setter should not be called for a null value")
 
-	// Case: Array with only null and unknown values
+	// Case: Unknown value
 	result = nil
-	nullUnknownArray := []types.String{
-		types.StringNull(),
-		types.StringUnknown(),
-		types.StringNull(),
-	}
-	SetArrayProperty(nullUnknownArray, func(val []string) {
+	optString = types.StringUnknown()
+	SetBytesProperty(optString, func(val []byte) {
 		result = val
 	})
-	assert.Nil(t, result)
+	assert.Nil(t, result, "Setter should not be called for an unknown value")
+}
 
-	// Case: Array with one valid value
+func TestSetISODurationProperty(t *testing.T) {
+	var result *serialization.ISODuration
+
+	// Case: Valid ISO 8601 duration
 	result = nil
-	singleValidArray := []types.String{
-		types.StringValue("test"),
-	}
-	SetArrayProperty(singleValidArray, func(val []string) {
+	optString := types.StringValue("P1Y2M3DT4H5M6S") // Valid ISO 8601 duration
+	err := SetISODurationProperty(optString, func(val *serialization.ISODuration) {
 		result = val
 	})
-	assert.NotNil(t, result)
-	assert.Equal(t, []string{"test"}, result)
+	assert.NoError(t, err, "No error should occur for valid ISO 8601 duration")
+	assert.NotNil(t, result, "Setter should be called for a valid ISO 8601 duration")
+	assert.Equal(t, "P1Y2M3DT4H5M", result.String(), "The parsed duration should match the normalized representation")
 
-	// Case: Nil array
+	// Case: Invalid ISO 8601 duration
 	result = nil
-	var nilArray []types.String
-	SetArrayProperty(nilArray, func(val []string) {
+	optString = types.StringValue("InvalidDuration") // Invalid ISO 8601 duration
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
 		result = val
 	})
-	assert.Nil(t, result)
+	assert.Error(t, err, "An error should occur for invalid ISO 8601 duration")
+	assert.Nil(t, result, "Setter should not be called for an invalid ISO 8601 duration")
+
+	// Case: Null value
+	result = nil
+	optString = types.StringNull() // Null value
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.NoError(t, err, "No error should occur for a null value")
+	assert.Nil(t, result, "Setter should not be called for a null value")
+
+	// Case: Unknown value
+	result = nil
+	optString = types.StringUnknown() // Unknown value
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.NoError(t, err, "No error should occur for an unknown value")
+	assert.Nil(t, result, "Setter should not be called for an unknown value")
 }

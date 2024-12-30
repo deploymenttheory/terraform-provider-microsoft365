@@ -56,12 +56,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				construct.SetStringProperty(rule.KeyPath, registryRule.SetKeyPath)
 				construct.SetStringProperty(rule.ValueName, registryRule.SetValueName)
 
-				err := construct.ParseEnum(rule.RegistryDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
+				err := construct.SetEnumProperty(rule.RegistryDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
 
-				err = construct.ParseEnum(rule.RegistryDetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
+				err = construct.SetEnumProperty(rule.RegistryDetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
 				}
@@ -75,7 +75,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				construct.SetStringProperty(rule.ProductCode, msiRule.SetProductCode)
 				construct.SetStringProperty(rule.ProductVersion, msiRule.SetProductVersion)
 
-				err := construct.ParseEnum(rule.ProductVersionOperator, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
+				err := construct.SetEnumProperty(rule.ProductVersionOperator, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse MSI product version: %v", err)
 				}
@@ -89,12 +89,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				construct.SetStringProperty(rule.FileFolderName, fileRule.SetFileOrFolderName)
 				construct.SetStringProperty(rule.DetectionValue, fileRule.SetDetectionValue)
 
-				err := construct.ParseEnum(rule.FileSystemDetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
+				err := construct.SetEnumProperty(rule.FileSystemDetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection type: %v", err)
 				}
 
-				err = construct.ParseEnum(rule.FileSystemDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
+				err = construct.SetEnumProperty(rule.FileSystemDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
@@ -122,12 +122,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 			construct.SetStringProperty(rule.ValueName, registryRequirement.SetValueName)
 			construct.SetBoolProperty(rule.Check32BitOn64System, registryRequirement.SetCheck32BitOn64System)
 
-			err := construct.ParseEnum(rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, registryRequirement.SetOperator)
+			err := construct.SetEnumProperty(rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, registryRequirement.SetOperator)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry requirement operator: %v", err)
 			}
 
-			err = construct.ParseEnum(rule.DetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRequirement.SetDetectionType)
+			err = construct.SetEnumProperty(rule.DetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRequirement.SetDetectionType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
 			}
@@ -149,12 +149,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 			construct.SetStringProperty(rule.ValueName, registryRule.SetValueName)
 			construct.SetBoolProperty(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
 
-			err := construct.ParseEnum(rule.Operator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
+			err := construct.SetEnumProperty(rule.Operator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry rule operator: %v", err)
 			}
 
-			err = construct.ParseEnum(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
+			err = construct.SetEnumProperty(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry rule operation type: %v", err)
 			}
@@ -170,12 +170,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if installExperience := data.InstallExperience; installExperience != (Win32LobAppInstallExperienceResourceModel{}) {
 		installExp := graphmodels.NewWin32LobAppInstallExperience()
 
-		err := construct.ParseEnum(installExperience.RunAsAccount, graphmodels.ParseRunAsAccountType, installExp.SetRunAsAccount)
+		err := construct.SetEnumProperty(installExperience.RunAsAccount, graphmodels.ParseRunAsAccountType, installExp.SetRunAsAccount)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse RunAsAccountType: %v", err)
 		}
 
-		err = construct.ParseEnum(installExperience.DeviceRestartBehavior, graphmodels.ParseWin32LobAppRestartBehavior, installExp.SetDeviceRestartBehavior)
+		err = construct.SetEnumProperty(installExperience.DeviceRestartBehavior, graphmodels.ParseWin32LobAppRestartBehavior, installExp.SetDeviceRestartBehavior)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse DeviceRestartBehavior: %v", err)
 		}
@@ -193,7 +193,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			construct.SetInt32Property(code.ReturnCode, returnCode.SetReturnCode)
 
-			err := construct.ParseEnum(code.Type, graphmodels.ParseWin32LobAppReturnCodeType, returnCode.SetTypeEscaped)
+			err := construct.SetEnumProperty(code.Type, graphmodels.ParseWin32LobAppReturnCodeType, returnCode.SetTypeEscaped)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse return code type: %v", err)
 			}
@@ -212,7 +212,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		construct.SetStringProperty(msiInfo.UpgradeCode, msiInformation.SetUpgradeCode)
 		construct.SetBoolProperty(msiInfo.RequiresReboot, msiInformation.SetRequiresReboot)
 
-		err := construct.ParseEnum[*graphmodels.Win32LobAppMsiPackageType](msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
+		err := construct.SetEnumProperty[*graphmodels.Win32LobAppMsiPackageType](msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
 		}
