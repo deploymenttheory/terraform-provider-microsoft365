@@ -18,7 +18,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": types.StringPointerValue(remoteResource.GetId()),
 	})
 
 	data.ID = types.StringPointerValue(remoteResource.GetId())
