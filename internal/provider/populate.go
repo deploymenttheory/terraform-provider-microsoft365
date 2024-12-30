@@ -34,7 +34,7 @@ func populateProviderData(ctx context.Context, config M365ProviderModel) (M365Pr
 	diags.Append(clientDiags...)
 
 	return M365ProviderModel{
-		Cloud:           types.StringValue(helpers.LookupFirstNonEmptyEnvOrDefault([]string{"M365_CLOUD", "AZURE_CLOUD"}, config.Cloud.ValueString())),
+		Cloud:           types.StringValue(helpers.GetFirstEnvString([]string{"M365_CLOUD", "AZURE_CLOUD"}, config.Cloud.ValueString())),
 		TenantID:        types.StringValue(helpers.GetEnvString("M365_TENANT_ID", config.TenantID.ValueString())),
 		AuthMethod:      types.StringValue(helpers.GetEnvString("M365_AUTH_METHOD", config.AuthMethod.ValueString())),
 		EntraIDOptions:  entraIDOptions,
