@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -144,7 +145,8 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	//
+	// This ensures type safety as the Graph API returns a base interface that needs
+	// to be converted to the specific app type to access WinGetApp-specific fields.
 	winGetApp, ok := resource.(graphmodels.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -167,7 +169,13 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
+	// Only map assignments if there are any assignments returned and the object has an assignments block
+	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
+		if object.Assignments == nil {
+			object.Assignments = &sharedmodels.MobileAppAssignmentResourceModel{}
+		}
+		MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

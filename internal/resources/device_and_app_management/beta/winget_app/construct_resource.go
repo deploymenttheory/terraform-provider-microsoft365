@@ -55,34 +55,16 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 		tflog.Debug(ctx, fmt.Sprintf("No icon image URL found for packageIdentifier '%s'. The large icon will not be set.", packageIdentifier))
 	}
 
-	if !data.IsFeatured.IsNull() {
-		requestBody.SetIsFeatured(data.IsFeatured.ValueBoolPointer())
-	}
-	if !data.PrivacyInformationUrl.IsNull() {
-		requestBody.SetPrivacyInformationUrl(data.PrivacyInformationUrl.ValueStringPointer())
-	}
-	if !data.InformationUrl.IsNull() {
-		requestBody.SetInformationUrl(data.InformationUrl.ValueStringPointer())
-	}
-	if !data.Owner.IsNull() {
-		requestBody.SetOwner(data.Owner.ValueStringPointer())
-	}
-	if !data.Developer.IsNull() {
-		requestBody.SetDeveloper(data.Developer.ValueStringPointer())
-	}
-	if !data.Notes.IsNull() {
-		requestBody.SetNotes(data.Notes.ValueStringPointer())
-	}
-	if !data.ManifestHash.IsNull() {
-		requestBody.SetManifestHash(data.ManifestHash.ValueStringPointer())
-	}
+	construct.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
+	construct.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	construct.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
+	construct.SetStringProperty(data.Owner, requestBody.SetOwner)
+	construct.SetStringProperty(data.Developer, requestBody.SetDeveloper)
+	construct.SetStringProperty(data.Notes, requestBody.SetNotes)
+	construct.SetStringProperty(data.ManifestHash, requestBody.SetManifestHash)
 
-	if len(data.RoleScopeTagIds) > 0 {
-		roleScopeTagIds := make([]string, len(data.RoleScopeTagIds))
-		for i, id := range data.RoleScopeTagIds {
-			roleScopeTagIds[i] = id.ValueString()
-		}
-		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
+	if err := construct.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	additionalData := map[string]interface{}{
