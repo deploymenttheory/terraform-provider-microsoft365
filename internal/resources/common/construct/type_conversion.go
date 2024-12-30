@@ -1,6 +1,7 @@
 package construct
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -8,7 +9,8 @@ import (
 )
 
 // SetStringProperty sets the value of a string property if the value is not null or unknown.
-// It accepts a basetypes.StringValue (Terraform SDK type) and translates it into a pointer to a string for use in the setter function.
+// It accepts a basetypes.StringValue (Terraform SDK type) and translates it into a pointer
+// to a string for use in the msgraph-sdk-go setter function.
 func SetStringProperty(value basetypes.StringValue, setter func(*string)) {
 	if !value.IsNull() && !value.IsUnknown() {
 		val := value.ValueString()
@@ -17,7 +19,8 @@ func SetStringProperty(value basetypes.StringValue, setter func(*string)) {
 }
 
 // SetBoolProperty sets the value of a bool property if the value is not null or unknown.
-// It accepts a basetypes.BoolValue (Terraform SDK type) and translates it into a pointer to a bool for use in the setter function.
+// It accepts a basetypes.BoolValue (Terraform SDK type) and translates it into a pointer
+// to a bool for use in the setter function.
 func SetBoolProperty(value basetypes.BoolValue, setter func(*bool)) {
 	if !value.IsNull() && !value.IsUnknown() {
 		val := value.ValueBool()
@@ -26,7 +29,8 @@ func SetBoolProperty(value basetypes.BoolValue, setter func(*bool)) {
 }
 
 // SetInt32Property sets the value of an int32 property if the value is not null or unknown.
-// It accepts a basetypes.Int32Value (Terraform SDK type) and passes it to the setter function.
+// It accepts a basetypes.Int32Value (Terraform SDK type) and passes it to the msgraph-sdk-go
+// setter function.
 func SetInt32Property(value basetypes.Int32Value, setter func(*int32)) {
 	if !value.IsNull() && !value.IsUnknown() {
 		val := value.ValueInt32()
@@ -35,7 +39,8 @@ func SetInt32Property(value basetypes.Int32Value, setter func(*int32)) {
 }
 
 // SetInt64Property sets the value of an int64 property if the value is not null or unknown.
-// It accepts a basetypes.Int64Value (Terraform SDK type) and passes it to the setter function.
+// It accepts a basetypes.Int64Value (Terraform SDK type) and passes it to the msgraph-sdk-go
+// setter function.
 func SetInt64Property(value basetypes.Int64Value, setter func(*int64)) {
 	if !value.IsNull() && !value.IsUnknown() {
 		val := value.ValueInt64()
@@ -43,10 +48,11 @@ func SetInt64Property(value basetypes.Int64Value, setter func(*int64)) {
 	}
 }
 
-// ParseEnum parses an enum value and sets it if the value is not null or unknown.
-// It accepts a basetypes.StringValue (Terraform SDK type) and uses a parser function to translate the string into an enum type.
-// If the value is valid, it casts the parsed value to the expected type T and passes it to the setter function.
-func ParseEnum[T any](value basetypes.StringValue, parser func(string) (any, error), setter func(T)) error {
+// SetEnumProperty parses an enum value and sets it if the value is not null or unknown.
+// It accepts a basetypes.StringValue (Terraform SDK type) and uses a parser function to
+// translate the string into an enum type. If the value is valid, it casts the parsed value
+// to the expected type T and passes it to the msgraph-sdk-go setter function.
+func SetEnumProperty[T any](value basetypes.StringValue, parser func(string) (any, error), setter func(T)) error {
 	if !value.IsNull() && !value.IsUnknown() {
 
 		enumVal, err := parser(value.ValueString())
@@ -65,17 +71,28 @@ func ParseEnum[T any](value basetypes.StringValue, parser func(string) (any, err
 	return nil
 }
 
-// Add this new helper function to your construct package
-func SetArrayProperty(values []types.String, setter func([]string)) {
-	if len(values) > 0 {
-		stringValues := make([]string, 0, len(values))
-		for _, v := range values {
-			if !v.IsNull() && !v.IsUnknown() {
-				stringValues = append(stringValues, v.ValueString())
-			}
+// SetStringList constructs and sets a slice of strings from a Terraform ListAttribute.
+// It handles null or unknown values and converts each element to a string and passes it to
+// the msgraph-sdk-go setter function.
+func SetStringList(ctx context.Context, list types.List, setter func([]string)) error {
+	if list.IsNull() || list.IsUnknown() {
+		setter(nil)
+		return nil
+	}
+
+	elements := list.Elements()
+	result := make([]string, 0, len(elements))
+	for i, elem := range elements {
+		strVal, ok := elem.(types.String)
+		if !ok {
+			return fmt.Errorf("unexpected element type at index %d: %T", i, elem)
 		}
-		if len(stringValues) > 0 {
-			setter(stringValues)
+
+		if !strVal.IsNull() && !strVal.IsUnknown() {
+			result = append(result, strVal.ValueString())
 		}
 	}
+
+	setter(result)
+	return nil
 }

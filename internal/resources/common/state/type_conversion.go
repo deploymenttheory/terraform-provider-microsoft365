@@ -145,3 +145,11 @@ func Int64PtrToTypeInt64(i *int64) types.Int64 {
 	}
 	return types.Int64Value(*i)
 }
+
+// ISO8601DurationToString converts an ISODuration to a types.String value.
+func ISO8601DurationToString(duration *serialization.ISODuration) types.String {
+	if duration == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(duration.String())
+}

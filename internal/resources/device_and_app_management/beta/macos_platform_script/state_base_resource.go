@@ -4,9 +4,9 @@ package graphBetaMacOSPlatformScript
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -30,13 +30,26 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
 	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+
+	var roleScopeTagIds []attr.Value
+	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
+		roleScopeTagIds = append(roleScopeTagIds, v)
+	}
+
+	data.RoleScopeTagIds = types.ListValueMust(
+		types.StringType,
+		roleScopeTagIds,
+	)
+
 	data.BlockExecutionNotifications = types.BoolValue(state.BoolPtrToBool(remoteResource.GetBlockExecutionNotifications()))
 
 	// ExecutionFrequency (ISO Duration)
-	if executionFrequency := remoteResource.GetExecutionFrequency(); executionFrequency != nil {
-		data.ExecutionFrequency = types.StringValue(fmt.Sprintf("%v", executionFrequency.String()))
-	}
+	// if executionFrequency := remoteResource.GetExecutionFrequency(); executionFrequency != nil {
+	// 	data.ExecutionFrequency = types.StringValue(fmt.Sprintf("%v", executionFrequency.String()))
+	// }
+
+	// ExecutionFrequency (ISO Duration)
+	data.ExecutionFrequency = state.ISO8601DurationToString(remoteResource.GetExecutionFrequency())
 
 	// ScriptContent (base64 encoded)
 	decodedContent, err := base64.StdEncoding.DecodeString(string(remoteResource.GetScriptContent()))

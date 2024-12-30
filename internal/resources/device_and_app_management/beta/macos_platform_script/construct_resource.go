@@ -17,48 +17,35 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 
 	requestBody := graphmodels.NewDeviceShellScript()
 
-	if !data.DisplayName.IsNull() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
-	}
+	construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
-	}
+	construct.SetStringProperty(data.Description, requestBody.SetDescription)
 
 	if !data.ScriptContent.IsNull() {
 		scriptContent := []byte(data.ScriptContent.ValueString())
 		requestBody.SetScriptContent(scriptContent)
 	}
 
-	if !data.RunAsAccount.IsNull() {
-		runAsAccountStr := data.RunAsAccount.ValueString()
-		var runAsAccount graphmodels.RunAsAccountType
-		switch runAsAccountStr {
-		case "system":
-			runAsAccount = graphmodels.SYSTEM_RUNASACCOUNTTYPE
-		case "user":
-			runAsAccount = graphmodels.USER_RUNASACCOUNTTYPE
-		}
-		requestBody.SetRunAsAccount(&runAsAccount)
+	if err := construct.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
+		return nil, fmt.Errorf("invalid run as account type: %s", err)
 	}
 
-	if !data.FileName.IsNull() {
-		fileName := data.FileName.ValueString()
-		requestBody.SetFileName(&fileName)
-	}
+	construct.SetStringProperty(data.FileName, requestBody.SetFileName)
 
-	if len(data.RoleScopeTagIds) > 0 {
-		roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
-		for _, v := range data.RoleScopeTagIds {
-			if !v.IsNull() && !v.IsUnknown() {
-				roleScopeTagIds = append(roleScopeTagIds, v.ValueString())
-			}
-		}
-		if len(roleScopeTagIds) > 0 {
-			requestBody.SetRoleScopeTagIds(roleScopeTagIds)
-		}
+	// if len(data.RoleScopeTagIds) > 0 {
+	// 	roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
+	// 	for _, v := range data.RoleScopeTagIds {
+	// 		if !v.IsNull() && !v.IsUnknown() {
+	// 			roleScopeTagIds = append(roleScopeTagIds, v.ValueString())
+	// 		}
+	// 	}
+	// 	if len(roleScopeTagIds) > 0 {
+	// 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
+	// 	}
+	// }
+
+	if err := construct.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	if !data.BlockExecutionNotifications.IsNull() {

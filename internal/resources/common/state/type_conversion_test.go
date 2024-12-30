@@ -471,3 +471,32 @@ func TestInt64PtrToTypeInt64(t *testing.T) {
 		assert.Equal(t, types.Int64Value(-9223372036854775808), result, "Should correctly convert min int64 value")
 	})
 }
+
+func TestISO8601DurationToString(t *testing.T) {
+	t.Run("Nil ISODuration pointer", func(t *testing.T) {
+		var input *serialization.ISODuration
+		result := ISO8601DurationToString(input)
+		assert.True(t, result.IsNull(), "Should return types.StringNull() for nil input")
+	})
+
+	t.Run("Valid ISODuration pointer with years", func(t *testing.T) {
+		input := serialization.NewDuration(1, 0, 3, 4, 5, 6, 7) // Example duration: P1Y3DT4H5M6S
+		expected := "P1Y3DT4H5M6S"
+		result := ISO8601DurationToString(input)
+		assert.Equal(t, types.StringValue(expected), result, "Should correctly convert valid ISODuration to ISO 8601 string")
+	})
+
+	t.Run("Valid ISODuration pointer with weeks", func(t *testing.T) {
+		input := serialization.NewDuration(0, 2, 0, 0, 0, 0, 0) // Example duration: P2W
+		expected := "P2W"
+		result := ISO8601DurationToString(input)
+		assert.Equal(t, types.StringValue(expected), result, "Should correctly convert ISODuration with weeks to ISO 8601 string")
+	})
+
+	t.Run("Empty ISODuration", func(t *testing.T) {
+		input := serialization.NewDuration(0, 0, 0, 0, 0, 0, 0) // Example duration: P
+		expected := "P"
+		result := ISO8601DurationToString(input)
+		assert.Equal(t, types.StringValue(expected), result, "Should correctly convert an empty ISODuration to 'P'")
+	})
+}

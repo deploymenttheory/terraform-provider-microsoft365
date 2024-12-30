@@ -10,6 +10,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteStateToTerraform maps the base properties of an AssignmentFilterResourceModel to a Terraform state.
 func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResourceModel, remoteResource graphmodels.DeviceAndAppManagementAssignmentFilterable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
@@ -30,19 +31,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 
 	// Special handling for RoleScopeTags
-	roleScopeTags := remoteResource.GetRoleScopeTags()
-	filteredRoleScopeTags := make([]string, 0)
-	for _, tag := range roleScopeTags {
-		if tag != "0" { // Ignore the "0" value
-			filteredRoleScopeTags = append(filteredRoleScopeTags, tag)
-		}
+	var roleScopeTagIds []attr.Value
+	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTags()) {
+		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
 
-	if len(filteredRoleScopeTags) == 0 {
-		data.RoleScopeTags = types.ListValueMust(types.StringType, []attr.Value{})
-	} else {
-		data.RoleScopeTags = types.ListValueMust(types.StringType, roleScopeTagsToValueSlice(filteredRoleScopeTags))
-	}
+	data.RoleScopeTags = types.ListValueMust(
+		types.StringType,
+		roleScopeTagIds,
+	)
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

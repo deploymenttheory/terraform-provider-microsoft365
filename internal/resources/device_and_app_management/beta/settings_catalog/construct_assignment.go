@@ -82,7 +82,7 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Set
 		construct.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
-			err := construct.ParseEnum(config.AllDevicesFilterType,
+			err := construct.SetEnumProperty(config.AllDevicesFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -107,7 +107,7 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Setti
 		construct.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
-			err := construct.ParseEnum(config.AllUsersFilterType,
+			err := construct.SetEnumProperty(config.AllUsersFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -136,7 +136,7 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 			construct.SetStringProperty(groupFilter.IncludeGroupsFilterId,
 				target.SetDeviceAndAppManagementAssignmentFilterId)
 
-			err := construct.ParseEnum(groupFilter.IncludeGroupsFilterType,
+			err := construct.SetEnumProperty(groupFilter.IncludeGroupsFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
