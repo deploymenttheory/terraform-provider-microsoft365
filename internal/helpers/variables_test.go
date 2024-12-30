@@ -49,79 +49,79 @@ func withEnvironment(_ *testing.T, env map[string]string, testFunc func()) {
 	testFunc()
 }
 
-func TestMultiEnvDefaultFunc(t *testing.T) {
+func TestLookupFirstNonEmptyEnvOrDefault(t *testing.T) {
 	t.Run("No environment variables set", func(t *testing.T) {
-		result := MultiEnvDefaultFunc([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+		result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 		assert.Equal(t, "default", result)
 	})
 
 	t.Run("First environment variable set", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR1": "value1"}, func() {
-			result := MultiEnvDefaultFunc([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+			result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 			assert.Equal(t, "value1", result)
 		})
 	})
 
 	t.Run("Second environment variable set", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR2": "value2"}, func() {
-			result := MultiEnvDefaultFunc([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
+			result := LookupFirstNonEmptyEnvOrDefault([]string{"TEST_VAR1", "TEST_VAR2"}, "default")
 			assert.Equal(t, "value2", result)
 		})
 	})
 }
 
-func TestEnvDefaultFunc(t *testing.T) {
+func TestGetEnvString(t *testing.T) {
 	t.Run("Environment variable not set", func(t *testing.T) {
-		result := EnvDefaultFunc("TEST_VAR", "default")
+		result := GetEnvString("TEST_VAR", "default")
 		assert.Equal(t, "default", result)
 	})
 
 	t.Run("Environment variable set", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR": "value"}, func() {
-			result := EnvDefaultFunc("TEST_VAR", "default")
+			result := GetEnvString("TEST_VAR", "default")
 			assert.Equal(t, "value", result)
 		})
 	})
 }
 
-func TestEnvDefaultFuncBool(t *testing.T) {
+func TestGetEnvBool(t *testing.T) {
 	t.Run("Environment variable not set", func(t *testing.T) {
-		result := EnvDefaultFuncBool("TEST_VAR_BOOL", true)
+		result := GetEnvBool("TEST_VAR_BOOL", true)
 		assert.True(t, result)
 	})
 
 	t.Run("Environment variable set to true", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_BOOL": "true"}, func() {
-			result := EnvDefaultFuncBool("TEST_VAR_BOOL", false)
+			result := GetEnvBool("TEST_VAR_BOOL", false)
 			assert.True(t, result)
 		})
 	})
 
 	t.Run("Environment variable set to false", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_BOOL": "false"}, func() {
-			result := EnvDefaultFuncBool("TEST_VAR_BOOL", true)
+			result := GetEnvBool("TEST_VAR_BOOL", true)
 			assert.False(t, result)
 		})
 	})
 
 	t.Run("Environment variable set to invalid boolean value", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_BOOL": "invalid"}, func() {
-			result := EnvDefaultFuncBool("TEST_VAR_BOOL", true)
+			result := GetEnvBool("TEST_VAR_BOOL", true)
 			assert.True(t, result)
 		})
 	})
 }
 
-func TestEnvDefaultFuncInt64Value(t *testing.T) {
+func TestGetEnvInt64(t *testing.T) {
 	t.Run("Environment variable not set", func(t *testing.T) {
 		defaultValue := types.Int64Value(42)
-		result := EnvDefaultFuncInt64Value("TEST_VAR_INT64", defaultValue)
+		result := GetEnvInt64("TEST_VAR_INT64", defaultValue)
 		assert.Equal(t, defaultValue, result)
 	})
 
 	t.Run("Environment variable set to valid int64", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_INT64": "123"}, func() {
-			result := EnvDefaultFuncInt64Value("TEST_VAR_INT64", types.Int64Value(42))
+			result := GetEnvInt64("TEST_VAR_INT64", types.Int64Value(42))
 			assert.Equal(t, types.Int64Value(123), result)
 		})
 	})
@@ -129,36 +129,36 @@ func TestEnvDefaultFuncInt64Value(t *testing.T) {
 	t.Run("Environment variable set to invalid int64", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_INT64": "invalid"}, func() {
 			defaultValue := types.Int64Value(42)
-			result := EnvDefaultFuncInt64Value("TEST_VAR_INT64", defaultValue)
+			result := GetEnvInt64("TEST_VAR_INT64", defaultValue)
 			assert.Equal(t, defaultValue, result)
 		})
 	})
 
 	t.Run("Environment variable set to maximum int64", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_INT64": "9223372036854775807"}, func() {
-			result := EnvDefaultFuncInt64Value("TEST_VAR_INT64", types.Int64Value(42))
+			result := GetEnvInt64("TEST_VAR_INT64", types.Int64Value(42))
 			assert.Equal(t, types.Int64Value(9223372036854775807), result)
 		})
 	})
 
 	t.Run("Environment variable set to minimum int64", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_INT64": "-9223372036854775808"}, func() {
-			result := EnvDefaultFuncInt64Value("TEST_VAR_INT64", types.Int64Value(42))
+			result := GetEnvInt64("TEST_VAR_INT64", types.Int64Value(42))
 			assert.Equal(t, types.Int64Value(-9223372036854775808), result)
 		})
 	})
 }
 
-func TestEnvDefaultFuncStringList(t *testing.T) {
+func TestGetEnvStringSlice(t *testing.T) {
 	t.Run("Environment variable not set", func(t *testing.T) {
 		defaultValue := []string{"default1", "default2"}
-		result := EnvDefaultFuncStringList("TEST_VAR_LIST", defaultValue)
+		result := GetEnvStringSlice("TEST_VAR_LIST", defaultValue)
 		assert.Equal(t, defaultValue, result)
 	})
 
 	t.Run("Environment variable set to comma-separated list", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_LIST": "value1,value2,value3"}, func() {
-			result := EnvDefaultFuncStringList("TEST_VAR_LIST", []string{"default1", "default2"})
+			result := GetEnvStringSlice("TEST_VAR_LIST", []string{"default1", "default2"})
 			assert.Equal(t, []string{"value1", "value2", "value3"}, result)
 		})
 	})
@@ -166,7 +166,7 @@ func TestEnvDefaultFuncStringList(t *testing.T) {
 	t.Run("Environment variable set to empty string", func(t *testing.T) {
 		defaultValue := []string{"default1", "default2"}
 		withEnvironment(t, map[string]string{"TEST_VAR_LIST": ""}, func() {
-			result := EnvDefaultFuncStringList("TEST_VAR_LIST", defaultValue)
+			result := GetEnvStringSlice("TEST_VAR_LIST", defaultValue)
 			assert.Equal(t, defaultValue, result, "Should return default value when environment variable is empty")
 		})
 	})
@@ -174,14 +174,14 @@ func TestEnvDefaultFuncStringList(t *testing.T) {
 	t.Run("Environment variable set to only whitespace", func(t *testing.T) {
 		defaultValue := []string{"default1", "default2"}
 		withEnvironment(t, map[string]string{"TEST_VAR_LIST": "  "}, func() {
-			result := EnvDefaultFuncStringList("TEST_VAR_LIST", defaultValue)
+			result := GetEnvStringSlice("TEST_VAR_LIST", defaultValue)
 			assert.Equal(t, defaultValue, result, "Should return default value when environment variable is only whitespace")
 		})
 	})
 
 	t.Run("Environment variable set to single value", func(t *testing.T) {
 		withEnvironment(t, map[string]string{"TEST_VAR_LIST": "singlevalue"}, func() {
-			result := EnvDefaultFuncStringList("TEST_VAR_LIST", []string{"default1", "default2"})
+			result := GetEnvStringSlice("TEST_VAR_LIST", []string{"default1", "default2"})
 			assert.Equal(t, []string{"singlevalue"}, result)
 		})
 	})
