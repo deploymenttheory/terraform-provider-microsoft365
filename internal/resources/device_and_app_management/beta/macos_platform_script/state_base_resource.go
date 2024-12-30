@@ -3,7 +3,6 @@ package graphBetaMacOSPlatformScript
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -20,47 +19,26 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": remoteResource.GetId(),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
-	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))
+	data.FileName = types.StringPointerValue(remoteResource.GetFileName())
 
 	var roleScopeTagIds []attr.Value
 	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
 		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
+	data.RoleScopeTagIds = types.ListValueMust(types.StringType, roleScopeTagIds)
 
-	data.RoleScopeTagIds = types.ListValueMust(
-		types.StringType,
-		roleScopeTagIds,
-	)
-
-	data.BlockExecutionNotifications = types.BoolValue(state.BoolPtrToBool(remoteResource.GetBlockExecutionNotifications()))
-
-	// ExecutionFrequency (ISO Duration)
-	// if executionFrequency := remoteResource.GetExecutionFrequency(); executionFrequency != nil {
-	// 	data.ExecutionFrequency = types.StringValue(fmt.Sprintf("%v", executionFrequency.String()))
-	// }
-
-	// ExecutionFrequency (ISO Duration)
+	data.BlockExecutionNotifications = types.BoolPointerValue(remoteResource.GetBlockExecutionNotifications())
 	data.ExecutionFrequency = state.ISO8601DurationToString(remoteResource.GetExecutionFrequency())
-
-	// ScriptContent (base64 encoded)
-	decodedContent, err := base64.StdEncoding.DecodeString(string(remoteResource.GetScriptContent()))
-	if err != nil {
-		tflog.Warn(ctx, "Failed to decode base64 script content", map[string]interface{}{
-			"error": err.Error(),
-		})
-		data.ScriptContent = types.StringValue(string(remoteResource.GetScriptContent())) // Use original if decode fails
-	} else {
-		data.ScriptContent = types.StringValue(string(decodedContent))
-	}
+	data.ScriptContent = state.DecodeBase64ToString(ctx, string(remoteResource.GetScriptContent()))
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

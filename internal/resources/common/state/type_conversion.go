@@ -1,12 +1,14 @@
 package state
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -152,4 +154,20 @@ func ISO8601DurationToString(duration *serialization.ISODuration) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(duration.String())
+}
+
+// DecodeBase64ToString decodes a base64-encoded string and returns a basetypes.StringValue.
+// If decoding fails, it logs a warning and returns the original string as a basetypes.StringValue.
+func DecodeBase64ToString(ctx context.Context, encoded string) types.String {
+	decodedContent, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		tflog.Warn(ctx, "Failed to decode base64 content", map[string]interface{}{
+			"error": err.Error(),
+		})
+		// Return the original string as a fallback
+		return types.StringValue(encoded)
+	}
+
+	// Return the decoded content as types.StringValue
+	return types.StringValue(string(decodedContent))
 }

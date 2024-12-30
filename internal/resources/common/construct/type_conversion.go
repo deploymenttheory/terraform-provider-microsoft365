@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 // SetStringProperty sets the value of a string property if the value is not null or unknown.
@@ -104,4 +105,17 @@ func SetBytesProperty(value basetypes.StringValue, setter func([]byte)) {
 		val := []byte(value.ValueString())
 		setter(val)
 	}
+}
+
+// SetISODurationProperty parses an ISO 8601 duration string and sets the value if valid.
+// It accepts a basetypes.StringValue (Terraform SDK type), parses it into ISODuration, and passes it to the setter function.
+func SetISODurationProperty(value basetypes.StringValue, setter func(*serialization.ISODuration)) error {
+	if !value.IsNull() && !value.IsUnknown() {
+		isoDuration, err := serialization.ParseISODuration(value.ValueString())
+		if err != nil {
+			return fmt.Errorf("error parsing ISO 8601 duration: %v", err)
+		}
+		setter(isoDuration)
+	}
+	return nil
 }

@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+	"encoding/base64"
 	"testing"
 	"time"
 
@@ -498,5 +500,36 @@ func TestISO8601DurationToString(t *testing.T) {
 		expected := "P"
 		result := ISO8601DurationToString(input)
 		assert.Equal(t, types.StringValue(expected), result, "Should correctly convert an empty ISODuration to 'P'")
+	})
+}
+
+func TestDecodeBase64ToString(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Valid base64 string", func(t *testing.T) {
+		input := base64.StdEncoding.EncodeToString([]byte("test content")) // Encodes "test content" to base64
+		expected := "test content"
+		result := DecodeBase64ToString(ctx, input)
+		assert.Equal(t, types.StringValue(expected), result, "Should return the decoded content as a types.String")
+	})
+
+	t.Run("Invalid base64 string", func(t *testing.T) {
+		input := "invalid_base64" // Not a valid base64 string
+		result := DecodeBase64ToString(ctx, input)
+		assert.Equal(t, types.StringValue(input), result, "Should return the original string as a types.String on decoding failure")
+	})
+
+	t.Run("Empty base64 string", func(t *testing.T) {
+		input := ""    // Empty string
+		expected := "" // Decoded result of an empty base64 string is also an empty string
+		result := DecodeBase64ToString(ctx, input)
+		assert.Equal(t, types.StringValue(expected), result, "Should return an empty string as a types.String")
+	})
+
+	t.Run("Valid base64 with padding", func(t *testing.T) {
+		input := base64.StdEncoding.EncodeToString([]byte("padding test")) // Encodes "padding test" to base64
+		expected := "padding test"
+		result := DecodeBase64ToString(ctx, input)
+		assert.Equal(t, types.StringValue(expected), result, "Should correctly decode a base64 string with padding")
 	})
 }

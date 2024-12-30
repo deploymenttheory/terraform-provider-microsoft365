@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -208,5 +209,46 @@ func TestSetBytesProperty(t *testing.T) {
 	SetBytesProperty(optString, func(val []byte) {
 		result = val
 	})
+	assert.Nil(t, result, "Setter should not be called for an unknown value")
+}
+
+func TestSetISODurationProperty(t *testing.T) {
+	var result *serialization.ISODuration
+
+	// Case: Valid ISO 8601 duration
+	result = nil
+	optString := types.StringValue("P1Y2M3DT4H5M6S") // Valid ISO 8601 duration
+	err := SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.NoError(t, err, "No error should occur for valid ISO 8601 duration")
+	assert.NotNil(t, result, "Setter should be called for a valid ISO 8601 duration")
+	assert.Equal(t, "P1Y2M3DT4H5M", result.String(), "The parsed duration should match the normalized representation")
+
+	// Case: Invalid ISO 8601 duration
+	result = nil
+	optString = types.StringValue("InvalidDuration") // Invalid ISO 8601 duration
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.Error(t, err, "An error should occur for invalid ISO 8601 duration")
+	assert.Nil(t, result, "Setter should not be called for an invalid ISO 8601 duration")
+
+	// Case: Null value
+	result = nil
+	optString = types.StringNull() // Null value
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.NoError(t, err, "No error should occur for a null value")
+	assert.Nil(t, result, "Setter should not be called for a null value")
+
+	// Case: Unknown value
+	result = nil
+	optString = types.StringUnknown() // Unknown value
+	err = SetISODurationProperty(optString, func(val *serialization.ISODuration) {
+		result = val
+	})
+	assert.NoError(t, err, "No error should occur for an unknown value")
 	assert.Nil(t, result, "Setter should not be called for an unknown value")
 }

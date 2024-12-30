@@ -7,7 +7,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoft/kiota-abstractions-go/serialization"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -33,12 +32,8 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 
 	construct.SetBoolProperty(data.BlockExecutionNotifications, requestBody.SetBlockExecutionNotifications)
 
-	if !data.ExecutionFrequency.IsNull() {
-		isoDuration, err := serialization.ParseISODuration(data.ExecutionFrequency.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("error parsing execution frequency: %v", err)
-		}
-		requestBody.SetExecutionFrequency(isoDuration)
+	if err := construct.SetISODurationProperty(data.ExecutionFrequency, requestBody.SetExecutionFrequency); err != nil {
+		return nil, fmt.Errorf("error setting execution frequency: %v", err)
 	}
 
 	construct.SetInt32Property(data.RetryCount, requestBody.SetRetryCount)
