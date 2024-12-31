@@ -5,11 +5,13 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -88,17 +90,21 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"package_identifier": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "The **unique identifier** for the WinGet/Microsoft Store app from the storefront.\n\n" +
-					"For example, for the URL [https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US](https://apps.microsoft.com/detail/9nzvdkpmr9rd?hl=en-us&gl=US), " +
-					"the package identifier is `9nzvdkpmr9rd`.\n\n" +
+				MarkdownDescription: "The **unique package identifier** for the WinGet/Microsoft Store app from the storefront.\n\n" +
+					"For example, for the app Microsoft Edge Browser URL [https://apps.microsoft.com/detail/xpfftq037jwmhs?hl=en-us&gl=US](https://apps.microsoft.com/detail/xpfftq037jwmhs?hl=en-us&gl=US), " +
+					"the package identifier is `xpfftq037jwmhs`.\n\n" +
 					"**Important notes:**\n" +
 					"- This identifier is **required** at creation time.\n" +
-					"- It **cannot be modified** for existing Terraform-deployed WinGet/Microsoft Store apps.\n\n",
+					"- It **cannot be modified** for existing Terraform-deployed WinGet/Microsoft Store apps.\n\n" +
+					"attempting to modify this value will result in a failed request.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[A-Z0-9]+$`),
-						"package_identifier must contain only uppercase letters and numbers.",
+						regexp.MustCompile(`^[A-Za-z0-9]+$`),
+						"package_identifier value must contain only uppercase or lowercase letters and numbers.",
 					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.CaseInsensitiveString(),
 				},
 			},
 			"is_featured": schema.BoolAttribute{
@@ -125,17 +131,25 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional:            true,
 				MarkdownDescription: "Notes for the app.",
 			},
+			"automatically_generate_metadata": schema.BoolAttribute{
+				Required: true,
+				MarkdownDescription: "When set to `true`, the provider will automatically fetch metadata from the Microsoft Store for Business " +
+					"using the package identifier. This will populate the `display_name`, `description`, `publisher`, and 'icon' fields.",
+			},
 			"display_name": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: "The title of the WinGet app imported from the Microsoft Store for Business." +
-					"This field is automatically populated based on the package identifier.",
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "A detailed description of the WinGet app, automatically retrieved from the Microsoft Store for Business.",
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"publisher": schema.StringAttribute{
 				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "The publisher of the WinGet app, automatically fetched from the Microsoft Store for Business.",
 			},
 			"install_experience": schema.SingleNestedAttribute{
@@ -154,14 +168,17 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"large_icon": schema.SingleNestedAttribute{
 				Computed: true,
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "The MIME type of the app's large icon, automatically determined based on the downloaded image from the Microsoft Store for Business.",
+						Optional:            true,
+						MarkdownDescription: "The MIME type of the app's large icon, automatically populated based on the `package_identifier` when `automatically_generate_metadata` is true. Example: `image/png`",
 					},
 					"value": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "The raw byte data of the app's large icon, automatically downloaded from the Microsoft Store for Business.",
+						Optional:            true,
+						MarkdownDescription: "The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.",
 					},
 				},
 				MarkdownDescription: "The large icon for the WinGet app, automatically downloaded and set from the Microsoft Store for Business.",

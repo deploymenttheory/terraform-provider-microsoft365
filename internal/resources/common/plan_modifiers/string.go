@@ -5,6 +5,7 @@ package planmodifiers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -117,5 +118,41 @@ func DefaultValueString(defaultValue string) StringModifier {
 			markdownDescription: fmt.Sprintf("Default value set to `%s`", defaultValue),
 		},
 		defaultValue: types.StringValue(defaultValue),
+	}
+}
+
+// caseInsensitiveString handles case-insensitive string comparisons
+type caseInsensitiveString struct {
+	stringModifier
+}
+
+func (m caseInsensitiveString) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// For config values that don't match state, preserve their case
+	if req.ConfigValue.IsNull() || req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+
+	if strings.EqualFold(req.PlanValue.ValueString(), req.StateValue.ValueString()) {
+		resp.PlanValue = req.StateValue
+		return
+	}
+
+	// Allow either case from config
+	if strings.EqualFold(req.PlanValue.ValueString(), req.ConfigValue.ValueString()) {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+
+	resp.PlanValue = types.StringValue(strings.ToUpper(req.PlanValue.ValueString()))
+}
+
+// CaseInsensitiveString returns a plan modifier for case-insensitive string handling
+func CaseInsensitiveString() StringModifier {
+	return caseInsensitiveString{
+		stringModifier: stringModifier{
+			description:         "Handles case-insensitive string comparisons",
+			markdownDescription: "Handles case-insensitive string comparisons",
+		},
 	}
 }

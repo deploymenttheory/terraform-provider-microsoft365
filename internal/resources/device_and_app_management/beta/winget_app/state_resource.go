@@ -3,6 +3,7 @@ package graphBetaWinGetApp
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -22,6 +23,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
+	// Handle PackageIdentifier value to support case-insensitive comparison
+	if data != nil && !data.PackageIdentifier.IsNull() &&
+		strings.EqualFold(data.PackageIdentifier.ValueString(), state.StringPtrToString(remoteResource.GetPackageIdentifier())) {
+	} else {
+		data.PackageIdentifier = types.StringPointerValue(remoteResource.GetPackageIdentifier())
+	}
+
 	data.ID = types.StringPointerValue(remoteResource.GetId())
 	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
@@ -33,7 +41,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 	data.Developer = types.StringPointerValue(remoteResource.GetDeveloper())
 	data.Notes = types.StringPointerValue(remoteResource.GetNotes())
 	data.ManifestHash = types.StringPointerValue(remoteResource.GetManifestHash())
-	data.PackageIdentifier = types.StringPointerValue(remoteResource.GetPackageIdentifier())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.UploadState = state.Int32PtrToTypeInt64(remoteResource.GetUploadState())
