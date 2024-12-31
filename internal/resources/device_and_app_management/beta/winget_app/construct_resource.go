@@ -2,6 +2,7 @@ package graphBetaWinGetApp
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -63,11 +64,15 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 			var iconData map[string]attr.Value
 			data.LargeIcon.As(context.Background(), &iconData, basetypes.ObjectAsOptions{})
 
-			if typeVal, ok := iconData["type"].(types.String); ok {
-				construct.SetStringProperty(typeVal, largeIcon.SetTypeEscaped)
-			}
+			iconType := "image/png"
+			largeIcon.SetTypeEscaped(&iconType)
+
 			if valueVal, ok := iconData["value"].(types.String); ok {
-				construct.SetBytesProperty(valueVal, largeIcon.SetValue)
+				iconBytes, err := base64.StdEncoding.DecodeString(valueVal.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to decode icon base64: %v", err)
+				}
+				largeIcon.SetValue(iconBytes)
 			}
 			requestBody.SetLargeIcon(largeIcon)
 		}

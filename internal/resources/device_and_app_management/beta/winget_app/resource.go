@@ -138,7 +138,9 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"display_name": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 				MarkdownDescription: "The title of the WinGet app imported from the Microsoft Store for Business." +
+					"This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`." +
 					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"description": schema.StringAttribute{
@@ -148,9 +150,10 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"publisher": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "The publisher of the WinGet app, automatically fetched from the Microsoft Store for Business.",
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: "The publisher of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"install_experience": schema.SingleNestedAttribute{
 				Required: true,
