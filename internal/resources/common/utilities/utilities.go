@@ -36,11 +36,6 @@ func StringPtr(s string) *string {
 	return &s
 }
 
-// Helper function to convert a string to uppercase
-func ToUpperCase(s string) string {
-	return strings.ToUpper(s)
-}
-
 // DownloadImage downloads an image from a given URL and returns it as a byte slice
 // with retries
 func DownloadImage(url string) ([]byte, error) {

@@ -223,61 +223,6 @@ func TestStringPtr(t *testing.T) {
 	})
 }
 
-// TestToUpperCase tests the ToUpperCase function.
-func TestToUpperCase(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{
-			name:  "Lowercase string",
-			input: "hello",
-			want:  "HELLO",
-		},
-		{
-			name:  "Mixed case string",
-			input: "HeLLo WoRLd",
-			want:  "HELLO WORLD",
-		},
-		{
-			name:  "Already uppercase",
-			input: "GOLANG",
-			want:  "GOLANG",
-		},
-		{
-			name:  "Empty string",
-			input: "",
-			want:  "",
-		},
-		{
-			name:  "Numeric string",
-			input: "123abc",
-			want:  "123ABC",
-		},
-		{
-			name:  "Unicode characters",
-			input: "こんにちは",
-			want:  "こんにちは", // Uppercasing has no effect on non-Latin scripts
-		},
-		{
-			name:  "Special characters",
-			input: "go-lang_2024!",
-			want:  "GO-LANG_2024!",
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt // Capture range variable
-		t.Run(tt.name, func(t *testing.T) {
-			got := ToUpperCase(tt.input)
-			if got != tt.want {
-				t.Errorf("ToUpperCase() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 // TestDownloadImage tests the DownloadImage function.
 func TestDownloadImage(t *testing.T) {
 	// Define a sample image data
