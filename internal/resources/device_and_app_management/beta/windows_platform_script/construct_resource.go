@@ -15,59 +15,22 @@ func constructResource(ctx context.Context, data *WindowsPlatformScriptResourceM
 
 	requestBody := graphmodels.NewDeviceManagementScript()
 
-	if !data.DisplayName.IsNull() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	constructors.SetBytesProperty(data.ScriptContent, requestBody.SetScriptContent)
+
+	if err := constructors.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
+		return nil, fmt.Errorf("failed to set runAsAccount: %v", err)
 	}
 
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
+	constructors.SetBoolProperty(data.EnforceSignatureCheck, requestBody.SetEnforceSignatureCheck)
+	constructors.SetStringProperty(data.FileName, requestBody.SetFileName)
+
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %v", err)
 	}
 
-	if !data.ScriptContent.IsNull() {
-		scriptContent := []byte(data.ScriptContent.ValueString())
-		requestBody.SetScriptContent(scriptContent)
-	}
-
-	if !data.RunAsAccount.IsNull() {
-		runAsAccountStr := data.RunAsAccount.ValueString()
-		var runAsAccount graphmodels.RunAsAccountType
-		switch runAsAccountStr {
-		case "system":
-			runAsAccount = graphmodels.SYSTEM_RUNASACCOUNTTYPE
-		case "user":
-			runAsAccount = graphmodels.USER_RUNASACCOUNTTYPE
-		}
-		requestBody.SetRunAsAccount(&runAsAccount)
-	}
-
-	if !data.EnforceSignatureCheck.IsNull() {
-		enforceSignatureCheck := data.EnforceSignatureCheck.ValueBool()
-		requestBody.SetEnforceSignatureCheck(&enforceSignatureCheck)
-	}
-
-	if !data.FileName.IsNull() {
-		fileName := data.FileName.ValueString()
-		requestBody.SetFileName(&fileName)
-	}
-
-	if len(data.RoleScopeTagIds) > 0 {
-		roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
-		for _, v := range data.RoleScopeTagIds {
-			if !v.IsNull() && !v.IsUnknown() {
-				roleScopeTagIds = append(roleScopeTagIds, v.ValueString())
-			}
-		}
-		if len(roleScopeTagIds) > 0 {
-			requestBody.SetRoleScopeTagIds(roleScopeTagIds)
-		}
-	}
-
-	if !data.RunAs32Bit.IsNull() {
-		runAs32Bit := data.RunAs32Bit.ValueBool()
-		requestBody.SetRunAs32Bit(&runAs32Bit)
-	}
+	constructors.SetBoolProperty(data.RunAs32Bit, requestBody.SetRunAs32Bit)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
