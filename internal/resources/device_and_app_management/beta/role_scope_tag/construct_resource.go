@@ -15,13 +15,8 @@ func constructResource(ctx context.Context, data *RoleScopeTagResourceModel) (gr
 
 	requestBody := graphmodels.NewRoleScopeTag()
 
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
-
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
-	}
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

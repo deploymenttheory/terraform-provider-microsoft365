@@ -20,9 +20,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.AllowRedirect = types.BoolValue(state.BoolPtrToBool(remoteResource.GetAllowRedirect()))
-	data.Comment = types.StringValue(state.StringPtrToString(remoteResource.GetComment()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.AllowRedirect = types.BoolPointerValue(remoteResource.GetAllowRedirect())
+	data.Comment = types.StringPointerValue(remoteResource.GetComment())
 	data.CompatibilityMode = state.EnumPtrToTypeString(remoteResource.GetCompatibilityMode())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.DeletedDateTime = state.TimeToString(remoteResource.GetDeletedDateTime())
@@ -30,7 +30,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 	data.MergeType = state.EnumPtrToTypeString(remoteResource.GetMergeType())
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
 	data.TargetEnvironment = state.EnumPtrToTypeString(remoteResource.GetTargetEnvironment())
-	data.WebUrl = types.StringValue(state.StringPtrToString(remoteResource.GetWebUrl()))
+	data.WebUrl = types.StringPointerValue(remoteResource.GetWebUrl())
 
 	// Handle History
 	history := remoteResource.GetHistory()
@@ -55,8 +55,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 
 func MapHistoryRemoteStateToTerraform(historyItem graphmodels.BrowserSiteHistoryable) BrowserSiteHistoryResourceModel {
 	return BrowserSiteHistoryResourceModel{
-		AllowRedirect:     types.BoolValue(state.BoolPtrToBool(historyItem.GetAllowRedirect())),
-		Comment:           types.StringValue(state.StringPtrToString(historyItem.GetComment())),
+		AllowRedirect:     types.BoolPointerValue(historyItem.GetAllowRedirect()),
+		Comment:           types.StringPointerValue(historyItem.GetComment()),
 		CompatibilityMode: state.EnumPtrToTypeString(historyItem.GetCompatibilityMode()),
 		LastModifiedBy:    MapIdentitySetRemoteStateToTerraform(historyItem.GetLastModifiedBy()),
 		MergeType:         state.EnumPtrToTypeString(historyItem.GetMergeType()),
@@ -82,7 +82,6 @@ func MapIdentitySetRemoteStateToTerraform(identitySet graphmodels.IdentitySetabl
 		// ApplicationInstance:      MapIdentityRemoteStateToTerraform(identitySet.GetApplicationInstance()),
 		// Conversation:             MapIdentityRemoteStateToTerraform(identitySet.GetConversation()),
 		// ConversationIdentityType: MapIdentityRemoteStateToTerraform(identitySet.GetConversation()),
-
 	}
 }
 
@@ -92,8 +91,8 @@ func MapIdentityRemoteStateToTerraform(identity graphmodels.Identityable) shared
 	}
 
 	return sharedmodels.IdentityResourceModel{
-		DisplayName: types.StringValue(state.StringPtrToString(identity.GetDisplayName())),
-		ID:          types.StringValue(state.StringPtrToString(identity.GetId())),
+		DisplayName: types.StringPointerValue(identity.GetDisplayName()),
+		ID:          types.StringPointerValue(identity.GetId()),
 		// TODO - field missing from SDK
 		//TenantID:    types.StringValue(state.StringPtrToString(identity.GetTenantId())),
 	}

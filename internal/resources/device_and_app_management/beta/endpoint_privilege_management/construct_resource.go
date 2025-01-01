@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+
 	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,11 +17,8 @@ func constructResource(ctx context.Context, data *EndpointPrivilegeManagementRes
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	Name := data.Name.ValueString()
-	requestBody.SetName(&Name)
-
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
+	constructors.SetStringProperty(data.Name, requestBody.SetName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
 	platformStr := data.Platforms.ValueString()
 	var platform graphmodels.DeviceManagementConfigurationPlatforms
@@ -50,20 +48,14 @@ func constructResource(ctx context.Context, data *EndpointPrivilegeManagementRes
 	)
 	requestBody.SetTechnologies(&technologies)
 
-	if len(data.RoleScopeTagIds) > 0 {
-		var tagIds []string
-		for _, tag := range data.RoleScopeTagIds {
-			tagIds = append(tagIds, tag.ValueString())
-		}
-		requestBody.SetRoleScopeTagIds(tagIds)
-	} else {
-		requestBody.SetRoleScopeTagIds([]string{"0"})
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})

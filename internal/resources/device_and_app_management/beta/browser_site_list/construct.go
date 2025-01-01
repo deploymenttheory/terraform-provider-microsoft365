@@ -9,20 +9,14 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// constructResource is the main entry point to construct the browser site list resource for the Terraform provider.
 func constructResource(ctx context.Context, data *BrowserSiteListResourceModel) (graphmodels.BrowserSiteListable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewBrowserSiteList()
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
-	}
-
-	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
-	}
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
