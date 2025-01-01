@@ -294,10 +294,6 @@ Required:
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
-Required:
-
-- `mobile_app_id` (String) The ID of the mobile app associated with this assignment.
-
 Optional:
 
 - `mobile_app_assignments` (Attributes List) List of assignments for the mobile app. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments))
@@ -305,6 +301,7 @@ Optional:
 Read-Only:
 
 - `id` (String) Key of the entity. This property is read-only.
+- `mobile_app_id` (String) The ID of the mobile app associated with this assignment.
 
 <a id="nestedatt--assignments--mobile_app_assignments"></a>
 ### Nested Schema for `assignments.mobile_app_assignments`
@@ -312,6 +309,7 @@ Read-Only:
 Required:
 
 - `intent` (String) The install intent defined by the admin. Possible values are: available, required, uninstall, availableWithoutEnrollment.
+- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.
 - `target` (Attributes) The target group assignment defined by the admin. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments--target))
 
 Optional:
@@ -321,7 +319,6 @@ Optional:
 Read-Only:
 
 - `id` (String) Key of the assignment entity. This property is read-only.
-- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.
 - `source_id` (String) The identifier of the source of the assignment. This property is read-only.
 
 <a id="nestedatt--assignments--mobile_app_assignments--target"></a>
