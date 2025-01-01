@@ -19,45 +19,49 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.CloudPcNamingTemplate = types.StringValue(state.StringPtrToString(remoteResource.GetCloudPcNamingTemplate()))
-	data.AlternateResourceUrl = types.StringValue(state.StringPtrToString(remoteResource.GetAlternateResourceUrl()))
-	data.CloudPcGroupDisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetCloudPcGroupDisplayName()))
-	data.EnableSingleSignOn = state.BoolPtrToTypeBool(remoteResource.GetEnableSingleSignOn())
+	// Set basic properties
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+	data.CloudPcNamingTemplate = types.StringPointerValue(remoteResource.GetCloudPcNamingTemplate())
+	data.AlternateResourceUrl = types.StringPointerValue(remoteResource.GetAlternateResourceUrl())
+	data.CloudPcGroupDisplayName = types.StringPointerValue(remoteResource.GetCloudPcGroupDisplayName())
+	data.EnableSingleSignOn = types.BoolPointerValue(remoteResource.GetEnableSingleSignOn())
 	data.GracePeriodInHours = state.Int32PtrToTypeInt64(remoteResource.GetGracePeriodInHours())
-	data.ImageDisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetImageDisplayName()))
-	data.ImageId = types.StringValue(state.StringPtrToString(remoteResource.GetImageId()))
+	data.ImageDisplayName = types.StringPointerValue(remoteResource.GetImageDisplayName())
+	data.ImageId = types.StringPointerValue(remoteResource.GetImageId())
 	data.ImageType = state.EnumPtrToTypeString(remoteResource.GetImageType())
-	data.LocalAdminEnabled = state.BoolPtrToTypeBool(remoteResource.GetLocalAdminEnabled())
+	data.LocalAdminEnabled = types.BoolPointerValue(remoteResource.GetLocalAdminEnabled())
 	data.ProvisioningType = state.EnumPtrToTypeString(remoteResource.GetProvisioningType())
 
+	// Handle Microsoft Managed Desktop
 	if mmd := remoteResource.GetMicrosoftManagedDesktop(); mmd != nil {
 		data.MicrosoftManagedDesktop = &MicrosoftManagedDesktopModel{
 			ManagedType: state.EnumPtrToTypeString(mmd.GetManagedType()),
-			Profile:     types.StringValue(state.StringPtrToString(mmd.GetProfile())),
+			Profile:     types.StringPointerValue(mmd.GetProfile()),
 		}
 	} else {
 		data.MicrosoftManagedDesktop = nil
 	}
 
+	// Handle Domain Join Configurations
 	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); domainJoinConfigs != nil {
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
 			data.DomainJoinConfigurations[i] = DomainJoinConfigurationModel{
 				DomainJoinType:         state.EnumPtrToTypeString(config.GetDomainJoinType()),
-				OnPremisesConnectionId: types.StringValue(state.StringPtrToString(config.GetOnPremisesConnectionId())),
-				RegionName:             types.StringValue(state.StringPtrToString(config.GetRegionName())),
+				OnPremisesConnectionId: types.StringPointerValue(config.GetOnPremisesConnectionId()),
+				RegionName:             types.StringPointerValue(config.GetRegionName()),
 			}
 		}
 	} else {
 		data.DomainJoinConfigurations = []DomainJoinConfigurationModel{}
 	}
 
+	// Handle Windows Settings
 	if windowsSetting := remoteResource.GetWindowsSetting(); windowsSetting != nil {
 		data.WindowsSetting = &WindowsSettingModel{
-			Locale: types.StringValue(state.StringPtrToString(windowsSetting.GetLocale())),
+			Locale: types.StringPointerValue(windowsSetting.GetLocale()),
 		}
 	} else {
 		data.WindowsSetting = nil

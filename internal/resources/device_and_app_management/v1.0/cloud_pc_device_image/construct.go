@@ -16,20 +16,9 @@ func constructResource(ctx context.Context, data *CloudPcDeviceImageResourceMode
 
 	requestBody := models.NewCloudPcDeviceImage()
 
-	if !data.DisplayName.IsNull() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
-	}
-
-	if !data.SourceImageResourceId.IsNull() {
-		sourceImageResourceId := data.SourceImageResourceId.ValueString()
-		requestBody.SetSourceImageResourceId(&sourceImageResourceId)
-	}
-
-	if !data.Version.IsNull() {
-		version := data.Version.ValueString()
-		requestBody.SetVersion(&version)
-	}
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.SourceImageResourceId, requestBody.SetSourceImageResourceId)
+	constructors.SetStringProperty(data.Version, requestBody.SetVersion)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

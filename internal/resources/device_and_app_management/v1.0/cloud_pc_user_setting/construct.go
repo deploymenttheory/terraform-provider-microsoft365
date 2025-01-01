@@ -14,21 +14,12 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 
 	requestBody := models.NewCloudPcUserSetting()
 
-	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
-	}
+	// Set basic properties
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetBoolProperty(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
+	constructors.SetBoolProperty(data.ResetEnabled, requestBody.SetResetEnabled)
 
-	if !data.LocalAdminEnabled.IsNull() && !data.LocalAdminEnabled.IsUnknown() {
-		localAdminEnabled := data.LocalAdminEnabled.ValueBool()
-		requestBody.SetLocalAdminEnabled(&localAdminEnabled)
-	}
-
-	if !data.ResetEnabled.IsNull() && !data.ResetEnabled.IsUnknown() {
-		resetEnabled := data.ResetEnabled.ValueBool()
-		requestBody.SetResetEnabled(&resetEnabled)
-	}
-
+	// Handle restore point settings
 	if data.RestorePointSetting != nil {
 		restorePointSetting, err := constructRestorePointSetting(data.RestorePointSetting)
 		if err != nil {
@@ -55,25 +46,13 @@ func constructRestorePointSetting(data *CloudPcRestorePointSettingModel) (models
 
 	restorePointSetting := models.NewCloudPcRestorePointSetting()
 
-	if !data.FrequencyType.IsNull() && !data.FrequencyType.IsUnknown() {
-		frequencyTypeStr := data.FrequencyType.ValueString()
-		frequencyTypeAny, err := models.ParseCloudPcRestorePointFrequencyType(frequencyTypeStr)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing frequency type: %v", err)
-		}
-		if frequencyTypeAny != nil {
-			frequencyType, ok := frequencyTypeAny.(*models.CloudPcRestorePointFrequencyType)
-			if !ok {
-				return nil, fmt.Errorf("unexpected type for frequency type: %T", frequencyTypeAny)
-			}
-			restorePointSetting.SetFrequencyType(frequencyType)
-		}
+	if err := constructors.SetEnumProperty(data.FrequencyType,
+		models.ParseCloudPcRestorePointFrequencyType,
+		restorePointSetting.SetFrequencyType); err != nil {
+		return nil, fmt.Errorf("failed to set frequency type: %v", err)
 	}
 
-	if !data.UserRestoreEnabled.IsNull() && !data.UserRestoreEnabled.IsUnknown() {
-		userRestoreEnabled := data.UserRestoreEnabled.ValueBool()
-		restorePointSetting.SetUserRestoreEnabled(&userRestoreEnabled)
-	}
+	constructors.SetBoolProperty(data.UserRestoreEnabled, restorePointSetting.SetUserRestoreEnabled)
 
 	return restorePointSetting, nil
 }
