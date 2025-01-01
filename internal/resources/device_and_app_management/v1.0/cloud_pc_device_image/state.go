@@ -19,17 +19,17 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcDeviceImageReso
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.ErrorCode = state.EnumPtrToTypeString(remoteResource.GetErrorCode())
 	data.ExpirationDate = state.DateOnlyPtrToString(remoteResource.GetExpirationDate())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.OperatingSystem = types.StringValue(state.StringPtrToString(remoteResource.GetOperatingSystem()))
-	data.OsBuildNumber = types.StringValue(state.StringPtrToString(remoteResource.GetOsBuildNumber()))
+	data.OperatingSystem = types.StringPointerValue(remoteResource.GetOperatingSystem())
+	data.OsBuildNumber = types.StringPointerValue(remoteResource.GetOsBuildNumber())
 	data.OsStatus = state.EnumPtrToTypeString(remoteResource.GetOsStatus())
-	data.SourceImageResourceId = types.StringValue(state.StringPtrToString(remoteResource.GetSourceImageResourceId()))
+	data.SourceImageResourceId = types.StringPointerValue(remoteResource.GetSourceImageResourceId())
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
-	data.Version = types.StringValue(state.StringPtrToString(remoteResource.GetVersion()))
+	data.Version = types.StringPointerValue(remoteResource.GetVersion())
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

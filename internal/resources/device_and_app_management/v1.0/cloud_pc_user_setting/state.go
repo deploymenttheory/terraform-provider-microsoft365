@@ -20,12 +20,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 		"resourceId": state.StringPtrToString(remoteState.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteState.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteState.GetDisplayName()))
+	data.ID = types.StringPointerValue(remoteState.GetId())
+	data.DisplayName = types.StringPointerValue(remoteState.GetDisplayName())
 	data.CreatedDateTime = state.TimeToString(remoteState.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteState.GetLastModifiedDateTime())
-	data.LocalAdminEnabled = state.BoolPtrToTypeBool(remoteState.GetLocalAdminEnabled())
-	data.ResetEnabled = state.BoolPtrToTypeBool(remoteState.GetResetEnabled())
+	data.LocalAdminEnabled = types.BoolPointerValue(remoteState.GetLocalAdminEnabled())
+	data.ResetEnabled = types.BoolPointerValue(remoteState.GetResetEnabled())
 	data.RestorePointSetting = mapRestorePointSetting(remoteState.GetRestorePointSetting())
 
 	finalState, _ := json.MarshalIndent(data, "", "  ")
@@ -42,6 +42,6 @@ func mapRestorePointSetting(restorePointSetting models.CloudPcRestorePointSettin
 
 	return &CloudPcRestorePointSettingModel{
 		FrequencyType:      state.EnumPtrToTypeString(restorePointSetting.GetFrequencyType()),
-		UserRestoreEnabled: state.BoolPtrToTypeBool(restorePointSetting.GetUserRestoreEnabled()),
+		UserRestoreEnabled: types.BoolPointerValue(restorePointSetting.GetUserRestoreEnabled()),
 	}
 }

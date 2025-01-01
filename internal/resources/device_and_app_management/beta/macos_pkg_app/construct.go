@@ -5,137 +5,84 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource constructs a MacOSPkgApp resource using data from the Terraform model.
 func constructResource(ctx context.Context, data *MacOSPkgAppResourceModel) (graphmodels.MacOSPkgAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewMacOSPkgApp()
 
-	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
+	// Set string properties using helper
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
+	constructors.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	constructors.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
+	constructors.SetStringProperty(data.Owner, requestBody.SetOwner)
+	constructors.SetStringProperty(data.Developer, requestBody.SetDeveloper)
+	constructors.SetStringProperty(data.Notes, requestBody.SetNotes)
+	constructors.SetStringProperty(data.FileName, requestBody.SetFileName)
+	constructors.SetStringProperty(data.PrimaryBundleId, requestBody.SetPrimaryBundleId)
+	constructors.SetStringProperty(data.PrimaryBundleVersion, requestBody.SetPrimaryBundleVersion)
+
+	// Set boolean properties using helper
+	constructors.SetBoolProperty(data.IgnoreVersionDetection, requestBody.SetIgnoreVersionDetection)
+	constructors.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
+
+	// Handle role scope tags
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %v", err)
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
-	}
-
-	if !data.Publisher.IsNull() && !data.Publisher.IsUnknown() {
-		publisher := data.Publisher.ValueString()
-		requestBody.SetPublisher(&publisher)
-	}
-
-	if !data.PrivacyInformationUrl.IsNull() && !data.PrivacyInformationUrl.IsUnknown() {
-		privacyUrl := data.PrivacyInformationUrl.ValueString()
-		requestBody.SetPrivacyInformationUrl(&privacyUrl)
-	}
-
-	if !data.InformationUrl.IsNull() && !data.InformationUrl.IsUnknown() {
-		infoUrl := data.InformationUrl.ValueString()
-		requestBody.SetInformationUrl(&infoUrl)
-	}
-
-	if !data.Owner.IsNull() && !data.Owner.IsUnknown() {
-		owner := data.Owner.ValueString()
-		requestBody.SetOwner(&owner)
-	}
-
-	if !data.Developer.IsNull() && !data.Developer.IsUnknown() {
-		developer := data.Developer.ValueString()
-		requestBody.SetDeveloper(&developer)
-	}
-
-	if !data.Notes.IsNull() && !data.Notes.IsUnknown() {
-		notes := data.Notes.ValueString()
-		requestBody.SetNotes(&notes)
-	}
-
-	if !data.FileName.IsNull() && !data.FileName.IsUnknown() {
-		fileName := data.FileName.ValueString()
-		requestBody.SetFileName(&fileName)
-	}
-
-	if !data.PrimaryBundleId.IsNull() && !data.PrimaryBundleId.IsUnknown() {
-		primaryBundleId := data.PrimaryBundleId.ValueString()
-		requestBody.SetPrimaryBundleId(&primaryBundleId)
-	}
-
-	if !data.PrimaryBundleVersion.IsNull() && !data.PrimaryBundleVersion.IsUnknown() {
-		primaryBundleVersion := data.PrimaryBundleVersion.ValueString()
-		requestBody.SetPrimaryBundleVersion(&primaryBundleVersion)
-	}
-
-	if !data.IgnoreVersionDetection.IsNull() && !data.IgnoreVersionDetection.IsUnknown() {
-		ignoreVersionDetection := data.IgnoreVersionDetection.ValueBool()
-		requestBody.SetIgnoreVersionDetection(&ignoreVersionDetection)
-	}
-
-	if !data.IsFeatured.IsNull() && !data.IsFeatured.IsUnknown() {
-		isFeatured := data.IsFeatured.ValueBool()
-		requestBody.SetIsFeatured(&isFeatured)
-	}
-
-	if len(data.RoleScopeTagIds) > 0 {
-		roleScopeTagIds := make([]string, 0, len(data.RoleScopeTagIds))
-		for _, v := range data.RoleScopeTagIds {
-			if !v.IsNull() && !v.IsUnknown() {
-				roleScopeTagIds = append(roleScopeTagIds, v.ValueString())
-			}
-		}
-		if len(roleScopeTagIds) > 0 {
-			requestBody.SetRoleScopeTagIds(roleScopeTagIds)
-		}
-	}
-
-	if data.LargeIcon.Type != types.StringNull() && data.LargeIcon.Value != types.StringNull() {
+	// Handle large icon
+	if !data.LargeIcon.Type.IsNull() && !data.LargeIcon.Value.IsNull() {
 		largeIcon := graphmodels.NewMimeContent()
-		//largeIcon.SetType(data.LargeIcon.Type.ValueStringPointer()) // TODO: field not in sdk yet, but is in data model
 		largeIcon.SetValue([]byte(data.LargeIcon.Value.ValueString()))
 		requestBody.SetLargeIcon(largeIcon)
 	}
 
+	// Handle included apps
 	if len(data.IncludedApps) > 0 {
 		includedApps := make([]graphmodels.MacOSIncludedAppable, 0, len(data.IncludedApps))
 		for _, v := range data.IncludedApps {
 			includedApp := graphmodels.NewMacOSIncludedApp()
-			includedApp.SetBundleId(v.BundleId.ValueStringPointer())
-			includedApp.SetBundleVersion(v.BundleVersion.ValueStringPointer())
+			constructors.SetStringProperty(v.BundleId, includedApp.SetBundleId)
+			constructors.SetStringProperty(v.BundleVersion, includedApp.SetBundleVersion)
 			includedApps = append(includedApps, includedApp)
 		}
 		requestBody.SetIncludedApps(includedApps)
 	}
 
+	// Handle minimum OS version
 	minOS := graphmodels.NewMacOSMinimumOperatingSystem()
-	minOS.SetV107(data.MinimumSupportedOperatingSystem.V10_7.ValueBoolPointer())
-	minOS.SetV108(data.MinimumSupportedOperatingSystem.V10_8.ValueBoolPointer())
-	minOS.SetV109(data.MinimumSupportedOperatingSystem.V10_9.ValueBoolPointer())
-	minOS.SetV1010(data.MinimumSupportedOperatingSystem.V10_10.ValueBoolPointer())
-	minOS.SetV1011(data.MinimumSupportedOperatingSystem.V10_11.ValueBoolPointer())
-	minOS.SetV1012(data.MinimumSupportedOperatingSystem.V10_12.ValueBoolPointer())
-	minOS.SetV1013(data.MinimumSupportedOperatingSystem.V10_13.ValueBoolPointer())
-	minOS.SetV1014(data.MinimumSupportedOperatingSystem.V10_14.ValueBoolPointer())
-	minOS.SetV1015(data.MinimumSupportedOperatingSystem.V10_15.ValueBoolPointer())
-	minOS.SetV110(data.MinimumSupportedOperatingSystem.V11_0.ValueBoolPointer())
-	minOS.SetV120(data.MinimumSupportedOperatingSystem.V12_0.ValueBoolPointer())
-	minOS.SetV130(data.MinimumSupportedOperatingSystem.V13_0.ValueBoolPointer())
-	minOS.SetV140(data.MinimumSupportedOperatingSystem.V14_0.ValueBoolPointer())
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_7, minOS.SetV107)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_8, minOS.SetV108)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_9, minOS.SetV109)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_10, minOS.SetV1010)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_11, minOS.SetV1011)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_12, minOS.SetV1012)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_13, minOS.SetV1013)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_14, minOS.SetV1014)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V10_15, minOS.SetV1015)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V11_0, minOS.SetV110)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V12_0, minOS.SetV120)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V13_0, minOS.SetV130)
+	constructors.SetBoolProperty(data.MinimumSupportedOperatingSystem.V14_0, minOS.SetV140)
 	requestBody.SetMinimumSupportedOperatingSystem(minOS)
 
-	if data.PreInstallScript.ScriptContent != types.StringNull() {
+	// Handle pre/post install scripts
+	if !data.PreInstallScript.ScriptContent.IsNull() {
 		preInstallScript := graphmodels.NewMacOSAppScript()
-		preInstallScript.SetScriptContent(data.PreInstallScript.ScriptContent.ValueStringPointer())
+		constructors.SetStringProperty(data.PreInstallScript.ScriptContent, preInstallScript.SetScriptContent)
 		requestBody.SetPreInstallScript(preInstallScript)
 	}
 
-	if data.PostInstallScript.ScriptContent != types.StringNull() {
+	if !data.PostInstallScript.ScriptContent.IsNull() {
 		postInstallScript := graphmodels.NewMacOSAppScript()
-		postInstallScript.SetScriptContent(data.PostInstallScript.ScriptContent.ValueStringPointer())
+		constructors.SetStringProperty(data.PostInstallScript.ScriptContent, postInstallScript.SetScriptContent)
 		requestBody.SetPostInstallScript(postInstallScript)
 	}
 

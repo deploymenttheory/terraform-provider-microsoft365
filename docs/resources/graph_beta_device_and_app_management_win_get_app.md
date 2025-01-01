@@ -12,6 +12,66 @@ Manages an Intune Microsoft Store app (new) resource aka winget, using the mobil
 ## Example Usage
 
 ```terraform
+resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsapp" {
+  package_identifier              = "9NKSQGP7F2NH" # The unique identifier for the app obtained from msft app store
+  automatically_generate_metadata = true
+
+  # Install experience settings
+  install_experience = {
+    run_as_account = "user" # Can be 'system' or 'user'
+  }
+
+  role_scope_tag_ids = ["0"]
+
+  # Optional fields
+  is_featured             = true
+  privacy_information_url = "https://privacy.example.com"
+  information_url         = "https://info.example.com"
+  owner                   = "example-owner"
+  developer               = "example-developer"
+  notes                   = "Some relevant notes for this app."
+
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "10m"
+    update = "10m"
+    delete = "5m"
+  }
+}
+
+resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "Adobe_Acrobat_Reader_DC" {
+  package_identifier              = "xpdp273c0xhqh2" # The unique identifier for the app obtained from msft app store
+  automatically_generate_metadata = false
+  display_name                    = "Adobe Acrobat Reader DC"
+  description                     = "Adobe Acrobat Reader DC is the free, trusted standard for viewing, printing, signing, and annotating PDFs. It's the only PDF viewer that can open and interact with all types of PDF content – including forms and multimedia."
+  publisher                       = "Adobe Inc."
+  large_icon = {
+    type  = "image/png"
+    value = filebase64("${path.module}/Adobe_Reader_XI_icon.png")
+  }
+  # Install experience settings
+  install_experience = {
+    run_as_account = "user" # Can be 'system' or 'user'
+  }
+
+  role_scope_tag_ids = ["0"]
+
+  # Optional fields
+  is_featured             = true
+  privacy_information_url = "https://privacy.example.com"
+  information_url         = "https://info.example.com"
+  owner                   = "example-owner"
+  developer               = "example-developer"
+  notes                   = "Some relevant notes for this app."
+
+  # Optional: Define custom timeouts
+  timeouts = {
+    create = "10m"
+    update = "10m"
+    delete = "5m"
+  }
+}
+
 resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual_studio_code" {
   package_identifier = "XP9KHM4BK9FZ7Q" # The unique identifier for the app obtained from msft app store
 

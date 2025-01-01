@@ -24,7 +24,7 @@ type MacOSPkgAppResourceModel struct {
 	UploadState                     types.Int64                              `tfsdk:"upload_state"`
 	PublishingState                 types.String                             `tfsdk:"publishing_state"`
 	IsAssigned                      types.Bool                               `tfsdk:"is_assigned"`
-	RoleScopeTagIds                 []types.String                           `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds                 types.List                               `tfsdk:"role_scope_tag_ids"`
 	DependentAppCount               types.Int64                              `tfsdk:"dependent_app_count"`
 	SupersedingAppCount             types.Int64                              `tfsdk:"superseding_app_count"`
 	SupersededAppCount              types.Int64                              `tfsdk:"superseded_app_count"`

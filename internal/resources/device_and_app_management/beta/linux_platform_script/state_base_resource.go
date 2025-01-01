@@ -21,9 +21,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformS
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+
+	// Handle base64 encoded script content
 	decoded, err := base64.StdEncoding.DecodeString(string(remoteResource.GetScriptContent()))
 	if err != nil {
 		tflog.Warn(ctx, "Failed to decode base64 script content", map[string]interface{}{
@@ -33,6 +35,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformS
 		return
 	}
 	data.ScriptContent = types.StringValue(string(decoded))
+
 	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
