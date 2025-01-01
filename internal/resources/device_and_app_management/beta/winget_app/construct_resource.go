@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -55,9 +55,9 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 		}
 	} else {
 		// Use the provided values from the model
-		construct.SetStringProperty(data.Description, requestBody.SetDescription)
-		construct.SetStringProperty(data.Publisher, requestBody.SetPublisher)
-		construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+		constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+		constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
+		constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 
 		if !data.LargeIcon.IsNull() {
 			largeIcon := graphmodels.NewMimeContent()
@@ -78,15 +78,15 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 		}
 	}
 
-	construct.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
-	construct.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
-	construct.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
-	construct.SetStringProperty(data.Owner, requestBody.SetOwner)
-	construct.SetStringProperty(data.Developer, requestBody.SetDeveloper)
-	construct.SetStringProperty(data.Notes, requestBody.SetNotes)
-	construct.SetStringProperty(data.ManifestHash, requestBody.SetManifestHash)
+	constructors.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
+	constructors.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	constructors.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
+	constructors.SetStringProperty(data.Owner, requestBody.SetOwner)
+	constructors.SetStringProperty(data.Developer, requestBody.SetDeveloper)
+	constructors.SetStringProperty(data.Notes, requestBody.SetNotes)
+	constructors.SetStringProperty(data.ManifestHash, requestBody.SetManifestHash)
 
-	if err := construct.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -113,7 +113,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 		requestBody.SetInstallExperience(installExperience)
 	}
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})

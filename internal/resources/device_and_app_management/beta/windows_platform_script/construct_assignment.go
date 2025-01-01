@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -63,7 +63,7 @@ func constructAssignment(ctx context.Context, data *WindowsPlatformScriptResourc
 	requestBody.SetDeviceManagementScriptAssignments(assignments)
 
 	// Debug log the final request body
-	if err := construct.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -99,7 +99,7 @@ func constructGroupIncludeAssignments(config *sharedmodels.DeviceManagementScrip
 			assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 			target := graphsdkmodels.NewGroupAssignmentTarget()
 
-			construct.SetStringProperty(groupId, target.SetGroupId)
+			constructors.SetStringProperty(groupId, target.SetGroupId)
 			assignment.SetTarget(target)
 			assignments = append(assignments, assignment)
 		}
@@ -127,7 +127,7 @@ func constructGroupExcludeAssignments(config *sharedmodels.DeviceManagementScrip
 				assignment := graphsdkmodels.NewDeviceManagementScriptAssignment()
 				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
 
-				construct.SetStringProperty(groupId, target.SetGroupId)
+				constructors.SetStringProperty(groupId, target.SetGroupId)
 
 				assignment.SetTarget(target)
 				assignments = append(assignments, assignment)
