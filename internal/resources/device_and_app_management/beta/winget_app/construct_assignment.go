@@ -482,7 +482,7 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 
 func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsAppXAppAssignmentSettings, error) {
 	if data == nil {
-		return nil, fmt.Errorf("Windows AppX App data is required")
+		return nil, fmt.Errorf("windows AppX App data is required")
 	}
 
 	settings := graphmodels.NewWindowsAppXAppAssignmentSettings()
@@ -494,7 +494,7 @@ func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssign
 
 func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsUniversalAppXAppAssignmentSettings, error) {
 	if data == nil {
-		return nil, fmt.Errorf("Windows Universal AppX App data is required")
+		return nil, fmt.Errorf("windows Universal AppX App data is required")
 	}
 
 	settings := graphmodels.NewWindowsUniversalAppXAppAssignmentSettings()
@@ -506,7 +506,7 @@ func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsU
 
 func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignmentSettingsResourceModel) (*graphmodels.WinGetAppAssignmentSettings, error) {
 	if data == nil {
-		return nil, fmt.Errorf("WinGet settings data is required")
+		return nil, fmt.Errorf("winGet settings data is required")
 	}
 
 	settings := graphmodels.NewWinGetAppAssignmentSettings()
