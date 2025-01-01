@@ -13,191 +13,530 @@ import (
 )
 
 // constructAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *WinGetAppResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
-	if data.Assignments == nil {
-		return nil, fmt.Errorf("mobile app assignments configuration block is required")
+func constructAssignment(ctx context.Context, data *sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
+	if data == nil {
+		return nil, fmt.Errorf("mobile app assignment data is required")
 	}
 
-	tflog.Debug(ctx, "Starting mobile app assignment construction")
+	tflog.Debug(ctx, "Starting assignment construction")
 
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	var assignments []graphmodels.MobileAppAssignmentable
 
-	// Process each assignment
-	for _, assignment := range data.Assignments.MobileAppAssignments {
-		mobileAppAssignment := graphmodels.NewMobileAppAssignment()
+	assignment := graphmodels.NewMobileAppAssignment()
 
-		// Set Target
-		target, err := constructTarget(ctx, assignment.Target)
+	// Set Intent
+	if !data.Intent.IsNull() {
+		intentValue, err := graphmodels.ParseInstallIntent(data.Intent.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("error constructing target: %v", err)
+			return nil, fmt.Errorf("error parsing install intent: %v", err)
 		}
-		mobileAppAssignment.SetTarget(target)
-
-		// Set Intent
-		if !assignment.Intent.IsNull() {
-			intentValue, err := graphmodels.ParseInstallIntent(assignment.Intent.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing install intent: %v", err)
-			}
-			intent := intentValue.(*graphmodels.InstallIntent)
-			mobileAppAssignment.SetIntent(intent)
-		}
-
-		// Set Source if specified
-		if !assignment.Source.IsNull() {
-			sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(
-				assignment.Source.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing source: %v", err)
-			}
-			source := sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource)
-			mobileAppAssignment.SetSource(source)
-		}
-
-		// Set SourceId if specified
-		if !assignment.SourceId.IsNull() {
-			sourceId := assignment.SourceId.ValueString()
-			mobileAppAssignment.SetSourceId(&sourceId)
-		}
-
-		// Set Settings if present
-		if assignment.Settings != nil {
-			settings, err := constructSettings(ctx, assignment.Settings)
-			if err != nil {
-				return nil, fmt.Errorf("error constructing settings: %v", err)
-			}
-			mobileAppAssignment.SetSettings(settings)
-		}
-
-		assignments = append(assignments, mobileAppAssignment)
+		assignment.SetIntent(intentValue.(*graphmodels.InstallIntent))
 	}
+
+	// Set Target
+	target, err := constructAssignmentTarget(ctx, &data.Target)
+	if err != nil {
+		return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
+	}
+	assignment.SetTarget(target)
+
+	// Set Source
+	if !data.Source.IsNull() {
+		sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("error parsing source: %v", err)
+		}
+		assignment.SetSource(sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource))
+	}
+
+	// Set SourceId
+	if !data.SourceId.IsNull() {
+		id := data.SourceId.ValueString()
+		assignment.SetSourceId(&id)
+	}
+
+	// Set Settings
+	settings, err := constructMobileAppAssignmentSettings(ctx, &data.Settings)
+	if err != nil {
+		return nil, fmt.Errorf("error constructing settings: %v", err)
+	}
+	if settings != nil {
+		assignment.SetSettings(settings)
+	}
+
+	assignments = append(assignments, assignment)
 
 	requestBody.SetMobileAppAssignments(assignments)
 
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
+	tflog.Debug(ctx, "Finished constructing assignment request body")
 	return requestBody, nil
 }
 
-// constructTarget constructs and returns a DeviceAndAppManagementAssignmentTargetable
-func constructTarget(ctx context.Context, targetConfig sharedmodels.Target) (graphmodels.DeviceAndAppManagementAssignmentTargetable, error) {
+// constructAssignmentTarget constructs and returns a DeviceAndAppManagementAssignmentTargetable
+func constructAssignmentTarget(ctx context.Context, data *sharedmodels.AssignmentTargetResourceModel) (graphmodels.DeviceAndAppManagementAssignmentTargetable, error) {
+	if data == nil {
+		return nil, fmt.Errorf("assignment target data is required")
+	}
 
-	setFilterProperties := func(target graphmodels.DeviceAndAppManagementAssignmentTargetable) error {
-		if !targetConfig.DeviceAndAppManagementAssignmentFilterID.IsNull() {
-			filterId := targetConfig.DeviceAndAppManagementAssignmentFilterID.ValueString()
-			target.SetDeviceAndAppManagementAssignmentFilterId(&filterId)
+	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
 
-			if !targetConfig.DeviceAndAppManagementAssignmentFilterType.IsNull() {
-				filterType, err := graphmodels.ParseDeviceAndAppManagementAssignmentFilterType(
-					targetConfig.DeviceAndAppManagementAssignmentFilterType.ValueString())
-				if err != nil {
-					tflog.Warn(ctx, "Failed to parse assignment filter type", map[string]interface{}{
-						"error": err.Error(),
-					})
-				}
-				filterTypeValue := filterType.(*graphmodels.DeviceAndAppManagementAssignmentFilterType)
-				target.SetDeviceAndAppManagementAssignmentFilterType(filterTypeValue)
-			}
+	targetType := data.DeviceAndAppManagementAssignmentFilterType.ValueString()
+
+	switch targetType {
+	case "allDevicesAssignmentTarget":
+		target = graphmodels.NewAllDevicesAssignmentTarget()
+	case "allLicensedUsersAssignmentTarget":
+		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
+	case "androidFotaDeploymentAssignmentTarget":
+		target = graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
+	case "configurationManagerCollectionAssignmentTarget":
+		target = graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
+	case "exclusionGroupAssignmentTarget":
+		target = graphmodels.NewExclusionGroupAssignmentTarget()
+	case "groupAssignmentTarget":
+		target = graphmodels.NewGroupAssignmentTarget()
+	default:
+		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()
+	}
+
+	if !data.DeviceAndAppManagementAssignmentFilterId.IsNull() {
+		id := data.DeviceAndAppManagementAssignmentFilterId.ValueString()
+		target.SetDeviceAndAppManagementAssignmentFilterId(&id)
+	}
+
+	if !data.DeviceAndAppManagementAssignmentFilterType.IsNull() {
+		filterType, err := graphmodels.ParseDeviceAndAppManagementAssignmentFilterType(targetType)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing filter type: %v", err)
 		}
-		return nil
+		target.SetDeviceAndAppManagementAssignmentFilterType(filterType.(*graphmodels.DeviceAndAppManagementAssignmentFilterType))
 	}
 
-	if targetConfig.IsExclusionGroup.ValueBool() {
-		target := graphmodels.NewExclusionGroupAssignmentTarget()
-		odataType := "#microsoft.graph.exclusionGroupAssignmentTarget"
-		target.SetOdataType(&odataType)
-
-		if !targetConfig.GroupID.IsNull() {
-			groupId := targetConfig.GroupID.ValueString()
-			target.SetGroupId(&groupId)
-		}
-
-		if err := setFilterProperties(target); err != nil {
-			return nil, err
-		}
-
-		return target, nil
-	}
-
-	target := graphmodels.NewGroupAssignmentTarget()
-	odataType := "#microsoft.graph.groupAssignmentTarget"
-	target.SetOdataType(&odataType)
-
-	if !targetConfig.GroupID.IsNull() {
-		groupId := targetConfig.GroupID.ValueString()
-		target.SetGroupId(&groupId)
-	}
-
-	if err := setFilterProperties(target); err != nil {
-		return nil, err
-	}
+	tflog.Debug(ctx, "Finished constructing assignment target")
 
 	return target, nil
 }
 
-// constructSettings constructs and returns a WinGetAppAssignmentSettings
-func constructSettings(ctx context.Context, settingsConfig *sharedmodels.WinGetAppAssignmentSettings) (graphmodels.MobileAppAssignmentSettingsable, error) {
-	settings := graphmodels.NewWinGetAppAssignmentSettings()
-
-	// Set @odata.type for WinGet settings
-	odataType := "#microsoft.graph.winGetAppAssignmentSettings"
-	settings.SetOdataType(&odataType)
-
-	// Set notifications
-	if !settingsConfig.Notifications.IsNull() {
-		notificationValue, err := graphmodels.ParseWinGetAppNotification(
-			settingsConfig.Notifications.ValueString())
-		if err != nil {
-			tflog.Warn(ctx, "Failed to parse notification type", map[string]interface{}{
-				"error": err.Error(),
-			})
-		}
-		notification := notificationValue.(*graphmodels.WinGetAppNotification)
-		settings.SetNotifications(notification)
+func constructMobileAppAssignmentSettings(ctx context.Context, data *sharedmodels.MobileAppAssignmentSettingsResourceModel) (graphmodels.MobileAppAssignmentSettingsable, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	// Set install time settings if present
-	if settingsConfig.InstallTimeSettings != nil {
-		installTimeSettings := graphmodels.NewWinGetAppInstallTimeSettings()
+	tflog.Debug(ctx, "Constructing mobile app assignment settings")
 
-		if !settingsConfig.InstallTimeSettings.UseLocalTime.IsNull() {
-			useLocalTime := settingsConfig.InstallTimeSettings.UseLocalTime.ValueBool()
-			installTimeSettings.SetUseLocalTime(&useLocalTime)
+	// Handle Android Managed Store settings
+	if data.AndroidManagedStore != nil {
+		settings, err := constructAndroidManagedStoreAppAssignmentSettings(ctx, data.AndroidManagedStore)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Android Managed Store app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle iOS Lob App settings
+	if data.IosLob != nil {
+		settings, err := constructIosLobAppAssignmentSettings(data.IosLob)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing iOS Lob app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle iOS Store App settings
+	if data.IosStore != nil {
+		settings, err := constructIosStoreAppAssignmentSettings(data.IosStore)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing iOS Store app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle iOS VPP App settings
+	if data.IosVpp != nil {
+		settings, err := constructIosVppAppAssignmentSettings(data.IosVpp)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing iOS VPP app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle MacOS Lob App settings
+	if data.MacOsLob != nil {
+		settings := graphmodels.NewMacOsLobAppAssignmentSettings()
+
+		// Set UninstallOnDeviceRemoval
+		if !data.MacOsLob.UninstallOnDeviceRemoval.IsNull() {
+			settings.SetUninstallOnDeviceRemoval(data.MacOsLob.UninstallOnDeviceRemoval.ValueBoolPointer())
 		}
 
-		if !settingsConfig.InstallTimeSettings.DeadlineDateTime.IsNull() {
-			deadlineStr := settingsConfig.InstallTimeSettings.DeadlineDateTime.ValueString()
-			if deadline, err := time.Parse(time.RFC3339, deadlineStr); err == nil {
-				installTimeSettings.SetDeadlineDateTime(&deadline)
+		return settings, nil
+	}
+
+	// Handle MacOS VPP App settings
+	if data.MacOsVpp != nil {
+		settings, err := constructMacOsVppAppAssignmentSettings(data.MacOsVpp)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing MacOS VPP app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle Microsoft Store for Business App settings
+	if data.MicrosoftStoreForBusiness != nil {
+		settings, err := constructMicrosoftStoreForBusinessAppAssignmentSettings(data.MicrosoftStoreForBusiness)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Microsoft Store for Business app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle Win32Catalog assignment settings
+	if data.Win32Catalog != nil {
+		settings, err := constructWin32CatalogAppAssignmentSettings(data.Win32Catalog)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Win32Catalog app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle Win32 LOB App settings
+	if data.Win32Lob != nil {
+		settings, err := constructWin32LobAppAssignmentSettings(data.Win32Lob)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Win32 LOB app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle Windows AppX App settings
+	if data.WindowsAppX != nil {
+		settings, err := constructWindowsAppXAssignmentSettings(data.WindowsAppX)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Windows AppX app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle Windows Universal AppX App settings
+	if data.WindowsUniversalAppX != nil {
+		settings, err := constructWindowsUniversalAppXAssignmentSettings(data.WindowsUniversalAppX)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing Windows Universal AppX app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	// Handle WinGet settings
+	if data.WinGet != nil {
+		settings, err := constructWinGetAppAssignmentSettings(data.WinGet)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing WinGet app assignment settings: %v", err)
+		}
+		return settings, nil
+	}
+
+	return nil, nil
+}
+
+func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data *sharedmodels.AndroidManagedStoreAssignmentSettingsResourceModel) (*graphmodels.AndroidManagedStoreAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("android Managed Store data is required")
+	}
+
+	settings := graphmodels.NewAndroidManagedStoreAppAssignmentSettings()
+
+	// Set Android Managed Store App Track IDs
+	err := constructors.SetStringList(ctx, data.AndroidManagedStoreAppTrackIds, settings.SetAndroidManagedStoreAppTrackIds)
+	if err != nil {
+		return nil, fmt.Errorf("error setting Android Managed Store App Track IDs: %v", err)
+	}
+
+	// Set Auto Update Mode
+	err = constructors.SetEnumProperty[*graphmodels.AndroidManagedStoreAutoUpdateMode](
+		data.AutoUpdateMode,
+		graphmodels.ParseAndroidManagedStoreAutoUpdateMode,
+		settings.SetAutoUpdateMode,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error setting auto update mode: %v", err)
+	}
+
+	return settings, nil
+}
+
+func constructIosLobAppAssignmentSettings(data *sharedmodels.IosLobAppAssignmentSettingsResourceModel) (*graphmodels.IosLobAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("iOS Lob App data is required")
+	}
+
+	settings := graphmodels.NewIosLobAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
+	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+
+	return settings, nil
+}
+
+func constructIosStoreAppAssignmentSettings(data *sharedmodels.IosStoreAppAssignmentSettingsResourceModel) (*graphmodels.IosStoreAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("iOS Store App data is required")
+	}
+
+	settings := graphmodels.NewIosStoreAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
+	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+
+	return settings, nil
+}
+
+func constructIosVppAppAssignmentSettings(data *sharedmodels.IosVppAppAssignmentSettingsResourceModel) (*graphmodels.IosVppAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("iOS VPP App data is required")
+	}
+
+	settings := graphmodels.NewIosVppAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
+	constructors.SetBoolProperty(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
+	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	constructors.SetBoolProperty(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
+	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+
+	return settings, nil
+}
+
+func constructMacOsVppAppAssignmentSettings(data *sharedmodels.MacOsVppAppAssignmentSettingsResourceModel) (*graphmodels.MacOsVppAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("MacOS VPP App data is required")
+	}
+
+	settings := graphmodels.NewMacOsVppAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
+	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	constructors.SetBoolProperty(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
+
+	return settings, nil
+}
+
+func constructMicrosoftStoreForBusinessAppAssignmentSettings(data *sharedmodels.MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel) (*graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("microsoft Store for Business App data is required")
+	}
+
+	settings := graphmodels.NewMicrosoftStoreForBusinessAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+
+	return settings, nil
+}
+
+func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogAppAssignmentSettingsResourceModel) (*graphmodels.Win32CatalogAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("Win32Catalog App data is required")
+	}
+
+	settings := graphmodels.NewWin32CatalogAppAssignmentSettings()
+
+	// Set AutoUpdateSettings
+	if data.AutoUpdateSettings != nil {
+		autoUpdateSettings := graphmodels.NewWin32LobAppAutoUpdateSettings()
+
+		err := constructors.SetEnumProperty(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
+		if err != nil {
+			return nil, fmt.Errorf("error setting AutoUpdateSupersededAppsState: %v", err)
+		}
+
+		settings.SetAutoUpdateSettings(autoUpdateSettings)
+	}
+
+	// Set DeliveryOptimizationPriority
+	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
+	if err != nil {
+		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
+	}
+
+	// Set InstallTimeSettings
+	if data.InstallTimeSettings != nil {
+		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
+
+		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+			parsedDeadline, err := time.Parse(time.RFC3339, *value)
+			if err == nil {
+				installTimeSettings.SetDeadlineDateTime(&parsedDeadline)
 			}
-		}
+		})
+
+		constructors.SetStringProperty(data.InstallTimeSettings.StartDateTime, func(value *string) {
+			parsedStart, err := time.Parse(time.RFC3339, *value)
+			if err == nil {
+				installTimeSettings.SetStartDateTime(&parsedStart)
+			}
+		})
+
+		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
 
 		settings.SetInstallTimeSettings(installTimeSettings)
 	}
 
-	// Set restart settings if present
-	if settingsConfig.RestartSettings != nil {
+	// Set Notifications
+	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("error setting Notifications: %v", err)
+	}
+
+	// Set RestartSettings
+	if data.RestartSettings != nil {
+		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
+
+		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.GracePeriod, restartSettings.SetGracePeriodInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
+
+		settings.SetRestartSettings(restartSettings)
+	}
+
+	return settings, nil
+}
+
+func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssignmentSettingsResourceModel) (*graphmodels.Win32LobAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("Win32 LOB App data is required")
+	}
+
+	settings := graphmodels.NewWin32LobAppAssignmentSettings()
+
+	// Handle AutoUpdateSettings
+	if data.AutoUpdateSettings != nil {
+		autoUpdateSettings := graphmodels.NewWin32LobAppAutoUpdateSettings()
+
+		err := constructors.SetEnumProperty(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
+		if err != nil {
+			return nil, fmt.Errorf("error setting AutoUpdateSupersededAppsState: %v", err)
+		}
+
+		settings.SetAutoUpdateSettings(autoUpdateSettings)
+	}
+
+	// Handle DeliveryOptimizationPriority
+	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
+	if err != nil {
+		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
+	}
+
+	// Handle InstallTimeSettings
+	if data.InstallTimeSettings != nil {
+		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
+
+		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+			parsedDeadline, err := time.Parse(time.RFC3339, *value)
+			if err == nil {
+				installTimeSettings.SetDeadlineDateTime(&parsedDeadline)
+			}
+		})
+
+		constructors.SetStringProperty(data.InstallTimeSettings.StartDateTime, func(value *string) {
+			parsedStart, err := time.Parse(time.RFC3339, *value)
+			if err == nil {
+				installTimeSettings.SetStartDateTime(&parsedStart)
+			}
+		})
+
+		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
+
+		settings.SetInstallTimeSettings(installTimeSettings)
+	}
+
+	// Handle Notifications
+	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("error setting Notifications: %v", err)
+	}
+
+	if data.RestartSettings != nil {
+		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
+
+		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.GracePeriod, restartSettings.SetGracePeriodInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
+
+		settings.SetRestartSettings(restartSettings)
+	}
+
+	return settings, nil
+}
+
+func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsAppXAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("Windows AppX App data is required")
+	}
+
+	settings := graphmodels.NewWindowsAppXAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+
+	return settings, nil
+}
+
+func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsUniversalAppXAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("Windows Universal AppX App data is required")
+	}
+
+	settings := graphmodels.NewWindowsUniversalAppXAppAssignmentSettings()
+
+	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+
+	return settings, nil
+}
+
+func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignmentSettingsResourceModel) (*graphmodels.WinGetAppAssignmentSettings, error) {
+	if data == nil {
+		return nil, fmt.Errorf("WinGet settings data is required")
+	}
+
+	settings := graphmodels.NewWinGetAppAssignmentSettings()
+
+	if data.InstallTimeSettings != nil {
+		installSettings := graphmodels.NewWinGetAppInstallTimeSettings()
+
+		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+			parsedDeadline, err := time.Parse(time.RFC3339, *value)
+			if err == nil {
+				installSettings.SetDeadlineDateTime(&parsedDeadline)
+			}
+		})
+
+		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installSettings.SetUseLocalTime)
+
+		settings.SetInstallTimeSettings(installSettings)
+	}
+
+	err := constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWinGetAppNotification, settings.SetNotifications)
+	if err != nil {
+		return nil, fmt.Errorf("error setting Notifications: %v", err)
+	}
+
+	if data.RestartSettings != nil {
 		restartSettings := graphmodels.NewWinGetAppRestartSettings()
 
-		if !settingsConfig.RestartSettings.GracePeriodInMinutes.IsNull() {
-			gracePeriod := int32(settingsConfig.RestartSettings.GracePeriodInMinutes.ValueInt64())
-			restartSettings.SetGracePeriodInMinutes(&gracePeriod)
-		}
-
-		if !settingsConfig.RestartSettings.CountdownDisplayBeforeRestartInMinutes.IsNull() {
-			countdown := int32(settingsConfig.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt64())
-			restartSettings.SetCountdownDisplayBeforeRestartInMinutes(&countdown)
-		}
-
-		if !settingsConfig.RestartSettings.RestartNotificationSnoozeDurationInMinutes.IsNull() {
-			snooze := int32(settingsConfig.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt64())
-			restartSettings.SetRestartNotificationSnoozeDurationInMinutes(&snooze)
-		}
+		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestartInMinutes, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDurationInMinutes, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
 	}
