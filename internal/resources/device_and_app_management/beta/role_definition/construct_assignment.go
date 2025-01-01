@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -55,7 +55,7 @@ func constructAssignment(ctx context.Context, data *RoleDefinitionResourceModel)
 			requestBody.SetScopeType(scopeType)
 		}
 	}
-	if err := construct.DebugLogGraphObject(ctx, "Role Assignment request body", requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, "Role Assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),
 		})

@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -59,7 +60,7 @@ func constructResource(ctx context.Context, data *EndpointPrivilegeManagementRes
 		requestBody.SetRoleScopeTagIds([]string{"0"})
 	}
 
-	settings := construct.ConstructSettingsCatalogSettings(ctx, data.Settings)
+	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
 	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

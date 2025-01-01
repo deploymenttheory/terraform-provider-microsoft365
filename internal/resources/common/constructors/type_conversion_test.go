@@ -1,4 +1,4 @@
-package construct
+package constructors
 
 import (
 	"errors"

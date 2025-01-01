@@ -1,4 +1,4 @@
-package construct
+package constructors
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
-// Helper function to serialize and debug log Microsoft Graph objects that implement serialization.Parsable.
+// DebugLogGraphObject is a helper function to serialize and debug log Microsoft Graph objects that
+// implement serialization.Parsable.
 // This function takes a Microsoft Graph object (like a policy, device configuration, etc.) and converts it
 // into a human-readable JSON format before it gets sent to Microsoft's API. It's like taking a snapshot of
 // what we're about to send.

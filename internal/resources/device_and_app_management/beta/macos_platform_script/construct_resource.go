@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,29 +16,29 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 
 	requestBody := graphmodels.NewDeviceShellScript()
 
-	construct.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	construct.SetStringProperty(data.Description, requestBody.SetDescription)
-	construct.SetBytesProperty(data.ScriptContent, requestBody.SetScriptContent)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	constructors.SetBytesProperty(data.ScriptContent, requestBody.SetScriptContent)
 
-	if err := construct.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
+	if err := constructors.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
 		return nil, fmt.Errorf("invalid run as account type: %s", err)
 	}
 
-	construct.SetStringProperty(data.FileName, requestBody.SetFileName)
+	constructors.SetStringProperty(data.FileName, requestBody.SetFileName)
 
-	if err := construct.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	construct.SetBoolProperty(data.BlockExecutionNotifications, requestBody.SetBlockExecutionNotifications)
+	constructors.SetBoolProperty(data.BlockExecutionNotifications, requestBody.SetBlockExecutionNotifications)
 
-	if err := construct.SetISODurationProperty(data.ExecutionFrequency, requestBody.SetExecutionFrequency); err != nil {
+	if err := constructors.SetISODurationProperty(data.ExecutionFrequency, requestBody.SetExecutionFrequency); err != nil {
 		return nil, fmt.Errorf("error setting execution frequency: %v", err)
 	}
 
-	construct.SetInt32Property(data.RetryCount, requestBody.SetRetryCount)
+	constructors.SetInt32Property(data.RetryCount, requestBody.SetRetryCount)
 
-	if err := construct.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})

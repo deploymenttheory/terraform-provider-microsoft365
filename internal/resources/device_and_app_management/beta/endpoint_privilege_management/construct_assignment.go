@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/construct"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -64,7 +64,7 @@ func constructAssignment(ctx context.Context, data *EndpointPrivilegeManagementR
 	requestBody.SetAssignments(assignments)
 
 	// Debug log the final request body
-	if err := construct.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -80,10 +80,10 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Set
 
 	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
 		config.AllDevicesFilterId.ValueString() != "" {
-		construct.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		constructors.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
-			err := construct.SetEnumProperty(config.AllDevicesFilterType,
+			err := constructors.SetEnumProperty(config.AllDevicesFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -105,10 +105,10 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Setti
 
 	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
 		config.AllUsersFilterId.ValueString() != "" {
-		construct.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		constructors.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
-			err := construct.SetEnumProperty(config.AllUsersFilterType,
+			err := constructors.SetEnumProperty(config.AllUsersFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -131,13 +131,13 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 		assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 		target := graphsdkmodels.NewGroupAssignmentTarget()
 
-		construct.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
+		constructors.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
 
 		if !groupFilter.IncludeGroupsFilterId.IsNull() && !groupFilter.IncludeGroupsFilterType.IsNull() {
-			construct.SetStringProperty(groupFilter.IncludeGroupsFilterId,
+			constructors.SetStringProperty(groupFilter.IncludeGroupsFilterId,
 				target.SetDeviceAndAppManagementAssignmentFilterId)
 
-			err := construct.SetEnumProperty(groupFilter.IncludeGroupsFilterType,
+			err := constructors.SetEnumProperty(groupFilter.IncludeGroupsFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -175,7 +175,7 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
 
 				// Use construct helper for setting the group ID
-				construct.SetStringProperty(groupId, target.SetGroupId)
+				constructors.SetStringProperty(groupId, target.SetGroupId)
 
 				assignment.SetTarget(target)
 				assignments = append(assignments, assignment)
