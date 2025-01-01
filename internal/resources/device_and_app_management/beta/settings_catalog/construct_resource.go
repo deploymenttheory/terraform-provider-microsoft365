@@ -17,11 +17,8 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	Name := data.Name.ValueString()
-	requestBody.SetName(&Name)
-
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
+	constructors.SetStringProperty(data.Name, requestBody.SetName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
 	platformStr := data.Platforms.ValueString()
 	var platform graphmodels.DeviceManagementConfigurationPlatforms
@@ -52,14 +49,8 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
 	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
 
-	if len(data.RoleScopeTagIds) > 0 {
-		var tagIds []string
-		for _, tag := range data.RoleScopeTagIds {
-			tagIds = append(tagIds, tag.ValueString())
-		}
-		requestBody.SetRoleScopeTagIds(tagIds)
-	} else {
-		requestBody.SetRoleScopeTagIds([]string{"0"})
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)

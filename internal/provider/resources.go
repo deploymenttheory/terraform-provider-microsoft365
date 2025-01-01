@@ -20,7 +20,6 @@ import (
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_device_image"
 	graphDeviceAndAppManagementCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_provisioning_policy"
 	graphDeviceAndAppManagementCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/cloud_pc_user_setting"
-	graphDeviceAndAppManagementRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/v1.0/role_definition"
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/beta/conditional_access_policy"
@@ -60,7 +59,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
-		graphDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
 		// Add microsoft 365 provider resources here
 	}
 }

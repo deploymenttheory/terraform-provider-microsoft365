@@ -16,7 +16,7 @@ type WindowsPlatformScriptResourceModel struct {
 	RunAsAccount          types.String                                                `tfsdk:"run_as_account"`
 	EnforceSignatureCheck types.Bool                                                  `tfsdk:"enforce_signature_check"`
 	FileName              types.String                                                `tfsdk:"file_name"`
-	RoleScopeTagIds       []types.String                                              `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds       types.List                                                  `tfsdk:"role_scope_tag_ids"`
 	RunAs32Bit            types.Bool                                                  `tfsdk:"run_as_32_bit"`
 	Assignments           *sharedmodels.DeviceManagementScriptAssignmentResourceModel `tfsdk:"assignments"`
 	Timeouts              timeouts.Value                                              `tfsdk:"timeouts"`

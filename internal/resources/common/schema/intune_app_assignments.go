@@ -15,7 +15,7 @@ func IntuneMobileAppAssignmentsSchema() schema.SingleNestedAttribute {
 			},
 			"mobile_app_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the mobile app associated with this assignment.",
-				Required:            true,
+				Computed:            true,
 			},
 			"mobile_app_assignments": schema.ListNestedAttribute{
 				MarkdownDescription: "List of assignments for the mobile app.",
@@ -32,7 +32,7 @@ func IntuneMobileAppAssignmentsSchema() schema.SingleNestedAttribute {
 						},
 						"source": schema.StringAttribute{
 							MarkdownDescription: "The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.",
-							Computed:            true,
+							Required:            true,
 						},
 						"source_id": schema.StringAttribute{
 							MarkdownDescription: "The identifier of the source of the assignment. This property is read-only.",

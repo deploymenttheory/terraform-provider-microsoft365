@@ -57,7 +57,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+		requestAssignment, err := constructAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -225,8 +225,8 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	if object.Assignments != nil && state.Assignments != nil && !state.Assignments.ID.IsNull() {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if object.Assignments != nil && state.Assignments != nil && !state.ID.IsNull() {
+		requestAssignment, err := constructAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",

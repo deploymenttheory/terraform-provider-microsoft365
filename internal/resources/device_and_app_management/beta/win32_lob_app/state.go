@@ -11,6 +11,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteStateToTerraform maps the remote state to the win32lobapp to Terraform state
 func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceModel, remoteResource graphmodels.Win32LobAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
@@ -21,25 +22,25 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.Publisher = types.StringValue(state.StringPtrToString(remoteResource.GetPublisher()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+	data.Publisher = types.StringPointerValue(remoteResource.GetPublisher())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.IsFeatured = state.BoolPtrToTypeBool(remoteResource.GetIsFeatured())
-	data.PrivacyInformationUrl = types.StringValue(state.StringPtrToString(remoteResource.GetPrivacyInformationUrl()))
-	data.InformationUrl = types.StringValue(state.StringPtrToString(remoteResource.GetInformationUrl()))
-	data.Owner = types.StringValue(state.StringPtrToString(remoteResource.GetOwner()))
-	data.Developer = types.StringValue(state.StringPtrToString(remoteResource.GetDeveloper()))
-	data.Notes = types.StringValue(state.StringPtrToString(remoteResource.GetNotes()))
+	data.IsFeatured = types.BoolPointerValue(remoteResource.GetIsFeatured())
+	data.PrivacyInformationUrl = types.StringPointerValue(remoteResource.GetPrivacyInformationUrl())
+	data.InformationUrl = types.StringPointerValue(remoteResource.GetInformationUrl())
+	data.Owner = types.StringPointerValue(remoteResource.GetOwner())
+	data.Developer = types.StringPointerValue(remoteResource.GetDeveloper())
+	data.Notes = types.StringPointerValue(remoteResource.GetNotes())
 	data.UploadState = state.Int32PtrToTypeInt32(remoteResource.GetUploadState())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
-	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
+	data.IsAssigned = types.BoolPointerValue(remoteResource.GetIsAssigned())
 
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
 		data.LargeIcon = sharedmodels.MimeContentResourceModel{
-			Type:  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
+			Type:  types.StringPointerValue(largeIcon.GetTypeEscaped()),
 			Value: types.StringValue(state.ByteToString(largeIcon.GetValue())),
 		}
 	}
@@ -48,38 +49,38 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	data.DependentAppCount = state.Int32PtrToTypeInt32(remoteResource.GetDependentAppCount())
 	data.SupersedingAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersededAppCount())
-	data.CommittedContentVersion = types.StringValue(state.StringPtrToString(remoteResource.GetCommittedContentVersion()))
-	data.FileName = types.StringValue(state.StringPtrToString(remoteResource.GetFileName()))
+	data.CommittedContentVersion = types.StringPointerValue(remoteResource.GetCommittedContentVersion())
+	data.FileName = types.StringPointerValue(remoteResource.GetFileName())
 	data.Size = state.Int64PtrToTypeInt64(remoteResource.GetSize())
-	data.InstallCommandLine = types.StringValue(state.StringPtrToString(remoteResource.GetInstallCommandLine()))
-	data.UninstallCommandLine = types.StringValue(state.StringPtrToString(remoteResource.GetUninstallCommandLine()))
+	data.InstallCommandLine = types.StringPointerValue(remoteResource.GetInstallCommandLine())
+	data.UninstallCommandLine = types.StringPointerValue(remoteResource.GetUninstallCommandLine())
 	data.ApplicableArchitectures = state.EnumPtrToTypeString(remoteResource.GetApplicableArchitectures())
 	data.MinimumFreeDiskSpaceInMB = state.Int32PtrToTypeInt32(remoteResource.GetMinimumFreeDiskSpaceInMB())
 	data.MinimumMemoryInMB = state.Int32PtrToTypeInt32(remoteResource.GetMinimumMemoryInMB())
 	data.MinimumNumberOfProcessors = state.Int32PtrToTypeInt32(remoteResource.GetMinimumNumberOfProcessors())
 	data.MinimumCpuSpeedInMHz = state.Int32PtrToTypeInt32(remoteResource.GetMinimumCpuSpeedInMHz())
-	data.SetupFilePath = types.StringValue(state.StringPtrToString(remoteResource.GetSetupFilePath()))
-	data.MinimumSupportedWindowsRelease = types.StringValue(state.StringPtrToString(remoteResource.GetMinimumSupportedWindowsRelease()))
-	data.DisplayVersion = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayVersion()))
-	data.AllowAvailableUninstall = state.BoolPtrToTypeBool(remoteResource.GetAllowAvailableUninstall())
+	data.SetupFilePath = types.StringPointerValue(remoteResource.GetSetupFilePath())
+	data.MinimumSupportedWindowsRelease = types.StringPointerValue(remoteResource.GetMinimumSupportedWindowsRelease())
+	data.DisplayVersion = types.StringPointerValue(remoteResource.GetDisplayVersion())
+	data.AllowAvailableUninstall = types.BoolPointerValue(remoteResource.GetAllowAvailableUninstall())
 
-	// Handle MinimumSupportedOperatingSystem
+	// MinimumSupportedOperatingSystem
 	minOS := remoteResource.GetMinimumSupportedOperatingSystem()
 	if minOS != nil {
 		data.MinimumSupportedOperatingSystem = WindowsMinimumOperatingSystemResourceModel{
-			V8_0:     state.BoolPtrToTypeBool(minOS.GetV80()),
-			V8_1:     state.BoolPtrToTypeBool(minOS.GetV81()),
-			V10_0:    state.BoolPtrToTypeBool(minOS.GetV100()),
-			V10_1607: state.BoolPtrToTypeBool(minOS.GetV101607()),
-			V10_1703: state.BoolPtrToTypeBool(minOS.GetV101703()),
-			V10_1709: state.BoolPtrToTypeBool(minOS.GetV101709()),
-			V10_1803: state.BoolPtrToTypeBool(minOS.GetV101803()),
-			V10_1809: state.BoolPtrToTypeBool(minOS.GetV101809()),
-			V10_1903: state.BoolPtrToTypeBool(minOS.GetV101903()),
-			V10_1909: state.BoolPtrToTypeBool(minOS.GetV101909()),
-			V10_2004: state.BoolPtrToTypeBool(minOS.GetV102004()),
-			V10_2H20: state.BoolPtrToTypeBool(minOS.GetV102H20()),
-			V10_21H1: state.BoolPtrToTypeBool(minOS.GetV1021H1()),
+			V8_0:     types.BoolPointerValue(minOS.GetV80()),
+			V8_1:     types.BoolPointerValue(minOS.GetV81()),
+			V10_0:    types.BoolPointerValue(minOS.GetV100()),
+			V10_1607: types.BoolPointerValue(minOS.GetV101607()),
+			V10_1703: types.BoolPointerValue(minOS.GetV101703()),
+			V10_1709: types.BoolPointerValue(minOS.GetV101709()),
+			V10_1803: types.BoolPointerValue(minOS.GetV101803()),
+			V10_1809: types.BoolPointerValue(minOS.GetV101809()),
+			V10_1903: types.BoolPointerValue(minOS.GetV101903()),
+			V10_1909: types.BoolPointerValue(minOS.GetV101909()),
+			V10_2004: types.BoolPointerValue(minOS.GetV102004()),
+			V10_2H20: types.BoolPointerValue(minOS.GetV102H20()),
+			V10_21H1: types.BoolPointerValue(minOS.GetV1021H1()),
 		}
 	}
 
@@ -92,35 +93,35 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
 					DetectionType:             types.StringValue("registry"),
 					RegistryDetectionType:     state.EnumPtrToTypeString(detectionRule.GetDetectionType()),
-					Check32BitOn64System:      state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
-					KeyPath:                   types.StringValue(state.StringPtrToString(detectionRule.GetKeyPath())),
-					ValueName:                 types.StringValue(state.StringPtrToString(detectionRule.GetValueName())),
+					Check32BitOn64System:      types.BoolPointerValue(detectionRule.GetCheck32BitOn64System()),
+					KeyPath:                   types.StringPointerValue(detectionRule.GetKeyPath()),
+					ValueName:                 types.StringPointerValue(detectionRule.GetValueName()),
 					RegistryDetectionOperator: state.EnumPtrToTypeString(detectionRule.GetOperator()),
-					DetectionValue:            types.StringValue(state.StringPtrToString(detectionRule.GetDetectionValue())),
+					DetectionValue:            types.StringPointerValue(detectionRule.GetDetectionValue()),
 				}
 			case graphmodels.Win32LobAppProductCodeDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
 					DetectionType:          types.StringValue("msi_information"),
-					ProductCode:            types.StringValue(state.StringPtrToString(detectionRule.GetProductCode())),
-					ProductVersion:         types.StringValue(state.StringPtrToString(detectionRule.GetProductVersion())),
+					ProductCode:            types.StringPointerValue(detectionRule.GetProductCode()),
+					ProductVersion:         types.StringPointerValue(detectionRule.GetProductVersion()),
 					ProductVersionOperator: state.EnumPtrToTypeString(detectionRule.GetProductVersionOperator()),
 				}
 			case graphmodels.Win32LobAppFileSystemDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
 					DetectionType:               types.StringValue("file_system"),
 					FileSystemDetectionType:     state.EnumPtrToTypeString(detectionRule.GetDetectionType()),
-					FilePath:                    types.StringValue(state.StringPtrToString(detectionRule.GetPath())),
-					FileFolderName:              types.StringValue(state.StringPtrToString(detectionRule.GetFileOrFolderName())),
-					Check32BitOn64System:        state.BoolPtrToTypeBool(detectionRule.GetCheck32BitOn64System()),
+					FilePath:                    types.StringPointerValue(detectionRule.GetPath()),
+					FileFolderName:              types.StringPointerValue(detectionRule.GetFileOrFolderName()),
+					Check32BitOn64System:        types.BoolPointerValue(detectionRule.GetCheck32BitOn64System()),
 					FileSystemDetectionOperator: state.EnumPtrToTypeString(detectionRule.GetOperator()),
-					DetectionValue:              types.StringValue(state.StringPtrToString(detectionRule.GetDetectionValue())),
+					DetectionValue:              types.StringPointerValue(detectionRule.GetDetectionValue()),
 				}
 			case graphmodels.Win32LobAppPowerShellScriptDetectionable:
 				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
 					DetectionType:         types.StringValue("powershell_script"),
-					ScriptContent:         types.StringValue(state.StringPtrToString(detectionRule.GetScriptContent())),
-					EnforceSignatureCheck: state.BoolPtrToTypeBool(detectionRule.GetEnforceSignatureCheck()),
-					RunAs32Bit:            state.BoolPtrToTypeBool(detectionRule.GetRunAs32Bit()),
+					ScriptContent:         types.StringPointerValue(detectionRule.GetScriptContent()),
+					EnforceSignatureCheck: types.BoolPointerValue(detectionRule.GetEnforceSignatureCheck()),
+					RunAs32Bit:            types.BoolPointerValue(detectionRule.GetRunAs32Bit()),
 				}
 			default:
 				tflog.Warn(ctx, "Unknown detection rule type", map[string]interface{}{
@@ -136,11 +137,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		for i, rule := range requirementRules {
 			if registryRequirement, ok := rule.(graphmodels.Win32LobAppRegistryRequirementable); ok {
 				data.RequirementRules[i] = Win32LobAppRegistryRequirementResourceModel{
-					Check32BitOn64System: state.BoolPtrToTypeBool(registryRequirement.GetCheck32BitOn64System()),
-					KeyPath:              types.StringValue(state.StringPtrToString(registryRequirement.GetKeyPath())),
-					ValueName:            types.StringValue(state.StringPtrToString(registryRequirement.GetValueName())),
+					Check32BitOn64System: types.BoolPointerValue(registryRequirement.GetCheck32BitOn64System()),
+					KeyPath:              types.StringPointerValue(registryRequirement.GetKeyPath()),
+					ValueName:            types.StringPointerValue(registryRequirement.GetValueName()),
 					Operator:             state.EnumPtrToTypeString(registryRequirement.GetOperator()),
-					DetectionValue:       types.StringValue(state.StringPtrToString(registryRequirement.GetDetectionValue())),
+					DetectionValue:       types.StringPointerValue(registryRequirement.GetDetectionValue()),
 					DetectionType:        types.StringValue("registry"),
 				}
 			}
@@ -154,12 +155,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryRuleable); ok {
 				data.Rules[i] = Win32LobAppRegistryRuleResourceModel{
 					RuleType:             state.EnumPtrToTypeString(registryRule.GetRuleType()),
-					Check32BitOn64System: state.BoolPtrToTypeBool(registryRule.GetCheck32BitOn64System()),
-					KeyPath:              types.StringValue(state.StringPtrToString(registryRule.GetKeyPath())),
-					ValueName:            types.StringValue(state.StringPtrToString(registryRule.GetValueName())),
+					Check32BitOn64System: types.BoolPointerValue(registryRule.GetCheck32BitOn64System()),
+					KeyPath:              types.StringPointerValue(registryRule.GetKeyPath()),
+					ValueName:            types.StringPointerValue(registryRule.GetValueName()),
 					OperationType:        state.EnumPtrToTypeString(registryRule.GetOperationType()),
 					Operator:             state.EnumPtrToTypeString(registryRule.GetOperator()),
-					ComparisonValue:      types.StringValue(state.StringPtrToString(registryRule.GetComparisonValue())),
+					ComparisonValue:      types.StringPointerValue(registryRule.GetComparisonValue()),
 				}
 			}
 		}
@@ -188,10 +189,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	// MSI Information
 	if msiInfo := remoteResource.GetMsiInformation(); msiInfo != nil {
 		data.MsiInformation = Win32LobAppMsiInformationResourceModel{
-			ProductCode:    types.StringValue(state.StringPtrToString(msiInfo.GetProductCode())),
-			ProductVersion: types.StringValue(state.StringPtrToString(msiInfo.GetProductVersion())),
-			UpgradeCode:    types.StringValue(state.StringPtrToString(msiInfo.GetUpgradeCode())),
-			RequiresReboot: state.BoolPtrToTypeBool(msiInfo.GetRequiresReboot()),
+			ProductCode:    types.StringPointerValue(msiInfo.GetProductCode()),
+			ProductVersion: types.StringPointerValue(msiInfo.GetProductVersion()),
+			UpgradeCode:    types.StringPointerValue(msiInfo.GetUpgradeCode()),
+			RequiresReboot: types.BoolPointerValue(msiInfo.GetRequiresReboot()),
 			PackageType:    state.EnumPtrToTypeString(msiInfo.GetPackageType()),
 		}
 	}

@@ -20,12 +20,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteListResourc
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishedDateTime = state.TimeToString(remoteResource.GetPublishedDateTime())
-	data.Revision = types.StringValue(state.StringPtrToString(remoteResource.GetRevision()))
+	data.Revision = types.StringPointerValue(remoteResource.GetRevision())
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
@@ -51,7 +51,7 @@ func MapIdentityRemoteStateToTerraform(identity graphmodels.Identityable) shared
 	}
 
 	return sharedmodels.IdentityResourceModel{
-		DisplayName: types.StringValue(state.StringPtrToString(identity.GetDisplayName())),
-		ID:          types.StringValue(state.StringPtrToString(identity.GetId())),
+		DisplayName: types.StringPointerValue(identity.GetDisplayName()),
+		ID:          types.StringPointerValue(identity.GetId()),
 	}
 }

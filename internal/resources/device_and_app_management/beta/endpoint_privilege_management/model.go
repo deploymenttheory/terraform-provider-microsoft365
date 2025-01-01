@@ -15,7 +15,7 @@ type EndpointPrivilegeManagementResourceModel struct {
 	Platforms            types.String                                                 `tfsdk:"platforms"`
 	Technologies         []types.String                                               `tfsdk:"technologies"`
 	SettingsCount        types.Int64                                                  `tfsdk:"settings_count"`
-	RoleScopeTagIds      []types.String                                               `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds      types.List                                                   `tfsdk:"role_scope_tag_ids"`
 	LastModifiedDateTime types.String                                                 `tfsdk:"last_modified_date_time"`
 	CreatedDateTime      types.String                                                 `tfsdk:"created_date_time"`
 	Settings             types.String                                                 `tfsdk:"settings"`

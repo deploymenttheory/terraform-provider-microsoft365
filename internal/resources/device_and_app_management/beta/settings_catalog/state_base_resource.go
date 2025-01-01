@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,22 +17,32 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
-	data.Name = types.StringValue(state.StringPtrToString(remoteResource.GetName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
-	data.IsAssigned = state.BoolPtrToTypeBool(remoteResource.GetIsAssigned())
+	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.Name = types.StringPointerValue(remoteResource.GetName())
+	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+	data.IsAssigned = types.BoolPointerValue(remoteResource.GetIsAssigned())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
 
+	var roleScopeTagIds []attr.Value
+	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
+		roleScopeTagIds = append(roleScopeTagIds, v)
+	}
+
+	data.RoleScopeTagIds = types.ListValueMust(
+		types.StringType,
+		roleScopeTagIds,
+	)
+
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)
 	}
+
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
 		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
 	}

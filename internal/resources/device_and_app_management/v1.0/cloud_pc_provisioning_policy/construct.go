@@ -9,127 +9,72 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the SDK model
 func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel) (*models.CloudPcProvisioningPolicy, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
 
-	displayName := data.DisplayName.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	// Set basic properties
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	constructors.SetStringProperty(data.CloudPcNamingTemplate, requestBody.SetCloudPcNamingTemplate)
+	constructors.SetStringProperty(data.ImageId, requestBody.SetImageId)
 
-	if !data.Description.IsNull() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
+	// Set boolean properties
+	constructors.SetBoolProperty(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
+	constructors.SetBoolProperty(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
+
+	// Handle enums
+	if err := constructors.SetEnumProperty(data.ImageType,
+		models.ParseCloudPcProvisioningPolicyImageType,
+		requestBody.SetImageType); err != nil {
+		return nil, fmt.Errorf("failed to set image type: %v", err)
 	}
 
-	if !data.CloudPcNamingTemplate.IsNull() {
-		namingTemplate := data.CloudPcNamingTemplate.ValueString()
-		requestBody.SetCloudPcNamingTemplate(&namingTemplate)
+	if err := constructors.SetEnumProperty(data.ProvisioningType,
+		models.ParseCloudPcProvisioningType,
+		requestBody.SetProvisioningType); err != nil {
+		return nil, fmt.Errorf("failed to set provisioning type: %v", err)
 	}
 
-	if !data.EnableSingleSignOn.IsNull() {
-		enableSSO := data.EnableSingleSignOn.ValueBool()
-		requestBody.SetEnableSingleSignOn(&enableSSO)
-	}
-
-	if !data.ImageId.IsNull() {
-		imageId := data.ImageId.ValueString()
-		requestBody.SetImageId(&imageId)
-	}
-
-	if !data.ImageType.IsNull() {
-		imageTypeStr := data.ImageType.ValueString()
-		imageType, err := models.ParseCloudPcProvisioningPolicyImageType(imageTypeStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid image type: %s", err)
-		}
-		requestBody.SetImageType(imageType.(*models.CloudPcProvisioningPolicyImageType))
-	}
-
-	if !data.LocalAdminEnabled.IsNull() {
-		localAdminEnabled := data.LocalAdminEnabled.ValueBool()
-		requestBody.SetLocalAdminEnabled(&localAdminEnabled)
-	}
-
-	if !data.ProvisioningType.IsNull() {
-		provisioningTypeStr := data.ProvisioningType.ValueString()
-		provisioningType, err := models.ParseCloudPcProvisioningType(provisioningTypeStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid provisioning type: %s", err)
-		}
-		requestBody.SetProvisioningType(provisioningType.(*models.CloudPcProvisioningType))
-	}
-
+	// Handle Microsoft Managed Desktop
 	if data.MicrosoftManagedDesktop != nil {
 		mmd := models.NewMicrosoftManagedDesktop()
 
-		if managedType := data.MicrosoftManagedDesktop.ManagedType; !managedType.IsNull() {
-			managedTypeStr := managedType.ValueString()
-			managedTypeAny, err := models.ParseMicrosoftManagedDesktopType(managedTypeStr)
-			if err != nil {
-				return nil, fmt.Errorf("invalid Microsoft Managed Desktop type: %s", err)
-			}
-			if managedTypeAny != nil {
-				managedTypeEnum, ok := managedTypeAny.(*models.MicrosoftManagedDesktopType)
-				if !ok {
-					return nil, fmt.Errorf("unexpected type for Microsoft Managed Desktop type")
-				}
-				mmd.SetManagedType(managedTypeEnum)
-			}
+		if err := constructors.SetEnumProperty(data.MicrosoftManagedDesktop.ManagedType,
+			models.ParseMicrosoftManagedDesktopType,
+			mmd.SetManagedType); err != nil {
+			return nil, fmt.Errorf("failed to set Microsoft Managed Desktop type: %v", err)
 		}
 
-		if profile := data.MicrosoftManagedDesktop.Profile; !profile.IsNull() {
-			profileValue := profile.ValueString()
-			mmd.SetProfile(&profileValue)
-		}
-
+		constructors.SetStringProperty(data.MicrosoftManagedDesktop.Profile, mmd.SetProfile)
 		requestBody.SetMicrosoftManagedDesktop(mmd)
 	}
 
+	// Handle Domain Join Configurations
 	if len(data.DomainJoinConfigurations) > 0 {
 		var domainJoinConfigs []models.CloudPcDomainJoinConfigurationable
 		for _, config := range data.DomainJoinConfigurations {
 			domainJoinConfig := models.NewCloudPcDomainJoinConfiguration()
 
-			if !config.DomainJoinType.IsNull() {
-				domainJoinTypeStr := config.DomainJoinType.ValueString()
-				domainJoinTypeAny, err := models.ParseCloudPcDomainJoinType(domainJoinTypeStr)
-				if err != nil {
-					return nil, fmt.Errorf("invalid domain join type: %s", err)
-				}
-				if domainJoinTypeAny != nil {
-					domainJoinTypeEnum, ok := domainJoinTypeAny.(*models.CloudPcDomainJoinType)
-					if !ok {
-						return nil, fmt.Errorf("unexpected type for domain join type")
-					}
-					domainJoinConfig.SetDomainJoinType(domainJoinTypeEnum)
-				}
+			if err := constructors.SetEnumProperty(config.DomainJoinType,
+				models.ParseCloudPcDomainJoinType,
+				domainJoinConfig.SetDomainJoinType); err != nil {
+				return nil, fmt.Errorf("failed to set domain join type: %v", err)
 			}
 
-			if !config.OnPremisesConnectionId.IsNull() {
-				onPremisesConnectionId := config.OnPremisesConnectionId.ValueString()
-				domainJoinConfig.SetOnPremisesConnectionId(&onPremisesConnectionId)
-			}
-
-			if !config.RegionName.IsNull() {
-				regionName := config.RegionName.ValueString()
-				domainJoinConfig.SetRegionName(&regionName)
-			}
+			constructors.SetStringProperty(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
+			constructors.SetStringProperty(config.RegionName, domainJoinConfig.SetRegionName)
 
 			domainJoinConfigs = append(domainJoinConfigs, domainJoinConfig)
 		}
 		requestBody.SetDomainJoinConfigurations(domainJoinConfigs)
 	}
 
+	// Handle Windows Settings
 	if data.WindowsSetting != nil {
 		windowsSetting := models.NewCloudPcWindowsSetting()
-
-		if !data.WindowsSetting.Locale.IsNull() {
-			locale := data.WindowsSetting.Locale.ValueString()
-			windowsSetting.SetLocale(&locale)
-		}
-
+		constructors.SetStringProperty(data.WindowsSetting.Locale, windowsSetting.SetLocale)
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 

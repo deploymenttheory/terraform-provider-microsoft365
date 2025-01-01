@@ -14,7 +14,7 @@ type DeviceManagementTemplateResourceModel struct {
 	Description          types.String                                                 `tfsdk:"description"`
 	Platforms            types.String                                                 `tfsdk:"platforms"`
 	Technologies         []types.String                                               `tfsdk:"technologies"`
-	RoleScopeTagIds      []types.String                                               `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds      types.List                                                   `tfsdk:"role_scope_tag_ids"`
 	SettingsCount        types.Int64                                                  `tfsdk:"settings_count"`
 	IsAssigned           types.Bool                                                   `tfsdk:"is_assigned"`
 	LastModifiedDateTime types.String                                                 `tfsdk:"last_modified_date_time"`
