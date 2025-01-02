@@ -1,11 +1,11 @@
 package sharedmodels
 
-// DeviceConfigV2GraphServiceModelReference is an anomimous struct that represents the JSON structure of
+// DeviceConfigurationPolicyV2GraphServiceModelReference is an anomimous struct that represents the JSON structure of
 // settings catalog settings fors windows, linux, macOS, and iOS. Used for device configuration, endpoint
 // privilege management, templated device configuration.
 // This struct is used as a reference for understanding the complex nested nature of settings catalog
 // that's not explitly clear when using named go structs.This struct is not actively used in the codebase.
-var DeviceConfigV2GraphServiceModelReference struct {
+var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 	SettingsDetails []struct {
 		ID              string `json:"id"`
 		SettingInstance struct {
