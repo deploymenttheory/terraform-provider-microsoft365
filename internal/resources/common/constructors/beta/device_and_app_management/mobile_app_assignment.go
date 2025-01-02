@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package sharedConstructor
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
+// ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
+func ConstructMobileAppAssignment(ctx context.Context, data *sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if data == nil {
 		return nil, fmt.Errorf("mobile app assignment data is required")
 	}
@@ -69,9 +69,8 @@ func constructAssignment(ctx context.Context, data *sharedmodels.MobileAppAssign
 
 	requestBody.SetMobileAppAssignments(assignments)
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
-
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log mobile app assignment request body", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
