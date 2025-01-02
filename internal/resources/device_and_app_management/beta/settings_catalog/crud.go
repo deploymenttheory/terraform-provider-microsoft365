@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -70,7 +71,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -277,7 +278,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
