@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
@@ -57,7 +58,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -226,7 +227,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if object.Assignments != nil && state.Assignments != nil && !state.ID.IsNull() {
-		requestAssignment, err := constructAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
@@ -70,7 +72,7 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 	object.ID = types.StringValue(*createdResource.GetId())
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -277,7 +279,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 	}
 
 	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
