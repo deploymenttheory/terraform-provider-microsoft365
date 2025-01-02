@@ -172,9 +172,7 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// Only map assignments if there are any assignments returned and the object has an assignments block
 	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
-		if object.Assignments == nil {
-			object.Assignments = &sharedmodels.MobileAppAssignmentResourceModel{}
-		}
+		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
 		MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
 	}
 

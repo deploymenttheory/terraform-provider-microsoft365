@@ -13,69 +13,61 @@ import (
 )
 
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func ConstructMobileAppAssignment(ctx context.Context, data *sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
-	if data == nil {
+func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
+	if len(data) == 0 {
 		return nil, fmt.Errorf("mobile app assignment data is required")
 	}
-
-	tflog.Debug(ctx, "Starting assignment construction")
 
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	var assignments []graphmodels.MobileAppAssignmentable
 
-	assignment := graphmodels.NewMobileAppAssignment()
+	for _, assignmentData := range data {
+		assignment := graphmodels.NewMobileAppAssignment()
 
-	// Set Intent
-	if !data.Intent.IsNull() {
-		intentValue, err := graphmodels.ParseInstallIntent(data.Intent.ValueString())
-		if err != nil {
-			return nil, fmt.Errorf("error parsing install intent: %v", err)
+		// Set Intent
+		if !assignmentData.Intent.IsNull() {
+			intentValue, err := graphmodels.ParseInstallIntent(assignmentData.Intent.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing install intent: %v", err)
+			}
+			assignment.SetIntent(intentValue.(*graphmodels.InstallIntent))
 		}
-		assignment.SetIntent(intentValue.(*graphmodels.InstallIntent))
-	}
 
-	// Set Target
-	target, err := constructAssignmentTarget(ctx, &data.Target)
-	if err != nil {
-		return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
-	}
-	assignment.SetTarget(target)
-
-	// Set Source
-	if !data.Source.IsNull() {
-		sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
+		// Set Target
+		target, err := constructAssignmentTarget(ctx, &assignmentData.Target)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing source: %v", err)
+			return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
 		}
-		assignment.SetSource(sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource))
-	}
+		assignment.SetTarget(target)
 
-	// Set SourceId
-	if !data.SourceId.IsNull() {
-		id := data.SourceId.ValueString()
-		assignment.SetSourceId(&id)
-	}
+		// Set Source
+		if !assignmentData.Source.IsNull() {
+			sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(assignmentData.Source.ValueString())
+			if err != nil {
+				return nil, fmt.Errorf("error parsing source: %v", err)
+			}
+			assignment.SetSource(sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource))
+		}
 
-	// Set Settings
-	settings, err := constructMobileAppAssignmentSettings(ctx, &data.Settings)
-	if err != nil {
-		return nil, fmt.Errorf("error constructing settings: %v", err)
-	}
-	if settings != nil {
-		assignment.SetSettings(settings)
-	}
+		// Set SourceId
+		if !assignmentData.SourceId.IsNull() {
+			id := assignmentData.SourceId.ValueString()
+			assignment.SetSourceId(&id)
+		}
 
-	assignments = append(assignments, assignment)
+		// Set Settings
+		settings, err := constructMobileAppAssignmentSettings(ctx, &assignmentData.Settings)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing settings: %v", err)
+		}
+		if settings != nil {
+			assignment.SetSettings(settings)
+		}
+
+		assignments = append(assignments, assignment)
+	}
 
 	requestBody.SetMobileAppAssignments(assignments)
-
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log mobile app assignment request body", map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-
-	tflog.Debug(ctx, "Finished constructing assignment request body")
 	return requestBody, nil
 }
 
