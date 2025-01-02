@@ -15,6 +15,8 @@ type MobileAppAssignmentResourceModel struct {
 type AssignmentTargetResourceModel struct {
 	DeviceAndAppManagementAssignmentFilterId   types.String `tfsdk:"device_and_app_management_assignment_filter_id"`
 	DeviceAndAppManagementAssignmentFilterType types.String `tfsdk:"device_and_app_management_assignment_filter_type"` // allDevicesAssignmentTarget, allLicensedUsersAssignmentTarget, androidFotaDeploymentAssignmentTarget, configurationManagerCollectionAssignmentTarget, exclusionGroupAssignmentTarget, groupAssignmentTarget
+	GroupId                                    types.String `tfsdk:"group_id"`
+	CollectionId                               types.String `tfsdk:"collection_id"`
 }
 
 type MobileAppAssignmentSettingsResourceModel struct {

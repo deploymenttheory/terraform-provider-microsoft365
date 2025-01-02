@@ -82,18 +82,38 @@ func constructAssignmentTarget(ctx context.Context, data *sharedmodels.Assignmen
 	targetType := data.DeviceAndAppManagementAssignmentFilterType.ValueString()
 
 	switch targetType {
-	case "allDevicesAssignmentTarget":
+	case "allDevices":
 		target = graphmodels.NewAllDevicesAssignmentTarget()
-	case "allLicensedUsersAssignmentTarget":
+	case "allLicensedUsers":
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
-	case "androidFotaDeploymentAssignmentTarget":
-		target = graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
-	case "configurationManagerCollectionAssignmentTarget":
-		target = graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
-	case "exclusionGroupAssignmentTarget":
-		target = graphmodels.NewExclusionGroupAssignmentTarget()
-	case "groupAssignmentTarget":
-		target = graphmodels.NewGroupAssignmentTarget()
+	case "androidFotaDeployment":
+		androidFotaDeploymentAssignemntTarget := graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
+		if !data.GroupId.IsNull() {
+			id := data.GroupId.ValueString()
+			androidFotaDeploymentAssignemntTarget.SetGroupId(&id)
+		}
+		target = androidFotaDeploymentAssignemntTarget
+	case "configurationManagerCollection":
+		exclusionGroupAssignemntTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
+		if !data.CollectionId.IsNull() {
+			id := data.CollectionId.ValueString()
+			exclusionGroupAssignemntTarget.SetCollectionId(&id)
+		}
+		target = exclusionGroupAssignemntTarget
+	case "exclusionGroupAssignment":
+		exclusionGroupAssignemntTarget := graphmodels.NewExclusionGroupAssignmentTarget()
+		if !data.GroupId.IsNull() {
+			id := data.GroupId.ValueString()
+			exclusionGroupAssignemntTarget.SetGroupId(&id)
+		}
+		target = exclusionGroupAssignemntTarget
+	case "groupAssignment":
+		groupAssignemntTarget := graphmodels.NewGroupAssignmentTarget()
+		if !data.GroupId.IsNull() {
+			id := data.GroupId.ValueString()
+			groupAssignemntTarget.SetGroupId(&id)
+		}
+		target = groupAssignemntTarget
 	default:
 		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()
 	}
