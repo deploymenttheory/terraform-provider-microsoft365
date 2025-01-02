@@ -13,8 +13,11 @@ type MobileAppAssignmentResourceModel struct {
 }
 
 type AssignmentTargetResourceModel struct {
+	TargetType                                 types.String `tfsdk:"target_type"` // allDevices, allLicensedUsers, androidFotaDeploymentAssignment, configurationManagerCollectionAssignment, exclusionGroupAssignment, groupAssignment
 	DeviceAndAppManagementAssignmentFilterId   types.String `tfsdk:"device_and_app_management_assignment_filter_id"`
-	DeviceAndAppManagementAssignmentFilterType types.String `tfsdk:"device_and_app_management_assignment_filter_type"` // allDevicesAssignmentTarget, allLicensedUsersAssignmentTarget, androidFotaDeploymentAssignmentTarget, configurationManagerCollectionAssignmentTarget, exclusionGroupAssignmentTarget, groupAssignmentTarget
+	DeviceAndAppManagementAssignmentFilterType types.String `tfsdk:"device_and_app_management_assignment_filter_type"`
+	GroupId                                    types.String `tfsdk:"group_id"`
+	CollectionId                               types.String `tfsdk:"collection_id"`
 }
 
 type MobileAppAssignmentSettingsResourceModel struct {

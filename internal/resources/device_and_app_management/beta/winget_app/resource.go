@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -228,8 +229,115 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
 			},
-			"assignments": commonschema.IntuneMobileAppAssignmentsSchema(),
+			"assignments": WinGetAppAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
+		},
+	}
+}
+
+func WinGetAppAssignmentsSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: "Manages the assignments for Intune Microsoft Store app (new) resource aka winget, using the mobileapps graph beta API.",
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					MarkdownDescription: "The ID of the winget app associated with this assignment.",
+					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"intent": schema.StringAttribute{
+					MarkdownDescription: "The install intent defined by the admin. Possible values are: available, required, uninstall, availableWithoutEnrollment.",
+					Required:            true,
+				},
+				"source": schema.StringAttribute{
+					MarkdownDescription: "The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.",
+					Required:            true,
+				},
+				"source_id": schema.StringAttribute{
+					MarkdownDescription: "The identifier of the source of the assignment. This property is read-only.",
+					Computed:            true,
+				},
+				"target": schema.SingleNestedAttribute{
+					MarkdownDescription: "The target group assignment defined by the admin.",
+					Required:            true,
+					Attributes: map[string]schema.Attribute{
+						"target_type": schema.StringAttribute{
+							MarkdownDescription: "The target group type for the application assignment. Possible values: allDevices, allLicensedUsers, configurationManagerCollection, exclusionGroupAssignment, groupAssignment",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"allDevices",
+									"allLicensedUsers",
+									"configurationManagerCollection",
+									"exclusionGroupAssignment",
+									"groupAssignment",
+								),
+							},
+						},
+						"group_id": schema.StringAttribute{
+							MarkdownDescription: "The entra ID group ID for the application assignment target.",
+							Optional:            true,
+						},
+						"collection_id": schema.StringAttribute{
+							MarkdownDescription: "The SCCM group collection ID for the application assignment target.",
+							Optional:            true,
+						},
+						"device_and_app_management_assignment_filter_id": schema.StringAttribute{
+							MarkdownDescription: "The ID of the filter for the target assignment.",
+							Optional:            true,
+						},
+						"device_and_app_management_assignment_filter_type": schema.StringAttribute{
+							MarkdownDescription: "The type of filter for the target assignment. Possible values: include, exclude, none",
+							Optional:            true,
+						},
+					},
+				},
+				"settings": schema.SingleNestedAttribute{
+					MarkdownDescription: "The settings for target assignment defined by the admin.",
+					Optional:            true,
+					Attributes: map[string]schema.Attribute{
+						"notifications": schema.StringAttribute{
+							MarkdownDescription: "The notification settings for the assignment. Possible values: showAll, showReboot, hideAll",
+							Optional:            true,
+						},
+						"install_time_settings": schema.SingleNestedAttribute{
+							MarkdownDescription: "Settings related to install time.",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"use_local_time": schema.BoolAttribute{
+									MarkdownDescription: "Whether the local device time or UTC time should be used when determining the deadline times.",
+									Optional:            true,
+								},
+								"deadline_date_time": schema.StringAttribute{
+									MarkdownDescription: "The time at which the app should be installed.",
+									Optional:            true,
+								},
+							},
+						},
+						"restart_settings": schema.SingleNestedAttribute{
+							MarkdownDescription: "Settings related to restarts after installation.",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"grace_period_in_minutes": schema.Int64Attribute{
+									MarkdownDescription: "The number of minutes to wait before restarting the device after an app installation.",
+									Optional:            true,
+								},
+								"countdown_display_before_restart_in_minutes": schema.Int64Attribute{
+									MarkdownDescription: "The number of minutes before the restart time to display the countdown dialog for pending restarts.",
+									Optional:            true,
+								},
+								"restart_notification_snooze_duration_in_minutes": schema.Int64Attribute{
+									MarkdownDescription: "The number of minutes to snooze the restart notification dialog when the snooze button is selected.",
+									Optional:            true,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }

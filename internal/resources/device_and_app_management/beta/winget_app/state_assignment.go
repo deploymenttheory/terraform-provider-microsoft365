@@ -9,7 +9,7 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps the remote mobile app assignments to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignment *sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignment []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
 		tflog.Debug(ctx, "Remote assignments response is nil")
 		return
