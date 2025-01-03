@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"

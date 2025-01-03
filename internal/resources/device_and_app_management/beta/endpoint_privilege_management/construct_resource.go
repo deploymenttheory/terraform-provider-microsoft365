@@ -6,7 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 
-	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/beta/device_and_app_management"
+	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
