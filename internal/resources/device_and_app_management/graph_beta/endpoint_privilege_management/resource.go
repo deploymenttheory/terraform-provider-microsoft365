@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaEndpointPrivilegeManagement
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -20,7 +21,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_settings_catalog"
+	ResourceName  = "graph_beta_device_and_app_management_endpoint_privilege_management"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -29,20 +30,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &SettingsCatalogResource{}
+	_ resource.Resource = &EndpointPrivilegeManagementResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &SettingsCatalogResource{}
+	_ resource.ResourceWithConfigure = &EndpointPrivilegeManagementResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &SettingsCatalogResource{}
+	_ resource.ResourceWithImportState = &EndpointPrivilegeManagementResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
+	_ resource.ResourceWithModifyPlan = &EndpointPrivilegeManagementResource{}
 )
 
-func NewSettingsCatalogResource() resource.Resource {
-	return &SettingsCatalogResource{
+func NewEndpointPrivilegeManagementResource() resource.Resource {
+	return &EndpointPrivilegeManagementResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -53,7 +54,7 @@ func NewSettingsCatalogResource() resource.Resource {
 	}
 }
 
-type SettingsCatalogResource struct {
+type EndpointPrivilegeManagementResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -63,22 +64,22 @@ type SettingsCatalogResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *EndpointPrivilegeManagementResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *SettingsCatalogResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *EndpointPrivilegeManagementResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *SettingsCatalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *EndpointPrivilegeManagementResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Function to create the full device management configuration policy schema
-func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+// Function to create the full device management win32 lob app schema
+func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
@@ -121,7 +122,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					SettingsCatalogValidator(),
+					//SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
@@ -144,9 +145,8 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"technologies": schema.ListAttribute{
 				ElementType:         types.StringType,
-				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -194,7 +194,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschema.IntuneSettingsCatalogAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.IntuneSettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

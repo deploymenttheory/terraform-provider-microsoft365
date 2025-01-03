@@ -5,6 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -157,7 +158,7 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "The ID of the configuration policy template reference.",
 				Required:    true,
 			},
-			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

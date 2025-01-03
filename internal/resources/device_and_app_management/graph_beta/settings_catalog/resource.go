@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementTemplate
+package graphBetaSettingsCatalog
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -29,20 +30,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceManagementTemplateResource{}
+	_ resource.Resource = &SettingsCatalogResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithConfigure = &SettingsCatalogResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithImportState = &SettingsCatalogResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
 )
 
-func NewDeviceManagementTemplateResource() resource.Resource {
-	return &DeviceManagementTemplateResource{
+func NewSettingsCatalogResource() resource.Resource {
+	return &SettingsCatalogResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -53,7 +54,7 @@ func NewDeviceManagementTemplateResource() resource.Resource {
 	}
 }
 
-type DeviceManagementTemplateResource struct {
+type SettingsCatalogResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -63,22 +64,22 @@ type DeviceManagementTemplateResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceManagementTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceManagementTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SettingsCatalogResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceManagementTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SettingsCatalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Function to create the full device management configuration policy schema
-func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
@@ -103,7 +104,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				Required: true,
 				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetDeviceManagementTemplateConfigurationById.ps1) " +
+					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
@@ -143,9 +144,10 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -159,7 +161,6 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers: []planmodifier.List{
 					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
 				},
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
@@ -194,7 +195,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschema.IntuneSettingsCatalogAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.IntuneSettingsCatalogAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

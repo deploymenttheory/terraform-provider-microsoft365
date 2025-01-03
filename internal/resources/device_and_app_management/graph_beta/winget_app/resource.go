@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -228,7 +229,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
 			},
-			"assignments": commonschema.MobileAppAssignmentSchema(),
+			"assignments": commonschemagraphbeta.MobileAppAssignmentSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

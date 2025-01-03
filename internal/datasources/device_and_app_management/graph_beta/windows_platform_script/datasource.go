@@ -5,6 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_macos_platform_script"
+	ResourceName = "graph_beta_device_and_app_management_windows_platform_script"
 )
 
 var (
@@ -87,7 +88,7 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 				Sensitive:           true,
 			},
-			"assignments": commonschema.IntuneScriptAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.IntuneScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
