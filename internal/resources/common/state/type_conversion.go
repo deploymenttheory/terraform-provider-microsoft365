@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoft/kiota-abstractions-go/serialization"
 )
@@ -170,4 +172,15 @@ func DecodeBase64ToString(ctx context.Context, encoded string) types.String {
 
 	// Return the decoded content as types.StringValue
 	return types.StringValue(string(decodedContent))
+}
+
+// StringListToTypeList converts a slice of strings to a types.List.
+func StringListToTypeList(strings []string) types.List {
+	values := make([]attr.Value, len(strings))
+	for i, s := range strings {
+		values[i] = types.StringValue(s)
+	}
+
+	list, _ := basetypes.NewListValue(types.StringType, values)
+	return list
 }
