@@ -256,7 +256,7 @@ attempting to modify this value will result in a failed request.
 
 ### Optional
 
-- `assignments` (Attributes) Configuration for Mobile App Assignment, including settings and targets for Microsoft Intune. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes List) Manages the assignments for Intune Microsoft Store app (new) resource aka winget, using the mobileapps graph beta API. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `developer` (String) The developer of the app.
 - `display_name` (String) The title of the WinGet app imported from the Microsoft Store for Business.This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
@@ -294,59 +294,47 @@ Required:
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
-Optional:
-
-- `mobile_app_assignments` (Attributes List) List of assignments for the mobile app. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments))
-
-Read-Only:
-
-- `id` (String) Key of the entity. This property is read-only.
-- `mobile_app_id` (String) The ID of the mobile app associated with this assignment.
-
-<a id="nestedatt--assignments--mobile_app_assignments"></a>
-### Nested Schema for `assignments.mobile_app_assignments`
-
 Required:
 
 - `intent` (String) The install intent defined by the admin. Possible values are: available, required, uninstall, availableWithoutEnrollment.
 - `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.
-- `target` (Attributes) The target group assignment defined by the admin. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments--target))
+- `target` (Attributes) The target group assignment defined by the admin. (see [below for nested schema](#nestedatt--assignments--target))
 
 Optional:
 
-- `settings` (Attributes) The settings for target assignment defined by the admin. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments--settings))
+- `settings` (Attributes) The settings for target assignment defined by the admin. (see [below for nested schema](#nestedatt--assignments--settings))
 
 Read-Only:
 
-- `id` (String) Key of the assignment entity. This property is read-only.
+- `id` (String) The ID of the winget app associated with this assignment.
 - `source_id` (String) The identifier of the source of the assignment. This property is read-only.
 
-<a id="nestedatt--assignments--mobile_app_assignments--target"></a>
-### Nested Schema for `assignments.mobile_app_assignments.target`
+<a id="nestedatt--assignments--target"></a>
+### Nested Schema for `assignments.target`
 
 Required:
 
-- `target_type` (String) The type of target assignment. Possible values include groupAssignmentTarget, allLicensedUsersAssignmentTarget, etc.
+- `target_type` (String) The target group type for the application assignment. Possible values: allDevices, allLicensedUsers, configurationManagerCollection, exclusionGroupAssignment, groupAssignment
 
 Optional:
 
+- `collection_id` (String) The SCCM group collection ID for the application assignment target.
 - `device_and_app_management_assignment_filter_id` (String) The ID of the filter for the target assignment.
-- `device_and_app_management_assignment_filter_type` (String) The type of filter for the target assignment. Possible values are: none, include, exclude.
-- `group_id` (String) The ID of the target group.
-- `is_exclusion_group` (Boolean) Indicates whether this is an exclusion group.
+- `device_and_app_management_assignment_filter_type` (String) The type of filter for the target assignment. Possible values: include, exclude, none
+- `group_id` (String) The entra ID group ID for the application assignment target.
 
 
-<a id="nestedatt--assignments--mobile_app_assignments--settings"></a>
-### Nested Schema for `assignments.mobile_app_assignments.settings`
+<a id="nestedatt--assignments--settings"></a>
+### Nested Schema for `assignments.settings`
 
 Optional:
 
-- `install_time_settings` (Attributes) Settings related to install time. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments--settings--install_time_settings))
-- `notifications` (String) The notification settings for the assignment.
-- `restart_settings` (Attributes) Settings related to restarts after installation. (see [below for nested schema](#nestedatt--assignments--mobile_app_assignments--settings--restart_settings))
+- `install_time_settings` (Attributes) Settings related to install time. (see [below for nested schema](#nestedatt--assignments--settings--install_time_settings))
+- `notifications` (String) The notification settings for the assignment. Possible values: showAll, showReboot, hideAll
+- `restart_settings` (Attributes) Settings related to restarts after installation. (see [below for nested schema](#nestedatt--assignments--settings--restart_settings))
 
-<a id="nestedatt--assignments--mobile_app_assignments--settings--install_time_settings"></a>
-### Nested Schema for `assignments.mobile_app_assignments.settings.install_time_settings`
+<a id="nestedatt--assignments--settings--install_time_settings"></a>
+### Nested Schema for `assignments.settings.install_time_settings`
 
 Optional:
 
@@ -354,15 +342,14 @@ Optional:
 - `use_local_time` (Boolean) Whether the local device time or UTC time should be used when determining the deadline times.
 
 
-<a id="nestedatt--assignments--mobile_app_assignments--settings--restart_settings"></a>
-### Nested Schema for `assignments.mobile_app_assignments.settings.restart_settings`
+<a id="nestedatt--assignments--settings--restart_settings"></a>
+### Nested Schema for `assignments.settings.restart_settings`
 
 Optional:
 
 - `countdown_display_before_restart_in_minutes` (Number) The number of minutes before the restart time to display the countdown dialog for pending restarts.
 - `grace_period_in_minutes` (Number) The number of minutes to wait before restarting the device after an app installation.
 - `restart_notification_snooze_duration_in_minutes` (Number) The number of minutes to snooze the restart notification dialog when the snooze button is selected.
-
 
 
 
