@@ -55,9 +55,9 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
       intent = "required"
       source = "direct"
       target = {
-        target_type = "allDevices"
+        target_type                                      = "allDevices"
         device_and_app_management_assignment_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
-    device_and_app_management_assignment_filter_type = "include"
+        device_and_app_management_assignment_filter_type = "include"
       }
       settings = {
         win_get = {
@@ -78,9 +78,9 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
       intent = "required"
       source = "direct"
       target = {
-        target_type = "allLicensedUsers"
+        target_type                                      = "allLicensedUsers"
         device_and_app_management_assignment_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
-    device_and_app_management_assignment_filter_type = "exclude"
+        device_and_app_management_assignment_filter_type = "exclude"
       }
       settings = {
         win_get = {
