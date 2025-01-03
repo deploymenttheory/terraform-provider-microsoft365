@@ -6,7 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -195,7 +195,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschemagraphbeta.IntuneSettingsCatalogAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

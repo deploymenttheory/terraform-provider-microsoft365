@@ -5,7 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -120,7 +120,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 				Description: "A value indicating whether the PowerShell script should run as 32-bit.",
 				Optional:    true,
 			},
-			"assignments": commonschemagraphbeta.IntuneScriptAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

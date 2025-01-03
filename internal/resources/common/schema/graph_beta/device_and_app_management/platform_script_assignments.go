@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func IntuneScriptAssignmentsSchema() schema.SingleNestedAttribute {
+func PlatformScriptAssignmentsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:    true,
 		Description: "The assignment configuration for this Windows Settings Catalog profile.",

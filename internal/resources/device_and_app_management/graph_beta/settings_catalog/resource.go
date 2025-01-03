@@ -6,7 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -196,7 +196,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschemagraphbeta.IntuneSettingsCatalogAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
