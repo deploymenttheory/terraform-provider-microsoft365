@@ -11,6 +11,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteAssignmentStateToTerraform maps a remote assignment state to a Terraform assignment state
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
 		tflog.Debug(ctx, "Remote assignments response is nil")
@@ -30,13 +31,15 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignments []shar
 		})
 	}
 
-	// Sort assignments by Intent and TargetType for consistency
+	// Sort assignments by Intent and TargetType to match the order returned by the Graph API
 	sort.Slice(assignments, func(i, j int) bool {
 		return assignments[i].Intent.ValueString() < assignments[j].Intent.ValueString()
 	})
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{})
 }
+
+// mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
 func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) sharedmodels.AssignmentTargetResourceModel {
 	target := sharedmodels.AssignmentTargetResourceModel{
 		DeviceAndAppManagementAssignmentFilterId:   types.StringPointerValue(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
@@ -62,6 +65,7 @@ func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementA
 	return target
 }
 
+// mapRemoteSettingsToTerraform maps a remote assignment settings to a Terraform assignment settings
 func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) sharedmodels.MobileAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return sharedmodels.MobileAppAssignmentSettingsResourceModel{}
@@ -117,6 +121,7 @@ func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignment
 	}
 }
 
+// mapAndroidManagedStoreSettingsToTerraform maps an Android managed store settings to a Terraform assignment settings
 func mapAndroidManagedStoreSettingsToTerraform(remoteSettings *graphmodels.AndroidManagedStoreAppAssignmentSettings) *sharedmodels.AndroidManagedStoreAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -128,6 +133,7 @@ func mapAndroidManagedStoreSettingsToTerraform(remoteSettings *graphmodels.Andro
 	}
 }
 
+// mapIosLobSettingsToTerraform maps an iOS LOB settings to a Terraform assignment settings
 func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmentSettings) *sharedmodels.IosLobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -141,6 +147,7 @@ func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmen
 	}
 }
 
+// mapIosStoreSettingsToTerraform maps an iOS store settings to a Terraform assignment settings
 func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssignmentSettings) *sharedmodels.IosStoreAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -154,6 +161,7 @@ func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssig
 	}
 }
 
+// mapIosVppSettingsToTerraform maps an iOS VPP settings to a Terraform assignment settings
 func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmentSettings) *sharedmodels.IosVppAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -169,6 +177,7 @@ func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmen
 	}
 }
 
+// mapMacOsLobSettingsToTerraform maps a macOS LOB settings to a Terraform assignment settings
 func mapMacOsLobSettingsToTerraform(remoteSettings *graphmodels.MacOsLobAppAssignmentSettings) *sharedmodels.MacOsLobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -179,6 +188,7 @@ func mapMacOsLobSettingsToTerraform(remoteSettings *graphmodels.MacOsLobAppAssig
 	}
 }
 
+// mapMacOsVppSettingsToTerraform maps a macOS VPP settings to a Terraform assignment settings
 func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssignmentSettings) *sharedmodels.MacOsVppAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -192,6 +202,7 @@ func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssig
 	}
 }
 
+// mapMicrosoftStoreSettingsToTerraform maps a Microsoft Store settings to a Terraform assignment settings
 func mapMicrosoftStoreSettingsToTerraform(remoteSettings *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings) *sharedmodels.MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -202,6 +213,7 @@ func mapMicrosoftStoreSettingsToTerraform(remoteSettings *graphmodels.MicrosoftS
 	}
 }
 
+// mapWin32LobSettingsToTerraform maps a Win32 LOB settings to a Terraform assignment settings
 func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssignmentSettings) *sharedmodels.Win32LobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -231,6 +243,7 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 	return settings
 }
 
+// mapWindowsAppXSettingsToTerraform maps a Windows AppX settings to a Terraform assignment settings
 func mapWindowsAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsAppXAppAssignmentSettings) *sharedmodels.WindowsAppXAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -241,6 +254,7 @@ func mapWindowsAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsAppXAp
 	}
 }
 
+// mapWindowsUniversalAppXSettingsToTerraform maps a Windows Universal AppX settings to a Terraform assignment settings
 func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsUniversalAppXAppAssignmentSettings) *sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
@@ -251,6 +265,7 @@ func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.Wind
 	}
 }
 
+//	mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
 func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmentSettings) *sharedmodels.WinGetAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
