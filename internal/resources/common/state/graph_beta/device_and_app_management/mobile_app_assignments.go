@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package sharedStater
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteAssignmentStateToTerraform maps a remote assignment state to a Terraform assignment state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
+// StateMobileAppAssignment maps a remote assignment state to a Terraform assignment state
+func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
 		tflog.Debug(ctx, "Remote assignments response is nil")
 		return
@@ -265,7 +265,7 @@ func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.Wind
 	}
 }
 
-//	mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
+// mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
 func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmentSettings) *sharedmodels.WinGetAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil

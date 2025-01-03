@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -173,7 +174,7 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	// Only map assignments if there are any assignments returned and the object has an assignments block
 	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
 		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
-		MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
+		sharedstater.StateMobileAppAssignment(ctx, object.Assignments, respAssignments)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
