@@ -1,5 +1,6 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-mobileapp?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-wingetapp?view=graph-rest-beta
+
 package graphBetaWinGetApp
 
 import (

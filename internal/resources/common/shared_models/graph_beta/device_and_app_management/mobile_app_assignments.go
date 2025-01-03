@@ -12,6 +12,7 @@ type MobileAppAssignmentResourceModel struct {
 	SourceId types.String                             `tfsdk:"source_id"`
 }
 
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-alldevicesassignmenttarget?view=graph-rest-beta
 type AssignmentTargetResourceModel struct {
 	TargetType                                 types.String `tfsdk:"target_type"` // allDevices, allLicensedUsers, androidFotaDeploymentAssignment, configurationManagerCollectionAssignment, exclusionGroupAssignment, groupAssignment
 	DeviceAndAppManagementAssignmentFilterId   types.String `tfsdk:"device_and_app_management_assignment_filter_id"`
@@ -20,13 +21,23 @@ type AssignmentTargetResourceModel struct {
 	CollectionId                               types.String `tfsdk:"collection_id"`
 }
 
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-androidmanagedstoreappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-ioslobappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-iosstoreappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-iosvppappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-macoslobappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-macosvppappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-microsoftstoreforbusinessappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-win32lobappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-windowsappxappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-windowsuniversalappxappassignmentsettings?view=graph-rest-beta
 type MobileAppAssignmentSettingsResourceModel struct {
 	AndroidManagedStore       *AndroidManagedStoreAssignmentSettingsResourceModel          `tfsdk:"android_managed_store"`
 	IosLob                    *IosLobAppAssignmentSettingsResourceModel                    `tfsdk:"ios_lob"`
 	IosStore                  *IosStoreAppAssignmentSettingsResourceModel                  `tfsdk:"ios_store"`
 	IosVpp                    *IosVppAppAssignmentSettingsResourceModel                    `tfsdk:"ios_vpp"`
-	MacOsLob                  *MacOsLobAppAssignmentSettingsResourceModel                  `tfsdk:"mac_os_lob"`
-	MacOsVpp                  *MacOsVppAppAssignmentSettingsResourceModel                  `tfsdk:"mac_os_vpp"`
+	MacOsLob                  *MacOsLobAppAssignmentSettingsResourceModel                  `tfsdk:"macos_lob"`
+	MacOsVpp                  *MacOsVppAppAssignmentSettingsResourceModel                  `tfsdk:"macos_vpp"`
 	MicrosoftStoreForBusiness *MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel `tfsdk:"microsoft_store_for_business"`
 	Win32Catalog              *Win32CatalogAppAssignmentSettingsResourceModel              `tfsdk:"win32_catalog"`
 	Win32Lob                  *Win32LobAppAssignmentSettingsResourceModel                  `tfsdk:"win32_lob"`
@@ -97,7 +108,7 @@ type Win32LobAppAutoUpdateSettingsResourceModel struct {
 }
 
 type MobileAppAssignmentSettingsRestartResourceModel struct {
-	GracePeriod                       types.Int32 `tfsdk:"grace_period_in_minutes"`
+	GracePeriodInMinutes              types.Int32 `tfsdk:"grace_period_in_minutes"`
 	CountdownDisplayBeforeRestart     types.Int32 `tfsdk:"countdown_display_before_restart_in_minutes"`
 	RestartNotificationSnoozeDuration types.Int32 `tfsdk:"restart_notification_snooze_duration_in_minutes"`
 }

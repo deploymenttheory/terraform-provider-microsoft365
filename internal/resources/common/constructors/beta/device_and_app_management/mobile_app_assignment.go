@@ -71,7 +71,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 	return requestBody, nil
 }
 
-// constructAssignmentTarget constructs and returns a DeviceAndAppManagementAssignmentTargetable
+// constructAssignmentTarget constructs the mobile app deployment assignment target
 func constructAssignmentTarget(ctx context.Context, data *sharedmodels.AssignmentTargetResourceModel) (graphmodels.DeviceAndAppManagementAssignmentTargetable, error) {
 	if data == nil {
 		return nil, fmt.Errorf("assignment target data is required")
@@ -416,7 +416,7 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
 
 		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.GracePeriod, restartSettings.SetGracePeriodInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
 		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
@@ -483,7 +483,7 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
 
 		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.GracePeriod, restartSettings.SetGracePeriodInMinutes)
+		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
 		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
