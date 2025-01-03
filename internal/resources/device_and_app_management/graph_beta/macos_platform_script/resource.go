@@ -6,7 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -139,7 +139,7 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "Number of times for the script to be retried if it fails.",
 				Optional:    true,
 			},
-			"assignments": commonschemagraphbeta.IntuneScriptAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

@@ -1,4 +1,4 @@
-package sharedConstructor
+package sharedConstructors
 
 import (
 	"context"

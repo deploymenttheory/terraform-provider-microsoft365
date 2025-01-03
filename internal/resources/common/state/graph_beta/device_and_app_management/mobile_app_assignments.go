@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package sharedStater
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteAssignmentStateToTerraform maps a remote assignment state to a Terraform assignment state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
+// StateMobileAppAssignment maps a remote assignment state to a Terraform assignment state
+func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
 		tflog.Debug(ctx, "Remote assignments response is nil")
 		return
@@ -31,12 +31,36 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, assignments []shar
 		})
 	}
 
-	// Sort assignments by Intent and TargetType to match the order returned by the Graph API
-	sort.Slice(assignments, func(i, j int) bool {
-		return assignments[i].Intent.ValueString() < assignments[j].Intent.ValueString()
-	})
+	// Sort assignments to maintain consistent order
+	SortMobileAppAssignments(assignments)
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{})
+}
+
+// sortMobileAppAssignments sorts a slice of mobile app assignments
+// The sort order is as follows:
+// 1. First tier: Sort by intent alphabetically
+// 2. Second tier: Within same intent, sort by target_type alphabetically
+// 3. Third tier: Within same target_type, sort by group_id alphabetically
+func SortMobileAppAssignments(assignments []sharedmodels.MobileAppAssignmentResourceModel) {
+	sort.SliceStable(assignments, func(i, j int) bool {
+		// First tier: Sort by intent alphabetically
+		if assignments[i].Intent.ValueString() != assignments[j].Intent.ValueString() {
+			return assignments[i].Intent.ValueString() < assignments[j].Intent.ValueString()
+		}
+
+		// Second tier: Within same intent, sort by target_type alphabetically
+		if assignments[i].Target.TargetType.ValueString() != assignments[j].Target.TargetType.ValueString() {
+			return assignments[i].Target.TargetType.ValueString() < assignments[j].Target.TargetType.ValueString()
+		}
+
+		// Third tier: Within same target_type, sort by group_id alphabetically
+		if !assignments[i].Target.GroupId.IsNull() && !assignments[j].Target.GroupId.IsNull() {
+			return assignments[i].Target.GroupId.ValueString() < assignments[j].Target.GroupId.ValueString()
+		}
+
+		return i < j
+	})
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
@@ -265,7 +289,7 @@ func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.Wind
 	}
 }
 
-//	mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
+// mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
 func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmentSettings) *sharedmodels.WinGetAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil

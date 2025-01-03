@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package sharedStater
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
+// StateConfigurationPolicyAssignment maps the remote policy assignment state to the Terraform state
+func StateConfigurationPolicyAssignment(ctx context.Context, data *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return
@@ -41,7 +41,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *SettingsCata
 	excludeGroupAssignments := GetExcludeGroupAssignments(assignmentsResponse)
 	MapExcludeGroupAssignments(assignments, excludeGroupAssignments)
 
-	data.Assignments = assignments
+	//data.Assignments = assignments
 
 	tflog.Debug(ctx, "Finished mapping assignment to Terraform state")
 }

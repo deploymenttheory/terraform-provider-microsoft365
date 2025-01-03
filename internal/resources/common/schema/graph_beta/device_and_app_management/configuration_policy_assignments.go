@@ -16,7 +16,7 @@ var (
 	guidRegex = regexp.MustCompile(helpers.GuidRegex)
 )
 
-func IntuneSettingsCatalogAssignmentsSchema() schema.SingleNestedAttribute {
+func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:    true,
 		Description: "The assignment configuration for this Windows Settings Catalog profile.",

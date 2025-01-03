@@ -5,7 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -88,7 +88,7 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 				Sensitive:           true,
 			},
-			"assignments": commonschemagraphbeta.IntuneScriptAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

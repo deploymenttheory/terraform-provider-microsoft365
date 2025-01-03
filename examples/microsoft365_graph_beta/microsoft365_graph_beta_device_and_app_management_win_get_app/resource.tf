@@ -24,6 +24,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsa
     delete = "5m"
   }
 }
+
 resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual_studio_code" {
   package_identifier              = "XP9KHM4BK9FZ7Q" # The unique identifier for the app obtained from msft app store
   automatically_generate_metadata = true
@@ -51,6 +52,26 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
 
   # App assignments configuration
   assignments = [
+    {
+      intent = "available"
+      source = "direct"
+      target = {
+        target_type                                      = "groupAssignment"
+        group_id                                         = "612233b1-55ca-4815-a6b9-5c4aa5a4ac87"
+        device_and_app_management_assignment_filter_id   = "43cb3789-2d36-4fb6-aa4d-0c3678b064e7"
+        device_and_app_management_assignment_filter_type = "include"
+      }
+      settings = {
+        win_get = {
+          notifications = "showAll"
+          restart_settings = {
+            grace_period_in_minutes                         = 100
+            countdown_display_before_restart_in_minutes     = 15
+            restart_notification_snooze_duration_in_minutes = 42
+          }
+        }
+      }
+    },
     {
       intent = "required"
       source = "direct"
@@ -102,6 +123,30 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
       source = "direct"
       target = {
         target_type                                      = "groupAssignment"
+        group_id                                         = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+        device_and_app_management_assignment_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
+        device_and_app_management_assignment_filter_type = "include"
+      }
+      settings = {
+        win_get = {
+          notifications = "showAll"
+          install_time_settings = {
+            use_local_time     = true
+            deadline_date_time = "2024-12-31T23:59:59Z"
+          }
+          restart_settings = {
+            grace_period_in_minutes                         = 100
+            countdown_display_before_restart_in_minutes     = 15
+            restart_notification_snooze_duration_in_minutes = 42
+          }
+        }
+      }
+    },
+    {
+      intent = "required"
+      source = "direct"
+      target = {
+        target_type                                      = "groupAssignment"
         group_id                                         = "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
         device_and_app_management_assignment_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
         device_and_app_management_assignment_filter_type = "include"
@@ -122,31 +167,11 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
       }
     },
     {
-      intent = "available"
-      source = "direct"
-      target = {
-        target_type                                      = "groupAssignment"
-        group_id                                         = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
-        device_and_app_management_assignment_filter_id   = "43cb3789-2d36-4fb6-aa4d-0c3678b064e7"
-        device_and_app_management_assignment_filter_type = "include"
-      }
-      settings = {
-        win_get = {
-          notifications = "showAll"
-          restart_settings = {
-            grace_period_in_minutes                         = 100
-            countdown_display_before_restart_in_minutes     = 15
-            restart_notification_snooze_duration_in_minutes = 42
-          }
-        }
-      }
-    },
-    {
       intent = "uninstall"
       source = "direct"
       target = {
         target_type                                      = "groupAssignment"
-        group_id                                         = "612233b1-55ca-4815-a6b9-5c4aa5a4ac87"
+        group_id                                         = "51a96cdd-4b9b-4849-b416-8c94a6d88797"
         device_and_app_management_assignment_filter_id   = "43cb3789-2d36-4fb6-aa4d-0c3678b064e7"
         device_and_app_management_assignment_filter_type = "exclude"
       }
@@ -158,9 +183,9 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual
             deadline_date_time = "2024-12-31T23:59:59Z"
           }
           restart_settings = {
-            grace_period_in_minutes                         = 100
-            countdown_display_before_restart_in_minutes     = 15
-            restart_notification_snooze_duration_in_minutes = 42
+            grace_period_in_minutes                         = 200
+            countdown_display_before_restart_in_minutes     = 50
+            restart_notification_snooze_duration_in_minutes = 1
           }
         }
       }

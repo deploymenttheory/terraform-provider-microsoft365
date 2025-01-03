@@ -1,15 +1,16 @@
-package graphBetaSettingsCatalog
+package sharedStater
 
 import (
 	"context"
 	"encoding/json"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/normalize"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// MapRemoteSettingsStateToTerraform maps the remote settings catalog settings state to the Terraform state
+// StateConfigurationPolicySettings maps the remote settings catalog settings state to the Terraform state
 // taking the raw json from a custom GET request, normalizing the content and then stating. The stating logic:
 // 1. Parses the original HCL settings to preserve secret values and states
 // 2. Parses the raw response and extracts the settings content
@@ -17,7 +18,7 @@ import (
 // 4. Recursively preserves secret setting values and states from the original HCL config
 // 5. Converts the structured content to JSON and normalizes it alphabetically
 // 6. States the normalized JSON in the Terraform state
-func MapRemoteSettingsStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, resp []byte) {
+func StateConfigurationPolicySettings(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, resp []byte) {
 	var configSettings map[string]interface{}
 	if err := json.Unmarshal([]byte(data.Settings.ValueString()), &configSettings); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal config settings", map[string]interface{}{"error": err.Error()})
