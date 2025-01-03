@@ -6,7 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphsdkmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -18,7 +18,7 @@ func ConstructConfigurationPolicyAssignment(ctx context.Context, data *sharedmod
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
 
-	tflog.Debug(ctx, "Starting assignment construction")
+	tflog.Debug(ctx, "Starting Configuartion Policy (settings catalog) assignment construction")
 
 	if err := validators.ValidateDeviceConfiguationAssignmentSettings(data); err != nil {
 		return nil, err

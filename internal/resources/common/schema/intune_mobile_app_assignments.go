@@ -24,8 +24,20 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 					},
 				},
 				"intent": schema.StringAttribute{
-					MarkdownDescription: "The install intent defined by the admin. Possible values are: available, required, uninstall, availableWithoutEnrollment.",
-					Required:            true,
+					Required: true,
+					MarkdownDescription: "The Intune app install intent defined by the admin. Possible values are:\n\n" +
+						"- **available**: App is available for users to install\n" +
+						"- **required**: App is required and will be automatically installed\n" +
+						"- **uninstall**: App will be uninstalled\n" +
+						"- **availableWithoutEnrollment**: App is available without Intune device enrollment",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"available",
+							"required",
+							"uninstall",
+							"availableWithoutEnrollment",
+						),
+					},
 				},
 				"source": schema.StringAttribute{
 					MarkdownDescription: "The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.",
@@ -124,16 +136,19 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Attributes: map[string]schema.Attribute{
 								"is_removable": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
 									Default:             booldefault.StaticBool(true),
 								},
 								"prevent_managed_app_backup": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"uninstall_on_device_removal": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.",
 									Default:             booldefault.StaticBool(true),
 								},
@@ -148,16 +163,19 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Attributes: map[string]schema.Attribute{
 								"is_removable": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
 									Default:             booldefault.StaticBool(true),
 								},
 								"prevent_managed_app_backup": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"uninstall_on_device_removal": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.",
 									Default:             booldefault.StaticBool(true),
 								},
@@ -172,26 +190,31 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Attributes: map[string]schema.Attribute{
 								"is_removable": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "Whether or not the app can be removed by the user. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"prevent_auto_app_update": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"prevent_managed_app_backup": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"uninstall_on_device_removal": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "Whether or not to uninstall the app when device is removed from Intune. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"use_device_licensing": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "Whether or not to use device licensing. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
@@ -206,6 +229,7 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Attributes: map[string]schema.Attribute{
 								"uninstall_on_device_removal": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, the macOS LOB app will be uninstalled when the device is removed from Intune management. When FALSE, the macOS LOB app will not be uninstalled when the device is removed from management. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
@@ -216,21 +240,25 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Attributes: map[string]schema.Attribute{
 								"prevent_auto_app_update": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to null which internally is treated as FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"prevent_managed_app_backup": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to null which internally is treated as FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"uninstall_on_device_removal": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE, the macOS VPP app will be uninstalled when the device is removed from Intune management. When FALSE, the macOS VPP app will not be uninstalled when the device is removed from management. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
 								"use_device_licensing": schema.BoolAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "When TRUE indicates that the macOS VPP app should use device-based licensing. When FALSE indicates that the macOS VPP app should use user-based licensing. By default, this property is set to FALSE.",
 									Default:             booldefault.StaticBool(false),
 								},
@@ -244,6 +272,7 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 										"When FALSE, indicates that user context will be used for the Microsoft Store for Business mobile app. " +
 										"By default, this property is set to FALSE. Once this property has been set to TRUE it cannot be changed.",
 									Optional: true,
+									Computed: true,
 									Default:  booldefault.StaticBool(false),
 								},
 							},
@@ -432,6 +461,7 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 								"use_device_context": schema.BoolAttribute{
 									MarkdownDescription: "When TRUE, indicates that device execution context will be used for the AppX mobile app. When FALSE, indicates that user context will be used for the AppX mobile app. By default, this property is set to FALSE. Once this property has been set to TRUE it cannot be changed.",
 									Optional:            true,
+									Computed:            true,
 									Default:             booldefault.StaticBool(false),
 								},
 							},
@@ -442,6 +472,7 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 								"use_device_context": schema.BoolAttribute{
 									MarkdownDescription: "If true, uses device execution context for Windows Universal AppX mobile app. Device-context install is not allowed when this type of app is targeted with Available intent. Defaults to false.",
 									Optional:            true,
+									Computed:            true,
 									Default:             booldefault.StaticBool(false),
 								},
 							},
@@ -469,15 +500,15 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 								"restart_settings": schema.SingleNestedAttribute{
 									Optional: true,
 									Attributes: map[string]schema.Attribute{
-										"grace_period_in_minutes": schema.Int64Attribute{
+										"grace_period_in_minutes": schema.Int32Attribute{
 											MarkdownDescription: "The number of minutes to wait before restarting the device after an app installation.",
 											Optional:            true,
 										},
-										"countdown_display_before_restart_in_minutes": schema.Int64Attribute{
+										"countdown_display_before_restart_in_minutes": schema.Int32Attribute{
 											MarkdownDescription: "The number of minutes before the restart time to display the countdown dialog for pending restarts.",
 											Optional:            true,
 										},
-										"restart_notification_snooze_duration_in_minutes": schema.Int64Attribute{
+										"restart_notification_snooze_duration_in_minutes": schema.Int32Attribute{
 											MarkdownDescription: "The number of minutes to snooze the restart notification dialog when the snooze button is selected.",
 											Optional:            true,
 										},

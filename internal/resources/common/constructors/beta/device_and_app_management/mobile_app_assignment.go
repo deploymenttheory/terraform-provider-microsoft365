@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,6 +17,12 @@ import (
 func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("mobile app assignment data is required")
+	}
+
+	tflog.Debug(ctx, "Starting mobile app assignment construction")
+
+	if err := validators.ValidateMobileAppAssignmentSettings(data); err != nil {
+		return nil, err
 	}
 
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
@@ -68,6 +75,13 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 	}
 
 	requestBody.SetMobileAppAssignments(assignments)
+
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to mobile app assignment request body", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
 	return requestBody, nil
 }
 
@@ -78,46 +92,46 @@ func constructAssignmentTarget(ctx context.Context, data *sharedmodels.Assignmen
 	}
 
 	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
-
 	targetType := data.DeviceAndAppManagementAssignmentFilterType.ValueString()
 
-	switch targetType {
+	switch data.TargetType.ValueString() {
 	case "allDevices":
 		target = graphmodels.NewAllDevicesAssignmentTarget()
 	case "allLicensedUsers":
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "androidFotaDeployment":
-		androidFotaDeploymentAssignemntTarget := graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
+		androidFotaDeploymentAssignmentTarget := graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
 		if !data.GroupId.IsNull() {
 			id := data.GroupId.ValueString()
-			androidFotaDeploymentAssignemntTarget.SetGroupId(&id)
+			androidFotaDeploymentAssignmentTarget.SetGroupId(&id)
 		}
-		target = androidFotaDeploymentAssignemntTarget
+		target = androidFotaDeploymentAssignmentTarget
 	case "configurationManagerCollection":
-		exclusionGroupAssignemntTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
+		configManagerTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
 		if !data.CollectionId.IsNull() {
 			id := data.CollectionId.ValueString()
-			exclusionGroupAssignemntTarget.SetCollectionId(&id)
+			configManagerTarget.SetCollectionId(&id)
 		}
-		target = exclusionGroupAssignemntTarget
+		target = configManagerTarget
 	case "exclusionGroupAssignment":
-		exclusionGroupAssignemntTarget := graphmodels.NewExclusionGroupAssignmentTarget()
+		exclusionGroupTarget := graphmodels.NewExclusionGroupAssignmentTarget()
 		if !data.GroupId.IsNull() {
 			id := data.GroupId.ValueString()
-			exclusionGroupAssignemntTarget.SetGroupId(&id)
+			exclusionGroupTarget.SetGroupId(&id)
 		}
-		target = exclusionGroupAssignemntTarget
+		target = exclusionGroupTarget
 	case "groupAssignment":
-		groupAssignemntTarget := graphmodels.NewGroupAssignmentTarget()
+		groupTarget := graphmodels.NewGroupAssignmentTarget()
 		if !data.GroupId.IsNull() {
 			id := data.GroupId.ValueString()
-			groupAssignemntTarget.SetGroupId(&id)
+			groupTarget.SetGroupId(&id)
 		}
-		target = groupAssignemntTarget
+		target = groupTarget
 	default:
 		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()
 	}
 
+	// Then set the filter properties if they exist
 	if !data.DeviceAndAppManagementAssignmentFilterId.IsNull() {
 		id := data.DeviceAndAppManagementAssignmentFilterId.ValueString()
 		target.SetDeviceAndAppManagementAssignmentFilterId(&id)
@@ -132,7 +146,6 @@ func constructAssignmentTarget(ctx context.Context, data *sharedmodels.Assignmen
 	}
 
 	tflog.Debug(ctx, "Finished constructing assignment target")
-
 	return target, nil
 }
 
@@ -515,7 +528,6 @@ func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsU
 
 	return settings, nil
 }
-
 func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignmentSettingsResourceModel) (*graphmodels.WinGetAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("winGet settings data is required")
@@ -525,6 +537,10 @@ func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignment
 
 	if data.InstallTimeSettings != nil {
 		installSettings := graphmodels.NewWinGetAppInstallTimeSettings()
+
+		// Set @odata.type for install time settings
+		//odataType := "microsoft.graph.winGetAppInstallTimeSettings"
+		//installSettings.SetOdataType(&odataType)
 
 		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
 			parsedDeadline, err := time.Parse(time.RFC3339, *value)
@@ -545,6 +561,10 @@ func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignment
 
 	if data.RestartSettings != nil {
 		restartSettings := graphmodels.NewWinGetAppRestartSettings()
+
+		// Set @odata.type for restart settings
+		//odataType := "microsoft.graph.winGetAppRestartSettings"
+		//restartSettings.SetOdataType(&odataType)
 
 		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestartInMinutes, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
 		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)

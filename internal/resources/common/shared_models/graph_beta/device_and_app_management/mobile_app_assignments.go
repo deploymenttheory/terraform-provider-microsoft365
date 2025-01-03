@@ -31,6 +31,7 @@ type AssignmentTargetResourceModel struct {
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-win32lobappassignmentsettings?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-windowsappxappassignmentsettings?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-windowsuniversalappxappassignmentsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-wingetappassignmentsettings?view=graph-rest-beta
 type MobileAppAssignmentSettingsResourceModel struct {
 	AndroidManagedStore       *AndroidManagedStoreAssignmentSettingsResourceModel          `tfsdk:"android_managed_store"`
 	IosLob                    *IosLobAppAssignmentSettingsResourceModel                    `tfsdk:"ios_lob"`
