@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -36,7 +37,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformS
 	}
 	data.ScriptContent = types.StringValue(string(decoded))
 
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+	var roleScopeTagIds []attr.Value
+	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
+		roleScopeTagIds = append(roleScopeTagIds, v)
+	}
+
+	data.RoleScopeTagIds = types.ListValueMust(
+		types.StringType,
+		roleScopeTagIds,
+	)
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

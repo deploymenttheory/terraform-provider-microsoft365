@@ -11,7 +11,7 @@ type LinuxPlatformScriptResourceModel struct {
 	DisplayName         types.String                                                 `tfsdk:"display_name"`
 	Description         types.String                                                 `tfsdk:"description"`
 	ScriptContent       types.String                                                 `tfsdk:"script_content"`
-	RoleScopeTagIds     []types.String                                               `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds     types.List                                                   `tfsdk:"role_scope_tag_ids"`
 	Platforms           types.String                                                 `tfsdk:"platforms"`             // e.g., "LINUX"
 	Technologies        types.String                                                 `tfsdk:"technologies"`          // e.g., "LINUXMDM"
 	Settings            []LinuxPlatformScriptConfigurationSettingResourceModel       `tfsdk:"settings"`              // Nested settings list
