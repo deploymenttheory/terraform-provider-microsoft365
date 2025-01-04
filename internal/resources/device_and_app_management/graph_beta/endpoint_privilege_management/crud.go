@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
-
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -214,7 +214,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
+	sharedstater.StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
