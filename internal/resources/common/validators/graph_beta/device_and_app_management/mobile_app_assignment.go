@@ -8,6 +8,12 @@ import (
 
 // ValidateMobileAppAssignmentSettings validates the mobile app assignment settings across all assignments
 func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignmentResourceModel) error {
+
+	// Rule 1: Validate assignment ordering
+	if err := validateAssignmentOrdering(config); err != nil {
+		return err
+	}
+
 	// Track usage of special target types
 	allDevicesCount := 0
 	allLicensedUsersCount := 0
@@ -15,19 +21,92 @@ func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignme
 	firstAllLicensedUsersIndex := -1
 
 	for i, assignment := range config {
-		// Rule 1: Validate install time settings based on intent
+		// Rule 2: Validate install time settings based on intent
 		if err := validateInstallTimeSettings(i, assignment); err != nil {
 			return err
 		}
 
-		// Rule 2: Validate special target types usage
+		// Rule 3: Validate special target types usage
 		if err := validateSpecialTargetTypes(i, assignment, &allDevicesCount, &allLicensedUsersCount, &firstAllDevicesIndex, &firstAllLicensedUsersIndex); err != nil {
 			return err
 		}
 
-		// Rule 3: Validate restart settings relationships
+		// Rule 4: Validate restart settings relationships
 		if err := validateRestartSettings(i, assignment); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+// validateAssignmentOrdering ensures assignments follow the required ordering:
+// 1. First tier: Sort by intent alphabetically
+// 2. Second tier: Within same intent, sort by target_type alphabetically
+// 3. Third tier: Within same target_type, sort by group_id alphabetically
+func validateAssignmentOrdering(config []sharedmodels.MobileAppAssignmentResourceModel) error {
+	if len(config) <= 1 {
+		return nil // No ordering needed for 0 or 1 assignments
+	}
+
+	for i := 0; i < len(config)-1; i++ {
+		current := config[i]
+		next := config[i+1]
+
+		// Get intent values, treating null as empty string for comparison
+		currentIntent := ""
+		nextIntent := ""
+		if !current.Intent.IsNull() {
+			currentIntent = current.Intent.ValueString()
+		}
+		if !next.Intent.IsNull() {
+			nextIntent = next.Intent.ValueString()
+		}
+
+		// Compare intents (First tier)
+		if currentIntent > nextIntent {
+			return fmt.Errorf(
+				"invalid mobile app assignment ordering between index %d and %d: intent '%s' must come before '%s'",
+				i, i+1, nextIntent, currentIntent,
+			)
+		}
+
+		// If intents are equal, compare target_types (Second tier)
+		if currentIntent == nextIntent {
+			currentTargetType := ""
+			nextTargetType := ""
+			if !current.Target.TargetType.IsNull() {
+				currentTargetType = current.Target.TargetType.ValueString()
+			}
+			if !next.Target.TargetType.IsNull() {
+				nextTargetType = next.Target.TargetType.ValueString()
+			}
+
+			if currentTargetType > nextTargetType {
+				return fmt.Errorf(
+					"invalid mobile app assignment ordering between index %d and %d: for intent '%s', target_type '%s' must come before '%s'",
+					i, i+1, currentIntent, nextTargetType, currentTargetType,
+				)
+			}
+
+			// If target_types are equal, compare group_ids (Third tier)
+			if currentTargetType == nextTargetType {
+				currentGroupID := ""
+				nextGroupID := ""
+				if !current.Target.GroupId.IsNull() {
+					currentGroupID = current.Target.GroupId.ValueString()
+				}
+				if !next.Target.GroupId.IsNull() {
+					nextGroupID = next.Target.GroupId.ValueString()
+				}
+
+				if currentGroupID > nextGroupID {
+					return fmt.Errorf(
+						"invalid mobile app assignment ordering between index %d and %d: for intent '%s' and target_type '%s', group_id '%s' must come before '%s'",
+						i, i+1, currentIntent, currentTargetType, nextGroupID, currentGroupID,
+					)
+				}
+			}
 		}
 	}
 
