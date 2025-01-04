@@ -15,7 +15,6 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
 		NestedObject: schema.NestedAttributeObject{
-
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
 					MarkdownDescription: "The ID of the Intune application associated with this assignment.",
