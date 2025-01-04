@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -106,6 +107,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.CaseInsensitiveString(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"is_featured": schema.BoolAttribute{
@@ -182,6 +184,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					"value": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
+						Sensitive:           true, // not sensitive in a true sense, but we don't want to show the icon base64 encode in the plan.
 						MarkdownDescription: "The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.",
 					},
 				},
