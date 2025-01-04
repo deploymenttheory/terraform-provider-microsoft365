@@ -561,7 +561,7 @@ Optional:
 Optional:
 
 - `type` (String) The MIME type of the app's large icon, automatically populated based on the `package_identifier` when `automatically_generate_metadata` is true. Example: `image/png`
-- `value` (String) The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.
+- `value` (String, Sensitive) The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.
 
 
 <a id="nestedatt--timeouts"></a>
