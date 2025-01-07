@@ -76,6 +76,10 @@ func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 		"id":      config.ResourceID,
 	}
 
+	constructedUrl := fmt.Sprintf("https://graph.microsoft.com/%s%s('%s')",
+		config.APIVersion, config.Endpoint, config.ResourceID)
+	fmt.Printf("Making custom msgraph PUT request to: %s\n", constructedUrl)
+
 	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
 	if err != nil {
 		return fmt.Errorf("error setting content: %v", err)

@@ -99,7 +99,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
-				MarkdownDescription: "Policy description",
+				MarkdownDescription: "Optional description for the settings catalog policy.",
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
@@ -173,7 +173,6 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{

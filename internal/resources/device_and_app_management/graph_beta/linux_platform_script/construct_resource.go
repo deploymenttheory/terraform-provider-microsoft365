@@ -16,7 +16,6 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	// Set basic properties
 	constructors.SetStringProperty(data.Name, requestBody.SetName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
@@ -28,17 +27,21 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
 	requestBody.SetTechnologies(&technologies)
 
-	// Set role scope tags
 	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Construct settings from the model's Settings field
-	settings, err := constructSettingsCatalogSettings(ctx, data)
+	settings, err := constructSettingsCatalogSettings(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct settings: %v", err)
 	}
 	requestBody.SetSettings(settings)
+
+	// Set template reference
+	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
+	templateId := "92439f26-2b30-4503-8429-6d40f7e172dd_1"
+	templateReference.SetTemplateId(&templateId)
+	requestBody.SetTemplateReference(templateReference)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
@@ -50,7 +53,9 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 }
 
 // constructSettingsCatalogSettings creates the settings configuration for the Linux script
-func constructSettingsCatalogSettings(ctx context.Context, data *LinuxPlatformScriptResourceModel) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
+// this constructor requires specific template and template instance IDs to be set correctly.
+// The values are taken from Microsoft Graph X-Ray.
+func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
 	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
 	// Encode the script content
@@ -66,8 +71,11 @@ func constructSettingsCatalogSettings(ctx context.Context, data *LinuxPlatformSc
 	executionContextInstance.SetSettingDefinitionId(&executionContextDefId)
 
 	executionContextValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-	executionContextChoice := "linux_customconfig_executioncontext_user"
+	executionContextChoice := fmt.Sprintf("linux_customconfig_executioncontext_%s", data.ExecutionContext.ValueString())
 	executionContextValue.SetValue(&executionContextChoice)
+
+	children := []graphmodels.DeviceManagementConfigurationSettingInstanceable{}
+	executionContextValue.SetChildren(children)
 
 	executionContextValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
 	executionContextValueTemplateId := "119f0327-4114-444a-b53d-4b55fd579e43"
@@ -91,7 +99,7 @@ func constructSettingsCatalogSettings(ctx context.Context, data *LinuxPlatformSc
 	frequencyInstance.SetSettingDefinitionId(&frequencyDefId)
 
 	frequencyValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-	frequencyChoice := "linux_customconfig_executionfrequency_15minutes"
+	frequencyChoice := fmt.Sprintf("linux_customconfig_executionfrequency_%s", data.ExecutionFrequency.ValueString())
 	frequencyValue.SetValue(&frequencyChoice)
 
 	frequencyValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
@@ -116,7 +124,7 @@ func constructSettingsCatalogSettings(ctx context.Context, data *LinuxPlatformSc
 	retriesInstance.SetSettingDefinitionId(&retriesDefId)
 
 	retriesValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-	retriesChoice := "linux_customconfig_executionretries_0"
+	retriesChoice := fmt.Sprintf("linux_customconfig_executionretries_%s", data.ExecutionRetries.ValueString())
 	retriesValue.SetValue(&retriesChoice)
 
 	retriesValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()

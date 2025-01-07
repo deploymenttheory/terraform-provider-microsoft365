@@ -4,11 +4,17 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -74,91 +80,104 @@ func (r *LinuxPlatformScriptResource) ImportState(ctx context.Context, req resou
 // Schema defines the resource schema.
 func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune Linux platform script using the 'configurationPolicies' Graph Beta API.",
+		MarkdownDescription: "Manages an Intune Linux platform script using the 'configurationPolicies' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Unique Identifier for the device management script.",
-				Computed:    true,
+				MarkdownDescription: "Unique Identifier for the device management script.",
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description: "Name of the linux device management script.",
-				Required:    true,
+				MarkdownDescription: "Name of the linux device management script.",
+				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Optional description for the linux device management script.",
-				Optional:    true,
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
+				MarkdownDescription: "Optional description for the linux device management script.",
 			},
 			"script_content": schema.StringAttribute{
-				Description: "The linux script content. This will be base64 encoded as part of the request.",
-				Required:    true,
-				Sensitive:   true,
+				MarkdownDescription: "The linux script content. This will be base64 encoded as part of the request.",
+				Required:            true,
+				Sensitive:           true,
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
-				Description: "List of Scope Tag IDs for this script.",
-				Optional:    true,
-				ElementType: types.StringType,
-			},
-			"platforms": schema.StringAttribute{
-				Description: "Platform type for the script, always `LINUX`.",
-				Computed:    true,
-			},
-			"technologies": schema.StringAttribute{
-				Description: "Technology type for the linux platform script, always `LINUXMDM`.",
-				Computed:    true,
-			},
-			"settings": schema.ListNestedAttribute{
-				Description: "List of configuration settings.",
-				Optional:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"setting_definition_id": schema.StringAttribute{
-							Description: "The ID of the setting definition.",
-							Required:    true,
-						},
-						"setting_value": schema.StringAttribute{
-							Description: "The value for the setting.",
-							Required:    true,
-						},
-						"setting_value_template_reference": schema.StringAttribute{
-							Description: "The template reference ID for the setting value.",
-							Optional:    true,
-						},
-						"setting_instance_template_id": schema.StringAttribute{
-							Description: "The instance template ID for the setting.",
-							Optional:    true,
-						},
-						"children": schema.ListNestedAttribute{
-							Description: "Nested children configuration settings.",
-							Optional:    true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"setting_definition_id": schema.StringAttribute{
-										Description: "The ID of the nested setting definition.",
-										Required:    true,
-									},
-									"setting_value": schema.StringAttribute{
-										Description: "The value for the nested setting.",
-										Required:    true,
-									},
-									"setting_value_template_reference": schema.StringAttribute{
-										Description: "The template reference ID for the nested setting value.",
-										Optional:    true,
-									},
-									"setting_instance_template_id": schema.StringAttribute{
-										Description: "The instance template ID for the nested setting.",
-										Optional:    true,
-									},
-								},
-							},
-						},
-					},
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "List of scope tag IDs for this linux device management script.",
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListValue(
+						[]attr.Value{types.StringValue("0")},
+					),
 				},
 			},
-			"template_reference_id": schema.StringAttribute{
-				Description: "The ID of the configuration policy template reference.",
-				Required:    true,
+			"platforms": schema.StringAttribute{
+				Computed: true,
+				MarkdownDescription: "Platform type for this linux platform script." +
+					"Will always be set to ['linux']," +
+					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"linux",
+					),
+				},
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("linux")},
 			},
-			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
+			"technologies": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Describes the technologies this settings catalog setting can be deployed with. Defaults to ['linuxMdm'].",
+				Validators: []validator.List{
+					customValidator.StringListAllowedValues(
+						"linuxMdm",
+					),
+				},
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("linuxMdm")}),
+				},
+			},
+			"execution_context": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Execution context for the linux platform script. Can be one of: user or root. Defaults to user.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"user",
+						"root",
+					),
+				},
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("user")},
+			},
+			"execution_frequency": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Execution frequency for the Linux platform script. Can be one of: `15minutes`, `30minutes`, `1hour`, `2hour`, `3hour`, `6hour`, `12hour`, `1day`, or `1week`. Defaults to `15minutes`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"15minutes",
+						"30minutes",
+						"1hour",
+						"2hour",
+						"3hour",
+						"6hour",
+						"12hour",
+						"1day",
+						"1week",
+					),
+				},
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("15minutes")},
+			},
+			"execution_retries": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Number of times the Linux platform script should be retried on failure. Can be one of: `1`, `2`, or `3`. Defaults to `1`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"1",
+						"2",
+						"3",
+					),
+				},
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("1")},
+			},
+			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
