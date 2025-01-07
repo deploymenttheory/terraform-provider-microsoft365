@@ -23,7 +23,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformS
 	})
 
 	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Name = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 
 	// Handle base64 encoded script content

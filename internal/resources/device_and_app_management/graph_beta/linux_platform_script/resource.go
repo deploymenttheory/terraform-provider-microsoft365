@@ -21,31 +21,31 @@ const (
 	DeleteTimeout = 180
 )
 
-// var (
-// 	// Basic resource interface (CRUD operations)
-// 	_ resource.Resource = &LinuxPlatformScriptResource{}
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &LinuxPlatformScriptResource{}
 
-// 	// Allows the resource to be configured with the provider client
-// 	_ resource.ResourceWithConfigure = &LinuxPlatformScriptResource{}
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &LinuxPlatformScriptResource{}
 
-// 	// Enables import functionality
-// 	_ resource.ResourceWithImportState = &LinuxPlatformScriptResource{}
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &LinuxPlatformScriptResource{}
 
-// 	// Enables plan modification/diff suppression
-// 	_ resource.ResourceWithModifyPlan = &LinuxPlatformScriptResource{}
-// )
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &LinuxPlatformScriptResource{}
+)
 
-// func NewLinuxPlatformScriptResource() resource.Resource {
-// 	return &LinuxPlatformScriptResource{
-// 		ReadPermissions: []string{
-// 			"DeviceManagementConfiguration.Read.All",
-// 		},
-// 		WritePermissions: []string{
-// 			"DeviceManagementConfiguration.ReadWrite.All",
-// 		},
-// 		ResourcePath: "/deviceManagement/configurationPolicies",
-// 	}
-// }
+func NewLinuxPlatformScriptResource() resource.Resource {
+	return &LinuxPlatformScriptResource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+		ResourcePath: "/deviceManagement/configurationPolicies",
+	}
+}
 
 type LinuxPlatformScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
@@ -80,16 +80,16 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Description: "Unique Identifier for the device management script.",
 				Computed:    true,
 			},
-			"display_name": schema.StringAttribute{
-				Description: "Name of the device management script.",
+			"name": schema.StringAttribute{
+				Description: "Name of the linux device management script.",
 				Required:    true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Optional description for the device management script.",
+				Description: "Optional description for the linux device management script.",
 				Optional:    true,
 			},
 			"script_content": schema.StringAttribute{
-				Description: "The script content, base64 encoded.",
+				Description: "The linux script content. This will be base64 encoded as part of the request.",
 				Required:    true,
 				Sensitive:   true,
 			},
