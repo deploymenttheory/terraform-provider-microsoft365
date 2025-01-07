@@ -426,7 +426,7 @@ Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Policy description
+- `description` (String) Optional description for the settings catalog policy.
 - `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
 - `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
 - `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].

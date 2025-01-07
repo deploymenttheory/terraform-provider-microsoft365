@@ -3,7 +3,7 @@ resource "microsoft365_graph_beta_device_and_app_management_linux_platform_scrip
   description         = "Example script to demonstrate Linux platform script configuration"
   execution_context   = "user" // Possible values are user, root
   execution_frequency = "1day" // Possible values are 1day, 3days, 5days, 1week
-  execution_retries   = 2 // Can be one of: `15minutes`, `30minutes`, `1hour`, `2hour`, `3hour`, `6hour`, `12hour`, `1day`, or `1week`. Defaults to `15minutes`.
+  execution_retries   = 2      // Can be one of: `15minutes`, `30minutes`, `1hour`, `2hour`, `3hour`, `6hour`, `12hour`, `1day`, or `1week`. Defaults to `15minutes`.
 
   script_content = <<-EOT
     #!/bin/bash
