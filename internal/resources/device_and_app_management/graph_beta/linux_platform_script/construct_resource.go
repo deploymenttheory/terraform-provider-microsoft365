@@ -2,158 +2,169 @@ package graphBetaLinuxPlatformScript
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/utilities"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Main entry point to construct the intune linux platform script resource for the Terraform provider.
+// constructResource creates a new Linux script resource model for the Graph API
 func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+	tflog.Debug(ctx, "Constructing Linux script resource from model")
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	Name := data.DisplayName.ValueString()
-	requestBody.SetName(&Name)
+	constructors.SetStringProperty(data.Name, requestBody.SetName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
+	// Set platform (always Linux for this resource)
+	platform := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
+	requestBody.SetPlatforms(&platform)
 
-	// Set platforms to linux (always)
-	parsedPlatform, err := graphmodels.ParseDeviceManagementConfigurationPlatforms("linux")
+	// Set technologies (always linuxMdm for this resource)
+	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
+	requestBody.SetTechnologies(&technologies)
+
+	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
+	}
+
+	settings, err := constructSettingsCatalogSettings(data)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing platforms: %v", err)
+		return nil, fmt.Errorf("failed to construct settings: %v", err)
 	}
-	if platform, ok := parsedPlatform.(*graphmodels.DeviceManagementConfigurationPlatforms); ok {
-		requestBody.SetPlatforms(platform)
-	}
+	requestBody.SetSettings(settings)
 
-	// Set technologies to linuxMdm (always)
-	parsedTechnologies, err := graphmodels.ParseDeviceManagementConfigurationTechnologies("linuxMdm")
-	if err != nil {
-		return nil, fmt.Errorf("error parsing technologies: %v", err)
-	}
-	if technologies, ok := parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies); ok {
-		requestBody.SetTechnologies(technologies)
-	}
+	// Set template reference
+	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
+	templateId := "92439f26-2b30-4503-8429-6d40f7e172dd_1"
+	templateReference.SetTemplateId(&templateId)
+	requestBody.SetTemplateReference(templateReference)
 
-	if len(data.RoleScopeTagIds) > 0 {
-		var tagIds []string
-		for _, tag := range data.RoleScopeTagIds {
-			tagIds = append(tagIds, tag.ValueString())
-		}
-		requestBody.SetRoleScopeTagIds(tagIds)
-	} else {
-		requestBody.SetRoleScopeTagIds([]string{"0"})
-	}
-
-	//TODO
-	//settings := constructSettingsCatalogSettings(ctx, data.Settings)
-	//requestBody.SetSettings(settings)
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
 	return requestBody, nil
 }
 
-// constructSettingsCatalogSettings is a helper function to construct the linux platform script settings catalog settings from the JSON data.
-func constructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
-	tflog.Debug(ctx, "Constructing settings catalog settings")
+// constructSettingsCatalogSettings creates the settings configuration for the Linux script
+// this constructor requires specific template and template instance IDs to be set correctly.
+// The values are taken from Microsoft Graph X-Ray.
+func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
+	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
-	var simplifiedSettings []struct {
-		SettingDefinitionID string `json:"settingDefinitionId"`
-		Value               string `json:"value"`
-		TemplateID          string `json:"templateId"`
-		InstanceTemplateID  string `json:"instanceTemplateId"`
-		ODataType           string `json:"@odata.type"`
+	// Encode the script content
+	encodedScript, err := utilities.Base64Encode(data.ScriptContent.ValueString())
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode script content: %v", err)
 	}
 
-	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &simplifiedSettings); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return nil
-	}
+	// 1. Execution Context Setting
+	executionContextSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+	executionContextInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+	executionContextDefId := "linux_customconfig_executioncontext"
+	executionContextInstance.SetSettingDefinitionId(&executionContextDefId)
 
-	tflog.Debug(ctx, "Unmarshaled simplified settings", map[string]interface{}{
-		"data": simplifiedSettings,
-	})
+	executionContextValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+	executionContextChoice := fmt.Sprintf("linux_customconfig_executioncontext_%s", data.ExecutionContext.ValueString())
+	executionContextValue.SetValue(&executionContextChoice)
 
-	var settingsCollection []graphmodels.DeviceManagementConfigurationSettingable
+	children := []graphmodels.DeviceManagementConfigurationSettingInstanceable{}
+	executionContextValue.SetChildren(children)
 
-	for _, detail := range simplifiedSettings {
-		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+	executionContextValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+	executionContextValueTemplateId := "119f0327-4114-444a-b53d-4b55fd579e43"
+	executionContextValueTemplate.SetSettingValueTemplateId(&executionContextValueTemplateId)
+	executionContextValue.SetSettingValueTemplateReference(executionContextValueTemplate)
 
-		switch detail.ODataType {
-		case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
-			// Construct choice setting instance
-			settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-			settingInstance.SetSettingDefinitionId(&detail.SettingDefinitionID)
+	executionContextInstance.SetChoiceSettingValue(executionContextValue)
 
-			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-			choiceValue.SetValue(&detail.Value)
+	executionContextInstanceTemplate := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	executionContextInstanceTemplateId := "2c59a6c5-e874-445b-ac5a-d53688ef838e"
+	executionContextInstanceTemplate.SetSettingInstanceTemplateId(&executionContextInstanceTemplateId)
+	executionContextInstance.SetSettingInstanceTemplateReference(executionContextInstanceTemplate)
 
-			// Attach value template reference if available
-			if detail.TemplateID != "" {
-				valueTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
-				valueTemplateRef.SetSettingValueTemplateId(&detail.TemplateID)
-				choiceValue.SetSettingValueTemplateReference(valueTemplateRef)
-			}
+	executionContextSetting.SetSettingInstance(executionContextInstance)
+	settings = append(settings, executionContextSetting)
 
-			settingInstance.SetChoiceSettingValue(choiceValue)
+	// 2. Execution Frequency Setting
+	frequencySetting := graphmodels.NewDeviceManagementConfigurationSetting()
+	frequencyInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+	frequencyDefId := "linux_customconfig_executionfrequency"
+	frequencyInstance.SetSettingDefinitionId(&frequencyDefId)
 
-			// Attach instance template reference if available
-			if detail.InstanceTemplateID != "" {
-				instanceTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-				instanceTemplateRef.SetSettingInstanceTemplateId(&detail.InstanceTemplateID)
-				settingInstance.SetSettingInstanceTemplateReference(instanceTemplateRef)
-			}
+	frequencyValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+	frequencyChoice := fmt.Sprintf("linux_customconfig_executionfrequency_%s", data.ExecutionFrequency.ValueString())
+	frequencyValue.SetValue(&frequencyChoice)
 
-			baseSetting.SetSettingInstance(settingInstance)
+	frequencyValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+	frequencyValueTemplateId := "d0fb527e-606e-455f-891d-2a4de6a5db90"
+	frequencyValueTemplate.SetSettingValueTemplateId(&frequencyValueTemplateId)
+	frequencyValue.SetSettingValueTemplateReference(frequencyValueTemplate)
 
-		case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
-			// Construct simple setting instance
-			settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-			settingInstance.SetSettingDefinitionId(&detail.SettingDefinitionID)
+	frequencyInstance.SetChoiceSettingValue(frequencyValue)
 
-			simpleValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-			simpleValue.SetValue(&detail.Value)
+	frequencyInstanceTemplate := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	frequencyInstanceTemplateId := "f42b866f-ff2b-4d19-bef8-63e7c763d49b"
+	frequencyInstanceTemplate.SetSettingInstanceTemplateId(&frequencyInstanceTemplateId)
+	frequencyInstance.SetSettingInstanceTemplateReference(frequencyInstanceTemplate)
 
-			// Attach value template reference if available
-			if detail.TemplateID != "" {
-				valueTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
-				valueTemplateRef.SetSettingValueTemplateId(&detail.TemplateID)
-				simpleValue.SetSettingValueTemplateReference(valueTemplateRef)
-			}
+	frequencySetting.SetSettingInstance(frequencyInstance)
+	settings = append(settings, frequencySetting)
 
-			settingInstance.SetSimpleSettingValue(simpleValue)
+	// 3. Execution Retries Setting
+	retriesSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+	retriesInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+	retriesDefId := "linux_customconfig_executionretries"
+	retriesInstance.SetSettingDefinitionId(&retriesDefId)
 
-			// Attach instance template reference if available
-			if detail.InstanceTemplateID != "" {
-				instanceTemplateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
-				instanceTemplateRef.SetSettingInstanceTemplateId(&detail.InstanceTemplateID)
-				settingInstance.SetSettingInstanceTemplateReference(instanceTemplateRef)
-			}
+	retriesValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+	retriesChoice := fmt.Sprintf("linux_customconfig_executionretries_%s", data.ExecutionRetries.ValueString())
+	retriesValue.SetValue(&retriesChoice)
 
-			baseSetting.SetSettingInstance(settingInstance)
-		}
+	retriesValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+	retriesValueTemplateId := "92b31053-6ebb-4d2d-9e4d-081fe15d5d21"
+	retriesValueTemplate.SetSettingValueTemplateId(&retriesValueTemplateId)
+	retriesValue.SetSettingValueTemplateReference(retriesValueTemplate)
 
-		settingsCollection = append(settingsCollection, baseSetting)
-	}
+	retriesInstance.SetChoiceSettingValue(retriesValue)
 
-	tflog.Debug(ctx, "Constructed simplified settings collection", map[string]interface{}{
-		"count": len(settingsCollection),
-	})
+	retriesInstanceTemplate := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	retriesInstanceTemplateId := "a3326517-152b-4b32-bc11-8772b5b4fe6a"
+	retriesInstanceTemplate.SetSettingInstanceTemplateId(&retriesInstanceTemplateId)
+	retriesInstance.SetSettingInstanceTemplateReference(retriesInstanceTemplate)
 
-	return settingsCollection
+	retriesSetting.SetSettingInstance(retriesInstance)
+	settings = append(settings, retriesSetting)
+
+	// 4. Script Content Setting
+	scriptSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+	scriptInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+	scriptDefId := "linux_customconfig_script"
+	scriptInstance.SetSettingDefinitionId(&scriptDefId)
+
+	scriptValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+	scriptValue.SetValue(&encodedScript)
+
+	scriptValueTemplate := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
+	scriptValueTemplateId := "18dc8a98-2ecd-4753-8baf-3ab7a1d677a9"
+	scriptValueTemplate.SetSettingValueTemplateId(&scriptValueTemplateId)
+	scriptValue.SetSettingValueTemplateReference(scriptValueTemplate)
+
+	scriptInstance.SetSimpleSettingValue(scriptValue)
+
+	scriptInstanceTemplate := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
+	scriptInstanceTemplateId := "add4347a-f9aa-4202-a497-34a4c178d013"
+	scriptInstanceTemplate.SetSettingInstanceTemplateId(&scriptInstanceTemplateId)
+	scriptInstance.SetSettingInstanceTemplateReference(scriptInstanceTemplate)
+
+	scriptSetting.SetSettingInstance(scriptInstance)
+	settings = append(settings, scriptSetting)
+
+	return settings, nil
 }

@@ -2,16 +2,16 @@ package graphBetaLinuxPlatformScript
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a SettingsCatalogProfileResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformScriptResourceModel, remoteResource graphmodels.DeviceManagementScriptable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformScriptResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -22,23 +22,36 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *LinuxPlatformS
 	})
 
 	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
+	data.Name = types.StringPointerValue(remoteResource.GetName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 
-	// Handle base64 encoded script content
-	decoded, err := base64.StdEncoding.DecodeString(string(remoteResource.GetScriptContent()))
-	if err != nil {
-		tflog.Warn(ctx, "Failed to decode base64 script content", map[string]interface{}{
-			"error": err.Error(),
-		})
-		data.ScriptContent = types.StringValue(string(remoteResource.GetScriptContent()))
-		return
+	var roleScopeTagIds []attr.Value
+	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
+		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
-	data.ScriptContent = types.StringValue(string(decoded))
+	data.RoleScopeTagIds = types.ListValueMust(types.StringType, roleScopeTagIds)
 
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+	if platforms := remoteResource.GetPlatforms(); platforms != nil {
+		data.Platforms = state.EnumPtrToTypeString(platforms)
+	}
+
+	if technologies := remoteResource.GetTechnologies(); technologies != nil {
+		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
+	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
+}
+
+func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfigurationTechnologies) []types.String {
+	var values []types.String
+
+	if technologies&graphmodels.NONE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("none"))
+	}
+	if technologies&graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
+		values = append(values, types.StringValue("linuxMdm"))
+	}
+	return values
 }

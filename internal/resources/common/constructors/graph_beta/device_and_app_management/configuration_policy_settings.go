@@ -16,7 +16,7 @@ import (
 func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.String) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	var configModel sharedmodels.DeviceConfigV2GraphServiceModel
+	var configModel sharedmodels.DeviceConfigV2GraphServiceResourceModel
 
 	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &configModel); err != nil {
 		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
