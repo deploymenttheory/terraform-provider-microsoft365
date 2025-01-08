@@ -37,9 +37,8 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 	}
 	requestBody.SetSettings(settings)
 
-	// Set template reference
 	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
-	templateId := "92439f26-2b30-4503-8429-6d40f7e172dd_1"
+	templateId := "92439f26-2b30-4503-8429-6d40f7e172dd_1" // This is the template ID for Linux Platform Script
 	templateReference.SetTemplateId(&templateId)
 	requestBody.SetTemplateReference(templateReference)
 

@@ -29,6 +29,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
+	data.ConfigurationPolicyTemplateType = types.StringValue("")
 
 	var roleScopeTagIds []attr.Value
 	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
