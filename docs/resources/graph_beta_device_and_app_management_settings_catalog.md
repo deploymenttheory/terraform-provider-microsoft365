@@ -434,6 +434,7 @@ Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.
 
 ### Read-Only
 
+- `configuration_policy_template_type` (String) Defines which settings catalog setting template will be deployed. Unused by non settings catalog template items, but required in schema to satisify tfsdk model.
 - `created_date_time` (String) Creation date and time of the settings catalog policy
 - `id` (String) The unique identifier for this policy
 - `is_assigned` (Boolean) Indicates if the policy is assigned to any scope
