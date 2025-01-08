@@ -9,6 +9,7 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,7 +33,7 @@ import (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object EndpointPrivilegeManagementResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -145,7 +146,7 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object EndpointPrivilegeManagementResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
@@ -200,7 +201,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteSettingsStateToTerraform(ctx, &object, settingsResponse)
+	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
 	assignmentsResponse, err = r.client.
 		DeviceManagement().
@@ -238,7 +239,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object EndpointPrivilegeManagementResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -343,7 +344,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *EndpointPrivilegeManagementResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object EndpointPrivilegeManagementResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

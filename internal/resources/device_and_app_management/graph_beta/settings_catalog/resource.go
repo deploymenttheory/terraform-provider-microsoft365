@@ -101,6 +101,14 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Optional description for the settings catalog policy.",
 			},
+			"configuration_policy_template_type": schema.StringAttribute{
+				Computed: true,
+				MarkdownDescription: "Defines which settings catalog setting template will be deployed. " +
+					"Unused by non settings catalog template items, but required in schema to satisify tfsdk model.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"settings": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +

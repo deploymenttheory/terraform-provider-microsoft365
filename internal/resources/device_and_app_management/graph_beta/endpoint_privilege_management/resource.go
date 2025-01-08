@@ -8,6 +8,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -81,14 +82,14 @@ func (r *EndpointPrivilegeManagementResource) ImportState(ctx context.Context, r
 // Function to create the full device management win32 lob app schema
 func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
+		Description: "Manages a Endpoint Privilege Management Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this policy",
+				MarkdownDescription: "The unique identifier for this Endpoint Privilege Management Policy",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -98,11 +99,22 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
-				MarkdownDescription: "Policy description",
+				MarkdownDescription: "Endpoint Privilege Management Policy description",
+			},
+			"configuration_policy_template_type": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. " +
+					"Options available are `elevation_settings_policy` or `elevation_rules_policy`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"elevation_settings_policy",
+						"elevation_rules_policy",
+					),
+				},
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
+				MarkdownDescription: "Endpoint Privilege Management Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
 					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
@@ -122,43 +134,39 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					//SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
 				},
 			},
 			"platforms": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
-				MarkdownDescription: "Platform type for this settings catalog policy." +
-					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
-					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
+				MarkdownDescription: "Platform type for this Endpoint Privilege Management Policy." +
+					"Will always be set to ['windows10'], as EPM currently only supports windows device types." +
+					"Defaults to windows10.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"none", "android", "iOS", "macOS", "windows10X",
-						"windows10", "linux", "unknownFutureValue",
-						"androidEnterprise", "aosp",
+						"windows10",
 					),
 				},
-				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
+				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("windows10")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
+				ElementType: types.StringType,
+				Computed:    true,
+				MarkdownDescription: "Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with." +
+					"Defaults to `mdm`, `endpointPrivilegeManagement`.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
-						"none", "mdm", "windows10XManagement", "configManager",
-						"intuneManagementExtension", "thirdParty", "documentGateway",
-						"appleRemoteManagement", "microsoftSense", "exchangeOnline",
-						"mobileApplicationManagement", "linuxMdm", "enrollment",
-						"endpointPrivilegeManagement", "unknownFutureValue",
-						"windowsOsRecovery", "android",
+						"mdm", "endpointPrivilegeManagement",
 					),
 				},
 				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
+					planmodifiers.DefaultListValue([]attr.Value{
+						types.StringValue("mdm"),
+						types.StringValue("endpointPrivilegeManagement"),
+					}),
 				},
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
