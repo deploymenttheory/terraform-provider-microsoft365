@@ -1,3 +1,4 @@
+// Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
 package graphBetaReuseablePolicySettings
 
 import (
@@ -5,41 +6,24 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
-
+	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementReusablePolicySettingable, error) {
+func constructResource(ctx context.Context, data *sharedmodels.ReuseablePolicySettingsResourceModel) (graphmodels.DeviceManagementReusablePolicySettingable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceManagementReusablePolicySetting()
 
-	// Set display name
-	displayName := data.Name.ValueString()
-	requestBody.SetDisplayName(&displayName)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
-	// Set description
-	description := data.Description.ValueString()
-	requestBody.SetDescription(&description)
-
-	// Set setting definition ID
-	settingDefinitionId := "device_vendor_msft_policy_privilegemanagement_reusablesettings_certificatefile"
-	requestBody.SetSettingDefinitionId(&settingDefinitionId)
-
-	// Create and set setting instance
-	settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
-	settingInstance.SetSettingDefinitionId(&settingDefinitionId)
-
-	// Create and configure the setting value
-	settingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-	value := data.Settings.ValueString()
-	settingValue.SetValue(&value)
-	settingInstance.SetSimpleSettingValue(settingValue)
-
-	requestBody.SetSettingInstance(settingInstance)
+	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
+	if len(settings) > 0 {
+		requestBody.SetSettingInstance(settings[0].GetSettingInstance())
+	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

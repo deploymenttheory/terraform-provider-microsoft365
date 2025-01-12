@@ -9,7 +9,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -146,30 +145,30 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	settingsConfig := graphcustom.GetRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
-		Endpoint:          r.ResourcePath,
-		EndpointSuffix:    "/settings",
-		ResourceIDPattern: "('id')",
-		ResourceID:        object.ID.ValueString(),
-		QueryParameters: map[string]string{
-			"$expand": "children",
-		},
-	}
+	// settingsConfig := graphcustom.GetRequestConfig{
+	// 	APIVersion:        graphcustom.GraphAPIBeta,
+	// 	Endpoint:          r.ResourcePath,
+	// 	EndpointSuffix:    "/settings",
+	// 	ResourceIDPattern: "('id')",
+	// 	ResourceID:        object.ID.ValueString(),
+	// 	QueryParameters: map[string]string{
+	// 		"$expand": "children",
+	// 	},
+	// }
 
-	var settingsResponse []byte
-	settingsResponse, err = graphcustom.GetRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		settingsConfig,
-	)
+	// var settingsResponse []byte
+	// settingsResponse, err = graphcustom.GetRequestByResourceId(
+	// 	ctx,
+	// 	r.client.GetAdapter(),
+	// 	settingsConfig,
+	// )
 
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
+	// if err != nil {
+	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+	// 	return
+	// }
 
-	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
+	// sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

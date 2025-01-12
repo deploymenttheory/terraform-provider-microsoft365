@@ -8,14 +8,13 @@ import (
 // ReuseablePolicySettingsResourceModel holds the configuration for a Settings Catalog profile.
 type ReuseablePolicySettingsResourceModel struct {
 	ID                                  types.String   `tfsdk:"id"`
-	Name                                types.String   `tfsdk:"name"` // Maps to DisplayName in SDK
+	DisplayName                         types.String   `tfsdk:"display_name"`
 	Description                         types.String   `tfsdk:"description"`
 	CreatedDateTime                     types.String   `tfsdk:"created_date_time"`
 	LastModifiedDateTime                types.String   `tfsdk:"last_modified_date_time"`
 	ReferencingConfigurationPolicies    types.List     `tfsdk:"referencing_configuration_policies"`
-	ReferencingConfigurationPolicyCount types.Int64    `tfsdk:"referencing_configuration_policy_count"`
-	SettingDefinitionId                 types.String   `tfsdk:"setting_definition_id"`
-	SettingInstance                     types.String   `tfsdk:"settings"` // Maps to Settings in previous model
-	Version                             types.Int64    `tfsdk:"version"`
+	ReferencingConfigurationPolicyCount types.Int32    `tfsdk:"referencing_configuration_policy_count"`
+	Settings                            types.String   `tfsdk:"settings"`
+	Version                             types.Int32    `tfsdk:"version"`
 	Timeouts                            timeouts.Value `tfsdk:"timeouts"`
 }

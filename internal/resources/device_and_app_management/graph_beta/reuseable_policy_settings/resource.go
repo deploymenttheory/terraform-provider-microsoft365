@@ -6,11 +6,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -22,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_endpoint_privilege_management"
+	ResourceName  = "graph_beta_device_and_app_management_reuseable_policy_settings"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -91,26 +88,15 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				},
 				MarkdownDescription: "The unique identifier for this Reuseable Settings Policy",
 			},
-			"name": schema.StringAttribute{
+			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Policy name",
+				MarkdownDescription: "The reusable setting display name supplied by user.",
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Reuseable Settings Policy description",
-			},
-			"configuration_policy_template_type": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "Defines which Reuseable Settings Policy type with settings catalog setting will be deployed. " +
-					"Options available are `elevation_settings_policy` or `elevation_rules_policy`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"elevation_settings_policy",
-						"elevation_rules_policy",
-					),
-				},
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
@@ -140,46 +126,6 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 					planmodifiers.NormalizeJSONPlanModifier{},
 				},
 			},
-			"platforms": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: "Platform type for this Reuseable Settings Policy." +
-					"Will always be set to ['windows10'], as EPM currently only supports windows device types." +
-					"Defaults to windows10.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"windows10",
-					),
-				},
-				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("windows10")},
-			},
-			"technologies": schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				MarkdownDescription: "Describes a list of technologies this Reuseable Settings Policy with settings catalog setting will be deployed with." +
-					"Defaults to `mdm`, `ReuseablePolicySettings`.",
-				Validators: []validator.List{
-					customValidator.StringListAllowedValues(
-						"mdm", "ReuseablePolicySettings",
-					),
-				},
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue([]attr.Value{
-						types.StringValue("mdm"),
-						types.StringValue("ReuseablePolicySettings"),
-					}),
-				},
-			},
-			"role_scope_tag_ids": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this Windows Settings Catalog profile.",
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue(
-						[]attr.Value{types.StringValue("0")},
-					),
-				},
-			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
@@ -191,19 +137,20 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				MarkdownDescription: "Last modification date and time of the settings catalog policy",
 			},
-			"settings_count": schema.Int64Attribute{
+			"version": schema.Int32Attribute{
 				Computed:            true,
-				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
+				MarkdownDescription: "Version of the policy",
 			},
-			"is_assigned": schema.BoolAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.UseStateForUnknownBool(),
-				},
-				MarkdownDescription: "Indicates if the policy is assigned to any scope",
+			"referencing_configuration_policies": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				MarkdownDescription: "List of configuration policies referencing this reuseable policy",
 			},
-			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"referencing_configuration_policy_count": schema.Int32Attribute{
+				Computed:            true,
+				MarkdownDescription: "Number of configuration policies referencing this reuseable policy",
+			},
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
