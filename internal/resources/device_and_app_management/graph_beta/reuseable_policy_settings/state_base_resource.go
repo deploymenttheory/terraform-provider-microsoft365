@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/normalize"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -49,57 +48,73 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 
 func StateReusablePolicySettings(ctx context.Context, data *types.String, settingInstance graphmodels.DeviceManagementConfigurationSettingInstanceable) {
 	if settingInstance == nil {
-		// Handle nil settingInstance case
-		emptyContent := map[string]interface{}{
-			"settingsDetails": []interface{}{
-				map[string]interface{}{
-					"settingInstance": map[string]interface{}{},
-				},
-			},
+		tflog.Error(ctx, "Setting instance is nil")
+		return
+	}
+
+	// Debug log the additional data
+	tflog.Debug(ctx, "Additional data from settingInstance", map[string]interface{}{
+		"data": settingInstance.GetAdditionalData(),
+	})
+
+	// Create base structure
+	settingInst := sharedmodels.SettingInstance{}
+
+	// Map basic fields
+	if odataType := settingInstance.GetOdataType(); odataType != nil {
+		settingInst.ODataType = *odataType
+	}
+	if settingDefId := settingInstance.GetSettingDefinitionId(); settingDefId != nil {
+		settingInst.SettingDefinitionId = *settingDefId
+	}
+
+	// Map template reference
+	if templateRef := settingInstance.GetSettingInstanceTemplateReference(); templateRef != nil {
+		if templateId := templateRef.GetSettingInstanceTemplateId(); templateId != nil {
+			settingInst.SettingInstanceTemplateReference = &sharedmodels.SettingInstanceTemplateReference{
+				SettingInstanceTemplateId: *templateId,
+			}
 		}
-		jsonBytes, err := json.Marshal(emptyContent)
-		if err != nil {
-			tflog.Error(ctx, "Failed to marshal empty content", map[string]interface{}{"error": err.Error()})
-			return
+	}
+
+	// Map simpleSettingValue from additional data
+	if additionalData := settingInstance.GetAdditionalData(); additionalData != nil {
+		if simpleValue, ok := additionalData["simpleSettingValue"].(map[string]interface{}); ok {
+			simpleSettingVal := &sharedmodels.SimpleSettingStruct{}
+
+			if odataType, ok := simpleValue["@odata.type"].(string); ok {
+				simpleSettingVal.ODataType = odataType
+			}
+
+			// Handle value as an interface{} since it could be string, bool, etc
+			if val, exists := simpleValue["value"]; exists {
+				simpleSettingVal.Value = val
+			}
+
+			settingInst.SimpleSettingValue = simpleSettingVal
 		}
-		*data = types.StringValue(string(jsonBytes))
-		return
 	}
 
-	// Convert the settingInstance to a map for proper JSON handling
-	settingInstanceBytes, err := json.Marshal(settingInstance)
-	if err != nil {
-		tflog.Error(ctx, "Failed to marshal setting instance", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	var settingInstanceMap map[string]interface{}
-	if err := json.Unmarshal(settingInstanceBytes, &settingInstanceMap); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal setting instance to map", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	structuredContent := map[string]interface{}{
-		"settingsDetails": []interface{}{
-			map[string]interface{}{
-				"settingInstance": settingInstanceMap,
+	// Create the full content structure
+	content := sharedmodels.DeviceConfigV2GraphServiceResourceModel{
+		SettingsDetails: []sharedmodels.SettingDetail{
+			{
+				ID:              "0",
+				SettingInstance: settingInst,
 			},
 		},
 	}
 
-	jsonBytes, err := json.Marshal(structuredContent)
+	// Convert to string for Terraform state
+	jsonBytes, err := json.Marshal(content)
 	if err != nil {
-		tflog.Error(ctx, "Failed to marshal structured content", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Error marshaling content", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
-	normalizedJSON, err := normalize.JSONAlphabetically(string(jsonBytes))
-	if err != nil {
-		tflog.Error(ctx, "Failed to normalize settings JSON alphabetically", map[string]interface{}{"error": err.Error()})
-		return
-	}
+	tflog.Debug(ctx, "Final structured content", map[string]interface{}{
+		"content": string(jsonBytes),
+	})
 
-	tflog.Debug(ctx, "Normalized settings", map[string]interface{}{"settings": normalizedJSON})
-
-	*data = types.StringValue(normalizedJSON)
+	*data = types.StringValue(string(jsonBytes))
 }
