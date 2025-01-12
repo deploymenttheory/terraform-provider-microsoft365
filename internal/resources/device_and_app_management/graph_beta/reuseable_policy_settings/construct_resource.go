@@ -21,8 +21,15 @@ func constructResource(ctx context.Context, data *sharedmodels.ReuseablePolicySe
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
 	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
-	if len(settings) > 0 {
-		requestBody.SetSettingInstance(settings[0].GetSettingInstance())
+	if len(settings) > 0 && settings[0].GetSettingInstance() != nil {
+		settingInstance := settings[0].GetSettingInstance()
+		requestBody.SetSettingInstance(settingInstance)
+
+		// Also sets the setting definition ID at the root level of the settings catalog req.
+		// This logic may need to change when other examples are identifed.
+		if settingDefId := settingInstance.GetSettingDefinitionId(); settingDefId != nil {
+			requestBody.SetSettingDefinitionId(settingDefId)
+		}
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
