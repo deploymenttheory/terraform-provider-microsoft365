@@ -29,6 +29,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
+	// ConfigurationPolicyTemplates are not set by this resource type. But the field is required to satisfy schema.
 	data.ConfigurationPolicyTemplateType = types.StringValue("")
 
 	var roleScopeTagIds []attr.Value
