@@ -100,6 +100,41 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Policy description",
 			},
+			"device_management_template_type": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "Defines which device management template type with settings catalog setting that will be deployed. " +
+					"Options available are `macOS_disk_encryption`, `macOS_firewall`, `macOS_endpoint_detection_and_response`, `macOS_anti_virus`, " +
+					"`windows_account_protection`, `windows_anti_virus`, `windows_app_control_for_business`, `windows_attack_surface_reduction`, " +
+					"`windows_disk_encryption`, `windows_firewall`, `windows_firewall_rules`, `windows_hyper-v_firewall_rules`, " +
+					"`windows_firewall_config_manager`, `windows_firewall_profile_config_manager`, `windows_firewall_rules_config_manager`, " +
+					"`windows_endpoint_detection_and_response`, `windows_config_manager_anti_virus`, `windows_config_manager_attack_surface_reduction`, " +
+					"`windows_config_manager_endpoint_detection_and_response`, `linux_endpoint_detection_and_response`, `linux_anti_virus`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"linux_endpoint_detection_and_response",
+						"linux_anti_virus",
+						"macOS_disk_encryption",
+						"macOS_firewall",
+						"macOS_endpoint_detection_and_response",
+						"macOS_anti_virus",
+						"windows_account_protection",
+						"windows_anti_virus",
+						"windows_app_control_for_business",
+						"windows_attack_surface_reduction",
+						"windows_disk_encryption",
+						"windows_firewall",
+						"windows_firewall_rules",
+						"windows_hyper-v_firewall_rules",
+						"windows_firewall_config_manager",
+						"windows_firewall_profile_config_manager",
+						"windows_firewall_rules_config_manager",
+						"windows_endpoint_detection_and_response",
+						"windows_config_manager_anti_virus",
+						"windows_config_manager_attack_surface_reduction",
+						"windows_config_manager_endpoint_detection_and_response",
+					),
+				},
+			},
 			"settings": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
@@ -110,7 +145,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
-					"  \"settingsDetails\": [\n" +
+					"  \"settings\": [\n" +
 					"    {\n" +
 					"        # ... settings configuration ...\n" +
 					"    }\n" +
