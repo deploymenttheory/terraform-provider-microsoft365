@@ -2,11 +2,13 @@ package sharedmodels
 
 // DeviceConfigV2GraphServiceResourceModel is the root configuration model
 type DeviceConfigV2GraphServiceResourceModel struct {
-	SettingsDetails []SettingDetail `json:"settingsDetails"`
+	//SettingsDetails []SettingDetail `json:"settingsDetails"`
+	Settings []Setting `json:"settings"`
 }
 
 // SettingDetail represents a single setting detail
-type SettingDetail struct {
+//type SettingDetail struct {
+type Setting struct {
 	ID              string          `json:"id"`
 	SettingInstance SettingInstance `json:"settingInstance"`
 }

@@ -7,7 +7,7 @@ resource "microsoft365_graph_beta_device_and_app_management_settings_catalog" "t
 
   settings = jsonencode({
 
-    "settingsDetails" : [
+    "settings" : [
       {
         "settingInstance" : {
           "groupSettingCollectionValue" : [

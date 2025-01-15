@@ -69,7 +69,7 @@ function Get-SettingsCatalogPolicyById {
       }
 
       # Add the formatted settings array to the policy object
-      $policy | Add-Member -NotePropertyName 'settingsDetails' -NotePropertyValue $formattedSettings
+      $policy | Add-Member -NotePropertyName 'settings' -NotePropertyValue $formattedSettings
 
       return $policy
   }

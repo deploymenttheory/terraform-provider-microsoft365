@@ -4,6 +4,7 @@ import (
 	"context"
 	// Graph Beta - Intune resources
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/assignment_filter"
+	graphBetaReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/reuseable_policy_settings"
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
 	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_platform_script"
 
@@ -26,6 +27,7 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
+		graphBetaReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
 		graphBetaRoleScopeTag.NewRoleScopeTagDataSource,
 		graphBetaWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,

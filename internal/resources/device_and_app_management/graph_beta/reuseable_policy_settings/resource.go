@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -79,7 +78,10 @@ func (r *ReuseablePolicySettingsResource) ImportState(ctx context.Context, req r
 // Function to create the full device management win32 lob app schema
 func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
+		MarkdownDescription: "Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management." +
+			"Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate" +
+			"directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings" +
+			"group are automatically passed to the policies that reference the group.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -102,13 +104,13 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				Required: true,
 				MarkdownDescription: "Reuseable Settings Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
+					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportReuseablePolicySettingsById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
-					"  \"settingsDetails\": [\n" +
+					"  \"settings\": [\n" +
 					"    {\n" +
 					"        # ... settings configuration ...\n" +
 					"    }\n" +
@@ -127,10 +129,7 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Creation date and time of the settings catalog policy",
 			},
 			"last_modified_date_time": schema.StringAttribute{
@@ -142,8 +141,11 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "Version of the policy",
 			},
 			"referencing_configuration_policies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
+				ElementType: types.StringType,
+				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.UseStateForUnknownList(),
+				},
 				MarkdownDescription: "List of configuration policies referencing this reuseable policy",
 			},
 			"referencing_configuration_policy_count": schema.Int32Attribute{

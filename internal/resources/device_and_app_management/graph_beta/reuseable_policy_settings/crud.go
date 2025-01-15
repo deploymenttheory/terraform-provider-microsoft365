@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -132,43 +134,40 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
+	// resource type doesn't export expand. hence select param usage
 	baseResource, err := r.client.
 		DeviceManagement().
 		ReusablePolicySettings().
 		ByDeviceManagementReusablePolicySettingId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.ReusablePolicySettingsDeviceManagementReusablePolicySettingItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.ReusablePolicySettingsDeviceManagementReusablePolicySettingItemRequestBuilderGetQueryParameters{
+				Select: []string{
+					"id",
+					"createdDateTime",
+					"lastModifiedDateTime",
+					"displayName",
+					"description",
+					"settingDefinitionId",
+					"settingInstance",
+					"version",
+					"referencingConfigurationPolicies",
+					"referencingConfigurationPolicyCount",
+				},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
+	// Log the response using DebugLogGraphObject
+	if err := constructors.DebugLogGraphObject(ctx, "Raw Response from Graph API", baseResource); err != nil {
+		tflog.Error(ctx, "Failed to debug log response", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
-
-	// settingsConfig := graphcustom.GetRequestConfig{
-	// 	APIVersion:        graphcustom.GraphAPIBeta,
-	// 	Endpoint:          r.ResourcePath,
-	// 	EndpointSuffix:    "/settings",
-	// 	ResourceIDPattern: "('id')",
-	// 	ResourceID:        object.ID.ValueString(),
-	// 	QueryParameters: map[string]string{
-	// 		"$expand": "children",
-	// 	},
-	// }
-
-	// var settingsResponse []byte
-	// settingsResponse, err = graphcustom.GetRequestByResourceId(
-	// 	ctx,
-	// 	r.client.GetAdapter(),
-	// 	settingsConfig,
-	// )
-
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-	// 	return
-	// }
-
-	// sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -276,17 +275,31 @@ func (r *ReuseablePolicySettingsResource) Delete(ctx context.Context, req resour
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		ReusablePolicySettings().
-		ByDeviceManagementReusablePolicySettingId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	deleteConfig := graphcustom.DeleteRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceID:        object.ID.ValueString(),
+		ResourceIDPattern: "('id')",
+	}
+
+	tflog.Debug(ctx, "Attempting to delete resource", map[string]interface{}{
+		"endpoint": deleteConfig.Endpoint,
+		"id":       deleteConfig.ResourceID,
+	})
+
+	err := graphcustom.DeleteRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		deleteConfig,
+	)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
