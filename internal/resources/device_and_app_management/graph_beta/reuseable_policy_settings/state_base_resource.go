@@ -6,6 +6,7 @@ import (
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	sharedStater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -39,7 +40,30 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	}
 	data.ReferencingConfigurationPolicies = types.ListValueMust(types.StringType, elements)
 
-	StateReusablePolicySettings(ctx, &data.Settings, remoteResource.GetSettingInstance())
+	// State the settings catalog fields
+	if settingInstance := remoteResource.GetSettingInstance(); settingInstance != nil {
+		// Create a wrapper to match the expected format
+		wrappedSettings := map[string]interface{}{
+			"settings": []interface{}{
+				map[string]interface{}{
+					"id":              "0", // Single setting always has ID 0
+					"settingInstance": settingInstance,
+				},
+			},
+		}
+
+		// Convert to JSON
+		settingsJson, err := json.Marshal(wrappedSettings)
+		if err != nil {
+			tflog.Error(ctx, "Failed to marshal settings", map[string]interface{}{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		// Use the shared stater to handle the settings
+		sharedStater.StateReusablePolicySettings(ctx, data, settingsJson)
+	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

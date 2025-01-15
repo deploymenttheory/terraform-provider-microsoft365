@@ -25,7 +25,7 @@ func constructResource(ctx context.Context, data *sharedmodels.ReuseablePolicySe
 		settingInstance := settings[0].GetSettingInstance()
 		requestBody.SetSettingInstance(settingInstance)
 
-		// Also sets the setting definition ID at the root level of the settings catalog req.
+		// Sets the required setting definition ID at the root level of the settings catalog req.
 		// This logic may need to change when other examples are identifed.
 		if settingDefId := settingInstance.GetSettingDefinitionId(); settingDefId != nil {
 			requestBody.SetSettingDefinitionId(settingDefId)
