@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -127,17 +126,11 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Creation date and time of the settings catalog policy",
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Last modification date and time of the settings catalog policy",
 			},
 			"version": schema.Int32Attribute{
