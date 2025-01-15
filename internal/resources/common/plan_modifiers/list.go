@@ -64,3 +64,35 @@ func DefaultListEmptyValue() ListModifier {
 		defaultValue: emptyList,
 	}
 }
+
+//------------------------------------------------------------------------------
+
+type useStateForUnknownList struct {
+	listModifier
+}
+
+func (m useStateForUnknownList) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	// If the value is known, do nothing
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+
+	// If there is no state value, do nothing
+	if req.StateValue.IsNull() {
+		return
+	}
+
+	// Use state value
+	resp.PlanValue = req.StateValue
+}
+
+// UseStateForUnknownList returns a plan modifier that copies a known prior state
+// value into the planned value when the planned value is unknown/null.
+func UseStateForUnknownList() ListModifier {
+	return useStateForUnknownList{
+		listModifier: listModifier{
+			description:         "Use state value when unknown",
+			markdownDescription: "Use state value when unknown",
+		},
+	}
+}

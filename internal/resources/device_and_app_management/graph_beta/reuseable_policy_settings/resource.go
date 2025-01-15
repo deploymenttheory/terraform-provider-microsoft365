@@ -134,7 +134,10 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "Creation date and time of the settings catalog policy",
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "Last modification date and time of the settings catalog policy",
 			},
 			"version": schema.Int32Attribute{
@@ -142,8 +145,11 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "Version of the policy",
 			},
 			"referencing_configuration_policies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
+				ElementType: types.StringType,
+				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					planmodifiers.UseStateForUnknownList(),
+				},
 				MarkdownDescription: "List of configuration policies referencing this reuseable policy",
 			},
 			"referencing_configuration_policy_count": schema.Int32Attribute{
