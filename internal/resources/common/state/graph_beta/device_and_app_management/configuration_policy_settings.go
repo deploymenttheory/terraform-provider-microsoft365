@@ -38,14 +38,14 @@ func StateConfigurationPolicySettings(ctx context.Context, data *sharedmodels.Se
 	var settingsContent interface{}
 	if value, ok := rawResponse["value"]; ok {
 		settingsContent = value
-	} else if details, ok := rawResponse["settingsDetails"]; ok {
-		settingsContent = details
+	} else if settings, ok := rawResponse["settings"]; ok {
+		settingsContent = settings
 	} else {
 		settingsContent = rawResponse
 	}
 
 	structuredContent := map[string]interface{}{
-		"settingsDetails": settingsContent,
+		"settings": settingsContent,
 	}
 
 	if err := normalize.PreserveSecretSettings(configSettings, structuredContent); err != nil {

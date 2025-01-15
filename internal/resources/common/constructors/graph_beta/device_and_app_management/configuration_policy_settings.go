@@ -25,15 +25,15 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		return nil
 	}
 
-	tflog.Debug(ctx, "Unmarshaled settings data", map[string]interface{}{
+	tflog.Debug(ctx, "Unmarshaled settings catalog data from hcl", map[string]interface{}{
 		"data": configModel,
 	})
 
 	settingsCollection := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	for _, detail := range configModel.SettingsDetails {
+	for _, setting := range configModel.Settings {
 		baseSetting := graphmodels.NewDeviceManagementConfigurationSetting()
-		instance, instanceType := createBaseInstance(ctx, detail.SettingInstance.ODataType, detail.SettingInstance.SettingDefinitionId)
+		instance, instanceType := createBaseInstance(ctx, setting.SettingInstance.ODataType, setting.SettingInstance.SettingDefinitionId)
 
 		if instance == nil {
 			continue
@@ -42,54 +42,54 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		switch instanceType {
 		case "simple":
 			simpleInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable)
-			if detail.SettingInstance.SimpleSettingValue != nil {
-				simpleInstance.SetSimpleSettingValue(handleSimpleValue(ctx, detail.SettingInstance.SimpleSettingValue))
+			if setting.SettingInstance.SimpleSettingValue != nil {
+				simpleInstance.SetSimpleSettingValue(handleSimpleValue(ctx, setting.SettingInstance.SimpleSettingValue))
 			}
-			setInstanceTemplateReference(simpleInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			setInstanceTemplateReference(simpleInstance, setting.SettingInstance.SettingInstanceTemplateReference)
 			baseSetting.SetSettingInstance(simpleInstance)
 
 		case "choice":
 			choiceInstance := instance.(graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable)
-			if detail.SettingInstance.ChoiceSettingValue != nil {
+			if setting.SettingInstance.ChoiceSettingValue != nil {
 				choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-				choiceValue.SetValue(&detail.SettingInstance.ChoiceSettingValue.Value)
-				setValueTemplateReference(choiceValue, detail.SettingInstance.ChoiceSettingValue.SettingValueTemplateReference)
+				choiceValue.SetValue(&setting.SettingInstance.ChoiceSettingValue.Value)
+				setValueTemplateReference(choiceValue, setting.SettingInstance.ChoiceSettingValue.SettingValueTemplateReference)
 
-				if len(detail.SettingInstance.ChoiceSettingValue.Children) > 0 {
-					choiceChildren := handleChoiceSettingChildren(ctx, detail.SettingInstance.ChoiceSettingValue.Children)
+				if len(setting.SettingInstance.ChoiceSettingValue.Children) > 0 {
+					choiceChildren := handleChoiceSettingChildren(ctx, setting.SettingInstance.ChoiceSettingValue.Children)
 					choiceValue.SetChildren(choiceChildren)
 				}
 
 				choiceInstance.SetChoiceSettingValue(choiceValue)
 			}
-			setInstanceTemplateReference(choiceInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			setInstanceTemplateReference(choiceInstance, setting.SettingInstance.SettingInstanceTemplateReference)
 			baseSetting.SetSettingInstance(choiceInstance)
 
 		case "simpleCollection":
 			collectionInstance := instance.(graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable)
-			if len(detail.SettingInstance.SimpleSettingCollectionValue) > 0 {
-				values := handleSimpleSettingCollection(detail.SettingInstance.SimpleSettingCollectionValue)
+			if len(setting.SettingInstance.SimpleSettingCollectionValue) > 0 {
+				values := handleSimpleSettingCollection(setting.SettingInstance.SimpleSettingCollectionValue)
 				collectionInstance.SetSimpleSettingCollectionValue(values)
 			}
-			setInstanceTemplateReference(collectionInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			setInstanceTemplateReference(collectionInstance, setting.SettingInstance.SettingInstanceTemplateReference)
 			baseSetting.SetSettingInstance(collectionInstance)
 
 		case "choiceCollection":
 			collectionInstance := instance.(graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable)
-			if len(detail.SettingInstance.ChoiceSettingCollectionValue) > 0 {
-				values := handleChoiceCollectionValue(ctx, detail.SettingInstance.ChoiceSettingCollectionValue)
+			if len(setting.SettingInstance.ChoiceSettingCollectionValue) > 0 {
+				values := handleChoiceCollectionValue(ctx, setting.SettingInstance.ChoiceSettingCollectionValue)
 				collectionInstance.SetChoiceSettingCollectionValue(values)
 			}
-			setInstanceTemplateReference(collectionInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			setInstanceTemplateReference(collectionInstance, setting.SettingInstance.SettingInstanceTemplateReference)
 			baseSetting.SetSettingInstance(collectionInstance)
 
 		case "groupCollection":
 			groupInstance := instance.(graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable)
-			if len(detail.SettingInstance.GroupSettingCollectionValue) > 0 {
-				values := handleGroupSettingCollection(ctx, detail.SettingInstance.GroupSettingCollectionValue)
+			if len(setting.SettingInstance.GroupSettingCollectionValue) > 0 {
+				values := handleGroupSettingCollection(ctx, setting.SettingInstance.GroupSettingCollectionValue)
 				groupInstance.SetGroupSettingCollectionValue(values)
 			}
-			setInstanceTemplateReference(groupInstance, detail.SettingInstance.SettingInstanceTemplateReference)
+			setInstanceTemplateReference(groupInstance, setting.SettingInstance.SettingInstanceTemplateReference)
 			baseSetting.SetSettingInstance(groupInstance)
 		}
 

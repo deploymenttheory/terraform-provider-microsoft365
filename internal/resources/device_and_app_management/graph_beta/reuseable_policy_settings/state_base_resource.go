@@ -97,7 +97,7 @@ func StateReusablePolicySettings(ctx context.Context, data *types.String, settin
 
 	// Create the full content structure
 	content := sharedmodels.DeviceConfigV2GraphServiceResourceModel{
-		SettingsDetails: []sharedmodels.SettingDetail{
+		Settings: []sharedmodels.Setting{
 			{
 				ID:              "0",
 				SettingInstance: settingInst,
