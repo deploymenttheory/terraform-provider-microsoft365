@@ -6,7 +6,7 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
 
   settings = jsonencode({
 
-    "settingsDetails" : [{
+    "settings" : [{
       "id" : "0",
       "settingInstance" : {
         "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
