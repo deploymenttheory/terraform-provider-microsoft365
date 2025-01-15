@@ -134,24 +134,25 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// baseResource, err := r.client.
-	// 	DeviceManagement().
-	// 	ReusablePolicySettings().
-	// 	ByDeviceManagementReusablePolicySettingId(object.ID.ValueString()).
-	// 	Get(ctx, nil)
-
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-	// 	return
-	// }
-
+	// resource type doesn't export expand. hence select param usage
 	baseResource, err := r.client.
 		DeviceManagement().
 		ReusablePolicySettings().
 		ByDeviceManagementReusablePolicySettingId(object.ID.ValueString()).
 		Get(ctx, &devicemanagement.ReusablePolicySettingsDeviceManagementReusablePolicySettingItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &devicemanagement.ReusablePolicySettingsDeviceManagementReusablePolicySettingItemRequestBuilderGetQueryParameters{
-				Select: []string{"settingInstance", "displayName", "description"},
+				Select: []string{
+					"id",
+					"createdDateTime",
+					"lastModifiedDateTime",
+					"displayName",
+					"description",
+					"settingDefinitionId",
+					"settingInstance",
+					"version",
+					"referencingConfigurationPolicies",
+					"referencingConfigurationPolicyCount",
+				},
 			},
 		})
 
@@ -159,7 +160,6 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
-
 	// Log the response using DebugLogGraphObject
 	if err := constructors.DebugLogGraphObject(ctx, "Raw Response from Graph API", baseResource); err != nil {
 		tflog.Error(ctx, "Failed to debug log response", map[string]interface{}{

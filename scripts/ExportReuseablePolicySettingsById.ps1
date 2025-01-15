@@ -54,8 +54,8 @@ function Get-ReusablePolicySettingById {
   )
 
   try {
-      # Get base policy information with select parameters
-      $policyUri = "https://graph.microsoft.com/beta/deviceManagement/reusablePolicySettings/$ReusablePolicySettingId`?`$select=settinginstance,displayname,description"
+      # Get base policy information with select parameters. Expand fails
+      $policyUri = "https://graph.microsoft.com/beta/deviceManagement/reusablePolicySettings/$ReusablePolicySettingId`?`$select=id,createdDateTime,lastModifiedDateTime,displayName,description,settingDefinitionId,settingInstance,version,referencingConfigurationPolicies,referencingConfigurationPolicyCount"
       $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
 
       return $policy

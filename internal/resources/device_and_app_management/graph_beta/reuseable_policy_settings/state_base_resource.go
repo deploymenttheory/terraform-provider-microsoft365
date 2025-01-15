@@ -24,7 +24,31 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 		"resourceId": state.StringPtrToString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
+	//data.ID = types.StringPointerValue(remoteResource.GetId())
+	// Add debug logs to trace the ID
+	id := remoteResource.GetId()
+	tflog.Debug(ctx, "Remote resource ID value", map[string]interface{}{
+		"id":    id,
+		"isNil": id == nil,
+	})
+
+	// Check Entity interface implementation
+	if entity, ok := remoteResource.(graphmodels.Entityable); ok {
+		tflog.Debug(ctx, "Entity ID value", map[string]interface{}{
+			"id": entity.GetId(),
+		})
+	}
+
+	// More explicit ID handling
+	if id := remoteResource.GetId(); id != nil {
+		data.ID = types.StringValue(*id)
+		tflog.Debug(ctx, "Set ID in state", map[string]interface{}{
+			"id": *id,
+		})
+	} else {
+		tflog.Error(ctx, "Remote resource ID is nil")
+	}
+
 	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
@@ -68,77 +92,4 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),
 	})
-}
-
-func StateReusablePolicySettings(ctx context.Context, data *types.String, settingInstance graphmodels.DeviceManagementConfigurationSettingInstanceable) {
-	if settingInstance == nil {
-		tflog.Error(ctx, "Setting instance is nil")
-		return
-	}
-
-	// Debug log the additional data
-	tflog.Debug(ctx, "Additional data from settingInstance", map[string]interface{}{
-		"data": settingInstance.GetAdditionalData(),
-	})
-
-	// Create base structure
-	settingInst := sharedmodels.SettingInstance{}
-
-	// Map basic fields
-	if odataType := settingInstance.GetOdataType(); odataType != nil {
-		settingInst.ODataType = *odataType
-	}
-	if settingDefId := settingInstance.GetSettingDefinitionId(); settingDefId != nil {
-		settingInst.SettingDefinitionId = *settingDefId
-	}
-
-	// Map template reference
-	if templateRef := settingInstance.GetSettingInstanceTemplateReference(); templateRef != nil {
-		if templateId := templateRef.GetSettingInstanceTemplateId(); templateId != nil {
-			settingInst.SettingInstanceTemplateReference = &sharedmodels.SettingInstanceTemplateReference{
-				SettingInstanceTemplateId: *templateId,
-			}
-		}
-	}
-
-	// Map simpleSettingValue from additional data
-	if additionalData := settingInstance.GetAdditionalData(); additionalData != nil {
-		if simpleValue, ok := additionalData["simpleSettingValue"].(map[string]interface{}); ok {
-			simpleSettingVal := &sharedmodels.SimpleSettingStruct{}
-
-			if odataType, ok := simpleValue["@odata.type"].(string); ok {
-				simpleSettingVal.ODataType = odataType
-			}
-
-			// Handle value as an interface{} since it could be string, bool, etc
-			if val, exists := simpleValue["value"]; exists {
-				simpleSettingVal.Value = val
-			}
-
-			settingInst.SimpleSettingValue = simpleSettingVal
-		}
-	}
-
-	// Create the full content structure
-	content := sharedmodels.DeviceConfigV2GraphServiceResourceModel{
-		Settings: []sharedmodels.Setting{
-			{
-				ID:              "0",
-				SettingInstance: settingInst,
-			},
-		},
-	}
-
-	// Convert to string for Terraform state
-	jsonBytes, err := json.Marshal(content)
-	if err != nil {
-		tflog.Error(ctx, "Error marshaling content", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	tflog.Debug(ctx, "Final structured content", map[string]interface{}{
-		"content": string(jsonBytes),
-	})
-
-	*data = types.StringValue(string(jsonBytes))
 }
