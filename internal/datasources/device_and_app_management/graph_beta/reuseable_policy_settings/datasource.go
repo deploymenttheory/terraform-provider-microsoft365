@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_reuseable_policy_settings"
+	ResourceName = "graph_beta_device_and_app_management_reuseable_policy_setting"
 )
 
 var (

@@ -1,6 +1,6 @@
 // Data Source: Reusable Policy Settings
 // Basic usage: lookup by display name
-data "microsoft365_graph_beta_device_and_app_management_reuseable_policy_settings" "example" {
+data "microsoft365_graph_beta_device_and_app_management_reuseable_policy_setting" "example" {
   display_name = "epm certificate"
 }
 
