@@ -78,7 +78,10 @@ func (r *ReuseablePolicySettingsResource) ImportState(ctx context.Context, req r
 // Function to create the full device management win32 lob app schema
 func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
+		MarkdownDescription: "Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management." +
+			"Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate" +
+			"directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings" +
+			"group are automatically passed to the policies that reference the group.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
