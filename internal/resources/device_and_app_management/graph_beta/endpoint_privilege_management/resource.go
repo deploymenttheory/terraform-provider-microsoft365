@@ -163,12 +163,6 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 						"mdm", "endpointPrivilegeManagement",
 					),
 				},
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue([]attr.Value{
-						types.StringValue("mdm"),
-						types.StringValue("endpointPrivilegeManagement"),
-					}),
-				},
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,

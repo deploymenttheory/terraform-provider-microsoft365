@@ -113,7 +113,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"- `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
 					"- `macOS_disk_encryption`: Disk encryption settings for macOS devices.\n" +
 					"- `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n" +
-					"- `macOS_firewall`: Firewall configuration for macOS devices.\n" +
+					//"- `macOS_firewall`: Firewall configuration for macOS devices.\n" +
 					"- `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n" +
 					"- `windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n" +
 					"- `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n" +
@@ -147,7 +147,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"macOS_anti_virus_microsoft_defender_antivirus_exclusions",
 						"macOS_disk_encryption",
 						"macOS_endpoint_detection_and_response",
-						"macOS_firewall",
+						//"macOS_firewall",
 						"windows_account_protection",
 						"windows_anti_virus_defender_update_controls",
 						"windows_anti_virus_microsoft_defender_antivirus",
