@@ -106,38 +106,38 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "Defines the intune settings catalog template type to be deployed using the settings catalog.\n" +
 					"This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.\n" +
 					"The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:\n\n" +
-					"- `linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.\n" +
-					"- `linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
-					"- `linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.\n" +
-					"- `macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n" +
-					"- `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
-					"- `macOS_disk_encryption`: Disk encryption settings for macOS devices.\n" +
-					"- `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n" +
-					//"- `macOS_firewall`: Firewall configuration for macOS devices.\n" +
-					"- `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n" +
-					"- `windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n" +
-					"- `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n" +
-					"- `windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
-					"- `windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.\n" +
-					"- `windows_app_control_for_business`: Application control settings for Windows devices.\n" +
-					"- `windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.\n" +
-					"- `windows_disk_encryption`: Disk encryption settings for Windows devices.\n" +
-					"- `windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.\n" +
-					"- `windows_firewall`: Firewall settings for Windows devices.\n" +
-					"- `windows_firewall_config_manager`: Firewall configuration manager for Windows devices.\n" +
-					"- `windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.\n" +
-					"- `windows_firewall_rules`: Firewall rules for Windows devices.\n" +
-					"- `windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.\n" +
-					"- `windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.\n" +
-					"- `windows_local_admin_password_solution_(windows_LAPS)`: Windows Local Administrator Password Solution(Windows LAPS) is a Windows feature that automatically manages and backs up the password of a local administrator account on your Azure Active Directory - joined or Windows Server Active Directory - joined devices.\n" +
-					"- `windows_local_user_group_membership`: Local user group membership policies help to add, remove, or replace members of local groups on Windows devices..\n" +
-					"- `windows_(config_mgr)_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus settings for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_anti_virus_windows_security_experience`: Security experience settings for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_attack_surface_reduction`: Attack surface reduction settings for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n" +
-					"- `windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n",
+					"* `linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.\n" +
+					"* `linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
+					"* `linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.\n" +
+					"* `macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n" +
+					"* `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
+					"* `macOS_disk_encryption`: Disk encryption settings for macOS devices.\n" +
+					"* `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n" +
+					//"* `macOS_firewall`: Firewall configuration for macOS devices.\n" +
+					"* `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n" +
+					"* `windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n" +
+					"* `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n" +
+					"* `windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n" +
+					"* `windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.\n" +
+					"* `windows_app_control_for_business`: Application control settings for Windows devices.\n" +
+					"* `windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.\n" +
+					"* `windows_disk_encryption`: Disk encryption settings for Windows devices.\n" +
+					"* `windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.\n" +
+					"* `windows_firewall`: Firewall settings for Windows devices.\n" +
+					"* `windows_firewall_config_manager`: Firewall configuration manager for Windows devices.\n" +
+					"* `windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.\n" +
+					"* `windows_firewall_rules`: Firewall rules for Windows devices.\n" +
+					"* `windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.\n" +
+					"* `windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.\n" +
+					"* `windows_local_admin_password_solution_(windows_LAPS)`: Windows Local Administrator Password Solution(Windows LAPS) is a Windows feature that automatically manages and backs up the password of a local administrator account on your Azure Active Directory - joined or Windows Server Active Directory - joined devices.\n" +
+					"* `windows_local_user_group_membership`: Local user group membership policies help to add, remove, or replace members of local groups on Windows devices..\n" +
+					"* `windows_(config_mgr)_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus settings for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_anti_virus_windows_security_experience`: Security experience settings for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_attack_surface_reduction`: Attack surface reduction settings for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n" +
+					"* `windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"linux_anti_virus_microsoft_defender_antivirus",
