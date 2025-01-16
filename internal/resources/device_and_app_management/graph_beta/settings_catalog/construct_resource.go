@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	tfTypes "github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -44,11 +45,20 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 	requestBody.SetPlatforms(&platform)
 
 	var technologiesStr []string
-	for _, tech := range data.Technologies {
-		technologiesStr = append(technologiesStr, tech.ValueString())
+	if data.Technologies.IsNull() || data.Technologies.IsUnknown() {
+		technologiesStr = nil // Handle null or unknown states if necessary
+	} else {
+		technologiesList := data.Technologies.Elements()
+		for _, tech := range technologiesList {
+			technologiesStr = append(technologiesStr, tech.(tfTypes.String).ValueString())
+		}
 	}
+
+	// Join the strings and parse the technologies using the SDK function
 	parsedTechnologies, _ := graphmodels.ParseDeviceManagementConfigurationTechnologies(strings.Join(technologiesStr, ","))
-	requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+	if parsedTechnologies != nil {
+		requestBody.SetTechnologies(parsedTechnologies.(*graphmodels.DeviceManagementConfigurationTechnologies))
+	}
 
 	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)

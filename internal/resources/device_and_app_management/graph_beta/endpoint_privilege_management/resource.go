@@ -101,7 +101,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Endpoint Privilege Management Policy description",
 			},
-			"configuration_policy_template_type": schema.StringAttribute{
+			"settings_catalog_template_type": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. " +
 					"Options available are `elevation_settings_policy` or `elevation_rules_policy`.",
@@ -116,18 +116,19 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				Required: true,
 				MarkdownDescription: "Endpoint Privilege Management Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) " +
+					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
-					"  \"settingsDetails\": [\n" +
+					"  \"settings\": [\n" +
 					"    {\n" +
-					"        # ... settings configuration ...\n" +
-					"    }\n" +
-					"  ]\n" +
-					"})\n" +
+					"        \"id\": \"0\",\n" +
+					"        \"settingInstance\": {\n" +
+					"            }\n" +
+					"        }\n" +
+					"    },\n" +
 					"```\n\n" +
 					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
@@ -161,12 +162,6 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					customValidator.StringListAllowedValues(
 						"mdm", "endpointPrivilegeManagement",
 					),
-				},
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue([]attr.Value{
-						types.StringValue("mdm"),
-						types.StringValue("endpointPrivilegeManagement"),
-					}),
 				},
 			},
 			"role_scope_tag_ids": schema.ListAttribute{

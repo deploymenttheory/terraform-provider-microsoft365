@@ -3,6 +3,7 @@ package graphBetaDeviceManagementTemplate
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -11,7 +12,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a DeviceManagementTemplateResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceManagementTemplateResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -42,8 +43,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceManageme
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)
 	}
+
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
-		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
+		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
 	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
@@ -51,8 +53,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceManageme
 	})
 }
 
-func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfigurationTechnologies) []types.String {
-	var values []types.String
+func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies graphmodels.DeviceManagementConfigurationTechnologies) types.List {
+	var values []attr.Value
 
 	if technologies&graphmodels.NONE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
 		values = append(values, types.StringValue("none"))
@@ -94,5 +96,6 @@ func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfi
 		values = append(values, types.StringValue("windowsOsRecovery"))
 	}
 
-	return values
+	// Return a types.List
+	return types.ListValueMust(types.StringType, values)
 }

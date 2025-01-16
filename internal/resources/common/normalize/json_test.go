@@ -35,7 +35,7 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 		{
 			name: "Complex nested structure",
 			input: `{
-				"settingsDetails": [
+				"settings": [
 					{
 						"id": "1",
 						"settingInstance": {
@@ -51,7 +51,7 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 					}
 				]
 			}`,
-			expected: `{"settingsDetails":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"test_id","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}}]}`,
+			expected: `{"settings":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"test_id","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}}]}`,
 			wantErr:  false,
 		},
 		{
@@ -80,7 +80,7 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 		{
 			name: "Choice setting collection with nested settings",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "1",
 							"settingInstance": {
 									"choiceSettingCollectionValue": [{
@@ -100,13 +100,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"1","settingInstance":{"choiceSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"test_id","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}],"settingValueTemplateReference":null,"value":"test_value"}]}}]}`,
+			expected: `{"settings":[{"id":"1","settingInstance":{"choiceSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"test_id","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}],"settingValueTemplateReference":null,"value":"test_value"}]}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Deep nested group settings with all types",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "1",
 							"settingInstance": {
 									"groupSettingCollectionValue": [{
@@ -133,13 +133,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"choiceSettingValue":{"children":[{"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":123,"valueState":"valid"}}],"value":"choice_value"}}]}]}],"settingValueTemplateReference":null}]}}]}`,
+			expected: `{"settings":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"choiceSettingValue":{"children":[{"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":123,"valueState":"valid"}}],"value":"choice_value"}}]}]}],"settingValueTemplateReference":null}]}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Multiple setting types in one structure",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "1",
 							"settingInstance": {
 									"simpleSettingValue": {
@@ -158,13 +158,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationInstance","choiceSettingValue":{"children":[],"value":"choice"},"simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","value":"collection"}],"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","value":"simple"}}}]}`,
+			expected: `{"settings":[{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationInstance","choiceSettingValue":{"children":[],"value":"choice"},"simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","value":"collection"}],"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","value":"simple"}}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "MacOS Complex Group Setting Collection",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "0",
 							"settingInstance": {
 									"groupSettingCollectionValue": [{
@@ -186,13 +186,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"com.apple.example_setting_true"},"settingDefinitionId":"com.apple.example_setting","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null}],"settingDefinitionId":"com.apple.example","settingInstanceTemplateReference":null}}]}`,
+			expected: `{"settings":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"com.apple.example_setting_true"},"settingDefinitionId":"com.apple.example_setting","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null}],"settingDefinitionId":"com.apple.example","settingInstanceTemplateReference":null}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Mixed Setting Types In Collection",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "1",
 							"settingInstance": {
 									"groupSettingCollectionValue": [{
@@ -221,13 +221,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"1","settingInstance":{"groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"com.apple.numeric_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":1}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance","settingDefinitionId":"com.apple.array_setting","settingInstanceTemplateReference":null,"simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"}]}],"settingValueTemplateReference":null}]}}]}`,
+			expected: `{"settings":[{"id":"1","settingInstance":{"groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"com.apple.numeric_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":1}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance","settingDefinitionId":"com.apple.array_setting","settingInstanceTemplateReference":null,"simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"}]}],"settingValueTemplateReference":null}]}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Deeply Nested Group Collections",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "6",
 							"settingInstance": {
 									"groupSettingCollectionValue": [{
@@ -251,13 +251,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"6","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}]}]}]}]}]}]}}]}`,
+			expected: `{"settings":[{"id":"6","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"groupSettingCollectionValue":[{"children":[{"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"test"}}]}]}]}]}]}]}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Choice Settings With Empty Children",
 			input: `{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "5",
 							"settingInstance": {
 									"choiceSettingValue": {
@@ -269,13 +269,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 							}
 					}]
 			}`,
-			expected: `{"settingsDetails":[{"id":"5","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"com.apple.setting_true"}}}]}`,
+			expected: `{"settings":[{"id":"5","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"com.apple.setting_true"}}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Multiple Choice Settings With Empty Children",
 			input: `{
-                "settingsDetails": [{
+                "settings": [{
                     "id": "0",
                     "settingInstance": {
                         "choiceSettingValue": {
@@ -302,13 +302,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
                     }
                 }]
             }`,
-			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"device_vendor_msft_policy_config_something_1"},"settingDefinitionId":"device_vendor_msft_policy_config_something","settingInstanceTemplateReference":null}},{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_something_1"},"settingDefinitionId":"user_vendor_msft_policy_config_something","settingInstanceTemplateReference":null}}]}`,
+			expected: `{"settings":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"device_vendor_msft_policy_config_something_1"},"settingDefinitionId":"device_vendor_msft_policy_config_something","settingInstanceTemplateReference":null}},{"id":"1","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_something_1"},"settingDefinitionId":"user_vendor_msft_policy_config_something","settingInstanceTemplateReference":null}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Choice Setting With Nested Choice Settings Array",
 			input: `{
-                "settingsDetails": [{
+                "settings": [{
                     "id": "0",
                     "settingInstance": {
                         "choiceSettingValue": {
@@ -343,13 +343,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
                     }
                 }]
             }`,
-			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_nested_1"},"settingDefinitionId":"user_vendor_msft_policy_config_nested","settingInstanceTemplateReference":null},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_nested2_1"},"settingDefinitionId":"user_vendor_msft_policy_config_nested2","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"parent_setting_value"},"settingDefinitionId":"parent_setting","settingInstanceTemplateReference":null}}]}`,
+			expected: `{"settings":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_nested_1"},"settingDefinitionId":"user_vendor_msft_policy_config_nested","settingInstanceTemplateReference":null},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[],"settingValueTemplateReference":null,"value":"user_vendor_msft_policy_config_nested2_1"},"settingDefinitionId":"user_vendor_msft_policy_config_nested2","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"parent_setting_value"},"settingDefinitionId":"parent_setting","settingInstanceTemplateReference":null}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Choice Setting With Mixed GroupSettingCollection and SimpleSettingValue",
 			input: `{
-                "settingsDetails": [{
+                "settings": [{
                     "id": "0",
                     "settingInstance": {
                         "choiceSettingValue": {
@@ -396,13 +396,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
                     }
                 }]
             }`,
-			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"key_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"key_value"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"value_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value_string"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"collection_setting","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"parent_value"},"settingDefinitionId":"parent_setting","settingInstanceTemplateReference":null}}]}`,
+			expected: `{"settings":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"key_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"key_value"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"value_setting","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value_string"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"collection_setting","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"parent_value"},"settingDefinitionId":"parent_setting","settingInstanceTemplateReference":null}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "SimpleSettingCollectionValue With Multiple String Values",
 			input: `{
-                "settingsDetails": [{
+                "settings": [{
                     "settingInstance": {
                         "simpleSettingCollectionValue": [
                             {
@@ -421,13 +421,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
                     }
                 }]
             }`,
-			expected: `{"settingsDetails":[{"settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance","settingDefinitionId":"some_setting_alloweddomains","simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing2"}]}}]}`,
+			expected: `{"settings":[{"settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance","settingDefinitionId":"some_setting_alloweddomains","simpleSettingCollectionValue":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing2"}]}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Mixed Integer and String Values in Group Collection",
 			input: `{
-                "settingsDetails": [{
+                "settings": [{
                     "settingInstance": {
                         "groupSettingCollectionValue": [{
                             "children": [
@@ -457,13 +457,13 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
                     }
                 }]
             }`,
-			expected: `{"settingsDetails":[{"settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"numeric_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":1}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"date_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"2024-10-31T00:00:00"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"mixed_settings"}}]}`,
+			expected: `{"settings":[{"settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"numeric_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue","settingValueTemplateReference":null,"value":1}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"date_setting","simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"2024-10-31T00:00:00"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"mixed_settings"}}]}`,
 			wantErr:  false,
 		},
 		{
 			name: "Nested Group Collections With Multiple Settings",
 			input: `{
-				"settingsDetails": [
+				"settings": [
 					{
 						"id": "0",
 						"settingInstance": {
@@ -537,7 +537,7 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 					}
 				]
 			}`,
-			expected: `{"settingsDetails":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value1"}}],"settingValueTemplateReference":null},{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing2"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value2"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_1"},"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt","settingInstanceTemplateReference":null}}]}`,
+			expected: `{"settings":[{"id":"0","settingInstance":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance","choiceSettingValue":{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance","groupSettingCollectionValue":[{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value1"}}],"settingValueTemplateReference":null},{"children":[{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_key","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"thing2"}},{"@odata.type":"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance","settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt_value","settingInstanceTemplateReference":null,"simpleSettingValue":{"@odata.type":"#microsoft.graph.deviceManagementConfigurationStringSettingValue","settingValueTemplateReference":null,"value":"value2"}}],"settingValueTemplateReference":null}],"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_l_listofexternalconvertersppt","settingInstanceTemplateReference":null}],"settingValueTemplateReference":null,"value":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt_1"},"settingDefinitionId":"device_vendor_msft_policy_config_ppt16v2~policy~l_microsoftofficepowerpointmachine~l_convertersmachineppt_l_externalconverterasdefaultforfileextensionppt","settingInstanceTemplateReference":null}}]}`,
 			wantErr:  false,
 		},
 	}

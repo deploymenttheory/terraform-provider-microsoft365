@@ -17,7 +17,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "valid_hierarchy",
 			value: types.StringValue(`{
-				"settingsDetails": [{
+				"settings": [{
 					"id": "0",
 					"settingInstance": {
 						"@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
@@ -38,7 +38,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "invalid_hierarchy_extra_field",
 			value: types.StringValue(`{
-					"settingsDetails": [{
+					"settings": [{
 							"@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
 							"id": "0",
 							"settingInstance": {}
@@ -49,7 +49,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "invalid_hierarchy_extra_field",
 			value: types.StringValue(`{
-        "settingsDetails": [{
+        "settings": [{
             "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
             "id": "0",
             "settingInstance": {}
@@ -60,7 +60,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "valid_secret_setting",
 			value: types.StringValue(`{
-				"settingsDetails": [{
+				"settings": [{
 					"id": "0",
 					"settingInstance": {
 						"@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
@@ -78,7 +78,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "invalid_secret_setting_state",
 			value: types.StringValue(`{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "0",
 							"settingInstance": {
 									"settingDefinitionId": "com.apple.loginwindow_autologinpassword",
@@ -96,7 +96,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "invalid_id_sequence",
 			value: types.StringValue(`{
-				"settingsDetails": [{
+				"settings": [{
 					"id": "0",
 					"settingInstance": {}
 				},
@@ -110,7 +110,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "invalid_id_format",
 			value: types.StringValue(`{
-					"settingsDetails": [{
+					"settings": [{
 							"id": "abc",
 							"settingInstance": {}
 					}]
@@ -120,7 +120,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 		{
 			name: "missing_id",
 			value: types.StringValue(`{
-				"settingsDetails": [{
+				"settings": [{
 					"settingInstance": {}
 				}]
 			}`),
