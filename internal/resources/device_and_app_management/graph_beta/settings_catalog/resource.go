@@ -121,11 +121,12 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"settings = jsonencode({\n" +
 					"  \"settings\": [\n" +
 					"    {\n" +
-					"        \"id\": \"0\",\n" +
-					"        \"settingInstance\": {\n" +
-					"            }\n" +
-					"        }\n" +
-					"    },\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
 					"```\n\n" +
 					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +

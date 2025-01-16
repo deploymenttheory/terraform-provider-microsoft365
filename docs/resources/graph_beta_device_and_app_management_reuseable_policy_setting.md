@@ -56,7 +56,9 @@ A correctly formatted field in the HCL should begin and end like this:
 settings = jsonencode({
   "settings": [
     {
-        # ... settings configuration ...
+      "id": "0",
+      "settingInstance": {
+      }
     }
   ]
 })
