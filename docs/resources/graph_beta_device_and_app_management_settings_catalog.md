@@ -415,11 +415,12 @@ A correctly formatted field in the HCL should begin and end like this:
 settings = jsonencode({
   "settings": [
     {
-        "id": "0",
-        "settingInstance": {
-            }
-        }
-    },
+      "id": "0",
+      "settingInstance": {
+      }
+    }
+  ]
+})
 ```
 
 Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.

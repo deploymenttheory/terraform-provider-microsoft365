@@ -112,7 +112,9 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 					"settings = jsonencode({\n" +
 					"  \"settings\": [\n" +
 					"    {\n" +
-					"        # ... settings configuration ...\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"      }\n" +
 					"    }\n" +
 					"  ]\n" +
 					"})\n" +

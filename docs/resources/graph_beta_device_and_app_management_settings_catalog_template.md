@@ -1,0 +1,362 @@
+---
+page_title: "microsoft365_graph_beta_device_and_app_management_settings_catalog_template Resource - terraform-provider-microsoft365"
+subcategory: "Intune"
+description: |-
+  Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+---
+
+# microsoft365_graph_beta_device_and_app_management_settings_catalog_template (Resource)
+
+Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+
+## Example Usage
+
+```terraform
+resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_template" "windows_anti_virus_defender_update_controls" {
+  name                           = "Windows - Defender Update controls"
+  description                    = "terraform test for settings catalog templates"
+  settings_catalog_template_type = "windows_anti_virus_defender_update_controls"
+  role_scope_tag_ids             = ["0"]
+
+  settings = jsonencode({
+    "settings" : [
+      {
+        "id" : "0",
+        "settingInstance" : {
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "choiceSettingValue" : {
+            "value" : "device_vendor_msft_defender_configuration_engineupdateschannel_6",
+            "settingValueTemplateReference" : {
+              "settingValueTemplateId" : "afc8df70-7b19-4335-b200-bf4b7e098f67",
+              "useTemplateDefault" : false
+            },
+            "children" : []
+          },
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "f7e1409d-9c85-4a3f-85a6-ad05cc8ccf13"
+          },
+          "settingDefinitionId" : "device_vendor_msft_defender_configuration_engineupdateschannel"
+        }
+      },
+      {
+        "id" : "1",
+        "settingInstance" : {
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "choiceSettingValue" : {
+            "value" : "device_vendor_msft_defender_configuration_platformupdateschannel_5",
+            "settingValueTemplateReference" : {
+              "settingValueTemplateId" : "d3b0d61a-bdc5-4507-84d0-5f2a4a3e11a5",
+              "useTemplateDefault" : false
+            },
+            "children" : []
+          },
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "e78b3ace-75d0-4aad-b3fa-4f49390d6483"
+          },
+          "settingDefinitionId" : "device_vendor_msft_defender_configuration_platformupdateschannel"
+        }
+      },
+      {
+        "id" : "2",
+        "settingInstance" : {
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "choiceSettingValue" : {
+            "value" : "device_vendor_msft_defender_configuration_securityintelligenceupdateschannel_4",
+            "settingValueTemplateReference" : {
+              "settingValueTemplateId" : "41ea06bf-e94a-482a-9aaa-7fd535fb4150",
+              "useTemplateDefault" : false
+            },
+            "children" : []
+          },
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "ba273649-e186-4377-89d5-87405bc9a87c"
+          },
+          "settingDefinitionId" : "device_vendor_msft_defender_configuration_securityintelligenceupdateschannel"
+        }
+      }
+    ]
+  })
+
+  assignments = {
+    all_devices = false
+    # all_devices_filter_type = "exclude"
+    # all_devices_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
+
+    all_users = false
+    # all_users_filter_type = "include"
+    # all_users_filter_id   = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
+
+    include_groups = [
+      {
+        group_id                   = "51a96cdd-4b9b-4849-b416-8c94a6d88797"
+        include_groups_filter_type = "include"
+        include_groups_filter_id   = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
+      },
+      {
+        group_id                   = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+        include_groups_filter_type = "include"
+        include_groups_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
+      },
+    ]
+
+    exclude_group_ids = [
+      "b8c661c2-fa9a-4351-af86-adc1729c343f",
+      "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f",
+    ]
+  }
+
+  timeouts = {
+    create = "1m"
+    read   = "1m"
+    update = "1m"
+    delete = "1m"
+  }
+}
+
+
+resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_template" "windows_anti_virus_microsoft_defender_antivirus_exclusions" {
+  name                           = "Windows - Defender Update anti virus exclusions"
+  description                    = "terraform test for settings catalog templates"
+  settings_catalog_template_type = "windows_anti_virus_microsoft_defender_antivirus_exclusions"
+  role_scope_tag_ids             = ["0"]
+
+  settings = jsonencode({
+    "settings" : [
+      {
+        "settingInstance" : {
+          "settingDefinitionId" : "device_vendor_msft_policy_config_defender_excludedextensions",
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
+          "simpleSettingCollectionValue" : [
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : ".dll"
+            },
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : ".exe"
+            }
+          ],
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "c203725b-17dc-427b-9470-673a2ce9cd5e"
+          }
+        },
+        "id" : "0"
+      },
+      {
+        "settingInstance" : {
+          "settingDefinitionId" : "device_vendor_msft_policy_config_defender_excludedpaths",
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
+          "simpleSettingCollectionValue" : [
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : "c:\\some\\path\\1"
+            },
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : "c:\\some\\path\\2"
+            }
+          ],
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "aaf04adc-c639-464f-b4a7-152e784092e8"
+          }
+        },
+        "id" : "1"
+      },
+      {
+        "settingInstance" : {
+          "settingDefinitionId" : "device_vendor_msft_policy_config_defender_excludedprocesses",
+          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
+          "simpleSettingCollectionValue" : [
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : "process-1"
+            },
+            {
+              "settingValueTemplateReference" : null,
+              "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+              "value" : "process-2"
+            }
+          ],
+          "settingInstanceTemplateReference" : {
+            "settingInstanceTemplateId" : "96b046ed-f138-4250-9ae0-b0772a93d16f"
+          }
+        },
+        "id" : "2"
+      }
+    ]
+  })
+
+  assignments = {
+    all_devices = false
+    # all_devices_filter_type = "exclude"
+    # all_devices_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
+
+    all_users = false
+    # all_users_filter_type = "include"
+    # all_users_filter_id   = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
+
+    include_groups = [
+      {
+        group_id                   = "51a96cdd-4b9b-4849-b416-8c94a6d88797"
+        include_groups_filter_type = "include"
+        include_groups_filter_id   = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
+      },
+      {
+        group_id                   = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+        include_groups_filter_type = "include"
+        include_groups_filter_id   = "2d7956fb-e5b5-4fa3-90b2-5bee9bee7883"
+      },
+    ]
+
+    exclude_group_ids = [
+      "b8c661c2-fa9a-4351-af86-adc1729c343f",
+      "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f",
+    ]
+  }
+
+  timeouts = {
+    create = "1m"
+    read   = "1m"
+    update = "1m"
+    delete = "1m"
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+## Schema
+
+### Required
+
+- `name` (String) Settings Catalog Policy template name
+- `settings` (String) Settings Catalog Policy template settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
+
+A correctly formatted field in the HCL should begin and end like this:
+```hcl
+settings = jsonencode({
+  "settings": [
+    {
+      "id": "0",
+      "settingInstance": {
+      }
+    }
+  ]
+})
+```
+
+Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
+- `settings_catalog_template_type` (String) Defines the intune settings catalog template type to be deployed using the settings catalog.
+This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.
+The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:
+
+- `linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.
+- `linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+- `linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.
+- `macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
+- `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+- `macOS_disk_encryption`: Disk encryption settings for macOS devices.
+- `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.
+- `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.
+- `windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
+- `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
+- `windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+- `windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
+- `windows_app_control_for_business`: Application control settings for Windows devices.
+- `windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.
+- `windows_disk_encryption`: Disk encryption settings for Windows devices.
+- `windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.
+- `windows_firewall`: Firewall settings for Windows devices.
+- `windows_firewall_config_manager`: Firewall configuration manager for Windows devices.
+- `windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.
+- `windows_firewall_rules`: Firewall rules for Windows devices.
+- `windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.
+- `windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.
+- `windows_local_admin_password_solution_(windows_LAPS)`: Windows Local Administrator Password Solution(Windows LAPS) is a Windows feature that automatically manages and backs up the password of a local administrator account on your Azure Active Directory - joined or Windows Server Active Directory - joined devices.
+- `windows_local_user_group_membership`: Local user group membership policies help to add, remove, or replace members of local groups on Windows devices..
+- `windows_(config_mgr)_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus settings for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_anti_virus_windows_security_experience`: Security experience settings for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_attack_surface_reduction`: Attack surface reduction settings for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.
+- `windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.
+
+### Optional
+
+- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `description` (String) Settings Catalog Policy template description
+- `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+
+### Read-Only
+
+- `created_date_time` (String) Creation date and time of the settings catalog policy
+- `id` (String) The unique identifier for this policy template
+- `is_assigned` (Boolean) Indicates if the policy is assigned to any scope
+- `last_modified_date_time` (String) Last modification date and time of the settings catalog policy
+- `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
+- `settings_count` (Number) Number of settings catalog settings with the policy. This will change over time as the resource is updated.
+- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Optional:
+
+- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_devices_filter_type` or `all_devices_filter_id`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `all_users_filter_type` or `all_users_filter_id`.
+- `all_devices_filter_id` (String) The ID of the device group filter to apply when `all_devices` is set to `true`. This should be a valid GUID of an existing device group filter.
+- `all_devices_filter_type` (String) The filter type for all devices assignment. Valid values are:
+- `include`: Apply the assignment to devices that match the filter.
+- `exclude`: Do not apply the assignment to devices that match the filter.
+- `none`: No filter applied.
+- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_users_filter_type` or `all_users_filter_id`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `all_devices_filter_type` or `all_devices_filter_id`.
+- `all_users_filter_id` (String) The ID of the filter to apply when `all_users` is set to `true`. This should be a valid GUID of an existing filter.
+- `all_users_filter_type` (String) The filter type for all users assignment. Valid values are:
+- `include`: Apply the assignment to users that match the filter.
+- `exclude`: Do not apply the assignment to users that match the filter.
+- `none`: No filter applied.
+- `exclude_group_ids` (List of String) A list of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
+- `include_groups` (Attributes Set) A set of entra id group Id's to include in the assignment. Each group can have its own filter type and filter ID. (see [below for nested schema](#nestedatt--assignments--include_groups))
+
+<a id="nestedatt--assignments--include_groups"></a>
+### Nested Schema for `assignments.include_groups`
+
+Required:
+
+- `group_id` (String) The entra ID group ID of the group to include in the assignment. This should be a valid GUID of an existing group.
+
+Optional:
+
+- `include_groups_filter_id` (String) The Entra ID Group ID of the filter to apply to the included group. This should be a valid GUID of an existing filter.
+- `include_groups_filter_type` (String) The device group filter type for the included group. Valid values are:
+- `include`: Apply the assignment to group members that match the filter.
+- `exclude`: Do not apply the assignment to group members that match the filter.
+- `none`: No filter applied.
+
+
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Using the provider-default project ID, the import ID is:
+# {resource_id}
+terraform import microsoft365_graph_beta_device_and_app_management_settings_catalog_template.example settings-catalog-template-id
+```
+
