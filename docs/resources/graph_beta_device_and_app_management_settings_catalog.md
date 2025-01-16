@@ -415,10 +415,11 @@ A correctly formatted field in the HCL should begin and end like this:
 settings = jsonencode({
   "settings": [
     {
-        # ... settings configuration ...
-    }
-  ]
-})
+        "id": "0",
+        "settingInstance": {
+            }
+        }
+    },
 ```
 
 Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
@@ -434,11 +435,11 @@ Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.
 
 ### Read-Only
 
-- `configuration_policy_template_type` (String) Defines which settings catalog setting template will be deployed. Unused by non settings catalog template items, but required in schema to satisify tfsdk model.
 - `created_date_time` (String) Creation date and time of the settings catalog policy
 - `id` (String) The unique identifier for this policy
 - `is_assigned` (Boolean) Indicates if the policy is assigned to any scope
 - `last_modified_date_time` (String) Last modification date and time of the settings catalog policy
+- `settings_catalog_template_type` (String) Defines which settings catalog setting template will be deployed. Unused by non settings catalog template items, but required in schema to satisify tfsdk model.
 - `settings_count` (Number) Number of settings catalog settings with the policy. This will change over time as the resource is updated.
 
 <a id="nestedatt--assignments"></a>
