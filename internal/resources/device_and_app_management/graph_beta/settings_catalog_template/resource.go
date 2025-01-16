@@ -8,6 +8,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -21,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_settings_catalog"
+	ResourceName  = "graph_beta_device_and_app_management_settings_catalog_template"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -81,26 +82,26 @@ func (r *DeviceManagementTemplateResource) ImportState(ctx context.Context, req 
 // Function to create the full device management configuration policy schema
 func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
+		Description: "Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this policy",
+				MarkdownDescription: "The unique identifier for this policy template",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Policy name",
+				MarkdownDescription: "Settings Catalog Policy template name",
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
-				MarkdownDescription: "Policy description",
+				MarkdownDescription: "Settings Catalog Policy template description",
 			},
-			"device_management_template_type": schema.StringAttribute{
+			"settings_catalog_template_type": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Defines which device management template type with settings catalog setting that will be deployed. " +
 					"Options available are `macOS_disk_encryption`, `macOS_firewall`, `macOS_endpoint_detection_and_response`, `macOS_anti_virus`, " +
@@ -134,8 +135,8 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"windows_firewall_profile_config_manager",
 						"windows_firewall_rules_config_manager",
 						"windows_endpoint_detection_and_response",
-						"windows_config_manage_anti_virus_microsoft_defender_antivirus",
-						"windows_config_manage_anti_virus_microsoft_defender_antivirus_exclusions",
+						"windows_config_manager_anti_virus_microsoft_defender_antivirus",
+						"windows_config_manager_anti_virus_windows_security_experience",
 						"windows_config_manager_attack_surface_reduction",
 						"windows_config_manager_endpoint_detection_and_response",
 					),
@@ -143,9 +144,9 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
-					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetDeviceManagementTemplateConfigurationById.ps1) " +
+				MarkdownDescription: "Settings Catalog Policy template settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as" +
+					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
@@ -153,24 +154,24 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"settings = jsonencode({\n" +
 					"  \"settings\": [\n" +
 					"    {\n" +
-					"        # ... settings configuration ...\n" +
-					"    }\n" +
-					"  ]\n" +
-					"})\n" +
+					"        \"id\": \"0\",\n" +
+					"        \"settingInstance\": {\n" +
+					"            }\n" +
+					"        }\n" +
+					"    },\n" +
 					"```\n\n" +
 					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
 				},
 			},
 			"platforms": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
 				MarkdownDescription: "Platform type for this settings catalog policy." +
 					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
@@ -185,9 +186,9 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
+				ElementType:         types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -198,10 +199,6 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"windowsOsRecovery", "android",
 					),
 				},
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
-				},
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Defaults to 'mdm'.",
 			},
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
@@ -213,7 +210,6 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{

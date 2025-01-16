@@ -140,7 +140,7 @@ func validateSettingsCatalogIDSequences(path path.Path, data interface{}, resp *
 		return
 	}
 
-	settingsDetails, ok := dataMap["settingsDetails"].([]interface{})
+	settingsDetails, ok := dataMap["settings"].([]interface{})
 	if !ok || len(settingsDetails) == 0 {
 		return
 	}
@@ -231,7 +231,7 @@ func validateSettingsHierarchy(path path.Path, data interface{}, resp *validator
 		return
 	}
 
-	settingsDetails, ok := dataMap["settingsDetails"].([]interface{})
+	settingsDetails, ok := dataMap["settings"].([]interface{})
 	if !ok || len(settingsDetails) == 0 {
 		return
 	}

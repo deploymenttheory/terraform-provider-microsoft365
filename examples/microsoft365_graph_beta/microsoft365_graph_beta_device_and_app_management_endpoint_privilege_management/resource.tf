@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
   name                               = "EPM Base Elevation settings policy"
   description                        = "Elevation settings policy"
   role_scope_tag_ids                 = ["0"]
-  configuration_policy_template_type = "elevation_settings_policy"
+  settings_catalog_template_type = "elevation_settings_policy"
 
   settings = jsonencode({
 

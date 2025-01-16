@@ -101,7 +101,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Optional description for the settings catalog policy.",
 			},
-			"configuration_policy_template_type": schema.StringAttribute{
+			"settings_catalog_template_type": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: "Defines which settings catalog setting template will be deployed. " +
 					"Unused by non settings catalog template items, but required in schema to satisify tfsdk model.",
@@ -121,10 +121,11 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"settings = jsonencode({\n" +
 					"  \"settings\": [\n" +
 					"    {\n" +
-					"        # ... settings configuration ...\n" +
-					"    }\n" +
-					"  ]\n" +
-					"})\n" +
+					"        \"id\": \"0\",\n" +
+					"        \"settingInstance\": {\n" +
+					"            }\n" +
+					"        }\n" +
+					"    },\n" +
 					"```\n\n" +
 					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +

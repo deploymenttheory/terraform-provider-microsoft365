@@ -43,8 +43,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)
 	}
+
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
-		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
+		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
 	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
@@ -52,8 +53,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	})
 }
 
-func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfigurationTechnologies) []types.String {
-	var values []types.String
+func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies graphmodels.DeviceManagementConfigurationTechnologies) types.List {
+	var values []attr.Value
 
 	if technologies&graphmodels.NONE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
 		values = append(values, types.StringValue("none"))
@@ -95,5 +96,6 @@ func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfi
 		values = append(values, types.StringValue("windowsOsRecovery"))
 	}
 
-	return values
+	// Return a types.List
+	return types.ListValueMust(types.StringType, values)
 }

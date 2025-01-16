@@ -38,9 +38,9 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
-	// Set the templateReference based on ConfigurationPolicyTemplateType
+	// Set the templateReference based on SettingsCatalogTemplateType
 	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
-	switch data.ConfigurationPolicyTemplateType.ValueString() {
+	switch data.SettingsCatalogTemplateType.ValueString() {
 	case "elevation_settings_policy":
 		templateId := "e7dcaba4-959b-46ed-88f0-16ba39b14fd8_1" // Template ID for Elevation Settings Policy
 		templateReference.SetTemplateId(&templateId)
@@ -48,7 +48,7 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 		templateId := "cff02aad-51b1-498d-83ad-81161a393f56_1" // Template ID for Elevation Rules Policy
 		templateReference.SetTemplateId(&templateId)
 	default:
-		return nil, fmt.Errorf("invalid configuration_policy_template_type: %s", data.ConfigurationPolicyTemplateType.ValueString())
+		return nil, fmt.Errorf("invalid settings_catalog_template_type: %s", data.SettingsCatalogTemplateType.ValueString())
 	}
 
 	requestBody.SetTemplateReference(templateReference)

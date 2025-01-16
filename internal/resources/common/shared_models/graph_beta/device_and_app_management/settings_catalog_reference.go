@@ -319,5 +319,5 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 				Value interface{} `json:"value"`
 			} `json:"simpleSettingValue,omitempty"`
 		} `json:"settingInstance"`
-	} `json:"settingsDetails"`
+	} `json:"settings"`
 }

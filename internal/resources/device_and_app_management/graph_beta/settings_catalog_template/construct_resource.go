@@ -13,12 +13,43 @@ import (
 
 // PolicyTemplateConfig is a struct that contains the platform, technologies, and template id for a device management policy.
 type PolicyTemplateConfig struct {
-	Platform     graphmodels.DeviceManagementConfigurationPlatforms
-	Technologies graphmodels.DeviceManagementConfigurationTechnologies
-	TemplateID   string
+	Platform       graphmodels.DeviceManagementConfigurationPlatforms
+	Technologies   graphmodels.DeviceManagementConfigurationTechnologies
+	TemplateID     string
+	CreationSource string
 }
 
 var policyConfigMap = map[string]PolicyTemplateConfig{
+	"windows_config_manager_anti_virus_microsoft_defender_antivirus": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "SccmAV",
+	},
+	"windows_config_manager_anti_virus_windows_security_experience": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "WindowsSecurity",
+	},
+	"linux_anti_virus_microsoft_defender_antivirus": {
+		Platform:     graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "4cfd164c-5e8a-4ea9-b15d-9aa71e4ffff4_1",
+	},
+	"linux_anti_virus_microsoft_defender_antivirus_exclusions": {
+		Platform:     graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "8a17a1e5-3df4-4e07-9d20-3878267a79b8_1",
+	},
+	"macOS_anti_virus_microsoft_defender_antivirus": {
+		Platform:     graphmodels.MACOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "2d345ec2-c817-49e5-9156-3ed416dc972a_1",
+	},
+	"macOS_anti_virus_microsoft_defender_antivirus_exclusions": {
+		Platform:     graphmodels.MACOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "43397174-2244-4006-b5ad-421b369e90d4_1",
+	},
 	"windows_anti_virus_defender_update_controls": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
@@ -75,20 +106,28 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 // setTemplateContext sets the template specific settings for the device management template.
 // It sets the platform, technologies, and template id reference.
 func setTemplateContext(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, requestBody graphmodels.DeviceManagementConfigurationPolicyable) error {
-	config, exists := policyConfigMap[data.ConfigurationPolicyTemplateType.ValueString()]
+	config, exists := policyConfigMap[data.SettingsCatalogTemplateType.ValueString()]
 	if !exists {
-		tflog.Error(ctx, "Invalid configuration policy template type", map[string]interface{}{
-			"configuration_policy_template_type": data.ConfigurationPolicyTemplateType.ValueString(),
+		tflog.Error(ctx, "Invalid settings catalog template type", map[string]interface{}{
+			"settings_catalog_template_type": data.SettingsCatalogTemplateType.ValueString(),
 		})
-		return fmt.Errorf("invalid configuration_policy_template_type: %s", data.ConfigurationPolicyTemplateType.ValueString())
+		return fmt.Errorf("invalid settings_catalog_template_type: %s", data.SettingsCatalogTemplateType.ValueString())
 	}
 
+	// Platform and Technologies are always required
 	requestBody.SetPlatforms(&config.Platform)
 	requestBody.SetTechnologies(&config.Technologies)
 
-	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
-	templateReference.SetTemplateId(&config.TemplateID)
-	requestBody.SetTemplateReference(templateReference)
+	// Only set CreationSource / TemplateReference if it exists
+	if config.CreationSource != "" {
+		requestBody.SetCreationSource(&config.CreationSource)
+	}
+
+	if config.TemplateID != "" {
+		templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
+		templateReference.SetTemplateId(&config.TemplateID)
+		requestBody.SetTemplateReference(templateReference)
+	}
 
 	return nil
 }

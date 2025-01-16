@@ -29,8 +29,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
-	// ConfigurationPolicyTemplates are not set by this resource type. But the field is required to satisfy schema.
-	data.ConfigurationPolicyTemplateType = types.StringValue("")
+	// SettingsCatalogTemplateType are not set by this resource type. But the field is required to satisfy schema.
+	data.SettingsCatalogTemplateType = types.StringValue("")
 
 	var roleScopeTagIds []attr.Value
 	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
@@ -47,7 +47,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	}
 
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
-		data.Technologies = EnumBitmaskToTypeStringSlice(*technologies)
+		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
 	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
@@ -55,8 +55,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	})
 }
 
-func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfigurationTechnologies) []types.String {
-	var values []types.String
+func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies graphmodels.DeviceManagementConfigurationTechnologies) types.List {
+	var values []attr.Value
 
 	if technologies&graphmodels.NONE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES != 0 {
 		values = append(values, types.StringValue("none"))
@@ -98,5 +98,6 @@ func EnumBitmaskToTypeStringSlice(technologies graphmodels.DeviceManagementConfi
 		values = append(values, types.StringValue("windowsOsRecovery"))
 	}
 
-	return values
+	// Return a types.List
+	return types.ListValueMust(types.StringType, values)
 }

@@ -14,6 +14,7 @@ import (
 	graphBetaDeviceAndAppManagementRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/role_definition"
 	graphBetaDeviceAndAppManagementRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/role_scope_tag"
 	graphBetaDeviceAndAppManagementSettingsCatalog "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog"
+	graphBetaDeviceAndAppManagementSettingsCatalogTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog_template"
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
@@ -50,6 +51,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementmacOSPlatformScript.NewMacOSPlatformScriptResource,
 		graphBetaDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		graphBetaDeviceAndAppManagementSettingsCatalog.NewSettingsCatalogResource,
+		graphBetaDeviceAndAppManagementSettingsCatalogTemplate.NewDeviceManagementTemplateResource,
 		graphBetaDeviceAndAppManagementReuseablePolicySettings.NewReuseablePolicySettingsResource,
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
 		graphBetaDeviceAndAppManagementRoleScopeTag.NewRoleScopeTagResource,

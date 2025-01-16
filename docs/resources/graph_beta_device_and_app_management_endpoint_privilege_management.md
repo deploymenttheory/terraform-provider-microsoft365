@@ -16,11 +16,11 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
   name                               = "EPM Base Elevation settings policy"
   description                        = "Elevation settings policy"
   role_scope_tag_ids                 = ["0"]
-  configuration_policy_template_type = "elevation_settings_policy"
+  settings_catalog_template_type = "elevation_settings_policy"
 
   settings = jsonencode({
 
-    "settingsDetails" : [{
+    "settings" : [{
       "id" : "0",
       "settingInstance" : {
         "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
@@ -132,14 +132,14 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
 
 ### Required
 
-- `configuration_policy_template_type` (String) Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. Options available are `elevation_settings_policy` or `elevation_rules_policy`.
+- `settings_catalog_template_type` (String) Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. Options available are `elevation_settings_policy` or `elevation_rules_policy`.
 - `name` (String) Policy name
 - `settings` (String) Endpoint Privilege Management Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/GetSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
 
 A correctly formatted field in the HCL should begin and end like this:
 ```hcl
 settings = jsonencode({
-  "settingsDetails": [
+  "settings": [
     {
         # ... settings configuration ...
     }
