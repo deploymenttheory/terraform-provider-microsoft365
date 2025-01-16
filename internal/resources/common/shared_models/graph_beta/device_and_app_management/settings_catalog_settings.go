@@ -1,8 +1,11 @@
 package sharedmodels
 
-// DeviceConfigV2GraphServiceResourceModel is the root configuration model
+// DeviceConfigV2GraphServiceResourceModel is the root settings catalog model
+// Officially the api only recognises 'settings' as the root key, but we use 'settings' and 'setting'
+// to support both single-instance and array-based settings.
 type DeviceConfigV2GraphServiceResourceModel struct {
-	Settings []Setting `json:"settings"`
+	Settings []Setting `json:"settings,omitempty"` // For array-based settings
+	Setting  *Setting  `json:"setting,omitempty"`  // For single-instance settings
 }
 
 // SettingDetail represents a single setting detail

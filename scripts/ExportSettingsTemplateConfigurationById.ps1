@@ -36,20 +36,76 @@ function Get-Paginated {
 }
 
 function Get-SettingsTemplateById {
+  param (
+      [Parameter(Mandatory=$true)]
+      [string]$DeviceConfigurationId
+  )
+
+  try {
+      $templateUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$DeviceConfigurationId')"
+      $template = Invoke-MgGraphRequest -Method GET -Uri $templateUri
+
+      return $template
+  }
+  catch {
+      Write-Error "Error retrieving settings template: $_"
+      return $null
+  }
+}
+
+function Get-ConfigurationPolicyAssignments {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$DeviceConfigurationId
+        [string]$ConfigurationPolicyId
     )
 
     try {
-        # Get template details
-        $templateUri = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$DeviceConfigurationId"
-        $template = Invoke-MgGraphRequest -Method GET -Uri $templateUri
+        $assignmentsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$ConfigurationPolicyId')/assignments"
+        $assignments = Get-Paginated -InitialUri $assignmentsUri
 
-        return $template
+        Write-Host "Assignments retrieved successfully."
+        return $assignments
     }
     catch {
-        Write-Error "Error retrieving settings template: $_"
+        Write-Error "Error retrieving configuration policy assignments: $_"
+        return $null
+    }
+}
+
+function Get-ConfigurationPolicySettings {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ConfigurationPolicyId
+    )
+
+    try {
+        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$ConfigurationPolicyId')/settings?$expand=settingDefinitions&$top=1000"
+        $settings = Get-Paginated -InitialUri $settingsUri
+
+        Write-Host "Settings retrieved successfully."
+        return $settings
+    }
+    catch {
+        Write-Error "Error retrieving configuration policy settings: $_"
+        return $null
+    }
+}
+
+function Get-SettingTemplates {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$PolicyTemplateId
+    )
+
+    try {
+        $settingTemplatesUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicyTemplates('$PolicyTemplateId')/settingTemplates?$expand=settingDefinitions&$top=1000"
+        $settingTemplates = Get-Paginated -InitialUri $settingTemplatesUri
+
+        Write-Host "Setting templates retrieved successfully."
+        return $settingTemplates
+    }
+    catch {
+        Write-Error "Error retrieving setting templates: $_"
         return $null
     }
 }
@@ -67,14 +123,37 @@ Write-Host "Retrieving template with ID: $DeviceConfigurationId"
 $templateData = Get-SettingsTemplateById -DeviceConfigurationId $DeviceConfigurationId
 
 if ($null -ne $templateData) {
-    Write-Host "`nFull JSON output for settings template:"
-    $jsonString = $templateData | ConvertTo-Json -Depth 100 -Compress
-    # Format the JSON for readability
-    $jsonFormatted = $jsonString | ConvertFrom-Json | ConvertTo-Json -Depth 100
-    
-    Write-Output $jsonFormatted
-    $jsonFormatted | Out-File "settingsTemplate.json"
-    Write-Host "`nJSON output has been saved to 'settingsTemplate.json'"
+    # Extract IDs dynamically
+    $configurationPolicyId = $templateData.id
+    $policyTemplateId = $templateData.templateReference.templateId
+
+    Write-Host "Retrieving assignments for configuration policy..."
+    $assignments = Get-ConfigurationPolicyAssignments -ConfigurationPolicyId $configurationPolicyId
+
+    Write-Host "Retrieving settings for configuration policy..."
+    $settings = Get-ConfigurationPolicySettings -ConfigurationPolicyId $configurationPolicyId
+
+    # Ensure settings are always wrapped in an array
+    if ($null -eq $settings) {
+        $settings = @() # Empty array if no settings are found
+    } elseif ($settings -isnot [Array]) {
+        $settings = @($settings) # Wrap single setting in an array
+    }
+
+    Write-Host "Retrieving setting templates..."
+    $settingTemplates = Get-SettingTemplates -PolicyTemplateId $policyTemplateId
+
+    # Consolidate data into a single object
+    $outputData = [PSCustomObject]@{
+        baseResource      = $templateData
+        assignments       = $assignments
+        settings          = $settings
+        settingTemplates  = $settingTemplates
+    }
+
+    # Export to a single JSON file
+    $outputData | ConvertTo-Json -Depth 100 | Out-File "settingCatalogTemplate.json"
+    Write-Host "Consolidated JSON output has been saved to 'settingCatalogTemplate.json'"
 } else {
     Write-Host "No data found for the specified template ID."
 }

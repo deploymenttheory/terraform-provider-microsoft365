@@ -20,16 +20,6 @@ type PolicyTemplateConfig struct {
 }
 
 var policyConfigMap = map[string]PolicyTemplateConfig{
-	"windows_config_manager_anti_virus_microsoft_defender_antivirus": {
-		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
-		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
-		CreationSource: "SccmAV",
-	},
-	"windows_config_manager_anti_virus_windows_security_experience": {
-		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
-		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
-		CreationSource: "WindowsSecurity",
-	},
 	"linux_anti_virus_microsoft_defender_antivirus": {
 		Platform:     graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
@@ -39,6 +29,11 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Platform:     graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "8a17a1e5-3df4-4e07-9d20-3878267a79b8_1",
+	},
+	"linux_endpoint_detection_and_response": {
+		Platform:     graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "3514388a-d4d1-4aa8-bd64-c317776008f5_1",
 	},
 	"macOS_anti_virus_microsoft_defender_antivirus": {
 		Platform:     graphmodels.MACOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
@@ -69,6 +64,16 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "d948ff9b-99cb-4ee0-8012-1fbc09685377_1",
+	},
+	"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "SccmAV",
+	},
+	"windows_(config_mgr)_anti_virus_windows_security_experience": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "WindowsSecurity",
 	},
 }
 
