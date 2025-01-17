@@ -114,11 +114,11 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Endpoint Privilege Management Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
-					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
+				MarkdownDescription: "Endpoint Privilege Management Policy settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
+					" [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
-					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
+					"terraform documentation for the Endpoint Privilege Management Policy for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
@@ -131,7 +131,9 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"  ]\n" +
 					"})\n" +
 					"```\n\n" +
-					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
+					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format" +
+					"**Note:** When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
@@ -158,7 +160,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				ElementType: types.StringType,
 				Computed:    true,
 				MarkdownDescription: "Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with." +
-					"Defaults to `mdm`, `endpointPrivilegeManagement`.",
+					"Defaults to ['mdm'], ['endpointPrivilegeManagement'].",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"mdm", "endpointPrivilegeManagement",

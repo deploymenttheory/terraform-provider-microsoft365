@@ -82,14 +82,14 @@ func (r *DeviceManagementTemplateResource) ImportState(ctx context.Context, req 
 // Function to create the full device management configuration policy schema
 func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
+		Description: "Manages a Settings Catalog policy template in Microsoft Intune for `Windows`, `macOS`, `Linux`, `iOS/iPadOS` and `Android`.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this policy template",
+				MarkdownDescription: "The unique identifier for this settings catalog policy template",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -104,7 +104,8 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 			"settings_catalog_template_type": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Defines the intune settings catalog template type to be deployed using the settings catalog.\n\n" +
-					"This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.\n\n" +
+					"This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy." +
+					"This value must correctly correlate to the settings defined in the `settings` field." +
 					"The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:\n\n" +
 					"`Linux settings catalog templates`\n\n" +
 					"`linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.\n\n" +
@@ -115,8 +116,8 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
 					"`macOS_disk_encryption`: Disk encryption settings for macOS devices.\n\n" +
 					"`macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n\n" +
-					//"`macOS_firewall`: Firewall configuration for macOS devices.\n\n" +
-					"`windows settings catalog templates`\n\n" +
+					//"`macOS_firewall`: Firewall configuration for macOS devices.\n\n" + TODO: uses another api endpoint entirely
+					"`Windows settings catalog templates`\n\n" +
 					"`windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n\n" +
 					"`windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n\n" +
 					"`windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
@@ -181,11 +182,11 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Settings Catalog Policy template settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
-					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
+				MarkdownDescription: "Settings Catalog Policy template settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
+					" [ExportSettingsCatalogTemplateConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogTemplateConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
-					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
+					"terraform documentation for the settings catalog template for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
@@ -198,7 +199,9 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"  ]\n" +
 					"})\n" +
 					"```\n\n" +
-					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
+					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format" +
+					"**Note:** When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
 					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
 					"should not be used when creating or updating settings.",
 				Validators: []validator.String{
@@ -212,8 +215,8 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 			"platforms": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: "Platform type for this settings catalog policy." +
-					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
-					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
+					"Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`," +
+					"`unknownFutureValue`, `androidEnterprise`, or `aosp`. This is automatically set based on the `settings_catalog_template_type` field.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"none", "android", "iOS", "macOS", "windows10X",
@@ -224,9 +227,12 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
+				ElementType: types.StringType,
+				Computed:    true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: `none`," +
+					"`mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`, `microsoftSense`," +
+					"`exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, `windowsOsRecovery`, " +
+					"and `android`. This is automatically set based on the `settings_catalog_template_type` field.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",
@@ -241,7 +247,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 			"role_scope_tag_ids": schema.ListAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this Windows Settings Catalog profile.",
+				MarkdownDescription: "List of scope tag IDs for this Settings Catalog template profile.",
 				PlanModifiers: []planmodifier.List{
 					planmodifiers.DefaultListValue(
 						[]attr.Value{types.StringValue("0")},
@@ -253,22 +259,22 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: "Creation date and time of the settings catalog policy",
+				MarkdownDescription: "Creation date and time of the settings catalog policy template",
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Last modification date and time of the settings catalog policy",
+				MarkdownDescription: "Last modification date and time of the settings catalog policy template",
 			},
 			"settings_count": schema.Int64Attribute{
 				Computed:            true,
-				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
+				MarkdownDescription: "Number of settings catalog settings with the policy template. This will change over time as the resource is updated.",
 			},
 			"is_assigned": schema.BoolAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.UseStateForUnknownBool(),
 				},
-				MarkdownDescription: "Indicates if the policy is assigned to any scope",
+				MarkdownDescription: "Indicates if the policy template is assigned to any user or device scope",
 			},
 			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),

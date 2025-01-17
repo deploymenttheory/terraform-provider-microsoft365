@@ -321,7 +321,7 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
 ### Required
 
 - `name` (String) Policy name
-- `settings` (String) Endpoint Privilege Management Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
+- `settings` (String) Endpoint Privilege Management Policy settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script. [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the Endpoint Privilege Management Policy for examples and how to correctly format the HCL.
 
 A correctly formatted field in the HCL should begin and end like this:
 ```hcl
@@ -336,7 +336,7 @@ settings = jsonencode({
 })
 ```
 
-Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
+**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format**Note:** When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
 - `settings_catalog_template_type` (String) Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. Options available are `elevation_settings_policy` or `elevation_rules_policy`.
 
 ### Optional
@@ -354,7 +354,7 @@ Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.
 - `last_modified_date_time` (String) Last modification date and time of the settings catalog policy
 - `platforms` (String) Platform type for this Endpoint Privilege Management Policy.Will always be set to ['windows10'], as EPM currently only supports windows device types.Defaults to windows10.
 - `settings_count` (Number) Number of settings catalog settings with the policy. This will change over time as the resource is updated.
-- `technologies` (List of String) Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with.Defaults to `mdm`, `endpointPrivilegeManagement`.
+- `technologies` (List of String) Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with.Defaults to ['mdm'], ['endpointPrivilegeManagement'].
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
