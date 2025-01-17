@@ -291,8 +291,6 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 
 `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
 
-`macOS_disk_encryption`: Disk encryption settings for macOS devices.
-
 `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.
 
 `Windows settings catalog templates`
