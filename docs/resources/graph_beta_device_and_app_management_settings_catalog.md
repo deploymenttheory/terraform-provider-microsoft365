@@ -408,7 +408,7 @@ resource "microsoft365_graph_beta_device_and_app_management_settings_catalog" "t
 ### Required
 
 - `name` (String) Policy name
-- `settings` (String) Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
+- `settings` (String) Settings Catalog Policy template settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script. [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog template for examples and how to correctly format the HCL.
 
 A correctly formatted field in the HCL should begin and end like this:
 ```hcl
@@ -423,15 +423,38 @@ settings = jsonencode({
 })
 ```
 
-Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
+**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format
+
+**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue") ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
+
+```hcl
+settings = jsonencode({
+  "settings": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "com.apple.loginwindow_autologinpassword",
+        "settingInstanceTemplateReference": null,
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
+          "valueState": "notEncrypted",
+          "value": "your_secret_value",
+          "settingValueTemplateReference": null
+        }
+      }
+    }
+  ]
+})
+```
 
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the settings catalog policy.
-- `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
+- `platforms` (String) Platform type for this settings catalog policy.Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`,`unknownFutureValue`, `androidEnterprise`, or `aosp`. Defaults to `none`.
 - `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
-- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].
+- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: `none`, `mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`, `microsoftSense`, `exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, `windowsOsRecovery`, and `android`. Defaults to `mdm`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

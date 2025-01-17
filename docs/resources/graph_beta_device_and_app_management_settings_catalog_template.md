@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_settings_catalog_template Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+  Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, Linux, iOS/iPadOS and Android.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_settings_catalog_template (Resource)
 
-Manages a Settings Catalog policy template in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+Manages a Settings Catalog policy template in Microsoft Intune for `Windows`, `macOS`, `Linux`, `iOS/iPadOS` and `Android`.
 
 ## Example Usage
 
@@ -234,7 +234,7 @@ resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_tem
 ### Required
 
 - `name` (String) Settings Catalog Policy template name
-- `settings` (String) Settings Catalog Policy template settings defined as a valid JSON string. Provide JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog for examples and how to correctly format the HCL.
+- `settings` (String) Settings Catalog Policy template settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script. [ExportSettingsCatalogTemplateConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogTemplateConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the settings catalog template for examples and how to correctly format the HCL.
 
 A correctly formatted field in the HCL should begin and end like this:
 ```hcl
@@ -249,59 +249,120 @@ settings = jsonencode({
 })
 ```
 
-Note: When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
-- `settings_catalog_template_type` (String) Defines the intune settings catalog template type to be deployed using the settings catalog.
-This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.
-The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:
+**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format
 
-* `linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.
-* `linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
-* `linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.
-* `macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
-* `macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
-* `macOS_disk_encryption`: Disk encryption settings for macOS devices.
-* `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.
-* `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.
-* `windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
-* `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
-* `windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
-* `windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
-* `windows_app_control_for_business`: Application control settings for Windows devices.
-* `windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.
-* `windows_disk_encryption`: Disk encryption settings for Windows devices.
-* `windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.
-* `windows_firewall`: Firewall settings for Windows devices.
-* `windows_firewall_config_manager`: Firewall configuration manager for Windows devices.
-* `windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.
-* `windows_firewall_rules`: Firewall rules for Windows devices.
-* `windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.
-* `windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.
-* `windows_local_admin_password_solution_(windows_LAPS)`: Windows Local Administrator Password Solution(Windows LAPS) is a Windows feature that automatically manages and backs up the password of a local administrator account on your Azure Active Directory - joined or Windows Server Active Directory - joined devices.
-* `windows_local_user_group_membership`: Local user group membership policies help to add, remove, or replace members of local groups on Windows devices..
-* `windows_(config_mgr)_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus settings for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_anti_virus_windows_security_experience`: Security experience settings for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_attack_surface_reduction`: Attack surface reduction settings for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.
-* `windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.
+**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue") ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
+
+```hcl
+settings = jsonencode({
+  "settings": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "com.apple.loginwindow_autologinpassword",
+        "settingInstanceTemplateReference": null,
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
+          "valueState": "notEncrypted",
+          "value": "your_secret_value",
+          "settingValueTemplateReference": null
+        }
+      }
+    }
+  ]
+})
+```
+- `settings_catalog_template_type` (String) Defines the intune settings catalog template type to be deployed using the settings catalog.
+
+This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.This value must correctly correlate to the settings defined in the `settings` field.The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:
+
+`Linux settings catalog templates`
+
+`linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.
+
+`linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+
+`linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.
+
+`macOS settings catalog templates`
+
+`macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
+
+`macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+
+`macOS_disk_encryption`: Disk encryption settings for macOS devices.
+
+`macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.
+
+`Windows settings catalog templates`
+
+`windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.
+
+`windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
+
+`windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
+
+`windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
+
+`windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
+
+`windows_app_control_for_business`: Application control settings for Windows devices.
+
+`windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.
+
+`windows_disk_encryption`: Disk encryption settings for Windows devices.
+
+`windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.
+
+`windows_firewall`: Firewall settings for Windows devices.
+
+`windows_firewall_config_manager`: Firewall configuration manager for Windows devices.
+
+`windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.
+
+`windows_firewall_rules`: Firewall rules for Windows devices.
+
+`windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.
+
+`windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.
+
+`windows_local_admin_password_solution_(windows_LAPS)`: Windows Local Administrator Password Solution(Windows LAPS) is a Windows feature that automatically manages and backs up the password of a local administrator account on your Azure Active Directory - joined or Windows Server Active Directory - joined devices.
+
+`windows_local_user_group_membership`: Local user group membership policies help to add, remove, or replace members of local groups on Windows devices..
+
+`Windows Configuration Manager settings catalog templates`
+
+`windows_(config_mgr)_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus settings for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_anti_virus_windows_security_experience`: Security experience settings for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_attack_surface_reduction`: Attack surface reduction settings for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.
 
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Settings Catalog Policy template description
-- `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
+- `role_scope_tag_ids` (List of String) List of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `created_date_time` (String) Creation date and time of the settings catalog policy
-- `id` (String) The unique identifier for this policy template
-- `is_assigned` (Boolean) Indicates if the policy is assigned to any scope
-- `last_modified_date_time` (String) Last modification date and time of the settings catalog policy
-- `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
-- `settings_count` (Number) Number of settings catalog settings with the policy. This will change over time as the resource is updated.
-- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].
+- `created_date_time` (String) Creation date and time of the settings catalog policy template
+- `id` (String) The unique identifier for this settings catalog policy template
+- `is_assigned` (Boolean) Indicates if the policy template is assigned to any user or device scope
+- `last_modified_date_time` (String) Last modification date and time of the settings catalog policy template
+- `platforms` (String) Platform type for this settings catalog policy.Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`,`unknownFutureValue`, `androidEnterprise`, or `aosp`. This is automatically set based on the `settings_catalog_template_type` field.
+- `settings_count` (Number) Number of settings catalog settings with the policy template. This will change over time as the resource is updated.
+- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: `none`,`mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`, `microsoftSense`,`exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, `windowsOsRecovery`, and `android`. This is automatically set based on the `settings_catalog_template_type` field.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

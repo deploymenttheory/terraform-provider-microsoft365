@@ -111,11 +111,11 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Settings Catalog Policy settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
-					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
+				MarkdownDescription: "Settings Catalog Policy template settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
+					" [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
-					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
+					"terraform documentation for the settings catalog template for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
@@ -128,9 +128,31 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"  ]\n" +
 					"})\n" +
 					"```\n\n" +
-					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
-					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
-					"should not be used when creating or updating settings.",
+					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\") " +
+					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
+					"responses and should not be used when creating or updating settings.\n\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settings\": [\n" +
+					"    {\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"        \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance\",\n" +
+					"        \"settingDefinitionId\": \"com.apple.loginwindow_autologinpassword\",\n" +
+					"        \"settingInstanceTemplateReference\": null,\n" +
+					"        \"simpleSettingValue\": {\n" +
+					"          \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\",\n" +
+					"          \"valueState\": \"notEncrypted\",\n" +
+					"          \"value\": \"your_secret_value\",\n" +
+					"          \"settingValueTemplateReference\": null\n" +
+					"        }\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
 					sharedValidators.SettingsCatalogValidator(),
@@ -143,8 +165,8 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Optional: true,
 				Computed: true,
 				MarkdownDescription: "Platform type for this settings catalog policy." +
-					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
-					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
+					"Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`," +
+					"`unknownFutureValue`, `androidEnterprise`, or `aosp`. Defaults to `none`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"none", "android", "iOS", "macOS", "windows10X",
@@ -155,10 +177,13 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are:" +
+					" `none`, `mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`," +
+					" `microsoftSense`, `exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, " +
+					"`windowsOsRecovery`, and `android`. Defaults to `mdm`.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",

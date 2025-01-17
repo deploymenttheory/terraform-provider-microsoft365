@@ -102,11 +102,11 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 			},
 			"settings": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "Reuseable Settings Policy with settings catalog settings defined as a valid JSON string. Provide JSON-encoded settings structure. " +
-					"This can either be extracted from an existing policy using the Intune gui export to JSON, via a script such as" +
-					" [this PowerShell script](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportReuseablePolicySettingsById.ps1) " +
+				MarkdownDescription: "Reuseable Settings Policy with settings catalog settings defined as a valid JSON string. Please provide a valid JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
+					" [ExportReuseablePolicySettingsById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportReuseablePolicySettingsById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
-					"terraform documentation for the settings catalog for examples and how to correctly format the HCL.\n\n" +
+					"terraform documentation for the settings catalog template for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
 					"```hcl\n" +
 					"settings = jsonencode({\n" +
@@ -119,9 +119,31 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 					"  ]\n" +
 					"})\n" +
 					"```\n\n" +
-					"Note: When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
-					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
-					"should not be used when creating or updating settings.",
+					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\") " +
+					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
+					"responses and should not be used when creating or updating settings.\n\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settings\": [\n" +
+					"    {\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"        \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance\",\n" +
+					"        \"settingDefinitionId\": \"com.apple.loginwindow_autologinpassword\",\n" +
+					"        \"settingInstanceTemplateReference\": null,\n" +
+					"        \"simpleSettingValue\": {\n" +
+					"          \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\",\n" +
+					"          \"valueState\": \"notEncrypted\",\n" +
+					"          \"value\": \"your_secret_value\",\n" +
+					"          \"settingValueTemplateReference\": null\n" +
+					"        }\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
 					sharedValidators.SettingsCatalogValidator(),

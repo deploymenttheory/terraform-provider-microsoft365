@@ -55,6 +55,9 @@ func (v settingsCatalogValidator) ValidateString(ctx context.Context, req valida
 	// validate the settings hierarchy
 	validateSettingsHierarchy(req.Path, jsonData, resp)
 
+	// validateSettingsTemplates for settings templates existance
+	validateSettingsTemplates(req.Path, jsonData, resp)
+
 }
 
 //----------------------------------------------------------------------------------------------//
@@ -337,3 +340,24 @@ func validateFieldOrder(fieldOrder []string, keyValuePairs []string, index int, 
 }
 
 //----------------------------------------------------------------------------------------------//
+
+// validateSettingsTemplates validates that settingTemplates are not present in the JSON structure
+func validateSettingsTemplates(path path.Path, data interface{}, resp *validator.StringResponse) {
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	// Check if settingTemplates exists in the JSON
+	if templates, exists := dataMap["settingTemplates"]; exists {
+		// If it exists, check if it's an array (which is the expected type if present)
+		if templatesArray, ok := templates.([]interface{}); ok && len(templatesArray) > 0 {
+			resp.Diagnostics.AddAttributeError(
+				path,
+				"Invalid Settings Configuration",
+				"Settings Templates are not supported in this configuration. Please provide only settings catalog settings  with a 'settings' array and remove the 'settingTemplates' field.",
+			)
+			return
+		}
+	}
+}

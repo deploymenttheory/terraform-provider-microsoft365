@@ -45,6 +45,16 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "43397174-2244-4006-b5ad-421b369e90d4_1",
 	},
+	"macOS_endpoint_detection_and_response": {
+		Platform:     graphmodels.MACOS_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "a6ff37f6-c841-4264-9249-1ecf793d94ef_1",
+	},
+	"windows_account_protection": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "fcef01f2-439d-4c3f-9184-823fd6e97646_1",
+	},
 	"windows_anti_virus_defender_update_controls": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
@@ -65,10 +75,65 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "d948ff9b-99cb-4ee0-8012-1fbc09685377_1",
 	},
+	"windows_app_control_for_business": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "4321b946-b76b-4450-8afd-769c08b16ffc_1",
+	},
+	"windows_attack_surface_reduction_app_and_browser_isolation": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "9f667e40-8f3c-4f88-80d8-457f16906315_1",
+	},
+	"windows_attack_surface_reduction_attack_surface_reduction_rules": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "e8c053d6-9f95-42b1-a7f1-ebfd71c67a4b_1",
+	},
+	"windows_attack_surface_reduction_app_device_control": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "0f2034c6-3cd6-4ee1-bd37-f3c0693e9548_1",
+	},
+	"windows_attack_surface_reduction_exploit_protection": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "d02f2162-fcac-48db-9b7b-b0a3f160d2c2_1",
+	},
 	"windows_firewall_rules": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "19c8aa67-f286-4861-9aa0-f23541d31680_1",
+	},
+	"windows_local_admin_password_solution_(windows_LAPS)": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "adc46e5a-f4aa-4ff6-aeff-4f27bc525796_1",
+	},
+	"windows_local_user_group_membership": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "22968f54-45fa-486c-848e-f8224aa69772_1",
+	},
+	"windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "e373ebb7-c1c5-4ffb-9ce0-698f1834fd9d_1",
+	},
+	"windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "5dd36540-eb22-4e7e-b19c-2a07772ba627_1",
+	},
+	"windows_(config_mgr)_attack_surface_reduction_exploit_protection": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "ASR_ExploitProtection",
+	},
+	"windows_(config_mgr)_attack_surface_reduction_web_protection": {
+		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies:   graphmodels.CONFIGMANAGER_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		CreationSource: "ASR_WebProtection",
 	},
 	"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus": {
 		Platform:       graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
