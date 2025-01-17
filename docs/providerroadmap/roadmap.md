@@ -10,11 +10,11 @@ Our goal is to provide a robust, enterprise-ready Terraform provider that allows
 
 The initial development phase focuses on implementing core Microsoft 365 management capabilities through Microsoft Graph API integration, with particular emphasis on:
 
-Identity and Access Management (Azure AD)
-Security and Compliance Policies
-Intune Device Management
-Microsoft 365 Apps Configuration
-Teams Management
+- Identity and Access Management (Azure AD)
+- Security and Compliance Policies
+- Intune Device Management
+- Microsoft 365 Apps Configuration
+- Teams Management
 
 ## Development Principles
 
