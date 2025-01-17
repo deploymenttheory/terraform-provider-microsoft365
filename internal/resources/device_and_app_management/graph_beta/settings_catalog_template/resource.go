@@ -200,10 +200,30 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"})\n" +
 					"```\n\n" +
 					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
-					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format" +
-					"**Note:** When setting secret values (identified by `@odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\"`), " +
-					"ensure the `valueState` is set to `\"notEncrypted\"`. The value `\"encryptedValueToken\"` is reserved for server responses and " +
-					"should not be used when creating or updating settings.",
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\")" +
+					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
+					"responses and should not be used when creating or updating settings.\n\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settings\": [\n" +
+					"    {\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"        \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance\",\n" +
+					"        \"settingDefinitionId\": \"com.apple.loginwindow_autologinpassword\",\n" +
+					"        \"settingInstanceTemplateReference\": null,\n" +
+					"        \"simpleSettingValue\": {\n" +
+					"          \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\",\n" +
+					"          \"valueState\": \"notEncrypted\",\n" +
+					"          \"value\": \"your_secret_value\",\n" +
+					"          \"settingValueTemplateReference\": null\n" +
+					"        }\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
 					sharedValidators.SettingsCatalogValidator(),

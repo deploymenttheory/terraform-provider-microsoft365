@@ -249,7 +249,30 @@ settings = jsonencode({
 })
 ```
 
-**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format**Note:** When setting secret values (identified by `@odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"`), ensure the `valueState` is set to `"notEncrypted"`. The value `"encryptedValueToken"` is reserved for server responses and should not be used when creating or updating settings.
+**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format
+
+**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue")ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
+
+```hcl
+settings = jsonencode({
+  "settings": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "com.apple.loginwindow_autologinpassword",
+        "settingInstanceTemplateReference": null,
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
+          "valueState": "notEncrypted",
+          "value": "your_secret_value",
+          "settingValueTemplateReference": null
+        }
+      }
+    }
+  ]
+})
+```
 - `settings_catalog_template_type` (String) Defines the intune settings catalog template type to be deployed using the settings catalog.
 
 This value will automatically set the correct `platform` , `templateID` , `creationSource` and `technologies` values for the settings catalog policy.This value must correctly correlate to the settings defined in the `settings` field.The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:
