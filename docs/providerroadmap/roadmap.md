@@ -1,4 +1,30 @@
+# Microsoft 365 Terraform Provider Roadmap
 
+This roadmap outlines the development trajectory for the Microsoft 365 Terraform Provider, which aims to enable infrastructure-as-code management of Microsoft 365 services and configurations through HashiCorp Terraform.
+
+## Core Vision
+
+Our goal is to provide a robust, enterprise-ready Terraform provider that allows organizations to manage their Microsoft 365 environment programmatically, bringing the benefits of infrastructure as code to Microsoft 365 administration. This includes user management, security configurations, compliance policies, device management and service-specific settings across the Microsoft 365 suite.
+
+## Current Focus
+
+The initial development phase focuses on implementing core Microsoft 365 management capabilities through Microsoft Graph API integration, with particular emphasis on:
+
+Identity and Access Management (Azure AD)
+Security and Compliance Policies
+Intune Device Management
+Microsoft 365 Apps Configuration
+Teams Management
+
+## Development Principles
+
+- API-First: Built on Microsoft Graph API and Graph Beta for future-proof integration
+- Enterprise-Ready: Focusing on features most requested by enterprise environments
+- Security-Focused: Implementing secure defaults and best practices
+- Idempotent Operations: Ensuring consistent and predictable resource management
+- Comprehensive Testing: Maintaining high test coverage and validation
+
+## Completion Status
 
 ## Microsoft Exchange Online
 
@@ -82,7 +108,6 @@
 - [ ] Device conditional access policies
 - [ ] Device configuration policies
 
-
 ## Microsoft Teams
 
 - [ ] Apps
@@ -100,6 +125,7 @@
 
 ### Apps
 
+- [ ] Applications
 - [ ] App configuration policies
 - [ ] App protection policies (Platform = Android)
 - [ ] App protection policies (Platform = iOS/iPadOS)
@@ -109,18 +135,17 @@
 - [ ] Mobile Threat Defense
 - [ ] Policy Sets
 
-### Devices
+### Device Management
 
 - [ ] Compliance policies
-- [ ] Compliance policy settings
 - [ ] Locations
 - [ ] Notifications
-- [ ] Configuration profiles
-- [ ] Configuration profiles (Profile Type = Administrative Templates)
-- [ ] Configuration profiles (Settings Catalog)
-- [ ] Device clean-up rules
+- [x] Configuration profiles (Settings Catalog = Administrative Templates)
+- [x] Configuration profiles (Settings Catalog)
+- [ ] Configuration profiles (Other legacy types)
 - [ ] Enrollment restrictions
-- [ ] Scripts
+- [x] Platform Scripts (Windows, macOS, Linux)
+- [ ] Proactive Remediations
 - [ ] Windows Autopilot deployment profiles
 - [ ] Quality updates for Windows 10 and later
 - [ ] Feature updates for Windows 10 and later
@@ -128,14 +153,13 @@
 ### Reports
 
 - [ ] Endpoint analytics
-- [ ] Proactive Remediations
 
 ### Intune Suite
 
 - [ ] Advanced Analytics
 - [ ] Advanced Endpoint Analytics
 - [ ] Remote Help
-- [ ] Endpoint Privilege Management
+- [x] Endpoint Privilege Management (Reuseable policies, elevation policies, elevation rules)
 - [ ] Microsoft Tunnel for Mobile Application Management
 - [ ] Automated App Patching
 
@@ -158,6 +182,9 @@
 - [ ] Regional Settings
 - [ ] Custom Language Packs
 
-### Tenant administration
+### Intune Tenant administration
 
-- [ ] Filters
+- [x] Assignment Filters
+- [x] Role Scope Tags
+- [x] Role Definitions
+- [ ] Device clean-up rules
