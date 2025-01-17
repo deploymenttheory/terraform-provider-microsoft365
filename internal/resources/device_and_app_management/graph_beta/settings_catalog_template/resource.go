@@ -114,7 +114,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`macOS settings catalog templates`\n\n" +
 					"`macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
 					"`macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
-					"`macOS_disk_encryption`: Disk encryption settings for macOS devices.\n\n" +
+					//"`macOS_disk_encryption`: Disk encryption settings for macOS devices.\n\n"  + TODO: uses another api endpoint entirely
 					"`macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n\n" +
 					//"`macOS_firewall`: Firewall configuration for macOS devices.\n\n" + TODO: uses another api endpoint entirely
 					"`Windows settings catalog templates`\n\n" +
@@ -145,21 +145,26 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"linux_anti_virus_microsoft_defender_antivirus",
-						"linux_anti_virus_microsoft_defender_antivirus_exclusions",
-						"linux_endpoint_detection_and_response",
-						"macOS_anti_virus_microsoft_defender_antivirus",
-						"macOS_anti_virus_microsoft_defender_antivirus_exclusions",
-						"macOS_disk_encryption",
-						"macOS_endpoint_detection_and_response",
-						//"macOS_firewall",
-						"windows_account_protection",
-						"windows_anti_virus_defender_update_controls",
-						"windows_anti_virus_microsoft_defender_antivirus",
-						"windows_anti_virus_microsoft_defender_antivirus_exclusions",
-						"windows_anti_virus_security_experience",
-						"windows_app_control_for_business",
-						"windows_attack_surface_reduction",
+						"linux_anti_virus_microsoft_defender_antivirus",            //
+						"linux_anti_virus_microsoft_defender_antivirus_exclusions", //
+						"linux_endpoint_detection_and_response",                    //
+						"macOS_anti_virus_microsoft_defender_antivirus",            //
+						"macOS_anti_virus_microsoft_defender_antivirus_exclusions", //
+						"macOS_endpoint_detection_and_response",                    //
+						//"macOS_disk_encryption", uses templateManagement api endpoint
+						//"macOS_firewall", uses templateManagement api endpoint
+						"windows_account_protection",                                      //
+						"windows_anti_virus_defender_update_controls",                     //
+						"windows_anti_virus_microsoft_defender_antivirus",                 //
+						"windows_anti_virus_microsoft_defender_antivirus_exclusions",      //
+						"windows_anti_virus_security_experience",                          //
+						"windows_app_control_for_business",                                //
+						"windows_attack_surface_reduction_app_and_browser_isolation",      //
+						"windows_attack_surface_reduction_attack_surface_reduction_rules", //
+						"windows_attack_surface_reduction_app_device_control",             //
+						"windows_attack_surface_reduction_exploit_protection",             //
+						// "windows_attack_surface_reduction_web_protection_(microsoft_edge_legacy)", uses templateManagement api endpoint
+						// "windows_attack_surface_reduction_application_control", uses templateManagement api endpoint
 						"windows_disk_encryption",
 						"windows_endpoint_detection_and_response",
 						"windows_firewall",
@@ -168,8 +173,12 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"windows_firewall_rules",
 						"windows_firewall_rules_config_manager",
 						"windows_hyper-v_firewall_rules",
-						"windows_local_admin_password_solution_(windows_LAPS)",
-						"windows_local_user_group_membership",
+						"windows_local_admin_password_solution_(windows_LAPS)",                         //
+						"windows_local_user_group_membership",                                          //
+						"windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation",      //
+						"windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules", //
+						"windows_(config_mgr)_attack_surface_reduction_web_protection",                 //
+						"windows_(config_mgr)_attack_surface_reduction_exploit_protection",             //
 						"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus",
 						"windows_(config_mgr)_anti_virus_windows_security_experience",
 						"windows_(config_mgr)_attack_surface_reduction",
