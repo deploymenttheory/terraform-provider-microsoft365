@@ -338,7 +338,7 @@ settings = jsonencode({
 
 **Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format
 
-**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue")ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
+**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue") ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
 
 ```hcl
 settings = jsonencode({
@@ -375,9 +375,9 @@ settings = jsonencode({
 - `id` (String) The unique identifier for this Endpoint Privilege Management Policy
 - `is_assigned` (Boolean) Indicates if the policy is assigned to any scope
 - `last_modified_date_time` (String) Last modification date and time of the settings catalog policy
-- `platforms` (String) Platform type for this Endpoint Privilege Management Policy.Will always be set to ['windows10'], as EPM currently only supports windows device types.Defaults to windows10.
+- `platforms` (String) Platform type for this Endpoint Privilege Management Policy.Will always be set to `windows10`, as EPM currently only supports windows device types.Defaults to windows10.
 - `settings_count` (Number) Number of settings catalog settings with the policy. This will change over time as the resource is updated.
-- `technologies` (List of String) Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with.Defaults to ['mdm'], ['endpointPrivilegeManagement'].
+- `technologies` (List of String) Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with.Defaults to `mdm`, `endpointPrivilegeManagement`.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

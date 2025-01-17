@@ -425,7 +425,7 @@ settings = jsonencode({
 
 **Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting.This is required because the Microsoft Graph SDK for Go always returns settings in an array format
 
-**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue")ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
+**Note:** When configuring secret values (identified by @odata.type: "#microsoft.graph.deviceManagementConfigurationSecretSettingValue") ensure the valueState is set to "notEncrypted". The value "encryptedValueToken" is reserved for serverresponses and should not be used when creating or updating settings.
 
 ```hcl
 settings = jsonencode({
@@ -452,9 +452,9 @@ settings = jsonencode({
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the settings catalog policy.
-- `platforms` (String) Platform type for this settings catalog policy.Can be one of: none, android, iOS, macOS, windows10X, windows10, linux,unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
+- `platforms` (String) Platform type for this settings catalog policy.Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`,`unknownFutureValue`, `androidEnterprise`, or `aosp`. Defaults to `none`.
 - `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
-- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].
+- `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: `none`, `mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`, `microsoftSense`, `exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, `windowsOsRecovery`, and `android`. Defaults to `mdm`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

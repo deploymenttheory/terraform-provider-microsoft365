@@ -130,7 +130,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					"```\n\n" +
 					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
 					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
-					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\")" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\") " +
 					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
 					"responses and should not be used when creating or updating settings.\n\n" +
 					"```hcl\n" +
@@ -165,8 +165,8 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				Optional: true,
 				Computed: true,
 				MarkdownDescription: "Platform type for this settings catalog policy." +
-					"Can be one of: none, android, iOS, macOS, windows10X, windows10, linux," +
-					"unknownFutureValue, androidEnterprise, or aosp. Defaults to none.",
+					"Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`," +
+					"`unknownFutureValue`, `androidEnterprise`, or `aosp`. Defaults to `none`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"none", "android", "iOS", "macOS", "windows10X",
@@ -177,10 +177,13 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("none")},
 			},
 			"technologies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: none, mdm, windows10XManagement, configManager, intuneManagementExtension, thirdParty, documentGateway, appleRemoteManagement, microsoftSense, exchangeOnline, mobileApplicationManagement, linuxMdm, enrollment, endpointPrivilegeManagement, unknownFutureValue, windowsOsRecovery, and android. Defaults to ['mdm'].",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				MarkdownDescription: "Describes a list of technologies this settings catalog setting can be deployed with. Valid values are:" +
+					" `none`, `mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`," +
+					" `microsoftSense`, `exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, " +
+					"`windowsOsRecovery`, and `android`. Defaults to `mdm`.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"none", "mdm", "windows10XManagement", "configManager",

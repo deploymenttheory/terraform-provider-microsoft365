@@ -133,7 +133,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"```\n\n" +
 					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
 					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
-					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\")" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\") " +
 					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
 					"responses and should not be used when creating or updating settings.\n\n" +
 					"```hcl\n" +
@@ -167,7 +167,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 			"platforms": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: "Platform type for this Endpoint Privilege Management Policy." +
-					"Will always be set to ['windows10'], as EPM currently only supports windows device types." +
+					"Will always be set to `windows10`, as EPM currently only supports windows device types." +
 					"Defaults to windows10.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -180,7 +180,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				ElementType: types.StringType,
 				Computed:    true,
 				MarkdownDescription: "Describes a list of technologies this Endpoint Privilege Management Policy with settings catalog setting will be deployed with." +
-					"Defaults to ['mdm'], ['endpointPrivilegeManagement'].",
+					"Defaults to `mdm`, `endpointPrivilegeManagement`.",
 				Validators: []validator.List{
 					customValidator.StringListAllowedValues(
 						"mdm", "endpointPrivilegeManagement",
