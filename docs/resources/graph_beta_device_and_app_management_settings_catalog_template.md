@@ -279,7 +279,7 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 
 `Linux settings catalog templates`
 
-`linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.
+`linux_anti_virus_microsoft_defender_antivirus`: This template allows you to configure Microsoft Defender for Endpoint and deploy Antivirus settings to Linux devices.
 
 `linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
 
@@ -297,27 +297,29 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 
 `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.
 
-`windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
+`windows_anti_virus_defender_update_controls`: This template allows you to configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
 
 `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
 
 `windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.
 
-`windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
+`windows_anti_virus_security_experience`: This template allows you to configure the Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
 
 `windows_app_control_for_business`: Application control settings for Windows devices.
 
-`windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.
+`windows_attack_surface_reduction_app_and_browser_isolation`:This template allows you to configure the Microsoft Defender Application Guard (Application Guard) to help prevent old and newly emerging attacks to help keep employees productive. Using MSFT's unique hardware isolation approach, their goal is to destroy the playbook that attackers use by making current attack methods obsolete.
 
-`windows_disk_encryption`: Disk encryption settings for Windows devices.
+`windows_attack_surface_reduction_attack_surface_reduction_rules`: This template allows you to configure the Attack surface reduction rules target behaviors that malware and malicious apps typically use to infect computers, including: Executable files and scripts used in Office apps or web mail that attempt to download or run files Obfuscated or otherwise suspicious scripts Behaviors that apps don't usually initiate during normal day-to-day work
+
+`windows_attack_surface_reduction_app_device_control`:This template allows you to configure the securing removable media, and Microsoft Defender for Endpoint provides multiple monitoring and control features to help prevent threats in unauthorized peripherals from compromising your devices.
+
+`windows_attack_surface_reduction_exploit_protection`: This template allows you to configure the protection against malware that uses exploits to infect devices and spread. Exploit protection consists of a number of mitigations that can be applied to either the operating system or individual apps.
+
+`windows_disk_encryption_bitlocker`: This template allows you to configure the BitLocker Drive Encryption data protection features that integrates with the operating system and addresses the threats of data theft or exposure from lost, stolen, or inappropriately decommissioned computers.
+
+`windows_disk_encryption_personal_data`: This template allows you to configure the Personal Data Encryption feature that encrypts select folders and its contents on deployed devices. Personal Data Encryption utilizes Windows Hello for Business to link data encryption keys with user credentials. This feature can minimize the number of credentials the user has to remember to gain access to content. Users will only be able to access their protected content once they've signed into Windows using Windows Hello for Business.
 
 `windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.
-
-`windows_firewall`: Firewall settings for Windows devices.
-
-`windows_firewall_config_manager`: Firewall configuration manager for Windows devices.
-
-`windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.
 
 `windows_firewall_rules`: Firewall rules for Windows devices.
 
@@ -344,6 +346,14 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 `windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.
 
 `windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.
+
+`windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation`: This template allows you to configure the Microsoft Defender Application Guard (Application Guard) settings for devices managed via Microsoft Configuration Manager to help prevent old and newly emerging attacks through hardware-based isolation.
+
+`windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules`: This template allows you to configure Attack Surface Reduction rules for devices managed via Microsoft Configuration Manager. These rules target behaviors commonly used by malware and malicious apps, including suspicious scripts and unusual app behaviors.
+
+`windows_(config_mgr)_attack_surface_reduction_web_protection`: This template allows you to configure web protection settings for devices managed via Microsoft Configuration Manager, helping to protect your organization from web-based threats and malicious content.
+
+`windows_(config_mgr)_attack_surface_reduction_exploit_protection`: This template allows you to configure exploit protection settings for devices managed via Microsoft Configuration Manager. These settings help protect against malware that uses exploits to infect devices and spread through your network.
 
 ### Optional
 
