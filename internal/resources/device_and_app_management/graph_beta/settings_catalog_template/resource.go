@@ -127,7 +127,7 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.\n\n" +
 					"`windows_disk_encryption`: Disk encryption settings for Windows devices.\n\n" +
 					"`windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.\n\n" +
-					"`windows_firewall`: Firewall settings for Windows devices.\n\n" +
+					"`windows_firewall`: Windows Firewall with Advanced Security is an important part of a layered security model. By providing host-based, two-way network traffic filtering for a device, Windows Firewall blocks unauthorized network traffic flowing into or out of the local device.\n\n" +
 					"`windows_firewall_config_manager`: Firewall configuration manager for Windows devices.\n\n" +
 					"`windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.\n\n" +
 					"`windows_firewall_rules`: Firewall rules for Windows devices.\n\n" +
@@ -165,27 +165,24 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"windows_attack_surface_reduction_exploit_protection",             //
 						// "windows_attack_surface_reduction_web_protection_(microsoft_edge_legacy)", uses templateManagement api endpoint
 						// "windows_attack_surface_reduction_application_control", uses templateManagement api endpoint
-						"windows_disk_encryption",
-						"windows_endpoint_detection_and_response",
-						"windows_firewall",
-						"windows_firewall_config_manager",
-						"windows_firewall_profile_config_manager",
-						"windows_firewall_rules",
-						"windows_firewall_rules_config_manager",
-						"windows_hyper-v_firewall_rules",
+						"windows_disk_encryption_bitlocker",                                            //
+						"windows_disk_encryption_personal_data",                                        //
+						"windows_endpoint_detection_and_response",                                      //
+						"windows_firewall",                                                             //
+						"windows_firewall_rules",                                                       //
+						"windows_hyper-v_firewall_rules",                                               //
 						"windows_local_admin_password_solution_(windows_LAPS)",                         //
 						"windows_local_user_group_membership",                                          //
 						"windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation",      //
 						"windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules", //
 						"windows_(config_mgr)_attack_surface_reduction_web_protection",                 //
 						"windows_(config_mgr)_attack_surface_reduction_exploit_protection",             //
-						"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus",
-						"windows_(config_mgr)_anti_virus_windows_security_experience",
-						"windows_(config_mgr)_attack_surface_reduction",
+						"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus",                 //
+						"windows_(config_mgr)_anti_virus_windows_security_experience",                  //
 						"windows_(config_mgr)_endpoint_detection_and_response",
-						"windows_(config_mgr)_firewall",
-						"windows_(config_mgr)_firewall_profile",
-						"windows_(config_mgr)_firewall_rules",
+						"windows_(config_mgr)_firewall",         //
+						"windows_(config_mgr)_firewall_profile", //
+						"windows_(config_mgr)_firewall_rules",   //
 					),
 				},
 			},
