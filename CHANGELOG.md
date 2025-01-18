@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.8.0-alpha...v0.9.0-alpha) (2025-01-18)
+
+
+### Features
+
+* add device management template type attribute with validation options ([d07cbb9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d07cbb92532ebead04ed8f956b53017ef0b7e798))
+* add new Windows Defender Antivirus policy templates to device management configuration ([45834c3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/45834c33cb439eb5166976e58abba68f3bfb5f76))
+* add settings catalog template and update related configurations ([a3b9a33](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a3b9a33347942f8545b4878d7de88dc195ab831e))
+* add template for graph beta device and app management reusable policy setting documentation ([01334e2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/01334e26b1fa9092bc9bd141ca161f7bdc0f0bef))
+* add validation for settings templates and extend policy configuration map with new templates ([b240513](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b24051395001714144e98e3c9d149164bca61db9))
+* add Windows Firewall rules template and remove deprecated script ([4b264f7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4b264f781e65bf776da40f17037a2a683b3860b1))
+* added additional endpoint security templates to settings catalog templates resource + numerous doc edits ([#318](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/318)) ([d9f3ff2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d9f3ff22346ccffdc635070d316cd7c6323b03b4))
+* added all remaining settings catalog templates for Intune Endpoint security ([#319](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/319)) ([e9a9320](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e9a9320ae6e7d7ba7eb68ebe86a60e7452948b0a))
+* added settings catalog template to provider with examples ([#314](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/314)) ([3f062f1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3f062f113536da431e3abd606174cb33768e3698))
+* enhanced setting catalog construction logic ([eec7669](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/eec7669ad0cb63f0561f4617ed0509ef2eb21f35))
+* extend policy configuration map with new settings_catalog_templates for endpoint security ([1d76a96](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1d76a96e6bcbed86574d59c4378406d9bbca8fd6))
+
+
+### Bug Fixes
+
+* update example file path for reusable policy setting documentation ([a944199](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a94419961b97490b0b187dc3b29c41b16ce48405))
+* update settings key in resource configuration for Endpoint Privilege Management ([763c8ae](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/763c8aed4b7b9dedbc32d7a83397b3d08f1cc547))
+* update Terraform version requirements in documentation and configuration ([97a200c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/97a200cbe4e9805c166e3690322e885d507eabd3))
+* updated schema in settings catalog templates to reflect all secuirty templates supported with descriptions ([d9c1e7a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d9c1e7a255a0adb8483981fc149ea3c9d5dd61a5))
+
 ## [0.8.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.7.0-alpha...v0.8.0-alpha) (2025-01-15)
 
 
