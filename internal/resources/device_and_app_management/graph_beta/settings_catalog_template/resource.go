@@ -108,28 +108,27 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"This value must correctly correlate to the settings defined in the `settings` field." +
 					"The available options include templates for various platforms and configurations, such as macOS, Windows, and Linux. Options available are:\n\n" +
 					"`Linux settings catalog templates`\n\n" +
-					"`linux_anti_virus_microsoft_defender_antivirus`: Customers using Microsoft Defender for Endpoint on Linux can configure and deploy Antivirus settings to Linux devices.\n\n" +
+					"`linux_anti_virus_microsoft_defender_antivirus`: This template allows you to configure Microsoft Defender for Endpoint and deploy Antivirus settings to Linux devices.\n\n" +
 					"`linux_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
 					"`linux_endpoint_detection_and_response`: Endpoint detection and response settings for Linux devices.\n\n" +
 					"`macOS settings catalog templates`\n\n" +
 					"`macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
 					"`macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
-					//"`macOS_disk_encryption`: Disk encryption settings for macOS devices.\n\n"  + TODO: uses another api endpoint entirely
 					"`macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n\n" +
-					//"`macOS_firewall`: Firewall configuration for macOS devices.\n\n" + TODO: uses another api endpoint entirely
 					"`Windows settings catalog templates`\n\n" +
 					"`windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n\n" +
-					"`windows_anti_virus_defender_update_controls`: Configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n\n" +
+					"`windows_anti_virus_defender_update_controls`: This template allows you to configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n\n" +
 					"`windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
 					"`windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
-					"`windows_anti_virus_security_experience`: The Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.\n\n" +
+					"`windows_anti_virus_security_experience`: This template allows you to configure the Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.\n\n" +
 					"`windows_app_control_for_business`: Application control settings for Windows devices.\n\n" +
-					"`windows_attack_surface_reduction`: Attack surface reduction rules for Windows devices.\n\n" +
-					"`windows_disk_encryption`: Disk encryption settings for Windows devices.\n\n" +
+					"`windows_attack_surface_reduction_app_and_browser_isolation`:This template allows you to configure the Microsoft Defender Application Guard (Application Guard) to help prevent old and newly emerging attacks to help keep employees productive. Using MSFT's unique hardware isolation approach, their goal is to destroy the playbook that attackers use by making current attack methods obsolete.\n\n" +
+					"`windows_attack_surface_reduction_attack_surface_reduction_rules`: This template allows you to configure the Attack surface reduction rules target behaviors that malware and malicious apps typically use to infect computers, including: Executable files and scripts used in Office apps or web mail that attempt to download or run files Obfuscated or otherwise suspicious scripts Behaviors that apps don't usually initiate during normal day-to-day work\n\n" +
+					"`windows_attack_surface_reduction_app_device_control`:This template allows you to configure the securing removable media, and Microsoft Defender for Endpoint provides multiple monitoring and control features to help prevent threats in unauthorized peripherals from compromising your devices.\n\n" +
+					"`windows_attack_surface_reduction_exploit_protection`: This template allows you to configure the protection against malware that uses exploits to infect devices and spread. Exploit protection consists of a number of mitigations that can be applied to either the operating system or individual apps.\n\n" +
+					"`windows_disk_encryption_bitlocker`: This template allows you to configure the BitLocker Drive Encryption data protection features that integrates with the operating system and addresses the threats of data theft or exposure from lost, stolen, or inappropriately decommissioned computers.\n\n" +
+					"`windows_disk_encryption_personal_data`: This template allows you to configure the Personal Data Encryption feature that encrypts select folders and its contents on deployed devices. Personal Data Encryption utilizes Windows Hello for Business to link data encryption keys with user credentials. This feature can minimize the number of credentials the user has to remember to gain access to content. Users will only be able to access their protected content once they've signed into Windows using Windows Hello for Business.\n\n" +
 					"`windows_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices.\n\n" +
-					"`windows_firewall`: Firewall settings for Windows devices.\n\n" +
-					"`windows_firewall_config_manager`: Firewall configuration manager for Windows devices.\n\n" +
-					"`windows_firewall_profile_config_manager`: Profile-specific firewall configuration for Windows devices.\n\n" +
 					"`windows_firewall_rules`: Firewall rules for Windows devices.\n\n" +
 					"`windows_firewall_rules_config_manager`: Rules-based firewall configuration for Windows devices.\n\n" +
 					"`windows_hyper-v_firewall_rules`: Hyper-V firewall rules for Windows devices.\n\n" +
@@ -142,50 +141,57 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`windows_(config_mgr)_endpoint_detection_and_response`: Endpoint detection and response settings for Windows devices managed via Microsoft Configuration Manager.\n\n" +
 					"`windows_(config_mgr)_firewall`: Firewall settings for Windows devices managed via Microsoft Configuration Manager.\n\n" +
 					"`windows_(config_mgr)_firewall_profile`: Profile-specific firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n\n" +
-					"`windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n",
+					"`windows_(config_mgr)_firewall_rules`: Rules-based firewall configuration for Windows devices managed via Microsoft Configuration Manager.\n\n" +
+					"`windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation`: This template allows you to configure the Microsoft Defender Application Guard (Application Guard) settings for devices managed via Microsoft Configuration Manager to help prevent old and newly emerging attacks through hardware-based isolation.\n\n" +
+					"`windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules`: This template allows you to configure Attack Surface Reduction rules for devices managed via Microsoft Configuration Manager. These rules target behaviors commonly used by malware and malicious apps, including suspicious scripts and unusual app behaviors.\n\n" +
+					"`windows_(config_mgr)_attack_surface_reduction_web_protection`: This template allows you to configure web protection settings for devices managed via Microsoft Configuration Manager, helping to protect your organization from web-based threats and malicious content.\n\n" +
+					"`windows_(config_mgr)_attack_surface_reduction_exploit_protection`: This template allows you to configure exploit protection settings for devices managed via Microsoft Configuration Manager. These settings help protect against malware that uses exploits to infect devices and spread through your network.\n\n",
+				// TODO - these template types currently use a legacy api endpoint. will implement in the future
+				//"macOS_disk_encryption_filevault", uses templateManagement api endpoint
+				//"macOS_firewall", uses templateManagement api endpoint
+				//"windows_attack_surface_reduction_web_protection_(microsoft_edge_legacy)", uses templateManagement api endpoint
+				//"windows_attack_surface_reduction_application_control", uses templateManagement api endpoint
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"linux_anti_virus_microsoft_defender_antivirus",            //
-						"linux_anti_virus_microsoft_defender_antivirus_exclusions", //
-						"linux_endpoint_detection_and_response",                    //
-						"macOS_anti_virus_microsoft_defender_antivirus",            //
-						"macOS_anti_virus_microsoft_defender_antivirus_exclusions", //
-						"macOS_endpoint_detection_and_response",                    //
-						//"macOS_disk_encryption", uses templateManagement api endpoint
-						//"macOS_firewall", uses templateManagement api endpoint
-						"windows_account_protection",                                      //
-						"windows_anti_virus_defender_update_controls",                     //
-						"windows_anti_virus_microsoft_defender_antivirus",                 //
-						"windows_anti_virus_microsoft_defender_antivirus_exclusions",      //
-						"windows_anti_virus_security_experience",                          //
-						"windows_app_control_for_business",                                //
-						"windows_attack_surface_reduction_app_and_browser_isolation",      //
-						"windows_attack_surface_reduction_attack_surface_reduction_rules", //
-						"windows_attack_surface_reduction_app_device_control",             //
-						"windows_attack_surface_reduction_exploit_protection",             //
-						// "windows_attack_surface_reduction_web_protection_(microsoft_edge_legacy)", uses templateManagement api endpoint
-						// "windows_attack_surface_reduction_application_control", uses templateManagement api endpoint
-						"windows_disk_encryption",
+						"linux_anti_virus_microsoft_defender_antivirus",
+						"linux_anti_virus_microsoft_defender_antivirus_exclusions",
+						"linux_endpoint_detection_and_response",
+						"macOS_anti_virus_microsoft_defender_antivirus",
+						"macOS_anti_virus_microsoft_defender_antivirus_exclusions",
+						"macOS_endpoint_detection_and_response",
+						"windows_account_protection",
+						"windows_anti_virus_defender_update_controls",
+						"windows_anti_virus_microsoft_defender_antivirus",
+						"windows_anti_virus_microsoft_defender_antivirus_exclusions",
+						"windows_anti_virus_security_experience",
+						"windows_app_control_for_business",
+						"windows_attack_surface_reduction_app_and_browser_isolation",
+						"windows_attack_surface_reduction_attack_surface_reduction_rules",
+						"windows_attack_surface_reduction_app_device_control",
+						"windows_attack_surface_reduction_exploit_protection",
+						"windows_disk_encryption_bitlocker",
+						"windows_disk_encryption_personal_data",
 						"windows_endpoint_detection_and_response",
 						"windows_firewall",
-						"windows_firewall_config_manager",
-						"windows_firewall_profile_config_manager",
 						"windows_firewall_rules",
-						"windows_firewall_rules_config_manager",
 						"windows_hyper-v_firewall_rules",
-						"windows_local_admin_password_solution_(windows_LAPS)",                         //
-						"windows_local_user_group_membership",                                          //
-						"windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation",      //
-						"windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules", //
-						"windows_(config_mgr)_attack_surface_reduction_web_protection",                 //
-						"windows_(config_mgr)_attack_surface_reduction_exploit_protection",             //
+						"windows_local_admin_password_solution_(windows_LAPS)",
+						"windows_local_user_group_membership",
+						"windows_(config_mgr)_attack_surface_reduction_app_and_browser_isolation",
+						"windows_(config_mgr)_attack_surface_reduction_attack_surface_reduction_rules",
+						"windows_(config_mgr)_attack_surface_reduction_web_protection",
+						"windows_(config_mgr)_attack_surface_reduction_exploit_protection",
 						"windows_(config_mgr)_anti_virus_microsoft_defender_antivirus",
 						"windows_(config_mgr)_anti_virus_windows_security_experience",
-						"windows_(config_mgr)_attack_surface_reduction",
 						"windows_(config_mgr)_endpoint_detection_and_response",
 						"windows_(config_mgr)_firewall",
 						"windows_(config_mgr)_firewall_profile",
 						"windows_(config_mgr)_firewall_rules",
+						// TODO - these template types currently use a legacy api endpoint. will implement in the future
+						//"macOS_disk_encryption_filevault", uses templateManagement api endpoint
+						//"macOS_firewall", uses templateManagement api endpoint
+						//"windows_attack_surface_reduction_web_protection_(microsoft_edge_legacy)", uses templateManagement api endpoint
+						//"windows_attack_surface_reduction_application_control", uses templateManagement api endpoint
 					),
 				},
 			},
