@@ -10,3 +10,5 @@
 .azuredevops/** @ShocOne
 .github/** @ShocOne
 .pipelines/** @ShocOne
+.internal/** @ShocOne
+.scripts/** @ShocOne
