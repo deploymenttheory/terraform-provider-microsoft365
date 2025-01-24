@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package graphBetaApplications
 
 import (
 	"context"

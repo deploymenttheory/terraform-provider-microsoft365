@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	// Graph Beta - Intune resources
+	graphBetaDeviceAndAppManagementApplications "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/applications"
 	graphBetaDeviceAndAppManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/assignment_filter"
 	graphBetaDeviceAndAppManagementBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/browser_site"
 	graphBetaDeviceAndAppManagementBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/browser_site_list"
@@ -16,7 +17,6 @@ import (
 	graphBetaDeviceAndAppManagementSettingsCatalog "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog"
 	graphBetaDeviceAndAppManagementSettingsCatalogTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog_template"
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
-	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph v1.0 - Intune resources
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
@@ -43,6 +43,7 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Graph Beta - Intune resources
+		graphBetaDeviceAndAppManagementApplications.NewApplicationsResource,
 		graphBetaDeviceAndAppManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceAndAppManagementBrowserSite.NewBrowserSiteResource,
 		graphBetaDeviceAndAppManagementBrowserSiteList.NewBrowserSiteListResource,
@@ -56,7 +57,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
 		graphBetaDeviceAndAppManagementRoleScopeTag.NewRoleScopeTagResource,
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
-		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 		// Graph v1.0 - Intune resources

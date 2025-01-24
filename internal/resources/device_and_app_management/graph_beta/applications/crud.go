@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package graphBetaApplications
 
 import (
 	"context"
@@ -18,17 +18,17 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WinGetAppResourceModel
+func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object ApplicationsResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -49,14 +49,21 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(context.Background(), createdResource, nil)
-
+		Post(ctx, createdResource, nil)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
+
+	if err := r.initializeAndUploadContent(ctx, &object, resp); err != nil {
+		resp.Diagnostics.AddError(
+			"Error during content initialization and upload",
+			err.Error(),
+		)
+		return
+	}
 
 	if object.Assignments != nil {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
@@ -67,6 +74,9 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 			)
 			return
 		}
+
+		deadline, _ := ctx.Deadline()
+		retryTimeout := time.Until(deadline) - time.Second
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			err := r.client.
@@ -86,11 +96,6 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
 	}
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
@@ -119,8 +124,8 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 }
 
 // Read handles the Read operation.
-func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WinGetAppResourceModel
+func (r *ApplicationsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object ApplicationsResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -186,8 +191,8 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 // Update handles the Update operation.
-func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object, state WinGetAppResourceModel
+func (r *ApplicationsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object, state ApplicationsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -282,8 +287,8 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 }
 
 // Delete handles the Delete operation.
-func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WinGetAppResourceModel
+func (r *ApplicationsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object ApplicationsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

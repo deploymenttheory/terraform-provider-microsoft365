@@ -1,10 +1,12 @@
-resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsapp" {
-  package_identifier              = "9NKSQGP7F2NH" # The unique identifier for the app obtained from msft app store
-  automatically_generate_metadata = true
+resource "microsoft365_graph_beta_device_and_app_management_applications" "whatsapp" {
+  application_type = "WindowsStoreApp"
 
-  # Install experience settings
-  install_experience = {
-    run_as_account = "user" # Can be 'system' or 'user'
+  winget_app = {
+    automatically_generate_metadata = true
+    package_identifier              = "9NKSQGP7F2NH" # Example: Microsoft Store unique identifier
+    install_experience = {
+      run_as_account = "user" # Can be 'system' or 'user'
+    }
   }
 
   role_scope_tag_ids = ["0"]
@@ -25,12 +27,16 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "whatsa
   }
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "visual_studio_code" {
-  package_identifier              = "XP9KHM4BK9FZ7Q" # The unique identifier for the app obtained from msft app store
-  automatically_generate_metadata = true
-  # Install experience settings
-  install_experience = {
-    run_as_account = "user" # Can be 'system' or 'user'
+resource "microsoft365_graph_beta_device_and_app_management_applications" "visual_studio_code" {
+  
+  application_type = "WindowsStoreApp"
+  
+  winget_app = {
+    automatically_generate_metadata = true
+    package_identifier              = "9NKSQGP7F2NH" # Example: Microsoft Store unique identifier
+    install_experience = {
+      run_as_account = "user" # Can be 'system' or 'user'
+    }
   }
 
   role_scope_tag_ids = ["0"]
