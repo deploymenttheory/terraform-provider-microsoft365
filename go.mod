@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/mholt/archiver/v4 v4.0.0-alpha.9
+	github.com/mholt/archives v0.1.0
 	github.com/microsoft/kiota-abstractions-go v1.8.1
 	github.com/microsoft/kiota-http-go v1.4.7
 	github.com/microsoft/kiota-serialization-json-go v1.0.9
@@ -38,7 +38,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
-	github.com/STARRY-S/zip v0.1.0 // indirect
+	github.com/STARRY-S/zip v0.2.1 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
 	github.com/bodgit/plumbing v1.3.0 // indirect
-	github.com/bodgit/sevenzip v1.5.2 // indirect
+	github.com/bodgit/sevenzip v1.6.0 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/cjlapao/common-go v0.0.39 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
@@ -58,7 +58,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
@@ -98,7 +97,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/nwaples/rardecode/v2 v2.0.0-beta.4 // indirect
+	github.com/nwaples/rardecode/v2 v2.0.0-beta.4.0.20241112120701-034e449c6e78 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect

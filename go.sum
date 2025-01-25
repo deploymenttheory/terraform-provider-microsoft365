@@ -47,8 +47,8 @@ github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
 github.com/PuerkitoBio/goquery v1.10.1 h1:Y8JGYUkXWTGRB6Ars3+j3kN0xg1YqqlwvdTV8WTFQcU=
 github.com/PuerkitoBio/goquery v1.10.1/go.mod h1:IYiHrOMps66ag56LEH7QYDDupKXyo5A8qrjIx3ZtujY=
-github.com/STARRY-S/zip v0.1.0 h1:eUER3jKmHKXjv+iy3BekLa+QnNSo1Lqz4eTzYBcGDqo=
-github.com/STARRY-S/zip v0.1.0/go.mod h1:qj/mTZkvb3AvfGQ2e775/3AODRvB4peSw8KNMvrM8/I=
+github.com/STARRY-S/zip v0.2.1 h1:pWBd4tuSGm3wtpoqRZZ2EAwOmcHK6XFf7bU9qcJXyFg=
+github.com/STARRY-S/zip v0.2.1/go.mod h1:xNvshLODWtC4EJ702g7cTYn13G53o1+X9BWnPFpcWV4=
 github.com/agext/levenshtein v1.2.2 h1:0S/Yg6LYmFJ5stwQeRp6EeOcCbj7xiqQSdNelsXvaqE=
 github.com/agext/levenshtein v1.2.2/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
@@ -66,8 +66,8 @@ github.com/bmatcuk/doublestar/v4 v4.7.1 h1:fdDeAqgT47acgwd9bd9HxJRDmc9UAmPpc+2m0
 github.com/bmatcuk/doublestar/v4 v4.7.1/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bodgit/plumbing v1.3.0 h1:pf9Itz1JOQgn7vEOE7v7nlEfBykYqvUYioC61TwWCFU=
 github.com/bodgit/plumbing v1.3.0/go.mod h1:JOTb4XiRu5xfnmdnDJo6GmSbSbtSyufrsyZFByMtKEs=
-github.com/bodgit/sevenzip v1.5.2 h1:acMIYRaqoHAdeu9LhEGGjL9UzBD4RNf9z7+kWDNignI=
-github.com/bodgit/sevenzip v1.5.2/go.mod h1:gTGzXA67Yko6/HLSD0iK4kWaWzPlPmLfDO73jTjSRqc=
+github.com/bodgit/sevenzip v1.6.0 h1:a4R0Wu6/P1o1pP/3VV++aEOcyeBxeO/xE2Y9NSTrr6A=
+github.com/bodgit/sevenzip v1.6.0/go.mod h1:zOBh9nJUof7tcrlqJFv1koWRrhz3LbDbUNngkuZxLMc=
 github.com/bodgit/windows v1.0.1 h1:tF7K6KOluPYygXa3Z2594zxlkbKPAOvqr97etrGNIz4=
 github.com/bodgit/windows v1.0.1/go.mod h1:a6JLwrB4KrTR5hBpp8FI9/9W9jJfeQ2h4XDXU74ZCdM=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
@@ -138,8 +138,6 @@ github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaS
 github.com/golang/protobuf v1.5.2/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
-github.com/golang/snappy v0.0.4 h1:yAGX7huGHXlcLOEtBnF4w7FQwA26wojNCwOYAEhLjQM=
-github.com/golang/snappy v0.0.4/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
@@ -265,8 +263,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.9 h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
-github.com/mholt/archiver/v4 v4.0.0-alpha.9 h1:EZgAsW6DsuawxDgTtIdjCUBa2TQ6AOe9pnCidofSRtE=
-github.com/mholt/archiver/v4 v4.0.0-alpha.9/go.mod h1:5D3uct315OMkMRXKwEuMB+wQi/2m5NQngKDmApqwVlo=
+github.com/mholt/archives v0.1.0 h1:FacgJyrjiuyomTuNA92X5GyRBRZjE43Y/lrzKIlF35Q=
+github.com/mholt/archives v0.1.0/go.mod h1:j/Ire/jm42GN7h90F5kzj6hf6ZFzEH66de+hmjEKu+I=
 github.com/microsoft/kiota-abstractions-go v1.8.1 h1:0gtK3KERmbKYm5AxJLZ8WPlNR9eACUGWuofFIa01PnA=
 github.com/microsoft/kiota-abstractions-go v1.8.1/go.mod h1:YO2QCJyNM9wzvlgGLepw6s9XrPgNHODOYGVDCqQWdLI=
 github.com/microsoft/kiota-authentication-azure-go v1.1.0 h1:HudH57Enel9zFQ4TEaJw6lMiyZ5RbBdrRHwdU0NP2RY=
@@ -299,8 +297,8 @@ github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
-github.com/nwaples/rardecode/v2 v2.0.0-beta.4 h1:sdiJxQdPjECn2lh9nLFFhgLCf+0ulDU5rODbtERTlUY=
-github.com/nwaples/rardecode/v2 v2.0.0-beta.4/go.mod h1:yntwv/HfMc/Hbvtq9I19D1n58te3h6KsqCf3GxyfBGY=
+github.com/nwaples/rardecode/v2 v2.0.0-beta.4.0.20241112120701-034e449c6e78 h1:MYzLheyVx1tJVDqfu3YnN4jtnyALNzLvwl+f58TcvQY=
+github.com/nwaples/rardecode/v2 v2.0.0-beta.4.0.20241112120701-034e449c6e78/go.mod h1:yntwv/HfMc/Hbvtq9I19D1n58te3h6KsqCf3GxyfBGY=
 github.com/oklog/run v1.0.0 h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/pierrec/lz4/v4 v4.1.21 h1:yOVMLb6qSIDP67pl/5F7RepeKYu/VmTyEXvuMI5d9mQ=
