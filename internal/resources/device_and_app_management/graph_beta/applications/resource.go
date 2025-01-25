@@ -320,6 +320,10 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 			"macos_pkg_app": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
+					"package_installer_file_source": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid PKG file.",
+					},
 					"ignore_version_detection": schema.BoolAttribute{
 						Optional:            true,
 						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if installed. Set to true for apps that use self update. Default FALSE.",
@@ -329,11 +333,11 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"bundle_id": schema.StringAttribute{
-									Required:            true,
+									Computed:            true,
 									MarkdownDescription: "The bundleId that maps to CFBundleIdentifier in the app's bundle configuration.",
 								},
 								"bundle_version": schema.StringAttribute{
-									Required:            true,
+									Computed:            true,
 									MarkdownDescription: "The version that maps to CFBundleShortVersion in the app's bundle configuration.",
 								},
 							},

@@ -71,6 +71,7 @@ type MobileAppRelationshipResourceModel struct {
 
 // MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
 type MacOSPkgAppResourceModel struct {
+	PackageInstallerFileSource      types.String                              `tfsdk:"package_installer_file_source"`
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	IncludedApps                    []MacOSIncludedAppResourceModel           `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`

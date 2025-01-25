@@ -57,11 +57,7 @@ func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRe
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if err := r.initializeAndUploadContent(ctx, &object, resp); err != nil {
-		resp.Diagnostics.AddError(
-			"Error during content initialization and upload",
-			err.Error(),
-		)
+	if err := initializeContentIfNeeded(ctx, r, &object, resp); err != nil {
 		return
 	}
 
