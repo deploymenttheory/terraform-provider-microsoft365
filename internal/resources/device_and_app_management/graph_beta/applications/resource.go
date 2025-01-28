@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -379,59 +380,85 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 					},
 					"minimum_supported_operating_system": schema.SingleNestedAttribute{
 						Required:            true,
-						MarkdownDescription: "The minimum macOS version required for the application.",
+						MarkdownDescription: "Specifies the minimum macOS version required for the application. Each field indicates whether the version is supported.",
 						Attributes: map[string]schema.Attribute{
 							"v10_7": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.7 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.7 or later. Defaults to `false`.",
 							},
 							"v10_8": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.8 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.8 or later. Defaults to `false`.",
 							},
 							"v10_9": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.9 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.9 or later. Defaults to `false`.",
 							},
 							"v10_10": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.10 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.10 or later. Defaults to `false`.",
 							},
 							"v10_11": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.11 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.11 or later. Defaults to `false`.",
 							},
 							"v10_12": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.12 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.12 or later. Defaults to `false`.",
 							},
 							"v10_13": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.13 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.13 or later. Defaults to `false`.",
 							},
 							"v10_14": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.14 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.14 or later. Defaults to `false`.",
 							},
 							"v10_15": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 10.15 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 10.15 or later. Defaults to `false`.",
 							},
 							"v11_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 11.0 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 11.0 or later. Defaults to `false`.",
 							},
 							"v12_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 12.0 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 12.0 or later. Defaults to `false`.",
 							},
 							"v13_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 13.0 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 13.0 or later. Defaults to `false`.",
 							},
 							"v14_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "Supports macOS 14.0 or later",
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 14.0 or later. Defaults to `false`.",
 							},
 						},
 					},
