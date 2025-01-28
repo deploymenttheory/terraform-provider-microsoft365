@@ -8,6 +8,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -185,8 +186,12 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 			"publisher": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: "The publisher of the WinGet/ Microsoft Store for Business app." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+				MarkdownDescription: "The publisher of the Intune application." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true." +
+					"Else this field is required when application_type is MacOSPkgApp.",
+				Validators: []validator.String{
+					validators.RequiredWith("application_type", "MacOSPkgApp"),
+				},
 			},
 			"large_icon": schema.SingleNestedAttribute{
 				Computed: true,
