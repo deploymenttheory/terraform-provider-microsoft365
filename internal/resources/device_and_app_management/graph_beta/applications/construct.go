@@ -29,7 +29,18 @@ func constructResource(ctx context.Context, data *ApplicationsResourceModel) (gr
 		if err = constructBaseProperties(ctx, baseApp, data); err != nil {
 			return nil, err
 		}
-		return constructWinGetAppResource(ctx, data.WinGetApp, baseApp.(graphmodels.WinGetAppable))
+		requestBody, err := constructWinGetAppResource(ctx, data.WinGetApp, baseApp.(graphmodels.WinGetAppable))
+		if err != nil {
+			return nil, err
+		}
+
+		if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+			tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+
+		return requestBody, nil
 
 	case "MacOSPkgApp":
 		if data.MacOSPkgApp == nil {
@@ -39,13 +50,25 @@ func constructResource(ctx context.Context, data *ApplicationsResourceModel) (gr
 		if err = constructBaseProperties(ctx, baseApp, data); err != nil {
 			return nil, err
 		}
-		return constructMacOSPkgAppResource(ctx, data.MacOSPkgApp, baseApp.(graphmodels.MacOSPkgAppable))
+		requestBody, err := constructMacOSPkgAppResource(ctx, data.MacOSPkgApp, baseApp.(graphmodels.MacOSPkgAppable))
+		if err != nil {
+			return nil, err
+		}
+
+		if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+			tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+
+		return requestBody, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported intune application type: %s", data.ApplicationType.ValueString())
 	}
 }
 
+// constructBaseProperties sets the base properties of the MobileAppable object
 func constructBaseProperties(ctx context.Context, baseApp graphmodels.MobileAppable, data *ApplicationsResourceModel) error {
 	constructors.SetStringProperty(data.Description, baseApp.SetDescription)
 	constructors.SetStringProperty(data.Publisher, baseApp.SetPublisher)
