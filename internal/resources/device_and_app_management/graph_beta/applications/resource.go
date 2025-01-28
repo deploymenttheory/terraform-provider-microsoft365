@@ -322,85 +322,113 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 				Attributes: map[string]schema.Attribute{
 					"package_installer_file_source": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid PKG file.",
+						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid `.pkg` file.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`.*\.pkg$`),
+								"File path must point to a valid .pkg file.",
+							),
+						},
 					},
 					"ignore_version_detection": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if installed. Set to true for apps that use self update. Default FALSE.",
+						Required:            true,
+						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
 					},
 					"included_apps": schema.ListNestedAttribute{
 						Optional: true,
+						MarkdownDescription: "List of applications expected to be installed by the PKG. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +\n" +
+							"\n" +
+							"### Notes: +\n" +
+							"- Included app bundle IDs (`CFBundleIdentifier`) and build numbers (`CFBundleShortVersionString`) are used for detecting and monitoring app installation status of the uploaded file. +\n" +
+							"- The list should **only** contain the application(s) installed by the uploaded file in the `/Applications` folder on macOS. +\n" +
+							"- Any other type of file that is not an application or is not installed in the `/Applications` folder should **not** be included. +\n" +
+							"- If the list contains files that are not applications or none of the listed apps are installed, app installation status will **not** report success. +\n" +
+							"- When multiple apps are present in the PKG, the **first app** in the list is used to identify the application. +\n" +
+							"\n" +
+							"### Example: +\n" +
+							"To retrieve the `CFBundleIdentifier` and `CFBundleShortVersionString` of an installed application, you can use the macOS Terminal: +\n" +
+							"\n" +
+							"```bash +\n" +
+							"# Retrieve the Bundle Identifier +\n" +
+							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleIdentifier +\n" +
+							"\n" +
+							"# Retrieve the Short Version String +\n" +
+							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleShortVersionString +\n" +
+							"``` +\n" +
+							"\n" +
+							"Alternatively, these values can also be located in the `<app_name>.app/Contents/Info.plist` file inside the mounted PKG or DMG. +\n" +
+							"\n" +
+							"For apps added to Intune, the Intune admin center can also provide the app bundle ID. +\n",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"bundle_id": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "The bundleId that maps to CFBundleIdentifier in the app's bundle configuration.",
+									Optional:            true,
+									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the PKG metadata or appended manually.",
 								},
 								"bundle_version": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "The version that maps to CFBundleShortVersion in the app's bundle configuration.",
+									Optional:            true,
+									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the PKG metadata or appended manually.",
 								},
 							},
 						},
-						MarkdownDescription: "The list of apps expected to be installed by the PKG. Maximum of 500 elements.",
 					},
 					"minimum_supported_operating_system": schema.SingleNestedAttribute{
-						Required: true,
+						Required:            true,
+						MarkdownDescription: "The minimum macOS version required for the application.",
 						Attributes: map[string]schema.Attribute{
 							"v10_7": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "OS X 10.7 or later required",
+								MarkdownDescription: "Supports macOS 10.7 or later",
 							},
 							"v10_8": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "OS X 10.8 or later required",
+								MarkdownDescription: "Supports macOS 10.8 or later",
 							},
 							"v10_9": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "OS X 10.9 or later required",
+								MarkdownDescription: "Supports macOS 10.9 or later",
 							},
 							"v10_10": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "OS X 10.10 or later required",
+								MarkdownDescription: "Supports macOS 10.10 or later",
 							},
 							"v10_11": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "OS X 10.11 or later required",
+								MarkdownDescription: "Supports macOS 10.11 or later",
 							},
 							"v10_12": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 10.12 or later required",
+								MarkdownDescription: "Supports macOS 10.12 or later",
 							},
 							"v10_13": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 10.13 or later required",
+								MarkdownDescription: "Supports macOS 10.13 or later",
 							},
 							"v10_14": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 10.14 or later required",
+								MarkdownDescription: "Supports macOS 10.14 or later",
 							},
 							"v10_15": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 10.15 or later required",
+								MarkdownDescription: "Supports macOS 10.15 or later",
 							},
 							"v11_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 11.0 or later required",
+								MarkdownDescription: "Supports macOS 11.0 or later",
 							},
 							"v12_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 12.0 or later required",
+								MarkdownDescription: "Supports macOS 12.0 or later",
 							},
 							"v13_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 13.0 or later required",
+								MarkdownDescription: "Supports macOS 13.0 or later",
 							},
 							"v14_0": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "macOS 14.0 or later required",
+								MarkdownDescription: "Supports macOS 14.0 or later",
 							},
 						},
-						MarkdownDescription: "The minimum operating system required for the application",
 					},
 					"pre_install_script": schema.SingleNestedAttribute{
 						Optional: true,
@@ -421,11 +449,11 @@ func (r *ApplicationsResource) Schema(ctx context.Context, req resource.SchemaRe
 						},
 					},
 					"primary_bundle_id": schema.StringAttribute{
-						Required:            true,
+						Computed:            true,
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
 					},
 					"primary_bundle_version": schema.StringAttribute{
-						Required:            true,
+						Computed:            true,
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
 					},
 				},
