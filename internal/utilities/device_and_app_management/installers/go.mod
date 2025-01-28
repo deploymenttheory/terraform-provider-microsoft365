@@ -1,0 +1,1 @@
+module github.com/deploymenttheory/terraform-provider-microsoft365/utilities/device_and_app_management/installers

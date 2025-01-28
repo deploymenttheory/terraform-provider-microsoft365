@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"io/fs"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	archiver "github.com/mholt/archives"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"howett.net/plist"
 )
@@ -24,7 +24,7 @@ func constructMacOSPkgAppResource(ctx context.Context, data *MacOSPkgAppResource
 	var includedApps []MacOSIncludedAppResourceModel
 	if !data.PackageInstallerFileSource.IsNull() {
 		// Attempt to extract metadata from the provided .pkg file path
-		bundleId, bundleVersion, extractedApps, err := extractmacOSPkgMetadata(data.PackageInstallerFileSource.ValueString())
+		bundleId, bundleVersion, extractedApps, err := extractmacOSPkgMetadata(ctx, data.PackageInstallerFileSource.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract metadata from the provided .pkg file at '%s': %w. Ensure the file path is correct and accessible", data.PackageInstallerFileSource.ValueString(), err)
 		}
@@ -145,48 +145,73 @@ func constructMacOSPkgAppResource(ctx context.Context, data *MacOSPkgAppResource
 // - The `CFBundleVersion` is "13424.12.30"
 // - The `id` for the included app is "org.mozilla.firefox"
 // These details are extracted and used to construct a valid list of included apps, ensuring compliance with monitoring and detection rules.
-func extractmacOSPkgMetadata(filePath string) (bundleId string, bundleVersion string, includedApps []MacOSIncludedAppResourceModel, err error) {
-	ctx := context.TODO()
-
-	// Attempt to mount the .pkg file as a virtual file system
-	fsys, err := archiver.FileSystem(ctx, filePath, nil)
+// extractmacOSPkgMetadata extracts metadata from the `PackageInfo` file within a macOS `.pkg` file.
+func extractmacOSPkgMetadata(ctx context.Context, filePath string) (bundleId string, bundleVersion string, includedApps []MacOSIncludedAppResourceModel, err error) {
+	// Create a temporary directory for extraction
+	tempDir, err := os.MkdirTemp("", "pkg_extract_*")
 	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to open .pkg file: %v", err)
+		return "", "", nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
+	defer os.RemoveAll(tempDir)
 
-	// Ensure the file system supports directory reading
-	readDirFS, ok := fsys.(fs.ReadDirFS)
-	if !ok {
-		return "", "", nil, fmt.Errorf("file system does not support reading directories")
-	}
+	tflog.Debug(ctx, "Created temporary directory for pkg extraction", map[string]interface{}{
+		"tempDir": tempDir,
+	})
 
-	// Log the files present at the root of the mounted file system
-	rootEntries, err := readDirFS.ReadDir(".")
+	// First attempt: Try xar extraction
+	cmd := exec.Command("xar", "-xf", filePath, "-C", tempDir)
+	err = cmd.Run()
 	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to read root directory of the .pkg file: %v", err)
+		tflog.Debug(ctx, "xar extraction failed, attempting pkgutil", map[string]interface{}{
+			"error": err.Error(),
+		})
+
+		// Second attempt: Try pkgutil expansion
+		expandedDir := filepath.Join(tempDir, "expanded")
+		cmd = exec.Command("pkgutil", "--expand", filePath, expandedDir)
+		if err := cmd.Run(); err != nil {
+			// Third attempt: Try using 7zip
+			cmd = exec.Command("7z", "x", filePath, "-o"+tempDir)
+			if err := cmd.Run(); err != nil {
+				return "", "", nil, fmt.Errorf("failed to extract pkg file using any available method: %w", err)
+			}
+		}
 	}
 
-	// Collect and log the list of files
-	var filesList []string
-	for _, entry := range rootEntries {
-		filesList = append(filesList, entry.Name())
-	}
-	tflog.Debug(ctx, fmt.Sprintf("Root files in the mounted .pkg file '%s': %v", filePath, filesList))
-
-	// Locate and read the PackageInfo file
-	file, err := fsys.Open("PackageInfo")
-	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to find PackageInfo in .pkg file: %v", err)
-	}
-	defer file.Close()
-
-	// Read the content of the PackageInfo file
-	packageInfoData, err := io.ReadAll(file)
-	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to read PackageInfo: %v", err)
+	// Log the extracted structure for debugging
+	if err := listFiles(ctx, tempDir); err != nil {
+		tflog.Warn(ctx, "Failed to list extracted files", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
-	// Decode the PackageInfo file
+	// Look for PackageInfo in common locations
+	packageInfoPaths := []string{
+		filepath.Join(tempDir, "PackageInfo"),
+		filepath.Join(tempDir, "expanded", "PackageInfo"),
+		// Add more common paths if needed
+	}
+
+	var packageInfoData []byte
+	var foundPath string
+	for _, path := range packageInfoPaths {
+		if data, err := os.ReadFile(path); err == nil {
+			packageInfoData = data
+			foundPath = path
+			break
+		}
+	}
+
+	if packageInfoData == nil {
+		return "", "", nil, fmt.Errorf("PackageInfo not found in extracted pkg file")
+	}
+
+	tflog.Debug(ctx, "Found PackageInfo file", map[string]interface{}{
+		"path": foundPath,
+		"size": len(packageInfoData),
+	})
+
+	// Define the package info structure
 	var pkgInfo struct {
 		InstallLocation string `plist:"install-location"`
 		Bundles         []struct {
@@ -197,14 +222,15 @@ func extractmacOSPkgMetadata(filePath string) (bundleId string, bundleVersion st
 		} `plist:"bundle"`
 	}
 
+	// Decode the PackageInfo file
 	decoder := plist.NewDecoder(bytes.NewReader(packageInfoData))
 	if err := decoder.Decode(&pkgInfo); err != nil {
-		return "", "", nil, fmt.Errorf("failed to decode PackageInfo plist: %v", err)
+		return "", "", nil, fmt.Errorf("failed to decode PackageInfo plist: %w", err)
 	}
 
 	// Process bundles and populate included apps
 	for _, bundle := range pkgInfo.Bundles {
-		if pkgInfo.InstallLocation == "/Applications" && bundle.Path != "" {
+		if bundle.Path != "" {
 			includedApps = append(includedApps, MacOSIncludedAppResourceModel{
 				BundleId:      types.StringValue(bundle.Id),
 				BundleVersion: types.StringValue(bundle.CFBundleShortVersionString),
@@ -212,7 +238,6 @@ func extractmacOSPkgMetadata(filePath string) (bundleId string, bundleVersion st
 		}
 	}
 
-	// Set the primary bundle ID and version from the first bundle
 	if len(includedApps) > 0 {
 		bundleId = includedApps[0].BundleId.ValueString()
 		bundleVersion = includedApps[0].BundleVersion.ValueString()
@@ -220,5 +245,26 @@ func extractmacOSPkgMetadata(filePath string) (bundleId string, bundleVersion st
 		return "", "", nil, fmt.Errorf("no valid included apps found in PackageInfo")
 	}
 
+	tflog.Debug(ctx, "Successfully extracted metadata", map[string]interface{}{
+		"bundleId":      bundleId,
+		"bundleVersion": bundleVersion,
+		"includedApps":  len(includedApps),
+	})
+
 	return bundleId, bundleVersion, includedApps, nil
+}
+
+// Utility function to list all files in a directory (for debugging)
+func listFiles(ctx context.Context, dir string) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+		tflog.Debug(ctx, fmt.Sprintf("Found file: %s", rel))
+		return nil
+	})
 }
