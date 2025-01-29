@@ -10,7 +10,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cavaliergopher/cpio"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -106,12 +105,24 @@ func extractPayloadContents(ctx context.Context, metadata *PayloadMetadata, file
 	}
 
 	if len(payloadBytes) < 10 {
-		return fmt.Errorf("Payload too small to be valid")
+		return fmt.Errorf("payload too small to be valid")
 	}
+
+	// Prepend the header bytes back to payloadBytes
+	payloadBytes = append(header, payloadBytes...)
 
 	// Detect compression format
 	var reader io.Reader
 	switch {
+	case bytes.Equal(header[:4], []byte("pbzx")) || // PBZX magic number with exact match
+		bytes.Equal(header[:4], []byte{0x70, 0x62, 0x7A, 0x78}): // PBZX in hex
+		tflog.Debug(ctx, "Detected PBZX format in Payload", map[string]interface{}{
+			"path": metadata.Path,
+		})
+		reader, err = extractPBZXFiles(ctx, bytes.NewReader(payloadBytes))
+		if err != nil {
+			return fmt.Errorf("failed to extract PBZX payload: %w", err)
+		}
 	case bytes.HasPrefix(header, []byte{0x1F, 0x8B}): // GZIP magic number
 		tflog.Debug(ctx, "Detected gzip compression in Payload", map[string]interface{}{
 			"path": metadata.Path,
@@ -121,7 +132,8 @@ func extractPayloadContents(ctx context.Context, metadata *PayloadMetadata, file
 			return fmt.Errorf("failed to initialize gzip reader: %w", err)
 		}
 		reader = gzr
-	case bytes.HasPrefix(header, []byte{0x42, 0x5A, 0x68}): // BZIP2 magic number
+	case bytes.HasPrefix(header, []byte{0x42, 0x5A, 0x68}) || // BZIP2 magic number
+		bytes.HasPrefix(header, []byte("BZh")): // ASCII BZip2 signature
 		tflog.Debug(ctx, "Detected bzip2 compression in Payload", map[string]interface{}{
 			"path": metadata.Path,
 		})
@@ -136,63 +148,30 @@ func extractPayloadContents(ctx context.Context, metadata *PayloadMetadata, file
 		}
 		reader = zr
 	default:
-		tflog.Debug(ctx, "No compression detected in Payload, assuming raw cpio", map[string]interface{}{
+		tflog.Debug(ctx, "No compression detected in Payload, assuming raw data", map[string]interface{}{
 			"path": metadata.Path,
 		})
 		reader = bytes.NewReader(payloadBytes)
 	}
 
-	// Ensure it's a valid CPIO archive
+	// Ensure data is valid after decompression
 	buf := &bytes.Buffer{}
 	if _, err := io.Copy(buf, reader); err != nil {
 		return fmt.Errorf("failed to read decompressed payload: %w", err)
 	}
+
+	// **New Check: If it's already extracted, skip CPIO**
 	if !bytes.HasPrefix(buf.Bytes(), []byte("070701")) {
-		return fmt.Errorf("invalid CPIO header after extraction")
+		tflog.Debug(ctx, "Payload does not appear to be CPIO, assuming extracted files", map[string]interface{}{
+			"path": metadata.Path,
+		})
+		metadata.ExtractedFiles["/"] = buf.Bytes() // Store extracted payload
+		return nil
 	}
 
-	// Dump first 64 bytes of extracted buffer for debugging
-	tflog.Debug(ctx, "First 64 bytes of extracted payload", map[string]interface{}{
+	// **If still CPIO, extract normally**
+	tflog.Debug(ctx, "Detected CPIO format, proceeding with CPIO extraction", map[string]interface{}{
 		"path": metadata.Path,
-		"data": fmt.Sprintf("%X", buf.Bytes()[:min(64, len(buf.Bytes()))]),
 	})
-
-	// Extract files from decompressed archive
 	return extractCpioFiles(ctx, metadata, buf)
-}
-
-// Extracts individual files from a cpio archive
-func extractCpioFiles(ctx context.Context, metadata *PayloadMetadata, r io.Reader) error {
-	tflog.Debug(ctx, "Extracting files from cpio archive", map[string]interface{}{
-		"payload_path": metadata.Path,
-	})
-
-	cr := cpio.NewReader(r)
-
-	for {
-		hdr, err := cr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			tflog.Error(ctx, "Failed to read cpio archive", map[string]interface{}{
-				"payload_path": metadata.Path,
-				"error":        err.Error(),
-			})
-			return fmt.Errorf("failed to read cpio archive: %w", err)
-		}
-
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, cr); err != nil {
-			return fmt.Errorf("failed to extract file %s: %w", hdr.Name, err)
-		}
-		metadata.ExtractedFiles[hdr.Name] = buf.Bytes()
-	}
-
-	tflog.Info(ctx, "Successfully extracted files from cpio", map[string]interface{}{
-		"payload_path": metadata.Path,
-		"total_files":  len(metadata.ExtractedFiles),
-	})
-
-	return nil
 }
