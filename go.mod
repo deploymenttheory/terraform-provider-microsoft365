@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
 	github.com/PuerkitoBio/goquery v1.10.1
+	github.com/cavaliergopher/cpio v1.0.1
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
@@ -16,7 +17,6 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/korylprince/goxar v0.1.2
 	github.com/microsoft/kiota-abstractions-go v1.8.1
 	github.com/microsoft/kiota-http-go v1.4.7
 	github.com/microsoft/kiota-serialization-json-go v1.0.9
@@ -93,7 +93,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/smallstep/pkcs7 v0.0.0-20231107075624-be1870d87d13 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
