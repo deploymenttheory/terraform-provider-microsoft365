@@ -8,7 +8,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
 	github.com/PuerkitoBio/goquery v1.10.1
-	github.com/cavaliergopher/cpio v1.0.1
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
@@ -24,9 +23,8 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go v1.57.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/stretchr/testify v1.10.0
-	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
-	howett.net/plist v1.0.1
+	golang.org/x/text v0.21.0
 	software.sslmate.com/src/go-pkcs12 v0.5.0
 )
 
@@ -112,7 +110,6 @@ require (
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect

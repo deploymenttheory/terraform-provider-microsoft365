@@ -1,547 +1,636 @@
-// Copyright (c) 2011 Mikkel Krautz <mikkel@krautz.dk>
-// The use of this source code is goverened by a BSD-style
-// license that can be found in the LICENSE-file.
-
-// Package xar provides for reading and writing XAR archives.
 package xar
+
+//		Copyright 2023 SAS Software
+//
+//	 Licensed under the Apache License, Version 2.0 (the "License");
+//	 you may not use this file except in compliance with the License.
+//	 You may obtain a copy of the License at
+//
+//	     http://www.apache.org/licenses/LICENSE-2.0
+//
+//	 Unless required by applicable law or agreed to in writing, software
+//	 distributed under the License is distributed on an "AS IS" BASIS,
+//	 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//	 See the License for the specific language governing permissions and
+//	 limitations under the License.
+//
+// xar contains utilities to parse xar files, most of the logic here is a
+// simplified version extracted from the logic to sign xar files in
+// https://github.com/sassoftware/relic
+
+// Copyright (c) 2020-present Fleet Device Management Inc
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+// https://github.com/fleetdm/fleet
 
 import (
 	"bytes"
 	"compress/bzip2"
 	"compress/zlib"
 	"crypto"
-	"crypto/md5"
-	"crypto/rsa"
-	"crypto/sha1"
-	"crypto/x509"
-	"encoding/base64"
+	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/xml"
 	"errors"
-	"hash"
+	"fmt"
 	"io"
-	"os"
-	"path"
-	"strconv"
+	"path/filepath"
 	"strings"
-	"time"
+)
+
+const (
+	// xarMagic is the [file signature][1] (or magic bytes) for xar
+	//
+	// [1]: https://en.wikipedia.org/wiki/List_of_file_signatures
+	xarMagic = 0x78617221
+
+	xarHeaderSize = 28
+)
+
+const (
+	hashNone uint32 = iota
+	hashSHA1
+	hashMD5
+	hashSHA256
+	hashSHA512
 )
 
 var (
-	ErrBadMagic      = errors.New("xar: bad magic")
-	ErrBadVersion    = errors.New("xar: bad version")
-	ErrBadHeaderSize = errors.New("xar: bad header size")
-
-	ErrNoTOCChecksum        = errors.New("xar: no TOC checksum info in TOC")
-	ErrChecksumUnsupported  = errors.New("xar: unsupported checksum type")
-	ErrChecksumTypeMismatch = errors.New("xar: header and toc checksum type mismatch")
-	ErrChecksumMismatch     = errors.New("xar: checksum mismatch")
-
-	ErrNoCertificates             = errors.New("xar: no certificates stored in xar")
-	ErrCertificateTypeMismatch    = errors.New("xar: certificate type and public key type mismatch")
-	ErrCertificateTypeUnsupported = errors.New("xar: unsupported certificate type")
-
-	ErrFileNoData              = errors.New("xar: file has no data")
-	ErrFileEncodingUnsupported = errors.New("xar: unsupported file encoding")
+	// ErrInvalidType is used to signal that the provided package can't be
+	// parsed because is an invalid file type.
+	ErrInvalidType = errors.New("invalid file type")
+	// ErrNotSigned is used to signal that the provided package doesn't
+	// contain a signature.
+	ErrNotSigned = errors.New("file is not signed")
 )
-
-const xarVersion = 1
-const xarHeaderMagic = 0x78617221 // 'xar!'
-const xarHeaderSize = 28
 
 type xarHeader struct {
-	magic         uint32
-	size          uint16
-	version       uint16
-	toc_len_zlib  uint64
-	toc_len_plain uint64
-	checksum_kind uint32
+	Magic            uint32
+	HeaderSize       uint16
+	Version          uint16
+	CompressedSize   int64
+	UncompressedSize int64
+	HashType         uint32
 }
 
-const (
-	xarChecksumKindNone = iota
-	xarChecksumKindSHA1
-	xarChecksumKindMD5
-)
-
-type FileType int
-
-const (
-	FileTypeFile FileType = iota
-	FileTypeDirectory
-	FileTypeSymlink
-	FileTypeFifo
-	FileTypeCharDevice
-	FileTypeBlockDevice
-	FileTypeSocket
-)
-
-type FileChecksumKind int
-
-const (
-	FileChecksumKindSHA1 FileChecksumKind = iota
-	FileChecksumKindMD5
-)
-
-type FileInfo struct {
-	DeviceNo uint64
-	Mode     uint32
-	Inode    uint64
-	Uid      int
-	User     string
-	Gid      int
-	Group    string
-	Atime    int64
-	Mtime    int64
-	Ctime    int64
+type tocXar struct {
+	TOC toc `xml:"toc"`
 }
 
-type FileChecksum struct {
-	Kind FileChecksumKind
-	Sum  []byte
+type toc struct {
+	Signature  *any `xml:"signature"`
+	XSignature *any `xml:"x-signature"`
 }
 
-type File struct {
-	Type FileType
-	Info FileInfo
-	Id   uint64
-	Name string
-
-	EncodingMimetype   string
-	CompressedChecksum FileChecksum
-	ExtractedChecksum  FileChecksum
-	// The size of the archived file (the size of the file after decompressing)
-	Size int64
-
-	offset int64
-	length int64
-	heap   io.ReaderAt
+type xmlXar struct {
+	XMLName xml.Name `xml:"xar"`
+	TOC     xmlTOC
 }
 
-type Reader struct {
-	File map[uint64]*File
-
-	Certificates          []*x509.Certificate
-	SignatureCreationTime int64
-	SignatureError        error
-
-	xar        io.ReaderAt
-	root       *xmlXar
-	size       int64
-	heapOffset int64
+type xmlTOC struct {
+	XMLName xml.Name   `xml:"toc"`
+	Files   []*xmlFile `xml:"file"`
 }
 
-// OpenReader will open the XAR file specified by name and return a Reader.
-func OpenReader(name string) (*Reader, error) {
-	f, err := os.Open(name)
+type xmlFileData struct {
+	XMLName  xml.Name `xml:"data"`
+	Length   int64    `xml:"length"`
+	Offset   int64    `xml:"offset"`
+	Size     int64    `xml:"size"`
+	Encoding struct {
+		Style string `xml:"style,attr"`
+	} `xml:"encoding"`
+}
+
+type xmlFile struct {
+	XMLName xml.Name `xml:"file"`
+	Name    string   `xml:"name"`
+	Data    *xmlFileData
+}
+
+// distributionXML represents the structure of the distributionXML.xml
+type distributionXML struct {
+	Title          string                     `xml:"title"`
+	Product        distributionProduct        `xml:"product"`
+	PkgRefs        []distributionPkgRef       `xml:"pkg-ref"`
+	Choices        []distributionChoice       `xml:"choice"`
+	ChoicesOutline distributionChoicesOutline `xml:"choices-outline"`
+}
+
+type packageInfoXML struct {
+	Version         string               `xml:"version,attr"`
+	InstallLocation string               `xml:"install-location,attr"`
+	Identifier      string               `xml:"identifier,attr"`
+	Bundles         []distributionBundle `xml:"bundle"`
+}
+
+// distributionProduct represents the product element
+type distributionProduct struct {
+	ID      string `xml:"id,attr"`
+	Version string `xml:"version,attr"`
+}
+
+// distributionPkgRef represents the pkg-ref element
+type distributionPkgRef struct {
+	ID                string                      `xml:"id,attr"`
+	Version           string                      `xml:"version,attr"`
+	BundleVersions    []distributionBundleVersion `xml:"bundle-version"`
+	MustClose         distributionMustClose       `xml:"must-close"`
+	PackageIdentifier string                      `xml:"packageIdentifier,attr"`
+	InstallKBytes     string                      `xml:"installKBytes,attr"`
+}
+
+type distributionChoice struct {
+	PkgRef distributionPkgRef `xml:"pkg-ref"`
+	Title  string             `xml:"title,attr"`
+	ID     string             `xml:"id,attr"`
+}
+
+type distributionChoicesOutline struct {
+	Lines []distributionLine `xml:"line"`
+}
+
+type distributionLine struct {
+	Choice string `xml:"choice,attr"`
+}
+
+// distributionBundleVersion represents the bundle-version element
+type distributionBundleVersion struct {
+	Bundles []distributionBundle `xml:"bundle"`
+}
+
+// distributionBundle represents the bundle element
+type distributionBundle struct {
+	Path                       string `xml:"path,attr"`
+	ID                         string `xml:"id,attr"`
+	CFBundleShortVersionString string `xml:"CFBundleShortVersionString,attr"`
+}
+
+// distributionMustClose represents the must-close element
+type distributionMustClose struct {
+	Apps []distributionApp `xml:"app"`
+}
+
+// distributionApp represents the app element
+type distributionApp struct {
+	ID string `xml:"id,attr"`
+}
+
+// ExtractXARMetadata extracts the name and version metadata from a .pkg file
+// in the XAR format.
+func ExtractXARMetadata(tfr *TempFileReader) (*InstallerMetadata, error) {
+	var hdr xarHeader
+
+	h := sha256.New()
+	size, _ := io.Copy(h, tfr) // writes to a hash cannot fail
+
+	if err := tfr.Rewind(); err != nil {
+		return nil, fmt.Errorf("rewind reader: %w", err)
+	}
+
+	// read the file header
+	if err := binary.Read(tfr, binary.BigEndian, &hdr); err != nil {
+		return nil, fmt.Errorf("decode xar header: %w", err)
+	}
+
+	zr, err := zlib.NewReader(io.LimitReader(tfr, hdr.CompressedSize))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create zlib reader: %w", err)
 	}
+	defer zr.Close()
 
-	info, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	return NewReader(f, info.Size())
-}
-
-// NewReader returns a new reader reading from r, which is assumed to have the given size in bytes.
-func NewReader(r io.ReaderAt, size int64) (*Reader, error) {
-	xr := &Reader{
-		File: make(map[uint64]*File),
-		xar:  r,
-		size: size,
-	}
-
-	hdr := make([]byte, xarHeaderSize)
-	_, err := xr.xar.ReadAt(hdr, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	xh := &xarHeader{}
-	xh.magic = binary.BigEndian.Uint32(hdr[0:4])
-	xh.size = binary.BigEndian.Uint16(hdr[4:6])
-	xh.version = binary.BigEndian.Uint16(hdr[6:8])
-	xh.toc_len_zlib = binary.BigEndian.Uint64(hdr[8:16])
-	xh.toc_len_plain = binary.BigEndian.Uint64(hdr[16:24])
-	xh.checksum_kind = binary.BigEndian.Uint32(hdr[24:28])
-
-	if xh.magic != xarHeaderMagic {
-		return nil, ErrBadMagic
-	}
-
-	if xh.version != xarVersion {
-		return nil, ErrBadVersion
-	}
-
-	if xh.size != xarHeaderSize {
-		return nil, ErrBadHeaderSize
-	}
-
-	ztoc := make([]byte, xh.toc_len_zlib)
-	_, err = xr.xar.ReadAt(ztoc, xarHeaderSize)
-	if err != nil {
-		return nil, err
-	}
-
-	br := bytes.NewBuffer(ztoc)
-	zr, err := zlib.NewReader(br)
-	if err != nil {
-		return nil, err
-	}
-	// dat, err := io.ReadAll(zr)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// os.WriteFile("toc.xml", dat, 0644)
-
-	xr.root = &xmlXar{}
+	// decode the TOC data (in XML inside the zlib-compressed data)
+	var root xmlXar
 	decoder := xml.NewDecoder(zr)
 	decoder.Strict = false
-	err = decoder.Decode(xr.root)
-	if err != nil {
-		return nil, err
+	if err := decoder.Decode(&root); err != nil {
+		return nil, fmt.Errorf("decode xar xml: %w", err)
 	}
 
-	xr.heapOffset = xarHeaderSize + int64(xh.toc_len_zlib)
+	// look for the distribution file, with the metadata information
+	heapOffset := xarHeaderSize + hdr.CompressedSize
+	var packageInfoFile *xmlFile
+	for _, f := range root.TOC.Files {
+		switch f.Name {
+		case "Distribution":
+			contents, err := readCompressedFile(tfr, heapOffset, size, f)
+			if err != nil {
+				return nil, err
+			}
 
-	if xr.root.Toc.Checksum == nil {
-		return nil, ErrNoTOCChecksum
-	}
+			meta, err := parseDistributionFile(contents)
+			if err != nil {
+				return nil, fmt.Errorf("parsing Distribution file: %w", err)
+			}
+			meta.SHASum = h.Sum(nil)
+			return meta, nil
 
-	// Check whether the XAR checksum matches
-	storedsum := make([]byte, xr.root.Toc.Checksum.Size)
-	_, err = io.ReadFull(io.NewSectionReader(xr.xar, xr.heapOffset+xr.root.Toc.Checksum.Offset, xr.root.Toc.Checksum.Size), storedsum)
-	if err != nil {
-		return nil, err
-	}
-
-	var hasher hash.Hash
-	switch xh.checksum_kind {
-	case xarChecksumKindNone:
-		return nil, ErrChecksumUnsupported
-	case xarChecksumKindSHA1:
-		if xr.root.Toc.Checksum.Style != "sha1" {
-			return nil, ErrChecksumTypeMismatch
+		case "PackageInfo":
+			// If Distribution archive was not found, we will use the top-level PackageInfo archive
+			packageInfoFile = f
 		}
-		hasher = sha1.New()
-	case xarChecksumKindMD5:
-		if xr.root.Toc.Checksum.Style != "md5" {
-			return nil, ErrChecksumTypeMismatch
-		}
-		hasher = md5.New()
-	default:
-		return nil, ErrChecksumUnsupported
 	}
 
-	hasher.Write(ztoc)
-	calcedsum := hasher.Sum(nil)
-
-	if !bytes.Equal(calcedsum, storedsum) {
-		return nil, ErrChecksumMismatch
-	}
-
-	// Ignore error. The method automatically sets xr.SignatureError with
-	// the returned error.
-	_ = xr.readAndVerifySignature(xr.root, xh.checksum_kind, calcedsum)
-
-	// Add files to Reader
-	for _, xmlFile := range xr.root.Toc.File {
-		err := xr.readXmlFileTree(xmlFile, "")
+	if packageInfoFile != nil {
+		contents, err := readCompressedFile(tfr, heapOffset, size, packageInfoFile)
 		if err != nil {
 			return nil, err
 		}
+
+		meta, err := parsePackageInfoFile(contents)
+		if err != nil {
+			return nil, fmt.Errorf("parsing PackageInfo file: %w", err)
+		}
+		meta.SHASum = h.Sum(nil)
+		return meta, nil
 	}
 
-	return xr, nil
+	return &InstallerMetadata{SHASum: h.Sum(nil)}, nil
 }
 
-func (r *Reader) Subdoc() xmlSubdoc {
-	return r.root.Subdoc
-}
+func readCompressedFile(rat io.ReaderAt, heapOffset int64, sectionLength int64, f *xmlFile) ([]byte, error) {
+	var fileReader io.Reader
+	heapReader := io.NewSectionReader(rat, heapOffset, sectionLength-heapOffset)
+	fileReader = io.NewSectionReader(heapReader, f.Data.Offset, f.Data.Length)
 
-func (r *Reader) TOC() xmlToc {
-	return r.root.Toc
-}
-
-// Reads signature information from the xmlXar element into
-// the Reader. Also attempts to verify any signatures found.
-func (r *Reader) readAndVerifySignature(root *xmlXar, checksumKind uint32, checksum []byte) (err error) {
-	defer func() {
-		r.SignatureError = err
-	}()
-
-	// Check if there's a signature ...
-	r.SignatureCreationTime = root.Toc.SignatureCreationTime
-	if root.Toc.Signature != nil {
-		if len(root.Toc.Signature.Certificates) == 0 {
-			return ErrNoCertificates
-		}
-
-		signature := make([]byte, root.Toc.Signature.Size)
-		_, err = r.xar.ReadAt(signature, r.heapOffset+root.Toc.Signature.Offset)
+	// the distribution file can be compressed differently than the TOC, the
+	// actual compression is specified in the Encoding.Style field.
+	if strings.Contains(f.Data.Encoding.Style, "x-gzip") {
+		// despite the name, x-gzip fails to decode with the gzip package
+		// (invalid header), but it works with zlib.
+		zr, err := zlib.NewReader(fileReader)
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("create zlib reader: %w", err)
+		}
+		defer zr.Close()
+		fileReader = zr
+	} else if strings.Contains(f.Data.Encoding.Style, "x-bzip2") {
+		fileReader = bzip2.NewReader(fileReader)
+	}
+	// TODO: what other compression methods are supported?
+
+	contents, err := io.ReadAll(fileReader)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s file: %w", f.Name, err)
+	}
+	return contents, nil
+}
+
+func parseDistributionFile(rawXML []byte) (*InstallerMetadata, error) {
+	var distXML distributionXML
+	if err := xml.Unmarshal(rawXML, &distXML); err != nil {
+		return nil, fmt.Errorf("unmarshal Distribution XML: %w", err)
+	}
+
+	name, identifier, version, packageIDs := getDistributionInfo(&distXML)
+	return &InstallerMetadata{
+		Name:             name,
+		Version:          version,
+		BundleIdentifier: identifier,
+		PackageIDs:       packageIDs,
+	}, nil
+}
+
+// Set of package names we know are incorrect. If we see these in the Distribution file we should
+// try to get the name some other way.
+var knownBadNames = map[string]struct{}{
+	"DISTRIBUTION_TITLE": {},
+	"MacFULL":            {},
+	"SU_TITLE":           {},
+}
+
+// getDistributionInfo gets the name, bundle identifier and version of a PKG distribution file
+func getDistributionInfo(d *distributionXML) (name string, identifier string, version string, packageIDs []string) {
+	var appVersion string
+
+	// find the package ids that have an installation size
+	packageIDSet := make(map[string]struct{}, 1)
+	for _, pkg := range d.PkgRefs {
+		if pkg.InstallKBytes != "" && pkg.InstallKBytes != "0" {
+			var id string
+			if pkg.PackageIdentifier != "" {
+				id = pkg.PackageIdentifier
+			} else if pkg.ID != "" {
+				id = pkg.ID
+			}
+			if id != "" {
+				packageIDSet[id] = struct{}{}
+			}
+		}
+	}
+	if len(packageIDSet) == 0 {
+		// if we didn't find any package IDs with installation size, then grab all of them
+		for _, pkg := range d.PkgRefs {
+			var id string
+			if pkg.PackageIdentifier != "" {
+				id = pkg.PackageIdentifier
+			} else if pkg.ID != "" {
+				id = pkg.ID
+			}
+			if id != "" {
+				packageIDSet[id] = struct{}{}
+			}
+		}
+	}
+	for id := range packageIDSet {
+		packageIDs = append(packageIDs, id)
+	}
+
+out:
+	// look in all the bundle versions for one that has a `path` attribute
+	// that is not nested, this is generally the case for packages that distribute
+	// `.app` files, which are ultimately picked up as an installed app by osquery
+	for _, pkg := range d.PkgRefs {
+		for _, versions := range pkg.BundleVersions {
+			for _, bundle := range versions.Bundles {
+				if base, isValid := isValidAppFilePath(bundle.Path); isValid {
+					identifier = bundle.ID
+					name = base
+					appVersion = bundle.CFBundleShortVersionString
+					break out
+				}
+			}
+		}
+	}
+
+	// if we didn't find anything, look for any <pkg-ref> elements and grab
+	// the first `<must-close>`, `packageIdentifier` or `id` attribute we
+	// find as the bundle identifier, in that order
+	if identifier == "" {
+		for _, pkg := range d.PkgRefs {
+			if len(pkg.MustClose.Apps) > 0 {
+				identifier = pkg.MustClose.Apps[0].ID
+				break
+			}
+		}
+	}
+
+	// Try to get the identifier based on the choices list, if we have one. Some .pkgs have multiple
+	// sub-pkgs inside, so the choices list helps us be a bit smarter.
+	if identifier == "" && len(d.ChoicesOutline.Lines) > 0 {
+		choicesByID := make(map[string]distributionChoice, len(d.Choices))
+		for _, c := range d.Choices {
+			choicesByID[c.ID] = c
 		}
 
-		// Read certificates
-		for i := 0; i < len(root.Toc.Signature.Certificates); i++ {
-			cb64 := []byte(strings.Replace(root.Toc.Signature.Certificates[i], "\n", "", -1))
-			cder := make([]byte, base64.StdEncoding.DecodedLen(len(cb64)))
-			ndec, err := base64.StdEncoding.Decode(cder, cb64)
-			if err != nil {
-				return err
+		for _, l := range d.ChoicesOutline.Lines {
+			c := choicesByID[l.Choice]
+			// Note: we can't create a map of pkg-refs by ID like we do for the choices above
+			// because different pkg-refs can have the same ID attribute. See distribution-go.xml
+			// for an example of this (this case is covered in tests).
+			for _, p := range d.PkgRefs {
+				if p.ID == c.PkgRef.ID {
+					identifier = p.PackageIdentifier
+					if identifier == "" {
+						identifier = p.ID
+					}
+					break
+				}
 			}
 
-			cert, err := x509.ParseCertificate(cder[0:ndec])
-			if err != nil {
-				return err
-			}
-
-			r.Certificates = append(r.Certificates, cert)
-		}
-
-		// Verify validity of chain
-		for i := 1; i < len(r.Certificates); i++ {
-			if err := r.Certificates[i-1].CheckSignatureFrom(r.Certificates[i]); err != nil {
-				return err
+			if identifier != "" {
+				// we found it, so we can quit looping
+				break
 			}
 		}
+	}
 
-		var sighash crypto.Hash
-		switch checksumKind {
-		case xarChecksumKindNone:
-			return ErrChecksumUnsupported
-		case xarChecksumKindSHA1:
-			sighash = crypto.SHA1
-		case xarChecksumKindMD5:
-			sighash = crypto.MD5
-		}
+	if identifier == "" {
+		for _, pkg := range d.PkgRefs {
+			if pkg.PackageIdentifier != "" {
+				identifier = pkg.PackageIdentifier
+				break
+			}
 
-		if root.Toc.Signature.Style == "RSA" {
-			pubkey, ok := r.Certificates[0].PublicKey.(*rsa.PublicKey)
-			if !ok {
-				return ErrCertificateTypeMismatch
+			if pkg.ID != "" {
+				identifier = pkg.ID
+				break
 			}
-			err = rsa.VerifyPKCS1v15(pubkey, sighash, checksum, signature)
-			if err != nil {
-				return err
-			}
-		} else {
-			return ErrCertificateTypeUnsupported
 		}
+	}
+
+	// if the identifier is still empty, try to use the product id
+	if identifier == "" && d.Product.ID != "" {
+		identifier = d.Product.ID
+	}
+
+	// if package IDs are still empty, use the identifier as the package ID
+	if len(packageIDs) == 0 && identifier != "" {
+		packageIDs = append(packageIDs, identifier)
+	}
+
+	// for the name, try to use the title and fallback to the bundle
+	// identifier
+	if name == "" && d.Title != "" {
+		name = d.Title
+	}
+
+	if _, ok := knownBadNames[name]; name == "" || ok {
+		name = identifier
+
+		// Try to find a <choice> tag that matches the bundle ID for this app. It might have the app
+		// name, so if we find it we can use that.
+		for _, c := range d.Choices {
+			if c.PkgRef.ID == identifier && c.Title != "" {
+				name = c.Title
+			}
+		}
+	}
+
+	// for the version, try to use the top-level product version, if not,
+	// fallback to any version definition alongside the name or the first
+	// version in a pkg-ref we find.
+	if d.Product.Version != "" {
+		version = d.Product.Version
+	}
+	if version == "" && appVersion != "" {
+		version = appVersion
+	}
+	if version == "" {
+		for _, pkgRef := range d.PkgRefs {
+			if pkgRef.Version != "" {
+				version = pkgRef.Version
+			}
+		}
+	}
+
+	return name, identifier, version, packageIDs
+}
+
+func parsePackageInfoFile(rawXML []byte) (*InstallerMetadata, error) {
+	var packageInfo packageInfoXML
+	if err := xml.Unmarshal(rawXML, &packageInfo); err != nil {
+		return nil, fmt.Errorf("unmarshal PackageInfo XML: %w", err)
+	}
+
+	name, identifier, version, packageIDs := getPackageInfo(&packageInfo)
+	return &InstallerMetadata{
+		Name:             name,
+		Version:          version,
+		BundleIdentifier: identifier,
+		PackageIDs:       packageIDs,
+	}, nil
+}
+
+// getPackageInfo gets the name, bundle identifier and version of a PKG top level PackageInfo file
+func getPackageInfo(p *packageInfoXML) (name string, identifier string, version string, packageIDs []string) {
+	packageIDSet := make(map[string]struct{}, 1)
+	for _, bundle := range p.Bundles {
+		installPath := bundle.Path
+		if p.InstallLocation != "" {
+			installPath = filepath.Join(p.InstallLocation, installPath)
+		}
+		installPath = strings.TrimPrefix(installPath, "/")
+		installPath = strings.TrimPrefix(installPath, "./")
+		if base, isValid := isValidAppFilePath(installPath); isValid {
+			identifier = Preprocess(bundle.ID)
+			name = base
+			version = Preprocess(bundle.CFBundleShortVersionString)
+		}
+		bundleID := Preprocess(bundle.ID)
+		if bundleID != "" {
+			packageIDSet[bundleID] = struct{}{}
+		}
+	}
+
+	for id := range packageIDSet {
+		packageIDs = append(packageIDs, id)
+	}
+
+	// if we didn't find a version, grab the version from pkg-info element
+	// Note: this version may be wrong since it is the version of the package and not the app
+	if version == "" {
+		version = Preprocess(p.Version)
+	}
+
+	// if we didn't find a bundle identifier, grab the identifier from pkg-info element
+	if identifier == "" {
+		identifier = Preprocess(p.Identifier)
+	}
+
+	// if we didn't find a name, grab the name from the identifier
+	if name == "" {
+		idParts := strings.Split(identifier, ".")
+		if len(idParts) > 0 {
+			name = idParts[len(idParts)-1]
+		}
+	}
+
+	// if we didn't find package IDs, use the identifier as the package ID
+	if len(packageIDs) == 0 && identifier != "" {
+		packageIDs = append(packageIDs, identifier)
+	}
+
+	return name, identifier, version, packageIDs
+}
+
+// isValidAppFilePath checks if the given input is a file name ending with .app
+// or if it's in the "Applications" directory with a .app extension.
+func isValidAppFilePath(input string) (string, bool) {
+	dir, file := filepath.Split(input)
+
+	if dir == "" && file == input {
+		return file, true
+	}
+
+	if strings.HasSuffix(file, ".app") {
+		if dir == "Applications/" {
+			return file, true
+		}
+	}
+
+	return "", false
+}
+
+// CheckPKGSignature checks if the provided bytes correspond to a signed pkg
+// (xar) file.
+//
+// - If the file is not xar, it returns a ErrInvalidType error
+// - If the file is not signed, it returns a ErrNotSigned error
+func CheckPKGSignature(pkg io.Reader) error {
+	buff := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buff, pkg); err != nil {
+		return err
+	}
+	r := bytes.NewReader(buff.Bytes())
+
+	hdr, hashType, err := parseHeader(io.NewSectionReader(r, 0, 28))
+	if err != nil {
+		return err
+	}
+
+	base := int64(hdr.HeaderSize)
+	toc, err := parseTOC(io.NewSectionReader(r, base, hdr.CompressedSize), hashType)
+	if err != nil {
+		return err
+	}
+
+	if toc.Signature == nil && toc.XSignature == nil {
+		return ErrNotSigned
 	}
 
 	return nil
 }
 
-// This is a convenience method that returns true if the opened XAR archive
-// has a signature. Internally, it checks whether the SignatureCreationTime
-// field of the Reader is > 0.
-func (r *Reader) HasSignature() bool {
-	return r.SignatureCreationTime > 0
-}
-
-// This is a convenience method that returns true of the signature if the
-// opened XAR archive was successfully verified.
-//
-// For a signature to be valid, it must have been signed by the leaf certificate
-// in the certificate chain of the archive.
-//
-// If there is more than one certificate in the chain, each certificate must come
-// before the one that has issued it. This is verified by checking whether the
-// signature of each certificate can be verified against the public key of the
-// certificate following it.
-//
-// The Reader does not do anything to check whether the leaf certificate and/or
-// any intermediate certificates are trusted. It is up to users of this package
-// to determine whether they wish to trust a given certificate chain.
-// If an archive has a signature, the certificate chain of the archive can be
-// accessed through the Certificates field of the Reader.
-//
-// Internally, this method checks whether the SignatureError field is non-nil,
-// and whether the SignatureCreationTime is > 0.
-//
-// If the signature is not valid, and the XAR file has a signature, the
-// SignatureError field of the Reader can be used to determine a possible
-// cause.
-func (r *Reader) ValidSignature() bool {
-	return r.SignatureCreationTime > 0 && r.SignatureError == nil
-}
-
-func xmlFileToFileInfo(xmlFile *xmlFile) (fi FileInfo, err error) {
-	var t time.Time
-	if xmlFile.Ctime != "" {
-		t, err = time.Parse(time.RFC3339, xmlFile.Ctime)
-		if err != nil {
-			return
-		}
-		fi.Ctime = t.Unix()
-	}
-
-	if xmlFile.Mtime != "" {
-		t, err = time.Parse(time.RFC3339, xmlFile.Mtime)
-		if err != nil {
-			return
-		}
-		fi.Mtime = t.Unix()
-	}
-
-	if xmlFile.Atime != "" {
-		t, err = time.Parse(time.RFC3339, xmlFile.Atime)
-		if err != nil {
-			return
-		}
-		fi.Atime = t.Unix()
-	}
-
-	fi.Group = xmlFile.Group
-	fi.Gid = xmlFile.Gid
-
-	fi.User = xmlFile.User
-	fi.Uid = xmlFile.Uid
-
-	fi.Mode = xmlFile.Mode
-
-	fi.Inode = xmlFile.Inode
-	fi.DeviceNo = xmlFile.DeviceNo
-
-	return
-}
-
-// Convert a xmlFileChecksum to a FileChecksum.
-func fileChecksumFromXml(f *FileChecksum, x *xmlFileChecksum) (err error) {
-	f.Sum, err = hex.DecodeString(x.Digest)
+func decompress(r io.Reader) ([]byte, error) {
+	zr, err := zlib.NewReader(r)
 	if err != nil {
-		return
+		return nil, err
 	}
-
-	switch strings.ToUpper(x.Style) {
-	case "MD5":
-		f.Kind = FileChecksumKindMD5
-	case "SHA1":
-		f.Kind = FileChecksumKindSHA1
-	default:
-		return ErrChecksumUnsupported
-	}
-
-	return nil
+	defer zr.Close()
+	return io.ReadAll(zr)
 }
 
-// Create a new SectionReader that is limited to reading from the file's heap
-func (r *Reader) newHeapReader() *io.SectionReader {
-	return io.NewSectionReader(r.xar, r.heapOffset, r.size-r.heapOffset)
-}
-
-// Reads the file tree from a parse XAR TOC into the Reader.
-func (r *Reader) readXmlFileTree(xmlFile *xmlFile, dir string) (err error) {
-	xf := &File{}
-	xf.heap = r.newHeapReader()
-
-	if xmlFile.Type == "file" {
-		xf.Type = FileTypeFile
-	} else if xmlFile.Type == "directory" {
-		xf.Type = FileTypeDirectory
-	} else {
-		return
-	}
-
-	xf.Id, err = strconv.ParseUint(xmlFile.Id, 10, 0)
+func parseTOC(r io.Reader, hashType crypto.Hash) (*toc, error) {
+	tocHash := hashType.New()
+	r = io.TeeReader(r, tocHash)
+	decomp, err := decompress(r)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("decompressing TOC: %w", err)
 	}
-
-	xf.Name = path.Join(dir, xmlFile.Name)
-
-	xf.Info, err = xmlFileToFileInfo(xmlFile)
-	if err != nil {
-		return
+	var toc tocXar
+	if err := xml.Unmarshal(decomp, &toc); err != nil {
+		return nil, fmt.Errorf("decoding TOC: %w", err)
 	}
-
-	if xf.Type == FileTypeFile && xmlFile.Data == nil {
-		err = ErrFileNoData
-		return
-	}
-	if xf.Type == FileTypeFile {
-		xf.EncodingMimetype = xmlFile.Data.Encoding.Style
-		xf.Size = xmlFile.Data.Size
-		xf.length = xmlFile.Data.Length
-		xf.offset = xmlFile.Data.Offset
-
-		err = fileChecksumFromXml(&xf.CompressedChecksum, &xmlFile.Data.ArchivedChecksum)
-		if err != nil {
-			return
-		}
-
-		err = fileChecksumFromXml(&xf.ExtractedChecksum, &xmlFile.Data.ExtractedChecksum)
-		if err != nil {
-			return
-		}
-	}
-
-	r.File[xf.Id] = xf
-
-	if xf.Type == FileTypeDirectory {
-		for _, subXmlFile := range xmlFile.File {
-			err = r.readXmlFileTree(subXmlFile, xf.Name)
-			if err != nil {
-				return
-			}
-		}
-	}
-
-	return
+	return &toc.TOC, nil
 }
 
-// Open returns a ReadCloser that provides access to the file's
-// uncompressed content.
-func (f *File) Open() (rc io.ReadCloser, err error) {
-	r := io.NewSectionReader(f.heap, f.offset, f.length)
-	switch f.EncodingMimetype {
-	case "application/octet-stream":
-		rc = io.NopCloser(r)
-	case "application/x-gzip":
-		rc, err = zlib.NewReader(r)
-	case "application/x-bzip2":
-		rc = io.NopCloser(bzip2.NewReader(r))
+func parseHeader(r io.Reader) (xarHeader, crypto.Hash, error) {
+	var hdr xarHeader
+	if err := binary.Read(r, binary.BigEndian, &hdr); err != nil {
+		return xarHeader{}, 0, err
+	}
+
+	if hdr.Magic != xarMagic {
+		return hdr, 0, ErrInvalidType
+	}
+
+	var hashType crypto.Hash
+	switch hdr.HashType {
+	case hashSHA1:
+		hashType = crypto.SHA1
+	case hashSHA256:
+		hashType = crypto.SHA256
+	case hashSHA512:
+		hashType = crypto.SHA512
 	default:
-		err = ErrFileEncodingUnsupported
+		return xarHeader{}, 0, fmt.Errorf("unknown hash algorithm %d", hdr.HashType)
 	}
 
-	return rc, err
-}
-
-// OpenRaw returns a ReadCloser that provides access to the file's
-// raw content. The encoding of the raw content is specified in
-// the File's EncodingMimetype field.
-func (f *File) OpenRaw() (rc io.ReadCloser, err error) {
-	rc = io.NopCloser(io.NewSectionReader(f.heap, f.offset, f.length))
-	return
-}
-
-// Verify that the compressed content of the File in the
-// archive matches the stored checksum.
-func (f *File) VerifyChecksum() bool {
-	// Non-files are implicitly OK, since all metadata
-	// is stored in the TOC.
-	if f.Type != FileTypeFile {
-		return true
-	}
-
-	var hasher hash.Hash
-	switch f.CompressedChecksum.Kind {
-	case FileChecksumKindSHA1:
-		hasher = sha1.New()
-	case FileChecksumKindMD5:
-		hasher = md5.New()
-	default:
-		return false
-	}
-
-	io.Copy(hasher, io.NewSectionReader(f.heap, f.offset, f.length))
-	sum := hasher.Sum(nil)
-	return bytes.Equal(sum, f.CompressedChecksum.Sum)
+	return hdr, hashType, nil
 }
