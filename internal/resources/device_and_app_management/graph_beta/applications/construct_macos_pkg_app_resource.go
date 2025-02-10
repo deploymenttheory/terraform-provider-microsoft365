@@ -3,6 +3,7 @@ package graphBetaApplications
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
@@ -15,6 +16,10 @@ func constructMacOSPkgAppResource(ctx context.Context, data *MacOSPkgAppResource
 	if data.PackageInstallerFileSource.IsNull() || data.PackageInstallerFileSource.ValueString() == "" {
 		return nil, fmt.Errorf("package_installer_file_source is required but not provided")
 	}
+
+	// Set filename from the source path
+	filename := filepath.Base(data.PackageInstallerFileSource.ValueString())
+	constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)
 
 	// Define fields to extract from Info.plist files
 	fields := []utility.Field{
