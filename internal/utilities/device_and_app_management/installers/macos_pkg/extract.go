@@ -40,28 +40,26 @@ func ExtractFieldsFromFiles(ctx context.Context, filePath string, pattern string
 
 	var results []ExtractedFields
 
-	if metadata.BundleIdentifier != "" {
-		results = append(results, ExtractedFields{
-			FilePath: "primary",
-			Values: map[string]string{
-				"CFBundleIdentifier":         metadata.BundleIdentifier,
-				"CFBundleShortVersionString": metadata.Version,
-			},
-		})
-	}
+	// Always include primary bundle as an included app
+	results = append(results, ExtractedFields{
+		FilePath: "primary",
+		Values: map[string]string{
+			"CFBundleIdentifier":         metadata.BundleIdentifier,
+			"CFBundleShortVersionString": metadata.Version,
+		},
+	})
 
+	// Add all bundles found in package
 	for _, bundle := range metadata.IncludedBundles {
-		results = append(results, ExtractedFields{
-			FilePath: bundle.Path,
-			Values: map[string]string{
-				"CFBundleIdentifier":         bundle.BundleID,
-				"CFBundleShortVersionString": bundle.Version,
-			},
-		})
-	}
-
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no valid bundles found in package")
+		if bundle.BundleID != "" && bundle.Version != "" {
+			results = append(results, ExtractedFields{
+				FilePath: bundle.Path,
+				Values: map[string]string{
+					"CFBundleIdentifier":         bundle.BundleID,
+					"CFBundleShortVersionString": bundle.Version,
+				},
+			})
+		}
 	}
 
 	return results, nil

@@ -40,16 +40,16 @@ func constructMacOSPkgAppResource(ctx context.Context, data *MacOSPkgAppResource
 	constructors.SetStringProperty(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
 	constructors.SetStringProperty(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
 
-	// Create included apps from remaining Info.plists
+	// All entries are set as included apps (including primary)
 	var includedApps []graphmodels.MacOSIncludedAppable
-	for i := 1; i < len(extractedFields); i++ {
+	for _, fields := range extractedFields {
 		includedApp := graphmodels.NewMacOSIncludedApp()
 		constructors.SetStringProperty(
-			types.StringValue(extractedFields[i].Values["CFBundleIdentifier"]),
+			types.StringValue(fields.Values["CFBundleIdentifier"]),
 			includedApp.SetBundleId,
 		)
 		constructors.SetStringProperty(
-			types.StringValue(extractedFields[i].Values["CFBundleShortVersionString"]),
+			types.StringValue(fields.Values["CFBundleShortVersionString"]),
 			includedApp.SetBundleVersion,
 		)
 		includedApps = append(includedApps, includedApp)
