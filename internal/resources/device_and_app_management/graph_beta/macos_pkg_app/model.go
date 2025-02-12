@@ -12,7 +12,6 @@ import (
 // MacOSPKGAppResourceModel represents the root Terraform resource model for intune applications
 type MacOSPKGAppResourceModel struct {
 	ID                    types.String                                    `tfsdk:"id"`
-	ApplicationType       types.String                                    `tfsdk:"application_type"`
 	DisplayName           types.String                                    `tfsdk:"display_name"`
 	Description           types.String                                    `tfsdk:"description"`
 	Publisher             types.String                                    `tfsdk:"publisher"`
