@@ -1,4 +1,4 @@
-package graphBetaApplications
+package graphBetaWinGetApp
 
 import (
 	"context"
@@ -18,17 +18,17 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object ApplicationsResourceModel
+func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WinGetAppResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -49,17 +49,14 @@ func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRe
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(ctx, createdResource, nil)
+		Post(context.Background(), createdResource, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
-
-	if err := initializeContentIfNeeded(ctx, r, &object, resp); err != nil {
-		return
-	}
 
 	if object.Assignments != nil {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
@@ -70,9 +67,6 @@ func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRe
 			)
 			return
 		}
-
-		deadline, _ := ctx.Deadline()
-		retryTimeout := time.Until(deadline) - time.Second
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			err := r.client.
@@ -92,6 +86,11 @@ func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRe
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
@@ -120,8 +119,8 @@ func (r *ApplicationsResource) Create(ctx context.Context, req resource.CreateRe
 }
 
 // Read handles the Read operation.
-func (r *ApplicationsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object ApplicationsResourceModel
+func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WinGetAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -187,8 +186,8 @@ func (r *ApplicationsResource) Read(ctx context.Context, req resource.ReadReques
 }
 
 // Update handles the Update operation.
-func (r *ApplicationsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object, state ApplicationsResourceModel
+func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object, state WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -283,8 +282,8 @@ func (r *ApplicationsResource) Update(ctx context.Context, req resource.UpdateRe
 }
 
 // Delete handles the Delete operation.
-func (r *ApplicationsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object ApplicationsResourceModel
+func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 

@@ -1,67 +1,121 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-mobileapp?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macospkgapp?view=graph-rest-beta
-package graphBetaMacosPkgApp
+
+package graphBetaMacOSPKGApp
 
 import (
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type MacOSPkgAppResourceModel struct {
-	ID                              types.String                             `tfsdk:"id"`
-	DisplayName                     types.String                             `tfsdk:"display_name"`
-	Description                     types.String                             `tfsdk:"description"`
-	Publisher                       types.String                             `tfsdk:"publisher"`
-	LargeIcon                       sharedmodels.MimeContentResourceModel    `tfsdk:"large_icon"`
-	CreatedDateTime                 types.String                             `tfsdk:"created_date_time"`
-	LastModifiedDateTime            types.String                             `tfsdk:"last_modified_date_time"`
-	IsFeatured                      types.Bool                               `tfsdk:"is_featured"`
-	PrivacyInformationUrl           types.String                             `tfsdk:"privacy_information_url"`
-	InformationUrl                  types.String                             `tfsdk:"information_url"`
-	Owner                           types.String                             `tfsdk:"owner"`
-	Developer                       types.String                             `tfsdk:"developer"`
-	Notes                           types.String                             `tfsdk:"notes"`
-	UploadState                     types.Int64                              `tfsdk:"upload_state"`
-	PublishingState                 types.String                             `tfsdk:"publishing_state"`
-	IsAssigned                      types.Bool                               `tfsdk:"is_assigned"`
-	RoleScopeTagIds                 types.List                               `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount               types.Int64                              `tfsdk:"dependent_app_count"`
-	SupersedingAppCount             types.Int64                              `tfsdk:"superseding_app_count"`
-	SupersededAppCount              types.Int64                              `tfsdk:"superseded_app_count"`
-	CommittedContentVersion         types.String                             `tfsdk:"committed_content_version"`
-	FileName                        types.String                             `tfsdk:"file_name"`
-	Size                            types.Int64                              `tfsdk:"size"`
-	PrimaryBundleId                 types.String                             `tfsdk:"primary_bundle_id"`
-	PrimaryBundleVersion            types.String                             `tfsdk:"primary_bundle_version"`
-	IncludedApps                    []MacOSIncludedAppResourceModel          `tfsdk:"included_apps"`
-	IgnoreVersionDetection          types.Bool                               `tfsdk:"ignore_version_detection"`
-	MinimumSupportedOperatingSystem MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
-	PreInstallScript                MacOSAppScriptResourceModel              `tfsdk:"pre_install_script"`
-	PostInstallScript               MacOSAppScriptResourceModel              `tfsdk:"post_install_script"`
-	Timeouts                        timeouts.Value                           `tfsdk:"timeouts"`
+// MacOSPKGAppResourceModel represents the root Terraform resource model for intune applications
+type MacOSPKGAppResourceModel struct {
+	ID                    types.String                                    `tfsdk:"id"`
+	ApplicationType       types.String                                    `tfsdk:"application_type"`
+	DisplayName           types.String                                    `tfsdk:"display_name"`
+	Description           types.String                                    `tfsdk:"description"`
+	Publisher             types.String                                    `tfsdk:"publisher"`
+	LargeIcon             types.Object                                    `tfsdk:"large_icon"`
+	CreatedDateTime       types.String                                    `tfsdk:"created_date_time"`
+	LastModifiedDateTime  types.String                                    `tfsdk:"last_modified_date_time"`
+	IsFeatured            types.Bool                                      `tfsdk:"is_featured"`
+	PrivacyInformationUrl types.String                                    `tfsdk:"privacy_information_url"`
+	InformationUrl        types.String                                    `tfsdk:"information_url"`
+	Owner                 types.String                                    `tfsdk:"owner"`
+	Developer             types.String                                    `tfsdk:"developer"`
+	Notes                 types.String                                    `tfsdk:"notes"`
+	UploadState           types.Int64                                     `tfsdk:"upload_state"`
+	PublishingState       types.String                                    `tfsdk:"publishing_state"`
+	IsAssigned            types.Bool                                      `tfsdk:"is_assigned"`
+	RoleScopeTagIds       types.List                                      `tfsdk:"role_scope_tag_ids"`
+	DependentAppCount     types.Int64                                     `tfsdk:"dependent_app_count"`
+	SupersedingAppCount   types.Int64                                     `tfsdk:"superseding_app_count"`
+	SupersededAppCount    types.Int64                                     `tfsdk:"superseded_app_count"`
+	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
+	Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
+	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
+
+	// App type specific blocks
+	MacOSPkgApp *MacOSPkgAppResourceModel `tfsdk:"macos_pkg_app"`
+	Timeouts    timeouts.Value            `tfsdk:"timeouts"`
 }
 
+// MobileAppCategoryResourceModel represents the Terraform resource model for a Mobile App Category
+type MobileAppCategoryResourceModel struct {
+	ID                   types.String `tfsdk:"id"`
+	DisplayName          types.String `tfsdk:"display_name"`
+	LastModifiedDateTime types.String `tfsdk:"last_modified_date_time"`
+}
+
+// MobileAppRelationshipResourceModel represents the Terraform resource model for a Mobile App Relationship
+type MobileAppRelationshipResourceModel struct {
+	ID                         types.String `tfsdk:"id"`
+	SourceDisplayName          types.String `tfsdk:"source_display_name"`
+	SourceDisplayVersion       types.String `tfsdk:"source_display_version"`
+	SourceId                   types.String `tfsdk:"source_id"`
+	SourcePublisherDisplayName types.String `tfsdk:"source_publisher_display_name"`
+	TargetDisplayName          types.String `tfsdk:"target_display_name"`
+	TargetDisplayVersion       types.String `tfsdk:"target_display_version"`
+	TargetId                   types.String `tfsdk:"target_id"`
+	TargetPublisher            types.String `tfsdk:"target_publisher"`
+	TargetPublisherDisplayName types.String `tfsdk:"target_publisher_display_name"`
+	TargetType                 types.String `tfsdk:"target_type"`
+}
+
+// MacOSPkgApp
+
+// MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
+type MacOSPkgAppResourceModel struct {
+	PackageInstallerFileSource      types.String                              `tfsdk:"package_installer_file_source"`
+	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
+	IncludedApps                    []MacOSIncludedAppResourceModel           `tfsdk:"included_apps"`
+	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
+	PostInstallScript               *MacOSAppScriptResourceModel              `tfsdk:"post_install_script"`
+	PreInstallScript                *MacOSAppScriptResourceModel              `tfsdk:"pre_install_script"`
+	PrimaryBundleId                 types.String                              `tfsdk:"primary_bundle_id"`
+	PrimaryBundleVersion            types.String                              `tfsdk:"primary_bundle_version"`
+}
+
+// MacOSMinimumOperatingSystemResourceModel represents the minimum OS requirements for macOS
+type MacOSMinimumOperatingSystemResourceModel struct {
+	V107  types.Bool `tfsdk:"v10_7"`  // OS X 10.7 or later
+	V108  types.Bool `tfsdk:"v10_8"`  // OS X 10.8 or later
+	V109  types.Bool `tfsdk:"v10_9"`  // OS X 10.9 or later
+	V1010 types.Bool `tfsdk:"v10_10"` // OS X 10.10 or later
+	V1011 types.Bool `tfsdk:"v10_11"` // OS X 10.11 or later
+	V1012 types.Bool `tfsdk:"v10_12"` // macOS 10.12 or later
+	V1013 types.Bool `tfsdk:"v10_13"` // macOS 10.13 or later
+	V1014 types.Bool `tfsdk:"v10_14"` // macOS 10.14 or later
+	V1015 types.Bool `tfsdk:"v10_15"` // macOS 10.15 or later
+	V110  types.Bool `tfsdk:"v11_0"`  // macOS 11.0 or later
+	V120  types.Bool `tfsdk:"v12_0"`  // macOS 12.0 or later
+	V130  types.Bool `tfsdk:"v13_0"`  // macOS 13.0 or later
+	V140  types.Bool `tfsdk:"v14_0"`  // macOS 14.0 or later
+}
+
+// MacOSIncludedAppResourceModel represents an included app in the PKG
 type MacOSIncludedAppResourceModel struct {
 	BundleId      types.String `tfsdk:"bundle_id"`
 	BundleVersion types.String `tfsdk:"bundle_version"`
 }
 
-type MacOSMinimumOperatingSystemResourceModel struct {
-	V10_7  types.Bool `tfsdk:"v10_7"`
-	V10_8  types.Bool `tfsdk:"v10_8"`
-	V10_9  types.Bool `tfsdk:"v10_9"`
-	V10_10 types.Bool `tfsdk:"v10_10"`
-	V10_11 types.Bool `tfsdk:"v10_11"`
-	V10_12 types.Bool `tfsdk:"v10_12"`
-	V10_13 types.Bool `tfsdk:"v10_13"`
-	V10_14 types.Bool `tfsdk:"v10_14"`
-	V10_15 types.Bool `tfsdk:"v10_15"`
-	V11_0  types.Bool `tfsdk:"v11_0"`
-	V12_0  types.Bool `tfsdk:"v12_0"`
-	V13_0  types.Bool `tfsdk:"v13_0"`
-	V14_0  types.Bool `tfsdk:"v14_0"`
+// MacOSAppScriptResourceModel represents the scripts for pre/post installation
+type MacOSAppScriptResourceModel struct {
+	ScriptContent types.String `tfsdk:"script_content"` // Base64 encoded shell script
 }
 
-type MacOSAppScriptResourceModel struct {
-	ScriptContent types.String `tfsdk:"script_content"`
+// WinGetApp
+
+// WinGetAppResourceModel represents the Terraform resource model for a WinGetApp
+type WinGetAppResourceModel struct {
+	AutomaticallyGenerateMetadata types.Bool                               `tfsdk:"automatically_generate_metadata"`
+	InstallExperience             *WinGetAppInstallExperienceResourceModel `tfsdk:"install_experience"`
+	ManifestHash                  types.String                             `tfsdk:"manifest_hash"`
+	PackageIdentifier             types.String                             `tfsdk:"package_identifier"`
+}
+
+// WinGetAppInstallExperienceModel represents the install experience structure
+type WinGetAppInstallExperienceResourceModel struct {
+	RunAsAccount types.String `tfsdk:"run_as_account"`
 }

@@ -1,5 +1,5 @@
 {
-  "@odata.type": "#microsoft.graph.macOSPkgApp",
+  "@odata.type": "#microsoft.graph.winGetApp",
   "id": "String (identifier)",
   "displayName": "String",
   "description": "String",
@@ -26,41 +26,10 @@
   "dependentAppCount": 1024,
   "supersedingAppCount": 1024,
   "supersededAppCount": 1024,
-  "committedContentVersion": "String",
-  "fileName": "String",
-  "size": 1024,
-  "primaryBundleId": "String",
-  "primaryBundleVersion": "String",
-  "includedApps": [
-    {
-      "@odata.type": "microsoft.graph.macOSIncludedApp",
-      "bundleId": "String",
-      "bundleVersion": "String"
-    }
-  ],
-  "ignoreVersionDetection": true,
-  "minimumSupportedOperatingSystem": {
-    "@odata.type": "microsoft.graph.macOSMinimumOperatingSystem",
-    "v10_7": true,
-    "v10_8": true,
-    "v10_9": true,
-    "v10_10": true,
-    "v10_11": true,
-    "v10_12": true,
-    "v10_13": true,
-    "v10_14": true,
-    "v10_15": true,
-    "v11_0": true,
-    "v12_0": true,
-    "v13_0": true,
-    "v14_0": true
-  },
-  "preInstallScript": {
-    "@odata.type": "microsoft.graph.macOSAppScript",
-    "scriptContent": "String"
-  },
-  "postInstallScript": {
-    "@odata.type": "microsoft.graph.macOSAppScript",
-    "scriptContent": "String"
+  "manifestHash": "String",
+  "packageIdentifier": "String",
+  "installExperience": {
+    "@odata.type": "microsoft.graph.winGetAppInstallExperience",
+    "runAsAccount": "String"
   }
 }

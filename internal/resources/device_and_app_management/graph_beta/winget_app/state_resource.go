@@ -1,4 +1,4 @@
-package graphBetaApplications
+package graphBetaWinGetApp
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the remote WinGetApp resource to the Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationsResourceModel, remoteResource graphmodels.WinGetAppable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResourceModel, remoteResource graphmodels.WinGetAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -24,10 +24,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationsRe
 	})
 
 	// Handle PackageIdentifier value to support case-insensitive comparison
-	if data != nil && !data.WinGetApp.PackageIdentifier.IsNull() &&
-		strings.EqualFold(data.WinGetApp.PackageIdentifier.ValueString(), state.StringPtrToString(remoteResource.GetPackageIdentifier())) {
+	if data != nil && !data.PackageIdentifier.IsNull() &&
+		strings.EqualFold(data.PackageIdentifier.ValueString(), state.StringPtrToString(remoteResource.GetPackageIdentifier())) {
 	} else {
-		data.WinGetApp.PackageIdentifier = types.StringPointerValue(remoteResource.GetPackageIdentifier())
+		data.PackageIdentifier = types.StringPointerValue(remoteResource.GetPackageIdentifier())
 	}
 
 	data.ID = types.StringPointerValue(remoteResource.GetId())
@@ -40,7 +40,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationsRe
 	data.Owner = types.StringPointerValue(remoteResource.GetOwner())
 	data.Developer = types.StringPointerValue(remoteResource.GetDeveloper())
 	data.Notes = types.StringPointerValue(remoteResource.GetNotes())
-	data.WinGetApp.ManifestHash = types.StringPointerValue(remoteResource.GetManifestHash())
+	data.ManifestHash = types.StringPointerValue(remoteResource.GetManifestHash())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.UploadState = state.Int32PtrToTypeInt64(remoteResource.GetUploadState())
@@ -52,7 +52,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationsRe
 
 	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
-		data.WinGetApp.InstallExperience = &WinGetAppInstallExperienceResourceModel{
+		data.InstallExperience = &WinGetAppInstallExperienceResourceModel{
 			RunAsAccount: state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),
 		}
 	}
