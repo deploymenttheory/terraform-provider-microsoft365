@@ -50,6 +50,21 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "a6ff37f6-c841-4264-9249-1ecf793d94ef_1",
 	},
+	"security_baseline_for_windows_10_and_later_version_24H2": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "66df8dce-0166-4b82-92f7-1f74e3ca17a3_4",
+	},
+	"security_baseline_for_microsoft_defender_for_endpoint_version_24H1": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "49b8320f-e179-472e-8e2c-2fde00289ca2_1",
+	},
+	"security_baseline_for_microsoft_edge_version_128": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "c66347b7-8325-4954-a235-3bf2233dfbfd_3",
+	},
 	"windows_account_protection": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,

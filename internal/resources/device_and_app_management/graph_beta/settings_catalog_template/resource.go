@@ -115,6 +115,10 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					"`macOS_anti_virus_microsoft_defender_antivirus`: Microsoft Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint on Mac. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
 					"`macOS_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
 					"`macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.\n\n" +
+					"`Security Baselines`\n\n" +
+					"`security_baseline_for_windows_10_and_later_version_24H2`: The Security Baseline for Windows 10 and later represents the recommendations for configuring Windows for security conscious customers using the Microsoft full security stack. This baseline includes relevant MDM settings consistent with the security recommendations outlined in the group policy Windows security baseline. Use this baseline to tailor and adjust Microsoft-recommended policy settings within an MDM environment.\n\n" +
+					"`security_baseline_for_microsoft_defender_for_endpoint_version_24H1`: he Microsoft Defender for Endpoint Security baseline for Windows 10 and newer represents the security best practices for the Microsoft security stack on devices managed by Intune (MDM). Use the baseline to tailor and adjust Microsoft-recommended policy settings.\n\n" +
+					"`security_baseline_for_microsoft_edge_version_128`: The Security Baseline for Microsoft Edge represents the recommendations for configuring Microsoft Edge for security conscious customers using the Microsoft full security stack. This baseline aligns with the security recommendations for Edge security baseline for group policy. Use this baseline to configure and customize Microsoft-recommended policy settings.\n\n" +
 					"`Windows settings catalog templates`\n\n" +
 					"`windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n\n" +
 					"`windows_anti_virus_defender_update_controls`: This template allows you to configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n\n" +
@@ -159,6 +163,9 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 						"macOS_anti_virus_microsoft_defender_antivirus",
 						"macOS_anti_virus_microsoft_defender_antivirus_exclusions",
 						"macOS_endpoint_detection_and_response",
+						"security_baseline_for_windows_10_and_later_version_24H2",
+						"security_baseline_for_microsoft_defender_for_endpoint_version_24H1",
+						"security_baseline_for_microsoft_edge_version_128",
 						"windows_account_protection",
 						"windows_anti_virus_defender_update_controls",
 						"windows_anti_virus_microsoft_defender_antivirus",
