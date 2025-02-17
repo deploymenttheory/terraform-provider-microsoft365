@@ -54,7 +54,7 @@ jobs:
           passphrase: ${{ secrets.gpg-private-key-passphrase }}
       - if: inputs.release-notes != true
         name: goreleaser release (without release notes)
-        uses: goreleaser/goreleaser-action@v6.1.0
+        uses: goreleaser/goreleaser-action@v6.2.1
         with:
           args: release --clean ${{ inputs.goreleaser-release-args }}
         env:
@@ -69,7 +69,7 @@ jobs:
           path: /tmp
       - if: inputs.release-notes
         name: goreleaser release (with release notes)
-        uses: goreleaser/goreleaser-action@v6.1.0
+        uses: goreleaser/goreleaser-action@v6.2.1
         with:
           args: release --release-notes ${{ steps.release-notes-download.outputs.download-path }}/release-notes.txt --clean ${{ inputs.goreleaser-release-args }}
         env:
