@@ -65,6 +65,16 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "c66347b7-8325-4954-a235-3bf2233dfbfd_3",
 	},
+	"security_baseline_for_windows_365": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "b00e1a0f-19dd-41de-8243-e6733ca7b4ae_1",
+	},
+	"security_baseline_for_microsoft_365_apps": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "90316f12-246d-44c6-a767-f87692e86083_2",
+	},
 	"windows_account_protection": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
