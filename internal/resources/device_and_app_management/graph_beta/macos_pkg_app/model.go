@@ -15,7 +15,7 @@ type MacOSPKGAppResourceModel struct {
 	DisplayName           types.String                                    `tfsdk:"display_name"`
 	Description           types.String                                    `tfsdk:"description"`
 	Publisher             types.String                                    `tfsdk:"publisher"`
-	LargeIcon             types.Object                                    `tfsdk:"large_icon"`
+	LargeIcon             *LargeIconResourceModel                         `tfsdk:"large_icon"`
 	CreatedDateTime       types.String                                    `tfsdk:"created_date_time"`
 	LastModifiedDateTime  types.String                                    `tfsdk:"last_modified_date_time"`
 	IsFeatured            types.Bool                                      `tfsdk:"is_featured"`
@@ -37,6 +37,11 @@ type MacOSPKGAppResourceModel struct {
 	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
 	//ContentVersion        ContentVersionResourceModel                     `tfsdk:"content_version"`
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
+}
+
+type LargeIconResourceModel struct {
+	Type  types.String `tfsdk:"type"`
+	Value types.String `tfsdk:"value"`
 }
 
 // MobileAppCategoryResourceModel represents the Terraform resource model for a Mobile App Category

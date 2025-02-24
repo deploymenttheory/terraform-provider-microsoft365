@@ -123,10 +123,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		})
 
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error waiting for Azure Storage URI",
-				err.Error(),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -143,12 +140,10 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 
 		// Upload encrypted file to Azure Storage using the SAS URI
-		err = uploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), object.MacOSPkgApp.PackageInstallerFileSource.ValueString()+".bin")
+		err = uploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), object.MacOSPkgApp.PackageInstallerFileSource.ValueString())
+
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error uploading file to Azure Storage",
-				err.Error(),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 

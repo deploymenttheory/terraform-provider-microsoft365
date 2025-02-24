@@ -30,38 +30,27 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		"resourceId": remoteResource.GetId(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.Publisher = types.StringPointerValue(remoteResource.GetPublisher())
-	data.InformationUrl = types.StringPointerValue(remoteResource.GetInformationUrl())
-	data.PrivacyInformationUrl = types.StringPointerValue(remoteResource.GetPrivacyInformationUrl())
-	data.Owner = types.StringPointerValue(remoteResource.GetOwner())
-	data.Developer = types.StringPointerValue(remoteResource.GetDeveloper())
-	data.Notes = types.StringPointerValue(remoteResource.GetNotes())
-	data.IsFeatured = types.BoolPointerValue(remoteResource.GetIsFeatured())
+	data.ID = state.StringPointerValue(remoteResource.GetId())
+	data.DisplayName = state.StringPointerValue(remoteResource.GetDisplayName())
+	data.Description = state.StringPointerValue(remoteResource.GetDescription())
+	data.Publisher = state.StringPointerValue(remoteResource.GetPublisher())
+	data.InformationUrl = state.StringPointerValue(remoteResource.GetInformationUrl())
+	data.PrivacyInformationUrl = state.StringPointerValue(remoteResource.GetPrivacyInformationUrl())
+	data.Owner = state.StringPointerValue(remoteResource.GetOwner())
+	data.Developer = state.StringPointerValue(remoteResource.GetDeveloper())
+	data.Notes = state.StringPointerValue(remoteResource.GetNotes())
+	data.IsFeatured = state.BoolPointerValue(remoteResource.GetIsFeatured())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		data.LargeIcon = types.ObjectValueMust(
-			map[string]attr.Type{
-				"type":  types.StringType,
-				"value": types.StringType,
-			},
-			map[string]attr.Value{
-				"type":  types.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
-				"value": types.StringValue(base64.StdEncoding.EncodeToString(largeIcon.GetValue())),
-			},
-		)
+		data.LargeIcon = &LargeIconResourceModel{
+			Type:  state.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
+			Value: state.StringValue(base64.StdEncoding.EncodeToString(largeIcon.GetValue())),
+		}
 	} else {
-		data.LargeIcon = types.ObjectNull(
-			map[string]attr.Type{
-				"type":  types.StringType,
-				"value": types.StringType,
-			},
-		)
+		data.LargeIcon = nil
 	}
 
 	var roleScopeTagIds []attr.Value
@@ -75,8 +64,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		categoriesValues := make([]MobileAppCategoryResourceModel, len(categories))
 		for i, category := range categories {
 			categoriesValues[i] = MobileAppCategoryResourceModel{
-				ID:          types.StringPointerValue(category.GetId()),
-				DisplayName: types.StringPointerValue(category.GetDisplayName()),
+				ID:          state.StringPointerValue(category.GetId()),
+				DisplayName: state.StringPointerValue(category.GetDisplayName()),
 			}
 		}
 		data.Categories = categoriesValues
@@ -87,17 +76,17 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
 
-	data.MacOSPkgApp.PrimaryBundleId = types.StringPointerValue(remoteResource.GetPrimaryBundleId())
-	data.MacOSPkgApp.PrimaryBundleVersion = types.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
-	data.MacOSPkgApp.IgnoreVersionDetection = types.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
+	data.MacOSPkgApp.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
+	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
+	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
 	includedApps := remoteResource.GetIncludedApps()
 	if len(includedApps) > 0 {
 		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(includedApps))
 		for i, app := range includedApps {
 			includedAppsValues[i] = MacOSIncludedAppResourceModel{
-				BundleId:      types.StringPointerValue(app.GetBundleId()),
-				BundleVersion: types.StringPointerValue(app.GetBundleVersion()),
+				BundleId:      state.StringPointerValue(app.GetBundleId()),
+				BundleVersion: state.StringPointerValue(app.GetBundleVersion()),
 			}
 		}
 		data.MacOSPkgApp.IncludedApps = includedAppsValues
@@ -108,19 +97,19 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 			data.MacOSPkgApp.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
 		}
 
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107 = types.BoolPointerValue(minOS.GetV107())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108 = types.BoolPointerValue(minOS.GetV108())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109 = types.BoolPointerValue(minOS.GetV109())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010 = types.BoolPointerValue(minOS.GetV1010())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011 = types.BoolPointerValue(minOS.GetV1011())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012 = types.BoolPointerValue(minOS.GetV1012())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013 = types.BoolPointerValue(minOS.GetV1013())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014 = types.BoolPointerValue(minOS.GetV1014())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015 = types.BoolPointerValue(minOS.GetV1015())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110 = types.BoolPointerValue(minOS.GetV110())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120 = types.BoolPointerValue(minOS.GetV120())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130 = types.BoolPointerValue(minOS.GetV130())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140 = types.BoolPointerValue(minOS.GetV140())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
+		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
 	}
 
 	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {

@@ -181,22 +181,25 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
 			"large_icon": schema.SingleNestedAttribute{
-				Computed: true,
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
 						Computed:            true,
-						Optional:            true,
-						MarkdownDescription: "The MIME type of the app's large icon, automatically populated based on the `package_identifier` when `automatically_generate_metadata` is true. Example: `image/png`",
+						MarkdownDescription: "The MIME type of the app's large icon. Example: `image/png`",
 					},
 					"value": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
+						Required:            true,
 						Sensitive:           true, // not sensitive in a true sense, but we don't want to show the icon base64 encode in the plan.
-						MarkdownDescription: "The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.",
+						MarkdownDescription: "The icon image path to use for the app. Must end with .png extension.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`\.png$`),
+								"must end with .png file extension",
+							),
+						},
 					},
 				},
-				MarkdownDescription: "The large icon for the WinGet app, automatically downloaded and set from the Microsoft Store for Business.",
+				MarkdownDescription: "The large icon for the macOS app.",
 			},
 			"categories": schema.ListNestedAttribute{
 				Optional:            true,

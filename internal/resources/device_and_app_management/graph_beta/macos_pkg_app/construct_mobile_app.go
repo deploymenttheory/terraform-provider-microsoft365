@@ -1,6 +1,7 @@
 package graphBetaMacOSPKGApp
 
 import (
+	"bytes"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -85,97 +86,136 @@ func constructMobileAppContentFile(ctx context.Context, filePath string) (graphm
 	return contentFile, encryptionInfo, nil
 }
 
-// encryptFile encrypts the source file using AES encryption for Intune upload
+// pkcs7Pad appends PKCS7 padding to data to make its length a multiple of blockSize.
+func pkcs7Pad(data []byte, blockSize int) []byte {
+	padLen := blockSize - (len(data) % blockSize)
+	padText := bytes.Repeat([]byte{byte(padLen)}, padLen)
+	return append(data, padText...)
+}
+
+// encryptFile encrypts the source file using AES-CBC with PKCS7 padding.
+// It writes a 32-byte HMAC placeholder, then the IV, then the encrypted data.
+// After encrypting, it computes the HMAC over the IV and ciphertext, and writes it in the placeholder.
 func encryptFile(sourcePath string) (*EncryptionInfo, error) {
-	// Generate AES key
-	key := make([]byte, 32) // 256-bit key
+	// Generate AES key (32 bytes for 256-bit key)
+	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
 		return nil, fmt.Errorf("failed to generate AES key: %v", err)
 	}
 
+	// Create AES cipher block
 	aesCipher, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES cipher: %v", err)
 	}
+	blockSize := aesCipher.BlockSize() // should be 16 bytes
 
-	// Generate HMAC key
+	// Generate IV (same length as block size)
+	iv := make([]byte, blockSize)
+	if _, err := rand.Read(iv); err != nil {
+		return nil, fmt.Errorf("failed to generate IV: %v", err)
+	}
+
+	// Generate HMAC key (32 bytes)
 	hmacKey := make([]byte, 32)
 	if _, err := rand.Read(hmacKey); err != nil {
 		return nil, fmt.Errorf("failed to generate HMAC key: %v", err)
 	}
 
-	// Read source file
+	// Read source file data
 	sourceData, err := os.ReadFile(sourcePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read source file: %v", err)
 	}
 
-	// Calculate SHA256 of source
+	// Calculate SHA256 digest of the source data
 	sourceHash := sha256.Sum256(sourceData)
 
-	// Generate IV
-	iv := make([]byte, aesCipher.BlockSize())
-	if _, err := rand.Read(iv); err != nil {
-		return nil, fmt.Errorf("failed to generate IV: %v", err)
-	}
+	// Apply PKCS7 padding to the source data
+	paddedData := pkcs7Pad(sourceData, blockSize)
 
-	// Create encrypted file path
+	// Create encrypted file (same as sourcePath+".bin")
 	encryptedPath := sourcePath + ".bin"
-
-	// Create encrypted file
 	encrypted, err := os.Create(encryptedPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create encrypted file: %v", err)
 	}
+	// Ensure the file is closed later
 	defer encrypted.Close()
 
-	// Initialize HMAC
-	mac := hmac.New(sha256.New, hmacKey)
-
-	// Write placeholder for HMAC (will be filled later)
-	hmacSize := int64(mac.Size())
-	if _, err := encrypted.Write(make([]byte, hmacSize)); err != nil {
+	// Write a 32-byte placeholder for the HMAC (SHA256 produces 32 bytes)
+	hmacPlaceholder := make([]byte, 32)
+	if _, err := encrypted.Write(hmacPlaceholder); err != nil {
 		return nil, fmt.Errorf("failed to write HMAC placeholder: %v", err)
 	}
 
-	// Write IV
+	// Write the IV
 	if _, err := encrypted.Write(iv); err != nil {
 		return nil, fmt.Errorf("failed to write IV: %v", err)
 	}
 
-	// Create AES encryptor
-	stream := cipher.NewCTR(aesCipher, iv)
-	writer := &cipher.StreamWriter{S: stream, W: encrypted}
+	// Encrypt the padded data using AES-CBC
+	mode := cipher.NewCBCEncrypter(aesCipher, iv)
+	encryptedData := make([]byte, len(paddedData))
+	mode.CryptBlocks(encryptedData, paddedData)
 
-	// Write encrypted data
-	if _, err := writer.Write(sourceData); err != nil {
+	// Write the encrypted data
+	if _, err := encrypted.Write(encryptedData); err != nil {
 		return nil, fmt.Errorf("failed to write encrypted data: %v", err)
 	}
 
-	// Calculate HMAC
-	if _, err := encrypted.Seek(hmacSize, 0); err != nil {
+	// At this point the file layout is:
+	// [0..31]       : Placeholder for HMAC (32 bytes)
+	// [32..(32+blockSize-1)]: IV
+	// [remaining]   : Encrypted data
+
+	// Flush file writes (by closing and reopening for reading)
+	if err := encrypted.Sync(); err != nil {
+		return nil, fmt.Errorf("failed to sync encrypted file: %v", err)
+	}
+
+	// Reopen the file for reading the portion for HMAC calculation.
+	// We need to read from offset 32 until end.
+	encryptedForHMAC, err := os.Open(encryptedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open encrypted file for HMAC: %v", err)
+	}
+	defer encryptedForHMAC.Close()
+
+	// Seek to offset 32 (skip the HMAC placeholder)
+	if _, err := encryptedForHMAC.Seek(32, io.SeekStart); err != nil {
 		return nil, fmt.Errorf("failed to seek for HMAC calculation: %v", err)
 	}
 
-	if _, err := io.Copy(mac, encrypted); err != nil {
+	// Compute HMAC over the IV and encrypted data
+	hmacHash := hmac.New(sha256.New, hmacKey)
+	if _, err := io.Copy(hmacHash, encryptedForHMAC); err != nil {
 		return nil, fmt.Errorf("failed to calculate HMAC: %v", err)
 	}
+	macSum := hmacHash.Sum(nil)
 
-	// Write HMAC at the beginning
-	if _, err := encrypted.Seek(0, 0); err != nil {
-		return nil, fmt.Errorf("failed to seek to start: %v", err)
+	// Open the file again for writing the computed HMAC in place of the placeholder.
+	encryptedForWrite, err := os.OpenFile(encryptedPath, os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open encrypted file for writing HMAC: %v", err)
 	}
+	defer encryptedForWrite.Close()
 
-	if _, err := encrypted.Write(mac.Sum(nil)); err != nil {
+	// Write the computed HMAC at the beginning of the file.
+	if _, err := encryptedForWrite.Seek(0, io.SeekStart); err != nil {
+		return nil, fmt.Errorf("failed to seek to start for writing HMAC: %v", err)
+	}
+	if _, err := encryptedForWrite.Write(macSum); err != nil {
 		return nil, fmt.Errorf("failed to write HMAC: %v", err)
 	}
 
+	// Return the encryption metadata in the same format as the PowerShell script.
 	return &EncryptionInfo{
 		EncryptionKey:        base64.StdEncoding.EncodeToString(key),
 		FileDigest:           base64.StdEncoding.EncodeToString(sourceHash[:]),
 		FileDigestAlgorithm:  "SHA256",
 		InitializationVector: base64.StdEncoding.EncodeToString(iv),
-		Mac:                  base64.StdEncoding.EncodeToString(mac.Sum(nil)),
+		Mac:                  base64.StdEncoding.EncodeToString(macSum),
 		MacKey:               base64.StdEncoding.EncodeToString(hmacKey),
 		ProfileIdentifier:    "ProfileVersion1",
 	}, nil

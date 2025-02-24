@@ -2,15 +2,13 @@ package graphBetaMacOSPKGApp
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -49,22 +47,20 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		baseApp.SetCategories(categories)
 	}
 
-	if !data.LargeIcon.IsNull() {
+	if data.LargeIcon != nil {
 		largeIcon := graphmodels.NewMimeContent()
-		var iconData map[string]attr.Value
-		data.LargeIcon.As(ctx, &iconData, basetypes.ObjectAsOptions{})
 
-		iconType := "image/png"
-		largeIcon.SetTypeEscaped(&iconType)
-
-		if valueVal, ok := iconData["value"].(types.String); ok {
-			iconBytes, err := base64.StdEncoding.DecodeString(valueVal.ValueString())
+		iconPath := data.LargeIcon.Value.ValueString()
+		if iconPath != "" {
+			iconBytes, err := os.ReadFile(iconPath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to decode icon base64: %v", err)
+				return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
 			}
+			iconType := "image/png"
+			largeIcon.SetTypeEscaped(&iconType)
 			largeIcon.SetValue(iconBytes)
+			baseApp.SetLargeIcon(largeIcon)
 		}
-		baseApp.SetLargeIcon(largeIcon)
 	}
 
 	// Set MacOS PKG specific properties
