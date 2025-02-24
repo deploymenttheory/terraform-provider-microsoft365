@@ -2,7 +2,6 @@ package graphBetaMacOSPKGApp
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -45,9 +44,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+		// Only store the type information in the state
+		// The actual image content is not stored in the state at all
 		data.LargeIcon = &LargeIconResourceModel{
-			Type:  state.StringValue(state.StringPtrToString(largeIcon.GetTypeEscaped())),
-			Value: state.StringValue(base64.StdEncoding.EncodeToString(largeIcon.GetValue())),
+			Type: types.StringPointerValue(largeIcon.GetTypeEscaped()),
+			// The Value field must still be present but can be marked as unknown
+			// This signals to Terraform that a value exists but is not included in the state
+			Value: types.StringUnknown(),
 		}
 	} else {
 		data.LargeIcon = nil
