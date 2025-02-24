@@ -303,29 +303,46 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	// resource, err := r.client.
-	// 	DeviceAppManagement().
-	// 	MobileApps().
-	// 	ByMobileAppId(object.ID.ValueString()).
-	// 	Get(ctx, nil)
+	resource, err := r.client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-	// 	return
-	// }
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
 
 	// This ensures type safety as the Graph API returns a base interface that needs
-	// to be converted to the specific app type to access WinGetApp-specific fields.
-	// winGetApp, ok := resource.(graphmodels.WinGetAppable)
-	// if !ok {
-	// 	resp.Diagnostics.AddError(
-	// 		"Resource type mismatch",
-	// 		fmt.Sprintf("Expected resource of type WinGetAppable but got %T", resource),
-	// 	)
-	// 	return
-	// }
+	// to be converted to the specific app type
+	macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Resource type mismatch",
+			fmt.Sprintf("Expected resource of type MacOSPkgAppable but got %T", resource),
+		)
+		return
+	}
 
-	//MapRemoteResourceStateToTerraform(ctx, &object, winGetApp)
+	MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
+
+	// If installer file source is provided, get content versions.
+	// if !object.MacOSPkgApp.PackageInstallerFileSource.IsNull() {
+	// 	contentVersions, err := r.client.
+	// 		DeviceAppManagement().
+	// 		MobileApps().
+	// 		ByMobileAppId(object.ID.ValueString()).
+	// 		GraphMacOSPkgApp().
+	// 		ContentVersions().
+	// 		Get(ctx, nil)
+	// 	if err != nil {
+	// 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+	// 		return
+	// 	}
+
+	// 	MapContentVersionsToState(ctx, &object, contentVersions)
+	// }
 
 	respAssignments, err := r.client.
 		DeviceAppManagement().
@@ -338,7 +355,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Only map assignments if there are any assignments returned and the object has an assignments block
 	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
 		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
 		sharedstater.StateMobileAppAssignment(ctx, object.Assignments, respAssignments)

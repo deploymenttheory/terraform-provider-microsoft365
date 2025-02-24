@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math"
@@ -17,14 +18,45 @@ import (
 )
 
 const (
-	blockSize          = 4 * 1024 * 1024  // 4 MiB chunks
+	blockSize          = 8 * 1024 * 1024  // 8 MiB chunks
 	blockUploadTimeout = 60 * time.Second // Individual block upload timeout
 	retryMaxAttempts   = 3                // Number of retry attempts per block
 	retryMinWait       = 5 * time.Second  // Minimum wait between retries
 	retryMaxWait       = 10 * time.Second // Maximum wait between retries
 )
 
-// uploadToAzureStorage handles chunked upload of large files to Azure Storage
+// uploadToAzureStorage handles the chunked upload of large files to Azure Blob Storage.
+//
+// This function implements a block blob upload strategy that:
+//  1. Opens the source file and retrieves its metadata
+//  2. Divides the file into 8 MiB blocks for optimal upload performance
+//  3. Uploads each block independently with retry capabilities
+//  4. Commits the block list to finalize the blob
+//
+// # Implementation details
+//   - Block size: Uses 8 MiB blocks, which balances memory usage with performance for Azure Storage
+//   - Block ID generation: Creates base64-encoded block identifiers using binary representation
+//   - HTTP headers: Sets the required "x-ms-blob-type" header with "BlockBlob" value
+//   - XML formatting: Constructs proper XML block list for the final commit operation
+//
+// # Logging capabilities
+//   - Progress reporting with percentage completion
+//   - Upload speed metrics in MB/s
+//   - Time remaining estimates
+//   - Block-level success/failure information
+//
+// # Error handling
+//   - Context-aware timeouts for individual block uploads
+//   - Configurable retry logic for transient failures
+//   - Detailed error reporting with response status codes and message bodies
+//   - Proper HTTP connection cleanup
+//
+// Parameters:
+//   - ctx: Context for timeout and cancellation control
+//   - sasUri: Azure Storage SAS URI with write permissions for the target blob
+//   - filePath: Path to the local file to be uploaded
+//
+// Returns an error if the upload fails at any stage, with details about the failure.
 func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -37,6 +69,8 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		return fmt.Errorf("failed to get file info: %v", err)
 	}
 
+	// Match PowerShell block size (8 MiB)
+	blockSize := 8 * 1024 * 1024
 	totalBlocks := int(math.Ceil(float64(fileInfo.Size()) / float64(blockSize)))
 	blockList := []string{}
 	buffer := make([]byte, blockSize)
@@ -54,8 +88,10 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	startTime := time.Now()
 
 	for blockNum := 0; blockNum < totalBlocks; blockNum++ {
-		// Create block ID
-		blockID := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%07d", blockNum)))
+		// Match PowerShell's BitConverter.GetBytes approach for block ID
+		blockIDBytes := make([]byte, 4)
+		binary.LittleEndian.PutUint32(blockIDBytes, uint32(blockNum))
+		blockID := base64.StdEncoding.EncodeToString(blockIDBytes)
 
 		// Read file chunk
 		n, err := file.Read(buffer)
@@ -80,12 +116,6 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		// Create block URL with SAS token
 		blockURL := fmt.Sprintf("%s&comp=block&blockid=%s", sasUri, blockID)
 
-		// Configure retry with backoff
-		// retryConfig := retry.BackoffConfig{
-		// 	MinTimeout: retryMinWait,
-		// 	MaxTimeout: retryMaxWait,
-		// }
-
 		// Upload block with retry logic
 		err = retry.RetryContext(ctx, blockUploadTimeout, func() *retry.RetryError {
 			// Create new timeout context for each attempt
@@ -101,8 +131,8 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 				return retry.NonRetryableError(err)
 			}
 
+			// Only set this header, exactly matching PowerShell
 			req.Header.Set("x-ms-blob-type", "BlockBlob")
-			req.Header.Set("Content-Length", fmt.Sprintf("%d", n))
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
@@ -153,9 +183,14 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		"elapsed_time":  time.Since(startTime).Round(time.Second).String(),
 	})
 
-	// Commit block list
+	// Build block list XML similar to PowerShell's XDocument approach
+	var blockListElements []string
+	for _, blockID := range blockList {
+		blockListElements = append(blockListElements, fmt.Sprintf("<Latest>%s</Latest>", blockID))
+	}
+
 	blockListXML := fmt.Sprintf(`<?xml version="1.0" encoding="utf-8"?><BlockList>%s</BlockList>`,
-		strings.Join(blockList, ""))
+		strings.Join(blockListElements, ""))
 
 	commitURL := fmt.Sprintf("%s&comp=blocklist", sasUri)
 
@@ -167,6 +202,9 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	if err != nil {
 		return fmt.Errorf("failed to create commit request: %v", err)
 	}
+
+	// Only set Content-Type header for XML - PowerShell doesn't set other headers
+	req.Header.Set("Content-Type", "application/xml")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

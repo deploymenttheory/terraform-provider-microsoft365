@@ -34,10 +34,9 @@ type MacOSPKGAppResourceModel struct {
 	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
 	Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
 	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
-
-	// App type specific blocks
-	MacOSPkgApp *MacOSPkgAppResourceModel `tfsdk:"macos_pkg_app"`
-	Timeouts    timeouts.Value            `tfsdk:"timeouts"`
+	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
+	//ContentVersion        ContentVersionResourceModel                     `tfsdk:"content_version"`
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
 // MobileAppCategoryResourceModel represents the Terraform resource model for a Mobile App Category
@@ -104,17 +103,27 @@ type MacOSAppScriptResourceModel struct {
 	ScriptContent types.String `tfsdk:"script_content"` // Base64 encoded shell script
 }
 
-// WinGetApp
-
-// WinGetAppResourceModel represents the Terraform resource model for a WinGetApp
-type WinGetAppResourceModel struct {
-	AutomaticallyGenerateMetadata types.Bool                               `tfsdk:"automatically_generate_metadata"`
-	InstallExperience             *WinGetAppInstallExperienceResourceModel `tfsdk:"install_experience"`
-	ManifestHash                  types.String                             `tfsdk:"manifest_hash"`
-	PackageIdentifier             types.String                             `tfsdk:"package_identifier"`
+// ContentVersionResourceModel defines the state structure for a content version.
+type ContentVersionResourceModel struct {
+	ContentVersionId types.String               `tfsdk:"content_version_id"`
+	FileCount        types.Int64                `tfsdk:"file_count"`
+	Files            []ContentFileResourceModel `tfsdk:"files"`
 }
 
-// WinGetAppInstallExperienceModel represents the install experience structure
-type WinGetAppInstallExperienceResourceModel struct {
-	RunAsAccount types.String `tfsdk:"run_as_account"`
+// ContentFileResourceModel defines the state structure for a file in a content version.
+type ContentFileResourceModel struct {
+	Id                        types.String `tfsdk:"id"`
+	Name                      types.String `tfsdk:"name"`
+	IsDependency              types.Bool   `tfsdk:"is_dependency"`
+	IsCommitted               types.Bool   `tfsdk:"is_committed"`
+	Size                      types.Int64  `tfsdk:"size"`
+	SizeEncrypted             types.Int64  `tfsdk:"size_encrypted"`
+	UploadState               types.String `tfsdk:"upload_state"`
+	CreatedDateTime           types.String `tfsdk:"created_date_time"`
+	AzureStorageUri           types.String `tfsdk:"azure_storage_uri"`
+	AzureStorageUriExpiration types.String `tfsdk:"azure_storage_uri_expiration"`
+	IsFrameworkFile           types.Bool   `tfsdk:"is_framework_file"`
+	Manifest                  types.String `tfsdk:"manifest"`
+	SizeEncryptedInBytes      types.Int64  `tfsdk:"size_encrypted_in_bytes"`
+	SizeInBytes               types.Int64  `tfsdk:"size_in_bytes"`
 }
