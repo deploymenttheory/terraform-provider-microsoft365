@@ -93,27 +93,16 @@ func pkcs7Pad(data []byte, blockSize int) []byte {
 	return append(data, padText...)
 }
 
-// encryptFile encrypts the source file using AES-CBC with PKCS7 padding.
-// It writes a 32-byte HMAC placeholder, then the IV, then the encrypted data.
-// After encrypting, it computes the HMAC over the IV and ciphertext, and writes it in the placeholder.
+// encryptFile encrypts the source file using AES-CBC for Intune file upload.
+// The encrypted file structure is:
+// - HMAC-SHA256 MAC (32 bytes) - calculated over the rest of the file
+// - AES Initialization Vector (16 bytes)
+// - Encrypted Content (variable length) - using AES-CBC
 func encryptFile(sourcePath string) (*EncryptionInfo, error) {
 	// Generate AES key (32 bytes for 256-bit key)
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
 		return nil, fmt.Errorf("failed to generate AES key: %v", err)
-	}
-
-	// Create AES cipher block
-	aesCipher, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AES cipher: %v", err)
-	}
-	blockSize := aesCipher.BlockSize() // should be 16 bytes
-
-	// Generate IV (same length as block size)
-	iv := make([]byte, blockSize)
-	if _, err := rand.Read(iv); err != nil {
-		return nil, fmt.Errorf("failed to generate IV: %v", err)
 	}
 
 	// Generate HMAC key (32 bytes)
@@ -122,103 +111,186 @@ func encryptFile(sourcePath string) (*EncryptionInfo, error) {
 		return nil, fmt.Errorf("failed to generate HMAC key: %v", err)
 	}
 
-	// Read source file data
-	sourceData, err := os.ReadFile(sourcePath)
+	// Create AES cipher block
+	aesCipher, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %v", err)
+		return nil, fmt.Errorf("failed to create AES cipher: %v", err)
 	}
 
-	// Calculate SHA256 digest of the source data
-	sourceHash := sha256.Sum256(sourceData)
+	// Generate random IV (16 bytes for AES)
+	iv := make([]byte, aesCipher.BlockSize())
+	if _, err := rand.Read(iv); err != nil {
+		return nil, fmt.Errorf("failed to generate IV: %v", err)
+	}
 
-	// Apply PKCS7 padding to the source data
-	paddedData := pkcs7Pad(sourceData, blockSize)
-
-	// Create encrypted file (same as sourcePath+".bin")
-	encryptedPath := sourcePath + ".bin"
-	encrypted, err := os.Create(encryptedPath)
+	// Read source file for hash calculation
+	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
+		return nil, fmt.Errorf("failed to open source file: %v", err)
+	}
+
+	// Calculate SHA256 digest of the source file
+	sourceHash := sha256.New()
+	if _, err := io.Copy(sourceHash, sourceFile); err != nil {
+		sourceFile.Close()
+		return nil, fmt.Errorf("failed to calculate source file hash: %v", err)
+	}
+	fileDigest := sourceHash.Sum(nil)
+
+	// Reset to beginning of file for encryption
+	if _, err := sourceFile.Seek(0, io.SeekStart); err != nil {
+		sourceFile.Close()
+		return nil, fmt.Errorf("failed to seek source file: %v", err)
+	}
+
+	// Create encrypted file
+	encryptedPath := sourcePath + ".bin"
+	encryptedFile, err := os.Create(encryptedPath)
+	if err != nil {
+		sourceFile.Close()
 		return nil, fmt.Errorf("failed to create encrypted file: %v", err)
 	}
-	// Ensure the file is closed later
-	defer encrypted.Close()
 
-	// Write a 32-byte placeholder for the HMAC (SHA256 produces 32 bytes)
+	// Reserve space for the HMAC (32 bytes)
 	hmacPlaceholder := make([]byte, 32)
-	if _, err := encrypted.Write(hmacPlaceholder); err != nil {
+	if _, err := encryptedFile.Write(hmacPlaceholder); err != nil {
+		sourceFile.Close()
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to write HMAC placeholder: %v", err)
 	}
 
 	// Write the IV
-	if _, err := encrypted.Write(iv); err != nil {
+	if _, err := encryptedFile.Write(iv); err != nil {
+		sourceFile.Close()
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to write IV: %v", err)
 	}
 
-	// Encrypt the padded data using AES-CBC
-	mode := cipher.NewCBCEncrypter(aesCipher, iv)
-	encryptedData := make([]byte, len(paddedData))
-	mode.CryptBlocks(encryptedData, paddedData)
+	// Create CBC encrypter
+	blockMode := cipher.NewCBCEncrypter(aesCipher, iv)
 
-	// Write the encrypted data
-	if _, err := encrypted.Write(encryptedData); err != nil {
-		return nil, fmt.Errorf("failed to write encrypted data: %v", err)
+	// Create a streaming crypto writer for encryption
+	// We use a custom writer that performs PKCS7 padding and AES-CBC encryption
+	cryptoWriter := &cbcPaddingWriter{
+		blockMode: blockMode,
+		writer:    encryptedFile,
+		blockSize: aesCipher.BlockSize(),
 	}
 
-	// At this point the file layout is:
-	// [0..31]       : Placeholder for HMAC (32 bytes)
-	// [32..(32+blockSize-1)]: IV
-	// [remaining]   : Encrypted data
+	// Copy the source file to the crypto writer (encrypting in the process)
+	if _, err := io.Copy(cryptoWriter, sourceFile); err != nil {
+		sourceFile.Close()
+		encryptedFile.Close()
+		return nil, fmt.Errorf("failed to encrypt file: %v", err)
+	}
 
-	// Flush file writes (by closing and reopening for reading)
-	if err := encrypted.Sync(); err != nil {
+	// Flush the final padded block
+	if err := cryptoWriter.Close(); err != nil {
+		sourceFile.Close()
+		encryptedFile.Close()
+		return nil, fmt.Errorf("failed to finalize encryption: %v", err)
+	}
+
+	sourceFile.Close()
+
+	// Flush writes to ensure all data is on disk
+	if err := encryptedFile.Sync(); err != nil {
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to sync encrypted file: %v", err)
 	}
 
-	// Reopen the file for reading the portion for HMAC calculation.
-	// We need to read from offset 32 until end.
-	encryptedForHMAC, err := os.Open(encryptedPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open encrypted file for HMAC: %v", err)
-	}
-	defer encryptedForHMAC.Close()
-
-	// Seek to offset 32 (skip the HMAC placeholder)
-	if _, err := encryptedForHMAC.Seek(32, io.SeekStart); err != nil {
+	// Calculate HMAC over the IV and encrypted content
+	// Reset file position to after the HMAC placeholder
+	if _, err := encryptedFile.Seek(32, io.SeekStart); err != nil {
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to seek for HMAC calculation: %v", err)
 	}
 
-	// Compute HMAC over the IV and encrypted data
-	hmacHash := hmac.New(sha256.New, hmacKey)
-	if _, err := io.Copy(hmacHash, encryptedForHMAC); err != nil {
+	// Initialize HMAC calculator
+	hmacCalculator := hmac.New(sha256.New, hmacKey)
+
+	// Read from the file to calculate HMAC (IV + encrypted content)
+	if _, err := io.Copy(hmacCalculator, encryptedFile); err != nil {
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to calculate HMAC: %v", err)
 	}
-	macSum := hmacHash.Sum(nil)
 
-	// Open the file again for writing the computed HMAC in place of the placeholder.
-	encryptedForWrite, err := os.OpenFile(encryptedPath, os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open encrypted file for writing HMAC: %v", err)
-	}
-	defer encryptedForWrite.Close()
+	mac := hmacCalculator.Sum(nil)
 
-	// Write the computed HMAC at the beginning of the file.
-	if _, err := encryptedForWrite.Seek(0, io.SeekStart); err != nil {
+	// Write the HMAC at the beginning of the file
+	if _, err := encryptedFile.Seek(0, io.SeekStart); err != nil {
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to seek to start for writing HMAC: %v", err)
 	}
-	if _, err := encryptedForWrite.Write(macSum); err != nil {
+
+	if _, err := encryptedFile.Write(mac); err != nil {
+		encryptedFile.Close()
 		return nil, fmt.Errorf("failed to write HMAC: %v", err)
 	}
 
-	// Return the encryption metadata in the same format as the PowerShell script.
+	encryptedFile.Close()
+
+	// Return the encryption metadata
 	return &EncryptionInfo{
 		EncryptionKey:        base64.StdEncoding.EncodeToString(key),
-		FileDigest:           base64.StdEncoding.EncodeToString(sourceHash[:]),
+		FileDigest:           base64.StdEncoding.EncodeToString(fileDigest),
 		FileDigestAlgorithm:  "SHA256",
 		InitializationVector: base64.StdEncoding.EncodeToString(iv),
-		Mac:                  base64.StdEncoding.EncodeToString(macSum),
+		Mac:                  base64.StdEncoding.EncodeToString(mac),
 		MacKey:               base64.StdEncoding.EncodeToString(hmacKey),
 		ProfileIdentifier:    "ProfileVersion1",
 	}, nil
+}
+
+// cbcPaddingWriter is a writer that performs PKCS7 padding and AES-CBC encryption
+type cbcPaddingWriter struct {
+	blockMode cipher.BlockMode
+	writer    io.Writer
+	buffer    []byte
+	blockSize int
+}
+
+// Write encrypts and writes data
+func (w *cbcPaddingWriter) Write(p []byte) (int, error) {
+	// Add incoming data to buffer
+	w.buffer = append(w.buffer, p...)
+
+	// Process complete blocks
+	blocksToProcess := len(w.buffer) / w.blockSize
+	if blocksToProcess > 0 {
+		// Get the blocks that can be processed
+		toProcess := w.buffer[:blocksToProcess*w.blockSize]
+
+		// Encrypt the blocks
+		encrypted := make([]byte, len(toProcess))
+		w.blockMode.CryptBlocks(encrypted, toProcess)
+
+		// Write the encrypted blocks
+		if _, err := w.writer.Write(encrypted); err != nil {
+			return 0, err
+		}
+
+		// Keep remaining bytes in buffer
+		w.buffer = w.buffer[blocksToProcess*w.blockSize:]
+	}
+
+	return len(p), nil
+}
+
+// Close adds padding to the last block and writes it
+func (w *cbcPaddingWriter) Close() error {
+	// Apply PKCS7 padding to the remaining data
+	padding := w.blockSize - (len(w.buffer) % w.blockSize)
+	padBytes := bytes.Repeat([]byte{byte(padding)}, padding)
+	paddedData := append(w.buffer, padBytes...)
+
+	// Encrypt the final padded block
+	encrypted := make([]byte, len(paddedData))
+	w.blockMode.CryptBlocks(encrypted, paddedData)
+
+	// Write the final encrypted block
+	_, err := w.writer.Write(encrypted)
+	return err
 }
 
 // NewEncryptedIntuneMobileAppFileUpload creates a commit request for an encrypted Intune application file
