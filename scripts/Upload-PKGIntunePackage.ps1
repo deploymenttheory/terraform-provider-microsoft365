@@ -262,20 +262,16 @@ function Update-AppIcon {
 }
 
 # Function to encrypt file using AES encryption for Intune upload
-# Microsoft Intune uses a specific encryption format for application packages uploaded to the service. This document outlines the binary structure and cryptographic algorithms used.
-# Encryption Structure
+# Microsoft Intune uses a specific encryption format for application packages uploaded to the service. 
+# This outlines the binary structure and cryptographic algorithms used.
 # The encrypted file is structured as follows:
-
 # - HMAC-SHA256 MAC (32 bytes)
 # Message Authentication Code for integrity verification
 # Computed over the remainder of the file after this field
-
 # - AES Initialization Vector (16 bytes)
 # Random IV used for AES-CBC encryption
-
 # - Encrypted Content (variable length)
 # The original file encrypted using AES-CBC mode
-
 # Cryptographic Algorithms
 # Encryption: AES-256 in CBC mode
 # Integrity: HMAC-SHA256
