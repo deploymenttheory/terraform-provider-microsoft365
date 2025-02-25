@@ -469,6 +469,7 @@ function Upload-FileToAzureStorage {
     Write-Host "✅ Upload completed successfully" -ForegroundColor Green
 }
 
+
 # Function to get app logo for Intune app
 function Get-AppLogo {
     param (
@@ -488,20 +489,8 @@ function Get-AppLogo {
             Write-Host "Using local logo file: $LocalLogoPath" -ForegroundColor Gray
         }
         else {
-            # Try to download from repository
-            $logoFileName = $AppName.ToLower().Replace(" ", "_") + ".png"
-            $logoUrl = "https://raw.githubusercontent.com/ugurkocde/IntuneBrew/main/Logos/$logoFileName"
-            Write-Host "Downloading logo from: $logoUrl" -ForegroundColor Gray
-            
-            # Download the logo
-            $tempLogoPath = Join-Path $PWD "temp_logo.png"
-            try {
-                Invoke-WebRequest -Uri $logoUrl -OutFile $tempLogoPath
-            }
-            catch {
-                Write-Host "⚠️ Could not download logo from repository. Error: $_" -ForegroundColor Yellow
-                return $null
-            }
+            Write-Host "⚠️ No valid logo file available" -ForegroundColor Yellow
+            return $null
         }
         
         if (-not $tempLogoPath -or -not (Test-Path $tempLogoPath)) {
@@ -582,7 +571,7 @@ function Publish-IntunePackage {
         }
         
         $fileName = [System.IO.Path]::GetFileName($PkgFilePath)
-        $appType = "macOSPkgApp"
+        $appType = "macOSLobApp"
         
         Write-Host "`n📋 Application Details:" -ForegroundColor Cyan
         Write-Host "   • Display Name: $AppDisplayName" -ForegroundColor Cyan
@@ -593,31 +582,40 @@ function Publish-IntunePackage {
         Write-Host "   • File: $fileName" -ForegroundColor Cyan
         
         # Step 1: Create the app in Intune
-        Write-Host "`n🔄 Creating macOS app (PKG) in Intune..." -ForegroundColor Yellow
+        Write-Host "`n🔄 Creating macOS Line-of-business app (PKG) in Intune..." -ForegroundColor Yellow
         
         $app = @{
-            "@odata.type"                   = "#microsoft.graph.$appType"
-            displayName                     = $AppDisplayName
-            description                     = $AppDescription
-            publisher                       = $AppPublisher
-            fileName                        = $fileName
-            packageIdentifier               = $AppBundleId
-            bundleId                        = $AppBundleId
-            versionNumber                   = $AppVersion
-            primaryBundleId                 = $AppBundleId
-            primaryBundleVersion            = $AppVersion
-            minimumSupportedOperatingSystem = @{
-                "@odata.type" = "#microsoft.graph.macOSMinimumOperatingSystem"
-                v11_0         = $true
-            }
-            includedApps                    = @(
-                @{
-                    "@odata.type" = "#microsoft.graph.macOSIncludedApp"
-                    bundleId      = $AppBundleId
-                    bundleVersion = $AppVersion
-                }
-            )
+    "@odata.type"                   = "#microsoft.graph.$appType"
+    displayName                     = $AppDisplayName
+    description                     = $AppDescription
+    publisher                       = $AppPublisher
+    fileName                        = $fileName
+    packageIdentifier               = $AppBundleId
+    bundleId                        = $AppBundleId
+    #versionNumber                   = $AppVersion
+    buildNumber                     = $AppVersion
+    primaryBundleId                 = $AppBundleId
+    primaryBundleVersion            = $AppVersion
+    minimumSupportedOperatingSystem = @{
+        "@odata.type" = "#microsoft.graph.macOSMinimumOperatingSystem"
+        v11_0         = $true
+    }
+    includedApps                    = @(
+        @{
+            "@odata.type" = "#microsoft.graph.macOSIncludedApp"
+            bundleId      = $AppBundleId
+            bundleVersion = $AppVersion
         }
+    )
+    # Add childApps array with at least one app
+    childApps                       = @(
+        @{
+            "@odata.type" = "#microsoft.graph.macOSLobChildApp"
+            bundleId      = $AppBundleId
+            buildVersion  = $AppVersion
+        }
+    )
+}
         
         $newApp = New-IntuneApp -AppData $app
         $appId = $newApp.id

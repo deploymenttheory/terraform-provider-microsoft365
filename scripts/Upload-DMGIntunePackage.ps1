@@ -17,9 +17,9 @@ param (
     [string]$ClientSecret,
     
     [Parameter(Mandatory=$true,
-    HelpMessage="Path to the PKG file to upload")]
+    HelpMessage="Path to the DMG file to upload")]
     [ValidateNotNullOrEmpty()]
-    [string]$PkgFilePath,
+    [string]$DmgFilePath,
     
     [Parameter(Mandatory=$true,
     HelpMessage="Display name for the application")]
@@ -537,11 +537,11 @@ Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $Tenan
 
 # Add your main script functionality here
 
-# Main function to upload a PKG file to Intune
+# Main function to upload a DMG file to Intune
 function Publish-IntunePackage {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$PkgFilePath,
+        [string]$DmgFilePath,
         
         [Parameter(Mandatory=$true)]
         [string]$AppDisplayName,
@@ -563,13 +563,13 @@ function Publish-IntunePackage {
     )
     
     try {
-        # Validate file exists and is PKG
-        if (-not (Test-Path $PkgFilePath)) {
-            throw "PKG file not found: $PkgFilePath"
+        # Validate file exists and is DMG
+        if (-not (Test-Path $DmgFilePath)) {
+            throw "DMG file not found: $DmgFilePath"
         }
         
-        if (-not $PkgFilePath.ToLower().EndsWith('.pkg')) {
-            throw "File must be a PKG file: $PkgFilePath"
+        if (-not $DmgFilePath.ToLower().EndsWith('.dmg')) {
+            throw "File must be a DMG file: $DmgFilePath"
         }
         
         # Set defaults if not provided
@@ -581,8 +581,8 @@ function Publish-IntunePackage {
             $AppPublisher = $AppDisplayName
         }
         
-        $fileName = [System.IO.Path]::GetFileName($PkgFilePath)
-        $appType = "macOSPkgApp"
+        $fileName = [System.IO.Path]::GetFileName($DmgFilePath)
+        $appType = "macOSDmgApp"
         
         Write-Host "`n📋 Application Details:" -ForegroundColor Cyan
         Write-Host "   • Display Name: $AppDisplayName" -ForegroundColor Cyan
@@ -593,7 +593,7 @@ function Publish-IntunePackage {
         Write-Host "   • File: $fileName" -ForegroundColor Cyan
         
         # Step 1: Create the app in Intune
-        Write-Host "`n🔄 Creating macOS app (PKG) in Intune..." -ForegroundColor Yellow
+        Write-Host "`n🔄 Creating macOS app (DMG) in Intune..." -ForegroundColor Yellow
         
         $app = @{
             "@odata.type"                   = "#microsoft.graph.$appType"
@@ -631,11 +631,11 @@ function Publish-IntunePackage {
         
         # Step 3: Encrypt the file
         Write-Host "`n🔐 Encrypting application file..." -ForegroundColor Yellow
-        $encryptedFilePath = "$PkgFilePath.bin"
+        $encryptedFilePath = "$DmgFilePath.bin"
         if (Test-Path $encryptedFilePath) {
             Remove-Item $encryptedFilePath -Force
         }
-        $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $PkgFilePath
+        $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $DmgFilePath
         Write-Host "✅ Encryption complete" -ForegroundColor Green
         
         # Step 4: Create content file
@@ -643,8 +643,8 @@ function Publish-IntunePackage {
         $fileContent = @{
             "@odata.type" = "#microsoft.graph.mobileAppContentFile"
             name          = $fileName
-            size          = (Get-Item $PkgFilePath).Length
-            sizeEncrypted = (Get-Item "$PkgFilePath.bin").Length
+            size          = (Get-Item $DmgFilePath).Length
+            sizeEncrypted = (Get-Item "$DmgFilePath.bin").Length
             isDependency  = $false
         }
         
@@ -674,7 +674,7 @@ function Publish-IntunePackage {
         Write-Host "✅ Azure Storage URI received" -ForegroundColor Green
         
         # Step 6: Upload file to Azure Storage
-        Upload-FileToAzureStorage -SasUri $fileStatus.azureStorageUri -FilePath "$PkgFilePath.bin"
+        Upload-FileToAzureStorage -SasUri $fileStatus.azureStorageUri -FilePath "$DmgFilePath.bin"
         
         # Step 7: Commit the file
         Write-Host "`n🔄 Committing file..." -ForegroundColor Yellow
@@ -728,8 +728,8 @@ function Publish-IntunePackage {
         
         # Step 11: Clean up temporary files
         Write-Host "`n🧹 Cleaning up temporary files..." -ForegroundColor Yellow
-        if (Test-Path "$PkgFilePath.bin") {
-            Remove-Item "$PkgFilePath.bin" -Force
+        if (Test-Path "$DmgFilePath.bin") {
+            Remove-Item "$DmgFilePath.bin" -Force
         }
         Write-Host "✅ Cleanup complete" -ForegroundColor Green
         
@@ -747,10 +747,10 @@ function Publish-IntunePackage {
 
 # Call the Publish-IntunePackage function with the parameters provided
 try {
-    Write-Host "`n📦 Starting PKG upload process..." -ForegroundColor Cyan
+    Write-Host "`n📦 Starting DMG upload process..." -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     
-    Publish-IntunePackage -PkgFilePath $PkgFilePath `
+    Publish-IntunePackage -DMGFilePath $DmgFilePath `
                           -AppDisplayName $AppDisplayName `
                           -AppVersion $AppVersion `
                           -AppBundleId $AppBundleId `
@@ -758,10 +758,10 @@ try {
                           -AppPublisher $AppPublisher `
                           -LogoFilePath $LogoFilePath
 
-    Write-Host "`n🎉 PKG upload process completed successfully!" -ForegroundColor Green
+    Write-Host "`n🎉 DMG upload process completed successfully!" -ForegroundColor Green
 }
 catch {
-    Write-Host "`n❌ PKG upload process failed: $_" -ForegroundColor Red
+    Write-Host "`n❌ DMG upload process failed: $_" -ForegroundColor Red
     Disconnect-MgGraph > $null 2>&1
     exit 1
 }
