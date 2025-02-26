@@ -178,11 +178,15 @@ func validateSpecialTargetTypes(index int, assignment sharedmodels.MobileAppAssi
 
 // validateRestartSettings validates the relationships between restart timing settings
 func validateRestartSettings(index int, assignment sharedmodels.MobileAppAssignmentResourceModel) error {
+	if assignment.Settings == nil {
+		return nil
+	}
+
 	// Check WinGet restart settings
 	if assignment.Settings.WinGet != nil && assignment.Settings.WinGet.RestartSettings != nil {
 		rs := assignment.Settings.WinGet.RestartSettings
 		if rs.GracePeriodInMinutes.IsNull() || rs.CountdownDisplayBeforeRestartInMinutes.IsNull() || rs.RestartNotificationSnoozeDurationInMinutes.IsNull() {
-			return nil // Skip validation if any values are null
+			return nil
 		}
 
 		gracePeriod := rs.GracePeriodInMinutes.ValueInt32()
