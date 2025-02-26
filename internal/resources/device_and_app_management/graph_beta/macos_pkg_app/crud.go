@@ -17,7 +17,29 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
+// Create handles the complete creation workflow for a macOS PKG app resource in Intune.
+//
+// The function performs the following steps:
+//
+// 1. Reads the planned resource state from Terraform.
+// 2. Constructs and creates the base resource from the Terraform model.
+//
+// If a package installer file is provided, the workflow continues as follows:
+//
+//  3. Initializes a new content version.
+//  4. Encrypts the installer file locally (producing a .bin file) and constructs the file metadata,
+//     including file size, encrypted file size, and encryption metadata (keys, digest, IV, MAC, etc.).
+//  5. Creates a content file resource (with the metadata) in Graph API under the new content version.
+//  6. Waits (via a retry loop using GET) for the Graph API to generate a valid Azure Storage SAS URI for the content file.
+//  7. Retrieves the SAS URI and uploads the encrypted file (.bin) directly to Azure Blob Storage in chunks.
+//  8. Commits the file by sending a commit request (including the encryption metadata) to Graph API,
+//     and waits until the commit is confirmed.
+//  9. Updates the mobile app resource (via a PATCH call) to set its committedContentVersion, so that
+//     Intune uses the newly committed content file.
+//  10. Assigns any mobile app assignments to the mobile app
+//
+// Finally, if app assignments are provided, the function creates the assignments, and then
+// performs a final read of the resource state to verify successful creation.
 func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MacOSPKGAppResourceModel
 
@@ -77,7 +99,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
 
-		// Step 3 & 4: Encrypt file and create content file metadata resource
+		// Step 3 Encrypt mobile app file and output file and encryption metadata
 		tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
 		contentFile, encryptionInfo, err := encryptMobileAppAndConstructFileContentMetadata(ctx, object.MacOSPkgApp.PackageInstallerFileSource.ValueString())
 		if err != nil {
