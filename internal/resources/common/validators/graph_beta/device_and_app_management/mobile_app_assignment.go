@@ -116,23 +116,25 @@ func validateAssignmentOrdering(config []sharedmodels.MobileAppAssignmentResourc
 // validateInstallTimeSettings checks if install_time_settings is set when intent is "available"
 func validateInstallTimeSettings(index int, assignment sharedmodels.MobileAppAssignmentResourceModel) error {
 	if !assignment.Intent.IsNull() && assignment.Intent.ValueString() == "available" {
-		if assignment.Settings.WinGet != nil && assignment.Settings.WinGet.InstallTimeSettings != nil {
-			return fmt.Errorf(
-				"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
-				index,
-			)
-		}
-		if assignment.Settings.Win32Lob != nil && assignment.Settings.Win32Lob.InstallTimeSettings != nil {
-			return fmt.Errorf(
-				"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
-				index,
-			)
-		}
-		if assignment.Settings.Win32Catalog != nil && assignment.Settings.Win32Catalog.InstallTimeSettings != nil {
-			return fmt.Errorf(
-				"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
-				index,
-			)
+		if assignment.Settings != nil {
+			if assignment.Settings.WinGet != nil && assignment.Settings.WinGet.InstallTimeSettings != nil {
+				return fmt.Errorf(
+					"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
+					index,
+				)
+			}
+			if assignment.Settings.Win32Lob != nil && assignment.Settings.Win32Lob.InstallTimeSettings != nil {
+				return fmt.Errorf(
+					"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
+					index,
+				)
+			}
+			if assignment.Settings.Win32Catalog != nil && assignment.Settings.Win32Catalog.InstallTimeSettings != nil {
+				return fmt.Errorf(
+					"assignment[%d]: install_time_settings cannot be set when intent is 'available'",
+					index,
+				)
+			}
 		}
 	}
 	return nil
