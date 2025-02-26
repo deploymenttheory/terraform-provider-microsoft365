@@ -89,60 +89,64 @@ func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementA
 	return target
 }
 
-// mapRemoteSettingsToTerraform maps a remote assignment settings to a Terraform assignment settings
-func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) sharedmodels.MobileAppAssignmentSettingsResourceModel {
+// Change return type from value to pointer
+func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) *sharedmodels.MobileAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{}
+		return nil
 	}
+
+	var settings sharedmodels.MobileAppAssignmentSettingsResourceModel
 
 	switch v := remoteSettings.(type) {
 	case *graphmodels.AndroidManagedStoreAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			AndroidManagedStore: mapAndroidManagedStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.IosLobAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			IosLob: mapIosLobSettingsToTerraform(v),
 		}
 	case *graphmodels.IosStoreAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			IosStore: mapIosStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.IosVppAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			IosVpp: mapIosVppSettingsToTerraform(v),
 		}
 	case *graphmodels.MacOsLobAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			MacOsLob: mapMacOsLobSettingsToTerraform(v),
 		}
 	case *graphmodels.MacOsVppAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			MacOsVpp: mapMacOsVppSettingsToTerraform(v),
 		}
 	case *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			MicrosoftStoreForBusiness: mapMicrosoftStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.Win32LobAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			Win32Lob: mapWin32LobSettingsToTerraform(v),
 		}
 	case *graphmodels.WindowsAppXAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			WindowsAppX: mapWindowsAppXSettingsToTerraform(v),
 		}
 	case *graphmodels.WindowsUniversalAppXAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			WindowsUniversalAppX: mapWindowsUniversalAppXSettingsToTerraform(v),
 		}
 	case *graphmodels.WinGetAppAssignmentSettings:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
 			WinGet: mapWinGetSettingsToTerraform(v),
 		}
 	default:
-		return sharedmodels.MobileAppAssignmentSettingsResourceModel{}
+		return nil
 	}
+
+	return &settings
 }
 
 // mapAndroidManagedStoreSettingsToTerraform maps an Android managed store settings to a Terraform assignment settings

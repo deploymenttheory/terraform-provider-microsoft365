@@ -478,7 +478,7 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							},
 						},
 						"win_get": schema.SingleNestedAttribute{
-							Required: true,
+							Optional: true,
 							Attributes: map[string]schema.Attribute{
 								"install_time_settings": schema.SingleNestedAttribute{
 									Optional: true,

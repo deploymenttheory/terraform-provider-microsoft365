@@ -4,12 +4,12 @@ package sharedmodels
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
 type MobileAppAssignmentResourceModel struct {
-	Id       types.String                             `tfsdk:"id"`
-	Intent   types.String                             `tfsdk:"intent"`
-	Target   AssignmentTargetResourceModel            `tfsdk:"target"`
-	Settings MobileAppAssignmentSettingsResourceModel `tfsdk:"settings"`
-	Source   types.String                             `tfsdk:"source"`
-	SourceId types.String                             `tfsdk:"source_id"`
+	Id       types.String                              `tfsdk:"id"`
+	Intent   types.String                              `tfsdk:"intent"`
+	Target   AssignmentTargetResourceModel             `tfsdk:"target"`
+	Settings *MobileAppAssignmentSettingsResourceModel `tfsdk:"settings"`
+	Source   types.String                              `tfsdk:"source"`
+	SourceId types.String                              `tfsdk:"source_id"`
 }
 
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-alldevicesassignmenttarget?view=graph-rest-beta

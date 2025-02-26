@@ -35,8 +35,7 @@ type MacOSPKGAppResourceModel struct {
 	Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
 	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
 	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
-	//ContentVersion        ContentVersionResourceModel                     `tfsdk:"content_version"`
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
+	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
 }
 
 type AppIconResourceModel struct {
@@ -106,29 +105,4 @@ type MacOSIncludedAppResourceModel struct {
 // MacOSAppScriptResourceModel represents the scripts for pre/post installation
 type MacOSAppScriptResourceModel struct {
 	ScriptContent types.String `tfsdk:"script_content"` // Base64 encoded shell script
-}
-
-// ContentVersionResourceModel defines the state structure for a content version.
-type ContentVersionResourceModel struct {
-	ContentVersionId types.String               `tfsdk:"content_version_id"`
-	FileCount        types.Int64                `tfsdk:"file_count"`
-	Files            []ContentFileResourceModel `tfsdk:"files"`
-}
-
-// ContentFileResourceModel defines the state structure for a file in a content version.
-type ContentFileResourceModel struct {
-	Id                        types.String `tfsdk:"id"`
-	Name                      types.String `tfsdk:"name"`
-	IsDependency              types.Bool   `tfsdk:"is_dependency"`
-	IsCommitted               types.Bool   `tfsdk:"is_committed"`
-	Size                      types.Int64  `tfsdk:"size"`
-	SizeEncrypted             types.Int64  `tfsdk:"size_encrypted"`
-	UploadState               types.String `tfsdk:"upload_state"`
-	CreatedDateTime           types.String `tfsdk:"created_date_time"`
-	AzureStorageUri           types.String `tfsdk:"azure_storage_uri"`
-	AzureStorageUriExpiration types.String `tfsdk:"azure_storage_uri_expiration"`
-	IsFrameworkFile           types.Bool   `tfsdk:"is_framework_file"`
-	Manifest                  types.String `tfsdk:"manifest"`
-	SizeEncryptedInBytes      types.Int64  `tfsdk:"size_encrypted_in_bytes"`
-	SizeInBytes               types.Int64  `tfsdk:"size_in_bytes"`
 }
