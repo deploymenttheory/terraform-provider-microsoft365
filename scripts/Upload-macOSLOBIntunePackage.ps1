@@ -334,6 +334,75 @@ function Encrypt-FileForIntune {
     }
 }
 
+
+# Analyze-EncryptedFileHex
+# This function reads an encrypted file (for example, one produced by Encrypt-FileForIntune)
+# and returns useful insights by analyzing its binary contents as hexadecimal.
+# It assumes the file structure is:
+#   - Bytes 0 to 31: HMAC-SHA256 MAC,
+#   - Bytes 32 to 47: AES-256-CBC Initialization Vector (IV),
+#   - Bytes 48 to end: Encrypted content.
+#
+# The function returns a PSCustomObject containing:
+#   - FileLength: total file size in bytes,
+#   - HMACHex: hexadecimal representation of the first 32 bytes (MAC),
+#   - IVHex: hexadecimal representation of the next 16 bytes (IV),
+#   - CiphertextSample: hexadecimal representation of the first 16 bytes of ciphertext (if available),
+#   - FullHeaderHex: a hex summary of the first 64 bytes for additional context.
+function Analyze-EncryptedFileHex {
+  param (
+      [Parameter(Mandatory = $true)]
+      [string]$EncryptedFilePath
+  )
+  
+  try {
+      if (-not (Test-Path $EncryptedFilePath)) {
+          throw "Encrypted file not found: $EncryptedFilePath"
+      }
+      
+      $fileBytes = [System.IO.File]::ReadAllBytes($EncryptedFilePath)
+      $fileLength = $fileBytes.Length
+      
+      if ($fileLength -lt 48) {
+          throw "File too short to contain valid encryption information. Expected at least 48 bytes, got $fileLength."
+      }
+      
+      # Extract HMAC (first 32 bytes)
+      $hmacBytes = $fileBytes[0..31]
+      $hmacHex = ($hmacBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      
+      # Extract IV (next 16 bytes: bytes 32 to 47)
+      $ivBytes = $fileBytes[32..47]
+      $ivHex = ($ivBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      
+      # If available, extract a sample of the ciphertext (first 16 bytes starting at byte 48)
+      if ($fileLength -ge 64) {
+          $ciphertextBytes = $fileBytes[48..63]
+          $ciphertextSample = ($ciphertextBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      }
+      else {
+          $ciphertextSample = "N/A"
+      }
+      
+      # Get a full header summary (first 64 bytes, or the entire file if shorter)
+      $headerLength = [Math]::Min(64, $fileLength)
+      $headerBytes = $fileBytes[0..($headerLength - 1)]
+      $fullHeaderHex = ($headerBytes | ForEach-Object { $_.ToString("X2") }) -join ' '
+      
+      return [PSCustomObject]@{
+          FileLength       = $fileLength
+          HMACHex          = $hmacHex
+          IVHex            = $ivHex
+          CiphertextSample = $ciphertextSample
+          FullHeaderHex    = $fullHeaderHex
+      }
+  }
+  catch {
+      Write-Error "Error analyzing encrypted file: $_"
+      throw
+  }
+}
+
 # Functions to handle Azure Storage uploading
 function Upload-FileToAzureStorage {
     param (
@@ -635,6 +704,15 @@ function Publish-IntunePackage {
         }
         $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $PkgFilePath
         Write-Host "✅ Encryption complete" -ForegroundColor Green
+
+        # Analyze the encrypted file and display its hex details
+        $analysis = Analyze-EncryptedFileHex -EncryptedFilePath $encryptedFilePath
+        Write-Host "`n🔍 Encrypted file analysis:" -ForegroundColor Cyan
+        Write-Host "   • File Length: $($analysis.FileLength) bytes" -ForegroundColor Cyan
+        Write-Host "   • HMAC (Hex): $($analysis.HMACHex)" -ForegroundColor Cyan
+        Write-Host "   • IV (Hex): $($analysis.IVHex)" -ForegroundColor Cyan
+        Write-Host "   • Ciphertext Sample (first 16 bytes): $($analysis.CiphertextSample)" -ForegroundColor Cyan
+        Write-Host "   • Full Header Hex: $($analysis.FullHeaderHex)" -ForegroundColor Cyan
         
         # Step 4: Create content file
         Write-Host "`n📦 Creating content file..." -ForegroundColor Yellow

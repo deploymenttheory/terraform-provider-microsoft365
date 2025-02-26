@@ -276,63 +276,335 @@ function Update-AppIcon {
 # Encryption: AES-256 in CBC mode
 # Integrity: HMAC-SHA256
 # Keys: Randomly generated for each file. Separate keys for encryption and HMAC operations
+# function Encrypt-FileForIntune {
+#     param (
+#         [Parameter(Mandatory=$true)]
+#         [string]$SourceFile
+#     )
+    
+#     function Generate-Key {
+#         $aesSp = [System.Security.Cryptography.AesCryptoServiceProvider]::new()
+#         $aesSp.GenerateKey()
+#         return $aesSp.Key
+#     }
+    
+#     try {
+#         $targetFile = "$SourceFile.bin"
+#         $sha256 = [System.Security.Cryptography.SHA256]::Create()
+#         $aes = [System.Security.Cryptography.Aes]::Create()
+#         $aes.Key = Generate-Key
+#         $hmac = [System.Security.Cryptography.HMACSHA256]::new()
+#         $hmac.Key = Generate-Key
+#         $hashLength = $hmac.HashSize / 8
+        
+#         $sourceStream = [System.IO.File]::OpenRead($SourceFile)
+#         $sourceSha256 = $sha256.ComputeHash($sourceStream)
+#         $sourceStream.Seek(0, "Begin") | Out-Null
+#         $targetStream = [System.IO.File]::Open($targetFile, "Create")
+        
+#         $targetStream.Write((New-Object byte[] $hashLength), 0, $hashLength)
+#         $targetStream.Write($aes.IV, 0, $aes.IV.Length)
+#         $transform = $aes.CreateEncryptor()
+#         $cryptoStream = [System.Security.Cryptography.CryptoStream]::new($targetStream, $transform, "Write")
+#         $sourceStream.CopyTo($cryptoStream)
+#         $cryptoStream.FlushFinalBlock()
+        
+#         $targetStream.Seek($hashLength, "Begin") | Out-Null
+#         $mac = $hmac.ComputeHash($targetStream)
+#         $targetStream.Seek(0, "Begin") | Out-Null
+#         $targetStream.Write($mac, 0, $mac.Length)
+        
+#         $targetStream.Close()
+#         $cryptoStream.Close()
+#         $sourceStream.Close()
+        
+#         return [PSCustomObject][ordered]@{
+#             encryptionKey        = [System.Convert]::ToBase64String($aes.Key)
+#             fileDigest           = [System.Convert]::ToBase64String($sourceSha256)
+#             fileDigestAlgorithm  = "SHA256"
+#             initializationVector = [System.Convert]::ToBase64String($aes.IV)
+#             mac                  = [System.Convert]::ToBase64String($mac)
+#             macKey               = [System.Convert]::ToBase64String($hmac.Key)
+#             profileIdentifier    = "ProfileVersion1"
+#         }
+#     }
+#     catch {
+#         Write-Error "Error encrypting file: $_"
+#         throw
+#     }
+# }
+
 function Encrypt-FileForIntune {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$SourceFile
-    )
-    
-    function Generate-Key {
-        $aesSp = [System.Security.Cryptography.AesCryptoServiceProvider]::new()
-        $aesSp.GenerateKey()
-        return $aesSp.Key
-    }
-    
-    try {
-        $targetFile = "$SourceFile.bin"
-        $sha256 = [System.Security.Cryptography.SHA256]::Create()
-        $aes = [System.Security.Cryptography.Aes]::Create()
-        $aes.Key = Generate-Key
-        $hmac = [System.Security.Cryptography.HMACSHA256]::new()
-        $hmac.Key = Generate-Key
-        $hashLength = $hmac.HashSize / 8
-        
-        $sourceStream = [System.IO.File]::OpenRead($SourceFile)
-        $sourceSha256 = $sha256.ComputeHash($sourceStream)
-        $sourceStream.Seek(0, "Begin") | Out-Null
-        $targetStream = [System.IO.File]::Open($targetFile, "Create")
-        
-        $targetStream.Write((New-Object byte[] $hashLength), 0, $hashLength)
-        $targetStream.Write($aes.IV, 0, $aes.IV.Length)
-        $transform = $aes.CreateEncryptor()
-        $cryptoStream = [System.Security.Cryptography.CryptoStream]::new($targetStream, $transform, "Write")
-        $sourceStream.CopyTo($cryptoStream)
-        $cryptoStream.FlushFinalBlock()
-        
-        $targetStream.Seek($hashLength, "Begin") | Out-Null
-        $mac = $hmac.ComputeHash($targetStream)
-        $targetStream.Seek(0, "Begin") | Out-Null
-        $targetStream.Write($mac, 0, $mac.Length)
-        
-        $targetStream.Close()
-        $cryptoStream.Close()
-        $sourceStream.Close()
-        
-        return [PSCustomObject][ordered]@{
-            encryptionKey        = [System.Convert]::ToBase64String($aes.Key)
-            fileDigest           = [System.Convert]::ToBase64String($sourceSha256)
-            fileDigestAlgorithm  = "SHA256"
-            initializationVector = [System.Convert]::ToBase64String($aes.IV)
-            mac                  = [System.Convert]::ToBase64String($mac)
-            macKey               = [System.Convert]::ToBase64String($hmac.Key)
-            profileIdentifier    = "ProfileVersion1"
-        }
-    }
-    catch {
-        Write-Error "Error encrypting file: $_"
-        throw
-    }
+  param (
+      [Parameter(Mandatory=$true)]
+      [string]$SourceFile,
+      
+      [Parameter(Mandatory=$false)]
+      [switch]$EnableLogging
+  )
+  
+  function Write-DebugLog {
+      param([string]$Message)
+      if ($EnableLogging) {
+          Write-Host "DEBUG: $Message" -ForegroundColor Cyan
+      }
+  }
+  
+  function ConvertTo-HexString {
+      param([byte[]]$Bytes, [int]$Length = $Bytes.Length)
+      $hexString = ""
+      $count = [Math]::Min($Length, $Bytes.Length)
+      for ($i = 0; $i -lt $count; $i++) {
+          $hexString += $Bytes[$i].ToString("X2") + " "
+      }
+      return $hexString.TrimEnd()
+  }
+  
+  function Generate-Key {
+      $aesSp = [System.Security.Cryptography.AesCryptoServiceProvider]::new()
+      
+      if ($EnableLogging) {
+          Write-DebugLog "AesCryptoServiceProvider properties before key generation:"
+          Write-DebugLog "  Mode: $($aesSp.Mode)"
+          Write-DebugLog "  Padding: $($aesSp.Padding)"
+          Write-DebugLog "  KeySize: $($aesSp.KeySize)"
+          Write-DebugLog "  BlockSize: $($aesSp.BlockSize)"
+      }
+      
+      $aesSp.GenerateKey()
+      
+      if ($EnableLogging) {
+          Write-DebugLog "Key generated: Length=$($aesSp.Key.Length) bytes, First 8 bytes: $(ConvertTo-HexString $aesSp.Key 8)..."
+      }
+      
+      return $aesSp.Key
+  }
+  
+  try {
+      Write-DebugLog "Starting encryption of $SourceFile"
+      $targetFile = "$SourceFile.bin"
+      Write-DebugLog "Target file will be $targetFile"
+      
+      # Create crypto objects
+      Write-DebugLog "Creating SHA256 hasher"
+      $sha256 = [System.Security.Cryptography.SHA256]::Create()
+      
+      Write-DebugLog "Creating AES object"
+      $aes = [System.Security.Cryptography.Aes]::Create()
+      
+      if ($EnableLogging) {
+          Write-DebugLog "AES properties before setting key:"
+          Write-DebugLog "  Mode: $($aes.Mode)"
+          Write-DebugLog "  Padding: $($aes.Padding)"
+          Write-DebugLog "  KeySize: $($aes.KeySize)"
+          Write-DebugLog "  BlockSize: $($aes.BlockSize)"
+      }
+      
+      Write-DebugLog "Generating AES key"
+      $aes.Key = Generate-Key
+      Write-DebugLog "AES IV will be auto-generated, length will be $($aes.BlockSize/8) bytes"
+      
+      Write-DebugLog "Creating HMAC-SHA256 hasher"
+      $hmac = [System.Security.Cryptography.HMACSHA256]::new()
+      Write-DebugLog "Generating HMAC key"
+      $hmac.Key = Generate-Key
+      $hashLength = $hmac.HashSize / 8
+      Write-DebugLog "HMAC hash length: $hashLength bytes"
+      
+      # Open source file and calculate digest
+      Write-DebugLog "Opening source file: $SourceFile"
+      $sourceStream = [System.IO.File]::OpenRead($SourceFile)
+      Write-DebugLog "Source file length: $($sourceStream.Length) bytes"
+      
+      Write-DebugLog "Calculating SHA256 digest of source file"
+      $sourceSha256 = $sha256.ComputeHash($sourceStream)
+      
+      if ($EnableLogging) {
+          Write-DebugLog "Source file SHA256: $(ConvertTo-HexString $sourceSha256)"
+      }
+      
+      Write-DebugLog "Rewinding source file to beginning"
+      $sourceStream.Seek(0, "Begin") | Out-Null
+      
+      # Create target file
+      Write-DebugLog "Creating target file: $targetFile"
+      $targetStream = [System.IO.File]::Open($targetFile, "Create")
+      
+      # Write HMAC placeholder
+      Write-DebugLog "Writing HMAC placeholder (${hashLength} bytes of zeros)"
+      $targetStream.Write((New-Object byte[] $hashLength), 0, $hashLength)
+      
+      if ($EnableLogging) {
+          $targetStreamPosition = $targetStream.Position
+          Write-DebugLog "Target stream position after HMAC placeholder: $targetStreamPosition"
+      }
+      
+      # Write IV
+      if ($EnableLogging) {
+          Write-DebugLog "Writing IV: $(ConvertTo-HexString $aes.IV)"
+      }
+      $targetStream.Write($aes.IV, 0, $aes.IV.Length)
+      
+      if ($EnableLogging) {
+          $targetStreamPosition = $targetStream.Position
+          Write-DebugLog "Target stream position after IV: $targetStreamPosition"
+      }
+      
+      # Create encryptor and crypto stream
+      Write-DebugLog "Creating AES encryptor with key and IV"
+      $transform = $aes.CreateEncryptor()
+      Write-DebugLog "Creating CryptoStream in Write mode"
+      $cryptoStream = [System.Security.Cryptography.CryptoStream]::new($targetStream, $transform, "Write")
+      
+      # Copy source to crypto stream
+      Write-DebugLog "Copying source content through CryptoStream"
+      $sourceStream.CopyTo($cryptoStream)
+      
+      # Finalize encryption
+      Write-DebugLog "Flushing final block of CryptoStream"
+      $cryptoStream.FlushFinalBlock()
+      
+      if ($EnableLogging) {
+          $targetStreamPosition = $targetStream.Position
+          Write-DebugLog "Target stream position after encryption: $targetStreamPosition"
+      }
+      
+      # Calculate HMAC
+      Write-DebugLog "Seeking target stream to position after HMAC placeholder"
+      $targetStream.Seek($hashLength, "Begin") | Out-Null
+      
+      if ($EnableLogging) {
+          $targetStreamPosition = $targetStream.Position
+          Write-DebugLog "Target stream position for HMAC calculation start: $targetStreamPosition"
+      }
+      
+      Write-DebugLog "Computing HMAC over the data from current position to end"
+      $mac = $hmac.ComputeHash($targetStream)
+      
+      if ($EnableLogging) {
+          Write-DebugLog "Computed HMAC: $(ConvertTo-HexString $mac)"
+      }
+      
+      # Write HMAC
+      Write-DebugLog "Seeking to beginning of target file to write HMAC"
+      $targetStream.Seek(0, "Begin") | Out-Null
+      Write-DebugLog "Writing HMAC to beginning of file"
+      $targetStream.Write($mac, 0, $mac.Length)
+      
+      # Close streams
+      Write-DebugLog "Closing all streams"
+      $targetStream.Close()
+      $cryptoStream.Close()
+      $sourceStream.Close()
+      
+      # Read back the encrypted file to verify
+      if ($EnableLogging) {
+          Write-DebugLog "Reading back encrypted file to verify structure"
+          $encryptedBytes = [System.IO.File]::ReadAllBytes($targetFile)
+          $hmacBytes = $encryptedBytes[0..31]
+          $ivBytes = $encryptedBytes[32..47]
+          $sampleCiphertext = if ($encryptedBytes.Length -ge 64) { $encryptedBytes[48..63] } else { @() }
+          
+          Write-DebugLog "Encrypted file analysis:"
+          Write-DebugLog "  Total length: $($encryptedBytes.Length) bytes"
+          Write-DebugLog "  HMAC: $(ConvertTo-HexString $hmacBytes)"
+          Write-DebugLog "  IV: $(ConvertTo-HexString $ivBytes)"
+          Write-DebugLog "  Ciphertext sample (first 16 bytes): $(ConvertTo-HexString $sampleCiphertext)"
+          
+          $headerBytes = if ($encryptedBytes.Length -ge 64) { $encryptedBytes[0..63] } else { $encryptedBytes }
+          Write-DebugLog "  Full header (first 64 bytes): $(ConvertTo-HexString $headerBytes)"
+      }
+      
+      # Return encryption metadata
+      Write-DebugLog "Returning encryption metadata"
+      return [PSCustomObject][ordered]@{
+          encryptionKey        = [System.Convert]::ToBase64String($aes.Key)
+          fileDigest           = [System.Convert]::ToBase64String($sourceSha256)
+          fileDigestAlgorithm  = "SHA256"
+          initializationVector = [System.Convert]::ToBase64String($aes.IV)
+          mac                  = [System.Convert]::ToBase64String($mac)
+          macKey               = [System.Convert]::ToBase64String($hmac.Key)
+          profileIdentifier    = "ProfileVersion1"
+      }
+  }
+  catch {
+      Write-Error "Error encrypting file: $_"
+      throw
+  }
 }
+
+# Example usage:
+# $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $PkgFilePath -EnableLogging
+# Write-Host "✅ Encryption complete" -ForegroundColor Green
+
+# Analyze-EncryptedFileHex
+# This function reads an encrypted file (for example, one produced by Encrypt-FileForIntune)
+# and returns useful insights by analyzing its binary contents as hexadecimal.
+# It assumes the file structure is:
+#   - Bytes 0 to 31: HMAC-SHA256 MAC,
+#   - Bytes 32 to 47: AES-256-CBC Initialization Vector (IV),
+#   - Bytes 48 to end: Encrypted content.
+#
+# The function returns a PSCustomObject containing:
+#   - FileLength: total file size in bytes,
+#   - HMACHex: hexadecimal representation of the first 32 bytes (MAC),
+#   - IVHex: hexadecimal representation of the next 16 bytes (IV),
+#   - CiphertextSample: hexadecimal representation of the first 16 bytes of ciphertext (if available),
+#   - FullHeaderHex: a hex summary of the first 64 bytes for additional context.
+function Analyze-EncryptedFileHex {
+  param (
+      [Parameter(Mandatory = $true)]
+      [string]$EncryptedFilePath
+  )
+  
+  try {
+      if (-not (Test-Path $EncryptedFilePath)) {
+          throw "Encrypted file not found: $EncryptedFilePath"
+      }
+      
+      $fileBytes = [System.IO.File]::ReadAllBytes($EncryptedFilePath)
+      $fileLength = $fileBytes.Length
+      
+      if ($fileLength -lt 48) {
+          throw "File too short to contain valid encryption information. Expected at least 48 bytes, got $fileLength."
+      }
+      
+      # Extract HMAC (first 32 bytes)
+      $hmacBytes = $fileBytes[0..31]
+      $hmacHex = ($hmacBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      
+      # Extract IV (next 16 bytes: bytes 32 to 47)
+      $ivBytes = $fileBytes[32..47]
+      $ivHex = ($ivBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      
+      # If available, extract a sample of the ciphertext (first 16 bytes starting at byte 48)
+      if ($fileLength -ge 64) {
+          $ciphertextBytes = $fileBytes[48..63]
+          $ciphertextSample = ($ciphertextBytes | ForEach-Object { $_.ToString("X2") }) -join ''
+      }
+      else {
+          $ciphertextSample = "N/A"
+      }
+      
+      # Get a full header summary (first 64 bytes, or the entire file if shorter)
+      $headerLength = [Math]::Min(64, $fileLength)
+      $headerBytes = $fileBytes[0..($headerLength - 1)]
+      $fullHeaderHex = ($headerBytes | ForEach-Object { $_.ToString("X2") }) -join ' '
+      
+      return [PSCustomObject]@{
+          FileLength       = $fileLength
+          HMACHex          = $hmacHex
+          IVHex            = $ivHex
+          CiphertextSample = $ciphertextSample
+          FullHeaderHex    = $fullHeaderHex
+      }
+  }
+  catch {
+      Write-Error "Error analyzing encrypted file: $_"
+      throw
+  }
+}
+
 
 # Functions to handle Azure Storage uploading
 function Upload-FileToAzureStorage {
@@ -471,58 +743,46 @@ function Upload-FileToAzureStorage {
 
 # Function to get app logo for Intune app
 function Get-AppLogo {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$AppName,
-        
-        [Parameter(Mandatory=$false)]
-        [string]$LocalLogoPath = $null
-    )
-    
-    try {
-        $tempLogoPath = $null
-        
-        if ($LocalLogoPath -and (Test-Path $LocalLogoPath)) {
-            # Use the provided local logo file
-            $tempLogoPath = $LocalLogoPath
-            Write-Host "Using local logo file: $LocalLogoPath" -ForegroundColor Gray
-        }
-        else {
-            # Try to download from repository
-            $logoFileName = $AppName.ToLower().Replace(" ", "_") + ".png"
-            $logoUrl = "https://raw.githubusercontent.com/ugurkocde/IntuneBrew/main/Logos/$logoFileName"
-            Write-Host "Downloading logo from: $logoUrl" -ForegroundColor Gray
-            
-            # Download the logo
-            $tempLogoPath = Join-Path $PWD "temp_logo.png"
-            try {
-                Invoke-WebRequest -Uri $logoUrl -OutFile $tempLogoPath
-            }
-            catch {
-                Write-Host "⚠️ Could not download logo from repository. Error: $_" -ForegroundColor Yellow
-                return $null
-            }
-        }
-        
-        if (-not $tempLogoPath -or -not (Test-Path $tempLogoPath)) {
-            Write-Host "⚠️ No valid logo file available" -ForegroundColor Yellow
-            return $null
-        }
-        
-        # Convert the logo to base64
-        $logoContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($tempLogoPath))
-        
-        # Cleanup temp file if we downloaded it
-        if ($tempLogoPath -ne $LocalLogoPath -and (Test-Path $tempLogoPath)) {
-            Remove-Item $tempLogoPath -Force
-        }
-        
-        return $logoContent
-    }
-    catch {
-        Write-Host "⚠️ Error processing logo: $_" -ForegroundColor Yellow
-        return $null
-    }
+  param (
+      [Parameter(Mandatory=$true)]
+      [string]$AppName,
+      
+      [Parameter(Mandatory=$false)]
+      [string]$LocalLogoPath = $null
+  )
+  
+  try {
+      $tempLogoPath = $null
+      
+      if ($LocalLogoPath -and (Test-Path $LocalLogoPath)) {
+          # Use the provided local logo file
+          $tempLogoPath = $LocalLogoPath
+          Write-Host "Using local logo file: $LocalLogoPath" -ForegroundColor Gray
+      }
+      else {
+          Write-Host "⚠️ No valid logo file available" -ForegroundColor Yellow
+          return $null
+      }
+      
+      if (-not $tempLogoPath -or -not (Test-Path $tempLogoPath)) {
+          Write-Host "⚠️ No valid logo file available" -ForegroundColor Yellow
+          return $null
+      }
+      
+      # Convert the logo to base64
+      $logoContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($tempLogoPath))
+      
+      # Cleanup temp file if we downloaded it
+      if ($tempLogoPath -ne $LocalLogoPath -and (Test-Path $tempLogoPath)) {
+          Remove-Item $tempLogoPath -Force
+      }
+      
+      return $logoContent
+  }
+  catch {
+      Write-Host "⚠️ Error processing logo: $_" -ForegroundColor Yellow
+      return $null
+  }
 }
 
 
@@ -635,9 +895,18 @@ function Publish-IntunePackage {
         if (Test-Path $encryptedFilePath) {
             Remove-Item $encryptedFilePath -Force
         }
-        $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $PkgFilePath
+        $fileEncryptionInfo = Encrypt-FileForIntune -SourceFile $PkgFilePath -EnableLogging
         Write-Host "✅ Encryption complete" -ForegroundColor Green
-        
+
+        # Analyze the encrypted file and display its hex details
+        $analysis = Analyze-EncryptedFileHex -EncryptedFilePath $encryptedFilePath
+        Write-Host "`n🔍 Encrypted file analysis:" -ForegroundColor Cyan
+        Write-Host "   • File Length: $($analysis.FileLength) bytes" -ForegroundColor Cyan
+        Write-Host "   • HMAC (Hex): $($analysis.HMACHex)" -ForegroundColor Cyan
+        Write-Host "   • IV (Hex): $($analysis.IVHex)" -ForegroundColor Cyan
+        Write-Host "   • Ciphertext Sample (first 16 bytes): $($analysis.CiphertextSample)" -ForegroundColor Cyan
+        Write-Host "   • Full Header Hex: $($analysis.FullHeaderHex)" -ForegroundColor Cyan
+                
         # Step 4: Create content file
         Write-Host "`n📦 Creating content file..." -ForegroundColor Yellow
         $fileContent = @{

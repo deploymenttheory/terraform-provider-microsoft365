@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"math"
@@ -26,35 +25,22 @@ const (
 )
 
 // uploadToAzureStorage handles the chunked upload of large files to Azure Blob Storage.
+// This implementation generates block IDs as six-digit, zero-padded strings (e.g., "000001")
+// before base64 encoding them. This ensures that block ordering matches the expected
+// lexicographical order, preventing file corruption during the commit phase.
 //
-// This function implements a block blob upload strategy that:
-//  1. Opens the source file and retrieves its metadata
-//  2. Divides the file into 8 MiB blocks for optimal upload performance
-//  3. Uploads each block independently with retry capabilities
-//  4. Commits the block list to finalize the blob
-//
-// # Implementation details
-//   - Block size: Uses 8 MiB blocks, which balances memory usage with performance for Azure Storage
-//   - Block ID generation: Creates base64-encoded block identifiers using binary representation
-//   - HTTP headers: Sets the required "x-ms-blob-type" header with "BlockBlob" value
-//   - XML formatting: Constructs proper XML block list for the final commit operation
-//
-// # Logging capabilities
-//   - Progress reporting with percentage completion
-//   - Upload speed metrics in MB/s
-//   - Time remaining estimates
-//   - Block-level success/failure information
-//
-// # Error handling
-//   - Context-aware timeouts for individual block uploads
-//   - Configurable retry logic for transient failures
-//   - Detailed error reporting with response status codes and message bodies
-//   - Proper HTTP connection cleanup
+// The function follows these steps:
+//  1. Opens the source file and retrieves its metadata.
+//  2. Divides the file into 8 MiB blocks.
+//  3. For each block, generates a block ID as a six-digit string, converts it to base64, and uploads
+//     the block using the required "x-ms-blob-type" header.
+//  4. Constructs an XML block list from these base64-encoded block IDs and sends a commit request.
+//  5. Reports progress and handles errors with context-aware timeouts and retry logic.
 //
 // Parameters:
-//   - ctx: Context for timeout and cancellation control
-//   - sasUri: Azure Storage SAS URI with write permissions for the target blob
-//   - filePath: Path to the local file to be uploaded
+//   - ctx: Context for timeout and cancellation control.
+//   - sasUri: Azure Storage SAS URI with write permissions for the target blob.
+//   - filePath: Path to the local file to be uploaded.
 //
 // Returns an error if the upload fails at any stage, with details about the failure.
 func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) error {
@@ -69,7 +55,7 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		return fmt.Errorf("failed to get file info: %v", err)
 	}
 
-	// Match PowerShell block size (8 MiB)
+	// Define the block size to match PowerShell (8 MiB)
 	blockSize := 8 * 1024 * 1024
 	totalBlocks := int(math.Ceil(float64(fileInfo.Size()) / float64(blockSize)))
 	blockList := []string{}
@@ -88,12 +74,11 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	startTime := time.Now()
 
 	for blockNum := 0; blockNum < totalBlocks; blockNum++ {
-		// Match PowerShell's BitConverter.GetBytes approach for block ID
-		blockIDBytes := make([]byte, 4)
-		binary.LittleEndian.PutUint32(blockIDBytes, uint32(blockNum))
-		blockID := base64.StdEncoding.EncodeToString(blockIDBytes)
+		// Generate block ID as a six-digit, zero-padded string and then base64 encode it.
+		// This matches the PowerShell equivilent logic (ToString("D6") in UTF8) and ensures correct ordering.
+		blockIDString := fmt.Sprintf("%06d", blockNum)
+		blockID := base64.StdEncoding.EncodeToString([]byte(blockIDString))
 
-		// Read file chunk
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
 			return fmt.Errorf("failed to read file block: %v", err)
@@ -113,12 +98,11 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 			"estimated_remaining": fmt.Sprintf("%.0fs", float64(fileInfo.Size()-uploadedBytes)/float64(uploadedBytes)*time.Since(startTime).Seconds()),
 		})
 
-		// Create block URL with SAS token
+		// Create the block URL with the SAS token and the new block ID
 		blockURL := fmt.Sprintf("%s&comp=block&blockid=%s", sasUri, blockID)
 
-		// Upload block with retry logic
+		// Upload the block with retry logic
 		err = retry.RetryContext(ctx, blockUploadTimeout, func() *retry.RetryError {
-			// Create new timeout context for each attempt
 			uploadCtx, cancel := context.WithTimeout(ctx, blockUploadTimeout)
 			defer cancel()
 
@@ -131,7 +115,6 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 				return retry.NonRetryableError(err)
 			}
 
-			// Only set this header, exactly matching PowerShell
 			req.Header.Set("x-ms-blob-type", "BlockBlob")
 
 			resp, err := http.DefaultClient.Do(req)
@@ -183,18 +166,16 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		"elapsed_time":  time.Since(startTime).Round(time.Second).String(),
 	})
 
-	// Build block list XML similar to PowerShell's XDocument approach
+	// Build the block list XML using the base64-encoded block IDs
 	var blockListElements []string
 	for _, blockID := range blockList {
 		blockListElements = append(blockListElements, fmt.Sprintf("<Latest>%s</Latest>", blockID))
 	}
-
 	blockListXML := fmt.Sprintf(`<?xml version="1.0" encoding="utf-8"?><BlockList>%s</BlockList>`,
 		strings.Join(blockListElements, ""))
 
 	commitURL := fmt.Sprintf("%s&comp=blocklist", sasUri)
 
-	// Use parent context deadline for commit
 	commitCtx, cancel := context.WithTimeout(ctx, blockUploadTimeout)
 	defer cancel()
 
@@ -202,8 +183,6 @@ func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	if err != nil {
 		return fmt.Errorf("failed to create commit request: %v", err)
 	}
-
-	// Only set Content-Type header for XML - PowerShell doesn't set other headers
 	req.Header.Set("Content-Type", "application/xml")
 
 	resp, err := http.DefaultClient.Do(req)
