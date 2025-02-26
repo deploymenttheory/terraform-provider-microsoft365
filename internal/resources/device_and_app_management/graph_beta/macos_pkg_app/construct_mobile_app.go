@@ -47,30 +47,23 @@ type EncryptedFileAnalysis struct {
 func encryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePath string) (graphmodels.MobileAppContentFileable, *EncryptionInfo, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting content file construction for file: %s", filePath), map[string]interface{}{"file_path": filePath})
 
-	// Create initial content file object
 	contentFile := graphmodels.NewMobileAppContentFile()
 
-	// Set basic properties
 	fileName := filepath.Base(filePath)
 	contentFile.SetName(&fileName)
 
-	// Get file info for size
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not get file info: %s", err)
 	}
-
-	// Set size properties
 	size := fileInfo.Size()
 	contentFile.SetSize(&size)
 	contentFile.SetSizeInBytes(&size)
 
-	// Set required flags
 	falseValue := false
 	contentFile.SetIsDependency(&falseValue)
 	contentFile.SetIsFrameworkFile(&falseValue)
 
-	// Encrypt the file
 	tflog.Debug(ctx, "Starting file encryption", map[string]interface{}{"file": filePath})
 	encryptionInfo, err := encryptFile(filePath)
 	if err != nil {
@@ -78,7 +71,6 @@ func encryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 	}
 	tflog.Debug(ctx, "File encryption completed", map[string]interface{}{"encrypted_file": filePath + ".bin"})
 
-	// Analyze the encrypted file and log details
 	encryptedFilePath := filePath + ".bin"
 	analysis, err := analyzeEncryptedFileHex(encryptedFilePath)
 	if err != nil {
@@ -94,7 +86,6 @@ func encryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 			})
 	}
 
-	// Get encrypted file size
 	encryptedFileInfo, err := os.Stat(encryptedFilePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get encrypted file info: %v", err)
@@ -417,7 +408,6 @@ func CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo *EncryptionInf
 		return nil, fmt.Errorf("failed to decode mac key: %v", err)
 	}
 
-	// Set all the encryption info values
 	fileEncryptionInfo.SetEncryptionKey(encKey)
 	fileEncryptionInfo.SetFileDigest(digest)
 	fileEncryptionInfo.SetFileDigestAlgorithm(&encryptionInfo.FileDigestAlgorithm)
@@ -426,7 +416,6 @@ func CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo *EncryptionInf
 	fileEncryptionInfo.SetMacKey(macKeyBytes)
 	fileEncryptionInfo.SetProfileIdentifier(&encryptionInfo.ProfileIdentifier)
 
-	// Set the encryption info on the request body
 	requestBody.SetFileEncryptionInfo(fileEncryptionInfo)
 
 	return requestBody, nil
