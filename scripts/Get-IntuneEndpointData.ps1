@@ -262,7 +262,7 @@ Import-Module Microsoft.Graph.Authentication
 Write-Host "Connecting to Microsoft Graph..." -ForegroundColor Cyan
 $secureClientSecret = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
 $clientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ClientId, $secureClientSecret
-Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $TenantId -NoWelcome
+Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $TenantId
 
 # Initialize collection for all API data
 $allApiData = @{

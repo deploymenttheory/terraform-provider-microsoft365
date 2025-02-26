@@ -1,0 +1,144 @@
+{
+  "tenant_id": "2fd6bb84-ad40-4ec5-9369-a215b25c9952",
+  "mobileapp": {
+    "fileStatus_1_0a074ba7-19b0-440b-b920-063c87f03ef0": {
+      "data": {
+        "uploadState": "commitFileFailed",
+        "isFrameworkFile": false,
+        "createdDateTime": "0001-01-01T00:00:00Z",
+        "azureStorageUriExpirationDateTime": "2025-02-26T09:37:17.2594061Z",
+        "id": "0a074ba7-19b0-440b-b920-063c87f03ef0",
+        "sizeInBytes": 163180612,
+        "sizeEncryptedInBytes": 163180672,
+        "manifest": "PEFyZ3VtZW50cyB4bWxuczp4c2Q9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4NCiAgPEFwcFR5cGU+UEtHPC9BcHBUeXBlPg0KICA8SWdub3JlVmVyc2lvbkRldGVjdGlvbj50cnVlPC9JZ25vcmVWZXJzaW9uRGV0ZWN0aW9uPg0KICA8SW5jbHVkZWRBcHBzPg0KICAgIDxJbmNsdWRlZEFwcD4NCiAgICAgIDxCdW5kbGVJZD5vcmcubW96aWxsYS5maXJlZm94PC9CdW5kbGVJZD4NCiAgICAgIDxCdW5kbGVWZXJzaW9uPjEzNC4wPC9CdW5kbGVWZXJzaW9uPg0KICAgIDwvSW5jbHVkZWRBcHA+DQogIDwvSW5jbHVkZWRBcHBzPg0KICA8UHJlSW5zdGFsbFNjcmlwdD4NCiAgICA8U2NyaXB0Q29udGVudD5JeUV2WW1sdUwySmhjMmdLWldOb2J5QnRZV05QVXlCUVMwY2dVSEpsTFdsdWMzUmhiR3dnYzJOeWFYQjBJR1Y0WVcxd2JHVT08L1NjcmlwdENvbnRlbnQ+DQogIDwvUHJlSW5zdGFsbFNjcmlwdD4NCiAgPFBvc3RJbnN0YWxsU2NyaXB0Pg0KICAgIDxTY3JpcHRDb250ZW50Pkl5RXZZbWx1TDJKaGMyZ0taV05vYnlCdFlXTlBVeUJRUzBjZ1VHOXpkQzFwYm5OMFlXeHNJSE5qY21sd2RDQmxlR0Z0Y0d4bDwvU2NyaXB0Q29udGVudD4NCiAgPC9Qb3N0SW5zdGFsbFNjcmlwdD4NCjwvQXJndW1lbnRzPg==",
+        "sizeEncrypted": 163180672,
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps('c884af56-9fa3-48c0-8dc2-8b90e7f20562')/microsoft.graph.macOSPkgApp/contentVersions('1')/files/$entity",
+        "azureStorageUri": "https://mmcswdb02.blob.core.windows.net/54fac284-7866-43e5-860a-9c8e10fa3d7d/95de7217-333a-463a-9cd5-d8bff230bd7c/0a074ba7-19b0-440b-b920-063c87f03ef0.pkg.bin?sv=2017-04-17&sr=b&si=1783142048&sig=0C4yeAu80n6tw%2FLfjy5F040imcllBTZ2QZSyFWhTmwQ%3D",
+        "isDependency": false,
+        "name": "Firefox 134.0.pkg",
+        "isCommitted": false,
+        "size": 163180612
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562_MICROSOFT.GRAPH.MACOSPKGAPP_CONTENTVERSIONS_1_FILES_0A074BA7-19B0-440B-B920-063C87F03EF0",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562/microsoft.graph.macOSPkgApp/contentVersions/1/files/0a074ba7-19b0-440b-b920-063c87f03ef0"
+    },
+    "contentFiles_1": {
+      "data": {
+        "value": [
+          {
+            "uploadState": "commitFileFailed",
+            "isFrameworkFile": false,
+            "createdDateTime": "0001-01-01T00:00:00Z",
+            "azureStorageUriExpirationDateTime": null,
+            "id": "0a074ba7-19b0-440b-b920-063c87f03ef0",
+            "sizeInBytes": 163180612,
+            "sizeEncryptedInBytes": 163180672,
+            "manifest": "PEFyZ3VtZW50cyB4bWxuczp4c2Q9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4NCiAgPEFwcFR5cGU+UEtHPC9BcHBUeXBlPg0KICA8SWdub3JlVmVyc2lvbkRldGVjdGlvbj50cnVlPC9JZ25vcmVWZXJzaW9uRGV0ZWN0aW9uPg0KICA8SW5jbHVkZWRBcHBzPg0KICAgIDxJbmNsdWRlZEFwcD4NCiAgICAgIDxCdW5kbGVJZD5vcmcubW96aWxsYS5maXJlZm94PC9CdW5kbGVJZD4NCiAgICAgIDxCdW5kbGVWZXJzaW9uPjEzNC4wPC9CdW5kbGVWZXJzaW9uPg0KICAgIDwvSW5jbHVkZWRBcHA+DQogIDwvSW5jbHVkZWRBcHBzPg0KICA8UHJlSW5zdGFsbFNjcmlwdD4NCiAgICA8U2NyaXB0Q29udGVudD5JeUV2WW1sdUwySmhjMmdLWldOb2J5QnRZV05QVXlCUVMwY2dVSEpsTFdsdWMzUmhiR3dnYzJOeWFYQjBJR1Y0WVcxd2JHVT08L1NjcmlwdENvbnRlbnQ+DQogIDwvUHJlSW5zdGFsbFNjcmlwdD4NCiAgPFBvc3RJbnN0YWxsU2NyaXB0Pg0KICAgIDxTY3JpcHRDb250ZW50Pkl5RXZZbWx1TDJKaGMyZ0taV05vYnlCdFlXTlBVeUJRUzBjZ1VHOXpkQzFwYm5OMFlXeHNJSE5qY21sd2RDQmxlR0Z0Y0d4bDwvU2NyaXB0Q29udGVudD4NCiAgPC9Qb3N0SW5zdGFsbFNjcmlwdD4NCjwvQXJndW1lbnRzPg==",
+            "sizeEncrypted": 163180672,
+            "isDependency": false,
+            "azureStorageUri": null,
+            "name": "Firefox 134.0.pkg",
+            "isCommitted": false,
+            "size": 163180612
+          }
+        ],
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps('c884af56-9fa3-48c0-8dc2-8b90e7f20562')/microsoft.graph.macOSPkgApp/contentVersions('1')/files"
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562_MICROSOFT.GRAPH.MACOSPKGAPP_CONTENTVERSIONS_1_FILES",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562/microsoft.graph.macOSPkgApp/contentVersions/1/files"
+    },
+    "contentVersions": {
+      "data": {
+        "value": [
+          {
+            "id": "1"
+          }
+        ],
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps('c884af56-9fa3-48c0-8dc2-8b90e7f20562')/microsoft.graph.macOSPkgApp/contentVersions"
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562_MICROSOFT.GRAPH.MACOSPKGAPP_CONTENTVERSIONS",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562/microsoft.graph.macOSPkgApp/contentVersions"
+    },
+    "categories": {
+      "data": {
+        "value": [],
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#Collection(microsoft.graph.mobileAppCategory)"
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562_CATEGORIES",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562/categories"
+    },
+    "appDetails": {
+      "data": {
+        "publishingState": "notPublished",
+        "fileName": "Firefox 134.0.pkg",
+        "size": 0,
+        "privacyInformationUrl": null,
+        "description": null,
+        "developer": "Example Developer",
+        "dependentAppCount": 0,
+        "committedContentVersion": null,
+        "supersededAppCount": 0,
+        "ignoreVersionDetection": true,
+        "id": "c884af56-9fa3-48c0-8dc2-8b90e7f20562",
+        "postInstallScript": {
+          "scriptContent": "IyEvYmluL2Jhc2gKZWNobyBtYWNPUyBQS0cgUG9zdC1pbnN0YWxsIHNjcmlwdCBleGFtcGxl"
+        },
+        "preInstallScript": {
+          "scriptContent": "IyEvYmluL2Jhc2gKZWNobyBtYWNPUyBQS0cgUHJlLWluc3RhbGwgc2NyaXB0IGV4YW1wbGU="
+        },
+        "primaryBundleId": "org.mozilla.firefox",
+        "supersedingAppCount": 0,
+        "publisher": "Example Publisher",
+        "notes": "This is a macOS PKG application managed through Terraform.",
+        "includedApps": [
+          {
+            "bundleVersion": "134.0",
+            "bundleId": "org.mozilla.firefox"
+          }
+        ],
+        "createdDateTime": "2025-02-26T09:22:14.8642186Z",
+        "isAssigned": false,
+        "uploadState": 0,
+        "roleScopeTagIds": [
+          "9",
+          "8"
+        ],
+        "informationUrl": "https://example.com/info",
+        "minimumSupportedOperatingSystem": {
+          "v10_15": false,
+          "v14_0": true,
+          "v11_0": false,
+          "v10_12": false,
+          "v10_13": false,
+          "v10_7": false,
+          "v10_11": false,
+          "v13_0": false,
+          "v10_9": false,
+          "v10_8": false,
+          "v12_0": false,
+          "v10_10": false,
+          "v10_14": false
+        },
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps/$entity",
+        "primaryBundleVersion": "134.0",
+        "displayName": "Firefox 134.0.pkg",
+        "lastModifiedDateTime": "2025-02-26T09:22:14.8642186Z",
+        "@odata.type": "#microsoft.graph.macOSPkgApp",
+        
+        "owner": "Example Owner",
+        "isFeatured": false
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562"
+    },
+    "assignments": {
+      "data": {
+        "value": [],
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps('c884af56-9fa3-48c0-8dc2-8b90e7f20562')/assignments"
+      },
+      "reference_id": "DEVICEAPPMANAGEMENT_MOBILEAPPS_C884AF56-9FA3-48C0-8DC2-8B90E7F20562_ASSIGNMENTS",
+      "uri": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/c884af56-9fa3-48c0-8dc2-8b90e7f20562/assignments"
+    }
+  },
+  "timestamp": "2025-02-26 09:30:38"
+}

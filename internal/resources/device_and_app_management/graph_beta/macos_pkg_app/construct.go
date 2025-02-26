@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -47,17 +48,60 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		baseApp.SetCategories(categories)
 	}
 
-	if data.LargeIcon != nil {
-		largeIcon := graphmodels.NewMimeContent()
+	// if data.LargeIcon != nil {
+	// 	largeIcon := graphmodels.NewMimeContent()
 
-		iconPath := data.LargeIcon.Value.ValueString()
-		if iconPath != "" {
+	// 	iconPath := data.LargeIcon.Value.ValueString()
+	// 	if iconPath != "" {
+	// 		iconBytes, err := os.ReadFile(iconPath)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
+	// 		}
+	// 		iconType := "image/png"
+	// 		largeIcon.SetTypeEscaped(&iconType)
+	// 		largeIcon.SetValue(iconBytes)
+	// 		baseApp.SetLargeIcon(largeIcon)
+	// 	}
+	// }
+
+	// Handle app icon (either from file path or web source)
+	if data.AppIcon != nil {
+		largeIcon := graphmodels.NewMimeContent()
+		iconType := "image/png"
+		largeIcon.SetTypeEscaped(&iconType)
+
+		// Get icon from file path
+		if !data.AppIcon.IconFilePath.IsNull() && data.AppIcon.IconFilePath.ValueString() != "" {
+			iconPath := data.AppIcon.IconFilePath.ValueString()
 			iconBytes, err := os.ReadFile(iconPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
 			}
-			iconType := "image/png"
-			largeIcon.SetTypeEscaped(&iconType)
+			largeIcon.SetValue(iconBytes)
+			baseApp.SetLargeIcon(largeIcon)
+		} else if !data.AppIcon.IconFileWebSource.IsNull() && data.AppIcon.IconFileWebSource.ValueString() != "" {
+			// Get icon from web source
+			webSource := data.AppIcon.IconFileWebSource.ValueString()
+
+			// Download the file
+			downloadedPath, err := download.DownloadFile(webSource)
+			if err != nil {
+				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
+			}
+
+			// Clean up temporary file when we're done
+			defer func() {
+				if err := os.Remove(downloadedPath); err != nil {
+					tflog.Warn(ctx, fmt.Sprintf("Failed to clean up temporary icon file %s: %v", downloadedPath, err))
+				}
+			}()
+
+			// Read the downloaded file
+			iconBytes, err := os.ReadFile(downloadedPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read downloaded PNG icon file from %s: %v", downloadedPath, err)
+			}
+
 			largeIcon.SetValue(iconBytes)
 			baseApp.SetLargeIcon(largeIcon)
 		}

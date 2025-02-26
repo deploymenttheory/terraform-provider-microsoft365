@@ -180,17 +180,33 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
-			"large_icon": schema.SingleNestedAttribute{
+			// "large_icon": schema.SingleNestedAttribute{
+			// 	Optional: true,
+			// 	Attributes: map[string]schema.Attribute{
+			// 		"type": schema.StringAttribute{
+			// 			Computed:            true,
+			// 			MarkdownDescription: "The MIME type of the app's large icon. Example: `image/png`",
+			// 		},
+			// 		"value": schema.StringAttribute{
+			// 			Required:            true,
+			// 			Sensitive:           true, // not sensitive in a true sense, but we don't want to show the icon base64 encode in the plan.
+			// 			MarkdownDescription: "The icon image path to use for the app. Must end with .png extension.",
+			// 			Validators: []validator.String{
+			// 				stringvalidator.RegexMatches(
+			// 					regexp.MustCompile(`\.png$`),
+			// 					"must end with .png file extension",
+			// 				),
+			// 			},
+			// 		},
+			// 	},
+			// 	MarkdownDescription: "The large icon for the macOS app.",
+			// },
+			"app_icon": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"type": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "The MIME type of the app's large icon. Example: `image/png`",
-					},
-					"value": schema.StringAttribute{
-						Required:            true,
-						Sensitive:           true, // not sensitive in a true sense, but we don't want to show the icon base64 encode in the plan.
-						MarkdownDescription: "The icon image path to use for the app. Must end with .png extension.",
+					"icon_file_path": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
 								regexp.MustCompile(`\.png$`),
@@ -198,8 +214,22 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							),
 						},
 					},
+					"icon_file_web_source": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+								"Must be a valid URL.",
+							),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`\.png$`),
+								"must end with .png file extension",
+							),
+						},
+					},
 				},
-				MarkdownDescription: "The large icon for the macOS app.",
+				MarkdownDescription: "The large icon for the macOS app. Can be provided as either a file path or web URL.",
 			},
 			"categories": schema.ListNestedAttribute{
 				Optional:            true,

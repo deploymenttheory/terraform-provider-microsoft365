@@ -43,17 +43,31 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 
+	// if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+	// 	// Only store the type information in the state
+	// 	// The actual image content is not stored in the state at all
+	// 	data.LargeIcon = &LargeIconResourceModel{
+	// 		Type: types.StringPointerValue(largeIcon.GetTypeEscaped()),
+	// 		// The Value field must still be present but can be marked as unknown
+	// 		// This signals to Terraform that a value exists but is not included in the state
+	// 		Value: types.StringUnknown(),
+	// 	}
+	// } else {
+	// 	data.LargeIcon = nil
+	// }
+
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		// Only store the type information in the state
-		// The actual image content is not stored in the state at all
-		data.LargeIcon = &LargeIconResourceModel{
-			Type: types.StringPointerValue(largeIcon.GetTypeEscaped()),
-			// The Value field must still be present but can be marked as unknown
-			// This signals to Terraform that a value exists but is not included in the state
-			Value: types.StringUnknown(),
+		// Icon exists in the API, but we only want to keep track of path in state
+		// We don't do anything with the actual icon content here
+		if data.AppIcon == nil {
+			data.AppIcon = &AppIconResourceModel{
+				IconFilePath:      types.StringNull(),
+				IconFileWebSource: types.StringNull(),
+			}
 		}
+
 	} else {
-		data.LargeIcon = nil
+		data.AppIcon = nil
 	}
 
 	var roleScopeTagIds []attr.Value
