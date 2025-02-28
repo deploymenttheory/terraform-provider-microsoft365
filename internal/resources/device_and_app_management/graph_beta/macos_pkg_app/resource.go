@@ -172,8 +172,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The title of the Intune macOS pkg application.",
 			},
 			"description": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "A detailed description of the Intune macOS pkg application.",
 			},
 			"publisher": schema.StringAttribute{
@@ -210,26 +209,40 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The large icon for the macOS app. Can be provided as either a file path or web URL.",
 			},
-			"categories": schema.ListNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "List of categories associated with this application.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The unique identifier for the category.",
-						},
-						"display_name": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The display name of the category.",
-						},
-						"last_modified_date_time": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The last modified date and time of the category. This property is read-only.",
-						},
-					},
-				},
-			},
+			// "categories": schema.SetNestedAttribute{
+			// 	Optional:            true,
+			// 	MarkdownDescription: "Set of categories associated with this application.",
+			// 	NestedObject: schema.NestedAttributeObject{
+			// 		Attributes: map[string]schema.Attribute{
+			// 			"id": schema.StringAttribute{
+			// 				Computed:            true,
+			// 				MarkdownDescription: "The unique identifier for the category. This is automatically assigned based on the display_name.",
+			// 			},
+			// 			"display_name": schema.StringAttribute{
+			// 				Required:            true,
+			// 				MarkdownDescription: "The display name of the category.",
+			// 				Validators: []validator.String{
+			// 					// Validate that the display name is one of the supported category names
+			// 					stringvalidator.OneOf(
+			// 						"Other apps",
+			// 						"Books & Reference",
+			// 						"Data management",
+			// 						"Productivity",
+			// 						"Business",
+			// 						"Development & Design",
+			// 						"Photos & Media",
+			// 						"Collaboration & Social",
+			// 						"Computer management",
+			// 					),
+			// 				},
+			// 			},
+			// 			"last_modified_date_time": schema.StringAttribute{
+			// 				Computed:            true,
+			// 				MarkdownDescription: "The last modified date and time of the category. This property is read-only.",
+			// 			},
+			// 		},
+			// 	},
+			// },
 			"relationships": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of relationships associated with this application.",

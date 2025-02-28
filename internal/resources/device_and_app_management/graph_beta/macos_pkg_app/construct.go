@@ -37,30 +37,20 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	if len(data.Categories) > 0 {
-		categories := make([]graphmodels.MobileAppCategoryable, 0, len(data.Categories))
-		for _, category := range data.Categories {
-			mobileAppCategory := graphmodels.NewMobileAppCategory()
-			constructors.SetStringProperty(category.ID, mobileAppCategory.SetId)
-			constructors.SetStringProperty(category.DisplayName, mobileAppCategory.SetDisplayName)
-			categories = append(categories, mobileAppCategory)
-		}
-		baseApp.SetCategories(categories)
-	}
-
-	// if data.LargeIcon != nil {
-	// 	largeIcon := graphmodels.NewMimeContent()
-
-	// 	iconPath := data.LargeIcon.Value.ValueString()
-	// 	if iconPath != "" {
-	// 		iconBytes, err := os.ReadFile(iconPath)
-	// 		if err != nil {
-	// 			return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
+	// Handle categories
+	// if data.Categories != nil && len(data.Categories) > 0 {
+	// 	// Extract display names from the categories
+	// 	displayNames := make([]string, 0, len(data.Categories))
+	// 	for _, category := range data.Categories {
+	// 		if !category.DisplayName.IsNull() && !category.DisplayName.IsUnknown() {
+	// 			displayNames = append(displayNames, category.DisplayName.ValueString())
 	// 		}
-	// 		iconType := "image/png"
-	// 		largeIcon.SetTypeEscaped(&iconType)
-	// 		largeIcon.SetValue(iconBytes)
-	// 		baseApp.SetLargeIcon(largeIcon)
+	// 	}
+
+	// 	// Build the categories using our helper function
+	// 	if len(displayNames) > 0 {
+	// 		categories := BuildCategoriesFromDisplayNames(displayNames)
+	// 		baseApp.SetCategories(categories)
 	// 	}
 	// }
 
@@ -195,4 +185,51 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully constructed MacOSPkgApp resource with %d included apps", len(includedApps)))
 	return macOSApp, nil
+}
+
+// BuildCategoriesFromDisplayNames creates an array of MobileAppCategoryable objects
+// from an array of display names. The function maps each display name to its
+// corresponding ID based on predefined mappings.
+func BuildCategoriesFromDisplayNames(displayNames []string) []graphmodels.MobileAppCategoryable {
+	// Define the mapping of display names to IDs
+	categoryMapping := map[string]string{
+		"Other apps":             "0720a99e-562b-4a77-83f0-9a7523fcf13e",
+		"Books & Reference":      "f1fc9fe2-728d-4867-9a72-a61e18f8c606",
+		"Data management":        "046e0b16-76ce-4b49-bf1b-1cc5bd94fb47",
+		"Productivity":           "ed899483-3019-425e-a470-28e901b9790e",
+		"Business":               "2b73ae71-12c8-49be-b462-3dae769ccd9d",
+		"Development & Design":   "79bc98d4-7ddf-4841-9bc1-5c84a26d7ee8",
+		"Photos & Media":         "5dcd7a90-0306-4f09-a75d-6b97a243f04e",
+		"Collaboration & Social": "f79135dc-8e41-48c1-9a59-ab9a7259c38e",
+		"Computer management":    "981deed8-6857-4e78-a50e-c3f61d312737",
+	}
+
+	// Create the array of category objects
+	categories := make([]graphmodels.MobileAppCategoryable, 0, len(displayNames))
+
+	// Process each display name
+	for _, name := range displayNames {
+		// Check if the display name exists in our mapping
+		id, exists := categoryMapping[name]
+		if !exists {
+			// Skip invalid category names
+			continue
+		}
+
+		// Create a new category object
+		category := graphmodels.NewMobileAppCategory()
+
+		// Set the display name
+		displayNameCopy := name // Create a copy to avoid issues with loop variable capture
+		category.SetDisplayName(&displayNameCopy)
+
+		// Set the ID
+		idCopy := id // Create a copy for the same reason
+		category.SetId(&idCopy)
+
+		// Add to the array
+		categories = append(categories, category)
+	}
+
+	return categories
 }

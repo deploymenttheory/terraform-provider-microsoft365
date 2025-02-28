@@ -1,6 +1,7 @@
 # Example: macOS PKG App Resource
 resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "google_chrome" {
   display_name            = "GoogleChrome.pkg"
+  description             = "thing"
   publisher               = "Example Publisher"
   is_featured             = false
   privacy_information_url = "https://example.com/privacy"
@@ -13,6 +14,15 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "goog
   app_icon = {
     icon_file_path = "C:\\your\\localpath\\chrome_logo.png"
   }
+
+  categories = [
+    {
+      display_name = "Productivity"
+    },
+    {
+      display_name = "Business"
+    }
+  ]
 
   macos_pkg_app = {
     package_installer_file_source = "C:\\your\\localpath\\GoogleChrome.pkg"

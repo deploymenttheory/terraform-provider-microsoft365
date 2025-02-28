@@ -76,17 +76,40 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 	data.RoleScopeTagIds = types.ListValueMust(types.StringType, roleScopeTagIds)
 
-	categories := remoteResource.GetCategories()
-	if len(categories) > 0 {
-		categoriesValues := make([]MobileAppCategoryResourceModel, len(categories))
-		for i, category := range categories {
-			categoriesValues[i] = MobileAppCategoryResourceModel{
-				ID:          state.StringPointerValue(category.GetId()),
-				DisplayName: state.StringPointerValue(category.GetDisplayName()),
-			}
-		}
-		data.Categories = categoriesValues
-	}
+	// Map categories with proper nil handling
+	// categories := remoteResource.GetCategories()
+	// if categories != nil && len(categories) > 0 {
+	// 	categoriesValues := make([]MobileAppCategoryResourceModel, 0, len(categories))
+
+	// 	for _, category := range categories {
+	// 		// Skip nil categories
+	// 		if category == nil {
+	// 			continue
+	// 		}
+
+	// 		categoryModel := MobileAppCategoryResourceModel{
+	// 			ID:          state.StringPointerValue(category.GetId()),
+	// 			DisplayName: state.StringPointerValue(category.GetDisplayName()),
+	// 		}
+
+	// 		// // Only add the last modified date time if it's available
+	// 		// if category.GetLastModifiedDateTime() != nil {
+	// 		// 		categoryModel.LastModifiedDateTime = state.DateOnlyPtrToString(category.GetLastModifiedDateTime())
+	// 		// }
+
+	// 		categoriesValues = append(categoriesValues, categoryModel)
+	// 	}
+
+	// 	if len(categoriesValues) > 0 {
+	// 		data.Categories = categoriesValues
+	// 	} else {
+	// 		// Set an empty slice if we processed all categories but none were valid
+	// 		data.Categories = []MobileAppCategoryResourceModel{}
+	// 	}
+	// } else {
+	// 	// Set an empty slice if there are no categories from the API
+	// 	data.Categories = []MobileAppCategoryResourceModel{}
+	// }
 
 	// Initialize the MacOSPkgApp struct if it's nil
 	if data.MacOSPkgApp == nil {

@@ -32,10 +32,10 @@ type MacOSPKGAppResourceModel struct {
 	SupersedingAppCount   types.Int64                                     `tfsdk:"superseding_app_count"`
 	SupersededAppCount    types.Int64                                     `tfsdk:"superseded_app_count"`
 	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
-	Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
-	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
-	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
-	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
+	//Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
+	Relationships []MobileAppRelationshipResourceModel `tfsdk:"relationships"`
+	MacOSPkgApp   *MacOSPkgAppResourceModel            `tfsdk:"macos_pkg_app"`
+	Timeouts      timeouts.Value                       `tfsdk:"timeouts"`
 }
 
 type AppIconResourceModel struct {
