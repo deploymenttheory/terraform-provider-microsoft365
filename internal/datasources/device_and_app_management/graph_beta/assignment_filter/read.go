@@ -37,6 +37,7 @@ import (
 //   - Returns error if no matching filter is found
 func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object resource.AssignmentFilterResourceModel
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -49,6 +50,7 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 		)
 		return
 	}
+
 	if !object.ID.IsNull() && !object.DisplayName.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
@@ -63,6 +65,7 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 			AssignmentFilters().
 			ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
 			Get(ctx, nil)
+
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Reading Assignment Filter",
@@ -70,11 +73,15 @@ func (d *AssignmentFilterDataSource) Read(ctx context.Context, req datasource.Re
 			)
 			return
 		}
+
 		resource.MapRemoteStateToTerraform(ctx, &object, filter)
 	} else {
-		filters := d.client.DeviceManagement().
+		filters := d.client.
+			DeviceManagement().
 			AssignmentFilters()
+
 		result, err := filters.Get(ctx, nil)
+
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Reading Assignment Filters",

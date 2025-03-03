@@ -25,7 +25,7 @@ const (
 	USGOVHIGH_GRAPH_API_SERVICE_ROOT      = "https://graph.microsoft.us/v1.0"
 	USGOVHIGH_GRAPH_BETA_API_SERVICE_ROOT = "https://graph.microsoft.us/beta"
 
-	// China Cloud - https://learn.microsoft.com/en-us/previous-versions/office/office-365-api/api/o365-china-endpoints
+	// China Cloud (aka mooncake) - https://learn.microsoft.com/en-us/previous-versions/office/office-365-api/api/o365-china-endpoints
 	CHINA_OAUTH_AUTHORITY_URL         = "https://login.chinacloudapi.cn/"
 	CHINA_GRAPH_API_SCOPE             = "https://microsoftgraph.chinacloudapi.cn/.default"
 	CHINA_GRAPH_API_SERVICE_ROOT      = "https://microsoftgraph.chinacloudapi.cn/v1.0"

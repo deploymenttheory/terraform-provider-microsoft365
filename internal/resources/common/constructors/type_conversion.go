@@ -98,6 +98,32 @@ func SetStringList(ctx context.Context, list types.List, setter func([]string)) 
 	return nil
 }
 
+// SetStringSet constructs and sets a slice of strings from a Terraform SetAttribute.
+// It handles null or unknown values and converts each element to a string and passes it to
+// the msgraph-sdk-go setter function.
+func SetStringSet(ctx context.Context, set types.Set, setter func([]string)) error {
+	if set.IsNull() || set.IsUnknown() {
+		setter(nil)
+		return nil
+	}
+
+	elements := set.Elements()
+	result := make([]string, 0, len(elements))
+	for i, elem := range elements {
+		strVal, ok := elem.(types.String)
+		if !ok {
+			return fmt.Errorf("unexpected element type at index %d: %T", i, elem)
+		}
+
+		if !strVal.IsNull() && !strVal.IsUnknown() {
+			result = append(result, strVal.ValueString())
+		}
+	}
+
+	setter(result)
+	return nil
+}
+
 // SetBytesProperty sets the value of a byte slice property if the value is not null or unknown.
 // It converts a basetypes.StringValue (Terraform SDK type) to a []byte and passes it to the setter function.
 func SetBytesProperty(value basetypes.StringValue, setter func([]byte)) {

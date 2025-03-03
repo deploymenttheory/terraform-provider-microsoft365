@@ -63,7 +63,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 		}
 
 		// Set Settings
-		settings, err := constructMobileAppAssignmentSettings(ctx, &assignmentData.Settings)
+		settings, err := constructMobileAppAssignmentSettings(ctx, assignmentData.Settings)
 		if err != nil {
 			return nil, fmt.Errorf("error constructing settings: %v", err)
 		}

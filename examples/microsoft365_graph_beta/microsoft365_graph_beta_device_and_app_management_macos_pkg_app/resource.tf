@@ -1,58 +1,110 @@
-# Example: macOS PKG App Resource
-
-resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "example_app" {
-  display_name           = "Example macOS PKG App"
-  description            = "This is an example macOS PKG app managed by Terraform"
-  publisher              = "Example Publisher"
-  file_name              = "example_app.pkg"
-  primary_bundle_id      = "com.example.app"
-  primary_bundle_version = "1.0.0"
-
-  large_icon = {
-    type  = "image/png"
-    value = filebase64("path/to/icon.png")
-  }
-
-  is_featured             = true
+resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozilla_firefox" {
+  display_name            = "Firefox"
+  description             = "thing"
+  publisher               = "Example Publisher"
+  is_featured             = false
   privacy_information_url = "https://example.com/privacy"
   information_url         = "https://example.com/info"
-  owner                   = "IT Department"
+  owner                   = "Example Owner"
   developer               = "Example Developer"
-  notes                   = "Example notes for the app"
+  notes                   = "This is a macOS PKG application managed through Terraform."
+  role_scope_tag_ids      = [8, 9]
 
-  role_scope_tag_ids = ["tag1", "tag2"]
+  app_icon = {
+    //icon_file_path_source = "C:\\your\\filepath\\Firefox_logo_2019.png"
+    // or
+    icon_url_source = "https://upload.wikimedia.org/wikipedia/commons/1/16/Firefox_logo%2C_2017.png"
+  }
 
-  ignore_version_detection = false
+  //categories = ["Productivity",  "Business"]
 
-  included_apps = [
+  macos_pkg_app = {
+    //installer_file_path_source = "C:\\your\\filepath\\GoogleChrome.pkg"
+    // or
+    installer_url_source = "https://ftp.mozilla.org/pub/firefox/releases/136.0/mac/en-GB/Firefox%20136.0.pkg"
+    ignore_version_detection      = true
+
+    included_apps = [{
+      bundle_id      = "org.mozilla.firefox"
+      bundle_version = "136.0"
+    }]
+
+    minimum_supported_operating_system = {
+      v14_0 = true
+    }
+
+    pre_install_script = {
+      script_content = base64encode("#!/bin/bash\necho macOS PKG Pre-install script example")
+    }
+
+    post_install_script = {
+      script_content = base64encode("#!/bin/bash\necho macOS PKG Post-install script example")
+    }
+  }
+
+  # App assignments configuration
+  assignments = [
+
+    # Assignment 1: Exclusion group with available intent
     {
-      bundle_id      = "com.example.includedapp1"
-      bundle_version = "1.0.0"
+      intent = "available"
+      source = "direct"
+      target = {
+        target_type = "exclusionGroupAssignment"
+        group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+      }
     },
+
+    # Assignment 2: Another exclusion group with available intent
     {
-      bundle_id      = "com.example.includedapp2"
-      bundle_version = "2.0.0"
+      intent = "available"
+      source = "direct"
+      target = {
+        target_type = "exclusionGroupAssignment"
+        group_id    = "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
+      }
+    },
+
+    # Assignment 3: All devices with required intent
+    {
+      intent = "required"
+      source = "direct"
+      target = {
+        target_type = "allDevices"
+      }
+    },
+
+    # Assignment 4: All licensed users with required intent
+    {
+      intent = "required"
+      source = "direct"
+      target = {
+        target_type = "allLicensedUsers"
+      }
+    },
+
+    # Assignment 5: Group assignment with required intent
+    {
+      intent = "required"
+      source = "direct"
+      target = {
+        target_type = "groupAssignment"
+        group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+      }
+    },
+
+    # Assignment 6: Another group assignment with required intent
+    {
+      intent = "required"
+      source = "direct"
+      target = {
+        target_type = "groupAssignment"
+        group_id    = "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
+      }
     }
   ]
 
-  minimum_supported_operating_system = {
-    v10_14 = true
-    v10_15 = true
-    v11_0  = true
-    v12_0  = true
-    v13_0  = true
-    v14_0  = true
-  }
-
-  pre_install_script = {
-    script_content = file("path/to/pre_install_script.sh")
-  }
-
-  post_install_script = {
-    script_content = file("path/to/post_install_script.sh")
-  }
-
-  # Optional: Define custom timeouts
+  # Optional: Add timeouts
   timeouts = {
     create = "30m"
     read   = "10m"
