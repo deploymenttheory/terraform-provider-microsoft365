@@ -183,7 +183,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"app_icon": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"icon_file_path": schema.StringAttribute{
+					"icon_file_path_source": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
 						Validators: []validator.String{
@@ -193,7 +193,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							),
 						},
 					},
-					"icon_file_web_source": schema.StringAttribute{
+					"icon_url_source": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
 						Validators: []validator.String{
@@ -323,13 +323,23 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"macos_pkg_app": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"package_installer_file_source": schema.StringAttribute{
-						Required:            true,
+					"installer_file_path_source": schema.StringAttribute{
+						Optional:            true,
 						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid `.pkg` file.",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
 								regexp.MustCompile(`.*\.pkg$`),
 								"File path must point to a valid .pkg file.",
+							),
+						},
+					},
+					"installer_url_source": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+								"Must be a valid URL.",
 							),
 						},
 					},
@@ -464,7 +474,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						Attributes: map[string]schema.Attribute{
 							"script_content": schema.StringAttribute{
 								Required:            true,
-								MarkdownDescription: "Base64 encoded shell script to execute on macOS device before app installation",
+								MarkdownDescription: "Base64 encoded shell script to execute on macOS device before app installation. Requires base64encode()",
 							},
 						},
 					},
@@ -473,7 +483,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						Attributes: map[string]schema.Attribute{
 							"script_content": schema.StringAttribute{
 								Required:            true,
-								MarkdownDescription: "Base64 encoded shell script to execute on macOS device after app installation",
+								MarkdownDescription: "Base64 encoded shell script to execute on macOS device after app installation. Requires base64encode()",
 							},
 						},
 					},

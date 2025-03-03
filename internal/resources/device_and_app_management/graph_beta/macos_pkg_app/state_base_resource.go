@@ -53,8 +53,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		// We don't do anything with the actual icon content here
 		if data.AppIcon == nil {
 			data.AppIcon = &AppIconResourceModel{
-				IconFilePath:      types.StringNull(),
-				IconFileWebSource: types.StringNull(),
+				IconFilePathSource: types.StringNull(),
+				IconURLSource:      types.StringNull(),
 			}
 		}
 

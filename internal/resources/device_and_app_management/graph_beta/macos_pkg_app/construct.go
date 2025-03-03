@@ -14,8 +14,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (graphmodels.MobileAppable, error) {
+// constructResource maps the Terraform schema to the SDK model, using the provided installer path
+func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, installerSourcePath string) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	baseApp := graphmodels.NewMacOSPkgApp()
@@ -41,27 +41,29 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		iconType := "image/png"
 		largeIcon.SetTypeEscaped(&iconType)
 
-		if !data.AppIcon.IconFilePath.IsNull() && data.AppIcon.IconFilePath.ValueString() != "" {
-			iconPath := data.AppIcon.IconFilePath.ValueString()
+		if !data.AppIcon.IconFilePathSource.IsNull() && data.AppIcon.IconFilePathSource.ValueString() != "" {
+			iconPath := data.AppIcon.IconFilePathSource.ValueString()
 			iconBytes, err := os.ReadFile(iconPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
 			}
 			largeIcon.SetValue(iconBytes)
 			baseApp.SetLargeIcon(largeIcon)
-		} else if !data.AppIcon.IconFileWebSource.IsNull() && data.AppIcon.IconFileWebSource.ValueString() != "" {
-			webSource := data.AppIcon.IconFileWebSource.ValueString()
+		} else if !data.AppIcon.IconURLSource.IsNull() && data.AppIcon.IconURLSource.ValueString() != "" {
+			webSource := data.AppIcon.IconURLSource.ValueString()
 
 			downloadedPath, err := download.DownloadFile(webSource)
 			if err != nil {
 				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
 			}
 
-			defer func() {
-				if err := os.Remove(downloadedPath); err != nil {
-					tflog.Warn(ctx, fmt.Sprintf("Failed to clean up temporary icon file %s: %v", downloadedPath, err))
-				}
-			}()
+			// Create temp file info for cleanup
+			iconTempFile := TempFileInfo{
+				FilePath:      downloadedPath,
+				ShouldCleanup: true,
+			}
+			// Clean up the icon file when done with this function
+			defer cleanupTempFile(ctx, iconTempFile)
 
 			iconBytes, err := os.ReadFile(downloadedPath)
 			if err != nil {
@@ -73,23 +75,32 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		}
 	}
 
-	// Set MacOS PKG specific properties
-	if data.MacOSPkgApp.PackageInstallerFileSource.IsNull() || data.MacOSPkgApp.PackageInstallerFileSource.ValueString() == "" {
-		return nil, fmt.Errorf("package_installer_file_source is required but not provided")
+	// For creating resources, we need the installer file to extract metadata
+	// Verify the installer path is provided and the file exists
+	if installerSourcePath == "" {
+		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
 	}
 
-	filename := filepath.Base(data.MacOSPkgApp.PackageInstallerFileSource.ValueString())
+	// Verify file exists and path is valid
+	if _, err := os.Stat(installerSourcePath); err != nil {
+		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
+	}
+
+	// Set filename from the installer source path
+	filename := filepath.Base(installerSourcePath)
+	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
 	constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)
 
+	// Extract fields from all Info.plist files in the package using the resolved path
 	fields := []utility.Field{
 		{Key: "CFBundleIdentifier", Required: true},
 		{Key: "CFBundleShortVersionString", Required: true},
 	}
 
-	// Extract fields from all Info.plist files in the package
+	tflog.Debug(ctx, fmt.Sprintf("Extracting metadata from PKG file: %s", installerSourcePath))
 	extractedFields, err := utility.ExtractFieldsFromFiles(
 		ctx,
-		data.MacOSPkgApp.PackageInstallerFileSource.ValueString(),
+		installerSourcePath,
 		"Info.plist",
 		fields,
 	)
@@ -97,10 +108,15 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		return nil, fmt.Errorf("failed to extract metadata from pkg file: %w", err)
 	}
 
+	if len(extractedFields) == 0 {
+		return nil, fmt.Errorf("no Info.plist files found in the PKG installer at %s", installerSourcePath)
+	}
+
 	// First Info.plist becomes primary bundle
 	primaryBundleId := extractedFields[0].Values["CFBundleIdentifier"]
 	primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
 
+	tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
 	constructors.SetStringProperty(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
 	constructors.SetStringProperty(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
 
@@ -120,6 +136,7 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 	}
 
 	baseApp.SetIncludedApps(includedApps)
+	tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from PKG metadata", len(includedApps)))
 
 	constructors.SetBoolProperty(data.MacOSPkgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
 
@@ -159,6 +176,7 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel) (gra
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully constructed MacOSPkgApp resource with %d included apps", len(includedApps)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+
 	return baseApp, nil
 }

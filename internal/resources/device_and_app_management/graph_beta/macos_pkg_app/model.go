@@ -40,8 +40,8 @@ type MacOSPKGAppResourceModel struct {
 }
 
 type AppIconResourceModel struct {
-	IconFilePath      types.String `tfsdk:"icon_file_path"`
-	IconFileWebSource types.String `tfsdk:"icon_file_web_source"`
+	IconFilePathSource types.String `tfsdk:"icon_file_path_source"`
+	IconURLSource      types.String `tfsdk:"icon_url_source"`
 }
 
 // MobileAppCategoryResourceModel represents the Terraform resource model for a Mobile App Category
@@ -70,7 +70,8 @@ type MobileAppRelationshipResourceModel struct {
 
 // MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
 type MacOSPkgAppResourceModel struct {
-	PackageInstallerFileSource      types.String                              `tfsdk:"package_installer_file_source"`
+	InstallerFilePathSource         types.String                              `tfsdk:"installer_file_path_source"`
+	InstallerURLSource              types.String                              `tfsdk:"installer_url_source"`
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	IncludedApps                    []MacOSIncludedAppResourceModel           `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
