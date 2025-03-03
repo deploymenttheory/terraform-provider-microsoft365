@@ -1,6 +1,5 @@
-# Example: macOS PKG App Resource
-resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "google_chrome" {
-  display_name            = "GoogleChrome.pkg"
+resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozilla_firefox" {
+  display_name            = "Firefox"
   description             = "thing"
   publisher               = "Example Publisher"
   is_featured             = false
@@ -12,21 +11,23 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "goog
   role_scope_tag_ids      = [8, 9]
 
   app_icon = {
-    icon_file_path = "C:\\your\\localpath\\chrome_logo.png"
+    //icon_file_path_source = "C:\\your\\filepath\\Firefox_logo_2019.png"
+    // or
+    icon_url_source = "https://upload.wikimedia.org/wikipedia/commons/1/16/Firefox_logo%2C_2017.png"
   }
 
-  categories = [
-    {
-      display_name = "Productivity"
-    },
-    {
-      display_name = "Business"
-    }
-  ]
+  //categories = ["Productivity",  "Business"]
 
   macos_pkg_app = {
-    package_installer_file_source = "C:\\your\\localpath\\GoogleChrome.pkg"
+    //installer_file_path_source = "C:\\your\\filepath\\GoogleChrome.pkg"
+    // or
+    installer_url_source = "https://ftp.mozilla.org/pub/firefox/releases/136.0/mac/en-GB/Firefox%20136.0.pkg"
     ignore_version_detection      = true
+
+    included_apps = [{
+      bundle_id      = "org.mozilla.firefox"
+      bundle_version = "136.0"
+    }]
 
     minimum_supported_operating_system = {
       v14_0 = true
@@ -43,7 +44,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "goog
 
   # App assignments configuration
   assignments = [
-    
+
     # Assignment 1: Exclusion group with available intent
     {
       intent = "available"
@@ -53,7 +54,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "goog
         group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
       }
     },
-    
+
     # Assignment 2: Another exclusion group with available intent
     {
       intent = "available"
@@ -91,7 +92,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "goog
         group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
       }
     },
-    
+
     # Assignment 6: Another group assignment with required intent
     {
       intent = "required"
