@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -181,6 +182,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
 			"app_icon": schema.SingleNestedAttribute{
+				MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
+				Validators: []validator.Object{
+					validators.ExactlyOneOf("icon_file_path_source", "icon_url_source"),
+				},
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"icon_file_path_source": schema.StringAttribute{
@@ -208,7 +213,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 					},
 				},
-				MarkdownDescription: "The large icon for the macOS app. Can be provided as either a file path or web URL.",
 			},
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -321,7 +325,11 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
 			"macos_pkg_app": schema.SingleNestedAttribute{
-				Optional: true,
+				MarkdownDescription: "The path to the PKG file to be uploaded. Resource supports both local file sources and url based sources.",
+				Optional:            true,
+				Validators: []validator.Object{
+					validators.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
+				},
 				Attributes: map[string]schema.Attribute{
 					"installer_file_path_source": schema.StringAttribute{
 						Optional:            true,
