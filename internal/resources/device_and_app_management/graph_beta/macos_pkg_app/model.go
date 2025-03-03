@@ -27,11 +27,12 @@ type MacOSPKGAppResourceModel struct {
 	UploadState           types.Int64                                     `tfsdk:"upload_state"`
 	PublishingState       types.String                                    `tfsdk:"publishing_state"`
 	IsAssigned            types.Bool                                      `tfsdk:"is_assigned"`
-	RoleScopeTagIds       types.List                                      `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds       types.Set                                       `tfsdk:"role_scope_tag_ids"`
 	DependentAppCount     types.Int64                                     `tfsdk:"dependent_app_count"`
 	SupersedingAppCount   types.Int64                                     `tfsdk:"superseding_app_count"`
 	SupersededAppCount    types.Int64                                     `tfsdk:"superseded_app_count"`
 	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
+	Categories            types.Set                                       `tfsdk:"categories"`
 	//Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
 	Relationships []MobileAppRelationshipResourceModel `tfsdk:"relationships"`
 	MacOSPkgApp   *MacOSPkgAppResourceModel            `tfsdk:"macos_pkg_app"`

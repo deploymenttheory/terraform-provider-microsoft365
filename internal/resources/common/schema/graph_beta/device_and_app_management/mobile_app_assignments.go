@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -79,12 +80,14 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							Optional:            true,
 						},
 						"device_and_app_management_assignment_filter_id": schema.StringAttribute{
-							MarkdownDescription: "The Id of the scope filter for the target assignment.",
+							MarkdownDescription: "The Id of the scope filter applied to the target assignment.",
 							Optional:            true,
 						},
 						"device_and_app_management_assignment_filter_type": schema.StringAttribute{
 							Optional: true,
-							MarkdownDescription: "The type of scope filter for the target assignment. Possible values are:\n\n" +
+							Computed: true,
+							Default:  stringdefault.StaticString("none"),
+							MarkdownDescription: "The type of scope filter for the target assignment. Defaults to 'none'. Possible values are:\n\n" +
 								"- **include**: Only include devices or users matching the filter\n" +
 								"- **exclude**: Exclude devices or users matching the filter\n" +
 								"- **none**: No assignment filter applied",

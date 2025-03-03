@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -209,40 +210,26 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The large icon for the macOS app. Can be provided as either a file path or web URL.",
 			},
-			// "categories": schema.SetNestedAttribute{
-			// 	Optional:            true,
-			// 	MarkdownDescription: "Set of categories associated with this application.",
-			// 	NestedObject: schema.NestedAttributeObject{
-			// 		Attributes: map[string]schema.Attribute{
-			// 			"id": schema.StringAttribute{
-			// 				Computed:            true,
-			// 				MarkdownDescription: "The unique identifier for the category. This is automatically assigned based on the display_name.",
-			// 			},
-			// 			"display_name": schema.StringAttribute{
-			// 				Required:            true,
-			// 				MarkdownDescription: "The display name of the category.",
-			// 				Validators: []validator.String{
-			// 					// Validate that the display name is one of the supported category names
-			// 					stringvalidator.OneOf(
-			// 						"Other apps",
-			// 						"Books & Reference",
-			// 						"Data management",
-			// 						"Productivity",
-			// 						"Business",
-			// 						"Development & Design",
-			// 						"Photos & Media",
-			// 						"Collaboration & Social",
-			// 						"Computer management",
-			// 					),
-			// 				},
-			// 			},
-			// 			"last_modified_date_time": schema.StringAttribute{
-			// 				Computed:            true,
-			// 				MarkdownDescription: "The last modified date and time of the category. This property is read-only.",
-			// 			},
-			// 		},
-			// 	},
-			// },
+			"categories": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Set of category names to associate with this application. Valid values are: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.OneOf(
+							"Other apps",
+							"Books & Reference",
+							"Data management",
+							"Productivity",
+							"Business",
+							"Development & Design",
+							"Photos & Media",
+							"Collaboration & Social",
+							"Computer management",
+						),
+					),
+				},
+			},
 			"relationships": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of relationships associated with this application.",
@@ -316,10 +303,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "The value indicating whether the app is assigned to at least one group. This property is read-only.",
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag ids for this mobile app.",
+				MarkdownDescription: "Set of scope tag ids for this mobile app.",
 			},
 			"dependent_app_count": schema.Int64Attribute{
 				Computed:            true,

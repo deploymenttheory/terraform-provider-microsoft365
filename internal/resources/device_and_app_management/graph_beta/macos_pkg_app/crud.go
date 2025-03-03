@@ -82,12 +82,15 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	object.ID = types.StringValue(*baseResource.GetId())
 	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
 
+	// TODO categories
+
 	// If a package installer file is provided, process the content version and file upload
 	if !object.MacOSPkgApp.PackageInstallerFileSource.IsNull() {
 		// Step 2: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
 		content := graphmodels.NewMobileAppContent()
-		contentBuilder := r.client.DeviceAppManagement().
+		contentBuilder := r.client.
+			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
 			GraphMacOSPkgApp().
@@ -364,7 +367,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	// Create request configuration with expand query parameter
 	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
-			Expand: []string{"categories", "assignments"},
+			Expand: []string{"categories"},
 		},
 	}
 

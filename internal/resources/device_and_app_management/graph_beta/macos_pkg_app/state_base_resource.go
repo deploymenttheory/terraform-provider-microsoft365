@@ -42,19 +42,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
-
-	// if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-	// 	// Only store the type information in the state
-	// 	// The actual image content is not stored in the state at all
-	// 	data.LargeIcon = &LargeIconResourceModel{
-	// 		Type: types.StringPointerValue(largeIcon.GetTypeEscaped()),
-	// 		// The Value field must still be present but can be marked as unknown
-	// 		// This signals to Terraform that a value exists but is not included in the state
-	// 		Value: types.StringUnknown(),
-	// 	}
-	// } else {
-	// 	data.LargeIcon = nil
-	// }
+	data.DependentAppCount = state.Int32PointerValue(remoteResource.GetDependentAppCount())
+	data.IsAssigned = state.BoolPointerValue(remoteResource.GetIsAssigned())
+	data.SupersededAppCount = state.Int32PointerValue(remoteResource.GetSupersededAppCount())
+	data.SupersedingAppCount = state.Int32PointerValue(remoteResource.GetSupersedingAppCount())
+	data.UploadState = state.Int32PointerValue(remoteResource.GetUploadState())
 
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
 		// Icon exists in the API, but we only want to keep track of path in state
@@ -74,44 +66,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
 		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
-	data.RoleScopeTagIds = types.ListValueMust(types.StringType, roleScopeTagIds)
+	data.RoleScopeTagIds = types.SetValueMust(types.StringType, roleScopeTagIds)
 
-	// Map categories with proper nil handling
-	// categories := remoteResource.GetCategories()
-	// if categories != nil && len(categories) > 0 {
-	// 	categoriesValues := make([]MobileAppCategoryResourceModel, 0, len(categories))
+	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
 
-	// 	for _, category := range categories {
-	// 		// Skip nil categories
-	// 		if category == nil {
-	// 			continue
-	// 		}
-
-	// 		categoryModel := MobileAppCategoryResourceModel{
-	// 			ID:          state.StringPointerValue(category.GetId()),
-	// 			DisplayName: state.StringPointerValue(category.GetDisplayName()),
-	// 		}
-
-	// 		// // Only add the last modified date time if it's available
-	// 		// if category.GetLastModifiedDateTime() != nil {
-	// 		// 		categoryModel.LastModifiedDateTime = state.DateOnlyPtrToString(category.GetLastModifiedDateTime())
-	// 		// }
-
-	// 		categoriesValues = append(categoriesValues, categoryModel)
-	// 	}
-
-	// 	if len(categoriesValues) > 0 {
-	// 		data.Categories = categoriesValues
-	// 	} else {
-	// 		// Set an empty slice if we processed all categories but none were valid
-	// 		data.Categories = []MobileAppCategoryResourceModel{}
-	// 	}
-	// } else {
-	// 	// Set an empty slice if there are no categories from the API
-	// 	data.Categories = []MobileAppCategoryResourceModel{}
-	// }
-
-	// Initialize the MacOSPkgApp struct if it's nil
+	// Bundle id's
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
@@ -120,6 +79,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
 	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
+	// Always initialize includedApps as an empty slice Then populate with values if they exist
+	if data.MacOSPkgApp.IncludedApps == nil {
+		data.MacOSPkgApp.IncludedApps = []MacOSIncludedAppResourceModel{}
+	}
 	includedApps := remoteResource.GetIncludedApps()
 	if len(includedApps) > 0 {
 		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(includedApps))
@@ -158,7 +121,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		}
 
 		if scriptContent := preScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PreInstallScript.ScriptContent = state.DecodeBase64ToString(ctx, *scriptContent)
+			data.MacOSPkgApp.PreInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
 		}
 	}
 
@@ -168,7 +131,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		}
 
 		if scriptContent := postScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PostInstallScript.ScriptContent = state.DecodeBase64ToString(ctx, *scriptContent)
+			data.MacOSPkgApp.PostInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
 		}
 	}
 
@@ -177,4 +140,39 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		"displayName":       data.DisplayName.ValueString(),
 		"includedAppsCount": len(data.MacOSPkgApp.IncludedApps),
 	})
+}
+
+// MapCategoriesToSet converts a slice of MobileAppCategoryable to a types.Set for Terraform state
+// MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
+func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
+	if len(categories) == 0 {
+		return types.SetNull(types.StringType)
+	}
+
+	// Extract display names from categories
+	categoryNames := make([]attr.Value, 0, len(categories))
+	for _, category := range categories {
+		if category == nil {
+			continue
+		}
+
+		displayName := category.GetDisplayName()
+		if displayName != nil {
+			categoryNames = append(categoryNames, types.StringValue(*displayName))
+		}
+	}
+
+	// Create a set of category names
+	if len(categoryNames) > 0 {
+		set, diags := types.SetValue(types.StringType, categoryNames)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create category name set", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+			return types.SetNull(types.StringType)
+		}
+		return set
+	}
+
+	return types.SetNull(types.StringType)
 }
