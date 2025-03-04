@@ -20,11 +20,11 @@ require (
 	github.com/microsoft/kiota-http-go v1.4.7
 	github.com/microsoft/kiota-serialization-json-go v1.0.9
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.123.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.61.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.62.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
-	golang.org/x/text v0.21.0
+	golang.org/x/text v0.22.0
 	software.sslmate.com/src/go-pkcs12 v0.5.0
 )
 
@@ -110,7 +110,6 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
