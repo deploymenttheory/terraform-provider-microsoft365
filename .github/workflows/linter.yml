@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
           
       - name: Lint Code Base with Super-Linter
-        uses: super-linter/super-linter@v7.2.1
+        uses: super-linter/super-linter@v7.3.0
         env:
           DEFAULT_BRANCH: origin/main
           VALIDATE_ALL_CODEBASE: false # tells the linter to only check files that have been modified in the current pull request
