@@ -1,7 +1,6 @@
 module github.com/deploymenttheory/terraform-provider-microsoft365
 
 go 1.23
-
 toolchain go1.23.2
 
 require (
@@ -24,7 +23,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 	software.sslmate.com/src/go-pkcs12 v0.5.0
 )
 
@@ -108,7 +107,7 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
