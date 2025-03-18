@@ -19,7 +19,7 @@ require (
 	github.com/microsoft/kiota-http-go v1.5.0
 	github.com/microsoft/kiota-serialization-json-go v1.1.0
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.126.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.63.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.65.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
@@ -78,9 +78,9 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.2.0 // indirect
-	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect
-	github.com/microsoft/kiota-serialization-multipart-go v1.0.0 // indirect
-	github.com/microsoft/kiota-serialization-text-go v1.0.0 // indirect
+	github.com/microsoft/kiota-serialization-form-go v1.1.0 // indirect
+	github.com/microsoft/kiota-serialization-multipart-go v1.1.0 // indirect
+	github.com/microsoft/kiota-serialization-text-go v1.1.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
