@@ -1,7 +1,7 @@
 module github.com/deploymenttheory/terraform-provider-microsoft365
 
 go 1.23
-toolchain go1.23.2
+toolchain go1.24.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
@@ -15,12 +15,12 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
-	github.com/microsoft/kiota-abstractions-go v1.8.1
-	github.com/microsoft/kiota-http-go v1.4.7
-	github.com/microsoft/kiota-serialization-json-go v1.0.9
+	github.com/microsoft/kiota-abstractions-go v1.9.0
+	github.com/microsoft/kiota-http-go v1.5.0
+	github.com/microsoft/kiota-serialization-json-go v1.1.0
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.126.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.63.0
-	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
+	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	golang.org/x/text v0.23.0
@@ -42,15 +42,15 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
-	github.com/cjlapao/common-go v0.0.39 // indirect
+	github.com/cjlapao/common-go v0.0.41 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fatih/color v1.16.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/cli v1.1.7 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -77,7 +77,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/microsoft/kiota-authentication-azure-go v1.1.0 // indirect
+	github.com/microsoft/kiota-authentication-azure-go v1.2.0 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-text-go v1.0.0 // indirect
@@ -92,7 +92,7 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.1 // indirect
+	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.3 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
@@ -101,14 +101,15 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
-	go.opentelemetry.io/otel v1.31.0 // indirect
-	go.opentelemetry.io/otel/metric v1.31.0 // indirect
-	go.opentelemetry.io/otel/trace v1.31.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/otel v1.35.0 // indirect
+	go.opentelemetry.io/otel/metric v1.35.0 // indirect
+	go.opentelemetry.io/otel/trace v1.35.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
