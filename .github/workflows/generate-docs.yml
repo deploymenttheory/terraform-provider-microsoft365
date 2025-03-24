@@ -22,7 +22,7 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         
-    - uses: actions/setup-go@v5.3.0
+    - uses: actions/setup-go@v5.4.0
       with:
         cache: true
         go-version-file: 'go.mod'
