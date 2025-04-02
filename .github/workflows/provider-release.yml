@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 60
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.10.3
+      uses: step-security/harden-runner@v2.11.0
       with:
         egress-policy: audit
 
@@ -34,7 +34,7 @@ jobs:
         ref: ${{ github.event.inputs.release_version || github.ref }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5.2.0
+      uses: actions/setup-go@v5.4.0
       with:
         cache: true
         go-version-file: 'go.mod'
@@ -81,7 +81,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.3
+        uses: step-security/harden-runner@v2.11.0
         with:
           egress-policy: audit
           
@@ -90,7 +90,7 @@ jobs:
           fetch-depth: 0
       - name: Generate Release Notes
         run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
-      - uses: actions/upload-artifact@v4.6.0
+      - uses: actions/upload-artifact@v4.6.2
         with:
           name: release-notes
           path: release-notes.txt

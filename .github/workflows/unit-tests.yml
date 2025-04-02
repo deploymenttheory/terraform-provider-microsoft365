@@ -32,12 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.3
+        uses: step-security/harden-runner@v2.11.0
         with:
           egress-policy: audit
           
       - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-go@v5.2.0
+      - uses: actions/setup-go@v5.4.0
         with:
           go-version-file: 'go.mod'
           cache: true
