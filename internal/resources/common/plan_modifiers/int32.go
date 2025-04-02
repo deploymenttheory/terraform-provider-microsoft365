@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -151,5 +152,49 @@ func RequiresReplaceIfInt64(predicate func(context.Context, planmodifier.Int64Re
 			markdownDescription: "Requires resource replacement if value changes and condition is met",
 		},
 		predicate: predicate,
+	}
+}
+
+// RequiresOtherAttributeEnabledInt64 returns a plan modifier that ensures an int64 attribute
+// can only be used when another specified attribute is enabled (set to true).
+func RequiresOtherAttributeEnabledInt64(dependencyPath path.Path) planmodifier.Int64 {
+	return &requiresOtherAttributeEnabledInt64Modifier{
+		dependencyPath: dependencyPath,
+	}
+}
+
+type requiresOtherAttributeEnabledInt64Modifier struct {
+	dependencyPath path.Path
+}
+
+func (m *requiresOtherAttributeEnabledInt64Modifier) Description(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when %s is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledInt64Modifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when `%s` is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledInt64Modifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	// Skip if the attribute is null in the plan
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	// Get the dependency attribute's value from the plan
+	var dependencyValue types.Bool
+	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If dependency is defined, not null, and false, this attribute should not be used
+	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid attribute usage",
+			fmt.Sprintf("This attribute can only be used when %s is enabled (true)", m.dependencyPath),
+		)
 	}
 }

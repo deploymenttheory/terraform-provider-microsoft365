@@ -4,8 +4,10 @@ package planmodifiers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -78,4 +80,50 @@ func DefaultValueObject(defaultValue map[string]attr.Value) ObjectModifier {
 // Helper function to create a default empty object if needed
 func createDefaultObject(defaultValue map[string]attr.Value) types.Object {
 	return types.ObjectValueMust(map[string]attr.Type{}, defaultValue)
+}
+
+// ---- Object Attribute Implementation ----
+
+// RequiresOtherAttributeEnabledObject returns a plan modifier that ensures an object attribute
+// can only be used when another specified attribute is enabled (set to true).
+func RequiresOtherAttributeEnabledObject(dependencyPath path.Path) planmodifier.Object {
+	return &requiresOtherAttributeEnabledObjectModifier{
+		dependencyPath: dependencyPath,
+	}
+}
+
+type requiresOtherAttributeEnabledObjectModifier struct {
+	dependencyPath path.Path
+}
+
+func (m *requiresOtherAttributeEnabledObjectModifier) Description(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when %s is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledObjectModifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when `%s` is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledObjectModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	// Skip if the attribute is null in the plan
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	// Get the dependency attribute's value from the plan
+	var dependencyValue types.Bool
+	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If dependency is defined, not null, and false, this attribute should not be used
+	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid attribute usage",
+			fmt.Sprintf("This attribute can only be used when %s is enabled (true)", m.dependencyPath),
+		)
+	}
 }
