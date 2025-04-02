@@ -1,0 +1,682 @@
+{
+  "metadata": {
+    "platformGroups": {
+      "androidEnterprise": {
+        "platforms": "androidEnterprise",
+        "count": 13
+      }
+    },
+    "exportTimestamp": "2025-04-02T07:50:31.0953635Z",
+    "totalSettingsCount": 13,
+    "version": "2025-04-02"
+  },
+  "platformDefinitions": {
+    "androidEnterprise": [
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumlowercasecharacters",
+        "name": "PasswordMinimumLowerCaseCharacters",
+        "displayName": "Number of lowercase characters required",
+        "description": "Enter the number of lowercase characters the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Lower",
+          "Case",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumLowerCaseCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordsigninfailurecountbeforefactoryreset",
+        "name": "PasswordSignInFailureCountBeforeFactoryReset",
+        "displayName": "Number of sign-in failures before wiping device",
+        "description": "Enter the number of wrong passwords allowed before the device is wiped, from 4-11. If the value is blank, Intune doesn't change or update this setting. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "SignIn Failure",
+          "SignIn Failure Count Before Factory Reset",
+          "Device password"
+        ],
+        "helpText": "Enter a number (4-11)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordsigninfailurecountbeforefactoryreset",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordSignInFailureCountBeforeFactoryReset/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 11
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 11,
+          "minimumValue": 4
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordblockkeyguard",
+        "name": "PasswordBlockKeyguard",
+        "displayName": "Disable lock screen",
+        "description": "If 'True', blocks all Keyguard lock screen features from being used. If 'False', Intune doesn't change or update this setting. By default, when the device is in lock screen, the OS might allow all the Keyguard features, such as camera, fingerprint unlock, and more. Available for fully managed and dedicated devices.",
+        "keywords": [
+          "Password",
+          "Block",
+          "Keyguard",
+          "Device password"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordblockkeyguard",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordBlockKeyguard/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.passwordblockkeyguard_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "True",
+            "description": "true",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "False",
+            "description": "false",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordpreviouspasswordcounttoblock",
+        "name": "PasswordPreviousPasswordCountToBlock",
+        "displayName": "Number of passwords required before user can reuse a password",
+        "description": "Use this setting to restrict users from creating previously used passwords. Enter the number of previously used passwords that can't be used, from 1-24. For example, enter 5 so users can't set a new password to their current password or any of their previous four passwords. If the value is blank, Intune doesn't change or update this setting. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Previous",
+          "Password",
+          "Count",
+          "To",
+          "Block",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-24)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordpreviouspasswordcounttoblock",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordPreviousPasswordCountToBlock/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 24,
+          "minimumValue": 1
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumuppercasecharacters",
+        "name": "PasswordMinimumUpperCaseCharacters",
+        "displayName": "Number of uppercase characters required",
+        "description": "Enter the number of uppercase characters the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Upper",
+          "Case",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumUpperCaseCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+        "name": "PasswordRequiredType",
+        "displayName": "Required password type",
+        "description": "Set the password’s complexity requirements. Additional password requirements will become available based on your selection. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level). For more details, see the information provided in the ‘Learn More’ section below.",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "Password type",
+          "Password required type",
+          "Android Enterprise",
+          "Device password"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordRequiredType/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.passwordrequiredtype_devicedefault"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Device default",
+            "description": "Device default value, no intent.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Password required, no restrictions",
+            "description": "There must be a password set, but there are no restrictions on type.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Weak Biometric",
+            "description": "Low security biometrics based password required.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Numeric",
+            "description": "At least numeric.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Numeric Complex",
+            "description": "At least numeric with no repeating or ordered sequences.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphabetic",
+            "description": "At least alphabetic password.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphanumeric",
+            "description": "At least alphanumeric password",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphanumeric with symbols",
+            "description": "At least alphanumeric with symbols.",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/mem/intune/configuration/device-restrictions-android-for-work?WT.mc_id=Portal-fx#device-password"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordrequireunlock",
+        "name": "PasswordRequireUnlock",
+        "displayName": "Required unlock frequency",
+        "description": "Select how long users have before they're required to unlock the device using a strong authentication method (password, PIN, or pattern). Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Require",
+          "Unlock",
+          "Device password"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequireunlock",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordRequireUnlock/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Device default",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "24 hours since last PIN, password, or pattern unlock",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumsymbolcharacters",
+        "name": "PasswordMinimumSymbolCharacters",
+        "displayName": "Number of symbol characters required",
+        "description": "Enter the number of symbol characters (&, #, %, and so on) the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Symbol",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumSymbolCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumnumericcharacters",
+        "name": "PasswordMinimumNumericCharacters",
+        "displayName": "Number of numeric characters required",
+        "description": "Enter the number of numeric characters (1, 2, 3, and so on) the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Numeric",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumNumericCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumlettercharacters",
+        "name": "PasswordMinimumLetterCharacters",
+        "displayName": "Number of characters required",
+        "description": "Enter the number of characters the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Letter",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumLetterCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumlength",
+        "name": "PasswordMinimumLength",
+        "displayName": "Minimum password length",
+        "description": "Enter the minimum number of digits or characters the password must have, between 4 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "Password Length",
+          "Device password"
+        ],
+        "helpText": "Enter a number (4-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumLength/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 4
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 4
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_numeric"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_numericcomplex"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphabetic"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumeric"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumnonlettercharacters",
+        "name": "PasswordMinimumNonLetterCharacters",
+        "displayName": "Number of non-letter characters required",
+        "description": "Enter the number of non-letters (anything other than letters in the alphabet) the password must have, between 1 and 16 characters. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Minimum",
+          "Non",
+          "Letter",
+          "Characters",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumNonLetterCharacters/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 1
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 1
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtype",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtype_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordexpirationdays",
+        "name": "PasswordExpirationDays",
+        "displayName": "Number of days until password expires",
+        "description": "Enter the number of days, until the device password must be changed, from 1-365. For example, enter 90 to expire the password after 90 days. When the password expires, users are prompted to create a new password. If the value is blank, Intune doesn't change or update this setting. Available for fully managed, dedicated and corporate-owned work profile devices (at work profile level).",
+        "keywords": [
+          "Password",
+          "Expiration",
+          "Days",
+          "Device password"
+        ],
+        "helpText": "Enter a number (1-365)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordexpirationdays",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordExpirationDays/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "androidEnterprise",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 41
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 365,
+          "minimumValue": 1
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": []
+      }
+    ]
+  }
+}

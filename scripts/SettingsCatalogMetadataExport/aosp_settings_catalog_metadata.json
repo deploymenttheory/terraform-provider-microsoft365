@@ -1,0 +1,736 @@
+{
+  "metadata": {
+    "platformGroups": {
+      "aosp": {
+        "platforms": "aosp",
+        "count": 14
+      }
+    },
+    "exportTimestamp": "2025-04-02T07:50:31.0953635Z",
+    "totalSettingsCount": 14,
+    "version": "2025-04-02"
+  },
+  "platformDefinitions": {
+    "aosp": [
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.securityallowdebuggingfeaturesaosp",
+        "name": "SecurityAllowDebuggingFeatures",
+        "displayName": "Allow users to turn on debugging features",
+        "description": "If 'True', permits users to access the debugging features on the device. If 'False', Intune doesn't change or update this setting. By default, the OS might prevent users from using the debugging features on the device.",
+        "keywords": [
+          "Debugging",
+          "Debugging features",
+          "Allow Debugging features",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.securityallowdebuggingfeaturesaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/securityAllowDebuggingFeaturesAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.securityallowdebuggingfeaturesaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.appsblockinstallfromunknownsourcesaosp",
+        "name": "AppsBlockInstallFromUnknownSources",
+        "displayName": "Block user from turning on unknown sources",
+        "description": "If 'True', prevents users from sideloading apps. If 'False', Intune doesn't change or update this setting. By default, the OS might allow users to sideload apps from unknown sources.",
+        "keywords": [
+          "Block",
+          "Install apps",
+          "Unknown Sources",
+          "Install apps from unknown sources",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.appsblockinstallfromunknownsourcesaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/appsBlockInstallFromUnknownSourcesAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.appsblockinstallfromunknownsourcesaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.screencaptureblockedaosp",
+        "name": "ScreenCaptureBlocked",
+        "displayName": "Block screen capture",
+        "description": "If 'True', prevents screenshots or screen captures on the device. It also prevents the content from being shown on display devices that don't have a secure video output. If 'False', Intune doesn't change or update this setting. By default, the OS might let users capture the screen contents as an image.",
+        "keywords": [
+          "Block",
+          "Screen",
+          "Screen Capture",
+          "Screen Capture Block",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.screencaptureblockedaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/screenCaptureBlockedAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.screencaptureblockedaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.bluetoothblockconfigurationaosp",
+        "name": "BluetoothBlockConfiguration",
+        "displayName": "Block Bluetooth configuration",
+        "description": "If 'True', prevents users from configuring Bluetooth on the device. If 'False', Intune doesn't change or update this setting. By default, the OS might allow users to configure Bluetooth.",
+        "keywords": [
+          "Block",
+          "Bluetooth",
+          "Bluetooth Configuration Aosp",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.bluetoothblockconfigurationaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/bluetoothBlockConfigurationAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.bluetoothblockconfigurationaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.wifiblockeditconfigurationsaosp",
+        "name": "WifiBlockEditConfigurations",
+        "displayName": "Block Wi-Fi setting changes",
+        "description": "If 'True', prevents users from creating or changing any Wi-Fi configurations. If 'False', Intune doesn't change or update this setting. By default, the OS might allow users to change the Wi-Fi settings on the device.",
+        "keywords": [
+          "Block",
+          "Wifi",
+          "Wifi Configuration",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.wifiblockeditconfigurationsaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/wifiBlockEditConfigurationsAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.wifiblockeditconfigurationsaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.factoryresetblockedaosp",
+        "name": "FactoryResetBlocked",
+        "displayName": "Block factory reset",
+        "description": "If 'True', prevents users from using the factory reset option in the device's settings. If 'False', Intune doesn't change or update this setting. By default, the OS might allow external media on the device.",
+        "keywords": [
+          "Block",
+          "Factory reset",
+          "Factory reset Block",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.factoryresetblockedaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/factoryResetBlockedAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.factoryresetblockedaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminutesofinactivitybeforescreentimeoutaosp",
+        "name": "passwordMinutesOfInactivityBeforeScreenTimeout",
+        "displayName": "Maximum minutes of inactivity until screen locks",
+        "description": "Enter the maximum length of time, from 1 minute to 1 hour, that devices can be idle before the screen is automatically locked. Users must enter their credentials to regain access. For example, enter 5 to lock the device after 5 minutes of inactivity. Ignored by device if new time is longer than what's currently set on device. If set to Immediately, devices will use the minimum possible value per device.",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "Screen Timeout",
+          "Device password"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordminutesofinactivitybeforescreentimeoutaosp",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinutesOfInactivityBeforeScreenTimeoutAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.passwordminutesofinactivitybeforescreentimeoutaosp_1minute"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "1 Minute",
+            "description": "Screen Timeout after 1 Minute of Inactivity",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "5 Minutes",
+            "description": "Screen Timeout after 5 Minutes of Inactivity",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "15 Minutes",
+            "description": "Screen Timeout after 15 Minutes of Inactivity",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "30 Minutes",
+            "description": "Screen Timeout after 30 Minutes of Inactivity",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "1 Hour",
+            "description": "Screen Timeout after 1 Hour of Inactivity",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.camerablockedaosp",
+        "name": "CameraBlocked",
+        "displayName": "Block access to camera",
+        "description": "If 'True', prevents access to the camera on the device. If 'False', Intune doesn't change or update this setting. By default, the OS might allow access to the camera. Intune only manages access to the device camera. It doesn't have access to pictures or videos.",
+        "keywords": [
+          "Block",
+          "Camera",
+          "Camera Block",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.camerablockedaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/cameraBlockedAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.camerablockedaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordminimumlengthaosp",
+        "name": "PasswordMinimumLength",
+        "displayName": "Minimum password length",
+        "description": "Enter the minimum number of digits or characters the password must have, from 4 to 16.",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "Password Length",
+          "Device password"
+        ],
+        "helpText": "Enter a number (4-16)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordMinimumLengthAosp/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 4
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 16,
+          "minimumValue": 4
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_numeric"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_numericcomplex"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_alphabetic"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_alphanumeric"
+          },
+          {
+            "parentSettingId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+            "dependentOn": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_alphanumericwithsymbols"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+        "name": "PasswordRequiredType",
+        "displayName": "Required password type",
+        "description": "Set the password’s complexity requirements. Additional password requirements will become available based on your selection. For more details, see the information provided in the ‘Learn More’ section below.",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "Password type",
+          "Password required type",
+          "Device password"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordRequiredTypeAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.passwordrequiredtypeaosp_devicedefault"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Device default",
+            "description": "Device default value, no intent.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Password required, no restrictions",
+            "description": "There must be a password set, but there are no restrictions on type.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Weak Biometric",
+            "description": "Low security biometrics based password required.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Numeric",
+            "description": "At least numeric.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Numeric Complex",
+            "description": "At least numeric with no repeating or ordered sequences.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphabetic",
+            "description": "At least alphabetic password.",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphanumeric",
+            "description": "At least alphanumeric password",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Alphanumeric with symbols",
+            "description": "At least alphanumeric with symbols.",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/mem/intune/configuration/device-restrictions-android-aosp#:~:text=Required%20password%20type"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.bluetoothblockedaosp",
+        "name": "BluetoothBlocked",
+        "displayName": "Block Bluetooth",
+        "description": "If 'True', disables Bluetooth on the device so that users can't pair with other devices. If 'False', Intune doesn't change or update this setting. By default, the OS might enable Bluetooth on the device.",
+        "keywords": [
+          "Block",
+          "Bluetooth",
+          "Bluetooth Block",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.bluetoothblockedaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/bluetoothBlockedAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.bluetoothblockedaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.storageblockusbfiletransferaosp",
+        "name": "StorageBlockUsbFileTransfer",
+        "displayName": "Block USB file transfer",
+        "description": "If 'True', prevents users from transferring files over USB. If 'False', Intune doesn't change or update this setting. By default, the OS might allow users to transfer files.",
+        "keywords": [
+          "Block",
+          "USB",
+          "USB File Transfer",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.storageblockusbfiletransferaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/storageBlockUsbFileTransferAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.storageblockusbfiletransferaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.passwordsigninfailurecountbeforefactoryresetaosp",
+        "name": "PasswordSignInFailureCountBeforeFactoryReset",
+        "displayName": "Number of sign-in failures before wiping device",
+        "description": "Enter the number of sign-in attempts allowed, from 4 to 11, before the device is wiped. 0 (zero) might disable the device wipe functionality. When the value is blank, Intune doesn't change or update this setting.",
+        "keywords": [
+          "Password",
+          "Passcode",
+          "SignIn Failure",
+          "SignIn Failure Count Before Factory Reset",
+          "Device password"
+        ],
+        "helpText": "Enter a number (4-11)",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.passwordsigninfailurecountbeforefactoryresetaosp",
+          "categoryId": "f350f9a2-3a91-4d6d-90ed-7e3849b0d5f1",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/passwordSignInFailureCountBeforeFactoryResetAosp/",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 11
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 11,
+          "minimumValue": 4
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "com.android.devicerestrictionpolicy.storageblockexternalmediaaosp",
+        "name": "StorageBlockExternalMedia",
+        "displayName": "Block mounting of external media",
+        "description": "If 'True', prevents users from using or connecting any external media on the device.If 'False', Intune doesn't change or update this setting. By default, the OS might allow users to connect external media.",
+        "keywords": [
+          "Block",
+          "External Media",
+          "External Media Block",
+          "General"
+        ],
+        "helpText": "",
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "add,delete,get,replace",
+        "settingDefinition": {
+          "rootDefinitionId": "com.android.devicerestrictionpolicy.storageblockexternalmediaaosp",
+          "categoryId": "b6733d23-eadc-486a-abfc-62b78698a16c",
+          "settingUsage": "configuration",
+          "baseUri": "/com.android.deviceRestrictionPolicy/",
+          "offsetUri": "/storageBlockExternalMediaAosp/",
+          "version": "638784768140635351",
+          "defaultOptionId": "com.android.devicerestrictionpolicy.storageblockexternalmediaaosp_false"
+        },
+        "applicability": {
+          "technologies": "android",
+          "platform": "aosp",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "False",
+            "description": "False",
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "True",
+            "description": "True",
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      }
+    ]
+  }
+}

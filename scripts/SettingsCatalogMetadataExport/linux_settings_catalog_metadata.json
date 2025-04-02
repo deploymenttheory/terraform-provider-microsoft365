@@ -1,0 +1,2079 @@
+{
+  "metadata": {
+    "platformGroups": {
+      "linux": {
+        "platforms": "linux",
+        "count": 44
+      }
+    },
+    "exportTimestamp": "2025-04-02T07:50:31.0953635Z",
+    "totalSettingsCount": 44,
+    "version": "2025-04-02"
+  },
+  "platformDefinitions": {
+    "linux": [
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionDefinition",
+        "id": "linux_mdatp_managed_edr_tags",
+        "name": "tags",
+        "displayName": "Device tags",
+        "keywords": [
+          " EDR preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_edr_tags",
+          "categoryId": "22a2a407-0f28-481d-bdbe-1f9cb6d589c3",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/edr",
+          "offsetUri": "tags",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "dependentOn": [],
+        "dependedOnBy": [
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_edr_tags_item_key"
+          },
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_edr_tags_item_value"
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#add-tag-or-group-id-to-the-configuration-profile"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_maximumondemandscanthreads",
+        "name": "maximumOnDemandScanThreads",
+        "displayName": "maximum on demand scan threads",
+        "description": "Specify the maximum number of number of threads used to perform the on demand scan.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_maximumondemandscanthreads",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "maximumOnDemandScanThreads",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 2
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 64,
+          "minimumValue": 1
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#maximum-number-of-items-in-the-antivirus-scan-history"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_passivemode",
+        "name": "passiveMode",
+        "displayName": "Enable passive mode (deprecated)",
+        "description": "Whether the antivirus engine runs in passive mode or not.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_passivemode",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "passiveMode",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_passivemode_false"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#enable--disable-passive-mode"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions_item_extension",
+        "name": "exclusions_item_extension",
+        "displayName": "File extension",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions/[{0}]/extension",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_antivirusengine_exclusions_item_$type",
+            "dependentOn": "linux_mdatp_managed_antivirusengine_exclusions_item_$type_1"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_enrollment_blockenrollment",
+        "name": "BlockLinuxEnrollment",
+        "displayName": "Block Linux Enrollment",
+        "description": "Specifies whether to block Linux enrollments",
+        "keywords": [
+          "Block Linux Enrollment",
+          "Linux Enrollment",
+          "Enrollment"
+        ],
+        "visibility": "template",
+        "accessTypes": "get",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_enrollment_blockenrollment",
+          "categoryId": "a93cb07c-fa96-42af-8987-40f78eae10bd",
+          "settingUsage": "configuration",
+          "baseUri": "com.microsoft.manage.LinuxMdm",
+          "offsetUri": "/BlockEnrollment/Required",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_blockenrollment_required_1"
+        },
+        "applicability": {
+          "technologies": "linuxMdm",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "No",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Yes",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_cloudservice_cloudblocklevel",
+        "name": "cloudBlockLevel",
+        "displayName": "Configure cloud block level",
+        "description": "Determines how aggressive Defender for Endpoint is in blocking and scanning suspicious files.",
+        "keywords": [
+          "Cloud delivered protection preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_cloudservice_cloudblocklevel",
+          "categoryId": "93099bd4-c685-434b-9d72-f0cb6db5e753",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/cloudService",
+          "offsetUri": "cloudBlockLevel",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_cloudservice_cloudblocklevel_normal"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Normal",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Moderate",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "High",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "High_Plus",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Zero_Tolerance",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#configure-cloud-block-level"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_enforcementlevel",
+        "name": "enforcementLevel",
+        "displayName": "Enforcement Level",
+        "description": "Specifies the enforcement preference of antivirus engine. Real-time: Real-time protection (scan files as they're modified) is enabled. On-demand: Files are scanned only on demand and real-time protection is turned off. Passive: Runs the antivirus engine in passive mode.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_enforcementlevel",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "enforcementLevel",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_enforcementlevel_2"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Realtime",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "OnDemand",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Passive",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#enforcement-level-for-antivirus-engine"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_behaviormonitoring",
+        "name": "behaviorMonitoring",
+        "displayName": "Enable behavior monitoring",
+        "description": "Whether the antivirus engine runs behavior monitoring and blocking or not.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_behaviormonitoring",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "behaviorMonitoring",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_behaviormonitoring_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#enabledisable-behavior-monitoring"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_scanresultsretentiondays",
+        "name": "scanResultsRetentionDays",
+        "displayName": "Scan results retention",
+        "description": "Specify the number of days that results are retained in the scan history on the device. Old scan results are removed from the history. Old quarantined files that are also removed from the disk.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_scanresultsretentiondays",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "scanResultsRetentionDays",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 90
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 180,
+          "minimumValue": 1
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#antivirus-scan-history-retention-in-days"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions_item_name",
+        "name": "exclusions_item_name",
+        "displayName": "File name",
+        "description": "Process name, either or full path or file name, wildcards supported",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions/[{0}]/name",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_antivirusengine_exclusions_item_$type",
+            "dependentOn": "linux_mdatp_managed_antivirusengine_exclusions_item_$type_2"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_exclusionsettings_exclusions_item_path",
+        "name": "exclusions_item_path",
+        "displayName": "Path",
+        "description": "Path to exclude, wildcards are NOT supported",
+        "keywords": [
+          "Exclusion Settings"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_exclusionsettings_exclusions",
+          "categoryId": "d2191717-e304-46f7-bcc0-55e6477026c9",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/exclusionSettings",
+          "offsetUri": "exclusions/[{0}]/path",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type",
+            "dependentOn": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type_0"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_customconfig_executionretries",
+        "name": "CustomConfigExecutionRetries",
+        "displayName": "Execution retries",
+        "description": "Specifies how many times to retry script execution on failure.",
+        "keywords": [
+          "Retries",
+          "Linux Custom Configuration"
+        ],
+        "visibility": "template",
+        "accessTypes": "get",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_customconfig_executionretries",
+          "categoryId": "36716a4c-cedb-47bb-8f4b-5783fedc7c47",
+          "settingUsage": "configuration",
+          "baseUri": "com.microsoft.manage.LinuxMdm",
+          "offsetUri": "CustomConfig/ExecutionRetries",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "linuxMdm",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "No retries",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "1 time",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "2 times",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "3 times",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://go.microsoft.com/fwlink/?linkid=2218882"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_edr_tags_item_value",
+        "name": "tags_item_value",
+        "displayName": "Value of tag",
+        "description": "Only one value per tag type can be set. Type of tags are unique, and should not be repeated in the same configuration profile.",
+        "keywords": [
+          " EDR preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_edr_tags",
+          "categoryId": "22a2a407-0f28-481d-bdbe-1f9cb6d589c3",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/edr",
+          "offsetUri": "tags/[{0}]/value",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_edr_tags",
+            "dependentOn": "linux_mdatp_managed_edr_tags"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_disallowedthreatactions",
+        "name": "disallowedThreatActions",
+        "displayName": "Disallowed threat actions",
+        "description": "Restricts the actions that the local user of a device can take when threats are detected. The actions included in this list are not displayed in the user interface.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_disallowedthreatactions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "disallowedThreatActions",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#disallowed-threat-actions"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_exclusionsettings_exclusions_item_name",
+        "name": "exclusions_item_name",
+        "displayName": "Process name",
+        "description": "Process name, either or full path or file name, wildcards NOT supported",
+        "keywords": [
+          "Exclusion Settings"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_exclusionsettings_exclusions",
+          "categoryId": "d2191717-e304-46f7-bcc0-55e6477026c9",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/exclusionSettings",
+          "offsetUri": "exclusions/[{0}]/name",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type",
+            "dependentOn": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type_1"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionDefinition",
+        "id": "linux_mdatp_managed_exclusionsettings_exclusions",
+        "name": "exclusions",
+        "displayName": "Global Exclusions",
+        "description": "Global exclusions apply to both Antivirus and Endpoint detection and response to exclude at a much lower level closer to sensors. Usage: Tackling performance issues. Risk: Significantly risks protection",
+        "keywords": [
+          "Exclusion Settings"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_exclusionsettings_exclusions",
+          "categoryId": "d2191717-e304-46f7-bcc0-55e6477026c9",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/exclusionSettings",
+          "offsetUri": "exclusions",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "dependentOn": [],
+        "dependedOnBy": [
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_exclusionsettings_exclusions_item_isdirectory"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_exclusionsettings_exclusions_item_name"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_exclusionsettings_exclusions_item_path"
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/defender-endpoint/linux-preferences#exclusion-setting-preferences"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_unmonitoredfilesystems",
+        "name": "unmonitoredFilesystems",
+        "displayName": "Unmonitored Filesystems",
+        "description": "List of filesystems (identified by their name) to be unmonitored/excluded from Real Time Protection(RTP).",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_unmonitoredfilesystems",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "unmonitoredFilesystems",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#unmonitor-filesystems"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_threattypesettingsmergepolicy",
+        "name": "threatTypeSettingsMergePolicy",
+        "displayName": "Threat type settings merge",
+        "description": "Specify the merge policy for threat type settings. This can be a combination of administrator-defined and user-defined settings (merge) or only administrator-defined settings (admin_only). This setting can be used to restrict local users from defining their own settings for different threat types.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_threattypesettingsmergepolicy",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "threatTypeSettingsMergePolicy",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_threattypesettingsmergepolicy_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "merge",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "admin_only",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#threat-type-settings-merge-policy"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions_item_path",
+        "name": "exclusions_item_path",
+        "displayName": "Path",
+        "description": "Path to exclude, wildcards are supported",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions/[{0}]/path",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [
+          {
+            "parentSettingId": "linux_mdatp_managed_antivirusengine_exclusions_item_$type",
+            "dependentOn": "linux_mdatp_managed_antivirusengine_exclusions_item_$type_0"
+          }
+        ],
+        "dependedOnBy": [],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusionsmergepolicy",
+        "name": "exclusionsMergePolicy",
+        "displayName": "Exclusions merge",
+        "description": "Specify the merge policy for exclusions. This can be a combination of administrator-defined and user-defined exclusions (merge) or only administrator-defined exclusions (admin_only). This setting can be used to restrict local users from defining their own exclusions.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusionsmergepolicy",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusionsMergePolicy",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_exclusionsmergepolicy_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "merge",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "admin_only",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#exclusion-merge-policy"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_threattypesettings",
+        "name": "threatTypeSettings",
+        "displayName": "Threat type settings",
+        "description": "The threatTypeSettings preference in the antivirus engine is used to control how certain threat types are handled by the product.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_threattypesettings",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "threatTypeSettings",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "dependentOn": [],
+        "dependedOnBy": [
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_threattypesettings_item_key"
+          },
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_threattypesettings_item_value"
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#threat-type-settings"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions_item_isdirectory",
+        "name": "exclusions_item_isDirectory",
+        "displayName": "Is directory",
+        "description": "Directory if selected, or file if not selected",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions/[{0}]/isDirectory",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_exclusions_item_isdirectory_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_scanhistorymaximumitems",
+        "name": "scanHistoryMaximumItems",
+        "displayName": "Scan history size",
+        "description": "Specify the maximum number of entries to keep in the scan history. Entries include all on-demand scans performed in the past and all antivirus detections.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_scanhistorymaximumitems",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "scanHistoryMaximumItems",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "settingValueTemplateReference": null,
+          "value": 10000
+        },
+        "valueDefinition": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValueDefinition",
+          "maximumValue": 15000,
+          "minimumValue": 5000
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#maximum-number-of-items-in-the-antivirus-scan-history"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSettingGroupCollectionDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions",
+        "name": "exclusions",
+        "displayName": "Scan exclusions",
+        "description": "Entities that have been excluded from the scan. Exclusions can be specified by full paths, extensions, or file names.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "dependentOn": [],
+        "dependedOnBy": [
+          {
+            "required": true,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_exclusions_item_$type"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_exclusions_item_extension"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_exclusions_item_isdirectory"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_exclusions_item_name"
+          },
+          {
+            "required": false,
+            "dependedOnBy": "linux_mdatp_managed_antivirusengine_exclusions_item_path"
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#scan-exclusions"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_enablefilehashcomputation",
+        "name": "enableFileHashComputation",
+        "displayName": "Enable file hash computation",
+        "description": "Whether the antivirus engine computes hashes for the files it scans or not.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_enablefilehashcomputation",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "enableFileHashComputation",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_enablefilehashcomputation_false"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#configure-file-hash-computation-feature"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_cloudservice_enabled",
+        "name": "enabled",
+        "displayName": "Enable cloud delivered protection",
+        "description": "Provides increased, faster protection with access to the latest protection data in the cloud. Works best with automatic sample submission turned on",
+        "keywords": [
+          "Microsoft Defender - Cloud delivered protection preferences",
+          "Cloud delivered protection preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_cloudservice_enabled",
+          "categoryId": "93099bd4-c685-434b-9d72-f0cb6db5e753",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/cloudService",
+          "offsetUri": "enabled",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_cloudservice_enabled_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#enable--disable-cloud-delivered-protection"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_cloudservice_automaticdefinitionupdateenabled",
+        "name": "automaticDefinitionUpdateEnabled",
+        "displayName": "Automatic security intelligence updates",
+        "description": "Determines whether security intelligence updates are installed automatically:",
+        "keywords": [
+          "Microsoft Defender - Cloud delivered protection preferences",
+          "Cloud delivered protection preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_cloudservice_automaticdefinitionupdateenabled",
+          "categoryId": "93099bd4-c685-434b-9d72-f0cb6db5e753",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/cloudService",
+          "offsetUri": "automaticDefinitionUpdateEnabled",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_cloudservice_automaticdefinitionupdateenabled_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#enable--disable-automatic-security-intelligence-updates"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_edr_tags_item_key",
+        "name": "tags_item_key",
+        "displayName": "Type of tag",
+        "description": "Specify a tag name and its value. The GROUP tag, tags the device with the specified value. The tag is reflected in the portal under the device page and can be used for filtering and grouping devices.",
+        "keywords": [
+          " EDR preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_edr_tags",
+          "categoryId": "22a2a407-0f28-481d-bdbe-1f9cb6d589c3",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/edr",
+          "offsetUri": "tags/[{0}]/key",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_edr_tags_item_key_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": {
+          "displayName": "GROUP",
+          "description": null,
+          "value": null,
+          "optionId": null
+        },
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_allowedthreats",
+        "name": "allowedThreats",
+        "displayName": "Allowed threats",
+        "description": "List of threats (identified by their name) that are not blocked by the product and are instead allowed to run.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_allowedthreats",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "allowedThreats",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "none",
+          "fileTypes": [],
+          "minimumLength": 0,
+          "inputValidationSchema": null,
+          "maximumLength": 0,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#allowed-threats"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_threattypesettings_item_key",
+        "name": "threatTypeSettings_item_key",
+        "displayName": "Threat type",
+        "description": "Type of the threat for which the behavior is configured.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_threattypesettings",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "threatTypeSettings/[{0}]/key",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_threattypesettings_item_key_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "potentially_unwanted_application",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "archive_bomb",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_scanarchives",
+        "name": "scanArchives",
+        "displayName": "Enable scanning of archives",
+        "description": "Specifies whether to scan archives during on-demand antivirus scans.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_scanarchives",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "scanArchives",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_scanarchives_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#scan-archives-on-demand-antivirus-scans-only"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_cloudservice_automaticsamplesubmissionconsent",
+        "name": "automaticSampleSubmissionConsent",
+        "displayName": "Enable automatic sample submissions",
+        "description": "Sends sample files to Microsoft to help protect device users and your organization from potential threats",
+        "keywords": [
+          "Microsoft Defender - Cloud delivered protection preferences",
+          "Cloud delivered protection preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_cloudservice_automaticsamplesubmissionconsent",
+          "categoryId": "93099bd4-c685-434b-9d72-f0cb6db5e753",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/cloudService",
+          "offsetUri": "automaticSampleSubmissionConsent",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_cloudservice_automaticsamplesubmissionconsent_safe"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "None",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Safe",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "All",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#enable--disable-automatic-sample-submissions"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationSimpleSettingDefinition",
+        "id": "linux_customconfig_script",
+        "name": "CustomConfig_Script",
+        "displayName": "Execution Script",
+        "description": "Select the file containing the script to execute.",
+        "keywords": [
+          "Linux Custom Configuration"
+        ],
+        "visibility": "template",
+        "accessTypes": "get",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_customconfig_script",
+          "categoryId": "36716a4c-cedb-47bb-8f4b-5783fedc7c47",
+          "settingUsage": "configuration",
+          "baseUri": "com.microsoft.manage.LinuxMdm",
+          "offsetUri": "/CustomConfig/Script",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "linuxMdm",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "defaultValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "settingValueTemplateReference": null,
+          "value": ""
+        },
+        "valueDefinition": {
+          "format": "bashScript",
+          "fileTypes": [
+            "sh"
+          ],
+          "minimumLength": 1,
+          "inputValidationSchema": null,
+          "maximumLength": 87516,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValueDefinition",
+          "isSecret": false
+        },
+        "dependentOn": [],
+        "dependedOnBy": [],
+        "infoUrls": [
+          "https://go.microsoft.com/fwlink/?linkid=2218882"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_exclusions_item_$type",
+        "name": "exclusions_item_$type",
+        "displayName": "Type",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_exclusions",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "exclusions/[{0}]/$type",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_exclusions_item_$type_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Path",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "File extension",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Process name",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_scanafterdefinitionupdate",
+        "name": "scanAfterDefinitionUpdate",
+        "displayName": "Enable scanning after definition update",
+        "description": "Specifies whether to start a process scan after new security intelligence updates are downloaded on the device.",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_scanafterdefinitionupdate",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "scanAfterDefinitionUpdate",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_scanafterdefinitionupdate_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#run-a-scan-after-definitions-are-updated"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_customconfig_executioncontext",
+        "name": "CustomConfigExecutionContext",
+        "displayName": "Execution context",
+        "description": "Specifies in which context to execute the script.",
+        "keywords": [
+          "Execution context",
+          "root",
+          "user",
+          "Linux Custom Configuration"
+        ],
+        "visibility": "template",
+        "accessTypes": "get",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_customconfig_executioncontext",
+          "categoryId": "36716a4c-cedb-47bb-8f4b-5783fedc7c47",
+          "settingUsage": "configuration",
+          "baseUri": "com.microsoft.manage.LinuxMdm",
+          "offsetUri": "CustomConfig/ExecutionContext",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_customconfig_executioncontext_user"
+        },
+        "applicability": {
+          "technologies": "linuxMdm",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Root",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "User",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://go.microsoft.com/fwlink/?linkid=2218882"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_customconfig_executionfrequency",
+        "name": "CustomConfigExecutionFrequency",
+        "displayName": "Execution frequency",
+        "description": "Specifies how frequently to execute the script.",
+        "keywords": [
+          "Execution frequency",
+          "frequency",
+          "Linux Custom Configuration"
+        ],
+        "visibility": "template",
+        "accessTypes": "get",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_customconfig_executionfrequency",
+          "categoryId": "36716a4c-cedb-47bb-8f4b-5783fedc7c47",
+          "settingUsage": "configuration",
+          "baseUri": "com.microsoft.manage.LinuxMdm",
+          "offsetUri": "CustomConfig/ExecutionFrequency",
+          "version": "638784768140635351"
+        },
+        "applicability": {
+          "technologies": "linuxMdm",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Every 15 minutes",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 30 minutes",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 1 hour",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 2 hours",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 3 hours",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 6 hours",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 12 hours",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 1 day",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Every 1 week",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://go.microsoft.com/fwlink/?linkid=2218882"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_nonexecmountpolicy",
+        "name": "nonExecMountPolicy",
+        "displayName": "non execute mount mute",
+        "description": "Specifies the behavior of RTP on mount point marked as nonexec. ",
+        "keywords": [
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_nonexecmountpolicy",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "nonExecMountPolicy",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_nonexecmountpolicy_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "unmute",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "mute",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-preferences?view=o365-worldwide#muting-non-exec-mounts"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_enablerealtimeprotection",
+        "name": "enableRealTimeProtection",
+        "displayName": "Enable real-time protection (deprecated)",
+        "description": "Locates and stops malware from installing or running on your device. You can turn off this setting for a short time before it turns back on automatically.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_enablerealtimeprotection",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "enableRealTimeProtection",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_enablerealtimeprotection_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#enable--disable-real-time-protection"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_antivirusengine_threattypesettings_item_value",
+        "name": "threatTypeSettings_item_value",
+        "displayName": "Action to take",
+        "description": "Action to take when coming across a threat of the type specified in the preceding section.",
+        "keywords": [
+          "Microsoft Defender - Antivirus engine",
+          "Antivirus engine"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_antivirusengine_threattypesettings",
+          "categoryId": "13467142-14e7-4380-8573-4866e842c7f6",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/antivirusEngine",
+          "offsetUri": "threatTypeSettings/[{0}]/value",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_antivirusengine_threattypesettings_item_value_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "audit",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "block",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "off",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_cloudservice_diagnosticlevel",
+        "name": "diagnosticLevel",
+        "displayName": "Diagnostic data collection level",
+        "description": "We encourage you to share your diagnostic and usage data with us to help improve Microsoft products and services.",
+        "keywords": [
+          "Microsoft Defender - Cloud delivered protection preferences",
+          "Cloud delivered protection preferences"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_cloudservice_diagnosticlevel",
+          "categoryId": "93099bd4-c685-434b-9d72-f0cb6db5e753",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/cloudService",
+          "offsetUri": "diagnosticLevel",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_cloudservice_diagnosticlevel_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "optional",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "required",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://docs.microsoft.com/microsoft-365/security/defender-endpoint/linux-preferences#diagnostic-collection-level"
+        ]
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type",
+        "name": "exclusions_item_$type",
+        "displayName": "Type",
+        "keywords": [
+          "Exclusion Settings"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_exclusionsettings_exclusions",
+          "categoryId": "d2191717-e304-46f7-bcc0-55e6477026c9",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/exclusionSettings",
+          "offsetUri": "exclusions/[{0}]/$type",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_exclusionsettings_exclusions_item_$type_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Path",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Process name",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_exclusionsettings_exclusions_item_isdirectory",
+        "name": "exclusions_item_isDirectory",
+        "displayName": "Is directory",
+        "description": "Directory if selected, or file if not selected",
+        "keywords": [
+          "Exclusion Settings"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_exclusionsettings_exclusions",
+          "categoryId": "d2191717-e304-46f7-bcc0-55e6477026c9",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/exclusionSettings",
+          "offsetUri": "exclusions/[{0}]/isDirectory",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_exclusionsettings_exclusions_item_isdirectory_true"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "Disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "Enabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": []
+      },
+      {
+        "oDataType": "#microsoft.graph.deviceManagementConfigurationChoiceSettingDefinition",
+        "id": "linux_mdatp_managed_networkprotection_enforcementlevel",
+        "name": "enforcementLevel",
+        "displayName": "Enforcement Level",
+        "description": "Specifies if network protection is disabled, in audit mode, or enforced",
+        "keywords": [
+          "Network protection"
+        ],
+        "visibility": "settingsCatalog,template",
+        "accessTypes": "none",
+        "settingDefinition": {
+          "rootDefinitionId": "linux_mdatp_managed_networkprotection_enforcementlevel",
+          "categoryId": "269c487f-8902-486a-88dd-db9b9b4454b8",
+          "settingUsage": "configuration",
+          "baseUri": "PayloadContent/networkProtection",
+          "offsetUri": "enforcementLevel",
+          "version": "638784768140635351",
+          "defaultOptionId": "linux_mdatp_managed_networkprotection_enforcementlevel_0"
+        },
+        "applicability": {
+          "technologies": "microsoftSense",
+          "platform": "linux",
+          "deviceMode": "none",
+          "description": null
+        },
+        "options": [
+          {
+            "displayName": "disabled",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "audit",
+            "description": null,
+            "value": null,
+            "optionId": null
+          },
+          {
+            "displayName": "block",
+            "description": null,
+            "value": null,
+            "optionId": null
+          }
+        ],
+        "infoUrls": [
+          "https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/network-protection-linux?view=o365-worldwide"
+        ]
+      }
+    ]
+  }
+}
