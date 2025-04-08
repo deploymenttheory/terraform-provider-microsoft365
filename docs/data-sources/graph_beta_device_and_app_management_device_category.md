@@ -169,7 +169,7 @@ output "category_comparison" {
 ### Read-Only
 
 - `description` (String) The description of the device category.
-- `role_scope_tags` (List of String) Indicates role scope tags assigned for the device category.
+- `role_scope_tag_ids` (List of String) Indicates role scope tags assigned for the device category.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
