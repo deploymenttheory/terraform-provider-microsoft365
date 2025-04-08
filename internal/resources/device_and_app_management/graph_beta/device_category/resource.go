@@ -77,7 +77,7 @@ func (r *DeviceCategoryResource) ImportState(ctx context.Context, req resource.I
 // Schema returns the schema for the resource.
 func (r *DeviceCategoryResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages Device Categories in Microsoft Intune.",
+		Description: "Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
