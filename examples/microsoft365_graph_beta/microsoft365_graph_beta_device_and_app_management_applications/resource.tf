@@ -28,9 +28,9 @@ resource "microsoft365_graph_beta_device_and_app_management_applications" "whats
 }
 
 resource "microsoft365_graph_beta_device_and_app_management_applications" "visual_studio_code" {
-  
+
   application_type = "WindowsStoreApp"
-  
+
   winget_app = {
     automatically_generate_metadata = true
     package_identifier              = "9NKSQGP7F2NH" # Example: Microsoft Store unique identifier
