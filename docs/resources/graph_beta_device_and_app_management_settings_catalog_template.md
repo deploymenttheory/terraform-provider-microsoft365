@@ -293,6 +293,18 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 
 `macOS_endpoint_detection_and_response`: Endpoint detection and response settings for macOS devices.
 
+`Security Baselines`
+
+`security_baseline_for_windows_10_and_later_version_24H2`: The Security Baseline for Windows 10 and later represents the recommendations for configuring Windows for security conscious customers using the Microsoft full security stack. This baseline includes relevant MDM settings consistent with the security recommendations outlined in the group policy Windows security baseline. Use this baseline to tailor and adjust Microsoft-recommended policy settings within an MDM environment.
+
+`security_baseline_for_microsoft_defender_for_endpoint_version_24H1`: he Microsoft Defender for Endpoint Security baseline for Windows 10 and newer represents the security best practices for the Microsoft security stack on devices managed by Intune (MDM). Use the baseline to tailor and adjust Microsoft-recommended policy settings.
+
+`security_baseline_for_microsoft_edge_version_128`: The Security Baseline for Microsoft Edge represents the recommendations for configuring Microsoft Edge for security conscious customers using the Microsoft full security stack. This baseline aligns with the security recommendations for Edge security baseline for group policy. Use this baseline to configure and customize Microsoft-recommended policy settings.
+
+`security_baseline_for_windows_365`: Windows 365 Security Baselines are a set of policy templates that you can deploy with Microsoft Intune to configure and enforce security settings for Windows 10, Windows 11, Microsoft Edge, and Microsoft Defender for Endpoint on your Cloud PCs. They are based on security best practices and real-world implementations, and they include versioning features to help you update your policies to the latest release. You can also customize the baselines to meet your specific business needs.
+
+`security_baseline_for_microsoft_365_apps`: The Microsoft 365 Apps for enterprise security baseline provides a starting point for IT admins to evaluate and balance the security benefits with productivity needs of their users. This baseline aligns with the security recommendations for Microsoft 365 Apps for enterprise group policy security baseline. Use this baseline to configure and customize Microsoft-recommended policy settings.
+
 `Windows settings catalog templates`
 
 `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.

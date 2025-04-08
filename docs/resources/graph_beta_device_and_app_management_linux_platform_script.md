@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_device_and_app_management_linux_platform_scrip
 
 ### Read-Only
 
-- `id` (String) Unique Identifier for the device management script.
+- `id` (String) The unique identifier of the linux platform script.
 - `platforms` (String) Platform type for this linux platform script.Will always be set to ['linux'],unknownFutureValue, androidEnterprise, or aosp. Defaults to none.
 - `technologies` (List of String) Describes the technologies this settings catalog setting can be deployed with. Defaults to ['linuxMdm'].
 

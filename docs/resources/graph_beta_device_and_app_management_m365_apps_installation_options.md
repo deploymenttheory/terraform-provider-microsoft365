@@ -27,7 +27,7 @@ description: |-
 
 ### Read-Only
 
-- `id` (String) The unique identifier for the M365AppsInstallationOptions.
+- `id` (String) The unique identifier of the M365 Apps Installation Options.
 
 <a id="nestedatt--apps_for_mac"></a>
 ### Nested Schema for `apps_for_mac`

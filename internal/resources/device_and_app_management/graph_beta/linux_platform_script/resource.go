@@ -83,8 +83,11 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 		MarkdownDescription: "Manages an Intune Linux platform script using the 'configurationPolicies' Graph Beta API.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique Identifier for the device management script.",
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "The unique identifier of the linux platform script.",
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the linux device management script.",
