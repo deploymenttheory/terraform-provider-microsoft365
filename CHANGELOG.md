@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.9.0-alpha...v0.10.0-alpha) (2025-04-08)
+
+
+### Features
+
+* 1st itteration of intune applications. ([1a83d27](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1a83d277be16d0e08fd61d32919d07e39d776313))
+* add debug logging for Graph API request bodies in constructResource function ([3fdbba4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3fdbba463403254f7dbd8e3473d48f7a3d71e3a3))
+* add macOS PKG metadata extraction functionality and update dependencies ([bedd812](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bedd8121ef7b3c1bca5e5022ec2db27c88bb2f37))
+* add package installer file source and extract metadata for MacOS PKG applications ([7cfd15a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7cfd15a8b37a61d5a5cc18abb4f6c9c86739798c))
+* add support for extracting files from CPIO archives and enhance payload extraction logic ([609fc22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/609fc22d130a2480dbd533d737a22c08192138f1))
+* add validation for MacOSPkgApp publisher field and implement requiredWith validator ([6000864](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6000864632b107c490e6dbe0d899766af23aafce))
+* added 3 secuirty baseline settings catalog templates ([ff7b7de](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ff7b7de4f4d984bce801a182cd6394b5bcbcbd05))
+* added debug logging to uploadToAzureStorage func ([ec57f66](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ec57f66dce52a0153ed2f8ead56154913a9710a5))
+* added Encrypted file analysis for troubleshooting for macos packages ([10886cb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/10886cb97abb6b533e22f7ef38eca7681e86a06c))
+* added first itteration of schema builder for settings catalog ([7590e6f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7590e6fabb8fd49a3b7f5111cd476ddcf5a6fff2))
+* added intune device categories resource and data source with examples ([#389](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/389)) ([b8d33fb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b8d33fba7b11121bf61514164b77d01858a9a74c))
+* added macospkg resource to provider ([#347](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/347)) ([10001df](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/10001df8134fe806c661b94850531f98b245643f))
+* added new type conversion helpers that handle null values ([8aaa14e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8aaa14ed15e4805bd63309d8de32db5b1266b284))
+* added ps scripts for testing dmb, pkg and macoslob apps. also added some getters to help with data model definitions ([37877de](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/37877defb6ae270df8059273e31322bace8708e6))
+* added schema Mutually Exclusive Attribute validator ([e2c7deb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e2c7deb3b6b008c0556c296bf2f31eb8b7c3c2a9))
+* added secuirty baseline templates support to settings catalog template resource ([8e4649b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8e4649b21793674f196d27c11608c73ffb87be38))
+* added support for url based and local file based icons and pkg installers ([c75ca2c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c75ca2c77727f7ce35e3f5990eb6b90e488ab71f))
+* added web sources for icon uploads for macos app ([dbc36d6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbc36d6f5642ad011adaedf0729ab0fb87b88407))
+* completed macos pkg app creation flow ([99a96fb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/99a96fb43efc1b09483c5f98c29f21138027a338))
+* enhance schema for package installer with validation and improved descriptions ([5488a54](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5488a54f7c3fbacf79ac359ab14c5109f3c38ab8))
+* implement XAR file extraction and field parsing functionality ([c6dab71](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c6dab71a99f18b5a08708c60a3771cbe4914c8af))
+* implement XAR file parsing and metadata extraction for macOS installers ([b91e24c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b91e24c2030639be1052b4b97292e821018b0b8c))
+* implement XAR package reader and metadata extraction for MacOS installers ([5d70348](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5d703488093e25721b0ffae8b797ec6ad70b5aa7))
+* implemented device categories resource and datasource with examples ([acf2626](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/acf262635ca9aeb5175f0744fc108dfd0694b027))
+* updated macos pkg example ([6ecc553](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6ecc553ce50049b5afd46e72a4671dd27211c342))
+* updated read and stating logic ([82a2cfd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/82a2cfd8f2d39eb1ce758e39428170e77a94e91e))
+
+
+### Bug Fixes
+
+* added content version assignment ([0418ecb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0418ecb57f547d216f7121e1aa187a12cf3758be))
+* added initial stating logic to mascos create func ([e99d915](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e99d915beef8bf56424eab4197663a712c0fe92f))
+* added planmodifiers.UseStateForUnknownString(), for id ([dccde7e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dccde7e78d92bf90a23bbdf7ad5673391baafc65))
+* changed assignment optional settings to a pointer ([b3bb2d7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b3bb2d74af6c3732af8b3eba83cd95c42b255d36))
+* extended file upload chunk time ([6f7ba33](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f7ba3328934b9d7256c887034dc3f102b16d59e))
+* for package imports ([95c9a15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/95c9a156c5fbd9c53e6dc467c0150c011b84eeeb))
+* for stating icons to use stringunknwon logic ([0006aec](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0006aec1068ea0ceb599998b9183096525c585e8))
+* improve comments and formatting in constants and assignment filter read functions ([e48f5c7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e48f5c7a4ca32e3e5db93abe0a243a47e81e159d))
+* nil pointer dereference in func validateInstallTimeSettings ([b52d393](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b52d39323ffb12a8b76d2fee02a9994fb571be43))
+* numerous fixes for constructors and stating logic ([4d09816](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4d09816644f027bdbac3de734ff2984f6c0624a3))
+* removed redundant struct field ([a7a8094](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a7a80945b91f07d4b5fb87871a388ef39e90c6df))
+* testing new encryption strategy for pkg's with intune ([203c69e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/203c69e877f275ba56dce3e8673db86bdac26994))
+* timeout usage of consts ([d94aec2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d94aec2d5e2da25d9de54f256477671590ea6582))
+
 ## [0.9.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.8.0-alpha...v0.9.0-alpha) (2025-01-18)
 
 
