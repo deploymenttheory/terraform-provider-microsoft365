@@ -10,8 +10,8 @@ data "microsoft365_graph_beta_device_and_app_management_device_category" "byod_c
 
 # Example: Create new device category based on existing one (using name lookup)
 resource "microsoft365_graph_beta_device_and_app_management_device_category" "clone_corporate" {
-  display_name   = "Clone - Corporate Laptops"
-  description    = "Cloned from: ${data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.description}"
+  display_name       = "Clone - Corporate Laptops"
+  description        = "Cloned from: ${data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.description}"
   role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.role_scope_tag_ids
 
   timeouts = {
@@ -29,7 +29,7 @@ output "category_details" {
     id           = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.id
     display_name = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.display_name
     description  = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.description
-    
+
     # Additional metadata
     role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.role_scope_tag_ids
   }
@@ -37,8 +37,8 @@ output "category_details" {
 
 # Example: Create new device category based on BYOD category (using ID lookup)
 resource "microsoft365_graph_beta_device_and_app_management_device_category" "clone_byod" {
-  display_name   = "Clone - BYOD Devices"
-  description    = "Cloned from: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
+  display_name       = "Clone - BYOD Devices"
+  description        = "Cloned from: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
   role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
 
   timeouts = {
@@ -56,7 +56,7 @@ output "byod_category_details" {
     id           = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.id
     display_name = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name
     description  = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description
-    
+
     # Additional metadata
     role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
   }
@@ -69,14 +69,14 @@ output "all_categories_export" {
       name = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.display_name
       config = {
         description = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.description
-        tags = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.role_scope_tag_ids
+        tags        = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.role_scope_tag_ids
       }
     }
     byod_category = {
       name = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name
       config = {
         description = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description
-        tags = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
+        tags        = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
       }
     }
   }
@@ -84,8 +84,8 @@ output "all_categories_export" {
 
 # Use Case 2: Create multiple environment-specific clones with prefix
 resource "microsoft365_graph_beta_device_and_app_management_device_category" "prod_clone" {
-  display_name   = "PROD - ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name}"
-  description    = "Production clone of: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
+  display_name       = "PROD - ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name}"
+  description        = "Production clone of: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
   role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
 
   timeouts = {
@@ -97,8 +97,8 @@ resource "microsoft365_graph_beta_device_and_app_management_device_category" "pr
 }
 
 resource "microsoft365_graph_beta_device_and_app_management_device_category" "dev_clone" {
-  display_name   = "DEV - ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name}"
-  description    = "Development clone of: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
+  display_name       = "DEV - ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name}"
+  description        = "Development clone of: ${data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description}"
   role_scope_tag_ids = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids
 
   timeouts = {
@@ -111,9 +111,9 @@ resource "microsoft365_graph_beta_device_and_app_management_device_category" "de
 
 # Use Case 3: Create a new standardized category
 resource "microsoft365_graph_beta_device_and_app_management_device_category" "standard_workstation" {
-  display_name   = "Standard Workstation"
-  description    = "Standard corporate workstation for office employees"
-  role_scope_tag_ids = ["0", "9"]  # Example role scope tags
+  display_name       = "Standard Workstation"
+  description        = "Standard corporate workstation for office employees"
+  role_scope_tag_ids = ["0", "9"] # Example role scope tags
 
   timeouts = {
     create = "10s"
@@ -128,15 +128,15 @@ output "category_comparison" {
   value = {
     corporate_vs_byod = {
       corporate_name = data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.display_name
-      byod_name = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name
-      
+      byod_name      = data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.display_name
+
       differences = {
         description_same = (
           data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.description ==
           data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.description
         )
         tags_count_corporate = length(data.microsoft365_graph_beta_device_and_app_management_device_category.by_name.role_scope_tag_ids)
-        tags_count_byod = length(data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids)
+        tags_count_byod      = length(data.microsoft365_graph_beta_device_and_app_management_device_category.byod_category.role_scope_tag_ids)
       }
     }
   }

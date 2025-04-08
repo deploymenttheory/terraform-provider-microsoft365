@@ -21,8 +21,8 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   macos_pkg_app = {
     //installer_file_path_source = "C:\\your\\filepath\\GoogleChrome.pkg"
     // or
-    installer_url_source = "https://ftp.mozilla.org/pub/firefox/releases/136.0/mac/en-GB/Firefox%20136.0.pkg"
-    ignore_version_detection      = true
+    installer_url_source     = "https://ftp.mozilla.org/pub/firefox/releases/136.0/mac/en-GB/Firefox%20136.0.pkg"
+    ignore_version_detection = true
 
     included_apps = [{
       bundle_id      = "org.mozilla.firefox"
