@@ -197,7 +197,6 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{

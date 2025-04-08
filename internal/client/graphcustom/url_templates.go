@@ -22,6 +22,12 @@ func (d DeleteRequestConfig) GetResourceID() string        { return d.ResourceID
 func (d DeleteRequestConfig) GetEndpoint() string          { return d.Endpoint }
 func (d DeleteRequestConfig) GetEndpointSuffix() string    { return d.EndpointSuffix }
 
+// Implement RequestUrlTemplateConfig interface for PatchRequestConfig
+func (p PatchRequestConfig) GetResourceIDPattern() string { return p.ResourceIDPattern }
+func (p PatchRequestConfig) GetResourceID() string        { return p.ResourceID }
+func (p PatchRequestConfig) GetEndpoint() string          { return p.Endpoint }
+func (p PatchRequestConfig) GetEndpointSuffix() string    { return p.EndpointSuffix }
+
 // ByIDRequestUrlTemplate constructs a URL template for a single resource request using the provided configuration.
 // The function combines the endpoint path with a resource ID and optional suffix to create a complete URL template.
 // For example, if the config contains:

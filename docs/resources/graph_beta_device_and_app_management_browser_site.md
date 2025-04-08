@@ -34,7 +34,7 @@ Manages a browser site in Microsoft Intune.
 - `created_date_time` (String) The date and time when the site was created.
 - `deleted_date_time` (String) The date and time when the site was deleted.
 - `history` (Attributes List) The history of modifications applied to the site. (see [below for nested schema](#nestedatt--history))
-- `id` (String) The unique identifier for the site.
+- `id` (String) The unique identifier of the browser site.
 - `last_modified_date_time` (String) The date and time when the site was last modified.
 - `status` (String) Indicates the status of the site.
 

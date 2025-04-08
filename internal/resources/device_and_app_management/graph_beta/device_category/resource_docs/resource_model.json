@@ -1,0 +1,6 @@
+{
+  "@odata.type": "#microsoft.graph.deviceCategory",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String"
+}

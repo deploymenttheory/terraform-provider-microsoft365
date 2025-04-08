@@ -32,7 +32,7 @@ The resource `role_definition` manages a Role Definition in Microsoft 365
 
 ### Read-Only
 
-- `id` (String) Key of the entity. This is read-only and automatically generated.
+- `id` (String) The unique identifier for this Intune role definition
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

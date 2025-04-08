@@ -76,7 +76,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_platform_scr
 
 ### Read-Only
 
-- `id` (String) Unique Identifier for the windows platform script.
+- `id` (String) The unique identifier for this Intune windows platform script
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

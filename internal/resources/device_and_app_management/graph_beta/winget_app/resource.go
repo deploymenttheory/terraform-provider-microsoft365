@@ -87,8 +87,10 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: "The unique graph guid that identifies this resource." +
-					"Assigned at time of resource creation. This property is read-only.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "The unique identifier for this Intune Microsoft Store app",
 			},
 			"package_identifier": schema.StringAttribute{
 				Required: true,

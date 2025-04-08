@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -76,8 +78,11 @@ func (r *M365AppsInstallationOptionsResource) Schema(ctx context.Context, req re
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unique identifier for the M365AppsInstallationOptions.",
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "The unique identifier of the M365 Apps Installation Options.",
 			},
 			"update_channel": schema.StringAttribute{
 				Required: true,
