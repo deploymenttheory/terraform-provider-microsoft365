@@ -59,7 +59,7 @@ func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.Sche
 				Computed:            true,
 				MarkdownDescription: "The description of the device category.",
 			},
-			"role_scope_tags": schema.ListAttribute{
+			"role_scope_tag_ids": schema.ListAttribute{
 				Computed:            true,
 				MarkdownDescription: "Indicates role scope tags assigned for the device category.",
 				ElementType:         types.StringType,

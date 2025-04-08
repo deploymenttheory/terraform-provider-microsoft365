@@ -71,31 +71,21 @@ func PatchRequestByResourceId(ctx context.Context, adapter abstractions.RequestA
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.PATCH
 
-	// Ensure we have a valid resource ID
-	if config.ResourceID == "" {
-		return fmt.Errorf("resource ID cannot be empty for PATCH request")
-	}
-
-	// Create URL template with explicit ID parameter
-	// Remove any leading slash from endpoint to avoid double slashes
 	endpoint := config.Endpoint
 	if strings.HasPrefix(endpoint, "/") {
 		endpoint = endpoint[1:]
 	}
 
-	// Build URL template based on pattern
 	var urlTemplate string
 	if config.ResourceIDPattern == "/{id}" {
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s/%s", endpoint, config.ResourceID)
 	} else if config.ResourceIDPattern == "('id')" {
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s('%s')", endpoint, config.ResourceID)
 	} else {
-		// For any other pattern, directly substitute the ID
 		idPart := strings.ReplaceAll(config.ResourceIDPattern, "id", config.ResourceID)
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s%s", endpoint, idPart)
 	}
 
-	// Add any suffix
 	if config.EndpointSuffix != "" {
 		urlTemplate += config.EndpointSuffix
 	}
@@ -105,7 +95,6 @@ func PatchRequestByResourceId(ctx context.Context, adapter abstractions.RequestA
 		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
 	}
 
-	// Create a log-friendly URL
 	logUrl := strings.Replace(urlTemplate, "{+baseurl}",
 		fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion), 1)
 	fmt.Printf("Making custom msgraph PATCH request to: %s\n", logUrl)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -151,19 +150,14 @@ func (r *DeviceCategoryResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	// Use the custom PATCH request with the correct URL format for device categories
-	patchConfig := graphcustom.PatchRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
-		Endpoint:          "/deviceManagement/deviceCategories",
-		ResourceIDPattern: "/{id}", // Using slash format for device categories
-		ResourceID:        object.ID.ValueString(),
-		EndpointSuffix:    "",
-		RequestBody:       requestBody,
-	}
+	_, err = r.client.
+		DeviceManagement().
+		DeviceCategories().
+		ByDeviceCategoryId(object.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
-	err = graphcustom.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
