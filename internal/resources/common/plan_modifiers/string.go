@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -154,5 +155,53 @@ func CaseInsensitiveString() StringModifier {
 			description:         "Handles case-insensitive string comparisons",
 			markdownDescription: "Handles case-insensitive string comparisons",
 		},
+	}
+}
+
+// RequiresOtherAttributeEnabled returns a plan modifier that ensures an attribute
+// can only be used when another specified attribute is enabled (set to true).
+func RequiresOtherAttributeEnabled(dependencyPath path.Path) planmodifier.String {
+	return &requiresOtherAttributeEnabledModifier{
+		dependencyPath: dependencyPath,
+	}
+}
+
+// requiresOtherAttributeEnabledModifier implements the plan modifier.
+type requiresOtherAttributeEnabledModifier struct {
+	dependencyPath path.Path
+}
+
+// Description returns a human-readable description of the plan modifier.
+func (m *requiresOtherAttributeEnabledModifier) Description(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when %s is enabled", m.dependencyPath)
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (m *requiresOtherAttributeEnabledModifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when `%s` is enabled", m.dependencyPath)
+}
+
+// PlanModifyString implements the plan modification logic.
+func (m *requiresOtherAttributeEnabledModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// Skip if the attribute is null in the plan
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	// Get the dependency attribute's value from the plan
+	var dependencyValue types.Bool
+	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If dependency is defined, not null, and false, this attribute should not be used
+	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid attribute usage",
+			fmt.Sprintf("This attribute can only be used when %s is enabled (true)", m.dependencyPath),
+		)
 	}
 }

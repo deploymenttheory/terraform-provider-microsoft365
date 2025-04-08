@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -94,5 +95,49 @@ func UseStateForUnknownList() ListModifier {
 			description:         "Use state value when unknown",
 			markdownDescription: "Use state value when unknown",
 		},
+	}
+}
+
+// RequiresOtherAttributeEnabledList returns a plan modifier that ensures a list attribute
+// can only be used when another specified attribute is enabled (set to true).
+func RequiresOtherAttributeEnabledList(dependencyPath path.Path) planmodifier.List {
+	return &requiresOtherAttributeEnabledListModifier{
+		dependencyPath: dependencyPath,
+	}
+}
+
+type requiresOtherAttributeEnabledListModifier struct {
+	dependencyPath path.Path
+}
+
+func (m *requiresOtherAttributeEnabledListModifier) Description(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when %s is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledListModifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when `%s` is enabled", m.dependencyPath)
+}
+
+func (m *requiresOtherAttributeEnabledListModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	// Skip if the attribute is null in the plan
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	// Get the dependency attribute's value from the plan
+	var dependencyValue types.Bool
+	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If dependency is defined, not null, and false, this attribute should not be used
+	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid attribute usage",
+			fmt.Sprintf("This attribute can only be used when %s is enabled (true)", m.dependencyPath),
+		)
 	}
 }
