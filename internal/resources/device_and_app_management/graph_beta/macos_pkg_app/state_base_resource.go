@@ -48,16 +48,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.SupersedingAppCount = state.Int32PointerValue(remoteResource.GetSupersedingAppCount())
 	data.UploadState = state.Int32PointerValue(remoteResource.GetUploadState())
 
-	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		// Icon exists in the API, but we only want to keep track of path in state
-		// We don't do anything with the actual icon content here
-		if data.AppIcon == nil {
-			data.AppIcon = &AppIconResourceModel{
-				IconFilePathSource: types.StringNull(),
-				IconURLSource:      types.StringNull(),
-			}
+	if data.AppIcon != nil {
+		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
+	} else if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+		data.AppIcon = &AppIconResourceModel{
+			IconFilePathSource: types.StringNull(),
+			IconURLSource:      types.StringNull(),
 		}
-
 	} else {
 		data.AppIcon = nil
 	}
@@ -70,29 +67,27 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 
 	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
 
-	// Bundle id's
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
 
+	// Set bundle information from API
 	data.MacOSPkgApp.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
 	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
 	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
-	// Always initialize includedApps as an empty slice Then populate with values if they exist
-	if data.MacOSPkgApp.IncludedApps == nil {
-		data.MacOSPkgApp.IncludedApps = []MacOSIncludedAppResourceModel{}
-	}
-	includedApps := remoteResource.GetIncludedApps()
-	if len(includedApps) > 0 {
-		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(includedApps))
-		for i, app := range includedApps {
+	apiIncludedApps := remoteResource.GetIncludedApps()
+	if len(apiIncludedApps) > 0 {
+		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(apiIncludedApps))
+		for i, app := range apiIncludedApps {
 			includedAppsValues[i] = MacOSIncludedAppResourceModel{
 				BundleId:      state.StringPointerValue(app.GetBundleId()),
 				BundleVersion: state.StringPointerValue(app.GetBundleVersion()),
 			}
 		}
 		data.MacOSPkgApp.IncludedApps = includedAppsValues
+	} else {
+		data.MacOSPkgApp.IncludedApps = []MacOSIncludedAppResourceModel{}
 	}
 
 	if minOS := remoteResource.GetMinimumSupportedOperatingSystem(); minOS != nil {

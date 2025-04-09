@@ -187,10 +187,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"app_icon": schema.SingleNestedAttribute{
 				MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
-				Validators: []validator.Object{
-					validators.ExactlyOneOf("icon_file_path_source", "icon_url_source"),
-				},
-				Optional: true,
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"icon_file_path_source": schema.StringAttribute{
 						Optional:            true,
@@ -215,25 +212,21 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								"must end with .png file extension",
 							),
 						},
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 				},
 			},
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "Set of category names to associate with this application. Valid values are: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'",
+				MarkdownDescription: "Set of category names to associate with this application. You can use either predefined category names like 'Business', 'Productivity', etc., or provide specific category GUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf(
-							"Other apps",
-							"Books & Reference",
-							"Data management",
-							"Productivity",
-							"Business",
-							"Development & Design",
-							"Photos & Media",
-							"Collaboration & Social",
-							"Computer management",
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(Other apps|Books & Reference|Data management|Productivity|Business|Development & Design|Photos & Media|Collaboration & Social|Computer management|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$`),
+							"must be either a predefined category name or a valid GUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 						),
 					),
 				},
@@ -344,6 +337,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								"File path must point to a valid .pkg file.",
 							),
 						},
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 					"installer_url_source": schema.StringAttribute{
 						Optional:            true,
@@ -353,6 +349,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
 								"Must be a valid URL.",
 							),
+						},
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
 						},
 					},
 					"ignore_version_detection": schema.BoolAttribute{
@@ -388,11 +387,19 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							Attributes: map[string]schema.Attribute{
 								"bundle_id": schema.StringAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the PKG metadata or appended manually.",
+									PlanModifiers: []planmodifier.String{
+										planmodifiers.UseStateForUnknownString(),
+									},
 								},
 								"bundle_version": schema.StringAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the PKG metadata or appended manually.",
+									PlanModifiers: []planmodifier.String{
+										planmodifiers.UseStateForUnknownString(),
+									},
 								},
 							},
 						},
