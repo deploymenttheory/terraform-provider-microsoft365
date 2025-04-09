@@ -10,8 +10,9 @@ import (
 
 // constructCategories creates an array of MobileAppCategoryable objects
 // from an array of display names. The function maps each display name to its
-// corresponding ID based on predefined mappings.
+// corresponding ID based on predefined mappings or treats it as a user-defined category.
 func constructCategories(ctx context.Context, displayNames []string) []graphmodels.MobileAppCategoryable {
+	// Built in categories
 	categoryMapping := map[string]string{
 		"Other apps":             "0720a99e-562b-4a77-83f0-9a7523fcf13e",
 		"Books & Reference":      "f1fc9fe2-728d-4867-9a72-a61e18f8c606",
@@ -27,22 +28,28 @@ func constructCategories(ctx context.Context, displayNames []string) []graphmode
 	tflog.Debug(ctx, fmt.Sprintf("Constructing mobile app categories for display names: %v", displayNames))
 	categories := make([]graphmodels.MobileAppCategoryable, 0, len(displayNames))
 
-	for _, name := range displayNames {
-		id, exists := categoryMapping[name]
-		if !exists {
-			tflog.Debug(ctx, fmt.Sprintf("Display name '%s' not found in mapping; skipping", name))
-			continue
-		}
+	builtInCount := 0
+	userDefinedCount := 0
 
+	for _, name := range displayNames {
 		category := graphmodels.NewMobileAppCategory()
 		displayNameCopy := name
 		category.SetDisplayName(&displayNameCopy)
-		idCopy := id
-		category.SetId(&idCopy)
-		tflog.Debug(ctx, fmt.Sprintf("Mapped category '%s' to ID '%s'", name, id))
+
+		if id, exists := categoryMapping[name]; exists {
+			idCopy := id
+			category.SetId(&idCopy)
+			tflog.Debug(ctx, fmt.Sprintf("Using built-in category '%s' with ID '%s'", name, id))
+			builtInCount++
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Using user-defined category '%s'", name))
+			userDefinedCount++
+		}
+
 		categories = append(categories, category)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Constructed %d mobile app categories", len(categories)))
+	tflog.Debug(ctx, fmt.Sprintf("Constructed %d total categories (%d built-in, %d user-defined)",
+		len(categories), builtInCount, userDefinedCount))
 	return categories
 }
