@@ -97,13 +97,27 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	object.ID = types.StringValue(*baseResource.GetId())
 	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
 
-	// TODO categories
+	// Step 4: Associate categories with the app if provided
+	if !object.Categories.IsNull() {
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		err = associateAppWithCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Associate Categories", r.WritePermissions)
+			return
+		}
+	}
 
 	// If a package installer file is provided, process the content version and file upload
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
 
-		// Step 4: Initialize content version
+		// Step 5: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
 		content := graphmodels.NewMobileAppContent()
 		contentBuilder := r.client.
@@ -120,7 +134,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
 
-		// Step 5: Encrypt mobile app file and output file and encryption metadata
+		// Step 6: Encrypt mobile app file and output file and encryption metadata
 		tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
 		contentFile, encryptionInfo, err := encryptMobileAppAndConstructFileContentMetadata(ctx, installerSourcePath)
 		if err != nil {
@@ -131,7 +145,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 6: Create the content file resource in Graph API
+		// Step 7: Create the content file resource in Graph API
 		tflog.Debug(ctx, "Creating content file resource in Graph API")
 		createdFile, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
@@ -143,7 +157,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content file resource created with ID: %s", *createdFile.GetId()))
 
-		// Step 7: Wait for Graph API to generate a valid Azure Storage URI
+		// Step 8: Wait for Graph API to generate a valid Azure Storage URI
 		tflog.Debug(ctx, "Waiting for Graph API to generate a valid Azure Storage URI")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			file, err := contentBuilder.
@@ -182,7 +196,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 8: Retrieve the Azure Storage URI and upload the encrypted file
+		// Step 9: Retrieve the Azure Storage URI and upload the encrypted file
 		tflog.Debug(ctx, "Retrieving file status for Azure Storage URI")
 		fileStatus, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
@@ -210,7 +224,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 9: Commit the file with encryption metadata
+		// Step 10: Commit the file with encryption metadata
 		tflog.Debug(ctx, "Committing file with encryption metadata")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			commitBody, err := CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
@@ -238,7 +252,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 10: Wait for commit to complete
+		// Step 11: Wait for commit to complete
 		tflog.Debug(ctx, "Waiting for file commit to complete")
 		maxRetries := 10
 		for i := 0; i < maxRetries; i++ {
@@ -285,7 +299,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			time.Sleep(10 * time.Second)
 		}
 
-		// Step 11: Update the App with the Committed Content Version
+		// Step 12: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()
 		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 		_, err = r.client.

@@ -137,7 +137,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	})
 }
 
-// MapCategoriesToSet converts a slice of MobileAppCategoryable to a types.Set for Terraform state
 // MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
 func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
 	if len(categories) == 0 {

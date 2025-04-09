@@ -7,32 +7,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// ModifyPlan handles plan modification for diff suppression
-// ModifyPlan handles plan modification for diff suppression
+// ModifyPlan handles plan modification for MacOS PKG apps to avoid state inconsistency errors
 func (r *MacOSPKGAppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+	// We only need to check for this inconsistency during updates (not creation)
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
 		return
 	}
 
-	var state MacOSPKGAppResourceModel
-	var plan MacOSPKGAppResourceModel
+	var plan, state MacOSPKGAppResourceModel
 
-	// Get current state and plan
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If plan has a MacOSPkgApp but included_apps is null, and state has included_apps,
-	// copy included_apps from state to plan
-	if plan.MacOSPkgApp != nil && plan.MacOSPkgApp.IncludedApps == nil &&
-		state.MacOSPkgApp != nil && state.MacOSPkgApp.IncludedApps != nil {
-
-		tflog.Debug(ctx, "Setting included_apps in plan from state to avoid inconsistency")
-		plan.MacOSPkgApp.IncludedApps = state.MacOSPkgApp.IncludedApps
-
-		// Set the modified plan
-		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+
+	tflog.Debug(ctx, "Checking for values that may have been inferred from PKG analysis")
+
+	// Handle included_apps that might be inferred during creation
+	if plan.MacOSPkgApp != nil && state.MacOSPkgApp != nil {
+		if len(plan.MacOSPkgApp.IncludedApps) == 0 && len(state.MacOSPkgApp.IncludedApps) > 0 {
+			tflog.Debug(ctx, "Setting included_apps in plan to match state since it was inferred during creation",
+				map[string]interface{}{
+					"stateIncludedAppsCount": len(state.MacOSPkgApp.IncludedApps),
+				})
+
+			// Copy the included apps from state to plan
+			plan.MacOSPkgApp.IncludedApps = make([]MacOSIncludedAppResourceModel, len(state.MacOSPkgApp.IncludedApps))
+			copy(plan.MacOSPkgApp.IncludedApps, state.MacOSPkgApp.IncludedApps)
+		}
+	}
+
+	// Set the modified plan
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
 }
