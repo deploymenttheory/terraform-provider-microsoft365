@@ -117,7 +117,6 @@ provider "microsoft365" {
   auth_method = "username_password"
   tenant_id   = "00000000-0000-0000-0000-000000000000"
   entra_id_options = {
-    client_id = "00000000-0000-0000-0000-000000000000"
     username  = "user@domain.com"
     password  = "your-password"
   }
@@ -762,8 +761,6 @@ Using Microsoft Graph PowerShell:
 Get-MgApplication -Filter "displayName eq 'Your App Name'" | Select-Object AppId, DisplayName
 ```
 
-```
-
 **Example usage:**
 ```hcl
 provider "microsoft365" {
@@ -811,43 +808,52 @@ provider "microsoft365" {
 ```
 
 Can be set using the `M365_CLIENT_SECRET` environment variable.
+
 - `disable_instance_discovery` (Boolean) DisableInstanceDiscovery should be set true only by terraform runsauthenticating in disconnected clouds, or private clouds such as Azure Stack.It determines whether the credential requests Microsoft Entra instance metadatafrom https://login.microsoft.com before authenticating. Setting this to true willskip this request, making the application responsible for ensuring the configuredauthority is valid and trustworthy.
 
 Can be set using the `M365_DISABLE_INSTANCE_DISCOVERY` environment variable.
+
 - `password` (String, Sensitive) Used for the 'username_password' authentication method.
 
 The password for resource owner password credentials (ROPC) flow authentication.
 
 **Critical Security Warning:**
+
 - Storing passwords in plain text is a significant security risk
 - Use environment variables or secure vaults to manage this sensitive information
 - Regularly rotate passwords and monitor for unauthorized access
 - Consider using more secure authentication methods when possible
 
 Can be set using the `M365_PASSWORD` environment variable.
+
 - `redirect_url` (String) The redirect URL (also known as reply URL or callback URL) for OAuth 2.0 authentication flows that require a callback, such as the Authorization Code flow or interactive browser authentication.
 
 **Important:**
+
 - This URL must be registered in your Entra ID (formerly Azure AD) application settings
 - For local development, typically use `http://localhost:port`
 - For production, use a secure HTTPS URL
 
 To configure in Entra ID:
+
 1. Go to Azure Portal > 'Microsoft Entra ID' > 'App registrations'
 2. Select your application
 3. Go to 'Authentication' > 'Platform configurations'
 4. Add or update the redirect URI
 
 Security considerations:
+
 - Use a unique path for your redirect URL to prevent potential conflicts
 - Avoid using wildcard URLs in production environments
 - Regularly audit and remove any unused redirect URLs
 
 Example values:
+
 - Local development: `http://localhost:8000/auth/callback`
 - Production: `https://yourdomain.com/auth/microsoft365/callback`
 
 Can be set using the `M365_REDIRECT_URL` environment variable.
+
 - `send_certificate_chain` (Boolean) Used for the 'client_certificate' authentication method.
 
 Controls whether the credential sends the public certificate chain in the x5c headerof each token request's JWT. This is required for Subject Name/Issuer (SNI) authenticationand can be used in certain advanced scenarios. Defaults to false. Enable this if yourapplication uses certificate chain validation or if specifically instructed by Azure support.
@@ -940,6 +946,7 @@ We welcome contributions to the Microsoft 365 Provider! Whether it's:
 - Example contributions
 
 Please visit our [GitHub repository](https://github.com/deploymenttheory/terraform-provider-microsoft365) to:
+
 - Open issues
 - Submit pull requests
 - View contribution guidelines

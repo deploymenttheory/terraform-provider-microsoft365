@@ -35,6 +35,10 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
+	if err := constructors.SetObjectsFromStringSet(ctx, data.Categories, constructCategories, baseApp.SetCategories); err != nil {
+		return nil, fmt.Errorf("failed to set categories: %s", err)
+	}
+
 	// Handle app icon (either from file path or web source)
 	if data.AppIcon != nil {
 		largeIcon := graphmodels.NewMimeContent()
