@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// ModifyPlan handles plan modification for MacOS PKG apps to avoid state inconsistency errors
+// ModifyPlan handles plan modification for MacOS PKG apps diff suppression to avoid state inconsistency errors
 func (r *MacOSPKGAppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	// We only need to check for this inconsistency during updates (not creation)
+	// If we don't have a plan or we're creating a new resource, nothing to do here
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
 		return
 	}
@@ -28,20 +28,10 @@ func (r *MacOSPKGAppResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	tflog.Debug(ctx, "Checking for values that may have been inferred from PKG analysis")
-
 	// Handle included_apps that might be inferred during creation
-	if plan.MacOSPkgApp != nil && state.MacOSPkgApp != nil {
-		if len(plan.MacOSPkgApp.IncludedApps) == 0 && len(state.MacOSPkgApp.IncludedApps) > 0 {
-			tflog.Debug(ctx, "Setting included_apps in plan to match state since it was inferred during creation",
-				map[string]interface{}{
-					"stateIncludedAppsCount": len(state.MacOSPkgApp.IncludedApps),
-				})
-
-			// Copy the included apps from state to plan
-			plan.MacOSPkgApp.IncludedApps = make([]MacOSIncludedAppResourceModel, len(state.MacOSPkgApp.IncludedApps))
-			copy(plan.MacOSPkgApp.IncludedApps, state.MacOSPkgApp.IncludedApps)
-		}
+	if plan.MacOSPkgApp.IncludedApps.IsUnknown() && !state.MacOSPkgApp.IncludedApps.IsNull() {
+		tflog.Debug(ctx, "Propagating inferred included_apps from state into plan")
+		plan.MacOSPkgApp.IncludedApps = state.MacOSPkgApp.IncludedApps
 	}
 
 	// Set the modified plan

@@ -67,6 +67,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 
 	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
 
+	// Initialize MacOSPkgApp if needed
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
@@ -76,19 +77,23 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
 	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
-	apiIncludedApps := remoteResource.GetIncludedApps()
-	if len(apiIncludedApps) > 0 {
-		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(apiIncludedApps))
-		for i, app := range apiIncludedApps {
-			includedAppsValues[i] = MacOSIncludedAppResourceModel{
-				BundleId:      state.StringPointerValue(app.GetBundleId()),
-				BundleVersion: state.StringPointerValue(app.GetBundleVersion()),
+	apps := remoteResource.GetIncludedApps()
+
+	data.MacOSPkgApp.IncludedApps = BuildObjectSetFromSlice(
+		ctx,
+		map[string]attr.Type{
+			"bundle_id":      types.StringType,
+			"bundle_version": types.StringType,
+		},
+		func(i int) map[string]attr.Value {
+			app := apps[i]
+			return map[string]attr.Value{
+				"bundle_id":      types.StringPointerValue(app.GetBundleId()),
+				"bundle_version": types.StringPointerValue(app.GetBundleVersion()),
 			}
-		}
-		data.MacOSPkgApp.IncludedApps = includedAppsValues
-	} else {
-		data.MacOSPkgApp.IncludedApps = []MacOSIncludedAppResourceModel{}
-	}
+		},
+		len(apps),
+	)
 
 	if minOS := remoteResource.GetMinimumSupportedOperatingSystem(); minOS != nil {
 		if data.MacOSPkgApp.MinimumSupportedOperatingSystem == nil {
@@ -131,12 +136,48 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId":        data.ID.ValueString(),
-		"displayName":       data.DisplayName.ValueString(),
-		"includedAppsCount": len(data.MacOSPkgApp.IncludedApps),
+		"resourceId":  data.ID.ValueString(),
+		"displayName": data.DisplayName.ValueString(),
 	})
 }
 
+func BuildObjectSetFromSlice(
+	ctx context.Context,
+	attrTypes map[string]attr.Type,
+	extract func(i int) map[string]attr.Value,
+	length int,
+) types.Set {
+	objectType := types.ObjectType{AttrTypes: attrTypes}
+	if length == 0 {
+		return types.SetNull(objectType)
+	}
+
+	var elements []attr.Value
+	for i := 0; i < length; i++ {
+		values := extract(i)
+		obj, diags := types.ObjectValue(attrTypes, values)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to build object for Set", map[string]interface{}{
+				"index":  i,
+				"errors": diags.Errors(),
+			})
+			continue
+		}
+		elements = append(elements, obj)
+	}
+
+	set, diags := types.SetValue(objectType, elements)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to build Set", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return types.SetNull(objectType)
+	}
+
+	return set
+}
+
+// MapCategoriesToSet converts a slice of MobileAppCategoryable to a types.Set for Terraform state
 // MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
 func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
 	if len(categories) == 0 {

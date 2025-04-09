@@ -33,22 +33,14 @@ type MacOSPKGAppResourceModel struct {
 	SupersededAppCount    types.Int64                                     `tfsdk:"superseded_app_count"`
 	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
 	Categories            types.Set                                       `tfsdk:"categories"`
-	//Categories            []MobileAppCategoryResourceModel                `tfsdk:"categories"`
-	Relationships []MobileAppRelationshipResourceModel `tfsdk:"relationships"`
-	MacOSPkgApp   *MacOSPkgAppResourceModel            `tfsdk:"macos_pkg_app"`
-	Timeouts      timeouts.Value                       `tfsdk:"timeouts"`
+	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
+	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
+	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
 }
 
 type AppIconResourceModel struct {
 	IconFilePathSource types.String `tfsdk:"icon_file_path_source"`
 	IconURLSource      types.String `tfsdk:"icon_url_source"`
-}
-
-// MobileAppCategoryResourceModel represents the Terraform resource model for a Mobile App Category
-type MobileAppCategoryResourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	DisplayName          types.String `tfsdk:"display_name"`
-	LastModifiedDateTime types.String `tfsdk:"last_modified_date_time"`
 }
 
 // MobileAppRelationshipResourceModel represents the Terraform resource model for a Mobile App Relationship
@@ -73,7 +65,7 @@ type MacOSPkgAppResourceModel struct {
 	InstallerFilePathSource         types.String                              `tfsdk:"installer_file_path_source"`
 	InstallerURLSource              types.String                              `tfsdk:"installer_url_source"`
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
-	IncludedApps                    []MacOSIncludedAppResourceModel           `tfsdk:"included_apps"`
+	IncludedApps                    types.Set                                 `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
 	PostInstallScript               *MacOSAppScriptResourceModel              `tfsdk:"post_install_script"`
 	PreInstallScript                *MacOSAppScriptResourceModel              `tfsdk:"pre_install_script"`
