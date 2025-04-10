@@ -358,9 +358,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								"File path must point to a valid .pkg file.",
 							),
 						},
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
+						// PlanModifiers: []planmodifier.String{
+						// 	planmodifiers.UseStateForUnknownString(),
+						// },
 					},
 					"installer_url_source": schema.StringAttribute{
 						Optional:            true,
@@ -526,16 +526,16 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 					"primary_bundle_id": schema.StringAttribute{
 						Computed: true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
+						// PlanModifiers: []planmodifier.String{
+						// 	planmodifiers.UseStateForUnknownString(),
+						// },
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
 					},
 					"primary_bundle_version": schema.StringAttribute{
 						Computed: true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
+						// PlanModifiers: []planmodifier.String{
+						// 	planmodifiers.UseStateForUnknownString(),
+						// },
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
 					},
 				},

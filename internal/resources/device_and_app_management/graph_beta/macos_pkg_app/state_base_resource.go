@@ -67,19 +67,29 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 
 	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
 
-	// Initialize MacOSPkgApp if needed
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
+	mapMacOSPKGAppStateToTerraform(ctx, data.MacOSPkgApp, remoteResource)
 
-	// Set bundle information from API
-	data.MacOSPkgApp.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
-	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
-	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
+	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
+		"resourceId":  data.ID.ValueString(),
+		"displayName": data.DisplayName.ValueString(),
+	})
+}
+
+// mapMacOSPKGAppStateToTerraform handle fields specific to macOs pkgs
+func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
+	if data == nil {
+		data = &MacOSPkgAppResourceModel{}
+	}
+
+	data.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
+	data.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
+	data.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
 	apps := remoteResource.GetIncludedApps()
-
-	data.MacOSPkgApp.IncludedApps = BuildObjectSetFromSlice(
+	data.IncludedApps = BuildObjectSetFromSlice(
 		ctx,
 		map[string]attr.Type{
 			"bundle_id":      types.StringType,
@@ -96,51 +106,42 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	)
 
 	if minOS := remoteResource.GetMinimumSupportedOperatingSystem(); minOS != nil {
-		if data.MacOSPkgApp.MinimumSupportedOperatingSystem == nil {
-			data.MacOSPkgApp.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
+		if data.MinimumSupportedOperatingSystem == nil {
+			data.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
 		}
 
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
+		data.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
+		data.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
+		data.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
+		data.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
+		data.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
+		data.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
+		data.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
+		data.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
+		data.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
+		data.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
+		data.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
+		data.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
+		data.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
 	}
 
 	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {
-		if data.MacOSPkgApp.PreInstallScript == nil {
-			data.MacOSPkgApp.PreInstallScript = &MacOSAppScriptResourceModel{}
+		if data.PreInstallScript == nil {
+			data.PreInstallScript = &MacOSAppScriptResourceModel{}
 		}
-
-		if scriptContent := preScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PreInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
-		}
+		data.PreInstallScript.ScriptContent = state.StringPointerValue(preScript.GetScriptContent())
 	}
 
 	if postScript := remoteResource.GetPostInstallScript(); postScript != nil {
-		if data.MacOSPkgApp.PostInstallScript == nil {
-			data.MacOSPkgApp.PostInstallScript = &MacOSAppScriptResourceModel{}
+		if data.PostInstallScript == nil {
+			data.PostInstallScript = &MacOSAppScriptResourceModel{}
 		}
-
-		if scriptContent := postScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PostInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
-		}
+		data.PostInstallScript.ScriptContent = state.StringPointerValue(postScript.GetScriptContent())
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId":  data.ID.ValueString(),
-		"displayName": data.DisplayName.ValueString(),
-	})
 }
 
+// BuildObjectSetFromSlice
 func BuildObjectSetFromSlice(
 	ctx context.Context,
 	attrTypes map[string]attr.Type,
@@ -185,7 +186,6 @@ func BuildObjectSetFromSlice(
 	return set
 }
 
-// MapCategoriesToSet converts a slice of MobileAppCategoryable to a types.Set for Terraform state
 // MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
 func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
 	if len(categories) == 0 {

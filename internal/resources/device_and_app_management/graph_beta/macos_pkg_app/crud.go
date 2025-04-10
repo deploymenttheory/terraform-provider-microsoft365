@@ -464,7 +464,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 }
 
 // Update handles the Update operation.
-// Update handles the Update operation.
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object, state MacOSPKGAppResourceModel
 
@@ -489,7 +488,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	var installerSourcePath string
 	var tempFileInfo TempFileInfo
 	var err error
-	var needsContentUpload bool = false
+	var contentChanged bool = false
+	var existingContentVersion string
 
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
@@ -520,41 +520,48 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		currentSize := fileInfo.Size()
 		object.InstallerSizeInBytes = types.Int64Value(currentSize)
 
-		// Determine if we need to process a content upload based on file size
-		needsContentUpload = true
+		// Determine if the content has changed based on file size
+		contentChanged = true
 
-		// Check if we have a previous size in state to compare against
-		if !state.InstallerSizeInBytes.IsNull() {
-			previousSize := state.InstallerSizeInBytes.ValueInt64()
+		// Retrieve the current resource to get the committed content version
+		resource, err := r.client.
+			DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(object.ID.ValueString()).
+			Get(ctx, nil)
 
-			// If size is the same, check if there's a committed content version already
-			if previousSize == currentSize {
-				// Retrieve the resource to check for committed content version
-				resource, err := r.client.
-					DeviceAppManagement().
-					MobileApps().
-					ByMobileAppId(object.ID.ValueString()).
-					Get(ctx, nil)
+		if err != nil {
+			// If we can't get the resource, assume content has changed
+			tflog.Warn(ctx, fmt.Sprintf("Failed to retrieve resource: %v", err))
+		} else {
+			// This ensures type safety as the Graph API returns a base interface
+			macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
+			if ok && macOSPkgApp.GetCommittedContentVersion() != nil &&
+				*macOSPkgApp.GetCommittedContentVersion() != "" {
+				existingContentVersion = *macOSPkgApp.GetCommittedContentVersion()
+				tflog.Debug(ctx, fmt.Sprintf("Found existing committed content version: %s", existingContentVersion))
 
-				if err == nil {
-					// This ensures type safety as the Graph API returns a base interface
-					macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
-					if ok && macOSPkgApp.GetCommittedContentVersion() != nil &&
-						*macOSPkgApp.GetCommittedContentVersion() != "" {
-						// If size is unchanged and we have a committed version, skip upload
-						needsContentUpload = false
+				// Check if we have a previous size in state to compare against
+				if !state.InstallerSizeInBytes.IsNull() {
+					previousSize := state.InstallerSizeInBytes.ValueInt64()
+
+					// If size is the same, we can consider the content unchanged
+					if previousSize == currentSize {
+						contentChanged = false
 						tflog.Debug(ctx, fmt.Sprintf(
-							"File size unchanged (%d bytes) and committed version exists, skipping content upload",
+							"File size unchanged (%d bytes) and committed version exists, considering content unchanged",
 							currentSize))
+					} else {
+						tflog.Debug(ctx, fmt.Sprintf(
+							"File size changed (previous: %d, current: %d bytes), content has changed",
+							previousSize, currentSize))
 					}
+				} else {
+					tflog.Debug(ctx, "No previous file size in state, assuming content has changed")
 				}
 			} else {
-				tflog.Debug(ctx, fmt.Sprintf(
-					"File size changed (previous: %d, current: %d bytes), will process content upload",
-					previousSize, currentSize))
+				tflog.Debug(ctx, "No committed content version found in resource")
 			}
-		} else {
-			tflog.Debug(ctx, "No previous file size in state, will process content upload")
 		}
 	}
 
@@ -581,10 +588,10 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// --- Begin File Processing Logic ---
-	// If a package installer file is provided and content upload is needed, process the file upload
-	if installerSourcePath != "" && needsContentUpload {
+	// Process content upload only if content has changed or we need a new version
+	if installerSourcePath != "" && contentChanged {
 		// Step 4: Initialize content version for file upload
-		tflog.Debug(ctx, "Initializing content version for file upload")
+		tflog.Debug(ctx, "Content has changed - initializing new content version for file upload")
 		content := graphmodels.NewMobileAppContent()
 		contentBuilder := r.client.
 			DeviceAppManagement().
@@ -598,7 +605,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
-		tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
+		tflog.Debug(ctx, fmt.Sprintf("New content version created with ID: %s", *contentVersion.GetId()))
 
 		// Step 5: Encrypt installer file and construct file metadata
 		tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
@@ -765,7 +772,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			time.Sleep(10 * time.Second)
 		}
 
-		// Step 11: Update the App with the Committed Content Version
+		// Step 11: Update the App with the new Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()
 		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 		_, err = r.client.
@@ -777,9 +784,28 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
-		tflog.Debug(ctx, "App updated successfully with committed content version")
-	} else if installerSourcePath != "" && !needsContentUpload {
-		tflog.Debug(ctx, "Skipping content upload as file content has not changed")
+		tflog.Debug(ctx, fmt.Sprintf("App updated with new committed content version: %s", *contentVersion.GetId()))
+	} else if installerSourcePath != "" && !contentChanged && existingContentVersion != "" {
+		// Content hasn't changed, preserve the existing content version
+		tflog.Debug(ctx, fmt.Sprintf(
+			"File content unchanged, preserving existing content version: %s",
+			existingContentVersion))
+
+		// Ensure that the committed content version is set in the app
+		// This handles edge cases where another process might have cleared it
+		updatePayload := graphmodels.NewMacOSPkgApp()
+		existingVersionPtr := &existingContentVersion
+		updatePayload.SetCommittedContentVersion(existingVersionPtr)
+		_, err = r.client.
+			DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(object.ID.ValueString()).
+			Patch(ctx, updatePayload, nil)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+		tflog.Debug(ctx, "Ensured existing content version is still committed")
 	}
 	// --- End File Processing Logic ---
 
