@@ -358,9 +358,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								"File path must point to a valid .pkg file.",
 							),
 						},
-						// PlanModifiers: []planmodifier.String{
-						// 	planmodifiers.UseStateForUnknownString(),
-						// },
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 					"installer_url_source": schema.StringAttribute{
 						Optional:            true,
@@ -375,7 +375,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							planmodifiers.UseStateForUnknownString(),
 						},
 					},
-
 					"ignore_version_detection": schema.BoolAttribute{
 						Required:            true,
 						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
@@ -525,17 +524,11 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 					},
 					"primary_bundle_id": schema.StringAttribute{
-						Computed: true,
-						// PlanModifiers: []planmodifier.String{
-						// 	planmodifiers.UseStateForUnknownString(),
-						// },
+						Computed:            true,
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
 					},
 					"primary_bundle_version": schema.StringAttribute{
-						Computed: true,
-						// PlanModifiers: []planmodifier.String{
-						// 	planmodifiers.UseStateForUnknownString(),
-						// },
+						Computed:            true,
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
 					},
 				},
@@ -547,8 +540,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					planmodifiers.UseStateForUnknownInt64(),
 				},
 			},
-			"assignments": commonschemagraphbeta.MobileAppAssignmentSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
+			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
+
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

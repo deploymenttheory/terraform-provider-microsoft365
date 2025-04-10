@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -438,6 +439,45 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
+
+	// Retrieve content versions
+	contentVersions, err := r.client.DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
+		GraphMacOSPkgApp().
+		ContentVersions().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read - ContentVersions", r.ReadPermissions)
+		return
+	}
+
+	if len(contentVersions.GetValue()) > 0 {
+		latestVersion := contentVersions.GetValue()[len(contentVersions.GetValue())-1]
+
+		files, err := r.client.DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(object.ID.ValueString()).
+			GraphMacOSPkgApp().
+			ContentVersions().
+			ByMobileAppContentId(*latestVersion.GetId()).
+			Files().
+			Get(ctx, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Read - ContentFiles", r.ReadPermissions)
+			return
+		}
+
+		// State the content files metadata correctly using the provided function
+		data.ContentVersion = &sharedmodels.MobileAppContentVersionResourceModel{
+			ID:    state.StringPointerValue(latestVersion.GetId()),
+			Files: mapContentFilesStateToTerraform(ctx, files.GetValue()),
+		}
+	} else {
+		data.ContentVersion = nil
+	}
 
 	respAssignments, err := r.client.
 		DeviceAppManagement().
