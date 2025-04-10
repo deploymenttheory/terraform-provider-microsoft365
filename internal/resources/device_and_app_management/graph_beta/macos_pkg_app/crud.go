@@ -3,6 +3,7 @@ package graphBetaMacOSPKGApp
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
@@ -74,6 +75,18 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	if tempFileInfo.ShouldCleanup {
 		defer cleanupTempFile(ctx, tempFileInfo)
 	}
+
+	// Get file size and store it in the model
+	fileInfo, err := os.Stat(installerSourcePath)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting file information",
+			err.Error(),
+		)
+		return
+	}
+	currentSize := fileInfo.Size()
+	object.InstallerSizeInBytes = types.Int64Value(currentSize)
 
 	// Step 2: Construct the base resource from the Terraform model
 	createdResource, err := constructResource(ctx, &object, installerSourcePath)
@@ -451,6 +464,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 }
 
 // Update handles the Update operation.
+// Update handles the Update operation.
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object, state MacOSPKGAppResourceModel
 
@@ -475,6 +489,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	var installerSourcePath string
 	var tempFileInfo TempFileInfo
 	var err error
+	var needsContentUpload bool = false
 
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
@@ -491,6 +506,55 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		// Ensure cleanup of temporary file when we're done
 		if tempFileInfo.ShouldCleanup {
 			defer cleanupTempFile(ctx, tempFileInfo)
+		}
+
+		// Get file size and store it in the model
+		fileInfo, err := os.Stat(installerSourcePath)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error getting file information",
+				err.Error(),
+			)
+			return
+		}
+		currentSize := fileInfo.Size()
+		object.InstallerSizeInBytes = types.Int64Value(currentSize)
+
+		// Determine if we need to process a content upload based on file size
+		needsContentUpload = true
+
+		// Check if we have a previous size in state to compare against
+		if !state.InstallerSizeInBytes.IsNull() {
+			previousSize := state.InstallerSizeInBytes.ValueInt64()
+
+			// If size is the same, check if there's a committed content version already
+			if previousSize == currentSize {
+				// Retrieve the resource to check for committed content version
+				resource, err := r.client.
+					DeviceAppManagement().
+					MobileApps().
+					ByMobileAppId(object.ID.ValueString()).
+					Get(ctx, nil)
+
+				if err == nil {
+					// This ensures type safety as the Graph API returns a base interface
+					macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
+					if ok && macOSPkgApp.GetCommittedContentVersion() != nil &&
+						*macOSPkgApp.GetCommittedContentVersion() != "" {
+						// If size is unchanged and we have a committed version, skip upload
+						needsContentUpload = false
+						tflog.Debug(ctx, fmt.Sprintf(
+							"File size unchanged (%d bytes) and committed version exists, skipping content upload",
+							currentSize))
+					}
+				}
+			} else {
+				tflog.Debug(ctx, fmt.Sprintf(
+					"File size changed (previous: %d, current: %d bytes), will process content upload",
+					previousSize, currentSize))
+			}
+		} else {
+			tflog.Debug(ctx, "No previous file size in state, will process content upload")
 		}
 	}
 
@@ -517,8 +581,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// --- Begin File Processing Logic ---
-	// If a package installer file is provided, process the file upload
-	if installerSourcePath != "" {
+	// If a package installer file is provided and content upload is needed, process the file upload
+	if installerSourcePath != "" && needsContentUpload {
 		// Step 4: Initialize content version for file upload
 		tflog.Debug(ctx, "Initializing content version for file upload")
 		content := graphmodels.NewMobileAppContent()
@@ -714,6 +778,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			return
 		}
 		tflog.Debug(ctx, "App updated successfully with committed content version")
+	} else if installerSourcePath != "" && !needsContentUpload {
+		tflog.Debug(ctx, "Skipping content upload as file content has not changed")
 	}
 	// --- End File Processing Logic ---
 

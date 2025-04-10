@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type SetModifier interface {
@@ -120,4 +121,42 @@ func (m *requiresOtherAttributeEnabledSetModifier) PlanModifySet(ctx context.Con
 			fmt.Sprintf("This attribute can only be used when %s is enabled (true)", m.dependencyPath),
 		)
 	}
+}
+
+// UseStateForUnknownOrNullSet returns a plan modifier that copies a known prior state
+// Set value into the planned value if the planned value is null or unknown.
+// This is useful for fields that are populated during creation but may not be
+// explicitly set in configuration.
+func UseStateForUnknownOrNullSet() planmodifier.Set {
+	return useStateForUnknownOrNullSetModifier{}
+}
+
+// useStateForUnknownOrNullSetModifier implements the modifier
+type useStateForUnknownOrNullSetModifier struct{}
+
+// Description returns a plain text description of the modifier's behavior.
+func (m useStateForUnknownOrNullSetModifier) Description(ctx context.Context) string {
+	return "If the Set is unknown or null after plan creation, use the value from the state."
+}
+
+// MarkdownDescription returns a markdown formatted description of the modifier's behavior.
+func (m useStateForUnknownOrNullSetModifier) MarkdownDescription(ctx context.Context) string {
+	return "If the Set is unknown or null after plan creation, use the value from the state."
+}
+
+// PlanModifySet implements the plan modification logic.
+func (m useStateForUnknownOrNullSetModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if !req.PlanValue.IsNull() && !req.PlanValue.IsUnknown() {
+		return
+	}
+
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+
+	tflog.Debug(ctx, "Using state value instead of null/unknown plan value for set", map[string]interface{}{
+		"path": req.Path.String(),
+	})
+
+	resp.PlanValue = req.StateValue
 }

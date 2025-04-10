@@ -129,7 +129,7 @@ import (
 //
 // Returns the path to the downloaded file and any error encountered.
 func DownloadFile(sourceURL string) (string, error) {
-	// Create temporary file with a placeholder name
+
 	tmpFile, err := os.CreateTemp("", "download-*")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary file: %v", err)
@@ -141,7 +141,6 @@ func DownloadFile(sourceURL string) (string, error) {
 		return "", fmt.Errorf("failed to close temporary file: %v", err)
 	}
 
-	// Configure the HTTP client with redirect handling
 	client := &http.Client{
 		Timeout: 5 * time.Minute,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -152,7 +151,6 @@ func DownloadFile(sourceURL string) (string, error) {
 		},
 	}
 
-	// Make the HTTP request
 	req, err := http.NewRequest("GET", sourceURL, nil)
 	if err != nil {
 		os.Remove(tmpPath)
@@ -169,42 +167,36 @@ func DownloadFile(sourceURL string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Check status code
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("failed to download file, server returned status code: %d", resp.StatusCode)
 	}
 
-	// Create a file for writing the downloaded content
 	out, err := os.Create(tmpPath)
 	if err != nil {
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("failed to open temporary file for writing: %v", err)
 	}
 
-	// Download the file content
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		out.Close() // Close the file before attempting to remove it
+		out.Close()
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("failed to write downloaded content to file: %v", err)
 	}
 
-	// Ensure all data is written to disk
 	if err := out.Sync(); err != nil {
-		out.Close() // Close the file before attempting to remove it
+		out.Close()
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("failed to flush file to disk: %v", err)
 	}
 
-	// IMPORTANT: Close the file BEFORE renaming on Windows
+	// Close the file BEFORE renaming on Windows
 	// Windows won't allow renaming a file that has an open handle
 	out.Close()
 
-	// Determine the final filename using a layered approach
 	var finalFileName string
 
-	// Try to get filename from Content-Disposition header
 	if disposition := resp.Header.Get("Content-Disposition"); disposition != "" {
 		if _, params, err := parseContentDisposition(disposition); err == nil {
 			if filename, ok := params["filename"]; ok && filename != "" {
@@ -215,7 +207,6 @@ func DownloadFile(sourceURL string) (string, error) {
 		}
 	}
 
-	// If Content-Disposition didn't yield a valid filename, try the URL path
 	if finalFileName == "" {
 		urlPath := resp.Request.URL.Path
 		urlFileName := filepath.Base(urlPath)
@@ -224,11 +215,8 @@ func DownloadFile(sourceURL string) (string, error) {
 		}
 	}
 
-	// Last resort: use a timestamp-based name
 	if finalFileName == "" {
 		finalFileName = fmt.Sprintf("download-%d", time.Now().Unix())
-
-		// Try to determine extension from Content-Type
 		if contentType := resp.Header.Get("Content-Type"); contentType != "" {
 			if ext, ok := mimeTypeToExtension(contentType); ok {
 				finalFileName += ext
@@ -236,16 +224,13 @@ func DownloadFile(sourceURL string) (string, error) {
 		}
 	}
 
-	// Construct the final path in the temporary directory
 	finalPath := filepath.Join(os.TempDir(), finalFileName)
 
-	// Verify that the final path is still within the temporary directory (security check)
 	if !strings.HasPrefix(filepath.Clean(finalPath), filepath.Clean(os.TempDir())) {
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("security error: path traversal attempt detected in filename")
 	}
 
-	// If a file already exists at the destination path, use a unique name
 	if _, err := os.Stat(finalPath); err == nil {
 		timestamp := time.Now().UnixNano()
 		ext := filepath.Ext(finalPath)
@@ -257,8 +242,6 @@ func DownloadFile(sourceURL string) (string, error) {
 	// Use a safer filename by replacing spaces with underscores
 	finalPath = strings.ReplaceAll(finalPath, " ", "_")
 
-	// Move the temporary file to its final location
-	// Try up to 3 times with short delays between attempts to handle possible file locking issues
 	var renameErr error
 	for retries := 0; retries < 3; retries++ {
 		renameErr = os.Rename(tmpPath, finalPath)
@@ -266,13 +249,10 @@ func DownloadFile(sourceURL string) (string, error) {
 			break
 		}
 
-		// If rename failed, wait a bit before trying again
 		time.Sleep(100 * time.Millisecond)
 	}
 
 	if renameErr != nil {
-		// If rename still fails after retries, try copy and delete as fallback
-		// This is slower but more reliable, especially on Windows
 		srcFile, err := os.Open(tmpPath)
 		if err == nil {
 			defer srcFile.Close()
@@ -283,10 +263,9 @@ func DownloadFile(sourceURL string) (string, error) {
 
 				_, err = io.Copy(destFile, srcFile)
 				if err == nil {
-					destFile.Close() // Close explicitly before continuing
-					srcFile.Close()  // Close explicitly before deletion
+					destFile.Close()
+					srcFile.Close()
 
-					// Now try to delete the temp file, but don't fail if we can't
 					os.Remove(tmpPath)
 					return finalPath, nil
 				}
@@ -295,7 +274,6 @@ func DownloadFile(sourceURL string) (string, error) {
 			srcFile.Close()
 		}
 
-		// If copy failed too, clean up and return error from original rename attempt
 		os.Remove(tmpPath)
 		return "", fmt.Errorf("failed to move downloaded file to final destination: %v", renameErr)
 	}
@@ -306,24 +284,18 @@ func DownloadFile(sourceURL string) (string, error) {
 // sanitizeFileName validates and cleans a filename for secure file operations.
 // Returns a boolean indicating if the name is safe and the sanitized filename.
 func sanitizeFileName(name string) (bool, string) {
-	// Strip directory parts
 	name = filepath.Base(name)
-
-	// Attempt to URL-unescape if it seems to be URL-encoded
 	if strings.Contains(name, "%") {
 		if unescaped, err := url.PathUnescape(name); err == nil {
 			name = unescaped
 		}
 	}
 
-	// Remove any characters that aren't alphanumeric, dots, hyphens, underscores, or spaces
 	safePattern := regexp.MustCompile(`[^a-zA-Z0-9.\-_ ]`)
 	cleaned := safePattern.ReplaceAllString(name, "")
 
-	// Trim leading/trailing spaces
 	cleaned = strings.TrimSpace(cleaned)
 
-	// Validate the cleaned name
 	if cleaned == "" || cleaned == "." || cleaned == ".." || strings.Contains(cleaned, "..") {
 		return false, ""
 	}
@@ -369,7 +341,6 @@ func parseContentDisposition(header string) (string, map[string]string, error) {
 
 // mimeTypeToExtension maps common MIME types to file extensions
 func mimeTypeToExtension(mimeType string) (string, bool) {
-	// Extract primary type
 	parts := strings.Split(mimeType, ";")
 	primaryType := strings.TrimSpace(parts[0])
 

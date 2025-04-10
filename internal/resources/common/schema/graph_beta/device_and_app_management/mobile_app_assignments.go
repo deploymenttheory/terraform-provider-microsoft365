@@ -47,6 +47,9 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 				"source_id": schema.StringAttribute{
 					MarkdownDescription: "The identifier of the source of the assignment. This property is read-only.",
 					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"target": schema.SingleNestedAttribute{
 					Required: true,

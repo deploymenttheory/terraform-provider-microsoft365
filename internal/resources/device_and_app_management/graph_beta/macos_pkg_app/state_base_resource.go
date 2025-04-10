@@ -148,8 +148,16 @@ func BuildObjectSetFromSlice(
 	length int,
 ) types.Set {
 	objectType := types.ObjectType{AttrTypes: attrTypes}
+
 	if length == 0 {
-		return types.SetNull(objectType)
+		emptySet, diags := types.SetValue(objectType, []attr.Value{})
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create empty set", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+			return types.SetNull(objectType)
+		}
+		return emptySet
 	}
 
 	var elements []attr.Value

@@ -284,7 +284,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
@@ -292,16 +295,25 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
 			},
 			"upload_state": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
 			"publishing_state": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The publishing state for the app. The app cannot be assigned unless the app is published. " +
 					"Possible values are: notPublished, processing, published.",
 			},
 			"is_assigned": schema.BoolAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
 				MarkdownDescription: "The value indicating whether the app is assigned to at least one group. This property is read-only.",
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -310,15 +322,24 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Set of scope tag ids for this mobile app.",
 			},
 			"dependent_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
 			"superseding_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
 			"superseded_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
 			"macos_pkg_app": schema.SingleNestedAttribute{
@@ -354,12 +375,14 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							planmodifiers.UseStateForUnknownString(),
 						},
 					},
+
 					"ignore_version_detection": schema.BoolAttribute{
 						Required:            true,
 						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
 					},
 					"included_apps": schema.SetNestedAttribute{
 						Optional: true,
+						Computed: true,
 						PlanModifiers: []planmodifier.Set{
 							planmodifiers.UseStateForUnknownSet(),
 						},
@@ -502,13 +525,26 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 					},
 					"primary_bundle_id": schema.StringAttribute{
-						Computed:            true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
 					},
 					"primary_bundle_version": schema.StringAttribute{
-						Computed:            true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
 					},
+				},
+			},
+			"installer_size_in_bytes": schema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: "The size of the installer file in bytes. Used to detect changes in content.",
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
 				},
 			},
 			"assignments": commonschemagraphbeta.MobileAppAssignmentSchema(),
