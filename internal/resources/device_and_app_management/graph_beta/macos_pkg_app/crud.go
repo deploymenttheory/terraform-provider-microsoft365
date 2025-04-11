@@ -8,7 +8,6 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -117,24 +116,9 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
 
-		// Capture installer metadata (only now that we know it's required)
-		metadata, err := CaptureAppMetadata(ctx, installerSourcePath)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error capturing installer metadata",
-				err.Error(),
-			)
-			return
-		}
-
-		object.AppMetadata = MapAppMetadataStateToTerraform(ctx, &sharedmodels.MobileAppMetaDataResourceModel{
-			InstallerSizeInBytes:    metadata.InstallerSizeInBytes,
-			InstallerMD5Checksum:    metadata.InstallerMD5Checksum,
-			InstallerSHA256Checksum: metadata.InstallerSHA256Checksum,
-		})
-
 		// Step 6: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
+
 		content := graphmodels.NewMobileAppContent()
 		contentBuilder := r.client.
 			DeviceAppManagement().
@@ -578,12 +562,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 
 		// Evaluate if content update is needed
-		contentUpdateNeeded, existingContentVersion, err := evaluateIfContentVersionUpdateRequired(
-			ctx,
-			&object,
-			&state,
-			r.client,
-		)
+		contentUpdateNeeded, existingContentVersion, err := evaluateIfContentVersionUpdateRequired(ctx, &object, &state, r.client)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error evaluating if content update is needed",
