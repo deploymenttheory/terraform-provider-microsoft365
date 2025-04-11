@@ -12,6 +12,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -67,18 +68,13 @@ func cleanupTempFile(ctx context.Context, fileInfo TempFileInfo) {
 
 // captureAppMetadata computes and sets the metadata for the installer file (size and checksums)
 // used for evaluation for content version updates and other purposes
-func captureAppMetadata(ctx context.Context, object *MacOSPKGAppResourceModel, installerSourcePath string) error {
+func CaptureAppMetadata(ctx context.Context, installerSourcePath string) (*sharedmodels.MobileAppMetaDataResourceModel, error) {
 	fileInfo, err := os.Stat(installerSourcePath)
 	if err != nil {
-		return fmt.Errorf("failed to get file information: %v", err)
-	}
-
-	if object.AppMetadata == nil {
-		object.AppMetadata = &sharedmodels.MobileAppMetaDataResourceModel{}
+		return nil, fmt.Errorf("failed to get file information: %v", err)
 	}
 
 	currentSize := fileInfo.Size()
-	object.AppMetadata.InstallerSizeInBytes = types.Int64Value(currentSize)
 
 	tflog.Debug(ctx, "Computed installer file size", map[string]interface{}{
 		"file_path":  installerSourcePath,
@@ -90,21 +86,18 @@ func captureAppMetadata(ctx context.Context, object *MacOSPKGAppResourceModel, i
 
 	file, err := os.Open(installerSourcePath)
 	if err != nil {
-		return fmt.Errorf("failed to open file for checksums: %v", err)
+		return nil, fmt.Errorf("failed to open file for checksums: %v", err)
 	}
 	defer file.Close()
 
 	multiWriter := io.MultiWriter(md5Hash, sha256Hash)
 
 	if _, err := io.Copy(multiWriter, file); err != nil {
-		return fmt.Errorf("failed to read file for checksums: %v", err)
+		return nil, fmt.Errorf("failed to read file for checksums: %v", err)
 	}
 
 	md5Checksum := hex.EncodeToString(md5Hash.Sum(nil))
 	sha256Checksum := hex.EncodeToString(sha256Hash.Sum(nil))
-
-	object.AppMetadata.InstallerMD5Checksum = types.StringValue(md5Checksum)
-	object.AppMetadata.InstallerSHA256Checksum = types.StringValue(sha256Checksum)
 
 	tflog.Debug(ctx, "Computed installer file checksums", map[string]interface{}{
 		"file_path":       installerSourcePath,
@@ -112,7 +105,11 @@ func captureAppMetadata(ctx context.Context, object *MacOSPKGAppResourceModel, i
 		"sha256_checksum": sha256Checksum,
 	})
 
-	return nil
+	return &sharedmodels.MobileAppMetaDataResourceModel{
+		InstallerSizeInBytes:    types.Int64Value(currentSize),
+		InstallerMD5Checksum:    types.StringValue(md5Checksum),
+		InstallerSHA256Checksum: types.StringValue(sha256Checksum),
+	}, nil
 }
 
 // evaluateIfContentVersionUpdateRequired determines if a new content version needs to be created and uploaded
@@ -137,7 +134,6 @@ func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPK
 		pathChanged = true
 	}
 
-	// If neither installer source is provided, no upload is needed
 	if (object.MacOSPkgApp.InstallerFilePathSource.IsNull() || object.MacOSPkgApp.InstallerFilePathSource.ValueString() == "") &&
 		(object.MacOSPkgApp.InstallerURLSource.IsNull() || object.MacOSPkgApp.InstallerURLSource.ValueString() == "") {
 		tflog.Debug(ctx, "No installer source provided, skipping content evaluation")
@@ -152,44 +148,33 @@ func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPK
 		return true, "", nil
 	}
 
-	// Check size differences if app metadata is available in both objects
-	if object.AppMetadata != nil && state.AppMetadata != nil {
-		if !object.AppMetadata.InstallerSizeInBytes.IsNull() && !state.AppMetadata.InstallerSizeInBytes.IsNull() {
-			currentSize := object.AppMetadata.InstallerSizeInBytes.ValueInt64()
-			previousSize := state.AppMetadata.InstallerSizeInBytes.ValueInt64()
+	if !object.AppMetadata.IsNull() && !state.AppMetadata.IsNull() {
+		var objectMetadata, stateMetadata sharedmodels.MobileAppMetaDataResourceModel
 
-			if currentSize != previousSize {
-				tflog.Debug(ctx, "Installer size has changed", map[string]interface{}{
-					"previous_size": previousSize,
-					"current_size":  currentSize,
-				})
-				metadataChanged = true
-			}
+		diags := object.AppMetadata.As(ctx, &objectMetadata, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return false, "", fmt.Errorf("failed to parse object metadata: %v", diags)
 		}
 
-		// Compare SHA256 checksum (preferred)
-		if !object.AppMetadata.InstallerSHA256Checksum.IsNull() && !state.AppMetadata.InstallerSHA256Checksum.IsNull() {
-			currentChecksum := object.AppMetadata.InstallerSHA256Checksum.ValueString()
-			previousChecksum := state.AppMetadata.InstallerSHA256Checksum.ValueString()
+		diags = state.AppMetadata.As(ctx, &stateMetadata, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return false, "", fmt.Errorf("failed to parse state metadata: %v", diags)
+		}
 
-			if currentChecksum != previousChecksum && currentChecksum != "" && previousChecksum != "" {
-				tflog.Debug(ctx, "Installer SHA256 checksum has changed", map[string]interface{}{
-					"previous_checksum": previousChecksum,
-					"current_checksum":  currentChecksum,
-				})
-				metadataChanged = true
-			}
-		} else if !object.AppMetadata.InstallerMD5Checksum.IsNull() && !state.AppMetadata.InstallerMD5Checksum.IsNull() {
-			currentChecksum := object.AppMetadata.InstallerMD5Checksum.ValueString()
-			previousChecksum := state.AppMetadata.InstallerMD5Checksum.ValueString()
+		if objectMetadata.InstallerSizeInBytes.ValueInt64() != stateMetadata.InstallerSizeInBytes.ValueInt64() {
+			tflog.Debug(ctx, "Installer size has changed", map[string]interface{}{
+				"previous_size": stateMetadata.InstallerSizeInBytes.ValueInt64(),
+				"current_size":  objectMetadata.InstallerSizeInBytes.ValueInt64(),
+			})
+			metadataChanged = true
+		}
 
-			if currentChecksum != previousChecksum && currentChecksum != "" && previousChecksum != "" {
-				tflog.Debug(ctx, "Installer MD5 checksum has changed", map[string]interface{}{
-					"previous_checksum": previousChecksum,
-					"current_checksum":  currentChecksum,
-				})
-				metadataChanged = true
-			}
+		if objectMetadata.InstallerSHA256Checksum.ValueString() != stateMetadata.InstallerSHA256Checksum.ValueString() {
+			tflog.Debug(ctx, "Installer SHA256 checksum has changed", map[string]interface{}{
+				"previous_checksum": stateMetadata.InstallerSHA256Checksum.ValueString(),
+				"current_checksum":  objectMetadata.InstallerSHA256Checksum.ValueString(),
+			})
+			metadataChanged = true
 		}
 	} else {
 		tflog.Debug(ctx, "Metadata is missing from one of the objects, assuming content needs update")

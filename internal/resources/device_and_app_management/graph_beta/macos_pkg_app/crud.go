@@ -8,6 +8,7 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -74,15 +75,6 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		defer cleanupTempFile(ctx, tempFileInfo)
 	}
 
-	// Step 2: capture app metadata
-	if err := captureAppMetadata(ctx, &object, installerSourcePath); err != nil {
-		resp.Diagnostics.AddError(
-			"Error capturing installer metadata",
-			err.Error(),
-		)
-		return
-	}
-
 	// Step 3: Construct the base resource from the Terraform model
 	createdResource, err := constructResource(ctx, &object, installerSourcePath)
 	if err != nil {
@@ -93,7 +85,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	// Step 4: Create the mobile app resource in Graph API
+	// Step 4: Create the mobile app base resource in Graph API
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
@@ -124,6 +116,22 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	// If a package installer file is provided, process the content version and file upload
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
+
+		// Capture installer metadata (only now that we know it's required)
+		metadata, err := CaptureAppMetadata(ctx, installerSourcePath)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error capturing installer metadata",
+				err.Error(),
+			)
+			return
+		}
+
+		object.AppMetadata = MapAppMetadataStateToTerraform(ctx, &sharedmodels.MobileAppMetaDataResourceModel{
+			InstallerSizeInBytes:    metadata.InstallerSizeInBytes,
+			InstallerMD5Checksum:    metadata.InstallerMD5Checksum,
+			InstallerSHA256Checksum: metadata.InstallerSHA256Checksum,
+		})
 
 		// Step 6: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
@@ -388,6 +396,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 // Read handles the Read operation.
 func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MacOSPKGAppResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -403,14 +412,15 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	// Create request configuration with expand query parameter
+	// 1. base resource
+	// Construct request with expand query parameter to return categories
 	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
 			Expand: []string{"categories"},
 		},
 	}
 
-	resource, err := r.client.
+	respBaseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
@@ -423,18 +433,18 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// This ensures type safety as the Graph API returns a base interface that needs
 	// to be converted to the specific app type
-	macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
+	macOSPkgApp, ok := respBaseResource.(graphmodels.MacOSPkgAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Resource type mismatch",
-			fmt.Sprintf("Expected resource of type MacOSPkgAppable but got %T", resource),
+			fmt.Sprintf("Expected resource of type MacOSPkgAppable but got %T", respBaseResource),
 		)
 		return
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 
-	// Retrieve content versions
+	// 2. content versions and it's files
 	respContentVersions, err := r.client.DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
@@ -447,10 +457,8 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Process all content versions
 	var allContentVersionFiles = make(map[string][]graphmodels.MobileAppContentFileable)
 
-	// For each version, retrieve its files
 	for _, version := range respContentVersions.GetValue() {
 		if version == nil || version.GetId() == nil {
 			continue
@@ -470,13 +478,12 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 			continue
 		}
 
-		// Store the files for this version
 		allContentVersionFiles[*version.GetId()] = respFiles.GetValue()
 	}
 
-	// Map all the content versions to Terraform state
 	object.ContentVersion = MapContentVersionsStateToTerraform(ctx, respContentVersions.GetValue(), allContentVersionFiles)
 
+	// 3. app assignments
 	respAssignments, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
@@ -488,9 +495,27 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Get assignments from response and assign them to the object
 	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
+	// 4. app metadata
+	installerPath, tempInfo, err := setInstallerSourcePath(ctx, object.MacOSPkgApp)
+	if err != nil {
+		resp.Diagnostics.AddError("Error determining installer path", err.Error())
+		return
+	}
+	if tempInfo.ShouldCleanup {
+		defer cleanupTempFile(ctx, tempInfo)
+	}
+
+	metadata, err := CaptureAppMetadata(ctx, installerPath)
+	if err != nil {
+		resp.Diagnostics.AddError("Error capturing installer metadata", err.Error())
+		return
+	}
+
+	object.AppMetadata = MapAppMetadataStateToTerraform(ctx, metadata)
+
+	// state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -499,7 +524,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation.
 // Update handles the Update operation.
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object, state MacOSPKGAppResourceModel
@@ -543,8 +567,9 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			defer cleanupTempFile(ctx, tempFileInfo)
 		}
 
-		// Capture app metadata (size and checksums)
-		if err := captureAppMetadata(ctx, &object, installerSourcePath); err != nil {
+		// Step 2: capture app metadata
+		_, err = CaptureAppMetadata(ctx, installerSourcePath)
+		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error capturing installer metadata",
 				err.Error(),
