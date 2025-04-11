@@ -542,15 +542,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 			},
-			"installer_size_in_bytes": schema.Int64Attribute{
-				Computed:            true,
-				MarkdownDescription: "The size of the installer file in bytes. Used to detect changes in content.",
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
-				},
-			},
 			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
+			"app_metadata":    commonschemagraphbeta.MobileAppMetadataSchema(),
 			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}

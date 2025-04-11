@@ -3,7 +3,6 @@ package graphBetaMacOSPKGApp
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
@@ -75,19 +74,16 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		defer cleanupTempFile(ctx, tempFileInfo)
 	}
 
-	// Get file size and store it in the model
-	fileInfo, err := os.Stat(installerSourcePath)
-	if err != nil {
+	// Step 2: capture app metadata
+	if err := captureAppMetadata(ctx, &object, installerSourcePath); err != nil {
 		resp.Diagnostics.AddError(
-			"Error getting file information",
+			"Error capturing installer metadata",
 			err.Error(),
 		)
 		return
 	}
-	currentSize := fileInfo.Size()
-	object.InstallerSizeInBytes = types.Int64Value(currentSize)
 
-	// Step 2: Construct the base resource from the Terraform model
+	// Step 3: Construct the base resource from the Terraform model
 	createdResource, err := constructResource(ctx, &object, installerSourcePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -97,7 +93,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	// Step 3: Create the mobile app resource in Graph API
+	// Step 4: Create the mobile app resource in Graph API
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
@@ -109,7 +105,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	object.ID = types.StringValue(*baseResource.GetId())
 	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
 
-	// Step 4: Associate categories with the app if provided
+	// Step 5: Associate categories with the app if provided
 	if !object.Categories.IsNull() {
 		var categoryValues []string
 		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
@@ -129,7 +125,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
 
-		// Step 5: Initialize content version
+		// Step 6: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
 		content := graphmodels.NewMobileAppContent()
 		contentBuilder := r.client.
@@ -146,7 +142,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
 
-		// Step 6: Encrypt mobile app file and output file and encryption metadata
+		// Step 7: Encrypt mobile app file and output file and encryption metadata
 		tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
 		contentFile, encryptionInfo, err := encryptMobileAppAndConstructFileContentMetadata(ctx, installerSourcePath)
 		if err != nil {
@@ -157,7 +153,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 7: Create the content file resource in Graph API
+		// Step 8: Create the content file resource in Graph API
 		tflog.Debug(ctx, "Creating content file resource in Graph API")
 		createdFile, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
@@ -169,7 +165,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content file resource created with ID: %s", *createdFile.GetId()))
 
-		// Step 8: Wait for Graph API to generate a valid Azure Storage URI
+		// Step 9: Wait for Graph API to generate a valid Azure Storage URI
 		tflog.Debug(ctx, "Waiting for Graph API to generate a valid Azure Storage URI")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			file, err := contentBuilder.
@@ -208,7 +204,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 9: Retrieve the Azure Storage URI and upload the encrypted file
+		// Step 10: Retrieve the Azure Storage URI and upload the encrypted file
 		tflog.Debug(ctx, "Retrieving file status for Azure Storage URI")
 		fileStatus, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
@@ -236,7 +232,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 10: Commit the file with encryption metadata
+		// Step 11: Commit the file with encryption metadata
 		tflog.Debug(ctx, "Committing file with encryption metadata")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			commitBody, err := CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
@@ -264,7 +260,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 11: Wait for commit to complete
+		// Step 12: Wait for commit to complete
 		tflog.Debug(ctx, "Waiting for file commit to complete")
 		maxRetries := 10
 		for i := 0; i < maxRetries; i++ {
@@ -311,7 +307,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			time.Sleep(10 * time.Second)
 		}
 
-		// Step 12: Update the App with the Committed Content Version
+		// Step 13: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()
 		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 		_, err = r.client.
@@ -504,6 +500,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 }
 
 // Update handles the Update operation.
+// Update handles the Update operation.
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object, state MacOSPKGAppResourceModel
 
@@ -528,8 +525,6 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	var installerSourcePath string
 	var tempFileInfo TempFileInfo
 	var err error
-	var contentChanged bool = false
-	var existingContentVersion string
 
 	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
 		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
@@ -548,228 +543,137 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			defer cleanupTempFile(ctx, tempFileInfo)
 		}
 
-		// Get file size and store it in the model
-		fileInfo, err := os.Stat(installerSourcePath)
-		if err != nil {
+		// Capture app metadata (size and checksums)
+		if err := captureAppMetadata(ctx, &object, installerSourcePath); err != nil {
 			resp.Diagnostics.AddError(
-				"Error getting file information",
+				"Error capturing installer metadata",
 				err.Error(),
 			)
 			return
 		}
-		currentSize := fileInfo.Size()
-		object.InstallerSizeInBytes = types.Int64Value(currentSize)
 
-		// Determine if the content has changed based on file size
-		contentChanged = true
-
-		// Retrieve the current resource to get the committed content version
-		resource, err := r.client.
-			DeviceAppManagement().
-			MobileApps().
-			ByMobileAppId(object.ID.ValueString()).
-			Get(ctx, nil)
-
-		if err != nil {
-			// If we can't get the resource, assume content has changed
-			tflog.Warn(ctx, fmt.Sprintf("Failed to retrieve resource: %v", err))
-		} else {
-			// This ensures type safety as the Graph API returns a base interface
-			macOSPkgApp, ok := resource.(graphmodels.MacOSPkgAppable)
-			if ok && macOSPkgApp.GetCommittedContentVersion() != nil &&
-				*macOSPkgApp.GetCommittedContentVersion() != "" {
-				existingContentVersion = *macOSPkgApp.GetCommittedContentVersion()
-				tflog.Debug(ctx, fmt.Sprintf("Found existing committed content version: %s", existingContentVersion))
-
-				// Check if we have a previous size in state to compare against
-				if !state.InstallerSizeInBytes.IsNull() {
-					previousSize := state.InstallerSizeInBytes.ValueInt64()
-
-					// If size is the same, we can consider the content unchanged
-					if previousSize == currentSize {
-						contentChanged = false
-						tflog.Debug(ctx, fmt.Sprintf(
-							"File size unchanged (%d bytes) and committed version exists, considering content unchanged",
-							currentSize))
-					} else {
-						tflog.Debug(ctx, fmt.Sprintf(
-							"File size changed (previous: %d, current: %d bytes), content has changed",
-							previousSize, currentSize))
-					}
-				} else {
-					tflog.Debug(ctx, "No previous file size in state, assuming content has changed")
-				}
-			} else {
-				tflog.Debug(ctx, "No committed content version found in resource")
-			}
-		}
-	}
-
-	// Step 2: Construct the base resource with the resolved installer path
-	requestBody, err := constructResource(ctx, &object, installerSourcePath)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+		// Evaluate if content update is needed
+		contentUpdateNeeded, existingContentVersion, err := evaluateIfContentVersionUpdateRequired(
+			ctx,
+			&object,
+			&state,
+			r.client,
 		)
-		return
-	}
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error evaluating if content update is needed",
+				err.Error(),
+			)
+			return
+		}
 
-	// Step 3: Update the base mobile app resource
-	_, err = r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
+		// Step 2: Construct the base resource with the resolved installer path
+		requestBody, err := constructResource(ctx, &object, installerSourcePath)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing resource for update method",
+				fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
 
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-		return
-	}
-
-	// --- Begin File Processing Logic ---
-	// Process content upload only if content has changed or we need a new version
-	if installerSourcePath != "" && contentChanged {
-		// Step 4: Initialize content version for file upload
-		tflog.Debug(ctx, "Content has changed - initializing new content version for file upload")
-		content := graphmodels.NewMobileAppContent()
-		contentBuilder := r.client.
+		// Step 3: Update the base mobile app resource
+		_, err = r.client.
 			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
-			GraphMacOSPkgApp().
-			ContentVersions()
+			Patch(ctx, requestBody, nil)
 
-		contentVersion, err := contentBuilder.Post(ctx, content, nil)
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
-		tflog.Debug(ctx, fmt.Sprintf("New content version created with ID: %s", *contentVersion.GetId()))
 
-		// Step 5: Encrypt installer file and construct file metadata
-		tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
-		contentFile, encryptionInfo, err := encryptMobileAppAndConstructFileContentMetadata(ctx, installerSourcePath)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing and encrypting Intune Mobile App content file",
-				err.Error(),
-			)
-			return
-		}
+		// --- Begin File Processing Logic ---
+		// Process content upload only if content has changed or we need a new version
+		if contentUpdateNeeded {
+			// Step 4: Initialize content version for file upload
+			tflog.Debug(ctx, "Content has changed - initializing new content version for file upload")
+			content := graphmodels.NewMobileAppContent()
+			contentBuilder := r.client.
+				DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(object.ID.ValueString()).
+				GraphMacOSPkgApp().
+				ContentVersions()
 
-		// Step 6: Create the content file resource in Graph API
-		tflog.Debug(ctx, "Creating content file resource in Graph API")
-		createdFile, err := contentBuilder.
-			ByMobileAppContentId(*contentVersion.GetId()).
-			Files().
-			Post(ctx, contentFile, nil)
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
-		tflog.Debug(ctx, fmt.Sprintf("Content file resource created with ID: %s", *createdFile.GetId()))
+			contentVersion, err := contentBuilder.Post(ctx, content, nil)
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+			tflog.Debug(ctx, fmt.Sprintf("New content version created with ID: %s", *contentVersion.GetId()))
 
-		// Step 7: Wait for Graph API to generate a valid Azure Storage URI
-		tflog.Debug(ctx, "Waiting for Graph API to generate a valid Azure Storage URI")
-		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
-			file, err := contentBuilder.
+			// Step 5: Encrypt installer file and construct file metadata
+			tflog.Debug(ctx, "Encrypting installer file and constructing file metadata")
+			contentFile, encryptionInfo, err := encryptMobileAppAndConstructFileContentMetadata(ctx, installerSourcePath)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing and encrypting Intune Mobile App content file",
+					err.Error(),
+				)
+				return
+			}
+
+			// Step 6: Create the content file resource in Graph API
+			tflog.Debug(ctx, "Creating content file resource in Graph API")
+			createdFile, err := contentBuilder.
 				ByMobileAppContentId(*contentVersion.GetId()).
 				Files().
-				ByMobileAppContentFileId(*createdFile.GetId()).
-				Get(ctx, nil)
+				Post(ctx, contentFile, nil)
 			if err != nil {
-				tflog.Debug(ctx, fmt.Sprintf("Failed to get file status: %v", err))
-				return retry.RetryableError(fmt.Errorf("failed to get file status: %v", err))
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
 			}
+			tflog.Debug(ctx, fmt.Sprintf("Content file resource created with ID: %s", *createdFile.GetId()))
 
-			if file.GetUploadState() == nil {
-				tflog.Debug(ctx, "Upload state is nil; retrying until a state is returned")
-				return retry.RetryableError(fmt.Errorf("upload state is nil"))
-			}
+			// Step 7: Wait for Graph API to generate a valid Azure Storage URI
+			tflog.Debug(ctx, "Waiting for Graph API to generate a valid Azure Storage URI")
+			err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
+				file, err := contentBuilder.
+					ByMobileAppContentId(*contentVersion.GetId()).
+					Files().
+					ByMobileAppContentFileId(*createdFile.GetId()).
+					Get(ctx, nil)
+				if err != nil {
+					tflog.Debug(ctx, fmt.Sprintf("Failed to get file status: %v", err))
+					return retry.RetryableError(fmt.Errorf("failed to get file status: %v", err))
+				}
 
-			stateVal := *file.GetUploadState()
-			tflog.Debug(ctx, fmt.Sprintf("Current upload state: %s", stateVal.String()))
+				if file.GetUploadState() == nil {
+					tflog.Debug(ctx, "Upload state is nil; retrying until a state is returned")
+					return retry.RetryableError(fmt.Errorf("upload state is nil"))
+				}
 
-			if stateVal == graphmodels.AZURESTORAGEURIREQUESTSUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "Azure Storage URI request successful")
-				return nil
-			}
+				stateVal := *file.GetUploadState()
+				tflog.Debug(ctx, fmt.Sprintf("Current upload state: %s", stateVal.String()))
 
-			if stateVal == graphmodels.AZURESTORAGEURIREQUESTFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "Azure Storage URI request failed")
-				return retry.NonRetryableError(fmt.Errorf("azure storage URI request failed"))
-			}
+				if stateVal == graphmodels.AZURESTORAGEURIREQUESTSUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
+					tflog.Debug(ctx, "Azure Storage URI request successful")
+					return nil
+				}
 
-			tflog.Debug(ctx, fmt.Sprintf("Waiting for Azure Storage URI, current state: %s", stateVal.String()))
-			return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", stateVal.String()))
-		})
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
+				if stateVal == graphmodels.AZURESTORAGEURIREQUESTFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
+					tflog.Debug(ctx, "Azure Storage URI request failed")
+					return retry.NonRetryableError(fmt.Errorf("azure storage URI request failed"))
+				}
 
-		// Step 8: Retrieve the Azure Storage URI and upload the encrypted file
-		tflog.Debug(ctx, "Retrieving file status for Azure Storage URI")
-		fileStatus, err := contentBuilder.
-			ByMobileAppContentId(*contentVersion.GetId()).
-			Files().
-			ByMobileAppContentFileId(*createdFile.GetId()).
-			Get(ctx, nil)
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
-		if fileStatus.GetAzureStorageUri() == nil {
-			tflog.Debug(ctx, "Azure Storage URI is nil in the retrieved file status")
-			errors.HandleGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, "Update", r.WritePermissions)
-			return
-		}
-		tflog.Debug(ctx, fmt.Sprintf("Retrieved Azure Storage URI: %s", *fileStatus.GetAzureStorageUri()))
-
-		// IMPORTANT: Upload the encrypted file (.bin) not the original source file.
-		encryptedFilePath := installerSourcePath + ".bin"
-		tflog.Debug(ctx, fmt.Sprintf("Uploading encrypted file: %s", encryptedFilePath))
-		err = uploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), encryptedFilePath)
-		if err != nil {
-			tflog.Debug(ctx, fmt.Sprintf("Failed to upload to Azure Storage: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
-
-		// Step 9: Commit the file with encryption metadata
-		tflog.Debug(ctx, "Committing file with encryption metadata")
-		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
-			commitBody, err := CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
+				tflog.Debug(ctx, fmt.Sprintf("Waiting for Azure Storage URI, current state: %s", stateVal.String()))
+				return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", stateVal.String()))
+			})
 			if err != nil {
-				return retry.NonRetryableError(fmt.Errorf("failed to construct commit request: %v", err))
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
 			}
-			err = contentBuilder.
-				ByMobileAppContentId(*contentVersion.GetId()).
-				Files().
-				ByMobileAppContentFileId(*createdFile.GetId()).
-				Commit().
-				Post(ctx, commitBody, nil)
-			if err != nil {
-				tflog.Debug(ctx, fmt.Sprintf("Failed to commit file: %v", err))
-				return retry.RetryableError(fmt.Errorf("failed to commit file: %v", err))
-			}
-			tflog.Debug(ctx, "File commit request successful")
-			return nil
-		})
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error committing file",
-				err.Error(),
-			)
-			return
-		}
 
-		// Step 10: Wait for commit to complete
-		tflog.Debug(ctx, "Waiting for file commit to complete")
-		maxRetries := 10
-		for i := 0; i < maxRetries; i++ {
-			file, err := contentBuilder.
+			// Step 8: Retrieve the Azure Storage URI and upload the encrypted file
+			tflog.Debug(ctx, "Retrieving file status for Azure Storage URI")
+			fileStatus, err := contentBuilder.
 				ByMobileAppContentId(*contentVersion.GetId()).
 				Files().
 				ByMobileAppContentFileId(*createdFile.GetId()).
@@ -778,18 +682,29 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 				return
 			}
-			stateVal := *file.GetUploadState()
-			tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, stateVal.String()))
-			if stateVal == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "File commit completed successfully")
-				break
+			if fileStatus.GetAzureStorageUri() == nil {
+				tflog.Debug(ctx, "Azure Storage URI is nil in the retrieved file status")
+				errors.HandleGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, "Update", r.WritePermissions)
+				return
 			}
-			if stateVal == graphmodels.COMMITFILEFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "File commit failed; retrying commit request")
+			tflog.Debug(ctx, fmt.Sprintf("Retrieved Azure Storage URI: %s", *fileStatus.GetAzureStorageUri()))
+
+			// IMPORTANT: Upload the encrypted file (.bin) not the original source file.
+			encryptedFilePath := installerSourcePath + ".bin"
+			tflog.Debug(ctx, fmt.Sprintf("Uploading encrypted file: %s", encryptedFilePath))
+			err = uploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), encryptedFilePath)
+			if err != nil {
+				tflog.Debug(ctx, fmt.Sprintf("Failed to upload to Azure Storage: %v", err))
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+
+			// Step 9: Commit the file with encryption metadata
+			tflog.Debug(ctx, "Committing file with encryption metadata")
+			err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 				commitBody, err := CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
 				if err != nil {
-					tflog.Debug(ctx, fmt.Sprintf("Error constructing commit request during retry: %v", err))
-					continue
+					return retry.NonRetryableError(fmt.Errorf("failed to construct commit request: %v", err))
 				}
 				err = contentBuilder.
 					ByMobileAppContentId(*contentVersion.GetId()).
@@ -798,56 +713,125 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 					Commit().
 					Post(ctx, commitBody, nil)
 				if err != nil {
-					tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
-					continue
+					tflog.Debug(ctx, fmt.Sprintf("Failed to commit file: %v", err))
+					return retry.RetryableError(fmt.Errorf("failed to commit file: %v", err))
 				}
-			}
-			if i == maxRetries-1 {
+				tflog.Debug(ctx, "File commit request successful")
+				return nil
+			})
+			if err != nil {
 				resp.Diagnostics.AddError(
-					"Error waiting for file commit",
-					fmt.Sprintf("File commit did not complete after %d attempts. Last state: %s", maxRetries, stateVal.String()),
+					"Error committing file",
+					err.Error(),
 				)
 				return
 			}
-			time.Sleep(10 * time.Second)
+
+			// Step 10: Wait for commit to complete
+			tflog.Debug(ctx, "Waiting for file commit to complete")
+			maxRetries := 10
+			for i := 0; i < maxRetries; i++ {
+				file, err := contentBuilder.
+					ByMobileAppContentId(*contentVersion.GetId()).
+					Files().
+					ByMobileAppContentFileId(*createdFile.GetId()).
+					Get(ctx, nil)
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+				stateVal := *file.GetUploadState()
+				tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, stateVal.String()))
+				if stateVal == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
+					tflog.Debug(ctx, "File commit completed successfully")
+					break
+				}
+				if stateVal == graphmodels.COMMITFILEFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
+					tflog.Debug(ctx, "File commit failed; retrying commit request")
+					commitBody, err := CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
+					if err != nil {
+						tflog.Debug(ctx, fmt.Sprintf("Error constructing commit request during retry: %v", err))
+						continue
+					}
+					err = contentBuilder.
+						ByMobileAppContentId(*contentVersion.GetId()).
+						Files().
+						ByMobileAppContentFileId(*createdFile.GetId()).
+						Commit().
+						Post(ctx, commitBody, nil)
+					if err != nil {
+						tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
+						continue
+					}
+				}
+				if i == maxRetries-1 {
+					resp.Diagnostics.AddError(
+						"Error waiting for file commit",
+						fmt.Sprintf("File commit did not complete after %d attempts. Last state: %s", maxRetries, stateVal.String()),
+					)
+					return
+				}
+				time.Sleep(10 * time.Second)
+			}
+
+			// Step 11: Update the App with the new Committed Content Version
+			updatePayload := graphmodels.NewMacOSPkgApp()
+			updatePayload.SetCommittedContentVersion(contentVersion.GetId())
+			_, err = r.client.
+				DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(object.ID.ValueString()).
+				Patch(ctx, updatePayload, nil)
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+			tflog.Debug(ctx, fmt.Sprintf("App updated with new committed content version: %s", *contentVersion.GetId()))
+		} else if existingContentVersion != "" {
+			// Content hasn't changed, preserve the existing content version
+			tflog.Debug(ctx, fmt.Sprintf(
+				"File content unchanged, preserving existing content version: %s",
+				existingContentVersion))
+
+			// Ensure that the committed content version is set in the app
+			// This handles edge cases where another process might have cleared it
+			updatePayload := graphmodels.NewMacOSPkgApp()
+			existingVersionPtr := &existingContentVersion
+			updatePayload.SetCommittedContentVersion(existingVersionPtr)
+			_, err = r.client.
+				DeviceAppManagement().
+				MobileApps().
+				ByMobileAppId(object.ID.ValueString()).
+				Patch(ctx, updatePayload, nil)
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+			tflog.Debug(ctx, "Ensured existing content version is still committed")
+		}
+		// --- End File Processing Logic ---
+	} else {
+		// No installer source provided, just update the base app
+		requestBody, err := constructResource(ctx, &object, "")
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing resource for update method",
+				fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
 		}
 
-		// Step 11: Update the App with the new Committed Content Version
-		updatePayload := graphmodels.NewMacOSPkgApp()
-		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 		_, err = r.client.
 			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
-			Patch(ctx, updatePayload, nil)
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
-		tflog.Debug(ctx, fmt.Sprintf("App updated with new committed content version: %s", *contentVersion.GetId()))
-	} else if installerSourcePath != "" && !contentChanged && existingContentVersion != "" {
-		// Content hasn't changed, preserve the existing content version
-		tflog.Debug(ctx, fmt.Sprintf(
-			"File content unchanged, preserving existing content version: %s",
-			existingContentVersion))
+			Patch(ctx, requestBody, nil)
 
-		// Ensure that the committed content version is set in the app
-		// This handles edge cases where another process might have cleared it
-		updatePayload := graphmodels.NewMacOSPkgApp()
-		existingVersionPtr := &existingContentVersion
-		updatePayload.SetCommittedContentVersion(existingVersionPtr)
-		_, err = r.client.
-			DeviceAppManagement().
-			MobileApps().
-			ByMobileAppId(object.ID.ValueString()).
-			Patch(ctx, updatePayload, nil)
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
-		tflog.Debug(ctx, "Ensured existing content version is still committed")
 	}
-	// --- End File Processing Logic ---
 
 	// Process assignments if provided
 	if object.Assignments != nil && !state.ID.IsNull() {
