@@ -36,6 +36,7 @@ type MacOSPKGAppResourceModel struct {
 	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
 	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
 	InstallerSizeInBytes  types.Int64                                     `tfsdk:"installer_size_in_bytes"`
+	ContentVersion        types.List                                      `tfsdk:"content_version"`
 	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
 }
 

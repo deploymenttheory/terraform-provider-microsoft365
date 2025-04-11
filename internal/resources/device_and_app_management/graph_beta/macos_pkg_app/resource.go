@@ -293,6 +293,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"last_modified_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 			},
 			"upload_state": schema.Int64Attribute{
 				Computed: true,
@@ -526,10 +529,16 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					"primary_bundle_id": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 					"primary_bundle_version": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 				},
 			},
@@ -542,8 +551,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
-
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}
 }

@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappcontentfile?view=graph-rest-beta
 package sharedmodels
 
 import "github.com/hashicorp/terraform-plugin-framework/types"

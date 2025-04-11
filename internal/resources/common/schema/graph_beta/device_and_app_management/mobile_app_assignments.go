@@ -15,6 +15,9 @@ import (
 func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+		},
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{

@@ -9,8 +9,6 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -441,7 +439,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 
 	// Retrieve content versions
-	contentVersions, err := r.client.DeviceAppManagement().
+	respContentVersions, err := r.client.DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		GraphMacOSPkgApp().
@@ -449,35 +447,39 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read - ContentVersions", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	if len(contentVersions.GetValue()) > 0 {
-		latestVersion := contentVersions.GetValue()[len(contentVersions.GetValue())-1]
+	// Process all content versions
+	var allContentVersionFiles = make(map[string][]graphmodels.MobileAppContentFileable)
 
-		files, err := r.client.DeviceAppManagement().
+	// For each version, retrieve its files
+	for _, version := range respContentVersions.GetValue() {
+		if version == nil || version.GetId() == nil {
+			continue
+		}
+
+		respFiles, err := r.client.DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
 			GraphMacOSPkgApp().
 			ContentVersions().
-			ByMobileAppContentId(*latestVersion.GetId()).
+			ByMobileAppContentId(*version.GetId()).
 			Files().
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read - ContentFiles", r.ReadPermissions)
-			return
+			tflog.Warn(ctx, fmt.Sprintf("Failed to retrieve files for content version %s: %v", *version.GetId(), err))
+			continue
 		}
 
-		// State the content files metadata correctly using the provided function
-		data.ContentVersion = &sharedmodels.MobileAppContentVersionResourceModel{
-			ID:    state.StringPointerValue(latestVersion.GetId()),
-			Files: mapContentFilesStateToTerraform(ctx, files.GetValue()),
-		}
-	} else {
-		data.ContentVersion = nil
+		// Store the files for this version
+		allContentVersionFiles[*version.GetId()] = respFiles.GetValue()
 	}
+
+	// Map all the content versions to Terraform state
+	object.ContentVersion = MapContentVersionsStateToTerraform(ctx, respContentVersions.GetValue(), allContentVersionFiles)
 
 	respAssignments, err := r.client.
 		DeviceAppManagement().
@@ -490,10 +492,8 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
-		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
-		sharedstater.StateMobileAppAssignment(ctx, object.Assignments, respAssignments)
-	}
+	// Get assignments from response and assign them to the object
+	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
