@@ -3,6 +3,7 @@ package graphBetaMacOSPKGApp
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -51,7 +52,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	if data.AppIcon != nil {
 		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
 	} else if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		data.AppIcon = &AppIconResourceModel{
+		data.AppIcon = &sharedmodels.MobileAppIconResourceModel{
 			IconFilePathSource: types.StringNull(),
 			IconURLSource:      types.StringNull(),
 		}

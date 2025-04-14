@@ -185,39 +185,39 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
-			"app_icon": schema.SingleNestedAttribute{
-				MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"icon_file_path_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`\.png$`),
-								"must end with .png file extension",
-							),
-						},
-					},
-					"icon_url_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
-								"Must be a valid URL.",
-							),
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`\.png$`),
-								"must end with .png file extension",
-							),
-						},
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
-					},
-				},
-			},
+			// "app_icon": schema.SingleNestedAttribute{
+			// 	MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
+			// 	Optional:            true,
+			// 	Attributes: map[string]schema.Attribute{
+			// 		"icon_file_path_source": schema.StringAttribute{
+			// 			Optional:            true,
+			// 			MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
+			// 			Validators: []validator.String{
+			// 				stringvalidator.RegexMatches(
+			// 					regexp.MustCompile(`\.png$`),
+			// 					"must end with .png file extension",
+			// 				),
+			// 			},
+			// 		},
+			// 		"icon_url_source": schema.StringAttribute{
+			// 			Optional:            true,
+			// 			MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
+			// 			Validators: []validator.String{
+			// 				stringvalidator.RegexMatches(
+			// 					regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+			// 					"Must be a valid URL.",
+			// 				),
+			// 				stringvalidator.RegexMatches(
+			// 					regexp.MustCompile(`\.png$`),
+			// 					"must end with .png file extension",
+			// 				),
+			// 			},
+			// 			PlanModifiers: []planmodifier.String{
+			// 				planmodifiers.UseStateForUnknownString(),
+			// 			},
+			// 		},
+			// 	},
+			// },
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
@@ -352,32 +352,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					validators.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
 				},
 				Attributes: map[string]schema.Attribute{
-					"installer_file_path_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid `.pkg` file.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`.*\.pkg$`),
-								"File path must point to a valid .pkg file.",
-							),
-						},
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
-					},
-					"installer_url_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
-								"Must be a valid URL.",
-							),
-						},
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
-					},
 					"ignore_version_detection": schema.BoolAttribute{
 						Required:            true,
 						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
@@ -545,6 +519,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
 			"app_metadata":    commonschemagraphbeta.MobileAppMetadataSchema(),
+			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
 			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}

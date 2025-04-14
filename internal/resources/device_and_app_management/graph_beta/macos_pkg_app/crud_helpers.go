@@ -26,31 +26,56 @@ type TempFileInfo struct {
 	ShouldCleanup bool
 }
 
-// setInstallerSourcePath inspects the resource model and returns the actual installer file path
+// setInstallerSourcePath inspects the resource model's app_metadata and returns the actual installer file path
 // along with information about whether it needs cleanup.
-func setInstallerSourcePath(ctx context.Context, model *MacOSPkgAppResourceModel) (string, TempFileInfo, error) {
+func setInstallerSourcePath(ctx context.Context, metadataObj types.Object) (string, TempFileInfo, error) {
 	var fileInfo TempFileInfo
+	var metadata sharedmodels.MobileAppMetaDataResourceModel
 
-	// Prefer the local installer file if provided
-	if !model.InstallerFilePathSource.IsNull() && model.InstallerFilePathSource.ValueString() != "" {
-		fileInfo.FilePath = model.InstallerFilePathSource.ValueString()
+	// Parse metadata object if available
+	if !metadataObj.IsNull() {
+		diags := metadataObj.As(ctx, &metadata, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			tflog.Warn(ctx, "Failed to parse app_metadata, proceeding with empty struct", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+		}
+	}
+
+	tflog.Debug(ctx, "setInstallerSourcePath input", map[string]interface{}{
+		"installer_file_path_source": metadata.InstallerFilePathSource.String(),
+		"installer_url_source":       metadata.InstallerURLSource.String(),
+	})
+
+	// Skip if both are unknown (planning phase)
+	if metadata.InstallerFilePathSource.IsUnknown() && metadata.InstallerURLSource.IsUnknown() {
+		tflog.Debug(ctx, "Installer sources are unknown during plan - skipping")
+		return "", fileInfo, nil
+	}
+
+	// Prefer local file path
+	if !metadata.InstallerFilePathSource.IsNull() && metadata.InstallerFilePathSource.ValueString() != "" {
+		fileInfo.FilePath = metadata.InstallerFilePathSource.ValueString()
 		fileInfo.ShouldCleanup = false
 		tflog.Debug(ctx, fmt.Sprintf("Using local installer file: %s", fileInfo.FilePath))
-	} else if !model.InstallerURLSource.IsNull() && model.InstallerURLSource.ValueString() != "" {
-		// Download the installer file if a URL is provided
-		tflog.Debug(ctx, fmt.Sprintf("Downloading installer file from URL: %s", model.InstallerURLSource.ValueString()))
-		downloadedPath, err := download.DownloadFile(model.InstallerURLSource.ValueString())
+		return fileInfo.FilePath, fileInfo, nil
+	}
+
+	// Otherwise try URL
+	if !metadata.InstallerURLSource.IsNull() && metadata.InstallerURLSource.ValueString() != "" {
+		url := metadata.InstallerURLSource.ValueString()
+		tflog.Debug(ctx, fmt.Sprintf("Downloading installer from URL: %s", url))
+		downloadedPath, err := download.DownloadFile(url)
 		if err != nil {
-			return "", fileInfo, fmt.Errorf("failed to download installer file from %s: %v", model.InstallerURLSource.ValueString(), err)
+			return "", fileInfo, fmt.Errorf("failed to download installer file from %s: %v", url, err)
 		}
 		fileInfo.FilePath = downloadedPath
 		fileInfo.ShouldCleanup = true
-		tflog.Debug(ctx, fmt.Sprintf("Downloaded installer file to: %s", fileInfo.FilePath))
-	} else {
-		return "", fileInfo, fmt.Errorf("installer file not provided; please supply either a local file path or a URL")
+		return fileInfo.FilePath, fileInfo, nil
 	}
 
-	return fileInfo.FilePath, fileInfo, nil
+	// Nothing provided
+	return "", fileInfo, fmt.Errorf("installer file not provided; please supply either a local file path or a URL")
 }
 
 // cleanupTempFile removes a temporary file if it exists and should be cleaned up
@@ -113,54 +138,56 @@ func CaptureAppMetadata(ctx context.Context, installerSourcePath string) (*share
 }
 
 // evaluateIfContentVersionUpdateRequired determines if a new content version needs to be created and uploaded
-// based on path changes and metadata differences
+// based on source path changes and metadata differences
 func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPKGAppResourceModel, state *MacOSPKGAppResourceModel, client *msgraphbetasdk.GraphServiceClient) (bool, string, error) {
 
 	pathChanged := false
-
-	if !object.MacOSPkgApp.InstallerFilePathSource.Equal(state.MacOSPkgApp.InstallerFilePathSource) {
-		tflog.Debug(ctx, "Installer file path has changed", map[string]interface{}{
-			"old_path": state.MacOSPkgApp.InstallerFilePathSource.ValueString(),
-			"new_path": object.MacOSPkgApp.InstallerFilePathSource.ValueString(),
-		})
-		pathChanged = true
-	}
-
-	if !object.MacOSPkgApp.InstallerURLSource.Equal(state.MacOSPkgApp.InstallerURLSource) {
-		tflog.Debug(ctx, "Installer URL has changed", map[string]interface{}{
-			"old_url": state.MacOSPkgApp.InstallerURLSource.ValueString(),
-			"new_url": object.MacOSPkgApp.InstallerURLSource.ValueString(),
-		})
-		pathChanged = true
-	}
-
-	if (object.MacOSPkgApp.InstallerFilePathSource.IsNull() || object.MacOSPkgApp.InstallerFilePathSource.ValueString() == "") &&
-		(object.MacOSPkgApp.InstallerURLSource.IsNull() || object.MacOSPkgApp.InstallerURLSource.ValueString() == "") {
-		tflog.Debug(ctx, "No installer source provided, skipping content evaluation")
-		return false, "", nil
-	}
-
 	metadataChanged := false
 	existingContentVersion := ""
 
-	if state.ContentVersion.IsNull() {
-		tflog.Debug(ctx, "No content versions in state, upload required")
-		return true, "", nil
-	}
+	// Check installer source path changes
+	var objectMetadata, stateMetadata sharedmodels.MobileAppMetaDataResourceModel
 
-	if !object.AppMetadata.IsNull() && !state.AppMetadata.IsNull() {
-		var objectMetadata, stateMetadata sharedmodels.MobileAppMetaDataResourceModel
-
+	if !object.AppMetadata.IsNull() {
 		diags := object.AppMetadata.As(ctx, &objectMetadata, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			return false, "", fmt.Errorf("failed to parse object metadata: %v", diags)
 		}
+	}
 
-		diags = state.AppMetadata.As(ctx, &stateMetadata, basetypes.ObjectAsOptions{})
+	if !state.AppMetadata.IsNull() {
+		diags := state.AppMetadata.As(ctx, &stateMetadata, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			return false, "", fmt.Errorf("failed to parse state metadata: %v", diags)
 		}
+	}
 
+	// Path changes
+	if !objectMetadata.InstallerFilePathSource.Equal(stateMetadata.InstallerFilePathSource) {
+		tflog.Debug(ctx, "Installer file path has changed", map[string]interface{}{
+			"old_path": stateMetadata.InstallerFilePathSource.ValueString(),
+			"new_path": objectMetadata.InstallerFilePathSource.ValueString(),
+		})
+		pathChanged = true
+	}
+
+	if !objectMetadata.InstallerURLSource.Equal(stateMetadata.InstallerURLSource) {
+		tflog.Debug(ctx, "Installer URL has changed", map[string]interface{}{
+			"old_url": stateMetadata.InstallerURLSource.ValueString(),
+			"new_url": objectMetadata.InstallerURLSource.ValueString(),
+		})
+		pathChanged = true
+	}
+
+	// If no installer source is provided at all → skip content evaluation
+	if (objectMetadata.InstallerFilePathSource.IsNull() || objectMetadata.InstallerFilePathSource.ValueString() == "") &&
+		(objectMetadata.InstallerURLSource.IsNull() || objectMetadata.InstallerURLSource.ValueString() == "") {
+		tflog.Debug(ctx, "No installer source provided, skipping content evaluation")
+		return false, "", nil
+	}
+
+	// Check metadata changes
+	if !object.AppMetadata.IsNull() && !state.AppMetadata.IsNull() {
 		if objectMetadata.InstallerSizeInBytes.ValueInt64() != stateMetadata.InstallerSizeInBytes.ValueInt64() {
 			tflog.Debug(ctx, "Installer size has changed", map[string]interface{}{
 				"previous_size": stateMetadata.InstallerSizeInBytes.ValueInt64(),
@@ -181,6 +208,7 @@ func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPK
 		metadataChanged = true
 	}
 
+	// Retrieve existing committed content version (from API)
 	resource, err := client.
 		DeviceAppManagement().
 		MobileApps().
@@ -206,4 +234,48 @@ func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPK
 	})
 
 	return updateNeeded, existingContentVersion, nil
+}
+
+// First, we need to add a function to delete existing content versions
+func deleteExistingContentVersions(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, appID string) error {
+	tflog.Debug(ctx, "Deleting existing content versions")
+
+	// Fetch the existing content versions
+	contentVersions, err := client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(appID).
+		GraphMacOSPkgApp().
+		ContentVersions().
+		Get(ctx, nil)
+
+	if err != nil {
+		return fmt.Errorf("failed to retrieve existing content versions: %w", err)
+	}
+
+	// Delete each content version
+	for _, version := range contentVersions.GetValue() {
+		if version == nil || version.GetId() == nil {
+			continue
+		}
+
+		versionID := *version.GetId()
+		tflog.Debug(ctx, fmt.Sprintf("Deleting content version: %s", versionID))
+
+		err := client.
+			DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(appID).
+			GraphMacOSPkgApp().
+			ContentVersions().
+			ByMobileAppContentId(versionID).
+			Delete(ctx, nil)
+
+		if err != nil {
+			tflog.Warn(ctx, fmt.Sprintf("Failed to delete content version %s: %v", versionID, err))
+			// Continue with deletion of other versions even if one fails
+		}
+	}
+
+	return nil
 }

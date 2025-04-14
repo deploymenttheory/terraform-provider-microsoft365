@@ -8,7 +8,9 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -60,12 +62,9 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	retryTimeout := time.Until(deadline) - time.Second
 
 	// Step 1: Determine installer source path (local or download via URL)
-	installerSourcePath, tempFileInfo, err := setInstallerSourcePath(ctx, object.MacOSPkgApp)
+	installerSourcePath, tempFileInfo, err := setInstallerSourcePath(ctx, object.AppMetadata)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error determining installer file path",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("Error determining installer file path", err.Error())
 		return
 	}
 
@@ -113,8 +112,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// If a package installer file is provided, process the content version and file upload
-	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
-		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
+	if installerSourcePath != "" {
 
 		// Step 6: Initialize content version
 		tflog.Debug(ctx, "Initializing content version for file upload")
@@ -314,6 +312,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		tflog.Debug(ctx, "App updated successfully with committed content version")
 	}
 
+	// Step 14: Apply Assignments
 	if object.Assignments != nil {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
@@ -351,6 +350,22 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	var appMetadata sharedmodels.MobileAppMetaDataResourceModel
+	if !req.Plan.Raw.IsNull() {
+		diags := req.Plan.GetAttribute(ctx, path.Root("app_metadata"), &appMetadata)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+	}
+
+	var appIcon *sharedmodels.MobileAppIconResourceModel
+	if object.AppIcon != nil {
+		appIcon = object.AppIcon
+	}
+
+	preserveHCLValues(ctx, &resource.UpdateResponse{State: resp.State}, &appMetadata, appIcon)
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}
@@ -396,8 +411,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	// 1. base resource
-	// Construct request with expand query parameter to return categories
+	// 1. get base resource with expanded query to return categories
 	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
 			Expand: []string{"categories"},
@@ -482,7 +496,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
 	// 4. app metadata
-	installerPath, tempInfo, err := setInstallerSourcePath(ctx, object.MacOSPkgApp)
+	installerPath, tempInfo, err := setInstallerSourcePath(ctx, object.AppMetadata)
 	if err != nil {
 		resp.Diagnostics.AddError("Error determining installer path", err.Error())
 		return
@@ -499,7 +513,23 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	object.AppMetadata = MapAppMetadataStateToTerraform(ctx, metadata)
 
-	// state
+	// 5. preserve HCL-only values
+	var appMetadata sharedmodels.MobileAppMetaDataResourceModel
+	if !req.State.Raw.IsNull() {
+		diags := req.State.GetAttribute(ctx, path.Root("app_metadata"), &appMetadata)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+	}
+
+	var appIcon *sharedmodels.MobileAppIconResourceModel
+	if object.AppIcon != nil {
+		appIcon = object.AppIcon
+	}
+	preserveHCLValues(ctx, &resource.UpdateResponse{State: resp.State}, &appMetadata, appIcon)
+
+	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -534,10 +564,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	var tempFileInfo TempFileInfo
 	var err error
 
-	if (!object.MacOSPkgApp.InstallerFilePathSource.IsNull() && object.MacOSPkgApp.InstallerFilePathSource.ValueString() != "") ||
-		(!object.MacOSPkgApp.InstallerURLSource.IsNull() && object.MacOSPkgApp.InstallerURLSource.ValueString() != "") {
-
-		installerSourcePath, tempFileInfo, err = setInstallerSourcePath(ctx, object.MacOSPkgApp)
+	if installerSourcePath != "" {
+		installerSourcePath, tempFileInfo, err = setInstallerSourcePath(ctx, object.AppMetadata)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error determining installer file path",

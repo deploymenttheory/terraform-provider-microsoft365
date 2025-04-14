@@ -15,7 +15,7 @@ type MacOSPKGAppResourceModel struct {
 	DisplayName           types.String                                    `tfsdk:"display_name"`
 	Description           types.String                                    `tfsdk:"description"`
 	Publisher             types.String                                    `tfsdk:"publisher"`
-	AppIcon               *AppIconResourceModel                           `tfsdk:"app_icon"`
+	AppIcon               *sharedmodels.MobileAppIconResourceModel        `tfsdk:"app_icon"`
 	CreatedDateTime       types.String                                    `tfsdk:"created_date_time"`
 	LastModifiedDateTime  types.String                                    `tfsdk:"last_modified_date_time"`
 	IsFeatured            types.Bool                                      `tfsdk:"is_featured"`
@@ -37,12 +37,8 @@ type MacOSPKGAppResourceModel struct {
 	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
 	AppMetadata           types.Object                                    `tfsdk:"app_metadata"`
 	ContentVersion        types.List                                      `tfsdk:"content_version"`
-	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
-}
 
-type AppIconResourceModel struct {
-	IconFilePathSource types.String `tfsdk:"icon_file_path_source"`
-	IconURLSource      types.String `tfsdk:"icon_url_source"`
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
 // MobileAppRelationshipResourceModel represents the Terraform resource model for a Mobile App Relationship
@@ -64,8 +60,6 @@ type MobileAppRelationshipResourceModel struct {
 
 // MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
 type MacOSPkgAppResourceModel struct {
-	InstallerFilePathSource         types.String                              `tfsdk:"installer_file_path_source"`
-	InstallerURLSource              types.String                              `tfsdk:"installer_url_source"`
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	IncludedApps                    types.Set                                 `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
