@@ -639,10 +639,9 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		// --- Begin File Processing Logic ---
 		// Process content upload only if content has changed or we need a new version
 		if contentUpdateNeeded {
-			tflog.Debug(ctx, "Content has changed — deleting existing content versions before upload")
+			tflog.Debug(ctx, "Content has changed — initializing new content version for upload")
 
-			// Step 4b
-			tflog.Debug(ctx, "Initializing new content version for file upload")
+			// Step 4b: Initialize new content version for file upload
 			content := graphmodels.NewMobileAppContent()
 			contentBuilder := r.client.
 				DeviceAppManagement().
@@ -711,7 +710,6 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 					tflog.Debug(ctx, "Azure Storage URI request failed")
 					return retry.NonRetryableError(fmt.Errorf("azure storage URI request failed"))
 				}
-
 				tflog.Debug(ctx, fmt.Sprintf("Waiting for Azure Storage URI, current state: %s", stateVal.String()))
 				return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", stateVal.String()))
 			})
@@ -769,10 +767,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 				return nil
 			})
 			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error committing file",
-					err.Error(),
-				)
+				resp.Diagnostics.AddError("Error committing file", err.Error())
 				return
 			}
 
@@ -789,6 +784,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 					return
 				}
+
 				stateVal := *file.GetUploadState()
 				tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, stateVal.String()))
 				if stateVal == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
@@ -826,6 +822,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			// Step 5h: Update the App with the new Committed Content Version
 			updatePayload := graphmodels.NewMacOSPkgApp()
 			updatePayload.SetCommittedContentVersion(contentVersion.GetId())
+
 			_, err = r.client.
 				DeviceAppManagement().
 				MobileApps().
@@ -837,28 +834,30 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			}
 			tflog.Debug(ctx, fmt.Sprintf("App updated with new committed content version: %s", *contentVersion.GetId()))
 		} else if existingContentVersion != "" {
-			// Content hasn't changed, preserve the existing content version
 			tflog.Debug(ctx, fmt.Sprintf(
 				"File content unchanged, preserving existing content version: %s",
-				existingContentVersion))
+				existingContentVersion,
+			))
 
-			// Ensure that the committed content version is set in the app
-			// This handles edge cases where another process might have cleared it
+			// Ensure committedContentVersion still points to correct version
 			updatePayload := graphmodels.NewMacOSPkgApp()
-			existingVersionPtr := &existingContentVersion
-			updatePayload.SetCommittedContentVersion(existingVersionPtr)
+			updatePayload.SetCommittedContentVersion(&existingContentVersion)
+
 			_, err = r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
 				Patch(ctx, updatePayload, nil)
+
 			if err != nil {
 				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 				return
 			}
+
 			tflog.Debug(ctx, "Ensured existing content version is still committed")
 		}
 		// --- End File Processing Logic ---
+
 	}
 
 	// Read updated resource state
