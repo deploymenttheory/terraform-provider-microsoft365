@@ -91,9 +91,13 @@ func cleanupTempFile(ctx context.Context, fileInfo TempFileInfo) {
 	}
 }
 
-// captureAppMetadata computes and sets the metadata for the installer file (size and checksums)
+// GetAppMetadata computes and sets the metadata for the installer file (size and checksums)
 // used for evaluation for content version updates and other purposes
-func CaptureAppMetadata(ctx context.Context, installerSourcePath string) (*sharedmodels.MobileAppMetaDataResourceModel, error) {
+func GetAppMetadata(
+	ctx context.Context,
+	installerSourcePath string,
+	existingMetadata *sharedmodels.MobileAppMetaDataResourceModel,
+) (*sharedmodels.MobileAppMetaDataResourceModel, error) {
 	fileInfo, err := os.Stat(installerSourcePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file information: %v", err)
@@ -131,6 +135,8 @@ func CaptureAppMetadata(ctx context.Context, installerSourcePath string) (*share
 	})
 
 	return &sharedmodels.MobileAppMetaDataResourceModel{
+		InstallerFilePathSource: existingMetadata.InstallerFilePathSource,
+		InstallerURLSource:      existingMetadata.InstallerURLSource,
 		InstallerSizeInBytes:    types.Int64Value(currentSize),
 		InstallerMD5Checksum:    types.StringValue(md5Checksum),
 		InstallerSHA256Checksum: types.StringValue(sha256Checksum),

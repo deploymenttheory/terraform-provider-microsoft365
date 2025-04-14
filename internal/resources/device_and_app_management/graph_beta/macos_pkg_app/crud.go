@@ -351,22 +351,6 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	var appMetadata sharedmodels.MobileAppMetaDataResourceModel
-	if !req.Plan.Raw.IsNull() {
-		diags := req.Plan.GetAttribute(ctx, path.Root("app_metadata"), &appMetadata)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-	}
-
-	var appIcon *sharedmodels.MobileAppIconResourceModel
-	if object.AppIcon != nil {
-		appIcon = object.AppIcon
-	}
-
-	preserveHCLValues(ctx, &resource.UpdateResponse{State: resp.State}, &appMetadata, appIcon)
-
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}
 		r.Read(ctx, resource.ReadRequest{
@@ -495,7 +479,7 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
-	// 4. app metadata
+	// 4. Get app metadata by processing app installer file
 	installerPath, tempInfo, err := setInstallerSourcePath(ctx, object.AppMetadata)
 	if err != nil {
 		resp.Diagnostics.AddError("Error determining installer path", err.Error())
@@ -505,7 +489,16 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		defer cleanupTempFile(ctx, tempInfo)
 	}
 
-	metadata, err := CaptureAppMetadata(ctx, installerPath)
+	var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
+	if !req.State.Raw.IsNull() {
+		diags := req.State.GetAttribute(ctx, path.Root("app_metadata"), &existingMetadata)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+	}
+
+	metadata, err := GetAppMetadata(ctx, installerPath, &existingMetadata)
 	if err != nil {
 		resp.Diagnostics.AddError("Error capturing installer metadata", err.Error())
 		return
@@ -577,16 +570,6 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		// Ensure cleanup of temporary file when we're done
 		if tempFileInfo.ShouldCleanup {
 			defer cleanupTempFile(ctx, tempFileInfo)
-		}
-
-		// Step 2: capture app metadata
-		_, err = CaptureAppMetadata(ctx, installerSourcePath)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error capturing installer metadata",
-				err.Error(),
-			)
-			return
 		}
 
 		// Evaluate if content update is needed

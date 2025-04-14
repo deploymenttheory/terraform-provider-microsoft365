@@ -24,38 +24,15 @@ func MapAppMetadataStateToTerraform(ctx context.Context, metadata *sharedmodels.
 	}
 
 	if metadata == nil {
-		// Return a null object with all required fields defined
 		return types.ObjectNull(objectType.AttrTypes)
 	}
 
-	// Initialize values with nulls first
 	values := map[string]attr.Value{
-		"installer_file_path_source": types.StringNull(),
-		"installer_url_source":       types.StringNull(),
-		"installer_size_in_bytes":    types.Int64Null(),
-		"installer_md5_checksum":     types.StringNull(),
-		"installer_sha256_checksum":  types.StringNull(),
-	}
-
-	// Then override with actual values if they exist
-	if !metadata.InstallerFilePathSource.IsNull() {
-		values["installer_file_path_source"] = metadata.InstallerFilePathSource
-	}
-
-	if !metadata.InstallerURLSource.IsNull() {
-		values["installer_url_source"] = metadata.InstallerURLSource
-	}
-
-	if !metadata.InstallerSizeInBytes.IsNull() {
-		values["installer_size_in_bytes"] = metadata.InstallerSizeInBytes
-	}
-
-	if !metadata.InstallerMD5Checksum.IsNull() {
-		values["installer_md5_checksum"] = metadata.InstallerMD5Checksum
-	}
-
-	if !metadata.InstallerSHA256Checksum.IsNull() {
-		values["installer_sha256_checksum"] = metadata.InstallerSHA256Checksum
+		"installer_file_path_source": metadata.InstallerFilePathSource,
+		"installer_url_source":       metadata.InstallerURLSource,
+		"installer_size_in_bytes":    metadata.InstallerSizeInBytes,
+		"installer_md5_checksum":     metadata.InstallerMD5Checksum,
+		"installer_sha256_checksum":  metadata.InstallerSHA256Checksum,
 	}
 
 	objValue, diags := types.ObjectValue(objectType.AttrTypes, values)
