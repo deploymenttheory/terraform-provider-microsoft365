@@ -290,13 +290,13 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-			},
+			// "last_modified_date_time": schema.StringAttribute{
+			// 	Computed:            true,
+			// 	MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
+			// 	// PlanModifiers: []planmodifier.String{
+			// 	// 	planmodifiers.UseStateForUnknownString(),
+			// 	// },
+			// },
 			"upload_state": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{

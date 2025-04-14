@@ -11,13 +11,13 @@ import (
 
 // MacOSPKGAppResourceModel represents the root Terraform resource model for intune applications
 type MacOSPKGAppResourceModel struct {
-	ID                    types.String                                    `tfsdk:"id"`
-	DisplayName           types.String                                    `tfsdk:"display_name"`
-	Description           types.String                                    `tfsdk:"description"`
-	Publisher             types.String                                    `tfsdk:"publisher"`
-	AppIcon               *sharedmodels.MobileAppIconResourceModel        `tfsdk:"app_icon"`
-	CreatedDateTime       types.String                                    `tfsdk:"created_date_time"`
-	LastModifiedDateTime  types.String                                    `tfsdk:"last_modified_date_time"`
+	ID              types.String                             `tfsdk:"id"`
+	DisplayName     types.String                             `tfsdk:"display_name"`
+	Description     types.String                             `tfsdk:"description"`
+	Publisher       types.String                             `tfsdk:"publisher"`
+	AppIcon         *sharedmodels.MobileAppIconResourceModel `tfsdk:"app_icon"`
+	CreatedDateTime types.String                             `tfsdk:"created_date_time"`
+	//LastModifiedDateTime  types.String                                    `tfsdk:"last_modified_date_time"`
 	IsFeatured            types.Bool                                      `tfsdk:"is_featured"`
 	PrivacyInformationUrl types.String                                    `tfsdk:"privacy_information_url"`
 	InformationUrl        types.String                                    `tfsdk:"information_url"`
@@ -37,8 +37,7 @@ type MacOSPKGAppResourceModel struct {
 	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
 	AppMetadata           types.Object                                    `tfsdk:"app_metadata"`
 	ContentVersion        types.List                                      `tfsdk:"content_version"`
-
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
+	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
 }
 
 // MobileAppRelationshipResourceModel represents the Terraform resource model for a Mobile App Relationship

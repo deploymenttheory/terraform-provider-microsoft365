@@ -41,7 +41,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.Notes = state.StringPointerValue(remoteResource.GetNotes())
 	data.IsFeatured = state.BoolPointerValue(remoteResource.GetIsFeatured())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
+	//data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 	data.DependentAppCount = state.Int32PointerValue(remoteResource.GetDependentAppCount())
 	data.IsAssigned = state.BoolPointerValue(remoteResource.GetIsAssigned())
