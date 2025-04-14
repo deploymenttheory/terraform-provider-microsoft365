@@ -68,7 +68,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	// Ensure cleanup of temporary file when we're done
+	// Ensure cleanup of temporary file occurs post state read
 	if tempFileInfo.ShouldCleanup {
 		defer cleanupTempFile(ctx, tempFileInfo)
 	}
@@ -505,22 +505,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	object.AppMetadata = MapAppMetadataStateToTerraform(ctx, metadata)
-
-	// 5. preserve HCL-only values
-	var appMetadata sharedmodels.MobileAppMetaDataResourceModel
-	if !req.State.Raw.IsNull() {
-		diags := req.State.GetAttribute(ctx, path.Root("app_metadata"), &appMetadata)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-	}
-
-	var appIcon *sharedmodels.MobileAppIconResourceModel
-	if object.AppIcon != nil {
-		appIcon = object.AppIcon
-	}
-	preserveHCLValues(ctx, &resource.UpdateResponse{State: resp.State}, &appMetadata, appIcon)
 
 	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)

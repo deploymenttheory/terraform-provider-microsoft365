@@ -47,14 +47,23 @@ func MobileAppMetadataSchema() schema.SingleNestedAttribute {
 			"installer_size_in_bytes": schema.Int64Attribute{
 				Computed:            true,
 				MarkdownDescription: "The size of the installer file in bytes. Used to detect changes in content.",
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 			},
 			"installer_md5_checksum": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The MD5 checksum of the installer file. Used as an additional verification of file integrity and to detect changes.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 			},
 			"installer_sha256_checksum": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The SHA256 checksum of the installer file. Used as a more secure verification of file integrity and to detect changes.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 			},
 		},
 	}
