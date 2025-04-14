@@ -10,10 +10,10 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// associateAppWithCategories creates associations between a mobile app and categories.
+// assignCategoriesToMobileApplication creates an associations between a mobile app and categories.
 // It supports both category IDs (UUIDs) and category names as inputs, looking up the
 // appropriate IDs as needed.
-func associateAppWithCategories(
+func assignCategoriesToMobileApplication(
 	ctx context.Context,
 	client *msgraphbetasdk.GraphServiceClient,
 	appID string,
