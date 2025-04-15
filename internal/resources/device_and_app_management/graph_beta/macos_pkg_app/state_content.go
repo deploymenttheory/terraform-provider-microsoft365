@@ -4,20 +4,29 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state" // Assuming this contains helper funcs like StringPointerValue etc.
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// In state_content.go
-// MapContentVersionsStateToTerraform maps API content versions to Terraform state
-func MapContentVersionsStateToTerraform(
+// MapCommittedContentVersionStateToTerraform maps the committed content version to Terraform state
+// This consolidated function directly processes a single version and its files
+func MapCommittedContentVersionStateToTerraform(
 	ctx context.Context,
-	versions []graphmodels.MobileAppContentable,
-	versionFiles map[string][]graphmodels.MobileAppContentFileable,
+	committedVersionId string,
+	respFiles interface{}, // This is typically MobileAppContentFileCollectionResponseable
+	err error,
 ) types.List {
+	// --- Added Logging ---
+	tflog.Debug(ctx, "Entering MapCommittedContentVersionStateToTerraform", map[string]interface{}{
+		"committedVersionId": committedVersionId,
+		"respFilesType":      fmt.Sprintf("%T", respFiles),
+		"errorReceived":      err,
+	})
+	// --- End Logging ---
+
 	// Define the object types for our complex structure
 	fileObjectType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -40,72 +49,61 @@ func MapContentVersionsStateToTerraform(
 		},
 	}
 
-	// If there are no versions, return null list
-	if len(versions) == 0 {
-		return types.ListNull(contentVersionObjectType)
-	}
-
-	// Process each version
-	var contentVersionElements []attr.Value
-	for _, version := range versions {
-		if version == nil || version.GetId() == nil {
-			continue
-		}
-
-		versionId := *version.GetId()
-
-		// Get files for this version from our map
-		files, exists := versionFiles[versionId]
-		if !exists {
-			tflog.Debug(ctx, fmt.Sprintf("No files found for content version %s", versionId))
+	// Handle files based on response
+	var files []graphmodels.MobileAppContentFileable
+	if err == nil && respFiles != nil {
+		// Assume respFiles is a MobileAppContentFileCollectionResponseable
+		// Need to use type assertion to get the actual value
+		fileCollection, ok := respFiles.(graphmodels.MobileAppContentFileCollectionResponseable)
+		if ok {
+			files = fileCollection.GetValue()
+			// --- Added Logging ---
+			tflog.Debug(ctx, "Successfully extracted files from response", map[string]interface{}{
+				"fileCount": len(files),
+			})
+			// --- End Logging ---
+		} else {
+			// Log if the type assertion failed, indicating an unexpected response type
+			tflog.Warn(ctx, "Response type assertion to MobileAppContentFileCollectionResponseable failed", map[string]interface{}{
+				"actualType": fmt.Sprintf("%T", respFiles),
+			})
 			files = []graphmodels.MobileAppContentFileable{}
 		}
-
-		// Create the files set for this version
-		filesSet := mapContentFilesStateToTerraform(ctx, files, fileObjectType)
-
-		// Create version object
-		versionValues := map[string]attr.Value{
-			"id":    state.StringPointerValue(version.GetId()),
-			"files": filesSet,
+	} else {
+		// Log details if an error was passed in or respFiles was nil
+		if err != nil {
+			tflog.Warn(ctx, fmt.Sprintf("Mapping received an error for content version %s, resulting in empty file list.", committedVersionId), map[string]interface{}{
+				"error": err.Error(),
+			})
+		} else if respFiles == nil {
+			tflog.Warn(ctx, fmt.Sprintf("Mapping received nil respFiles for content version %s, resulting in empty file list.", committedVersionId))
 		}
-
-		versionObj, diags := types.ObjectValue(contentVersionObjectType.AttrTypes, versionValues)
-		if diags.HasError() {
-			tflog.Warn(ctx, fmt.Sprintf("Error creating version object: %v", diags.Errors()))
-			continue
-		}
-
-		contentVersionElements = append(contentVersionElements, versionObj)
+		files = []graphmodels.MobileAppContentFileable{} // Ensure files is empty slice on error or nil response
 	}
 
-	// Create the final list value
-	contentVersionsList, diags := types.ListValue(contentVersionObjectType, contentVersionElements)
-	if diags.HasError() {
-		tflog.Error(ctx, fmt.Sprintf("Error creating content versions list: %v", diags.Errors()))
-		return types.ListNull(contentVersionObjectType)
-	}
-
-	return contentVersionsList
-}
-
-// Update the existing files mapper to use Terraform types
-func mapContentFilesStateToTerraform(
-	ctx context.Context,
-	files []graphmodels.MobileAppContentFileable,
-	fileObjectType types.ObjectType,
-) types.Set {
-	// If there are no files, return an empty set
-	if len(files) == 0 {
-		return types.SetValueMust(fileObjectType, []attr.Value{})
-	}
-
-	// Process each file
+	// Process files for this version
 	var fileElements []attr.Value
-	for _, file := range files {
+	// --- Added Logging ---
+	tflog.Debug(ctx, "Processing files for content version", map[string]interface{}{
+		"committedVersionId": committedVersionId,
+		"numberOfFiles":      len(files),
+	})
+	// --- End Logging ---
+	for i, file := range files { // Added index for logging
 		if file == nil {
+			tflog.Warn(ctx, "Encountered nil file in files slice", map[string]interface{}{"index": i})
 			continue
 		}
+
+		// --- Added Logging ---
+		tflog.Debug(ctx, "Processing file", map[string]interface{}{
+			"index":       i,
+			"fileName":    state.StringPointerValue(file.GetName()).ValueString(), // Log actual values where safe
+			"fileSize":    state.Int64PointerValue(file.GetSize()).ValueInt64(),
+			"uploadState": state.EnumPtrToTypeString(file.GetUploadState()).ValueString(),
+			"isCommitted": state.BoolPointerValue(file.GetIsCommitted()).ValueBool(),
+		})
+		// --- End Logging ---
 
 		fileValues := map[string]attr.Value{
 			"name":                         state.StringPointerValue(file.GetName()),
@@ -121,8 +119,12 @@ func mapContentFilesStateToTerraform(
 
 		fileObj, diags := types.ObjectValue(fileObjectType.AttrTypes, fileValues)
 		if diags.HasError() {
-			tflog.Warn(ctx, fmt.Sprintf("Error creating file object: %v", diags.Errors()))
-			continue
+			tflog.Warn(ctx, "Error creating file object value", map[string]interface{}{
+				"index":    i,
+				"fileName": state.StringPointerValue(file.GetName()).ValueString(),
+				"errors":   fmt.Sprintf("%v", diags.Errors()), // Convert errors for logging
+			})
+			continue // Skip this file if object creation fails
 		}
 
 		fileElements = append(fileElements, fileObj)
@@ -131,9 +133,56 @@ func mapContentFilesStateToTerraform(
 	// Create the files set
 	filesSet, diags := types.SetValue(fileObjectType, fileElements)
 	if diags.HasError() {
-		tflog.Warn(ctx, fmt.Sprintf("Error creating files set: %v", diags.Errors()))
-		return types.SetValueMust(fileObjectType, []attr.Value{})
+		// Log error and default to an empty set
+		tflog.Warn(ctx, "Error creating files set value", map[string]interface{}{
+			"committedVersionId": committedVersionId,
+			"errors":             fmt.Sprintf("%v", diags.Errors()),
+		})
+		// Use SetValueMust for guaranteed empty set on error
+		filesSet = types.SetValueMust(fileObjectType, []attr.Value{})
+	} else {
+		// --- Added Logging ---
+		tflog.Debug(ctx, "Successfully created files set", map[string]interface{}{
+			"committedVersionId": committedVersionId,
+			"numberOfElements":   len(fileElements),
+		})
+		// --- End Logging ---
 	}
 
-	return filesSet
+	// Create the version object
+	versionValues := map[string]attr.Value{
+		"id":    types.StringValue(committedVersionId),
+		"files": filesSet,
+	}
+
+	versionObj, diags := types.ObjectValue(contentVersionObjectType.AttrTypes, versionValues)
+	if diags.HasError() {
+		// Log error and return null list
+		tflog.Warn(ctx, "Error creating version object value", map[string]interface{}{
+			"committedVersionId": committedVersionId,
+			"errors":             fmt.Sprintf("%v", diags.Errors()),
+		})
+		return types.ListNull(contentVersionObjectType)
+	}
+
+	// Create the list with a single element
+	contentVersionsList, diags := types.ListValue(contentVersionObjectType, []attr.Value{versionObj})
+	if diags.HasError() {
+		// Log error and return null list
+		tflog.Error(ctx, "Error creating final content versions list value", map[string]interface{}{
+			"committedVersionId": committedVersionId,
+			"errors":             fmt.Sprintf("%v", diags.Errors()),
+		})
+		return types.ListNull(contentVersionObjectType)
+	}
+
+	// --- Added Logging ---
+	tflog.Debug(ctx, "Exiting MapCommittedContentVersionStateToTerraform successfully", map[string]interface{}{
+		"committedVersionId": committedVersionId,
+		"listIsNull":         contentVersionsList.IsNull(),
+		"numberOfVersions":   len(contentVersionsList.Elements()),
+	})
+	// --- End Logging ---
+
+	return contentVersionsList
 }

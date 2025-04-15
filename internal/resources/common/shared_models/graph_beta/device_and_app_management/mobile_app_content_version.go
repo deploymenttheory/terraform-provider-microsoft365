@@ -3,11 +3,8 @@ package sharedmodels
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-type MobileAppContentVersionResourceModel struct {
-	ID    types.String                        `tfsdk:"id"`
-	Files []MobileAppContentFileResourceModel `tfsdk:"files"`
-}
-
+// MobileAppContentFileResourceModel represents a file within a content version
+// Based on the JSON structure from the Microsoft Graph API
 type MobileAppContentFileResourceModel struct {
 	Name                      types.String `tfsdk:"name"`
 	Size                      types.Int64  `tfsdk:"size"`
@@ -15,6 +12,7 @@ type MobileAppContentFileResourceModel struct {
 	UploadState               types.String `tfsdk:"upload_state"`
 	IsCommitted               types.Bool   `tfsdk:"is_committed"`
 	IsDependency              types.Bool   `tfsdk:"is_dependency"`
+	IsFrameworkFile           types.Bool   `tfsdk:"is_framework_file"`
 	AzureStorageUri           types.String `tfsdk:"azure_storage_uri"`
 	AzureStorageUriExpiration types.String `tfsdk:"azure_storage_uri_expiration"`
 	CreatedDateTime           types.String `tfsdk:"created_date_time"`

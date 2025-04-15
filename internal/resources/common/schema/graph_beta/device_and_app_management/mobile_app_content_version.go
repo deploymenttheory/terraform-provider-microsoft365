@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
+// MobileAppContentVersionSchema returns the schema definition for content versions
 func MobileAppContentVersionSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
@@ -14,12 +15,12 @@ func MobileAppContentVersionSchema() schema.ListNestedAttribute {
 		PlanModifiers: []planmodifier.List{
 			listplanmodifier.UseStateForUnknown(),
 		},
-		MarkdownDescription: "The content versions of the app, including their files.",
+		MarkdownDescription: "The committed content version of the app, including its files. Only the currently committed version is shown.",
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The unique identifier for this mobileAppContentFile. This id is assigned during creation of the mobileAppContentFile. Read-only. This property is read-only.",
+					MarkdownDescription: "The unique identifier for this content version. This ID is assigned during creation of the content version. Read-only.",
 				},
 				"files": schema.SetNestedAttribute{
 					Computed:            true,
@@ -49,42 +50,49 @@ func MobileAppContentVersionSchema() schema.ListNestedAttribute {
 							},
 							"upload_state": schema.StringAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates the state of the current upload request. Possible values are: success, transientError, error, unknown, azureStorageUriRequestSuccess, azureStorageUriRequestPending, azureStorageUriRequestFailed, azureStorageUriRequestTimedOut, azureStorageUriRenewalSuccess, azureStorageUriRenewalPending, azureStorageUriRenewalFailed, azureStorageUriRenewalTimedOut, commitFileSuccess, commitFilePending, commitFileFailed, commitFileTimedOut. Default value is success. This property is read-only.",
+								MarkdownDescription: "Indicates the state of the current upload request. This property is read-only.",
 								PlanModifiers: []planmodifier.String{
 									planmodifiers.UseStateForUnknownString(),
 								},
 							},
 							"is_committed": schema.BoolAttribute{
 								Computed:            true,
-								MarkdownDescription: "A value indicating whether the file is committed. A committed app content file has been fully uploaded and validated by the Intune service. TRUE means that app content file is committed, FALSE means that app content file is not committed. Defaults to FALSE. Read-only.",
+								MarkdownDescription: "A value indicating whether the file is committed. A committed app content file has been fully uploaded and validated by the Intune service. Read-only.",
 								PlanModifiers: []planmodifier.Bool{
 									planmodifiers.UseStateForUnknownBool(),
 								},
 							},
 							"is_dependency": schema.BoolAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates whether this content file is a dependency for the main content file. TRUE means that the content file is a dependency, FALSE means that the content file is not a dependency and is the main content file. Defaults to FALSE.",
+								MarkdownDescription: "Indicates whether this content file is a dependency for the main content file.",
+								PlanModifiers: []planmodifier.Bool{
+									planmodifiers.UseStateForUnknownBool(),
+								},
+							},
+							"is_framework_file": schema.BoolAttribute{
+								Computed:            true,
+								MarkdownDescription: "Indicates whether this content file is a framework file.",
 								PlanModifiers: []planmodifier.Bool{
 									planmodifiers.UseStateForUnknownBool(),
 								},
 							},
 							"azure_storage_uri": schema.StringAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates the Azure Storage URI that the file is uploaded to. Created by the service upon receiving a valid mobileAppContentFile. Read-only.",
+								MarkdownDescription: "Indicates the Azure Storage URI that the file is uploaded to. Read-only.",
 								PlanModifiers: []planmodifier.String{
 									planmodifiers.UseStateForUnknownString(),
 								},
 							},
 							"azure_storage_uri_expiration": schema.StringAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates the date and time when the Azure storage URI expires, in ISO 8601 format. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only.",
+								MarkdownDescription: "Indicates the date and time when the Azure storage URI expires, in ISO 8601 format. Read-only.",
 								PlanModifiers: []planmodifier.String{
 									planmodifiers.UseStateForUnknownString(),
 								},
 							},
 							"created_date_time": schema.StringAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates created date and time associated with app content file, in ISO 8601 format. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only. This property is read-only.",
+								MarkdownDescription: "Indicates created date and time associated with app content file, in ISO 8601 format. Read-only.",
 								PlanModifiers: []planmodifier.String{
 									planmodifiers.UseStateForUnknownString(),
 								},

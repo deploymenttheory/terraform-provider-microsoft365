@@ -426,44 +426,44 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 
-	// 2. content versions and it's files
-	respContentVersions, err := r.client.DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
-		GraphMacOSPkgApp().
-		ContentVersions().
-		Get(ctx, nil)
+	// --- Added Debug Logging ---
+	committedVersionIdPtr := macOSPkgApp.GetCommittedContentVersion()
+	if committedVersionIdPtr == nil {
+		tflog.Debug(ctx, fmt.Sprintf("App ID %s: GetCommittedContentVersion() returned nil", object.ID.ValueString()))
+	} else {
+		tflog.Debug(ctx, fmt.Sprintf("App ID %s: GetCommittedContentVersion() returned value: '%s'", object.ID.ValueString(), *committedVersionIdPtr))
+	}
+	// --- End Debug Logging ---
 
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
+	// Check if the pointer is not nil AND the dereferenced string is not empty (Corrected Logic)
+	if committedVersionIdPtr != nil && *committedVersionIdPtr != "" {
+		committedVersionId := *committedVersionIdPtr // Now it's safe to dereference
+		tflog.Debug(ctx, fmt.Sprintf("App ID %s: Found committed content version ID: %s. Proceeding to fetch files.", object.ID.ValueString(), committedVersionId))
 	}
 
-	var allContentVersionFiles = make(map[string][]graphmodels.MobileAppContentFileable)
+	// 2. Get only the committed content version and its files
+	if macOSPkgApp.GetCommittedContentVersion() == nil || *macOSPkgApp.GetCommittedContentVersion() == "" {
+		committedVersionId := *macOSPkgApp.GetCommittedContentVersion()
+		tflog.Debug(ctx, fmt.Sprintf("Found committed content version ID: %s", committedVersionId))
 
-	for _, version := range respContentVersions.GetValue() {
-		if version == nil || version.GetId() == nil {
-			continue
-		}
-
+		// Get files for the committed version
 		respFiles, err := r.client.DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
 			GraphMacOSPkgApp().
 			ContentVersions().
-			ByMobileAppContentId(*version.GetId()).
+			ByMobileAppContentId(committedVersionId).
 			Files().
 			Get(ctx, nil)
 
 		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Failed to retrieve files for content version %s: %v", *version.GetId(), err))
-			continue
+			errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+			return
 		}
 
-		allContentVersionFiles[*version.GetId()] = respFiles.GetValue()
+		// Map directly to Terraform state with the consolidated function
+		object.ContentVersion = MapCommittedContentVersionStateToTerraform(ctx, committedVersionId, respFiles, err)
 	}
-
-	object.ContentVersion = MapContentVersionsStateToTerraform(ctx, respContentVersions.GetValue(), allContentVersionFiles)
 
 	// 3. app assignments
 	respAssignments, err := r.client.
@@ -472,8 +472,9 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		ByMobileAppId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read Assignments", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
