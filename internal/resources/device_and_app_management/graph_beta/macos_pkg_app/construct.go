@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,12 +59,12 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 			}
 
 			// Create temp file info for cleanup
-			iconTempFile := TempFileInfo{
+			iconTempFile := helpers.TempFileInfo{
 				FilePath:      downloadedPath,
 				ShouldCleanup: true,
 			}
 			// Clean up the icon file when done with this function
-			defer cleanupTempFile(ctx, iconTempFile)
+			defer helpers.CleanupTempFile(ctx, iconTempFile)
 
 			iconBytes, err := os.ReadFile(downloadedPath)
 			if err != nil {

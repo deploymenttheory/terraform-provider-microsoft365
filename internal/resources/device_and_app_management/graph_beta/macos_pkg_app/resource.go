@@ -518,7 +518,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
-			"app_metadata":    commonschemagraphbeta.MobileAppMetadataSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppInstallerMetadataSchema(),
 			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
 			"timeouts":        commonschema.Timeouts(ctx),
 		},

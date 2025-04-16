@@ -18,6 +18,8 @@ type PostRequestConfig struct {
 	RequestBody s.Parsable
 	// Optional query parameters for the request
 	QueryParameters map[string]string
+	// Optional: the reference URL for ODATA - e.g. "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories/abc"
+	ReferenceURL string
 }
 
 // PostRequest performs a custom POST request using the Microsoft Graph SDK when the operation

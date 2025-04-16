@@ -1,5 +1,5 @@
 {
-  "@odata.type": "#microsoft.graph.winGetApp",
+  "@odata.type": "#microsoft.graph.mobileApp",
   "id": "String (identifier)",
   "displayName": "String",
   "description": "String",
@@ -17,19 +17,5 @@
   "owner": "String",
   "developer": "String",
   "notes": "String",
-  "uploadState": 1024,
-  "publishingState": "String",
-  "isAssigned": true,
-  "roleScopeTagIds": [
-    "String"
-  ],
-  "dependentAppCount": 1024,
-  "supersedingAppCount": 1024,
-  "supersededAppCount": 1024,
-  "manifestHash": "String",
-  "packageIdentifier": "String",
-  "installExperience": {
-    "@odata.type": "microsoft.graph.winGetAppInstallExperience",
-    "runAsAccount": "String"
-  }
+  "publishingState": "String"
 }

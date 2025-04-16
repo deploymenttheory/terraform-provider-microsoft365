@@ -7,10 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-func MobileAppMetadataSchema() schema.SingleNestedAttribute {
+func MobileAppInstallerMetadataSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:            true,
 		MarkdownDescription: "Metadata related to the installer file, such as size and checksums. This is automatically computed during app creation and updates.",
@@ -29,6 +30,7 @@ func MobileAppMetadataSchema() schema.SingleNestedAttribute {
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"installer_url_source": schema.StringAttribute{
@@ -42,6 +44,7 @@ func MobileAppMetadataSchema() schema.SingleNestedAttribute {
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"installer_size_in_bytes": schema.Int64Attribute{
