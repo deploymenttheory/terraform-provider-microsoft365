@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.10.0-alpha...v0.11.0-alpha) (2025-04-16)
+
+
+### Features
+
+* added application category resource and datasource with examples ([55a099a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/55a099a087f713f4e4c01558e4aec5fdfaf303f8))
+* added helper SetObjectsFromStringSet for object construction ([e2b110e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e2b110e4f7b4aa73aa2e823a5ae9b58f5b597e8c))
+* added macos pkg app datasource ([a65ca03](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a65ca038103e064225b7d136205179b7fbb04fad))
+* added macos pkg datasource ([f0f6144](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f0f61447b307f221cdf6f0b0d65f74d8e4f6beb6))
+* added timeouts to datasources ([#397](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/397)) ([100840f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/100840f1bff363a598fd9a76e26183c16c086150))
+
+
+### Bug Fixes
+
+* added read timeouts for datasources ([243e6b2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/243e6b2fdc92441d54949d0d1bd9544b4b479c1e))
+* categories fix for macos app categories and stating issues for infured included app values ([defa936](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/defa93679fa6bed0bc6065678987c76429383133))
+* content version ([74c417b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/74c417b8312e6353bbbdbf78fd012d9fa96b39e1))
+* for deps bump of go sdk version ([54a119e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/54a119edcca117fa697b21c59f2ba35cdda12ae2))
+* for macos pkg apps ([#395](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/395)) ([deb9309](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/deb9309edc8a8aff4d33a022102f30f9c90eb679))
+* for mobile app assignment id's and content version stating ([a57a269](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a57a26945a184c294e4c37c41b6b3457dbdad180))
+* numerous edits and tweaks ([dccd487](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dccd4873fc4dec676b2a0e3859c7a2a42d595b4f))
+* numerous schema fixes ([ddb6e87](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ddb6e8780360a63c31354f0899314fd4ed51c111))
+* refining logic for handling app metadata ([9ecf223](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ecf2236482cffbe5ef3cc67cf9e10e94068f345))
+
 ## [0.10.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.9.0-alpha...v0.10.0-alpha) (2025-04-08)
 
 
