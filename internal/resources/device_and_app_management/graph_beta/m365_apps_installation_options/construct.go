@@ -24,9 +24,7 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 	if data.AppsForWindows != nil {
 		appsForWindows := graphmodels.NewAppsInstallationOptionsForWindows()
 		constructors.SetBoolProperty(data.AppsForWindows.IsMicrosoft365AppsEnabled, appsForWindows.SetIsMicrosoft365AppsEnabled)
-		constructors.SetBoolProperty(data.AppsForWindows.IsProjectEnabled, appsForWindows.SetIsProjectEnabled)
 		constructors.SetBoolProperty(data.AppsForWindows.IsSkypeForBusinessEnabled, appsForWindows.SetIsSkypeForBusinessEnabled)
-		constructors.SetBoolProperty(data.AppsForWindows.IsVisioEnabled, appsForWindows.SetIsVisioEnabled)
 		requestBody.SetAppsForWindows(appsForWindows)
 	}
 

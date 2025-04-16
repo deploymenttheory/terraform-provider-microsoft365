@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 // Create handles the Create operation.
@@ -29,6 +31,9 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -38,26 +43,49 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 		return
 	}
 
-	options, err := r.client.
-		Admin().
-		Microsoft365Apps().
-		InstallationOptions().
-		Patch(ctx, requestBody, nil)
+	adapter := r.client.GetAdapter()
+	config := graphcustom.PatchRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: "", // No ID needed for this resource as a singleton
+		RequestBody:       requestBody,
+	}
 
+	err = graphcustom.PatchRequestByResourceId(ctx, adapter, config)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*options.GetId())
-
-	MapRemoteStateToTerraform(ctx, &object, options)
+	object.ID = types.StringValue("microsoft365_apps_installation_options")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
+		return
+	}
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -119,33 +147,61 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource for update",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	options, err := r.client.
-		Admin().
-		Microsoft365Apps().
-		InstallationOptions().
-		Patch(ctx, requestBody, nil)
+	adapter := r.client.GetAdapter()
+	config := graphcustom.PatchRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: "", // No ID needed for this resource as a singleton
+		RequestBody:       requestBody,
+	}
 
+	err = graphcustom.PatchRequestByResourceId(ctx, adapter, config)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, options)
+	object.ID = types.StringValue("microsoft365_apps_installation_options")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
+		return
+	}
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 

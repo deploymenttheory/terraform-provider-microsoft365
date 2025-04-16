@@ -101,17 +101,9 @@ func (r *M365AppsInstallationOptionsResource) Schema(ctx context.Context, req re
 						Required:    true,
 						Description: "Specifies whether users can install Microsoft 365 apps, including Skype for Business, on their Windows devices. The default value is `true`.",
 					},
-					"is_project_enabled": schema.BoolAttribute{
-						Required:    true,
-						Description: "Specifies whether users can install Microsoft Project on their Windows devices. The default value is `true`.",
-					},
 					"is_skype_for_business_enabled": schema.BoolAttribute{
 						Required:    true,
 						Description: "Specifies whether users can install Skype for Business (standalone) on their Windows devices. The default value is `true`.",
-					},
-					"is_visio_enabled": schema.BoolAttribute{
-						Required:    true,
-						Description: "Specifies whether users can install Visio on their Windows devices. The default value is `true`.",
 					},
 				},
 				Description: "The Microsoft 365 apps installation options container object for a Windows platform.",

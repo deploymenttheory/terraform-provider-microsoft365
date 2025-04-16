@@ -16,9 +16,7 @@ type M365AppsInstallationOptionsResourceModel struct {
 
 type AppsInstallationOptionsForWindows struct {
 	IsMicrosoft365AppsEnabled types.Bool `tfsdk:"is_microsoft_365_apps_enabled"`
-	IsProjectEnabled          types.Bool `tfsdk:"is_project_enabled"`
 	IsSkypeForBusinessEnabled types.Bool `tfsdk:"is_skype_for_business_enabled"`
-	IsVisioEnabled            types.Bool `tfsdk:"is_visio_enabled"`
 }
 
 type AppsInstallationOptionsForMac struct {
