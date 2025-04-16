@@ -12,6 +12,7 @@ import (
 
 const (
 	DataSourceName = "graph_beta_device_and_app_management_application_category"
+	ReadTimeout    = 180
 )
 
 var (

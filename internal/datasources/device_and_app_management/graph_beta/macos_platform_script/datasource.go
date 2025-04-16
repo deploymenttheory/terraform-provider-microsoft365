@@ -14,6 +14,7 @@ import (
 
 const (
 	ResourceName = "graph_beta_device_and_app_management_macos_platform_script"
+	ReadTimeout  = 180
 )
 
 var (

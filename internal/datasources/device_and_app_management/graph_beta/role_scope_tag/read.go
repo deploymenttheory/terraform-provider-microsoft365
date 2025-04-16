@@ -3,7 +3,9 @@ package graphBetaRoleScopeTag
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/role_scope_tag"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,10 +40,20 @@ import (
 func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object resource.RoleScopeTagResourceModel
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	if object.ID.IsNull() && object.DisplayName.IsNull() {
 		resp.Diagnostics.AddError(

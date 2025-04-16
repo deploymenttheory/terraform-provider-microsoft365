@@ -42,10 +42,20 @@ import (
 func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object sharedmodels.ReuseablePolicySettingsResourceModel
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	// Validate that either ID or display_name is provided, but not both
 	if object.ID.IsNull() && object.DisplayName.IsNull() {
@@ -62,12 +72,6 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 		)
 		return
 	}
-
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, resource.ReadTimeout*time.Second, &resp.Diagnostics)
-	if cancel == nil {
-		return
-	}
-	defer cancel()
 
 	if !object.ID.IsNull() {
 		// Direct lookup by ID

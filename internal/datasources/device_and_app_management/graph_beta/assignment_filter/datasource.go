@@ -13,6 +13,7 @@ import (
 
 const (
 	ResourceName = "graph_beta_device_and_app_management_assignment_filter"
+	ReadTimeout  = 180
 )
 
 var (

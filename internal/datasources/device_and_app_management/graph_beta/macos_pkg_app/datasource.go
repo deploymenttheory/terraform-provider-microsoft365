@@ -3,16 +3,18 @@ package graphBetaMacOSPKGApp
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
 	datasourceName = "graph_beta_device_and_app_management_macos_pkg_app"
+	ReadTimeout    = 180
 )
 
 var (
@@ -41,6 +43,10 @@ type MacOSPKGAppDataSource struct {
 // Metadata returns the datasource type name.
 func (r *MacOSPKGAppDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+}
+
+func (d *MacOSPKGAppDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
 // Schema returns the schema for the datasource.
@@ -326,7 +332,11 @@ func (r *MacOSPKGAppDataSource) Schema(ctx context.Context, req datasource.Schem
 					},
 				},
 			},
-			"assignments": commonschemagraphbeta.MobileAppAssignmentSchema(),
+			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
+			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppInstallerMetadataSchema(),
+			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
+			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}
 }
