@@ -58,7 +58,6 @@ func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 	}
 	size := fileInfo.Size()
 	contentFile.SetSize(&size)
-	contentFile.SetSizeInBytes(&size)
 
 	falseValue := false
 	contentFile.SetIsDependency(&falseValue)
@@ -92,7 +91,6 @@ func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 	}
 	encryptedSize := encryptedFileInfo.Size()
 	contentFile.SetSizeEncrypted(&encryptedSize)
-	contentFile.SetSizeEncryptedInBytes(&encryptedSize)
 
 	tflog.Debug(ctx, "Intune Mobile App encrypted package content file construction completed",
 		map[string]interface{}{
