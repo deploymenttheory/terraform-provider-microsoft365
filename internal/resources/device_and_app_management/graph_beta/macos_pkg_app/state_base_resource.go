@@ -3,6 +3,7 @@ package graphBetaMacOSPKGApp
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,7 +41,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.Notes = state.StringPointerValue(remoteResource.GetNotes())
 	data.IsFeatured = state.BoolPointerValue(remoteResource.GetIsFeatured())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
+	//data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
 	data.DependentAppCount = state.Int32PointerValue(remoteResource.GetDependentAppCount())
 	data.IsAssigned = state.BoolPointerValue(remoteResource.GetIsAssigned())
@@ -48,16 +49,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.SupersedingAppCount = state.Int32PointerValue(remoteResource.GetSupersedingAppCount())
 	data.UploadState = state.Int32PointerValue(remoteResource.GetUploadState())
 
-	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		// Icon exists in the API, but we only want to keep track of path in state
-		// We don't do anything with the actual icon content here
-		if data.AppIcon == nil {
-			data.AppIcon = &AppIconResourceModel{
-				IconFilePathSource: types.StringNull(),
-				IconURLSource:      types.StringNull(),
-			}
+	if data.AppIcon != nil {
+		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
+	} else if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+		data.AppIcon = &sharedmodels.MobileAppIconResourceModel{
+			IconFilePathSource: types.StringNull(),
+			IconURLSource:      types.StringNull(),
 		}
-
 	} else {
 		data.AppIcon = nil
 	}
@@ -68,111 +66,123 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 	data.RoleScopeTagIds = types.SetValueMust(types.StringType, roleScopeTagIds)
 
-	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
+	data.Categories = MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
-	// Bundle id's
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
 	}
-
-	data.MacOSPkgApp.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
-	data.MacOSPkgApp.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
-	data.MacOSPkgApp.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
-
-	// Always initialize includedApps as an empty slice Then populate with values if they exist
-	if data.MacOSPkgApp.IncludedApps == nil {
-		data.MacOSPkgApp.IncludedApps = []MacOSIncludedAppResourceModel{}
-	}
-	includedApps := remoteResource.GetIncludedApps()
-	if len(includedApps) > 0 {
-		includedAppsValues := make([]MacOSIncludedAppResourceModel, len(includedApps))
-		for i, app := range includedApps {
-			includedAppsValues[i] = MacOSIncludedAppResourceModel{
-				BundleId:      state.StringPointerValue(app.GetBundleId()),
-				BundleVersion: state.StringPointerValue(app.GetBundleVersion()),
-			}
-		}
-		data.MacOSPkgApp.IncludedApps = includedAppsValues
-	}
-
-	if minOS := remoteResource.GetMinimumSupportedOperatingSystem(); minOS != nil {
-		if data.MacOSPkgApp.MinimumSupportedOperatingSystem == nil {
-			data.MacOSPkgApp.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
-		}
-
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
-		data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
-	}
-
-	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {
-		if data.MacOSPkgApp.PreInstallScript == nil {
-			data.MacOSPkgApp.PreInstallScript = &MacOSAppScriptResourceModel{}
-		}
-
-		if scriptContent := preScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PreInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
-		}
-	}
-
-	if postScript := remoteResource.GetPostInstallScript(); postScript != nil {
-		if data.MacOSPkgApp.PostInstallScript == nil {
-			data.MacOSPkgApp.PostInstallScript = &MacOSAppScriptResourceModel{}
-		}
-
-		if scriptContent := postScript.GetScriptContent(); scriptContent != nil {
-			data.MacOSPkgApp.PostInstallScript.ScriptContent = types.StringPointerValue(scriptContent)
-		}
-	}
+	mapMacOSPKGAppStateToTerraform(ctx, data.MacOSPkgApp, remoteResource)
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId":        data.ID.ValueString(),
-		"displayName":       data.DisplayName.ValueString(),
-		"includedAppsCount": len(data.MacOSPkgApp.IncludedApps),
+		"resourceId":  data.ID.ValueString(),
+		"displayName": data.DisplayName.ValueString(),
 	})
 }
 
-// MapCategoriesToSet converts a slice of MobileAppCategoryable to a types.Set for Terraform state
-// MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
-func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
-	if len(categories) == 0 {
-		return types.SetNull(types.StringType)
+// mapMacOSPKGAppStateToTerraform handle fields specific to macOs pkgs
+func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
+	if data == nil {
+		data = &MacOSPkgAppResourceModel{}
 	}
 
-	// Extract display names from categories
-	categoryNames := make([]attr.Value, 0, len(categories))
-	for _, category := range categories {
-		if category == nil {
-			continue
+	data.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
+	data.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
+	data.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
+
+	apps := remoteResource.GetIncludedApps()
+	data.IncludedApps = BuildObjectSetFromSlice(
+		ctx,
+		map[string]attr.Type{
+			"bundle_id":      types.StringType,
+			"bundle_version": types.StringType,
+		},
+		func(i int) map[string]attr.Value {
+			app := apps[i]
+			return map[string]attr.Value{
+				"bundle_id":      types.StringPointerValue(app.GetBundleId()),
+				"bundle_version": types.StringPointerValue(app.GetBundleVersion()),
+			}
+		},
+		len(apps),
+	)
+
+	if minOS := remoteResource.GetMinimumSupportedOperatingSystem(); minOS != nil {
+		if data.MinimumSupportedOperatingSystem == nil {
+			data.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
 		}
 
-		displayName := category.GetDisplayName()
-		if displayName != nil {
-			categoryNames = append(categoryNames, types.StringValue(*displayName))
-		}
+		data.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
+		data.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
+		data.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
+		data.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
+		data.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
+		data.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
+		data.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
+		data.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
+		data.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
+		data.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
+		data.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
+		data.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
+		data.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
 	}
 
-	// Create a set of category names
-	if len(categoryNames) > 0 {
-		set, diags := types.SetValue(types.StringType, categoryNames)
+	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {
+		if data.PreInstallScript == nil {
+			data.PreInstallScript = &MacOSAppScriptResourceModel{}
+		}
+		data.PreInstallScript.ScriptContent = state.StringPointerValue(preScript.GetScriptContent())
+	}
+
+	if postScript := remoteResource.GetPostInstallScript(); postScript != nil {
+		if data.PostInstallScript == nil {
+			data.PostInstallScript = &MacOSAppScriptResourceModel{}
+		}
+		data.PostInstallScript.ScriptContent = state.StringPointerValue(postScript.GetScriptContent())
+	}
+
+}
+
+// BuildObjectSetFromSlice
+func BuildObjectSetFromSlice(
+	ctx context.Context,
+	attrTypes map[string]attr.Type,
+	extract func(i int) map[string]attr.Value,
+	length int,
+) types.Set {
+	objectType := types.ObjectType{AttrTypes: attrTypes}
+
+	if length == 0 {
+		emptySet, diags := types.SetValue(objectType, []attr.Value{})
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create category name set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create empty set", map[string]interface{}{
 				"errors": diags.Errors(),
 			})
-			return types.SetNull(types.StringType)
+			return types.SetNull(objectType)
 		}
-		return set
+		return emptySet
 	}
 
-	return types.SetNull(types.StringType)
+	var elements []attr.Value
+	for i := 0; i < length; i++ {
+		values := extract(i)
+		obj, diags := types.ObjectValue(attrTypes, values)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to build object for Set", map[string]interface{}{
+				"index":  i,
+				"errors": diags.Errors(),
+			})
+			continue
+		}
+		elements = append(elements, obj)
+	}
+
+	set, diags := types.SetValue(objectType, elements)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to build Set", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return types.SetNull(objectType)
+	}
+
+	return set
 }

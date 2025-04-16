@@ -185,55 +185,15 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
-			"app_icon": schema.SingleNestedAttribute{
-				MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
-				Validators: []validator.Object{
-					validators.ExactlyOneOf("icon_file_path_source", "icon_url_source"),
-				},
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"icon_file_path_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`\.png$`),
-								"must end with .png file extension",
-							),
-						},
-					},
-					"icon_url_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
-								"Must be a valid URL.",
-							),
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`\.png$`),
-								"must end with .png file extension",
-							),
-						},
-					},
-				},
-			},
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "Set of category names to associate with this application. Valid values are: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'",
+				MarkdownDescription: "Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf(
-							"Other apps",
-							"Books & Reference",
-							"Data management",
-							"Productivity",
-							"Business",
-							"Development & Design",
-							"Photos & Media",
-							"Collaboration & Social",
-							"Computer management",
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(Other apps|Books & Reference|Data management|Productivity|Business|Development & Design|Photos & Media|Collaboration & Social|Computer management|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$`),
+							"must be either a predefined category name or a valid GUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 						),
 					),
 				},
@@ -291,24 +251,32 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
-			},
 			"upload_state": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
 			"publishing_state": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The publishing state for the app. The app cannot be assigned unless the app is published. " +
 					"Possible values are: notPublished, processing, published.",
 			},
 			"is_assigned": schema.BoolAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
 				MarkdownDescription: "The value indicating whether the app is assigned to at least one group. This property is read-only.",
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -317,15 +285,24 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Set of scope tag ids for this mobile app.",
 			},
 			"dependent_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
 			"superseding_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
 			"superseded_app_count": schema.Int64Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64(),
+				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
 			"macos_pkg_app": schema.SingleNestedAttribute{
@@ -335,33 +312,17 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					validators.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
 				},
 				Attributes: map[string]schema.Attribute{
-					"installer_file_path_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The path to the PKG file to be uploaded. The file must be a valid `.pkg` file.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`.*\.pkg$`),
-								"File path must point to a valid .pkg file.",
-							),
-						},
-					},
-					"installer_url_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file.",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
-								"Must be a valid URL.",
-							),
-						},
-					},
 					"ignore_version_detection": schema.BoolAttribute{
 						Required:            true,
 						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
 					},
-					"included_apps": schema.ListNestedAttribute{
+					"included_apps": schema.SetNestedAttribute{
 						Optional: true,
-						MarkdownDescription: "List of applications expected to be installed by the PKG. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +\n" +
+						Computed: true,
+						PlanModifiers: []planmodifier.Set{
+							planmodifiers.UseStateForUnknownSet(),
+						},
+						MarkdownDescription: "Define the app bundle identifiers and version numbers to be used to detect the presence of the macOS app installation. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +\n" +
 							"\n" +
 							"### Notes: +\n" +
 							"- Included app bundle IDs (`CFBundleIdentifier`) and build numbers (`CFBundleShortVersionString`) are used for detecting and monitoring app installation status of the uploaded file. +\n" +
@@ -387,11 +348,11 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"bundle_id": schema.StringAttribute{
-									Optional:            true,
+									Required:            true,
 									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the PKG metadata or appended manually.",
 								},
 								"bundle_version": schema.StringAttribute{
-									Optional:            true,
+									Required:            true,
 									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the PKG metadata or appended manually.",
 								},
 							},
@@ -502,15 +463,24 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					"primary_bundle_id": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 					"primary_bundle_version": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 					},
 				},
 			},
-			"assignments": commonschemagraphbeta.MobileAppAssignmentSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"assignments":     commonschemagraphbeta.MobileAppAssignmentSchema(),
+			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppInstallerMetadataSchema(),
+			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
+			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}
 }

@@ -15,6 +15,9 @@ import (
 func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional: true,
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+		},
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
@@ -41,12 +44,15 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 					},
 				},
 				"source": schema.StringAttribute{
-					MarkdownDescription: "The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.",
+					MarkdownDescription: "The resource type which is the source for the assignment. Possible values are: direct, policySets.",
 					Required:            true,
 				},
 				"source_id": schema.StringAttribute{
-					MarkdownDescription: "The identifier of the source of the assignment. This property is read-only.",
-					Computed:            true,
+					MarkdownDescription: "The identifier of the source of the assignment.",
+					Optional:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"target": schema.SingleNestedAttribute{
 					Required: true,

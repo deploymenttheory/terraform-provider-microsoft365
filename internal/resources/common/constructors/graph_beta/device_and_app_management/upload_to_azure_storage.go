@@ -1,4 +1,4 @@
-package graphBetaMacOSPKGApp
+package sharedConstructors
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ const (
 	retryMaxWait       = 10 * time.Second // Maximum wait between retries
 )
 
-// uploadToAzureStorage handles the chunked upload of large files to Azure Blob Storage.
+// UploadToAzureStorage handles the chunked upload of large files to Azure Blob Storage.
 // This implementation generates block IDs as six-digit, zero-padded strings (e.g., "000001")
 // before base64 encoding them. This ensures that block ordering matches the expected
 // lexicographical order, preventing file corruption during the commit phase.
@@ -43,7 +43,7 @@ const (
 //   - filePath: Path to the local file to be uploaded.
 //
 // Returns an error if the upload fails at any stage, with details about the failure.
-func uploadToAzureStorage(ctx context.Context, sasUri string, filePath string) error {
+func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %v", err)

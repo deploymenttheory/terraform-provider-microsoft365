@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -57,13 +58,12 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
 			}
 
-			// Create temp file info for cleanup
-			iconTempFile := TempFileInfo{
+			iconTempFile := helpers.TempFileInfo{
 				FilePath:      downloadedPath,
 				ShouldCleanup: true,
 			}
 			// Clean up the icon file when done with this function
-			defer cleanupTempFile(ctx, iconTempFile)
+			defer helpers.CleanupTempFile(ctx, iconTempFile)
 
 			iconBytes, err := os.ReadFile(downloadedPath)
 			if err != nil {
@@ -81,12 +81,10 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
 	}
 
-	// Verify file exists and path is valid
 	if _, err := os.Stat(installerSourcePath); err != nil {
 		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
 	}
 
-	// Set filename from the installer source path
 	filename := filepath.Base(installerSourcePath)
 	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
 	constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)

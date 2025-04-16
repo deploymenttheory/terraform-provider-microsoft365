@@ -1,9 +1,11 @@
 package constructors
 
 import (
+	"context"
 	"errors"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
@@ -251,4 +253,78 @@ func TestSetISODurationProperty(t *testing.T) {
 	})
 	assert.NoError(t, err, "No error should occur for an unknown value")
 	assert.Nil(t, result, "Setter should not be called for an unknown value")
+}
+
+func TestSetObjectsFromStringSet(t *testing.T) {
+	// Define a test type and converter function
+	type TestObject struct {
+		ID   string
+		Name string
+	}
+
+	converter := func(ctx context.Context, values []string) []TestObject {
+		result := make([]TestObject, 0, len(values))
+		for _, val := range values {
+			result = append(result, TestObject{
+				ID:   val + "_id",
+				Name: val,
+			})
+		}
+		return result
+	}
+
+	// Case: Valid string set
+	var result []TestObject
+	elements := []attr.Value{
+		types.StringValue("test1"),
+		types.StringValue("test2"),
+		types.StringValue("test3"),
+	}
+	set, diags := types.SetValue(types.StringType, elements)
+	assert.False(t, diags.HasError())
+
+	err := SetObjectsFromStringSet(context.Background(), set, converter, func(val []TestObject) {
+		result = val
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 3, len(result))
+	assert.Equal(t, "test1_id", result[0].ID)
+	assert.Equal(t, "test1", result[0].Name)
+	assert.Equal(t, "test2_id", result[1].ID)
+	assert.Equal(t, "test2", result[1].Name)
+	assert.Equal(t, "test3_id", result[2].ID)
+	assert.Equal(t, "test3", result[2].Name)
+
+	// Case: Empty string set
+	result = nil
+	emptySet, diags := types.SetValue(types.StringType, []attr.Value{})
+	assert.False(t, diags.HasError())
+
+	err = SetObjectsFromStringSet(context.Background(), emptySet, converter, func(val []TestObject) {
+		result = val
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 0, len(result))
+
+	// Case: Null set
+	result = nil
+	nullSet := types.SetNull(types.StringType)
+
+	err = SetObjectsFromStringSet(context.Background(), nullSet, converter, func(val []TestObject) {
+		result = val
+	})
+	assert.NoError(t, err)
+	assert.Nil(t, result)
+
+	// Case: Unknown set
+	result = nil
+	unknownSet := types.SetUnknown(types.StringType)
+
+	err = SetObjectsFromStringSet(context.Background(), unknownSet, converter, func(val []TestObject) {
+		result = val
+	})
+	assert.NoError(t, err)
+	assert.Nil(t, result)
 }

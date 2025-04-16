@@ -1,4 +1,4 @@
-package graphBetaMacOSPKGApp
+package sharedConstructors
 
 import (
 	"context"
@@ -41,10 +41,10 @@ type EncryptedFileAnalysis struct {
 	FullHeaderHex    string `json:"fullHeaderHex"`
 }
 
-// encryptMobileAppAndConstructFileContentMetadata maps the Terraform schema to the SDK model,
+// EncryptMobileAppAndConstructFileContentMetadata maps the Terraform schema to the SDK model,
 // encrypts the installer file, logs its hex details, and prepares the metadata (including
 // file size, encrypted size, and encryption info) for the Graph API content file resource.
-func encryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePath string) (graphmodels.MobileAppContentFileable, *EncryptionInfo, error) {
+func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePath string) (graphmodels.MobileAppContentFileable, *EncryptionInfo, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting content file construction for file: %s", filePath), map[string]interface{}{"file_path": filePath})
 
 	contentFile := graphmodels.NewMobileAppContentFile()

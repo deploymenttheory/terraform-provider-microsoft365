@@ -145,3 +145,28 @@ func SetISODurationProperty(value basetypes.StringValue, setter func(*serializat
 	}
 	return nil
 }
+
+// SetObjectsFromStringSet is a generic function that constructs objects from a Terraform SetAttribute.
+// It extracts string values from the set, passes them to a converter function to transform them into
+// the desired object type, and then sets them using the provided setter function.
+func SetObjectsFromStringSet[T any](
+	ctx context.Context,
+	set types.Set,
+	converter func(context.Context, []string) []T,
+	setter func([]T)) error {
+
+	if set.IsNull() || set.IsUnknown() {
+		setter(nil)
+		return nil
+	}
+
+	var stringValues []string
+	diags := set.ElementsAs(ctx, &stringValues, false)
+	if diags.HasError() {
+		return fmt.Errorf("failed to extract string values: %s", diags.Errors())
+	}
+
+	objects := converter(ctx, stringValues)
+	setter(objects)
+	return nil
+}

@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
       with:
-        ref: ${{ github.event.pull_request.head.ref }}
+        ref: ${{ github.event.pull_request.head.sha }}
         
     - uses: actions/setup-go@v5.4.0
       with:

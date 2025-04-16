@@ -11,30 +11,35 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// StateMobileAppAssignment maps a remote assignment state to a Terraform assignment state
-func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) {
+// StateMobileAppAssignment maps remote assignments to a slice of assignment resource models
+func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) []sharedmodels.MobileAppAssignmentResourceModel {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
 		tflog.Debug(ctx, "Remote assignments response is nil")
-		return
+		return []sharedmodels.MobileAppAssignmentResourceModel{}
 	}
 
 	remoteAssignments := remoteAssignmentsResponse.GetValue()
-	assignments = assignments[:0]
+
+	newAssignments := make([]sharedmodels.MobileAppAssignmentResourceModel, 0, len(remoteAssignments))
 
 	for _, remoteAssignment := range remoteAssignments {
-		assignments = append(assignments, sharedmodels.MobileAppAssignmentResourceModel{
+		newAssignments = append(newAssignments, sharedmodels.MobileAppAssignmentResourceModel{
+			Id:       state.StringPointerValue(remoteAssignment.GetId()),
 			Intent:   state.EnumPtrToTypeString(remoteAssignment.GetIntent()),
 			Source:   state.EnumPtrToTypeString(remoteAssignment.GetSource()),
-			SourceId: types.StringPointerValue(remoteAssignment.GetSourceId()),
+			SourceId: state.StringPointerValue(remoteAssignment.GetSourceId()),
 			Target:   mapRemoteTargetToTerraform(remoteAssignment.GetTarget()),
 			Settings: mapRemoteSettingsToTerraform(remoteAssignment.GetSettings()),
 		})
 	}
 
-	// Sort assignments to maintain consistent order
-	SortMobileAppAssignments(assignments)
+	SortMobileAppAssignments(newAssignments)
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{})
+	tflog.Debug(ctx, "Finished mapping remote assignments to Terraform state", map[string]interface{}{
+		"assignment_count": len(newAssignments),
+	})
+
+	return newAssignments
 }
 
 // sortMobileAppAssignments sorts a slice of mobile app assignments

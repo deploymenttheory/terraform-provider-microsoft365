@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	// Graph Beta - Intune resources
+	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/assignment_filter"
 	graphBetaDeviceAndAppManagementBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/browser_site"
 	graphBetaDeviceAndAppManagementBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/browser_site_list"
@@ -45,6 +46,7 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Graph Beta - Intune resources
+		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceAndAppManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceAndAppManagementBrowserSite.NewBrowserSiteResource,
 		graphBetaDeviceAndAppManagementBrowserSiteList.NewBrowserSiteListResource,

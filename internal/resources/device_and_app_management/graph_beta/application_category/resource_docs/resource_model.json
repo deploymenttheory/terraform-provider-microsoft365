@@ -1,0 +1,6 @@
+{
+  "@odata.type": "#microsoft.graph.mobileAppCategory",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "lastModifiedDateTime": "String (timestamp)"
+}

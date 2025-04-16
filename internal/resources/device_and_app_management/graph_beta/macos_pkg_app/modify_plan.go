@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// ModifyPlan handles plan modification for diff suppression
+// ModifyPlan handles plan modification for MacOS PKG apps diff suppression to avoid state inconsistency errors
 func (r *MacOSPKGAppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
