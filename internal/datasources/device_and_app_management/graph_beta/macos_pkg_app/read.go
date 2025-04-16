@@ -59,7 +59,6 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	if !object.ID.IsNull() {
-		// 1. Get base resource with expanded query to return categories
 		requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
 				Expand: []string{"categories"},
@@ -90,51 +89,65 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		resource.MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 	} else {
-		// When looking up by display name, we need to list all mobile apps and filter
+		// When looking up by display name, we need to list all mobile apps to find the ID first
 		mobileApps := d.client.
 			DeviceAppManagement().
 			MobileApps()
 
-		// Use expanded query to get categories for all apps
-		requestParameters := &deviceappmanagement.MobileAppsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &deviceappmanagement.MobileAppsRequestBuilderGetQueryParameters{
-				Expand: []string{"categories"},
-			},
-		}
-
-		result, err := mobileApps.Get(ctx, requestParameters)
+		result, err := mobileApps.Get(ctx, nil)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		var foundApp graphmodels.MacOSPkgAppable
+		var appId string
 		for _, app := range result.GetValue() {
-			// Check if app is a MacOS PKG app
-			macOSApp, ok := app.(graphmodels.MacOSPkgAppable)
-			if !ok {
-				continue
-			}
-
-			if macOSApp.GetDisplayName() != nil && *macOSApp.GetDisplayName() == object.DisplayName.ValueString() {
-				foundApp = macOSApp
+			if app.GetDisplayName() != nil && *app.GetDisplayName() == object.DisplayName.ValueString() {
+				appId = *app.GetId()
 				break
 			}
 		}
 
-		if foundApp == nil {
+		if appId == "" {
 			resp.Diagnostics.AddError(
 				"Error Reading MacOS PKG App",
-				fmt.Sprintf("No MacOS PKG app found with display name: %s", object.DisplayName.ValueString()),
+				fmt.Sprintf("No mobile app found with display name: %s", object.DisplayName.ValueString()),
 			)
 			return
 		}
 
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, foundApp)
+		requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
+				Expand: []string{"categories"},
+			},
+		}
+
+		respBaseResource, err := d.client.
+			DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(appId).
+			Get(ctx, requestParameters)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			return
+		}
+
+		// This ensures type safety as the Graph API returns a base interface that needs
+		// to be converted to the specific app type
+		macOSPkgApp, ok := respBaseResource.(graphmodels.MacOSPkgAppable)
+		if !ok {
+			resp.Diagnostics.AddError(
+				"Resource type mismatch",
+				fmt.Sprintf("Expected resource of type MacOSPkgAppable but got %T", respBaseResource),
+			)
+			return
+		}
+
+		resource.MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 	}
 
-	// Set the data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return

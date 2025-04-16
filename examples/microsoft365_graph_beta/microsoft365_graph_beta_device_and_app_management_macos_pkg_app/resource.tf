@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 
   categories = [
     microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id, // custom category
-    "Business", // built-in example
+    "Business",                                                                            // built-in example
     "Productivity",
   ]
 

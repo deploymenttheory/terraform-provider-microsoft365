@@ -28,7 +28,7 @@ var (
 func NewMacOSPKGAppDataSource() datasource.DataSource {
 	return &MacOSPKGAppDataSource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementApps.Read.All",
 		},
 	}
 }
