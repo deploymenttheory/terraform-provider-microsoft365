@@ -5,6 +5,7 @@ import (
 	// Graph Beta - Intune resources
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/assignment_filter"
 	graphBetaDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/device_category"
+	graphBetaLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/linux_platform_script"
 	graphBetaMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/reuseable_policy_settings"
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
@@ -30,6 +31,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 	return []func() datasource.DataSource{
 		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceCategory.NewDeviceCategoryDataSource,
+		graphBetaLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
 		graphBetaMacOSPKGApp.NewMacOSPKGAppDataSource,
 		graphBetaReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
 		graphBetaRoleScopeTag.NewRoleScopeTagDataSource,
