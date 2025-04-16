@@ -589,7 +589,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update Categories", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}

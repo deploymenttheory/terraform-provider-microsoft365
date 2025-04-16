@@ -1,8 +1,8 @@
 resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozilla_firefox" {
-  display_name            = "Firefox"
-  description             = "thing"
+  display_name            = "Firefox 136.0.pkg"
+  description             = "test"
   publisher               = "Example Publisher"
-  is_featured             = false
+  is_featured             = true
   privacy_information_url = "https://example.com/privacy"
   information_url         = "https://example.com/info"
   owner                   = "Example Owner"
@@ -10,24 +10,23 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   notes                   = "This is a macOS PKG application managed through Terraform."
   role_scope_tag_ids      = [8, 9]
 
+  categories = [
+    microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id, // custom category
+    "Business", // built-in example
+    "Productivity",
+  ]
+
   app_icon = {
-    //icon_file_path_source = "C:\\your\\filepath\\Firefox_logo_2019.png"
-    // or
-    icon_url_source = "https://upload.wikimedia.org/wikipedia/commons/1/16/Firefox_logo%2C_2017.png"
+    icon_file_path_source = "/local/path/Firefox_logo.png"
   }
 
-  //categories = ["Productivity",  "Business"]
+  app_installer = {
+    installer_file_path_source = "/local/path/Firefox_136.0.pkg"
+  }
+
 
   macos_pkg_app = {
-    //installer_file_path_source = "C:\\your\\filepath\\GoogleChrome.pkg"
-    // or
-    installer_url_source     = "https://ftp.mozilla.org/pub/firefox/releases/136.0/mac/en-GB/Firefox%20136.0.pkg"
     ignore_version_detection = true
-
-    included_apps = [{
-      bundle_id      = "org.mozilla.firefox"
-      bundle_version = "136.0"
-    }]
 
     minimum_supported_operating_system = {
       v14_0 = true
@@ -40,6 +39,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
     post_install_script = {
       script_content = base64encode("#!/bin/bash\necho macOS PKG Post-install script example")
     }
+
   }
 
   # App assignments configuration
@@ -106,9 +106,9 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 
   # Optional: Add timeouts
   timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "30m"
+    create = "3m"
+    read   = "20s"
+    update = "3m"
+    delete = "20s"
   }
 }

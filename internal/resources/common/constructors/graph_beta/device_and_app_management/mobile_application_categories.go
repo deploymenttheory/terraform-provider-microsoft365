@@ -10,7 +10,7 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var builtInCategoryMapping = map[string]string{
+var BuiltInCategoryMapping = map[string]string{
 	"Other apps":             "0720a99e-562b-4a77-83f0-9a7523fcf13e",
 	"Books & Reference":      "f1fc9fe2-728d-4867-9a72-a61e18f8c606",
 	"Data management":        "046e0b16-76ce-4b49-bf1b-1cc5bd94fb47",
@@ -58,7 +58,7 @@ func AssignMobileAppCategories(
 		var categoryID string
 		if _, err := uuid.Parse(categoryValue); err == nil {
 			categoryID = categoryValue
-		} else if id, ok := builtInCategoryMapping[categoryValue]; ok {
+		} else if id, ok := BuiltInCategoryMapping[categoryValue]; ok {
 			categoryID = id
 		} else if id, ok := dynamicCategoryMap[categoryValue]; ok {
 			categoryID = id

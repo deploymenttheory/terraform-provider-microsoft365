@@ -58,7 +58,6 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
 			}
 
-			// Create temp file info for cleanup
 			iconTempFile := helpers.TempFileInfo{
 				FilePath:      downloadedPath,
 				ShouldCleanup: true,
@@ -82,12 +81,10 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
 	}
 
-	// Verify file exists and path is valid
 	if _, err := os.Stat(installerSourcePath); err != nil {
 		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
 	}
 
-	// Set filename from the installer source path
 	filename := filepath.Base(installerSourcePath)
 	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
 	constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)

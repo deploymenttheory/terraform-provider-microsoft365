@@ -185,39 +185,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
 			},
-			// "app_icon": schema.SingleNestedAttribute{
-			// 	MarkdownDescription: "The path to the icon file to be uploaded. Resource supports both local file sources and url based sources.",
-			// 	Optional:            true,
-			// 	Attributes: map[string]schema.Attribute{
-			// 		"icon_file_path_source": schema.StringAttribute{
-			// 			Optional:            true,
-			// 			MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
-			// 			Validators: []validator.String{
-			// 				stringvalidator.RegexMatches(
-			// 					regexp.MustCompile(`\.png$`),
-			// 					"must end with .png file extension",
-			// 				),
-			// 			},
-			// 		},
-			// 		"icon_url_source": schema.StringAttribute{
-			// 			Optional:            true,
-			// 			MarkdownDescription: "The web location of the icon file, can be a http(s) URL.",
-			// 			Validators: []validator.String{
-			// 				stringvalidator.RegexMatches(
-			// 					regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
-			// 					"Must be a valid URL.",
-			// 				),
-			// 				stringvalidator.RegexMatches(
-			// 					regexp.MustCompile(`\.png$`),
-			// 					"must end with .png file extension",
-			// 				),
-			// 			},
-			// 			PlanModifiers: []planmodifier.String{
-			// 				planmodifiers.UseStateForUnknownString(),
-			// 			},
-			// 		},
-			// 	},
-			// },
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
@@ -290,13 +257,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
-			// "last_modified_date_time": schema.StringAttribute{
-			// 	Computed:            true,
-			// 	MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
-			// 	// PlanModifiers: []planmodifier.String{
-			// 	// 	planmodifiers.UseStateForUnknownString(),
-			// 	// },
-			// },
 			"upload_state": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{

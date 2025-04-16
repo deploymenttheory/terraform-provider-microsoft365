@@ -66,7 +66,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 	data.RoleScopeTagIds = types.SetValueMust(types.StringType, roleScopeTagIds)
 
-	data.Categories = MapCategoriesToStringSet(ctx, remoteResource.GetCategories())
+	data.Categories = MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
@@ -185,38 +185,4 @@ func BuildObjectSetFromSlice(
 	}
 
 	return set
-}
-
-// MapCategoriesToStringSet converts API categories to a set of category names for Terraform state
-func MapCategoriesToStringSet(ctx context.Context, categories []graphmodels.MobileAppCategoryable) types.Set {
-	if len(categories) == 0 {
-		return types.SetNull(types.StringType)
-	}
-
-	// Extract display names from categories
-	categoryNames := make([]attr.Value, 0, len(categories))
-	for _, category := range categories {
-		if category == nil {
-			continue
-		}
-
-		displayName := category.GetDisplayName()
-		if displayName != nil {
-			categoryNames = append(categoryNames, types.StringValue(*displayName))
-		}
-	}
-
-	// Create a set of category names
-	if len(categoryNames) > 0 {
-		set, diags := types.SetValue(types.StringType, categoryNames)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create category name set", map[string]interface{}{
-				"errors": diags.Errors(),
-			})
-			return types.SetNull(types.StringType)
-		}
-		return set
-	}
-
-	return types.SetNull(types.StringType)
 }
