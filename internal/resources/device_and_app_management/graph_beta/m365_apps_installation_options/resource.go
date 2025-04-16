@@ -76,6 +76,7 @@ func (r *M365AppsInstallationOptionsResource) ImportState(ctx context.Context, r
 
 func (r *M365AppsInstallationOptionsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Manages Microsoft 365 app install options found within Microsoft 365 admin center, under Settings > Org settings > Services > Microsoft 365 installation options.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
