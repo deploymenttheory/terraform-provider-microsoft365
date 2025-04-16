@@ -13,6 +13,7 @@ import (
 
 const (
 	ResourceName = "graph_beta_device_and_app_management_device_category"
+	ReadTimeout  = 180
 )
 
 var (
@@ -42,6 +43,10 @@ func (d *DeviceCategoryDataSource) Metadata(_ context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
+func (d *DeviceCategoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+}
+
 func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -67,8 +72,4 @@ func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.Sche
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-func (d *DeviceCategoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

@@ -1,0 +1,16 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The Microsoft 365 Intune macos pkg app data source provides information about a specific macos pkg app.
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/graph_beta_device_and_app_management_macos_pkg_app/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
