@@ -1,5 +1,5 @@
-// REF: https://learn.microsoft.com/en-us/graph/api/resources/m365appsinstallationoptions?view=graph-rest-beta
-package graphBetaM365AppsInstallationOptions
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/m365appsinstallationoptions?view=graph-rest-1.0
+package graphM365AppsInstallationOptions
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"

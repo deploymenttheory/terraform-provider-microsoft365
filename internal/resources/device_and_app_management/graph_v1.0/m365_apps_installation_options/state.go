@@ -1,11 +1,11 @@
-package graphBetaM365AppsInstallationOptions
+package graphM365AppsInstallationOptions
 
 import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 func MapRemoteStateToTerraform(ctx context.Context, data *M365AppsInstallationOptionsResourceModel, remoteResource graphmodels.M365AppsInstallationOptionsable) {

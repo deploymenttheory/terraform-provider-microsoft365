@@ -1,4 +1,4 @@
-package graphBetaM365AppsInstallationOptions
+package graphM365AppsInstallationOptions
 
 import (
 	"context"

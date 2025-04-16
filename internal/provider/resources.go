@@ -10,7 +10,6 @@ import (
 	graphBetaDeviceAndAppManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/device_category"
 	graphBetaDeviceAndAppManagementEndpointPrivilegeManagement "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/endpoint_privilege_management"
 	graphBetaDeviceAndAppManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/linux_platform_script"
-	graphBetaDeviceAndAppManagementM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/m365_apps_installation_options"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaDeviceAndAppManagementMacOSPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_platform_script"
 	graphBetaDeviceAndAppManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/reuseable_policy_settings"
@@ -25,6 +24,8 @@ import (
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 	graphDeviceAndAppManagementCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_provisioning_policy"
 	graphDeviceAndAppManagementCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_user_setting"
+
+	graphDeviceAndAppManagementM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/m365_apps_installation_options"
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/graph_beta/conditional_access_policy"
@@ -55,7 +56,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementLinuxPlatformScript.NewLinuxPlatformScriptResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceAndAppManagementMacOSPlatformScript.NewMacOSPlatformScriptResource,
-		graphBetaDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		graphBetaDeviceAndAppManagementSettingsCatalog.NewSettingsCatalogResource,
 		graphBetaDeviceAndAppManagementSettingsCatalogTemplate.NewDeviceManagementTemplateResource,
 		graphBetaDeviceAndAppManagementReuseablePolicySettings.NewReuseablePolicySettingsResource,
@@ -69,6 +69,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
+		graphDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		// Add microsoft 365 provider resources here
 	}
 }

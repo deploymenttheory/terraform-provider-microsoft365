@@ -1,4 +1,4 @@
-package graphBetaM365AppsInstallationOptions
+package graphM365AppsInstallationOptions
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_m365_apps_installation_options"
+	ResourceName  = "graph_device_and_app_management_m365_apps_installation_options"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -66,7 +66,7 @@ func (r *M365AppsInstallationOptionsResource) Metadata(ctx context.Context, req 
 
 // Configure sets the client for the resource.
 func (r *M365AppsInstallationOptionsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphStableClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
