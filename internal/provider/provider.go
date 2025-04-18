@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -43,6 +44,10 @@ type EntraIDOptionsModel struct {
 	DisableInstanceDiscovery   types.Bool   `tfsdk:"disable_instance_discovery"`
 	AdditionallyAllowedTenants types.List   `tfsdk:"additionally_allowed_tenants"`
 	RedirectUrl                types.String `tfsdk:"redirect_url"`
+	FederatedTokenFilePath     types.String `tfsdk:"federated_token_file_path"` // For workload identity
+	ManagedIdentityID          types.String `tfsdk:"managed_identity_id"`       // For managed identity
+	OIDCTokenFilePath          types.String `tfsdk:"oidc_token_file_path"`      // For OIDC authentication
+	ADOServiceConnectionID     types.String `tfsdk:"ado_service_connection_id"` // For Azure DevOps OIDC
 }
 
 // ClientOptionsModel describes the client options
@@ -402,6 +407,52 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 			Validators: []validator.String{
 				validateRedirectURL(),
 			},
+		},
+		"federated_token_file_path": schema.StringAttribute{
+			Optional:    true,
+			Description: "Path to a file containing a Kubernetes service account token for workload identity authentication.",
+			MarkdownDescription: "Path to a file containing a Kubernetes service account token for workload identity authentication. " +
+				"This field is only used with the 'workload_identity' authentication method.\n\n" +
+				"In Kubernetes environments with Azure workload identity enabled, this path is typically " +
+				"'/var/run/secrets/azure/tokens/azure-identity-token'. This token file is used to establish " +
+				"federated identity for your workloads running in Kubernetes.\n\n" +
+				"Can be set using the `AZURE_FEDERATED_TOKEN_FILE` environment variable.",
+		},
+		"managed_identity_id": schema.StringAttribute{
+			Optional:    true,
+			Description: "ID of a user-assigned managed identity to authenticate with.",
+			MarkdownDescription: "ID of a user-assigned managed identity to authenticate with. This field is only used with the " +
+				"'managed_identity' authentication method.\n\n" +
+				"If omitted, the system-assigned managed identity will be used. If specified, it can be either:\n" +
+				"- Client ID (GUID): The client ID of the user-assigned managed identity\n" +
+				"- Resource ID: The full Azure resource ID of the user-assigned managed identity in the format " +
+				"`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`\n\n" +
+				"**Note:** Not all Azure hosting environments support all ID types. Some environments may have restrictions on " +
+				"using certain ID formats. If you encounter errors, try using a different ID format or consult the Azure documentation " +
+				"for your specific hosting environment.\n\n" +
+				"Can be set using the `AZURE_CLIENT_ID` or `M365_MANAGED_IDENTITY_ID` environment variables.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^(([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})|(/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+))$`),
+					"must be either a valid GUID (client ID) or a valid Azure resource ID for a managed identity",
+				),
+			},
+		},
+		"oidc_token_file_path": schema.StringAttribute{
+			Optional:    true,
+			Description: "Path to a file containing an OIDC token for authentication.",
+			MarkdownDescription: "Path to a file containing an OIDC token for authentication. This field is only used with the " +
+				"'oidc' authentication method.\n\n" +
+				"The file should contain a valid JWT assertion that will be used to authenticate the application. " +
+				"This is commonly used in CI/CD pipelines or other environments that support OIDC federation with Azure AD.\n\n" +
+				"Can be set using the `M365_OIDC_TOKEN_FILE_PATH` environment variable.",
+		},
+		"ado_service_connection_id": schema.StringAttribute{
+			Optional:    true,
+			Description: "Azure DevOps service connection ID for OIDC authentication.",
+			MarkdownDescription: "Azure DevOps service connection ID for OIDC authentication. This field is only used with the " +
+				"'oidc' authentication method when using Azure DevOps Pipelines.\n\n" +
+				"Can be set using the `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` environment variables.",
 		},
 	}
 }
