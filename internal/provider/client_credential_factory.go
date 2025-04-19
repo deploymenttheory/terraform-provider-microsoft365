@@ -21,12 +21,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// CredentialFactory creates the appropriate CredentialStrategy based on the authentication method
 func CredentialFactory(authMethod string) (CredentialStrategy, error) {
 	tflog.Info(context.Background(), "Creating credential strategy", map[string]interface{}{
 		"auth_method": authMethod,
 	})
 	switch authMethod {
+	case "azure_developer_cli":
+		return &AzureDeveloperCLIStrategy{}, nil
 	case "client_secret":
 		return &ClientSecretStrategy{}, nil
 	case "client_certificate":
@@ -40,7 +41,11 @@ func CredentialFactory(authMethod string) (CredentialStrategy, error) {
 	case "managed_identity":
 		return &ManagedIdentityStrategy{}, nil
 	case "oidc":
-		return &PipelineOIDCStrategy{}, nil
+		return &OIDCStrategy{}, nil
+	case "oidc_github":
+		return &GitHubOIDCStrategy{}, nil
+	case "oidc_azure_devops":
+		return &AzureDevOpsOIDCStrategy{}, nil
 	default:
 		tflog.Error(context.Background(), "Unsupported authentication method", map[string]interface{}{
 			"auth_method": authMethod,
@@ -72,6 +77,25 @@ func obtainCredential(ctx context.Context, config *M365ProviderModel, clientOpti
 	}
 	tflog.Info(ctx, "Successfully obtained credential")
 	return credential, nil
+}
+
+// AzureDeveloperCLIStrategy implements the credential strategy for Azure Developer CLI authentication
+type AzureDeveloperCLIStrategy struct{}
+
+func (s *AzureDeveloperCLIStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	var entraIDOptions EntraIDOptionsModel
+	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
+
+	tflog.Info(ctx, "Creating Azure Developer CLI credential", map[string]interface{}{
+		"tenant_id": config.TenantID.ValueString(),
+	})
+
+	options := &azidentity.AzureDeveloperCLICredentialOptions{
+		TenantID:                   config.TenantID.ValueString(),
+		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+	}
+
+	return azidentity.NewAzureDeveloperCLICredential(options)
 }
 
 // CredentialStrategy defines the interface for credential creation strategies
@@ -257,15 +281,14 @@ func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *M36
 	return azidentity.NewManagedIdentityCredential(options)
 }
 
-// PipelineOIDCStrategy implements the credential strategy for OIDC authentication with federated credentials
-// for Azure DevOps and GitHub Actions.
-type PipelineOIDCStrategy struct{}
+// OIDCStrategy implements a minimalist generic credential strategy for OIDC authentication
+type OIDCStrategy struct{}
 
-func (s *PipelineOIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+func (s *OIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	var entraIDOptions EntraIDOptionsModel
 	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
 
-	tflog.Info(ctx, "Creating OIDC credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating generic OIDC credential", map[string]interface{}{
 		"tenant_id": config.TenantID.ValueString(),
 		"client_id": entraIDOptions.ClientID.ValueString(),
 	})
@@ -291,55 +314,6 @@ func (s *PipelineOIDCStrategy) GetCredential(ctx context.Context, config *M365Pr
 
 			return token, nil
 		}
-	} else if oidcTokenProvider := entraIDOptions.OIDCTokenProvider.ValueString(); oidcTokenProvider != "" {
-		switch strings.ToLower(oidcTokenProvider) {
-		case "github":
-			tflog.Debug(ctx, "Using GitHub Actions OIDC token provider")
-			return setupGitHubActionsOIDC(ctx, config, clientOptions)
-
-		case "azuredevops", "ado":
-			tflog.Debug(ctx, "Using Azure DevOps OIDC token provider")
-
-			serviceConnectionID := entraIDOptions.ADOServiceConnectionID.ValueString()
-			if serviceConnectionID == "" {
-				return nil, fmt.Errorf("azure devops service connection id is required for azure devops OIDC provider")
-			}
-
-			adoRequestToken := os.Getenv("SYSTEM_ACCESSTOKEN")
-			if adoRequestToken == "" {
-				return nil, fmt.Errorf("SYSTEM_ACCESSTOKEN environment variable is required for azure devops OIDC provider")
-			}
-
-			options := &azidentity.AzurePipelinesCredentialOptions{
-				ClientOptions:              clientOptions,
-				AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
-				DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
-			}
-
-			return azidentity.NewAzurePipelinesCredential(
-				config.TenantID.ValueString(),
-				entraIDOptions.ClientID.ValueString(),
-				serviceConnectionID,
-				adoRequestToken,
-				options)
-
-		default:
-			return nil, fmt.Errorf("unsupported OIDC token provider: %s", oidcTokenProvider)
-		}
-	} else {
-		// If we're here, we need a direct token
-		oidcToken := os.Getenv("M365_OIDC_TOKEN")
-		if oidcToken == "" {
-			return nil, fmt.Errorf("no OIDC token source configured - requires one of: " +
-				"oidc_token_file_path configuration or " +
-				"oidc_token_provider set to 'github' or 'azuredevops' or " +
-				"M365_OIDC_TOKEN environment variable")
-		}
-
-		tflog.Debug(ctx, "Using direct OIDC token from environment variable")
-		getAssertion = func(context.Context) (string, error) {
-			return oidcToken, nil
-		}
 	}
 
 	options := &azidentity.ClientAssertionCredentialOptions{
@@ -352,6 +326,140 @@ func (s *PipelineOIDCStrategy) GetCredential(ctx context.Context, config *M365Pr
 		config.TenantID.ValueString(),
 		entraIDOptions.ClientID.ValueString(),
 		getAssertion,
+		options)
+}
+
+// GitHubOIDCStrategy implements the credential strategy for GitHub Actions OIDC authentication
+type GitHubOIDCStrategy struct{}
+
+func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	var entraIDOptions EntraIDOptionsModel
+	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
+
+	tflog.Info(ctx, "Creating GitHub OIDC credential", map[string]interface{}{
+		"tenant_id": config.TenantID.ValueString(),
+		"client_id": entraIDOptions.ClientID.ValueString(),
+	})
+
+	// Check if GitHub Actions environment variables are set
+	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
+	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+
+	if requestURL == "" || requestToken == "" {
+		return nil, fmt.Errorf("GitHub Actions OIDC environment variables ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN are required. " +
+			"Ensure your workflow has 'permissions: id-token: write' set")
+	}
+
+	// Check if a custom audience is specified and add to request URL if not already present
+	audience := helpers.GetEnvString("M365_OIDC_AUDIENCE",
+		helpers.GetEnvString("ARM_OIDC_AUDIENCE", "api://AzureADTokenExchange"))
+
+	tflog.Debug(ctx, "Using audience for GitHub OIDC token", map[string]interface{}{
+		"audience": audience,
+	})
+
+	if !strings.Contains(requestURL, "audience=") {
+		separator := "&"
+		if !strings.Contains(requestURL, "?") {
+			separator = "?"
+		}
+		requestURL = requestURL + separator + "audience=" + url.QueryEscape(audience)
+	}
+
+	getAssertion := func(ctx context.Context) (string, error) {
+		// GitHub Actions provides an endpoint to request the JWT token
+		req, err := http.NewRequestWithContext(ctx, "GET", requestURL, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create request for GitHub OIDC token: %w", err)
+		}
+
+		req.Header.Add("Authorization", "Bearer "+requestToken)
+		req.Header.Add("Accept", "application/json; api-version=2.0")
+		req.Header.Add("Content-Type", "application/json")
+
+		client := &http.Client{Timeout: 30 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("failed to request GitHub OIDC token: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("failed to get GitHub OIDC token, status code: %d, response: %s",
+				resp.StatusCode, string(body))
+		}
+
+		var tokenResp struct {
+			Value string `json:"value"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+			return "", fmt.Errorf("failed to decode GitHub OIDC token response: %w", err)
+		}
+
+		if tokenResp.Value == "" {
+			return "", fmt.Errorf("received empty OIDC token from GitHub")
+		}
+
+		return tokenResp.Value, nil
+	}
+
+	options := &azidentity.ClientAssertionCredentialOptions{
+		ClientOptions:              clientOptions,
+		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
+	}
+
+	return azidentity.NewClientAssertionCredential(
+		config.TenantID.ValueString(),
+		entraIDOptions.ClientID.ValueString(),
+		getAssertion,
+		options)
+}
+
+// AzureDevOpsOIDCStrategy implements the credential strategy for Azure DevOps OIDC authentication
+type AzureDevOpsOIDCStrategy struct{}
+
+func (s *AzureDevOpsOIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	var entraIDOptions EntraIDOptionsModel
+	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
+
+	tflog.Info(ctx, "Creating Azure DevOps OIDC credential", map[string]interface{}{
+		"tenant_id": config.TenantID.ValueString(),
+		"client_id": entraIDOptions.ClientID.ValueString(),
+	})
+
+	serviceConnectionID := entraIDOptions.ADOServiceConnectionID.ValueString()
+	if serviceConnectionID == "" {
+		return nil, fmt.Errorf("azure devops service connection id is required for azure devops OIDC authentication")
+	}
+
+	adoRequestToken := os.Getenv("SYSTEM_ACCESSTOKEN")
+	if adoRequestToken == "" {
+		return nil, fmt.Errorf("SYSTEM_ACCESSTOKEN environment variable is required for azure devops OIDC authentication")
+	}
+
+	oidcRequestURI := os.Getenv("SYSTEM_OIDCREQUESTURI")
+	if oidcRequestURI == "" {
+		return nil, fmt.Errorf("SYSTEM_OIDCREQUESTURI environment variable is required for azure devops OIDC authentication")
+	}
+
+	tflog.Debug(ctx, "Using Azure DevOps OIDC request URI", map[string]interface{}{
+		"oidc_request_uri": oidcRequestURI,
+	})
+
+	options := &azidentity.AzurePipelinesCredentialOptions{
+		ClientOptions:              clientOptions,
+		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
+	}
+
+	return azidentity.NewAzurePipelinesCredential(
+		config.TenantID.ValueString(),
+		entraIDOptions.ClientID.ValueString(),
+		serviceConnectionID,
+		adoRequestToken,
 		options)
 }
 

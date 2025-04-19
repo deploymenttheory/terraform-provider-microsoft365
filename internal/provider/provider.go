@@ -121,17 +121,21 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional: true,
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
+					"- `azure_developer_cli`: Uses the identity logged into the Azure Developer CLI (azd) for authentication. Ideal for local Terraform development when you're already authenticated with azd.\n" +
 					"- `device_code`: Uses a device code flow for authentication.\n" +
 					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +
 					"- `interactive_browser`: Opens a browser for interactive login.\n" +
-					"- `workload_identity`: Uses workload identity federation via a token file.\n" +
-					"- `managed_identity`: Uses Azure managed identity for authentication.\n" +
-					"- `oidc`: Uses OpenID Connect (OIDC) federation, supporting authentication via GitHub Actions, Azure DevOps pipelines, a direct JWT token set in an environment variable, or an OIDC token file.\n" +
+					"- `workload_identity`: Uses workload identity federation for Kubernetes pods, enabling them to authenticate via a service account token file.\n" +
+					"- `managed_identity`: Uses Azure managed identity for authentication when Terraform is running on an Azure resource (like a VM, Azure Container Instance, or App Service) that has been assigned a managed identity.\n" +
+					"- `oidc`: Uses generic OpenID Connect (OIDC) authentication with a JWT token from a file or environment variable.\n" +
+					"- `oidc_github`: Uses GitHub Actions-specific OIDC authentication, with support for subject claims that specify repositories, branches, tags, pull requests, and environments for fine-grained trust configurations.\n" +
+					"- `oidc_azure_devops`: Uses Azure DevOps-specific OIDC authentication with service connections, supporting federated credentials for secure pipeline-to-cloud authentication without storing secrets.\n" +
 					"Each method requires different credentials to be provided.\n" +
 					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"azure_developer_cli",
 						"client_secret",
 						"client_certificate",
 						"interactive_browser",
@@ -139,6 +143,8 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 						"workload_identity",
 						"managed_identity",
 						"oidc",
+						"oidc_github",
+						"oidc_azure_devops",
 					),
 				},
 			},
