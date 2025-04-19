@@ -41,8 +41,7 @@ type EntraIDOptionsModel struct {
 	ClientCertificate          types.String `tfsdk:"client_certificate"`
 	ClientCertificatePassword  types.String `tfsdk:"client_certificate_password"`
 	SendCertificateChain       types.Bool   `tfsdk:"send_certificate_chain"`
-	Username                   types.String `tfsdk:"username"`
-	Password                   types.String `tfsdk:"password"`
+	Username                   types.String `tfsdk:"username"` // For Interactive Browser Credential
 	DisableInstanceDiscovery   types.Bool   `tfsdk:"disable_instance_discovery"`
 	AdditionallyAllowedTenants types.List   `tfsdk:"additionally_allowed_tenants"`
 	RedirectUrl                types.String `tfsdk:"redirect_url"`
@@ -50,5 +49,4 @@ type EntraIDOptionsModel struct {
 	ManagedIdentityID          types.String `tfsdk:"managed_identity_id"`       // For managed identity
 	OIDCTokenFilePath          types.String `tfsdk:"oidc_token_file_path"`      // For OIDC authentication
 	ADOServiceConnectionID     types.String `tfsdk:"ado_service_connection_id"` // For Azure DevOps OIDC
-	OIDCTokenProvider          types.String `tfsdk:"oidc_token_provider"`
 }
