@@ -2,7 +2,8 @@ package provider
 
 import (
 	"context"
-	// Graph Beta - Intune resources
+	// Graph Beta - Intune datasources
+	graphBetaApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/application_category"
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/assignment_filter"
 	graphBetaDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/device_category"
 	graphBetaLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/linux_platform_script"
@@ -11,7 +12,7 @@ import (
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
 	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_platform_script"
 
-	// Graph v1.0 - Intune resources
+	// Graph v1.0 - Intune datasources
 	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -29,6 +30,8 @@ import (
 //	[]func() datasource.DataSource: A slice of functions, each returning a datasource.DataSource.
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		// Graph Beta - Intune datasources
+		graphBetaApplicationCategory.NewApplicationCategoryDataSource,
 		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceCategory.NewDeviceCategoryDataSource,
 		graphBetaLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
