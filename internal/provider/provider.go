@@ -48,6 +48,7 @@ type EntraIDOptionsModel struct {
 	ManagedIdentityID          types.String `tfsdk:"managed_identity_id"`       // For managed identity
 	OIDCTokenFilePath          types.String `tfsdk:"oidc_token_file_path"`      // For OIDC authentication
 	ADOServiceConnectionID     types.String `tfsdk:"ado_service_connection_id"` // For Azure DevOps OIDC
+	OIDCTokenProvider          types.String `tfsdk:"oidc_token_provider"`
 }
 
 // ClientOptionsModel describes the client options
@@ -124,12 +125,20 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +
 					"- `interactive_browser`: Opens a browser for interactive login.\n" +
-					"- `username_password`: Uses username and password for authentication (not recommended for production).\n" +
+					"- `workload_identity`: Uses workload identity federation via a token file.\n" +
+					"- `managed_identity`: Uses Azure managed identity for authentication.\n" +
+					"- `oidc`: Uses OpenID Connect (OIDC) federation, supporting authentication via GitHub Actions, Azure DevOps pipelines, a direct JWT token set in an environment variable, or an OIDC token file.\n" +
 					"Each method requires different credentials to be provided.\n" +
 					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"client_secret", "client_certificate", "interactive_browser", "username_password", "device_code",
+						"client_secret",
+						"client_certificate",
+						"interactive_browser",
+						"device_code",
+						"workload_identity",
+						"managed_identity",
+						"oidc",
 					),
 				},
 			},
@@ -453,6 +462,16 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 			MarkdownDescription: "Azure DevOps service connection ID for OIDC authentication. This field is only used with the " +
 				"'oidc' authentication method when using Azure DevOps Pipelines.\n\n" +
 				"Can be set using the `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` environment variables.",
+		},
+		"oidc_token_provider": schema.StringAttribute{
+			Optional:    true,
+			Description: "OIDC token provider type.",
+			MarkdownDescription: "Specifies the OIDC token provider type to use. Valid values are 'github' for GitHub Actions " +
+				"and 'azuredevops' or 'ado' for Azure DevOps Pipelines. When specified, the provider will automatically " +
+				"configure the appropriate OIDC flow for the given provider.",
+			Validators: []validator.String{
+				stringvalidator.OneOf("github", "azuredevops", "azdo"),
+			},
 		},
 	}
 }

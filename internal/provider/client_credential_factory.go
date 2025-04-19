@@ -31,8 +31,6 @@ func CredentialFactory(authMethod string) (CredentialStrategy, error) {
 		return &ClientSecretStrategy{}, nil
 	case "client_certificate":
 		return &ClientCertificateStrategy{}, nil
-	case "username_password":
-		return &UsernamePasswordStrategy{}, nil
 	case "device_code":
 		return &DeviceCodeStrategy{}, nil
 	case "interactive_browser":
@@ -42,7 +40,7 @@ func CredentialFactory(authMethod string) (CredentialStrategy, error) {
 	case "managed_identity":
 		return &ManagedIdentityStrategy{}, nil
 	case "oidc":
-		return &OIDCStrategy{}, nil
+		return &PipelineOIDCStrategy{}, nil
 	default:
 		tflog.Error(context.Background(), "Unsupported authentication method", map[string]interface{}{
 			"auth_method": authMethod,
@@ -144,29 +142,6 @@ func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *M
 		})
 }
 
-// UsernamePasswordStrategy implements the credential strategy for username/password authentication
-type UsernamePasswordStrategy struct{}
-
-func (s *UsernamePasswordStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	var entraIDOptions EntraIDOptionsModel
-	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
-
-	tflog.Info(ctx, "Creating username/password credential", map[string]interface{}{
-		"tenant_id": config.TenantID.ValueString(),
-		"client_id": entraIDOptions.ClientID.ValueString(),
-		"username":  entraIDOptions.Username.ValueString(),
-	})
-	return azidentity.NewUsernamePasswordCredential(
-		config.TenantID.ValueString(),
-		entraIDOptions.ClientID.ValueString(),
-		entraIDOptions.Username.ValueString(),
-		entraIDOptions.Password.ValueString(),
-		&azidentity.UsernamePasswordCredentialOptions{
-			AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
-			DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
-		})
-}
-
 // DeviceCodeStrategy implements the credential strategy for device code authentication
 type DeviceCodeStrategy struct{}
 
@@ -261,19 +236,15 @@ func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *M36
 		ClientOptions: clientOptions,
 	}
 
-	// Check if a specific managed identity is specified
 	if !entraIDOptions.ManagedIdentityID.IsNull() && entraIDOptions.ManagedIdentityID.ValueString() != "" {
 		idValue := entraIDOptions.ManagedIdentityID.ValueString()
 
-		// Determine ID type based on format - we let the schema validation handle the format check
 		if strings.HasPrefix(idValue, "/subscriptions/") {
-			// Resource ID format
 			options.ID = azidentity.ResourceID(idValue)
 			tflog.Debug(ctx, "Using user-assigned managed identity with Resource ID", map[string]interface{}{
 				"resource_id": idValue,
 			})
 		} else {
-			// Client ID format (GUID) - already validated by schema
 			options.ID = azidentity.ClientID(idValue)
 			tflog.Debug(ctx, "Using user-assigned managed identity with Client ID", map[string]interface{}{
 				"client_id": idValue,
@@ -286,10 +257,11 @@ func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *M36
 	return azidentity.NewManagedIdentityCredential(options)
 }
 
-// OIDCStrategy implements the credential strategy for OIDC authentication with federated credentials
-type OIDCStrategy struct{}
+// PipelineOIDCStrategy implements the credential strategy for OIDC authentication with federated credentials
+// for Azure DevOps and GitHub Actions.
+type PipelineOIDCStrategy struct{}
 
-func (s *OIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+func (s *PipelineOIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	var entraIDOptions EntraIDOptionsModel
 	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
 
@@ -298,120 +270,15 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderMo
 		"client_id": entraIDOptions.ClientID.ValueString(),
 	})
 
-	// Option 1: Direct OIDC token
-	if oidcToken := helpers.GetEnvString("ARM_OIDC_TOKEN", ""); oidcToken != "" {
-		tflog.Debug(ctx, "Using direct OIDC token from environment variable")
-		getAssertion := func(context.Context) (string, error) {
-			return oidcToken, nil
-		}
+	var getAssertion func(context.Context) (string, error)
 
-		return createClientAssertionCredential(ctx, config, clientOptions, getAssertion)
-	}
-
-	// Option 2: GitHub Actions OIDC
-	// GitHub automatically sets these environment variables when OIDC is enabled
-	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
-	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
-
-	if requestURL != "" && requestToken != "" {
-		tflog.Debug(ctx, "Using GitHub Actions OIDC token request")
-
-		// Check if a custom audience is specified
-		audience := helpers.GetEnvString("ARM_OIDC_AUDIENCE", "api://AzureADTokenExchange")
-		if audience != "" {
-			// Add audience parameter to request URL if not already present
-			if !strings.Contains(requestURL, "audience=") {
-				separator := "&"
-				if !strings.Contains(requestURL, "?") {
-					separator = "?"
-				}
-				requestURL = requestURL + separator + "audience=" + url.QueryEscape(audience)
-			}
-			tflog.Debug(ctx, "Using custom audience for OIDC token", map[string]interface{}{
-				"audience": audience,
-			})
-		}
-
-		getAssertion := func(ctx context.Context) (string, error) {
-			// GitHub Actions provides an endpoint to request the JWT token
-			req, err := http.NewRequestWithContext(ctx, "GET", requestURL, nil)
-			if err != nil {
-				return "", fmt.Errorf("failed to create request for GitHub OIDC token: %w", err)
-			}
-
-			req.Header.Add("Authorization", "Bearer "+requestToken)
-			req.Header.Add("Accept", "application/json; api-version=2.0")
-			req.Header.Add("Content-Type", "application/json")
-
-			client := &http.Client{Timeout: 30 * time.Second}
-			resp, err := client.Do(req)
-			if err != nil {
-				return "", fmt.Errorf("failed to request GitHub OIDC token: %w", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				body, _ := io.ReadAll(resp.Body)
-				return "", fmt.Errorf("failed to get GitHub OIDC token, status code: %d, response: %s",
-					resp.StatusCode, string(body))
-			}
-
-			var tokenResp struct {
-				Value string `json:"value"`
-			}
-
-			if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-				return "", fmt.Errorf("failed to decode GitHub OIDC token response: %w", err)
-			}
-
-			if tokenResp.Value == "" {
-				return "", fmt.Errorf("received empty OIDC token from GitHub")
-			}
-
-			// If debug mode is enabled, decode and log token claims (without sensitive parts)
-			if config.DebugMode.ValueBool() {
-				logTokenDetails(ctx, tokenResp.Value)
-			}
-
-			return tokenResp.Value, nil
-		}
-
-		return createClientAssertionCredential(ctx, config, clientOptions, getAssertion)
-	}
-
-	// Option 3: Azure DevOps OIDC
-	adoRequestToken := helpers.GetFirstEnvString([]string{"SYSTEM_ACCESSTOKEN"}, "")
-	serviceConnectionID := helpers.GetFirstEnvString(
-		[]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"},
-		entraIDOptions.ADOServiceConnectionID.ValueString())
-
-	if adoRequestToken != "" && serviceConnectionID != "" {
-		tflog.Debug(ctx, "Using Azure DevOps OIDC", map[string]interface{}{
-			"service_connection_id": serviceConnectionID,
-		})
-
-		options := &azidentity.AzurePipelinesCredentialOptions{
-			ClientOptions:              clientOptions,
-			AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
-			DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
-		}
-
-		return azidentity.NewAzurePipelinesCredential(
-			config.TenantID.ValueString(),
-			entraIDOptions.ClientID.ValueString(),
-			serviceConnectionID,
-			adoRequestToken,
-			options)
-	}
-
-	// Option 4: Manual OIDC token file
 	if !entraIDOptions.OIDCTokenFilePath.IsNull() && entraIDOptions.OIDCTokenFilePath.ValueString() != "" {
 		tokenPath := entraIDOptions.OIDCTokenFilePath.ValueString()
 		tflog.Debug(ctx, "Using OIDC token file", map[string]interface{}{
 			"path": tokenPath,
 		})
 
-		getAssertion := func(ctx context.Context) (string, error) {
+		getAssertion = func(ctx context.Context) (string, error) {
 			tokenBytes, err := os.ReadFile(tokenPath)
 			if err != nil {
 				return "", fmt.Errorf("failed to read OIDC token file: %w", err)
@@ -422,30 +289,58 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderMo
 				return "", fmt.Errorf("OIDC token file is empty: %s", tokenPath)
 			}
 
-			// If debug mode is enabled, decode and log token claims (without sensitive parts)
-			if config.DebugMode.ValueBool() {
-				logTokenDetails(ctx, token)
-			}
-
 			return token, nil
 		}
+	} else if oidcTokenProvider := entraIDOptions.OIDCTokenProvider.ValueString(); oidcTokenProvider != "" {
+		switch strings.ToLower(oidcTokenProvider) {
+		case "github":
+			tflog.Debug(ctx, "Using GitHub Actions OIDC token provider")
+			return setupGitHubActionsOIDC(ctx, config, clientOptions)
 
-		return createClientAssertionCredential(ctx, config, clientOptions, getAssertion)
+		case "azuredevops", "ado":
+			tflog.Debug(ctx, "Using Azure DevOps OIDC token provider")
+
+			serviceConnectionID := entraIDOptions.ADOServiceConnectionID.ValueString()
+			if serviceConnectionID == "" {
+				return nil, fmt.Errorf("azure devops service connection id is required for azure devops OIDC provider")
+			}
+
+			adoRequestToken := os.Getenv("SYSTEM_ACCESSTOKEN")
+			if adoRequestToken == "" {
+				return nil, fmt.Errorf("SYSTEM_ACCESSTOKEN environment variable is required for azure devops OIDC provider")
+			}
+
+			options := &azidentity.AzurePipelinesCredentialOptions{
+				ClientOptions:              clientOptions,
+				AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+				DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
+			}
+
+			return azidentity.NewAzurePipelinesCredential(
+				config.TenantID.ValueString(),
+				entraIDOptions.ClientID.ValueString(),
+				serviceConnectionID,
+				adoRequestToken,
+				options)
+
+		default:
+			return nil, fmt.Errorf("unsupported OIDC token provider: %s", oidcTokenProvider)
+		}
+	} else {
+		// If we're here, we need a direct token
+		oidcToken := os.Getenv("M365_OIDC_TOKEN")
+		if oidcToken == "" {
+			return nil, fmt.Errorf("no OIDC token source configured - requires one of: " +
+				"oidc_token_file_path configuration or " +
+				"oidc_token_provider set to 'github' or 'azuredevops' or " +
+				"M365_OIDC_TOKEN environment variable")
+		}
+
+		tflog.Debug(ctx, "Using direct OIDC token from environment variable")
+		getAssertion = func(context.Context) (string, error) {
+			return oidcToken, nil
+		}
 	}
-
-	return nil, fmt.Errorf("no OIDC token source configured - requires one of: " +
-		"GitHub Actions OIDC environment (ensure 'permissions: id-token: write' is set in your workflow), " +
-		"Azure DevOps pipeline with service connection, " +
-		"ARM_OIDC_TOKEN environment variable, " +
-		"or oidc_token_file_path configuration")
-}
-
-// Helper function to create ClientAssertionCredential
-func createClientAssertionCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions,
-	getAssertion func(context.Context) (string, error)) (azcore.TokenCredential, error) {
-
-	var entraIDOptions EntraIDOptionsModel
-	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
 
 	options := &azidentity.ClientAssertionCredentialOptions{
 		ClientOptions:              clientOptions,
@@ -460,67 +355,106 @@ func createClientAssertionCredential(ctx context.Context, config *M365ProviderMo
 		options)
 }
 
-// Helper function to log token details for debugging (without logging the full token)
-func logTokenDetails(ctx context.Context, token string) {
-	parts := strings.Split(token, ".")
-	if len(parts) != 3 {
-		tflog.Debug(ctx, "Invalid JWT token format - expected 3 parts")
-		return
+// Helper function for GitHub Actions OIDC
+func setupGitHubActionsOIDC(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	var entraIDOptions EntraIDOptionsModel
+	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
+
+	// Check if GitHub Actions environment variables are set
+	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
+	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+
+	if requestURL == "" || requestToken == "" {
+		return nil, fmt.Errorf("GitHub Actions OIDC environment variables ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN are required. " +
+			"Ensure your workflow has 'permissions: id-token: write' set")
 	}
 
-	// Decode the header (first part)
-	headerJSON, err := base64.RawURLEncoding.DecodeString(parts[0])
-	if err != nil {
-		tflog.Debug(ctx, "Failed to decode JWT header", map[string]interface{}{"error": err.Error()})
-		return
-	}
+	// Check if a custom audience is specified and add to request URL if not already present
+	audience := helpers.GetEnvString("M365_OIDC_AUDIENCE",
+		helpers.GetEnvString("ARM_OIDC_AUDIENCE", "api://AzureADTokenExchange"))
 
-	// Decode the payload (second part)
-	payloadJSON, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil {
-		tflog.Debug(ctx, "Failed to decode JWT payload", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	var header, payload map[string]interface{}
-
-	if err := json.Unmarshal(headerJSON, &header); err != nil {
-		tflog.Debug(ctx, "Failed to parse JWT header", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	if err := json.Unmarshal(payloadJSON, &payload); err != nil {
-		tflog.Debug(ctx, "Failed to parse JWT payload", map[string]interface{}{"error": err.Error()})
-		return
-	}
-
-	// Log important fields for debugging without logging the entire token
-	tflog.Debug(ctx, "OIDC Token Header", map[string]interface{}{
-		"alg": header["alg"],
-		"typ": header["typ"],
-		"kid": header["kid"],
+	tflog.Debug(ctx, "Using audience for GitHub OIDC token", map[string]interface{}{
+		"audience": audience,
 	})
 
-	// Extract and log select non-sensitive claims
-	debugInfo := map[string]interface{}{}
-
-	safeClaimsToLog := []string{"iss", "aud", "sub", "exp", "nbf", "iat", "jti"}
-
-	// Add GitHub-specific claims when present
-	githubClaimsToLog := []string{
-		"repository", "repository_owner", "repository_visibility",
-		"workflow", "ref", "ref_type", "actor", "event_name",
-		"environment", "job_workflow_ref", "runner_environment",
-	}
-	safeClaimsToLog = append(safeClaimsToLog, githubClaimsToLog...)
-
-	for _, claim := range safeClaimsToLog {
-		if value, ok := payload[claim]; ok {
-			debugInfo[claim] = value
+	if !strings.Contains(requestURL, "audience=") {
+		separator := "&"
+		if !strings.Contains(requestURL, "?") {
+			separator = "?"
 		}
+		requestURL = requestURL + separator + "audience=" + url.QueryEscape(audience)
 	}
 
-	tflog.Debug(ctx, "OIDC Token Claims", debugInfo)
+	getAssertion := func(ctx context.Context) (string, error) {
+		// GitHub Actions provides an endpoint to request the JWT token
+		req, err := http.NewRequestWithContext(ctx, "GET", requestURL, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create request for GitHub OIDC token: %w", err)
+		}
+
+		req.Header.Add("Authorization", "Bearer "+requestToken)
+		req.Header.Add("Accept", "application/json; api-version=2.0")
+		req.Header.Add("Content-Type", "application/json")
+
+		client := &http.Client{Timeout: 30 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("failed to request GitHub OIDC token: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("failed to get GitHub OIDC token, status code: %d, response: %s",
+				resp.StatusCode, string(body))
+		}
+
+		var tokenResp struct {
+			Value string `json:"value"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+			return "", fmt.Errorf("failed to decode GitHub OIDC token response: %w", err)
+		}
+
+		if tokenResp.Value == "" {
+			return "", fmt.Errorf("received empty OIDC token from GitHub")
+		}
+
+		return tokenResp.Value, nil
+	}
+
+	options := &azidentity.ClientAssertionCredentialOptions{
+		ClientOptions:              clientOptions,
+		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
+	}
+
+	return azidentity.NewClientAssertionCredential(
+		config.TenantID.ValueString(),
+		entraIDOptions.ClientID.ValueString(),
+		getAssertion,
+		options)
+}
+
+// Helper function to parse oidc token claims without verification
+func parseTokenClaims(token string) map[string]interface{} {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return nil
+	}
+
+	claimsPart, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil
+	}
+
+	var claims map[string]interface{}
+	if err := json.Unmarshal(claimsPart, &claims); err != nil {
+		return nil
+	}
+
+	return claims
 }
 
 // Helper function to convert types.List to []string for AdditionallyAllowedTenants
