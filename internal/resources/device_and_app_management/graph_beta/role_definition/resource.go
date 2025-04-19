@@ -84,7 +84,7 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this Intune role definition",
+				MarkdownDescription: "Key of the entity. This is read-only and automatically generated.",
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "Display Name of the Role definition.",
@@ -102,7 +102,7 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
 				Optional:            true,
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				MarkdownDescription: "List of Scope Tags for this Entity instance.",
 				Optional:            true,
 				ElementType:         types.StringType,
@@ -112,23 +112,23 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"actions": schema.ListAttribute{
-							MarkdownDescription: "Allowed actions for this role permission",
+						"actions": schema.SetAttribute{
+							MarkdownDescription: "Allowed actions for this role permission.",
 							Optional:            true,
 							ElementType:         types.StringType,
 						},
 						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission",
+							MarkdownDescription: "Resource actions for this role permission.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Allowed Resource Actions",
+									"allowed_resource_actions": schema.SetAttribute{
+										MarkdownDescription: "Allowed Resource Actions.",
 										Optional:            true,
 										ElementType:         types.StringType,
 									},
-									"not_allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions",
+									"not_allowed_resource_actions": schema.SetAttribute{
+										MarkdownDescription: "Not Allowed Resource Actions.",
 										Optional:            true,
 										ElementType:         types.StringType,
 									},
@@ -143,23 +143,23 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"actions": schema.ListAttribute{
-							MarkdownDescription: "Allowed actions for this role permission",
+						"actions": schema.SetAttribute{
+							MarkdownDescription: "Allowed actions for this role permission.",
 							Optional:            true,
 							ElementType:         types.StringType,
 						},
 						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission",
+							MarkdownDescription: "Resource actions for this role permission.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Allowed Resource Actions",
+									"allowed_resource_actions": schema.SetAttribute{
+										MarkdownDescription: "Allowed Resource Actions.",
 										Optional:            true,
 										ElementType:         types.StringType,
 									},
-									"not_allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions",
+									"not_allowed_resource_actions": schema.SetAttribute{
+										MarkdownDescription: "Not Allowed Resource Actions.",
 										Optional:            true,
 										ElementType:         types.StringType,
 									},

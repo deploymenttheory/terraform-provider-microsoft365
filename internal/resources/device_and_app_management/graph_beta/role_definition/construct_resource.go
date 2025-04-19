@@ -11,11 +11,14 @@ import (
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
+// This implementation aligns with the Microsoft Graph example by consolidating all permissions
+// into a single rolePermission with a single resourceAction.
 func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (graphmodels.RoleDefinitionable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewRoleDefinition()
 
+	// Set basic properties
 	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
 		displayName := data.DisplayName.ValueString()
 		requestBody.SetDisplayName(&displayName)
@@ -36,18 +39,109 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		requestBody.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
 	}
 
-	// Handle Permissions
-	if len(data.Permissions) > 0 {
-		permissions := constructRolePermissions(data.Permissions)
-		requestBody.SetPermissions(permissions)
+	// Create a single rolePermission with all allowed resource actions
+	rolePermission := graphmodels.NewRolePermission()
+	resourceAction := graphmodels.NewResourceAction()
+
+	// Collect all allowed and not allowed resource actions
+	var allowedResourceActions []string
+	var notAllowedResourceActions []string
+
+	// Process permissions from data.Permissions
+	for _, perm := range data.Permissions {
+		// Add actions from the actions set
+		if !perm.Actions.IsNull() && !perm.Actions.IsUnknown() {
+			for _, a := range perm.Actions.Elements() {
+				if actionStr, ok := a.(types.String); ok {
+					if !actionStr.IsNull() && !actionStr.IsUnknown() {
+						allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+					}
+				}
+			}
+		}
+
+		// Add allowed/not allowed resource actions
+		for _, ra := range perm.ResourceActions {
+			if !ra.AllowedResourceActions.IsNull() && !ra.AllowedResourceActions.IsUnknown() {
+				for _, a := range ra.AllowedResourceActions.Elements() {
+					if actionStr, ok := a.(types.String); ok {
+						if !actionStr.IsNull() && !actionStr.IsUnknown() {
+							allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+						}
+					}
+				}
+			}
+
+			if !ra.NotAllowedResourceActions.IsNull() && !ra.NotAllowedResourceActions.IsUnknown() {
+				for _, a := range ra.NotAllowedResourceActions.Elements() {
+					if actionStr, ok := a.(types.String); ok {
+						if !actionStr.IsNull() && !actionStr.IsUnknown() {
+							notAllowedResourceActions = append(notAllowedResourceActions, actionStr.ValueString())
+						}
+					}
+				}
+			}
+		}
 	}
 
-	// Handle RolePermissions (same structure as Permissions)
-	if len(data.RolePermissions) > 0 {
-		rolePermissions := constructRolePermissions(data.RolePermissions)
-		requestBody.SetRolePermissions(rolePermissions)
+	// Process permissions from data.RolePermissions
+	for _, perm := range data.RolePermissions {
+		// Add actions from the actions set
+		if !perm.Actions.IsNull() && !perm.Actions.IsUnknown() {
+			for _, a := range perm.Actions.Elements() {
+				if actionStr, ok := a.(types.String); ok {
+					if !actionStr.IsNull() && !actionStr.IsUnknown() {
+						allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+					}
+				}
+			}
+		}
+
+		// Add allowed/not allowed resource actions
+		for _, ra := range perm.ResourceActions {
+			if !ra.AllowedResourceActions.IsNull() && !ra.AllowedResourceActions.IsUnknown() {
+				for _, a := range ra.AllowedResourceActions.Elements() {
+					if actionStr, ok := a.(types.String); ok {
+						if !actionStr.IsNull() && !actionStr.IsUnknown() {
+							allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+						}
+					}
+				}
+			}
+
+			if !ra.NotAllowedResourceActions.IsNull() && !ra.NotAllowedResourceActions.IsUnknown() {
+				for _, a := range ra.NotAllowedResourceActions.Elements() {
+					if actionStr, ok := a.(types.String); ok {
+						if !actionStr.IsNull() && !actionStr.IsUnknown() {
+							notAllowedResourceActions = append(notAllowedResourceActions, actionStr.ValueString())
+						}
+					}
+				}
+			}
+		}
 	}
 
+	// Set allowed resource actions
+	resourceAction.SetAllowedResourceActions(allowedResourceActions)
+
+	// Set not allowed resource actions if any
+	if len(notAllowedResourceActions) > 0 {
+		resourceAction.SetNotAllowedResourceActions(notAllowedResourceActions)
+	}
+
+	// Create resourceActions array with the single resourceAction
+	resourceActions := []graphmodels.ResourceActionable{
+		resourceAction,
+	}
+	rolePermission.SetResourceActions(resourceActions)
+
+	// Create rolePermissions array with the single rolePermission
+	rolePermissions := []graphmodels.RolePermissionable{
+		rolePermission,
+	}
+	requestBody.SetRolePermissions(rolePermissions)
+
+	// Set role scope tag IDs
 	if !data.RoleScopeTagIds.IsNull() && !data.RoleScopeTagIds.IsUnknown() {
 		var roleScopeTagIds []string
 		for _, id := range data.RoleScopeTagIds.Elements() {
@@ -60,6 +154,7 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
 	}
 
+	// Debug log the constructed object
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
@@ -69,63 +164,4 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
-}
-
-// constructRolePermissions helper function to construct role permissions
-func constructRolePermissions(permissions []RolePermissionResourceModel) []graphmodels.RolePermissionable {
-	rolePermissions := make([]graphmodels.RolePermissionable, 0, len(permissions))
-
-	for _, v := range permissions {
-		rolePermission := graphmodels.NewRolePermission()
-
-		if !v.Actions.IsNull() && !v.Actions.IsUnknown() {
-			var actions []string
-			for _, a := range v.Actions.Elements() {
-				if actionStr, ok := a.(types.String); ok {
-					if !actionStr.IsNull() && !actionStr.IsUnknown() {
-						actions = append(actions, actionStr.ValueString())
-					}
-				}
-			}
-			rolePermission.SetActions(actions)
-		}
-
-		if len(v.ResourceActions) > 0 {
-			resourceActions := make([]graphmodels.ResourceActionable, 0, len(v.ResourceActions))
-			for _, ra := range v.ResourceActions {
-				resourceAction := graphmodels.NewResourceAction()
-
-				if !ra.AllowedResourceActions.IsNull() && !ra.AllowedResourceActions.IsUnknown() {
-					var allowedActions []string
-					for _, a := range ra.AllowedResourceActions.Elements() {
-						if actionStr, ok := a.(types.String); ok {
-							if !actionStr.IsNull() && !actionStr.IsUnknown() {
-								allowedActions = append(allowedActions, actionStr.ValueString())
-							}
-						}
-					}
-					resourceAction.SetAllowedResourceActions(allowedActions)
-				}
-
-				if !ra.NotAllowedResourceActions.IsNull() && !ra.NotAllowedResourceActions.IsUnknown() {
-					var notAllowedActions []string
-					for _, a := range ra.NotAllowedResourceActions.Elements() {
-						if actionStr, ok := a.(types.String); ok {
-							if !actionStr.IsNull() && !actionStr.IsUnknown() {
-								notAllowedActions = append(notAllowedActions, actionStr.ValueString())
-							}
-						}
-					}
-					resourceAction.SetNotAllowedResourceActions(notAllowedActions)
-				}
-
-				resourceActions = append(resourceActions, resourceAction)
-			}
-			rolePermission.SetResourceActions(resourceActions)
-		}
-
-		rolePermissions = append(rolePermissions, rolePermission)
-	}
-
-	return rolePermissions
 }

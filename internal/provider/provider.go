@@ -317,18 +317,6 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"```\n\n" +
 				"Can be set using the `M365_USERNAME` environment variable.",
 		},
-		"password": schema.StringAttribute{
-			Optional:  true,
-			Sensitive: true,
-			MarkdownDescription: "Used for the 'username_password' authentication method.\n\n" +
-				"The password for resource owner password credentials (ROPC) flow authentication.\n\n" +
-				"**Critical Security Warning:**\n" +
-				"- Storing passwords in plain text is a significant security risk\n" +
-				"- Use environment variables or secure vaults to manage this sensitive information\n" +
-				"- Regularly rotate passwords and monitor for unauthorized access\n" +
-				"- Consider using more secure authentication methods when possible\n\n" +
-				"Can be set using the `M365_PASSWORD` environment variable.",
-		},
 		"disable_instance_discovery": schema.BoolAttribute{
 			Optional: true,
 			MarkdownDescription: "DisableInstanceDiscovery should be set true only by terraform runs" +
@@ -417,16 +405,6 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 			MarkdownDescription: "Azure DevOps service connection ID for OIDC authentication. This field is only used with the " +
 				"'oidc' authentication method when using Azure DevOps Pipelines.\n\n" +
 				"Can be set using the `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` environment variables.",
-		},
-		"oidc_token_provider": schema.StringAttribute{
-			Optional:    true,
-			Description: "OIDC token provider type.",
-			MarkdownDescription: "Specifies the OIDC token provider type to use. Valid values are 'github' for GitHub Actions " +
-				"and 'azuredevops' or 'ado' for Azure DevOps Pipelines. When specified, the provider will automatically " +
-				"configure the appropriate OIDC flow for the given provider.",
-			Validators: []validator.String{
-				stringvalidator.OneOf("github", "azuredevops", "azdo"),
-			},
 		},
 	}
 }
