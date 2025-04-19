@@ -43,148 +43,41 @@ This Terraform provider supports multiple authentication methods for accessing M
 * [Authenticating using Managed Identity](./managed_identity.html)
 * [Authenticating using OIDC](./oidc.html)
 
-## Authenticating using Client Secret
-
-The Microsoft 365 provider can use a Service Principal with Client Secret to authenticate to Microsoft 365 services.
-
-1. [Create an app registration in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-2. Add the required API permissions for Microsoft Graph
-3. Create a client secret in the app registration
-4. Configure the provider to use a Service Principal with a Client Secret:
-
-```terraform
-provider "microsoft365" {
-  auth_method = "client_secret"
-  tenant_id   = "00000000-0000-0000-0000-000000000000"
-  entra_id_options = {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "your-client-secret"
-  }
-}
-```
-
-## Authenticating using Client Certificate
-
-The Microsoft 365 provider can use certificate-based authentication for enhanced security.
-
-1. [Create an app registration in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-2. Add the required API permissions for Microsoft Graph
-3. Generate a certificate using openssl or other tools:
-
-```bash
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365
-```
-
-4. Merge public and private parts of the certificate files:
-
-```bash
-# Using Linux shell
-cat *.pem > cert+key.pem
-
-# Using PowerShell
-Get-Content .\cert.pem, .\key.pem | Set-Content cert+key.pem
-```
-
-5. Generate pkcs12 file:
-
-```bash
-openssl pkcs12 -export -out cert.pkcs12 -in cert+key.pem
-```
-
-6. Upload the public certificate (`cert.pem`) to your app registration
-7. Configure the provider:
-
-```terraform
-provider "microsoft365" {
-  auth_method = "client_certificate"
-  tenant_id   = "00000000-0000-0000-0000-000000000000"
-  entra_id_options = {
-    client_id                    = "00000000-0000-0000-0000-000000000000"
-    client_certificate          = "${path.cwd}/cert.pkcs12"
-    client_certificate_password = "your-certificate-password"
-  }
-}
-```
-
-## Authenticating using Username and Password
-
-The Microsoft 365 provider can authenticate using standard username and password credentials.
-
-1. [Create an app registration in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-2. Add the required API permissions for Microsoft Graph
-3. Configure the provider:
-
-```terraform
-provider "microsoft365" {
-  auth_method = "username_password"
-  tenant_id   = "00000000-0000-0000-0000-000000000000"
-  entra_id_options = {
-    client_id = "00000000-0000-0000-0000-000000000000"
-    username  = "user@domain.com"
-    password  = "your-password"
-  }
-}
-```
-
-## Authenticating using Device Code
-
-The Microsoft 365 provider can use device code authentication when interactive login isn't possible.
-
-1. [Create an app registration in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-2. Add the required API permissions for Microsoft Graph
-3. Configure the provider:
-
-```terraform
-provider "microsoft365" {
-  auth_method = "device_code"
-  tenant_id   = "00000000-0000-0000-0000-000000000000"
-  entra_id_options = {
-    client_id = "00000000-0000-0000-0000-000000000000"
-  }
-}
-```
-
-## Authenticating using Interactive Browser
-
-The Microsoft 365 provider can authenticate using an interactive browser session.
-
-1. [Create an app registration in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-2. Add the required API permissions for Microsoft Graph
-3. Configure a redirect URI in your app registration
-4. Configure the provider:
-
-```terraform
-provider "microsoft365" {
-  auth_method = "interactive_browser"
-  tenant_id   = "00000000-0000-0000-0000-000000000000"
-  entra_id_options = {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    redirect_url = "http://localhost:8888"
-    username     = "user@domain.com"  # Optional login hint
-  }
-}
-```
-
 ## Using Environment Variables
 
 We recommend using Environment Variables to pass the credentials to the provider.
 
-| Name | Description |
-|------|-------------|
-| `M365_TENANT_ID` | The Microsoft Entra ID tenant ID |
-| `M365_AUTH_METHOD` | The authentication method to use |
-| `M365_CLIENT_ID` | The application (client) ID |
-| `M365_CLIENT_SECRET` | The client secret value |
-| `M365_CLIENT_CERTIFICATE_FILE_PATH` | Path to the certificate file |
-| `M365_CLIENT_CERTIFICATE_PASSWORD` | Password for the certificate |
-| `M365_USERNAME` | Username for password or browser authentication |
-| `M365_PASSWORD` | Password for password authentication |
-| `M365_REDIRECT_URI` | Redirect URI for interactive browser authentication |
-| `M365_CLOUD` | Cloud environment (defaults to global) |
-| `M365_DISABLE_INSTANCE_DISCOVERY` | Disable instance discovery |
-| `M365_ADDITIONALLY_ALLOWED_TENANTS` | List of additionally allowed tenant IDs |
+## Environment Variables
 
--> Variables passed into the provider block will override the environment variables.
+The Microsoft 365 provider supports various environment variables for authentication and configuration. 
+Using environment variables is recommended for sensitive information like client secrets and certificates.
+
+| Name | Description | Used With |
+|------|-------------|-----------|
+| `M365_TENANT_ID` | The Microsoft Entra ID tenant ID | All authentication methods |
+| `M365_AUTH_METHOD` | The authentication method to use | All authentication methods |
+| `M365_CLIENT_ID` | The application (client) ID | Most authentication methods |
+| `M365_CLIENT_SECRET` | The client secret value | Client Secret authentication |
+| `M365_CLIENT_CERTIFICATE_FILE_PATH` | Path to the certificate file (.pfx) | Client Certificate authentication |
+| `M365_CLIENT_CERTIFICATE_PASSWORD` | Password for the certificate | Client Certificate authentication |
+| `M365_SEND_CERTIFICATE_CHAIN` | Whether to send the certificate chain (true/false) | Client Certificate authentication |
+| `M365_USERNAME` | Username for password or browser authentication | Interactive Browser auth |
+| `M365_REDIRECT_URL` | Redirect URL for interactive browser authentication | Interactive Browser authentication |
+| `M365_MANAGED_IDENTITY_ID` | ID of a user-assigned managed identity | Managed Identity authentication |
+| `M365_OIDC_TOKEN_FILE_PATH` | Path to a file containing an OIDC token | OIDC authentication |
+| `M365_OIDC_AUDIENCE` | The audience value for OIDC tokens | OIDC and GitHub OIDC authentication |
+| `M365_FEDERATED_TOKEN_FILE` | Path to a Kubernetes service account token | Workload Identity authentication |
+| `M365_ADDITIONALLY_ALLOWED_TENANTS` | Comma-separated list of tenant IDs allowed for authentication | All authentication methods |
+| `M365_CLOUD` | Cloud environment (public, dod, gcc, gcchigh, china, ex, rx) | All authentication methods |
+| `M365_DISABLE_INSTANCE_DISCOVERY` | Disable instance discovery (true/false) | All authentication methods |
+| `M365_DEBUG_MODE` | Enable debug mode (true/false) | All authentication methods |
+| `M365_TELEMETRY_OPTOUT` | Opt out of telemetry (true/false) | All authentication methods |
+| `M365_USE_PROXY` | Enable proxy usage (true/false) | All authentication methods |
+| `M365_PROXY_URL` | The URL of the proxy server | When using proxy |
+| `M365_PROXY_USERNAME` | Username for proxy authentication | When using authenticated proxy |
+| `M365_PROXY_PASSWORD` | Password for proxy authentication | When using authenticated proxy |
+
+> Variables passed into the provider block will override the environment variables.
 
 ## Additional Provider Configuration
 
