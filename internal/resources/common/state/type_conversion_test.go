@@ -580,4 +580,13 @@ func TestStringSliceToSet(t *testing.T) {
 		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
 		assert.Equal(t, expected, result, "Should handle slice with empty string correctly")
 	})
+
+	t.Run("Slice with GUID value", func(t *testing.T) {
+		input := []string{"e887e7cd-da41-497d-a414-8d9b755aa1d0"}
+		result := StringSliceToSet(ctx, input)
+
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should correctly convert a slice containing a GUID string")
+	})
+
 }
