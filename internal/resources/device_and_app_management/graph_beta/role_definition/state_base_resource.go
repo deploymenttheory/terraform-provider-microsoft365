@@ -9,118 +9,110 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform states the base properties of a RoleDefinitionResourceModel to a Terraform state
+// MapRemoteResourceStateToTerraform maps the remote RoleDefinition state to Terraform
 func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinitionResourceModel, remoteResource graphmodels.RoleDefinitionable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+	resourceID := state.StringPtrToString(remoteResource.GetId())
+	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
+		"resourceId": resourceID,
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
+	// Set basic properties
+	data.ID = types.StringValue(resourceID)
 	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
 	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
 	data.IsBuiltIn = state.BoolPtrToTypeBool(remoteResource.GetIsBuiltIn())
 	data.IsBuiltInRoleDefinition = state.BoolPtrToTypeBool(remoteResource.GetIsBuiltInRoleDefinition())
 
-	permissions := remoteResource.GetPermissions()
-	if len(permissions) > 0 {
-		data.Permissions = make([]RolePermissionResourceModel, len(permissions))
-		for i, p := range permissions {
-			actionSlice := state.SliceToTypeStringSlice(p.GetActions())
-			actionsSet, diags := types.SetValueFrom(ctx, types.StringType, actionSlice)
-			if diags.HasError() {
-				tflog.Error(ctx, "Error converting actions to set", map[string]interface{}{
-					"error": diags.Errors()[0].Detail(),
-				})
-				continue
-			}
-
-			resourceActions := p.GetResourceActions()
-			raModels := make([]ResourceActionResourceModel, len(resourceActions))
-			for j, ra := range resourceActions {
-				allowedSlice := state.SliceToTypeStringSlice(ra.GetAllowedResourceActions())
-				allowedSet, diags := types.SetValueFrom(ctx, types.StringType, allowedSlice)
-				if diags.HasError() {
-					continue
-				}
-
-				notAllowedSlice := state.SliceToTypeStringSlice(ra.GetNotAllowedResourceActions())
-				notAllowedSet, diags := types.SetValueFrom(ctx, types.StringType, notAllowedSlice)
-				if diags.HasError() {
-					continue
-				}
-
-				raModels[j] = ResourceActionResourceModel{
-					AllowedResourceActions:    allowedSet,
-					NotAllowedResourceActions: notAllowedSet,
-				}
-			}
-
-			data.Permissions[i] = RolePermissionResourceModel{
-				Actions:         actionsSet,
-				ResourceActions: raModels,
-			}
-		}
-	} else {
-		data.Permissions = []RolePermissionResourceModel{}
-	}
-
+	// Process rolePermissions
 	rolePermissions := remoteResource.GetRolePermissions()
 	if len(rolePermissions) > 0 {
-		data.RolePermissions = make([]RolePermissionResourceModel, len(rolePermissions))
-		for i, rp := range rolePermissions {
-			actionSlice := state.SliceToTypeStringSlice(rp.GetActions())
-			actionsSet, diags := types.SetValueFrom(ctx, types.StringType, actionSlice)
-			if diags.HasError() {
-				continue
-			}
+		mappedPermissions := make([]RolePermissionResourceModel, 0, len(rolePermissions))
 
+		for _, rp := range rolePermissions {
+			permModel := RolePermissionResourceModel{}
+
+			// Collect all allowed resource actions
+			var allAllowedActions []string
+
+			// Add actions from resourceActions field
 			resourceActions := rp.GetResourceActions()
-			raModels := make([]ResourceActionResourceModel, len(resourceActions))
-			for j, ra := range resourceActions {
-				allowedSlice := state.SliceToTypeStringSlice(ra.GetAllowedResourceActions())
-				allowedSet, diags := types.SetValueFrom(ctx, types.StringType, allowedSlice)
-				if diags.HasError() {
-					continue
-				}
-
-				notAllowedSlice := state.SliceToTypeStringSlice(ra.GetNotAllowedResourceActions())
-				notAllowedSet, diags := types.SetValueFrom(ctx, types.StringType, notAllowedSlice)
-				if diags.HasError() {
-					continue
-				}
-
-				raModels[j] = ResourceActionResourceModel{
-					AllowedResourceActions:    allowedSet,
-					NotAllowedResourceActions: notAllowedSet,
+			for _, ra := range resourceActions {
+				allowedActions := ra.GetAllowedResourceActions()
+				if len(allowedActions) > 0 {
+					allAllowedActions = append(allAllowedActions, allowedActions...)
 				}
 			}
 
-			data.RolePermissions[i] = RolePermissionResourceModel{
-				Actions:         actionsSet,
-				ResourceActions: raModels,
+			// Add actions from the actions field (if they exist and aren't already in the list)
+			apiActions := rp.GetActions()
+			if len(apiActions) > 0 {
+				for _, action := range apiActions {
+					// Check if action is already in allAllowedActions
+					found := false
+					for _, existing := range allAllowedActions {
+						if existing == action {
+							found = true
+							break
+						}
+					}
+					if !found {
+						allAllowedActions = append(allAllowedActions, action)
+					}
+				}
 			}
+
+			// Create set with proper element type
+			if len(allAllowedActions) > 0 {
+				allowedActionsSet, diags := types.SetValueFrom(ctx, types.StringType, allAllowedActions)
+				if !diags.HasError() {
+					permModel.AllowedResourceActions = allowedActionsSet
+				} else {
+					tflog.Error(ctx, "Error converting allowed resource actions to set", map[string]interface{}{
+						"error": diags.Errors()[0].Detail(),
+					})
+					// Create empty set with StringType
+					permModel.AllowedResourceActions, _ = types.SetValueFrom(ctx, types.StringType, []string{})
+				}
+			} else {
+				// Create empty set with StringType
+				emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+				permModel.AllowedResourceActions = emptySet
+			}
+
+			mappedPermissions = append(mappedPermissions, permModel)
 		}
+
+		data.RolePermissions = mappedPermissions
 	} else {
 		data.RolePermissions = []RolePermissionResourceModel{}
 	}
 
-	// Convert RoleScopeTagIds to Set
-	scopeTagSlice := state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
-	scopeTagSet, diags := types.SetValueFrom(ctx, types.StringType, scopeTagSlice)
-	if diags.HasError() {
-		tflog.Error(ctx, "Error converting scope tags to set", map[string]interface{}{
-			"error": diags.Errors()[0].Detail(),
-		})
+	// Map role scope tag IDs
+	scopeTagIds := remoteResource.GetRoleScopeTagIds()
+	if len(scopeTagIds) > 0 {
+		scopeTagSet, diags := types.SetValueFrom(ctx, types.StringType, scopeTagIds)
+		if !diags.HasError() {
+			data.RoleScopeTagIds = scopeTagSet
+		} else {
+			tflog.Error(ctx, "Error converting scope tags to set", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+			})
+			// Create empty set with StringType
+			emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+			data.RoleScopeTagIds = emptySet
+		}
 	} else {
-		data.RoleScopeTagIds = scopeTagSet
+		// Create empty set with StringType
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.RoleScopeTagIds = emptySet
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
+	tflog.Debug(ctx, "Finished mapping remote state", map[string]interface{}{
+		"resourceId": resourceID,
 	})
 }

@@ -100,71 +100,22 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Optional:            true,
+				Required:            true,
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				MarkdownDescription: "List of Scope Tags for this Entity instance.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
-			"permissions": schema.ListNestedAttribute{
-				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"actions": schema.SetAttribute{
-							MarkdownDescription: "Allowed actions for this role permission.",
-							Optional:            true,
-							ElementType:         types.StringType,
-						},
-						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission.",
-							Optional:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.SetAttribute{
-										MarkdownDescription: "Allowed Resource Actions.",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-									"not_allowed_resource_actions": schema.SetAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions.",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"role_permissions": schema.ListNestedAttribute{
 				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"actions": schema.SetAttribute{
-							MarkdownDescription: "Allowed actions for this role permission.",
+						"allowed_resource_actions": schema.SetAttribute{
+							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields.",
 							Optional:            true,
 							ElementType:         types.StringType,
-						},
-						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission.",
-							Optional:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.SetAttribute{
-										MarkdownDescription: "Allowed Resource Actions.",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-									"not_allowed_resource_actions": schema.SetAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions.",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-								},
-							},
 						},
 					},
 				},

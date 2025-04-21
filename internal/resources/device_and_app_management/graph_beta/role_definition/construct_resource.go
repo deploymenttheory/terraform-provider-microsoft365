@@ -3,158 +3,68 @@ package graphBetaRoleDefinition
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
-// This implementation aligns with the Microsoft Graph example by consolidating all permissions
-// into a single rolePermission with a single resourceAction.
-func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (graphmodels.RoleDefinitionable, error) {
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *RoleDefinitionResourceModel, resp interface{}, readPermissions []string, isUpdate bool) (graphmodels.RoleDefinitionable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewRoleDefinition()
 
-	// Set basic properties
-	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
-		displayName := data.DisplayName.ValueString()
-		requestBody.SetDisplayName(&displayName)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+
+	// For updates, don't set read-only or immutable properties
+	if !isUpdate {
+		if !data.IsBuiltIn.IsNull() {
+			isBuiltIn := data.IsBuiltIn.ValueBool()
+			requestBody.SetIsBuiltIn(&isBuiltIn)
+		}
+
+		if !data.IsBuiltInRoleDefinition.IsNull() {
+			isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
+			requestBody.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
+		}
 	}
 
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		description := data.Description.ValueString()
-		requestBody.SetDescription(&description)
-	}
-
-	if !data.IsBuiltIn.IsNull() && !data.IsBuiltIn.IsUnknown() {
-		isBuiltIn := data.IsBuiltIn.ValueBool()
-		requestBody.SetIsBuiltIn(&isBuiltIn)
-	}
-
-	if !data.IsBuiltInRoleDefinition.IsNull() && !data.IsBuiltInRoleDefinition.IsUnknown() {
-		isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
-		requestBody.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
-	}
-
-	// Create a single rolePermission with all allowed resource actions
 	rolePermission := graphmodels.NewRolePermission()
 	resourceAction := graphmodels.NewResourceAction()
 
-	// Collect all allowed and not allowed resource actions
-	var allowedResourceActions []string
-	var notAllowedResourceActions []string
+	allowedResourceActions := []string{}
 
-	// Process permissions from data.Permissions
-	for _, perm := range data.Permissions {
-		// Add actions from the actions set
-		if !perm.Actions.IsNull() && !perm.Actions.IsUnknown() {
-			for _, a := range perm.Actions.Elements() {
-				if actionStr, ok := a.(types.String); ok {
-					if !actionStr.IsNull() && !actionStr.IsUnknown() {
-						allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
-					}
-				}
-			}
-		}
-
-		// Add allowed/not allowed resource actions
-		for _, ra := range perm.ResourceActions {
-			if !ra.AllowedResourceActions.IsNull() && !ra.AllowedResourceActions.IsUnknown() {
-				for _, a := range ra.AllowedResourceActions.Elements() {
-					if actionStr, ok := a.(types.String); ok {
-						if !actionStr.IsNull() && !actionStr.IsUnknown() {
-							allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
-						}
-					}
-				}
-			}
-
-			if !ra.NotAllowedResourceActions.IsNull() && !ra.NotAllowedResourceActions.IsUnknown() {
-				for _, a := range ra.NotAllowedResourceActions.Elements() {
-					if actionStr, ok := a.(types.String); ok {
-						if !actionStr.IsNull() && !actionStr.IsUnknown() {
-							notAllowedResourceActions = append(notAllowedResourceActions, actionStr.ValueString())
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Process permissions from data.RolePermissions
 	for _, perm := range data.RolePermissions {
-		// Add actions from the actions set
-		if !perm.Actions.IsNull() && !perm.Actions.IsUnknown() {
-			for _, a := range perm.Actions.Elements() {
-				if actionStr, ok := a.(types.String); ok {
-					if !actionStr.IsNull() && !actionStr.IsUnknown() {
-						allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
-					}
-				}
-			}
-		}
-
-		// Add allowed/not allowed resource actions
-		for _, ra := range perm.ResourceActions {
-			if !ra.AllowedResourceActions.IsNull() && !ra.AllowedResourceActions.IsUnknown() {
-				for _, a := range ra.AllowedResourceActions.Elements() {
-					if actionStr, ok := a.(types.String); ok {
-						if !actionStr.IsNull() && !actionStr.IsUnknown() {
-							allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
-						}
-					}
-				}
-			}
-
-			if !ra.NotAllowedResourceActions.IsNull() && !ra.NotAllowedResourceActions.IsUnknown() {
-				for _, a := range ra.NotAllowedResourceActions.Elements() {
-					if actionStr, ok := a.(types.String); ok {
-						if !actionStr.IsNull() && !actionStr.IsUnknown() {
-							notAllowedResourceActions = append(notAllowedResourceActions, actionStr.ValueString())
-						}
-					}
+		if !perm.AllowedResourceActions.IsNull() {
+			for _, a := range perm.AllowedResourceActions.Elements() {
+				if actionStr, ok := a.(types.String); ok && !actionStr.IsNull() {
+					allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
 				}
 			}
 		}
 	}
 
-	// Set allowed resource actions
-	resourceAction.SetAllowedResourceActions(allowedResourceActions)
-
-	// Set not allowed resource actions if any
-	if len(notAllowedResourceActions) > 0 {
-		resourceAction.SetNotAllowedResourceActions(notAllowedResourceActions)
+	validatedPermissions, err := validateRolePermissions(ctx, client, allowedResourceActions, resp, readPermissions)
+	if err != nil {
+		return nil, err
 	}
 
-	// Create resourceActions array with the single resourceAction
-	resourceActions := []graphmodels.ResourceActionable{
-		resourceAction,
-	}
+	resourceAction.SetAllowedResourceActions(validatedPermissions)
+	resourceActions := []graphmodels.ResourceActionable{resourceAction}
 	rolePermission.SetResourceActions(resourceActions)
-
-	// Create rolePermissions array with the single rolePermission
-	rolePermissions := []graphmodels.RolePermissionable{
-		rolePermission,
-	}
+	rolePermissions := []graphmodels.RolePermissionable{rolePermission}
 	requestBody.SetRolePermissions(rolePermissions)
 
-	// Set role scope tag IDs
-	if !data.RoleScopeTagIds.IsNull() && !data.RoleScopeTagIds.IsUnknown() {
-		var roleScopeTagIds []string
-		for _, id := range data.RoleScopeTagIds.Elements() {
-			if idStr, ok := id.(types.String); ok {
-				if !idStr.IsNull() && !idStr.IsUnknown() {
-					roleScopeTagIds = append(roleScopeTagIds, idStr.ValueString())
-				}
-			}
-		}
-		requestBody.SetRoleScopeTagIds(roleScopeTagIds)
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Debug log the constructed object
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
@@ -162,6 +72,53 @@ func constructResource(ctx context.Context, data *RoleDefinitionResourceModel) (
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
 	return requestBody, nil
+}
+
+// validateRolePermissions validates that all provided role permissions exist in the list of available operations
+func validateRolePermissions(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, permissions []string, resp interface{}, readPermissions []string) ([]string, error) {
+	tflog.Debug(ctx, "Validating Intune role permissions against available Intune resource operations")
+
+	// Get the list of available resource operations
+	operations, err := client.
+		DeviceManagement().
+		ResourceOperations().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", readPermissions)
+		return nil, err
+	}
+
+	// Create a map of valid operation IDs for quick lookup
+	validOperations := make(map[string]bool)
+	for _, op := range operations.GetValue() {
+		if op.GetId() != nil {
+			validOperations[*op.GetId()] = true
+		}
+	}
+
+	// Filter out invalid permissions and log warnings
+	validPermissions := []string{}
+	for _, permission := range permissions {
+		if validOperations[permission] {
+			validPermissions = append(validPermissions, permission)
+		} else {
+			// Check if it's a syntax issue (e.g., missing prefix)
+			if !strings.HasPrefix(permission, "Microsoft.Intune_") {
+				correctedPermission := "Microsoft.Intune_" + permission
+				if validOperations[correctedPermission] {
+					tflog.Warn(ctx, fmt.Sprintf("Permission '%s' was missing 'Microsoft.Intune_' prefix, corrected to '%s'",
+						permission, correctedPermission))
+					validPermissions = append(validPermissions, correctedPermission)
+					continue
+				}
+			}
+
+			tflog.Warn(ctx, fmt.Sprintf("Permission '%s' is not a valid resource operation ID and will be ignored", permission))
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Validated %d of %d permissions", len(validPermissions), len(permissions)))
+	return validPermissions, nil
 }

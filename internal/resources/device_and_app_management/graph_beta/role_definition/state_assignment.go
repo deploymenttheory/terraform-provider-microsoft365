@@ -30,32 +30,50 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *sharedmodels
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote assignment state to Terraform state", map[string]interface{}{
-		"assignmentId": state.StringPtrToString(assignment.GetId()),
+	assignmentID := state.StringPtrToString(assignment.GetId())
+	tflog.Debug(ctx, "Mapping remote assignment state to Terraform", map[string]interface{}{
+		"assignmentId": assignmentID,
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(assignment.GetId()))
+	// Set basic properties
+	data.ID = types.StringValue(assignmentID)
 	data.DisplayName = types.StringValue(state.StringPtrToString(assignment.GetDisplayName()))
 	data.Description = types.StringValue(state.StringPtrToString(assignment.GetDescription()))
 
-	// Convert scope members
-	if scopeMembers := assignment.GetScopeMembers(); len(scopeMembers) > 0 {
-		data.ScopeMembers = make([]types.String, len(scopeMembers))
-		for i, member := range scopeMembers {
-			data.ScopeMembers[i] = types.StringValue(member)
+	// Convert scope members to set
+	scopeMembers := assignment.GetScopeMembers()
+	if len(scopeMembers) > 0 {
+		scopeMembersSet, diags := types.SetValueFrom(ctx, types.StringType, scopeMembers)
+		if !diags.HasError() {
+			data.ScopeMembers = scopeMembersSet
+		} else {
+			tflog.Error(ctx, "Error converting scope members to set", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+			})
+			emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+			data.ScopeMembers = emptySet
 		}
 	} else {
-		data.ScopeMembers = []types.String{}
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.ScopeMembers = emptySet
 	}
 
-	// Convert resource scopes
-	if resourceScopes := assignment.GetResourceScopes(); len(resourceScopes) > 0 {
-		data.ResourceScopes = make([]types.String, len(resourceScopes))
-		for i, scope := range resourceScopes {
-			data.ResourceScopes[i] = types.StringValue(scope)
+	// Convert resource scopes to set
+	resourceScopes := assignment.GetResourceScopes()
+	if len(resourceScopes) > 0 {
+		resourceScopesSet, diags := types.SetValueFrom(ctx, types.StringType, resourceScopes)
+		if !diags.HasError() {
+			data.ResourceScopes = resourceScopesSet
+		} else {
+			tflog.Error(ctx, "Error converting resource scopes to set", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+			})
+			emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+			data.ResourceScopes = emptySet
 		}
 	} else {
-		data.ResourceScopes = []types.String{}
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.ResourceScopes = emptySet
 	}
 
 	// Handle scope type
@@ -65,7 +83,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *sharedmodels
 		data.ScopeType = types.StringNull()
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote assignment state to Terraform state", map[string]interface{}{
-		"assignmentId": data.ID.ValueString(),
+	tflog.Debug(ctx, "Finished mapping remote assignment state", map[string]interface{}{
+		"assignmentId": assignmentID,
 	})
 }

@@ -64,6 +64,7 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 		"client_secret":                types.StringValue(helpers.GetEnvString("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString())),
 		"client_certificate":           types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_FILE_PATH", entraIDOptions.ClientCertificate.ValueString())),
 		"client_certificate_password":  types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_PASSWORD", entraIDOptions.ClientCertificatePassword.ValueString())),
+		"username":                     types.StringValue(helpers.GetEnvString("M365_USERNAME", entraIDOptions.Username.ValueString())),
 		"send_certificate_chain":       types.BoolValue(helpers.GetEnvBool("M365_SEND_CERTIFICATE_CHAIN", entraIDOptions.SendCertificateChain.ValueBool())),
 		"disable_instance_discovery":   types.BoolValue(helpers.GetEnvBool("M365_DISABLE_INSTANCE_DISCOVERY", entraIDOptions.DisableInstanceDiscovery.ValueBool())),
 		"additionally_allowed_tenants": allowedTenantsList,

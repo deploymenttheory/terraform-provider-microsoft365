@@ -25,8 +25,8 @@ func RoleAssignmentsSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: "Description of the Role Assignment.",
 				Optional:            true,
 			},
-			"scope_members": schema.SetAttribute{
-				MarkdownDescription: "List of ids of role scope member security groups. These are IDs from Azure Active Directory.",
+			"admin_group_users_group_ids": schema.SetAttribute{
+				MarkdownDescription: "Admin group users group ids that are the administrators assigned to this role.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Set{
@@ -39,21 +39,20 @@ func RoleAssignmentsSchema() schema.SingleNestedAttribute {
 				},
 			},
 			"scope_type": schema.StringAttribute{
-				MarkdownDescription: "Specifies the type of scope for a Role Assignment. Default type 'ResourceScope' allows assignment of ResourceScopes. " +
-					"For 'AllDevices', 'AllLicensedUsers', and 'AllDevicesAndLicensedUsers', the ResourceScopes property should be left empty. " +
-					"Possible values are: `resourceScope`, `allDevices`, `allLicensedUsers`, `allDevicesAndLicensedUsers`.",
+				MarkdownDescription: "Administrators in this role assignment can target policies, applications and remote tasks to a scope type of:" +
+					"'AllDevices', 'AllLicensedUsers', and 'AllDevicesAndLicensedUsers'. If the scope intent is for a entra id group then leave this empty. " +
+					"Possible values are: `AllDevices`, `AllLicensedUsers`, `AllDevicesAndLicensedUsers`.",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"resourceScope",
-						"allDevices",
-						"allLicensedUsers",
-						"allDevicesAndLicensedUsers",
+						"AllDevices",
+						"AllLicensedUsers",
+						"AllDevicesAndLicensedUsers",
 					),
 				},
 			},
 			"resource_scopes": schema.SetAttribute{
-				MarkdownDescription: "List of ids of role scope member security groups. These are IDs from Azure Active Directory.",
+				MarkdownDescription: "Administrators in this role assignment can target policies, applications and remote tasks. List of ids of role scope member security groups from Entra ID.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Set{

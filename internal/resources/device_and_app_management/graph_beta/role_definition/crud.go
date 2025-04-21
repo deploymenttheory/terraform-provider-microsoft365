@@ -29,7 +29,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -38,16 +38,17 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	createdRole, err := r.client.
+	createdResource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		Post(ctx, requestBody, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*createdRole.GetId())
+	object.ID = types.StringValue(*createdResource.GetId())
 
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
@@ -61,12 +62,11 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 
 		_, err = r.client.
 			DeviceManagement().
-			RoleDefinitions().
-			ByRoleDefinitionId(object.ID.ValueString()).
 			RoleAssignments().
 			Post(ctx, requestAssignment, nil)
+
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 	}
@@ -167,10 +167,10 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return

@@ -14,7 +14,6 @@ type RoleDefinitionResourceModel struct {
 	Description             types.String                              `tfsdk:"description"`
 	IsBuiltIn               types.Bool                                `tfsdk:"is_built_in"`
 	IsBuiltInRoleDefinition types.Bool                                `tfsdk:"is_built_in_role_definition"`
-	Permissions             []RolePermissionResourceModel             `tfsdk:"permissions"`
 	RolePermissions         []RolePermissionResourceModel             `tfsdk:"role_permissions"`
 	RoleScopeTagIds         types.Set                                 `tfsdk:"role_scope_tag_ids"`
 	Assignments             *sharedmodels.RoleAssignmentResourceModel `tfsdk:"assignments"`
@@ -22,11 +21,5 @@ type RoleDefinitionResourceModel struct {
 }
 
 type RolePermissionResourceModel struct {
-	Actions         types.Set                     `tfsdk:"actions"`
-	ResourceActions []ResourceActionResourceModel `tfsdk:"resource_actions"`
-}
-
-type ResourceActionResourceModel struct {
-	AllowedResourceActions    types.Set `tfsdk:"allowed_resource_actions"`
-	NotAllowedResourceActions types.Set `tfsdk:"not_allowed_resource_actions"`
+	AllowedResourceActions types.Set `tfsdk:"allowed_resource_actions"`
 }
