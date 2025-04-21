@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -15,6 +16,7 @@ import (
 // Create handles the Create operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object RoleDefinitionResourceModel
+	var assignment sharedmodels.RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -50,8 +52,8 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if len(object.Assignments) > 0 {
+		requestAssignment, err := constructAssignment(ctx, object.ID.ValueString(), &assignment)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment",
@@ -97,6 +99,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 // Read handles the Read operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleDefinitionResourceModel
+	var assignment sharedmodels.RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -139,7 +142,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, object.Assignments, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &assignment, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -187,11 +190,11 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	if object.Assignments != nil && state.Assignments != nil && !state.Assignments.ID.IsNull() {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	for _, assignment := range object.Assignments {
+		requestAssignment, err := constructAssignment(ctx, object.ID.ValueString(), &assignment)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update method",
+				"Error constructing assignment",
 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
@@ -199,13 +202,11 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 
 		_, err = r.client.
 			DeviceManagement().
-			RoleDefinitions().
-			ByRoleDefinitionId(object.ID.ValueString()).
 			RoleAssignments().
-			ByRoleAssignmentId(state.Assignments.ID.ValueString()).
-			Patch(ctx, requestAssignment, nil)
+			Post(ctx, requestAssignment, nil)
+
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update Assignment", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
 			return
 		}
 	}

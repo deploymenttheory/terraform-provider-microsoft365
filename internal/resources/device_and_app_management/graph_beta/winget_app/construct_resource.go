@@ -86,7 +86,7 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel) (graph
 	constructors.SetStringProperty(data.Notes, requestBody.SetNotes)
 	constructors.SetStringProperty(data.ManifestHash, requestBody.SetManifestHash)
 
-	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

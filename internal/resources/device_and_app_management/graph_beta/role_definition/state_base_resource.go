@@ -92,25 +92,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		data.RolePermissions = []RolePermissionResourceModel{}
 	}
 
-	// Map role scope tag IDs
-	scopeTagIds := remoteResource.GetRoleScopeTagIds()
-	if len(scopeTagIds) > 0 {
-		scopeTagSet, diags := types.SetValueFrom(ctx, types.StringType, scopeTagIds)
-		if !diags.HasError() {
-			data.RoleScopeTagIds = scopeTagSet
-		} else {
-			tflog.Error(ctx, "Error converting scope tags to set", map[string]interface{}{
-				"error": diags.Errors()[0].Detail(),
-			})
-			// Create empty set with StringType
-			emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-			data.RoleScopeTagIds = emptySet
-		}
-	} else {
-		// Create empty set with StringType
-		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-		data.RoleScopeTagIds = emptySet
-	}
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, "Finished mapping remote state", map[string]interface{}{
 		"resourceId": resourceID,

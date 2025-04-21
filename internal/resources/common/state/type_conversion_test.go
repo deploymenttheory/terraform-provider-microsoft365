@@ -533,3 +533,51 @@ func TestDecodeBase64ToString(t *testing.T) {
 		assert.Equal(t, types.StringValue(expected), result, "Should correctly decode a base64 string with padding")
 	})
 }
+
+func TestStringSliceToSet(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Nil slice (zero-length)", func(t *testing.T) {
+		result := StringSliceToSet(ctx, []string{})
+		assert.True(t, result.IsNull(), "Should return types.SetNull() for empty slice")
+	})
+
+	t.Run("Single string in slice", func(t *testing.T) {
+		input := []string{"one"}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should return a Set with one element")
+	})
+
+	t.Run("Multiple strings in slice", func(t *testing.T) {
+		input := []string{"a", "b", "c"}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should return a Set with all input elements")
+	})
+
+	t.Run("Slice with duplicates", func(t *testing.T) {
+		input := []string{"dup", "dup", "unique"}
+		result := StringSliceToSet(ctx, input)
+
+		// Deduplicated expected result
+		expected := []string{"dup", "unique"}
+
+		// Extract values
+		var actual []string
+		for _, elem := range result.Elements() {
+			if s, ok := elem.(types.String); ok && !s.IsNull() {
+				actual = append(actual, s.ValueString())
+			}
+		}
+
+		assert.ElementsMatch(t, expected, actual, "Should return a deduplicated Set")
+	})
+
+	t.Run("Slice with empty string", func(t *testing.T) {
+		input := []string{""}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should handle slice with empty string correctly")
+	})
+}
