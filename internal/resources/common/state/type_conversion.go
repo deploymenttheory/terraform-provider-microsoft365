@@ -322,18 +322,7 @@ func StringSliceToSet(ctx context.Context, input []string) types.Set {
 	if len(input) == 0 {
 		return types.SetNull(types.StringType)
 	}
-
-	unique := make(map[string]struct{})
-	for _, val := range input {
-		unique[val] = struct{}{}
-	}
-
-	uniqueSlice := make([]string, 0, len(unique))
-	for k := range unique {
-		uniqueSlice = append(uniqueSlice, k)
-	}
-
-	set, diags := types.SetValueFrom(ctx, types.StringType, uniqueSlice)
+	set, diags := types.SetValueFrom(ctx, types.StringType, input)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]interface{}{
 			"error": diags.Errors()[0].Detail(),
