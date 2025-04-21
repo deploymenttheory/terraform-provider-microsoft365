@@ -26,8 +26,8 @@ func constructResource(ctx context.Context, data *WindowsPlatformScriptResourceM
 	constructors.SetBoolProperty(data.EnforceSignatureCheck, requestBody.SetEnforceSignatureCheck)
 	constructors.SetStringProperty(data.FileName, requestBody.SetFileName)
 
-	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
-		return nil, fmt.Errorf("failed to set role scope tags: %v", err)
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	constructors.SetBoolProperty(data.RunAs32Bit, requestBody.SetRunAs32Bit)

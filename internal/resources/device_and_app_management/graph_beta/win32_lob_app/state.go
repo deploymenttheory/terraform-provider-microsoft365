@@ -45,7 +45,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		}
 	}
 
-	data.RoleScopeTagIds = state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds())
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 	data.DependentAppCount = state.Int32PtrToTypeInt32(remoteResource.GetDependentAppCount())
 	data.SupersedingAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = state.Int32PtrToTypeInt32(remoteResource.GetSupersededAppCount())

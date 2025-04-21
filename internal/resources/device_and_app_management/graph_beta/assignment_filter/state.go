@@ -35,10 +35,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
 
-	data.RoleScopeTags = types.ListValueMust(
-		types.StringType,
-		roleScopeTagIds,
-	)
+	data.RoleScopeTags = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTags())
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

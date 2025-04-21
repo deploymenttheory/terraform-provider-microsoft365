@@ -15,6 +15,6 @@ type AssignmentFilterResourceModel struct {
 	AssignmentFilterManagementType types.String   `tfsdk:"assignment_filter_management_type"`
 	CreatedDateTime                types.String   `tfsdk:"created_date_time"`
 	LastModifiedDateTime           types.String   `tfsdk:"last_modified_date_time"`
-	RoleScopeTags                  types.List     `tfsdk:"role_scope_tags"`
+	RoleScopeTags                  types.Set      `tfsdk:"role_scope_tags"`
 	Timeouts                       timeouts.Value `tfsdk:"timeouts"`
 }

@@ -24,7 +24,7 @@ type Win32LobAppResourceModel struct {
 	UploadState                     types.Int32                                      `tfsdk:"upload_state"`
 	PublishingState                 types.String                                     `tfsdk:"publishing_state"`
 	IsAssigned                      types.Bool                                       `tfsdk:"is_assigned"`
-	RoleScopeTagIds                 []types.String                                   `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds                 types.Set                                        `tfsdk:"role_scope_tag_ids"`
 	DependentAppCount               types.Int32                                      `tfsdk:"dependent_app_count"`
 	SupersedingAppCount             types.Int32                                      `tfsdk:"superseding_app_count"`
 	SupersededAppCount              types.Int32                                      `tfsdk:"superseded_app_count"`

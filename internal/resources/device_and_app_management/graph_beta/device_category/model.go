@@ -10,6 +10,6 @@ type DeviceCategoryResourceModel struct {
 	ID              types.String   `tfsdk:"id"`
 	DisplayName     types.String   `tfsdk:"display_name"`
 	Description     types.String   `tfsdk:"description"`
-	RoleScopeTagIds types.List     `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds types.Set      `tfsdk:"role_scope_tag_ids"`
 	Timeouts        timeouts.Value `tfsdk:"timeouts"`
 }
