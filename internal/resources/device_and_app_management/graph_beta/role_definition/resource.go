@@ -7,10 +7,12 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -96,14 +98,31 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"is_built_in": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
+				Computed:            true,
 				Optional:            true,
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+			},
+			"built_in_role_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "Friendly name of a built-in Intune role to map to its known role definition UUID.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"Policy and Profile manager",
+						"School Administrator",
+						"Help Desk Operator",
+						"Application Manager",
+						"Endpoint Security Manager",
+						"Read Only Operator",
+						"Intune Role Administrator",
+					),
+				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
-				MarkdownDescription: "List of Scope Tags for this Entity instance.",
+				MarkdownDescription: "List of Scope Tags for this intune role definition.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

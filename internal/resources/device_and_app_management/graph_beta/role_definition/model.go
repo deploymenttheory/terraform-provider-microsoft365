@@ -14,6 +14,7 @@ type RoleDefinitionResourceModel struct {
 	Description             types.String                               `tfsdk:"description"`
 	IsBuiltIn               types.Bool                                 `tfsdk:"is_built_in"`
 	IsBuiltInRoleDefinition types.Bool                                 `tfsdk:"is_built_in_role_definition"`
+	BuiltInRoleName         types.String                               `tfsdk:"built_in_role_name"`
 	RolePermissions         []RolePermissionResourceModel              `tfsdk:"role_permissions"`
 	RoleScopeTagIds         types.Set                                  `tfsdk:"role_scope_tag_ids"`
 	Assignments             []sharedmodels.RoleAssignmentResourceModel `tfsdk:"assignments"`
