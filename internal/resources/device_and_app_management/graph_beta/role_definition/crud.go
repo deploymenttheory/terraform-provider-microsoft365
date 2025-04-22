@@ -204,39 +204,98 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
-		var assignmentsList []sharedmodels.RoleAssignmentResourceModel
-		diags := object.Assignments.ElementsAs(ctx, &assignmentsList, false)
+	// Get existing assignments from state
+	var existingAssignments []sharedmodels.RoleAssignmentResourceModel
+	if !state.Assignments.IsNull() && !state.Assignments.IsUnknown() {
+		diags := state.Assignments.ElementsAs(ctx, &existingAssignments, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
+	}
 
-		for _, assignment := range assignmentsList {
-			requestAssignment, err := constructAssignment(
-				ctx,
-				object.ID.ValueString(),
-				object.IsBuiltInRoleDefinition.ValueBool(),
-				object.BuiltInRoleName.ValueString(),
-				&assignment,
-			)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error constructing assignment",
-					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-				)
-				return
+	existingAssignmentMap := make(map[string]sharedmodels.RoleAssignmentResourceModel)
+	for _, assignment := range existingAssignments {
+		if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
+			existingAssignmentMap[assignment.ID.ValueString()] = assignment
+		}
+	}
+
+	// Get new assignments from plan
+	var newAssignments []sharedmodels.RoleAssignmentResourceModel
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
+		diags := object.Assignments.ElementsAs(ctx, &newAssignments, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+	}
+
+	newAssignmentMap := make(map[string]bool)
+	for _, assignment := range newAssignments {
+		if !assignment.DisplayName.IsNull() && !assignment.DisplayName.IsUnknown() {
+			newAssignmentMap[assignment.DisplayName.ValueString()] = true
+		}
+	}
+
+	// Find assignments to delete (in existing but not in new)
+	for assignmentId, existingAssignment := range existingAssignmentMap {
+		if !existingAssignment.DisplayName.IsNull() && !existingAssignment.DisplayName.IsUnknown() {
+			displayName := existingAssignment.DisplayName.ValueString()
+			if _, exists := newAssignmentMap[displayName]; !exists {
+				tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s, DisplayName: %s", assignmentId, displayName))
+
+				err := r.client.
+					DeviceManagement().
+					RoleAssignments().
+					ByDeviceAndAppManagementRoleAssignmentId(assignmentId).
+					Delete(ctx, nil)
+
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Delete Assignment", r.WritePermissions)
+					return
+				}
 			}
+		}
+	}
 
+	// Create or update assignments
+	for _, assignment := range newAssignments {
+		requestAssignment, err := constructAssignment(
+			ctx,
+			object.ID.ValueString(),
+			object.IsBuiltInRoleDefinition.ValueBool(),
+			object.BuiltInRoleName.ValueString(),
+			&assignment,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			)
+			return
+		}
+
+		if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
+			_, err = r.client.
+				DeviceManagement().
+				RoleAssignments().
+				ByDeviceAndAppManagementRoleAssignmentId(assignment.ID.ValueString()).
+				Patch(ctx, requestAssignment, nil)
+		} else {
 			_, err = r.client.
 				DeviceManagement().
 				RoleAssignments().
 				Post(ctx, requestAssignment, nil)
+		}
 
-			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-				return
+		if err != nil {
+			operation := "Create"
+			if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
+				operation = "Update"
 			}
+			errors.HandleGraphError(ctx, err, resp, operation+" Assignment", r.WritePermissions)
+			return
 		}
 	}
 
@@ -275,15 +334,57 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(data.ID.ValueString()).
-		Delete(ctx, nil)
+	isBuiltIn := data.IsBuiltInRoleDefinition.ValueBool() || data.IsBuiltIn.ValueBool()
 
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-		return
+	// For built-in roles, we only need to delete the assignments
+	if isBuiltIn {
+		tflog.Debug(ctx, "Built-in role detected - will only delete assignments")
+
+		respAssignments, err := r.client.
+			DeviceManagement().
+			RoleDefinitions().
+			ByRoleDefinitionId(data.ID.ValueString()).
+			RoleAssignments().
+			Get(ctx, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Get Assignments", r.ReadPermissions)
+			return
+		}
+
+		assignments := respAssignments.GetValue()
+		for _, assignment := range assignments {
+			assignmentID := *assignment.GetId()
+			tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s", assignmentID))
+
+			err := r.client.
+				DeviceManagement().
+				RoleAssignments().
+				ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
+				Delete(ctx, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Delete Assignment %s", assignmentID), r.WritePermissions)
+				return
+			}
+		}
+
+		tflog.Debug(ctx, "All assignments for built-in role deleted successfully")
+	} else {
+		tflog.Debug(ctx, "Custom role detected - will delete the entire role definition")
+
+		err := r.client.
+			DeviceManagement().
+			RoleDefinitions().
+			ByRoleDefinitionId(data.ID.ValueString()).
+			Delete(ctx, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, "Custom role definition deleted successfully")
 	}
 
 	resp.State.RemoveResource(ctx)
