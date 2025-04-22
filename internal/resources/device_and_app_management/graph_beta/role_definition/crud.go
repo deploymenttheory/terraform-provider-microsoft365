@@ -16,7 +16,6 @@ import (
 // Create handles the Create operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object RoleDefinitionResourceModel
-	var assignment sharedmodels.RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -52,24 +51,39 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if len(object.Assignments) > 0 {
-		requestAssignment, err := constructAssignment(ctx, object.ID.ValueString(), &assignment)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
+		var assignmentsList []sharedmodels.RoleAssignmentResourceModel
+		diags := object.Assignments.ElementsAs(ctx, &assignmentsList, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		_, err = r.client.
-			DeviceManagement().
-			RoleAssignments().
-			Post(ctx, requestAssignment, nil)
+		for _, assignment := range assignmentsList {
+			requestAssignment, err := constructAssignment(
+				ctx,
+				object.ID.ValueString(),
+				object.IsBuiltInRoleDefinition.ValueBool(),
+				object.BuiltInRoleName.ValueString(),
+				&assignment,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment",
+					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				)
+				return
+			}
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
+			_, err = r.client.
+				DeviceManagement().
+				RoleAssignments().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+				return
+			}
 		}
 	}
 
@@ -190,24 +204,39 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	for _, assignment := range object.Assignments {
-		requestAssignment, err := constructAssignment(ctx, object.ID.ValueString(), &assignment)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
+		var assignmentsList []sharedmodels.RoleAssignmentResourceModel
+		diags := object.Assignments.ElementsAs(ctx, &assignmentsList, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		_, err = r.client.
-			DeviceManagement().
-			RoleAssignments().
-			Post(ctx, requestAssignment, nil)
+		for _, assignment := range assignmentsList {
+			requestAssignment, err := constructAssignment(
+				ctx,
+				object.ID.ValueString(),
+				object.IsBuiltInRoleDefinition.ValueBool(),
+				object.BuiltInRoleName.ValueString(),
+				&assignment,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment",
+					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				)
+				return
+			}
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
-			return
+			_, err = r.client.
+				DeviceManagement().
+				RoleAssignments().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+				return
+			}
 		}
 	}
 

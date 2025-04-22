@@ -11,7 +11,7 @@ import (
 )
 
 // constructAssignment constructs a DeviceAndAppManagementRoleAssignment from the Terraform assignment model
-func constructAssignment(ctx context.Context, roleDefinitionID string, data *sharedmodels.RoleAssignmentResourceModel) (graphmodels.DeviceAndAppManagementRoleAssignmentable, error) {
+func constructAssignment(ctx context.Context, roleDefinitionID string, isBuiltInRole bool, builtInRoleName string, data *sharedmodels.RoleAssignmentResourceModel) (graphmodels.DeviceAndAppManagementRoleAssignmentable, error) {
 	tflog.Debug(ctx, "Constructing role assignment")
 
 	requestBody := graphmodels.NewDeviceAndAppManagementRoleAssignment()
@@ -47,11 +47,23 @@ func constructAssignment(ctx context.Context, roleDefinitionID string, data *sha
 		}
 	}
 
-	if roleDefinitionID != "" {
+	// Determine the role definition ID to use
+	definitionID := roleDefinitionID
+	if isBuiltInRole && builtInRoleName != "" {
+		// Look up the UUID for the built-in role name
+		if uuid, exists := BuiltInIntuneRoleDefinitions[builtInRoleName]; exists {
+			definitionID = uuid
+			tflog.Debug(ctx, fmt.Sprintf("Using built-in role UUID %s for role name %s", uuid, builtInRoleName))
+		} else {
+			return nil, fmt.Errorf("unknown built-in role name: %s", builtInRoleName)
+		}
+	}
+
+	if definitionID != "" {
 		additionalData := map[string]interface{}{
 			"roleDefinition@odata.bind": fmt.Sprintf(
 				"https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('%s')",
-				roleDefinitionID,
+				definitionID,
 			),
 		}
 		requestBody.SetAdditionalData(additionalData)

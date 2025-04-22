@@ -90,7 +90,7 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "Display Name of the Role definition.",
-				Required:            true,
+				Optional:            true,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the Role definition.",
@@ -103,12 +103,11 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"built_in_role_name": schema.StringAttribute{
 				Optional:    true,
-				Description: "Friendly name of a built-in Intune role to map to its known role definition UUID.",
+				Description: "Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"Policy and Profile manager",
@@ -122,12 +121,12 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
-				MarkdownDescription: "List of Scope Tags for this intune role definition.",
+				MarkdownDescription: "List of Scope Tags to assign to this intune role definition.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
 			"role_permissions": schema.ListNestedAttribute{
-				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
+				MarkdownDescription: "List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions.",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
