@@ -30,6 +30,18 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
+	// Intune roles require unique display_names
+	isBuiltIn := object.IsBuiltInRoleDefinition.ValueBool() || object.IsBuiltIn.ValueBool()
+	if !isBuiltIn && !object.DisplayName.IsNull() && !object.DisplayName.IsUnknown() {
+		if err := checkRoleNameUniqueness(ctx, r.client, object.DisplayName.ValueString()); err != nil {
+			resp.Diagnostics.AddError(
+				"Role Name Not Unique",
+				err.Error(),
+			)
+			return
+		}
+	}
+
 	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -113,7 +125,6 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 // Read handles the Read operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleDefinitionResourceModel
-	var assignment sharedmodels.RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -130,7 +141,6 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	// Get the role definition
 	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
@@ -156,7 +166,7 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &assignment, respAssignments)
+	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
