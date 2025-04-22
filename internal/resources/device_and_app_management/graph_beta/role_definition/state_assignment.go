@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state" // Import the state helpers
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -13,11 +13,13 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps remote assignments to the Terraform state model
-// using the API response and state helpers, ensuring stable ordering.
+// using only the API response, ensuring stable ordering.
+// MapRemoteAssignmentStateToTerraform maps remote assignments to the Terraform state model
+// using only the API response, ensuring stable ordering.
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *RoleDefinitionResourceModel, remoteAssignments graphmodels.RoleAssignmentCollectionResponseable) {
 	tflog.Debug(ctx, "Starting MapRemoteAssignmentStateToTerraform")
 
-	// Define the object type for assignments (remains the same)
+	// Define the object type for assignments
 	assignmentObjectType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"id":                          types.StringType,
@@ -29,7 +31,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *Ro
 		},
 	}
 
-	// If no assignments remotely, set to null and return (remains the same)
+	// If no assignments remotely, set to null and return
 	if remoteAssignments == nil || remoteAssignments.GetValue() == nil || len(remoteAssignments.GetValue()) == 0 {
 		tflog.Debug(ctx, "No remote assignments to process, setting assignments to null")
 		roleDefinition.Assignments = types.SetNull(assignmentObjectType)
@@ -47,12 +49,11 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *Ro
 			continue
 		}
 
-		// Use helpers for string pointer conversions
-		id := state.StringPointerValue(assignment.GetId())             // Use helper
-		dName := state.StringPointerValue(assignment.GetDisplayName()) // Use helper
-		desc := state.StringPointerValue(assignment.GetDescription())  // Use helper
+		// Extract fields
+		id := state.StringPtrToString(assignment.GetId())
+		dName := state.StringPtrToString(assignment.GetDisplayName())
 
-		// Sort members and scopes for consistent ordering (keep sorting)
+		// Sort members and scopes for consistent ordering
 		var sortedMembers, sortedScopes []string
 		if m := assignment.GetScopeMembers(); len(m) > 0 {
 			sortedMembers = append(sortedMembers, m...)
@@ -64,50 +65,64 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *Ro
 		}
 
 		// Determine scope type, defaulting to resourceScope
-		var scopeTypeVal types.String
+		var scopeTypeVal string
 		if st := assignment.GetScopeType(); st != nil {
-			scopeTypeVal = state.StringValue(st.String()) // Use helper
+			scopeTypeVal = st.String()
 		} else {
-			scopeTypeVal = state.StringValue("resourceScope") // Use helper for consistency
+			scopeTypeVal = "resourceScope"
 		}
 
-		// Use helper to create sets from sorted slices
-		// The helper returns SetNull on error or if the input slice is empty/nil.
-		membersSet := state.StringSliceToSet(ctx, sortedMembers)
-		scopesSet := state.StringSliceToSet(ctx, sortedScopes)
+		// Create the members set
+		membersSet, diags := types.SetValueFrom(ctx, types.StringType, sortedMembers)
+		if diags.HasError() {
+			tflog.Error(ctx, "Error converting scope members to set", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+				"id":    id,
+			})
+			continue
+		}
 
-		// Create the object attributes map using the results from helpers
+		// Create the resource scopes set
+		scopesSet, diags := types.SetValueFrom(ctx, types.StringType, sortedScopes)
+		if diags.HasError() {
+			tflog.Error(ctx, "Error converting resource scopes to set", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+				"id":    id,
+			})
+			continue
+		}
+
+		// Create the object attributes map
 		objAttrs := map[string]attr.Value{
-			"id":                          id,
-			"display_name":                dName,
-			"description":                 desc,
-			"admin_group_users_group_ids": membersSet, // Directly use the result from StringSliceToSet
-			"scope_type":                  scopeTypeVal,
-			"resource_scopes":             scopesSet, // Directly use the result from StringSliceToSet
+			"id":                          types.StringValue(id),
+			"display_name":                types.StringValue(dName),
+			"description":                 types.StringValue(state.StringPtrToString(assignment.GetDescription())),
+			"admin_group_users_group_ids": membersSet,
+			"scope_type":                  types.StringValue(scopeTypeVal),
+			"resource_scopes":             scopesSet,
 		}
 
-		// Create the object (error handling remains similar)
+		// Create the object
 		obj, diags := types.ObjectValue(assignmentObjectType.AttrTypes, objAttrs)
 		if diags.HasError() {
 			for _, d := range diags.Errors() {
 				tflog.Error(ctx, "Error creating assignment object", map[string]interface{}{
 					"error": d.Detail(),
-					"id":    id.ValueString(), // Use ValueString() as id is now types.String
+					"id":    id,
 				})
 			}
-			continue // Skip this assignment if object creation fails
+			continue
 		}
 
 		objects = append(objects, obj)
 	}
 
-	// Convert object slice to set (error handling remains similar)
+	// Convert to set
 	setVal, diags := types.SetValue(assignmentObjectType, objects)
 	if diags.HasError() {
 		tflog.Error(ctx, "Error converting assignments to set", map[string]interface{}{
 			"error": diags.Errors()[0].Detail(),
 		})
-		// Set to null on error
 		roleDefinition.Assignments = types.SetNull(assignmentObjectType)
 	} else {
 		roleDefinition.Assignments = setVal
