@@ -224,376 +224,208 @@ func debugPrintAssignments(ctx context.Context, assigns []graphmodels.RoleAssign
 	tflog.Debug(ctx, "=== end of API assignment dump")
 }
 
-// Update handles the Update operation for the RoleDefinition resource, performing differential patch/create/delete of assignments.
+// Update handles the Update operation by wiping and recreating assignments, with extra logging for request paths.
+// Update handles the Update operation by wiping and recreating all assignments.
+// Update handles the Update operation by preserving assignments that should remain.
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var planObj, stateObj RoleDefinitionResourceModel
 
-	// Add logging about the update process starting
-	tflog.Info(ctx, "Starting Update for RoleDefinition", map[string]interface{}{
-		"resource_type": r.TypeName,
-	})
+	tflog.Info(ctx, "Starting Update for RoleDefinition", map[string]interface{}{"resource_type": r.TypeName})
 
-	// Load both plan and state
+	// Load plan & state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &planObj)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &stateObj)...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Failed to extract plan or state objects", map[string]interface{}{
-			"has_errors": resp.Diagnostics.HasError(),
-		})
 		return
 	}
 
-	tflog.Debug(ctx, "Plan and state loaded successfully", map[string]interface{}{
-		"plan_id":  planObj.ID.ValueString(),
-		"state_id": stateObj.ID.ValueString(),
-	})
+	ctx, cancel := crud.HandleTimeout(ctx, planObj.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	defer cancel()
 
-	// 1️⃣ Patch the base RoleDefinition
+	// 1️⃣ PATCH the base RoleDefinition
+	builder := r.client.
+		DeviceManagement().
+		RoleDefinitions().
+		ByRoleDefinitionId(planObj.ID.ValueString())
 	requestBody, err := constructResource(ctx, r.client, &planObj, resp, r.ReadPermissions, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
-	_, err = r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(planObj.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update RoleDefinition", r.WritePermissions)
 		return
 	}
+	tflog.Debug(ctx, "Patched base RoleDefinition successfully")
 
-	tflog.Debug(ctx, "Successfully patched base role definition")
-
-	// 2️⃣ Fetch existing assignments from the API
-	tflog.Debug(ctx, "Fetching existing role assignments")
-	listResp, err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(planObj.ID.ValueString()).
-		RoleAssignments().
-		Get(ctx, nil)
+	// 2️⃣ First get all the existing assignments via the API to ensure we have all IDs
+	listResp, err := builder.RoleAssignments().Get(ctx, nil)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Get Assignments", r.ReadPermissions)
 		return
 	}
 
-	// Map existing assignments by ID for easier lookup
-	existingByID := make(map[string]graphmodels.RoleAssignmentable, len(listResp.GetValue()))
+	// Create a map of existing assignments by ID for easier lookup
+	existingByID := make(map[string]graphmodels.RoleAssignmentable)
 	for _, a := range listResp.GetValue() {
 		if id := a.GetId(); id != nil {
 			existingByID[*id] = a
-			tflog.Debug(ctx, "Found existing assignment", map[string]interface{}{
-				"id":           *id,
-				"display_name": state.StringPtrToString(a.GetDisplayName()),
-			})
 		}
 	}
-	tflog.Debug(ctx, "Finished mapping existing assignments", map[string]interface{}{
-		"count": len(existingByID),
-	})
 
-	// 3️⃣ Pull desired assignments out of the plan
-	var desiredList []sharedmodels.RoleAssignmentResourceModel
+	// 3️⃣ Extract planned and state assignments
+	var planAssignments, stateAssignments []sharedmodels.RoleAssignmentResourceModel
 	if !planObj.Assignments.IsNull() && !planObj.Assignments.IsUnknown() {
-		if diags := planObj.Assignments.ElementsAs(ctx, &desiredList, false); diags.HasError() {
-			tflog.Error(ctx, "Failed to extract assignments from plan", map[string]interface{}{
-				"error_count": len(diags.Errors()),
-			})
+		if diags := planObj.Assignments.ElementsAs(ctx, &planAssignments, false); diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		tflog.Debug(ctx, "Extracted desired assignments from plan", map[string]interface{}{
-			"count": len(desiredList),
-		})
-	} else {
-		tflog.Debug(ctx, "No assignments found in plan object")
+	}
+	if !stateObj.Assignments.IsNull() && !stateObj.Assignments.IsUnknown() {
+		if diags := stateObj.Assignments.ElementsAs(ctx, &stateAssignments, false); diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
 	}
 
-	// Log the full desiredList for debugging
-	for i, assignment := range desiredList {
-		tflog.Debug(ctx, "Desired assignment details", map[string]interface{}{
-			"index":        i,
-			"id":           assignment.ID.String(),
-			"display_name": assignment.DisplayName.ValueString(),
-			"description":  assignment.Description.ValueString(),
-			"has_id":       !assignment.ID.IsNull() && !assignment.ID.IsUnknown(),
-			"id_null":      assignment.ID.IsNull(),
-			"id_unknown":   assignment.ID.IsUnknown(),
-		})
+	// 4️⃣ Create a mapping between state assignments and plan assignments
+	stateIDs := make(map[string]bool)                                     // All IDs in state
+	planByID := make(map[string]sharedmodels.RoleAssignmentResourceModel) // Maps state ID to planned assignment for updates
+	toCreate := make([]sharedmodels.RoleAssignmentResourceModel, 0)       // New assignments
+
+	// Track all IDs from state
+	for _, stateAssign := range stateAssignments {
+		if !stateAssign.ID.IsNull() && !stateAssign.ID.IsUnknown() {
+			id := stateAssign.ID.ValueString()
+			stateIDs[id] = true // Mark this ID as existing in state
+		}
 	}
 
-	// Categorize assignments into updates, deletes, and creates
-	toUpdateByID := make(map[string]sharedmodels.RoleAssignmentResourceModel)
-	var toCreate []sharedmodels.RoleAssignmentResourceModel
-	var toDelete []string
+	// Determine whether each plan assignment should be a create or update
+	// For updates, we link it to a state assignment ID
+	for _, planAssign := range planAssignments {
+		// First check for exact match by display name
+		var matchingID string
+		var found bool
 
-	// Find assignments to update or create
-	for i, d := range desiredList {
-		if !d.ID.IsNull() && !d.ID.IsUnknown() {
-			// Check if this ID is already in the map
-			if existing, exists := toUpdateByID[d.ID.ValueString()]; exists {
-				tflog.Warn(ctx, "Duplicate assignment ID detected", map[string]interface{}{
-					"id":                    d.ID.ValueString(),
-					"existing_display_name": existing.DisplayName.ValueString(),
-					"new_display_name":      d.DisplayName.ValueString(),
-					"index":                 i,
-				})
-
-				// If the ID is the same but display name is different, treat it as a new assignment to create
-				if existing.DisplayName.ValueString() != d.DisplayName.ValueString() {
-					// Create a new assignment without the ID
-					newAssignment := d
-					newAssignment.ID = types.StringNull()
-					toCreate = append(toCreate, newAssignment)
-					tflog.Info(ctx, "Moving assignment with duplicate ID to creation list", map[string]interface{}{
-						"display_name": d.DisplayName.ValueString(),
-					})
-					continue
+		// Try to find a matching assignment by display name
+		for _, stateAssign := range stateAssignments {
+			if !planAssign.DisplayName.IsNull() && !stateAssign.DisplayName.IsNull() &&
+				planAssign.DisplayName.ValueString() == stateAssign.DisplayName.ValueString() {
+				if !stateAssign.ID.IsNull() && !stateAssign.ID.IsUnknown() {
+					matchingID = stateAssign.ID.ValueString()
+					found = true
+					break
 				}
 			}
+		}
 
-			// If this ID exists in the API, it's an update; otherwise, it's likely an error or a rename
-			if _, exists := existingByID[d.ID.ValueString()]; exists {
-				toUpdateByID[d.ID.ValueString()] = d
-				tflog.Debug(ctx, "Assignment with ID marked for update", map[string]interface{}{
-					"index":        i,
-					"id":           d.ID.ValueString(),
-					"display_name": d.DisplayName.ValueString(),
-				})
-			} else {
-				// ID in plan doesn't exist in API - could be an error or a rename
-				// To be safe, treat it as a new creation
-				newAssignment := d
-				newAssignment.ID = types.StringNull()
-				toCreate = append(toCreate, newAssignment)
-				tflog.Warn(ctx, "Assignment ID in plan not found in API, treating as new", map[string]interface{}{
-					"id":           d.ID.ValueString(),
-					"display_name": d.DisplayName.ValueString(),
-				})
-			}
+		if found {
+			// We found a matching ID by display name
+			planByID[matchingID] = planAssign
 		} else {
-			// No ID provided, definitely a new creation
-			toCreate = append(toCreate, d)
-			tflog.Debug(ctx, "Assignment without ID marked for creation", map[string]interface{}{
-				"index":        i,
-				"display_name": d.DisplayName.ValueString(),
-			})
+			// No matching state assignment, this is a new one
+			toCreate = append(toCreate, planAssign)
 		}
 	}
 
-	// Find assignments to delete (in API but not in plan)
-	for id := range existingByID {
-		if _, keep := toUpdateByID[id]; !keep {
+	// 5️⃣ Identify assignments to delete (in state but not linked to any plan assignment)
+	toDelete := make([]string, 0)
+	for id := range stateIDs {
+		if _, exists := planByID[id]; !exists {
 			toDelete = append(toDelete, id)
-			tflog.Debug(ctx, "Assignment marked for deletion", map[string]interface{}{
-				"id":           id,
-				"display_name": state.StringPtrToString(existingByID[id].GetDisplayName()),
-			})
 		}
 	}
 
-	tflog.Debug(ctx, "Assignments categorized", map[string]interface{}{
-		"to_update_count": len(toUpdateByID),
-		"to_create_count": len(toCreate),
-		"to_delete_count": len(toDelete),
-	})
-
-	// STEP 1: PATCH existing assignments
-	tflog.Info(ctx, "Processing assignments to update", map[string]interface{}{
-		"count": len(toUpdateByID),
-	})
-
-	for id, desired := range toUpdateByID {
-		tflog.Debug(ctx, "Patching assignment", map[string]interface{}{
-			"id":           id,
-			"display_name": desired.DisplayName.ValueString(),
-		})
-		reqBody, err := constructAssignment(
-			ctx,
-			planObj.ID.ValueString(),
-			planObj.IsBuiltInRoleDefinition.ValueBool(),
-			planObj.BuiltInRoleName.ValueString(),
-			&desired,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Error constructing assignment", err.Error())
-			return
-		}
-		if _, err := r.client.
-			DeviceManagement().
-			RoleAssignments().
-			ByDeviceAndAppManagementRoleAssignmentId(id).
-			Patch(ctx, reqBody, nil); err != nil {
-			errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Patch Assignment %s", id), r.WritePermissions)
-			return
-		}
-		tflog.Debug(ctx, "Successfully patched assignment", map[string]interface{}{
-			"id": id,
-		})
-	}
-
-	// Refresh state after updates
-	if len(toUpdateByID) > 0 {
-		tflog.Debug(ctx, "Refreshing state after updates")
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
-		resp.Diagnostics.Append(readResp.Diagnostics...)
-		if resp.Diagnostics.HasError() {
-			tflog.Error(ctx, "Errors encountered during state refresh after updates", map[string]interface{}{
-				"error_count": len(readResp.Diagnostics.Errors()),
-			})
-			return
-		}
-		resp.State = readResp.State
-	}
-
-	// STEP 2: DELETE assignments
-	tflog.Info(ctx, "Processing assignments to delete", map[string]interface{}{
-		"count": len(toDelete),
-	})
-
+	// 6️⃣ Delete assignments that need to be removed
 	for _, id := range toDelete {
-		tflog.Debug(ctx, "Deleting assignment", map[string]interface{}{
-			"id":           id,
-			"display_name": state.StringPtrToString(existingByID[id].GetDisplayName()),
-		})
-		if err := r.client.
+		tflog.Debug(ctx, "Deleting assignment", map[string]interface{}{"id": id})
+		err := r.client.
 			DeviceManagement().
 			RoleAssignments().
 			ByDeviceAndAppManagementRoleAssignmentId(id).
-			Delete(ctx, nil); err != nil {
+			Delete(ctx, nil)
+		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Delete Assignment %s", id), r.WritePermissions)
 			return
 		}
-		tflog.Debug(ctx, "Successfully deleted assignment", map[string]interface{}{
-			"id": id,
-		})
 	}
 
-	// Refresh state after deletes
-	if len(toDelete) > 0 {
-		tflog.Debug(ctx, "Refreshing state after deletes")
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
-		resp.Diagnostics.Append(readResp.Diagnostics...)
-		if resp.Diagnostics.HasError() {
-			tflog.Error(ctx, "Errors encountered during state refresh after deletes", map[string]interface{}{
-				"error_count": len(readResp.Diagnostics.Errors()),
-			})
+	// 7️⃣ Update existing assignments
+	for id, planAssign := range planByID {
+		tflog.Debug(ctx, "Updating assignment", map[string]interface{}{
+			"id":           id,
+			"display_name": planAssign.DisplayName.ValueString(),
+		})
+
+		updatedAssign, err := constructAssignment(
+			ctx,
+			planObj.ID.ValueString(),
+			planObj.IsBuiltInRoleDefinition.ValueBool(),
+			planObj.BuiltInRoleName.ValueString(),
+			&planAssign,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error constructing assignment for update", err.Error())
 			return
 		}
-		resp.State = readResp.State
+
+		_, err = r.client.
+			DeviceManagement().
+			RoleAssignments().
+			ByDeviceAndAppManagementRoleAssignmentId(id).
+			Patch(ctx, updatedAssign, nil)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Update Assignment %s", id), r.WritePermissions)
+			return
+		}
 	}
 
-	// STEP 3: CREATE new assignments
-	tflog.Info(ctx, "Processing assignments to create", map[string]interface{}{
-		"count": len(toCreate),
-	})
-
-	for i, newA := range toCreate {
+	// 8️⃣ Create new assignments
+	for _, planAssign := range toCreate {
 		tflog.Debug(ctx, "Creating new assignment", map[string]interface{}{
-			"index":               i,
-			"display_name":        newA.DisplayName.ValueString(),
-			"scope_type":          newA.ScopeType.ValueString(),
-			"has_scope_members":   !newA.ScopeMembers.IsNull() && !newA.ScopeMembers.IsUnknown(),
-			"has_resource_scopes": !newA.ResourceScopes.IsNull() && !newA.ResourceScopes.IsUnknown(),
+			"display_name": planAssign.DisplayName.ValueString(),
 		})
 
-		// Dump scope members and resource scopes for detailed debugging
-		if !newA.ScopeMembers.IsNull() && !newA.ScopeMembers.IsUnknown() {
-			var members []string
-			newA.ScopeMembers.ElementsAs(ctx, &members, false)
-			tflog.Debug(ctx, "Scope members", map[string]interface{}{
-				"count":   len(members),
-				"members": members,
-			})
-		}
-
-		if !newA.ResourceScopes.IsNull() && !newA.ResourceScopes.IsUnknown() {
-			var scopes []string
-			newA.ResourceScopes.ElementsAs(ctx, &scopes, false)
-			tflog.Debug(ctx, "Resource scopes", map[string]interface{}{
-				"count":  len(scopes),
-				"scopes": scopes,
-			})
-		}
+		// Ensure ID is null for a new assignment
+		newAssign := planAssign
+		newAssign.ID = types.StringNull()
 
 		reqBody, err := constructAssignment(
 			ctx,
 			planObj.ID.ValueString(),
 			planObj.IsBuiltInRoleDefinition.ValueBool(),
 			planObj.BuiltInRoleName.ValueString(),
-			&newA,
+			&newAssign,
 		)
 		if err != nil {
-			tflog.Error(ctx, "Failed to construct assignment", map[string]interface{}{
-				"error":        err.Error(),
-				"display_name": newA.DisplayName.ValueString(),
-			})
-			resp.Diagnostics.AddError("Error constructing assignment", err.Error())
+			resp.Diagnostics.AddError("Error constructing assignment for create", err.Error())
 			return
 		}
 
-		tflog.Debug(ctx, "Sending POST request to create new assignment", map[string]interface{}{
-			"role_def_id":  planObj.ID.ValueString(),
-			"display_name": newA.DisplayName.ValueString(),
-		})
-
-		createdAssignment, err := r.client.
+		_, err = r.client.
 			DeviceManagement().
 			RoleAssignments().
 			Post(ctx, reqBody, nil)
-
 		if err != nil {
-			tflog.Error(ctx, "Failed to create assignment", map[string]interface{}{
-				"error":        err.Error(),
-				"display_name": newA.DisplayName.ValueString(),
-			})
 			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
 			return
 		}
-
-		if createdAssignment != nil && createdAssignment.GetId() != nil {
-			tflog.Info(ctx, "Successfully created new assignment", map[string]interface{}{
-				"display_name": newA.DisplayName.ValueString(),
-				"new_id":       *createdAssignment.GetId(),
-			})
-		} else {
-			tflog.Warn(ctx, "Created assignment but ID is nil or missing", map[string]interface{}{
-				"display_name": newA.DisplayName.ValueString(),
-			})
-		}
-
-		// Refresh state after each create to ensure the new ID is properly captured
-		tflog.Debug(ctx, "Refreshing state after creating assignment", map[string]interface{}{
-			"display_name": newA.DisplayName.ValueString(),
-		})
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
-		resp.Diagnostics.Append(readResp.Diagnostics...)
-		if resp.Diagnostics.HasError() {
-			tflog.Error(ctx, "Errors encountered during state refresh after create", map[string]interface{}{
-				"error_count": len(readResp.Diagnostics.Errors()),
-			})
-			return
-		}
-		resp.State = readResp.State
 	}
 
-	// Final state refresh to ensure everything is consistent
-	tflog.Debug(ctx, "Performing final state refresh")
+	// 9️⃣ FINAL: Refresh state
+	tflog.Debug(ctx, "Final state refresh starting")
 	readResp := &resource.ReadResponse{State: resp.State}
 	r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
 	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors encountered during final state refresh", map[string]interface{}{
-			"error_count": len(readResp.Diagnostics.Errors()),
-		})
 		return
 	}
 	resp.State = readResp.State
+
 	tflog.Info(ctx, "Update completed successfully")
 }
 

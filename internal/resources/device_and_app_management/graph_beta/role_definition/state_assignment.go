@@ -40,13 +40,6 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *Ro
 
 	// Process remote assignments
 	assignList := remoteAssignments.GetValue()
-	// Sort assignments by display name for stable order
-	sort.Slice(assignList, func(i, j int) bool {
-		iName := state.StringPtrToString(assignList[i].GetDisplayName())
-		jName := state.StringPtrToString(assignList[j].GetDisplayName())
-		return iName < jName
-	})
-
 	// Build models
 	var objects []attr.Value
 	for _, assignment := range assignList {
