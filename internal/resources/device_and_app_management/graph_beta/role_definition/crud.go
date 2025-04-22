@@ -3,7 +3,6 @@ package graphBetaRoleDefinition
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
@@ -126,17 +125,15 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 }
 
 // Read handles the Read operation for the RoleDefinition resource.
+// Read handles the Read operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleDefinitionResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -144,376 +141,229 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	// Get the base role definition
+	// 1️⃣ Fetch base resource
 	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
-
-	// Map the base resource state
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
-	// Get the list of assignments for this role definition
+	// 2️⃣ List the assignments
 	assignmentsList, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
 		RoleAssignments().
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read Assignments List", r.ReadPermissions)
 		return
 	}
 
-	// Create a collection of detailed assignment objects to pass to MapRemoteAssignmentStateToTerraform
+	// 3️⃣ Pull each assignment’s full details
 	detailedResponse := graphmodels.NewRoleAssignmentCollectionResponse()
+	// ← declare slice of the interface that SetValue expects:
 	var detailedAssignments []graphmodels.RoleAssignmentable
 
-	// Fetch each assignment individually to get complete details
 	if assignmentsList != nil && assignmentsList.GetValue() != nil {
 		for _, listAssignment := range assignmentsList.GetValue() {
 			if listAssignment == nil || listAssignment.GetId() == nil {
 				continue
 			}
-
 			assignmentID := *listAssignment.GetId()
-			tflog.Debug(ctx, fmt.Sprintf("Fetching details for assignment ID: %s", assignmentID))
-
-			// Get the full assignment details for this ID
-			detailedAssignment, err := r.client.
+			full, err := r.client.
 				DeviceManagement().
 				RoleAssignments().
 				ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
 				Get(ctx, nil)
-
 			if err != nil {
-				tflog.Warn(ctx, fmt.Sprintf("Failed to fetch details for assignment ID %s: %s", assignmentID, err.Error()))
+				tflog.Warn(ctx, fmt.Sprintf("Failed to fetch details for assignment ID %s: %s", assignmentID, err))
 				continue
 			}
-
-			// Log the detailed data to compare with list data
-			tflog.Debug(ctx, fmt.Sprintf("Detailed assignment data for ID %s:", assignmentID), map[string]interface{}{
-				"displayName":    state.StringPtrToString(detailedAssignment.GetDisplayName()),
-				"scopeMembers":   detailedAssignment.GetScopeMembers(),
-				"resourceScopes": detailedAssignment.GetResourceScopes(),
-				"hasScopeType":   detailedAssignment.GetScopeType() != nil,
-			})
-
-			// Add to our collection
-			detailedAssignments = append(detailedAssignments, detailedAssignment)
+			// append to the RoleAssignmentable slice
+			detailedAssignments = append(detailedAssignments, full)
 		}
 	}
-
-	// Set the values in the response
 	detailedResponse.SetValue(detailedAssignments)
 
-	// Map the detailed assignments to the Terraform state
-	MapRemoteAssignmentStateToTerraform(ctx, &object, detailedResponse)
+	// ─── DEBUG DUMP ────────────────────────────────────────────────────────────────
+	debugPrintAssignments(ctx, detailedAssignments)
+	// ───────────────────────────────────────────────────────────────────────────────
 
+	// 4️⃣ Finally map into Terraform state
+	MapRemoteAssignmentStateToTerraform(ctx, &object, detailedResponse)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+}
+
+// debugPrintAssignments emits a detailed tflog.Debug of every assignment object
+func debugPrintAssignments(ctx context.Context, assigns []graphmodels.RoleAssignmentable) {
+	tflog.Debug(ctx, fmt.Sprintf("=== Graph API returned %d assignments:", len(assigns)))
+	for i, a := range assigns {
+		id := state.StringPtrToString(a.GetId())
+		name := state.StringPtrToString(a.GetDisplayName())
+		desc := state.StringPtrToString(a.GetDescription())
+		members := a.GetScopeMembers()
+		scopes := a.GetResourceScopes()
+		scopeType := "<nil>"
+		if st := a.GetScopeType(); st != nil {
+			scopeType = string(*st)
+		}
+		tflog.Debug(ctx, fmt.Sprintf(
+			"Assignment[%d]: id=%q, displayName=%q, description=%q, scopeType=%q, scopeMembers=%v, resourceScopes=%v",
+			i, id, name, desc, scopeType, members, scopes,
+		))
+	}
+	tflog.Debug(ctx, "=== end of API assignment dump")
 }
 
 // Update handles the Update operation for the RoleDefinition resource.
+// Update handles the Update operation for the RoleDefinition resource, performing differential patch/create/delete of assignments.
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object, state RoleDefinitionResourceModel
+	var planObj, stateObj RoleDefinitionResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	// Load both plan and state
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &planObj)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &stateObj)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-	if cancel == nil {
-		return
-	}
-	defer cancel()
-
-	// Update the base role definition
-	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, true)
+	// 1️⃣ Patch the base RoleDefinition
+	requestBody, err := constructResource(ctx, r.client, &planObj, resp, r.ReadPermissions, true)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
-
 	_, err = r.client.
 		DeviceManagement().
 		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
+		ByRoleDefinitionId(planObj.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	// Get list of existing assignments
-	respAssignments, err := r.client.
+	// 2️⃣ Fetch existing assignments
+	listResp, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
+		ByRoleDefinitionId(planObj.ID.ValueString()).
 		RoleAssignments().
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Get Assignments", r.ReadPermissions)
 		return
 	}
 
-	// Delete all existing assignments
-	assignments := respAssignments.GetValue()
-	for _, assignment := range assignments {
-		if assignment == nil || assignment.GetId() == nil {
-			continue
-		}
-
-		assignmentID := *assignment.GetId()
-		tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s", assignmentID))
-
-		err := r.client.
-			DeviceManagement().
-			RoleAssignments().
-			ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
-			Delete(ctx, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Delete Assignment %s", assignmentID), r.WritePermissions)
-			return
+	existingByID := make(map[string]graphmodels.RoleAssignmentable, len(listResp.GetValue()))
+	for _, a := range listResp.GetValue() {
+		if id := a.GetId(); id != nil {
+			existingByID[*id] = a
 		}
 	}
 
-	// Get new assignments from plan
-	var newAssignments []sharedmodels.RoleAssignmentResourceModel
-	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
-		diags := object.Assignments.ElementsAs(ctx, &newAssignments, false)
-		if diags.HasError() {
+	// 3️⃣ Pull desired assignments out of the plan
+	var desiredList []sharedmodels.RoleAssignmentResourceModel
+	if !planObj.Assignments.IsNull() && !planObj.Assignments.IsUnknown() {
+		if diags := planObj.Assignments.ElementsAs(ctx, &desiredList, false); diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-
-		// Sort assignments for consistency
-		sort.Slice(newAssignments, func(i, j int) bool {
-			return newAssignments[i].DisplayName.ValueString() < newAssignments[j].DisplayName.ValueString()
-		})
 	}
 
-	// Create all new assignments
-	for _, assignment := range newAssignments {
-		requestAssignment, err := constructAssignment(
+	// Build maps of desired by ID (for update) and collect new
+	desiredByID := make(map[string]sharedmodels.RoleAssignmentResourceModel)
+	var toCreate []sharedmodels.RoleAssignmentResourceModel
+	for _, d := range desiredList {
+		if !d.ID.IsNull() && !d.ID.IsUnknown() {
+			desiredByID[d.ID.ValueString()] = d
+		} else {
+			toCreate = append(toCreate, d)
+		}
+	}
+
+	// 4️⃣ DELETE any existing that are no longer in desired
+	for existingID := range existingByID {
+		if _, keep := desiredByID[existingID]; !keep {
+			tflog.Debug(ctx, "Deleting assignment", map[string]interface{}{"id": existingID})
+			if err := r.client.
+				DeviceManagement().
+				RoleAssignments().
+				ByDeviceAndAppManagementRoleAssignmentId(existingID).
+				Delete(ctx, nil); err != nil {
+				errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Delete Assignment %s", existingID), r.WritePermissions)
+				return
+			}
+		}
+	}
+
+	// 5️⃣ PATCH existing assignments that still have an ID
+	for id, desired := range desiredByID {
+		tflog.Debug(ctx, "Patching assignment", map[string]interface{}{"id": id})
+		reqBody, err := constructAssignment(
 			ctx,
-			object.ID.ValueString(),
-			object.IsBuiltInRoleDefinition.ValueBool(),
-			object.BuiltInRoleName.ValueString(),
-			&assignment,
+			planObj.ID.ValueString(),
+			planObj.IsBuiltInRoleDefinition.ValueBool(),
+			planObj.BuiltInRoleName.ValueString(),
+			&desired,
 		)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+			resp.Diagnostics.AddError("Error constructing assignment", err.Error())
 			return
 		}
-
-		// Always create as new
-		_, err = r.client.
+		if _, err := r.client.
 			DeviceManagement().
 			RoleAssignments().
-			Post(ctx, requestAssignment, nil)
+			ByDeviceAndAppManagementRoleAssignmentId(id).
+			Patch(ctx, reqBody, nil); err != nil {
+			errors.HandleGraphError(ctx, err, resp, fmt.Sprintf("Patch Assignment %s", id), r.WritePermissions)
+			return
+		}
+	}
 
+	// 6️⃣ POST new assignments
+	for _, newA := range toCreate {
+		tflog.Debug(ctx, "Creating new assignment", map[string]interface{}{"displayName": newA.DisplayName.ValueString()})
+		reqBody, err := constructAssignment(
+			ctx,
+			planObj.ID.ValueString(),
+			planObj.IsBuiltInRoleDefinition.ValueBool(),
+			planObj.BuiltInRoleName.ValueString(),
+			&newA,
+		)
 		if err != nil {
+			resp.Diagnostics.AddError("Error constructing assignment", err.Error())
+			return
+		}
+		if _, err := r.client.
+			DeviceManagement().
+			RoleAssignments().
+			Post(ctx, reqBody, nil); err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
 			return
 		}
 	}
 
-	// Allow some time for the backend to process the assignments
-	time.Sleep(2 * time.Second)
-
-	// Read back the full state
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
-
+	// 7️⃣ Finally, re‐read all properties (including assignments) into state
+	readResp := &resource.ReadResponse{State: resp.State}
+	r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
 	resp.Diagnostics.Append(readResp.Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.State = readResp.State
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
-
-// func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-// 	var object, state RoleDefinitionResourceModel
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-// 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-// 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-// 	if resp.Diagnostics.HasError() {
-// 		return
-// 	}
-
-// 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-// 	if cancel == nil {
-// 		return
-// 	}
-// 	defer cancel()
-
-// 	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, true)
-// 	if err != nil {
-// 		resp.Diagnostics.AddError(
-// 			"Error constructing resource",
-// 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-// 		)
-// 		return
-// 	}
-
-// 	_, err = r.client.
-// 		DeviceManagement().
-// 		RoleDefinitions().
-// 		ByRoleDefinitionId(object.ID.ValueString()).
-// 		Patch(ctx, requestBody, nil)
-
-// 	if err != nil {
-// 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-// 		return
-// 	}
-
-// 	// Get existing assignments from state
-// 	var existingAssignments []sharedmodels.RoleAssignmentResourceModel
-// 	if !state.Assignments.IsNull() && !state.Assignments.IsUnknown() {
-// 		diags := state.Assignments.ElementsAs(ctx, &existingAssignments, false)
-// 		if diags.HasError() {
-// 			resp.Diagnostics.Append(diags...)
-// 			return
-// 		}
-// 	}
-
-// 	existingAssignmentMap := make(map[string]sharedmodels.RoleAssignmentResourceModel)
-// 	for _, assignment := range existingAssignments {
-// 		if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
-// 			existingAssignmentMap[assignment.ID.ValueString()] = assignment
-// 		}
-// 	}
-
-// 	// Get new assignments from plan
-// 	var newAssignments []sharedmodels.RoleAssignmentResourceModel
-// 	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
-// 		diags := object.Assignments.ElementsAs(ctx, &newAssignments, false)
-// 		if diags.HasError() {
-// 			resp.Diagnostics.Append(diags...)
-// 			return
-// 		}
-// 	}
-
-// 	newAssignmentMap := make(map[string]bool)
-// 	for _, assignment := range newAssignments {
-// 		if !assignment.DisplayName.IsNull() && !assignment.DisplayName.IsUnknown() {
-// 			newAssignmentMap[assignment.DisplayName.ValueString()] = true
-// 		}
-// 	}
-
-// 	// Find assignments to delete (in existing but not in new)
-// 	for assignmentId, existingAssignment := range existingAssignmentMap {
-// 		if !existingAssignment.DisplayName.IsNull() && !existingAssignment.DisplayName.IsUnknown() {
-// 			displayName := existingAssignment.DisplayName.ValueString()
-// 			if _, exists := newAssignmentMap[displayName]; !exists {
-// 				tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s, DisplayName: %s", assignmentId, displayName))
-
-// 				err := r.client.
-// 					DeviceManagement().
-// 					RoleAssignments().
-// 					ByDeviceAndAppManagementRoleAssignmentId(assignmentId).
-// 					Delete(ctx, nil)
-
-// 				if err != nil {
-// 					errors.HandleGraphError(ctx, err, resp, "Delete Assignment", r.WritePermissions)
-// 					return
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	// Create or update assignments
-// 	for _, assignment := range newAssignments {
-// 		requestAssignment, err := constructAssignment(
-// 			ctx,
-// 			object.ID.ValueString(),
-// 			object.IsBuiltInRoleDefinition.ValueBool(),
-// 			object.BuiltInRoleName.ValueString(),
-// 			&assignment,
-// 		)
-// 		if err != nil {
-// 			resp.Diagnostics.AddError(
-// 				"Error constructing assignment",
-// 				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-// 			)
-// 			return
-// 		}
-
-// 		if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
-// 			_, err = r.client.
-// 				DeviceManagement().
-// 				RoleAssignments().
-// 				ByDeviceAndAppManagementRoleAssignmentId(assignment.ID.ValueString()).
-// 				Patch(ctx, requestAssignment, nil)
-// 		} else {
-// 			_, err = r.client.
-// 				DeviceManagement().
-// 				RoleAssignments().
-// 				Post(ctx, requestAssignment, nil)
-// 		}
-
-// 		if err != nil {
-// 			operation := "Create"
-// 			if !assignment.ID.IsNull() && !assignment.ID.IsUnknown() {
-// 				operation = "Update"
-// 			}
-// 			errors.HandleGraphError(ctx, err, resp, operation+" Assignment", r.WritePermissions)
-// 			return
-// 		}
-// 	}
-
-// 	readResp := &resource.ReadResponse{
-// 		State: resp.State,
-// 	}
-// 	r.Read(ctx, resource.ReadRequest{
-// 		State:        resp.State,
-// 		ProviderMeta: req.ProviderMeta,
-// 	}, readResp)
-
-// 	resp.Diagnostics.Append(readResp.Diagnostics...)
-// 	if resp.Diagnostics.HasError() {
-// 		return
-// 	}
-
-// 	resp.State = readResp.State
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
-// }
 
 // Delete handles the Delete operation for the RoleDefinition resource.
 func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

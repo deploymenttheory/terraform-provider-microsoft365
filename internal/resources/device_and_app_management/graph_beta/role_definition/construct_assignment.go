@@ -33,14 +33,17 @@ func constructAssignment(ctx context.Context, roleDefinitionID string, isBuiltIn
 
 	if !data.ScopeType.IsNull() && !data.ScopeType.IsUnknown() {
 		switch data.ScopeType.ValueString() {
-		case "AllDevicesAndLicensedUsers":
+		case "allDevicesAndLicensedUsers":
 			scopeType := graphmodels.ALLDEVICESANDLICENSEDUSERS_ROLEASSIGNMENTSCOPETYPE
 			requestBody.SetScopeType(&scopeType)
-		case "AllLicensedUsers":
+		case "allLicensedUsers":
 			scopeType := graphmodels.ALLLICENSEDUSERS_ROLEASSIGNMENTSCOPETYPE
 			requestBody.SetScopeType(&scopeType)
-		case "AllDevices":
+		case "allDevices":
 			scopeType := graphmodels.ALLDEVICES_ROLEASSIGNMENTSCOPETYPE
+			requestBody.SetScopeType(&scopeType)
+		case "resourceScope":
+			scopeType := graphmodels.RESOURCESCOPE_ROLEASSIGNMENTSCOPETYPE
 			requestBody.SetScopeType(&scopeType)
 		default:
 			return nil, fmt.Errorf("invalid scope type provided: %s", data.ScopeType.ValueString())

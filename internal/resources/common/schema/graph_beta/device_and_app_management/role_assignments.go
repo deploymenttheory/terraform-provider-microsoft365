@@ -1,9 +1,11 @@
 package schema
 
 import (
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -15,8 +17,11 @@ func RoleAssignmentsSchema() schema.SetNestedAttribute {
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
-					MarkdownDescription: "Key of the entity. This is read-only and automatically generated.",
+					MarkdownDescription: "Key of the Role Assignment configuration. This is read-only and automatically generated.",
 					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						planmodifiers.UseStateForUnknownString(),
+					},
 				},
 				"display_name": schema.StringAttribute{
 					MarkdownDescription: "The display or friendly name of the role Assignment.",
@@ -41,16 +46,18 @@ func RoleAssignmentsSchema() schema.SetNestedAttribute {
 				},
 				"scope_type": schema.StringAttribute{
 					MarkdownDescription: "Administrators in this role assignment can target policies, applications and remote tasks to a scope type of:" +
-						"'AllDevices', 'AllLicensedUsers', and 'AllDevicesAndLicensedUsers'. If the scope intent is for a entra id group then leave this empty. " +
-						"Possible values are: `AllDevices`, `AllLicensedUsers`, `AllDevicesAndLicensedUsers`.",
-					Optional: true,
+						"'allDevices', 'allLicensedUsers', 'allDevicesAndLicensedUsers' and 'resourceScope'. If the scope intent is for a entra id group then leave this empty. " +
+						"Possible values are: `allDevices`, `allLicensedUsers`, `allDevicesAndLicensedUsers`, `resourceScope`.",
+					Required: true,
 					Validators: []validator.String{
 						stringvalidator.OneOf(
-							"AllDevices",
-							"AllLicensedUsers",
-							"AllDevicesAndLicensedUsers",
+							"allDevices",
+							"allLicensedUsers",
+							"allDevicesAndLicensedUsers",
+							"resourceScope",
 						),
 					},
+					//Default: stringdefault.StaticString("resourceScope"),
 				},
 				"resource_scopes": schema.SetAttribute{
 					MarkdownDescription: "Administrators in this role assignment can target policies, applications and remote tasks. List of ids of role scope member security groups from Entra ID.",
