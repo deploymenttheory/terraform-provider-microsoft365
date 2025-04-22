@@ -224,9 +224,10 @@ func debugPrintAssignments(ctx context.Context, assigns []graphmodels.RoleAssign
 	tflog.Debug(ctx, "=== end of API assignment dump")
 }
 
-// Update handles the Update operation by wiping and recreating assignments, with extra logging for request paths.
-// Update handles the Update operation by wiping and recreating all assignments.
-// Update handles the Update operation by preserving assignments that should remain.
+// Update handles the Update operation for role definitions and assignments,
+// tracking assignments strictly by ID
+// Update handles the Update operation for role definitions and assignments,
+// tracking assignments strictly by ID and tracking IDs for new assignments
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var planObj, stateObj RoleDefinitionResourceModel
 
@@ -261,86 +262,69 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	tflog.Debug(ctx, "Patched base RoleDefinition successfully")
 
-	// 2️⃣ First get all the existing assignments via the API to ensure we have all IDs
-	listResp, err := builder.RoleAssignments().Get(ctx, nil)
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Get Assignments", r.ReadPermissions)
-		return
-	}
+	// 2️⃣ Extract assignments from state and plan
+	var stateAssignments, planAssignments []sharedmodels.RoleAssignmentResourceModel
 
-	// Create a map of existing assignments by ID for easier lookup
-	existingByID := make(map[string]graphmodels.RoleAssignmentable)
-	for _, a := range listResp.GetValue() {
-		if id := a.GetId(); id != nil {
-			existingByID[*id] = a
-		}
-	}
-
-	// 3️⃣ Extract planned and state assignments
-	var planAssignments, stateAssignments []sharedmodels.RoleAssignmentResourceModel
-	if !planObj.Assignments.IsNull() && !planObj.Assignments.IsUnknown() {
-		if diags := planObj.Assignments.ElementsAs(ctx, &planAssignments, false); diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-	}
 	if !stateObj.Assignments.IsNull() && !stateObj.Assignments.IsUnknown() {
-		if diags := stateObj.Assignments.ElementsAs(ctx, &stateAssignments, false); diags.HasError() {
+		diags := stateObj.Assignments.ElementsAs(ctx, &stateAssignments, false)
+		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
 	}
 
-	// 4️⃣ Create a mapping between state assignments and plan assignments
-	stateIDs := make(map[string]bool)                                     // All IDs in state
-	planByID := make(map[string]sharedmodels.RoleAssignmentResourceModel) // Maps state ID to planned assignment for updates
-	toCreate := make([]sharedmodels.RoleAssignmentResourceModel, 0)       // New assignments
-
-	// Track all IDs from state
-	for _, stateAssign := range stateAssignments {
-		if !stateAssign.ID.IsNull() && !stateAssign.ID.IsUnknown() {
-			id := stateAssign.ID.ValueString()
-			stateIDs[id] = true // Mark this ID as existing in state
+	if !planObj.Assignments.IsNull() && !planObj.Assignments.IsUnknown() {
+		diags := planObj.Assignments.ElementsAs(ctx, &planAssignments, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
 	}
 
-	// Determine whether each plan assignment should be a create or update
-	// For updates, we link it to a state assignment ID
-	for _, planAssign := range planAssignments {
-		// First check for exact match by display name
-		var matchingID string
-		var found bool
+	// 3️⃣ Create maps for state by ID
+	stateAssignByID := make(map[string]sharedmodels.RoleAssignmentResourceModel)
+	stateIDs := make(map[string]bool) // Track all state IDs
 
-		// Try to find a matching assignment by display name
-		for _, stateAssign := range stateAssignments {
-			if !planAssign.DisplayName.IsNull() && !stateAssign.DisplayName.IsNull() &&
-				planAssign.DisplayName.ValueString() == stateAssign.DisplayName.ValueString() {
-				if !stateAssign.ID.IsNull() && !stateAssign.ID.IsUnknown() {
-					matchingID = stateAssign.ID.ValueString()
-					found = true
-					break
-				}
-			}
+	// Track all assignments in state by ID
+	for _, a := range stateAssignments {
+		if !a.ID.IsNull() && !a.ID.IsUnknown() {
+			id := a.ID.ValueString()
+			stateAssignByID[id] = a
+			stateIDs[id] = true
 		}
+	}
 
-		if found {
-			// We found a matching ID by display name
-			planByID[matchingID] = planAssign
+	// 4️⃣ Process plan assignments into operations
+	toUpdate := make(map[string]sharedmodels.RoleAssignmentResourceModel) // ID -> assignment to update
+	toCreate := make([]sharedmodels.RoleAssignmentResourceModel, 0)       // Assignments to create
+	planIDs := make(map[string]bool)                                      // Track which IDs are in plan
+
+	// Determine which plan assignments need update vs create
+	for _, planAssign := range planAssignments {
+		if !planAssign.ID.IsNull() && !planAssign.ID.IsUnknown() {
+			// This plan assignment has an ID - track it for update
+			id := planAssign.ID.ValueString()
+			toUpdate[id] = planAssign
+			planIDs[id] = true
 		} else {
-			// No matching state assignment, this is a new one
+			// No ID - this is a new assignment
 			toCreate = append(toCreate, planAssign)
 		}
 	}
 
-	// 5️⃣ Identify assignments to delete (in state but not linked to any plan assignment)
+	// 5️⃣ Determine which state assignments to delete
 	toDelete := make([]string, 0)
 	for id := range stateIDs {
-		if _, exists := planByID[id]; !exists {
+		if !planIDs[id] {
+			// This ID exists in state but not in plan
 			toDelete = append(toDelete, id)
 		}
 	}
 
-	// 6️⃣ Delete assignments that need to be removed
+	tflog.Debug(ctx, fmt.Sprintf("Assignment operations: %d to create, %d to update, %d to delete",
+		len(toCreate), len(toUpdate), len(toDelete)))
+
+	// 6️⃣ Delete assignments that should be removed
 	for _, id := range toDelete {
 		tflog.Debug(ctx, "Deleting assignment", map[string]interface{}{"id": id})
 		err := r.client.
@@ -355,10 +339,15 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// 7️⃣ Update existing assignments
-	for id, planAssign := range planByID {
+	for id, planAssign := range toUpdate {
+		displayName := "<unknown>"
+		if !planAssign.DisplayName.IsNull() && !planAssign.DisplayName.IsUnknown() {
+			displayName = planAssign.DisplayName.ValueString()
+		}
+
 		tflog.Debug(ctx, "Updating assignment", map[string]interface{}{
 			"id":           id,
-			"display_name": planAssign.DisplayName.ValueString(),
+			"display_name": displayName,
 		})
 
 		updatedAssign, err := constructAssignment(
@@ -384,13 +373,20 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		}
 	}
 
-	// 8️⃣ Create new assignments
+	// 8️⃣ Create new assignments and collect their IDs
+	newAssignmentIDs := make(map[string]string) // Map display names to created IDs
+
 	for _, planAssign := range toCreate {
+		displayName := "<unknown>"
+		if !planAssign.DisplayName.IsNull() && !planAssign.DisplayName.IsUnknown() {
+			displayName = planAssign.DisplayName.ValueString()
+		}
+
 		tflog.Debug(ctx, "Creating new assignment", map[string]interface{}{
-			"display_name": planAssign.DisplayName.ValueString(),
+			"display_name": displayName,
 		})
 
-		// Ensure ID is null for a new assignment
+		// Ensure ID is null for new assignments
 		newAssign := planAssign
 		newAssign.ID = types.StringNull()
 
@@ -406,7 +402,8 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 			return
 		}
 
-		_, err = r.client.
+		// Create the assignment
+		createdAssign, err := r.client.
 			DeviceManagement().
 			RoleAssignments().
 			Post(ctx, reqBody, nil)
@@ -414,10 +411,20 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 			errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
 			return
 		}
+
+		// Store the new ID for state tracking
+		if createdAssign != nil && createdAssign.GetId() != nil {
+			newID := *createdAssign.GetId()
+			newAssignmentIDs[displayName] = newID
+			tflog.Debug(ctx, "Created assignment with ID", map[string]interface{}{
+				"display_name": displayName,
+				"id":           newID,
+			})
+		}
 	}
 
-	// 9️⃣ FINAL: Refresh state
-	tflog.Debug(ctx, "Final state refresh starting")
+	// 9️⃣ Let Read function handle state
+	tflog.Debug(ctx, "Using Read to refresh final state")
 	readResp := &resource.ReadResponse{State: resp.State}
 	r.Read(ctx, resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}, readResp)
 	resp.Diagnostics.Append(readResp.Diagnostics...)
