@@ -2,6 +2,8 @@ package graphBetaRoleDefinition
 
 import (
 	"context"
+	"fmt"
+	"sort"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -12,175 +14,159 @@ import (
 )
 
 // MapRemoteAssignmentStateToTerraform maps remote assignments to the Terraform state model
-// while preserving the original plan/config data during creation and updates
+// This function strictly converts the data without making any API calls
+// MapRemoteAssignmentStateToTerraform maps remote assignments to the Terraform state model
+// This function strictly converts the data without making any API calls
+// MapRemoteAssignmentStateToTerraform maps remote assignments to the Terraform state model
+// This function strictly converts the data without making any API calls
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, roleDefinition *RoleDefinitionResourceModel, remoteAssignments graphmodels.RoleAssignmentCollectionResponseable) {
 	tflog.Debug(ctx, "Starting MapRemoteAssignmentStateToTerraform")
 
-	// Extract planned assignments if they exist
-	plannedAssignments := make(map[string]sharedmodels.RoleAssignmentResourceModel)
-	var planAssignmentsList []sharedmodels.RoleAssignmentResourceModel
-
-	if !roleDefinition.Assignments.IsNull() && !roleDefinition.Assignments.IsUnknown() {
-		diags := roleDefinition.Assignments.ElementsAs(ctx, &planAssignmentsList, false)
-		if !diags.HasError() {
-			// Create a map of assignments by display name for lookup
-			for _, assignment := range planAssignmentsList {
-				if !assignment.DisplayName.IsNull() && !assignment.DisplayName.IsUnknown() {
-					plannedAssignments[assignment.DisplayName.ValueString()] = assignment
-				}
-			}
-			tflog.Debug(ctx, "Extracted planned assignments", map[string]interface{}{
-				"count": len(plannedAssignments),
-			})
-		}
-	}
-
-	// Create a map to track assignments that have been processed
-	processedAssignments := make(map[string]bool)
-
-	// Process remote assignments if available
-	var resultAssignments []sharedmodels.RoleAssignmentResourceModel
-
-	if remoteAssignments != nil {
-		assignments := remoteAssignments.GetValue()
-		if len(assignments) > 0 {
-			tflog.Debug(ctx, "Processing remote assignments", map[string]interface{}{
-				"count": len(assignments),
-			})
-
-			for _, assignment := range assignments {
-				if assignment == nil {
-					continue
-				}
-
-				// Get basic properties from the remote assignment
-				assignmentID := state.StringPtrToString(assignment.GetId())
-				displayName := state.StringPtrToString(assignment.GetDisplayName())
-
-				// Create a new model - we'll either merge with planned data or use remote data
-				resultAssignment := sharedmodels.RoleAssignmentResourceModel{
-					ID: types.StringValue(assignmentID),
-				}
-
-				// Check if we have this assignment in the plan (by display name)
-				if plannedAssignment, exists := plannedAssignments[displayName]; exists {
-					tflog.Debug(ctx, "Found matching planned assignment", map[string]interface{}{
-						"displayName": displayName,
-						"id":          assignmentID,
-					})
-
-					// Start with the planned assignment to preserve user-provided values
-					resultAssignment = plannedAssignment
-
-					// Update only the ID from the remote assignment
-					resultAssignment.ID = types.StringValue(assignmentID)
-
-					// Mark this assignment as processed
-					processedAssignments[displayName] = true
-				} else {
-					// This is a remote assignment that wasn't in the plan
-					// Likely created outside Terraform or a rename occurred
-					tflog.Debug(ctx, "Remote assignment not in plan", map[string]interface{}{
-						"displayName": displayName,
-						"id":          assignmentID,
-					})
-
-					// Set basic properties from remote assignment
-					resultAssignment.DisplayName = types.StringValue(displayName)
-					resultAssignment.Description = types.StringValue(state.StringPtrToString(assignment.GetDescription()))
-
-					// Map members to admin_group_users_group_ids (ScopeMembers in struct)
-					members := assignment.GetScopeMembers()
-					if len(members) > 0 {
-						membersSet, diags := types.SetValueFrom(ctx, types.StringType, members)
-						if !diags.HasError() {
-							resultAssignment.ScopeMembers = membersSet
-						} else {
-							emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-							resultAssignment.ScopeMembers = emptySet
-						}
-					} else {
-						emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-						resultAssignment.ScopeMembers = emptySet
-					}
-
-					// Map resource scopes
-					resourceScopes := assignment.GetResourceScopes()
-					if len(resourceScopes) > 0 {
-						resourceScopesSet, diags := types.SetValueFrom(ctx, types.StringType, resourceScopes)
-						if !diags.HasError() {
-							resultAssignment.ResourceScopes = resourceScopesSet
-						} else {
-							emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-							resultAssignment.ResourceScopes = emptySet
-						}
-					} else {
-						emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
-						resultAssignment.ResourceScopes = emptySet
-					}
-
-					// Map scope type
-					if scopeType := assignment.GetScopeType(); scopeType != nil {
-						resultAssignment.ScopeType = types.StringValue(scopeType.String())
-					} else {
-						resultAssignment.ScopeType = types.StringNull()
-					}
-				}
-
-				// Add to result list
-				resultAssignments = append(resultAssignments, resultAssignment)
-			}
-		}
-	}
-
-	// Add planned assignments that weren't found in remote assignments
-	// This is important for newly created assignments that might not be returned yet
-	for displayName, plannedAssignment := range plannedAssignments {
-		if !processedAssignments[displayName] {
-			tflog.Debug(ctx, "Adding planned assignment not found in remote data", map[string]interface{}{
-				"displayName": displayName,
-			})
-			resultAssignments = append(resultAssignments, plannedAssignment)
-		}
-	}
-
-	// Convert the final assignments list to a set
-	if len(resultAssignments) > 0 {
-		tflog.Debug(ctx, "Setting final assignments", map[string]interface{}{
-			"count": len(resultAssignments),
-		})
-
-		// Define attribute types for role assignment objects
-		attrTypes := map[string]attr.Type{
+	// Define the object type for assignments
+	assignmentObjectType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
 			"id":                          types.StringType,
 			"display_name":                types.StringType,
 			"description":                 types.StringType,
 			"admin_group_users_group_ids": types.SetType{ElemType: types.StringType},
 			"scope_type":                  types.StringType,
 			"resource_scopes":             types.SetType{ElemType: types.StringType},
+		},
+	}
+
+	// If no assignments, set to null and return early
+	if remoteAssignments == nil || remoteAssignments.GetValue() == nil || len(remoteAssignments.GetValue()) == 0 {
+		tflog.Debug(ctx, "No remote assignments to process, setting assignments to null")
+		roleDefinition.Assignments = types.SetNull(assignmentObjectType)
+		tflog.Debug(ctx, "Finished MapRemoteAssignmentStateToTerraform")
+		return
+	}
+
+	// Create a map to hold assignments by display name
+	assignmentMap := make(map[string]sharedmodels.RoleAssignmentResourceModel)
+
+	// Process remote assignments
+	assignments := remoteAssignments.GetValue()
+	tflog.Debug(ctx, fmt.Sprintf("Processing %d remote assignments", len(assignments)))
+
+	for _, assignment := range assignments {
+		if assignment == nil {
+			continue
 		}
 
-		assignmentsSet, diags := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: attrTypes}, resultAssignments)
+		id := state.StringPtrToString(assignment.GetId())
+		displayName := state.StringPtrToString(assignment.GetDisplayName())
+
+		tflog.Debug(ctx, fmt.Sprintf("Processing assignment with ID: %s, DisplayName: %s", id, displayName))
+
+		// Create standardized scope members and resource scopes slices (sorted alphabetically)
+		var sortedScopeMembers, sortedResourceScopes []string
+
+		// Process scope members
+		if scopeMembers := assignment.GetScopeMembers(); len(scopeMembers) > 0 {
+			sortedScopeMembers = make([]string, len(scopeMembers))
+			copy(sortedScopeMembers, scopeMembers)
+			sort.Strings(sortedScopeMembers)
+			tflog.Debug(ctx, fmt.Sprintf("Assignment has %d scope members (sorted): %v",
+				len(sortedScopeMembers), sortedScopeMembers))
+		}
+
+		// Process resource scopes
+		if resourceScopes := assignment.GetResourceScopes(); len(resourceScopes) > 0 {
+			sortedResourceScopes = make([]string, len(resourceScopes))
+			copy(sortedResourceScopes, resourceScopes)
+			sort.Strings(sortedResourceScopes)
+			tflog.Debug(ctx, fmt.Sprintf("Assignment has %d resource scopes (sorted): %v",
+				len(sortedResourceScopes), sortedResourceScopes))
+		}
+
+		// Create assignment model
+		assignmentModel := sharedmodels.RoleAssignmentResourceModel{
+			ID:             types.StringValue(id),
+			DisplayName:    types.StringValue(displayName),
+			Description:    types.StringValue(state.StringPtrToString(assignment.GetDescription())),
+			ScopeMembers:   state.StringSliceToSet(ctx, sortedScopeMembers),
+			ResourceScopes: state.StringSliceToSet(ctx, sortedResourceScopes),
+		}
+
+		// Process scope type (use empty string instead of null for consistency)
+		if scopeType := assignment.GetScopeType(); scopeType != nil {
+			assignmentModel.ScopeType = types.StringValue(string(*scopeType))
+		} else {
+			assignmentModel.ScopeType = types.StringValue("")
+		}
+
+		// Use display name as map key for stable ordering
+		assignmentMap[displayName] = assignmentModel
+	}
+
+	// Extract assignments from map in sorted order by display name
+	var displayNames []string
+	for name := range assignmentMap {
+		displayNames = append(displayNames, name)
+	}
+	sort.Strings(displayNames)
+
+	var resultAssignments []sharedmodels.RoleAssignmentResourceModel
+	for _, name := range displayNames {
+		resultAssignments = append(resultAssignments, assignmentMap[name])
+	}
+
+	// Log all assignments before conversion
+	for i, assignment := range resultAssignments {
+		tflog.Debug(ctx, fmt.Sprintf("Assignment %d before conversion:", i), map[string]interface{}{
+			"id":                          assignment.ID.ValueString(),
+			"display_name":                assignment.DisplayName.ValueString(),
+			"description":                 assignment.Description.ValueString(),
+			"admin_group_users_group_ids": fmt.Sprintf("%v", assignment.ScopeMembers),
+			"scope_type":                  assignment.ScopeType.ValueString(),
+			"resource_scopes":             fmt.Sprintf("%v", assignment.ResourceScopes),
+		})
+	}
+
+	// Convert assignments to Terraform set
+	if len(resultAssignments) > 0 {
+		// Try a more reliable approach using ObjectValueMust
+		objects := make([]attr.Value, 0, len(resultAssignments))
+
+		for _, assignment := range resultAssignments {
+			obj := map[string]attr.Value{
+				"id":                          assignment.ID,
+				"display_name":                assignment.DisplayName,
+				"description":                 assignment.Description,
+				"admin_group_users_group_ids": assignment.ScopeMembers,
+				"scope_type":                  assignment.ScopeType,
+				"resource_scopes":             assignment.ResourceScopes,
+			}
+
+			// Create an object value
+			objectValue, diags := types.ObjectValue(assignmentObjectType.AttrTypes, obj)
+			if diags.HasError() {
+				for _, diag := range diags.Errors() {
+					tflog.Error(ctx, fmt.Sprintf("Error creating object: %s", diag.Detail()))
+				}
+				continue
+			}
+
+			objects = append(objects, objectValue)
+		}
+
+		// Create a set from the objects
+		assignmentsSet, diags := types.SetValue(assignmentObjectType, objects)
 		if diags.HasError() {
 			tflog.Error(ctx, "Error converting assignments to set", map[string]interface{}{
 				"error": diags.Errors()[0].Detail(),
 			})
+
+			// Set to null on error
+			roleDefinition.Assignments = types.SetNull(assignmentObjectType)
 		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Successfully converted %d assignments to set", len(resultAssignments)))
 			roleDefinition.Assignments = assignmentsSet
 		}
-	} else if len(resultAssignments) == 0 && len(plannedAssignments) == 0 {
-		// If no assignments found and none planned, set empty set
-		attrTypes := map[string]attr.Type{
-			"id":                          types.StringType,
-			"display_name":                types.StringType,
-			"description":                 types.StringType,
-			"admin_group_users_group_ids": types.SetType{ElemType: types.StringType},
-			"scope_type":                  types.StringType,
-			"resource_scopes":             types.SetType{ElemType: types.StringType},
-		}
-
-		emptySet, _ := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: attrTypes}, []sharedmodels.RoleAssignmentResourceModel{})
-		roleDefinition.Assignments = emptySet
+	} else {
+		// No assignments, set to null
+		roleDefinition.Assignments = types.SetNull(assignmentObjectType)
 	}
 
 	tflog.Debug(ctx, "Finished MapRemoteAssignmentStateToTerraform")
