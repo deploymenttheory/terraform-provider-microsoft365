@@ -16,7 +16,6 @@ type RoleDefinitionResourceModel struct {
 	BuiltInRoleName         types.String                  `tfsdk:"built_in_role_name"`
 	RolePermissions         []RolePermissionResourceModel `tfsdk:"role_permissions"`
 	RoleScopeTagIds         types.Set                     `tfsdk:"role_scope_tag_ids"`
-	Assignments             types.Set                     `tfsdk:"assignments"`
 	Timeouts                timeouts.Value                `tfsdk:"timeouts"`
 }
 

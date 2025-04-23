@@ -1,0 +1,15 @@
+{
+  "value": {
+    "@odata.type": "#microsoft.graph.roleAssignment",
+    "id": "b3234d24-4d24-b323-244d-23b3244d23b3",
+    "displayName": "Display Name value",
+    "description": "Description value",
+    "scopeMembers": [
+      "Scope Members value"
+    ],
+    "scopeType": "allDevices",
+    "resourceScopes": [
+      "Resource Scopes value"
+    ]
+  }
+}
