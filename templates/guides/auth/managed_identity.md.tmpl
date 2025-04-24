@@ -1,0 +1,337 @@
+---
+page_title: "Authentication with Managed Identity"
+subcategory: "Authentication"
+description: |-
+  This guide demonstrates how to authenticate with Microsoft 365 using managed identities for Azure resources.
+---
+
+# Authentication with Managed Identity
+
+The Microsoft 365 provider can use Azure managed identities to authenticate to Microsoft 365 services. This authentication method eliminates the need for secrets when Terraform is running on Azure resources, specifically Virtual Machines or Container Instances.
+
+> [!IMPORTANT]
+> **Environment Requirement**: This authentication method **only works when Terraform is executing on an Azure Virtual Machine or Container Instance** with managed identity enabled. It cannot be used for local development environments unless using Azure CLI as a fallback authentication method.
+
+## How Managed Identity Authentication Works
+
+Managed identities provide Azure resources with an automatically managed identity in Microsoft Entra ID. The authentication flow works as follows:
+
+1. Your Azure VM or Container Instance has a managed identity enabled
+2. This identity is federated with an app registration that has Microsoft 365 API permissions
+3. When Terraform runs on this Azure resource, it can obtain tokens using the managed identity
+4. The Microsoft 365 provider uses these tokens to authenticate API calls to Microsoft 365 services
+
+Managed identities come in two forms:
+
+- **System-assigned**: Tied to the lifecycle of the Azure resource; deleted when the resource is deleted
+- **User-assigned**: Created as standalone resources and assigned to one or more Azure resources; managed independently
+
+## Prerequisites
+
+- An Azure resource with managed identity enabled (VM, App Service, Function App, etc.)
+- Permissions to manage identities and role assignments in your Azure environment
+- Access to create app registrations in your Microsoft Entra ID tenant
+
+## Setup
+
+The setup process involves two separate parts:
+
+1. **Azure Configuration**: Setting up the managed identity on your Azure resource
+2. **Microsoft 365 Configuration**: Creating an app registration with proper permissions
+
+> [!NOTE]
+> You can automate the setup process using the HashiCorp Terraform providers for Azure (azurerm) and Microsoft Entra ID (azuread). This approach allows you to define your managed identities, app registrations, and permissions as infrastructure as code.
+
+### 1. Enable Managed Identity on Your Azure Resource
+
+First, enable a managed identity on the Azure resource where Terraform will run:
+
+#### For Virtual Machine
+
+```bash
+# Enable system-assigned managed identity
+az vm identity assign --name myVM --resource-group myResourceGroup
+
+# Or, assign a user-assigned managed identity
+az vm identity assign --name myVM --resource-group myResourceGroup --identities /subscriptions/SUBSCRIPTION_ID/resourcegroups/RESOURCE_GROUP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/IDENTITY_NAME
+```
+
+#### For Container Instance
+
+```bash
+# Container Instances require a user-assigned managed identity
+# First, create a user-assigned managed identity
+az identity create --name myContainerIdentity --resource-group myResourceGroup
+
+# Then, deploy or update a container group with the identity
+az container create \
+  --name myContainerGroup \
+  --resource-group myResourceGroup \
+  --image myImage \
+  --assign-identity /subscriptions/SUBSCRIPTION_ID/resourcegroups/RESOURCE_GROUP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myContainerIdentity
+```
+
+### 2. Create an App Registration for Microsoft 365 Access
+
+Next, create an app registration with the necessary Microsoft 365 API permissions:
+
+```bash
+# Create an app registration
+APP_ID=$(az ad app create --display-name "Microsoft365Provider" --query appId -o tsv)
+
+# Create service principal
+az ad sp create --id $APP_ID
+
+# Add Microsoft Graph API permissions
+# Example: Add DeviceManagementConfiguration.ReadWrite.All
+az ad app permission add \
+  --id $APP_ID \
+  --api 00000003-0000-0000-c000-000000000000 \
+  --api-permissions 9241abd9-d0e6-425a-bd4f-47ba86e767a4=Role
+
+# Grant admin consent
+az ad app permission admin-consent --id $APP_ID
+```
+
+### 3. Connect the Managed Identity to the App Registration
+
+For the managed identity to use the app registration, you need to establish a trust relationship:
+
+```bash
+# Get the principal ID of the managed identity
+# If using a system-assigned managed identity
+PRINCIPAL_ID=$(az vm identity show --name myVM --resource-group myResourceGroup --query principalId -o tsv)
+
+# If using a user-assigned managed identity
+PRINCIPAL_ID=$(az identity show --name myIdentity --resource-group myResourceGroup --query principalId -o tsv)
+
+# Make the managed identity an owner of the app registration
+# This allows the managed identity to acquire tokens for this application
+az ad app owner add --id $APP_ID --owner-object-id $PRINCIPAL_ID
+
+# Optional: Configure federated credentials for enhanced security
+az rest --method POST \
+  --uri "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}/federatedIdentityCredentials" \
+  --body "{\"name\":\"TerraformManagedIdentity\",\"issuer\":\"https://login.microsoftonline.com/${TENANT_ID}/v2.0\",\"subject\":\"${PRINCIPAL_ID}\",\"audiences\":[\"api://AzureADTokenExchange\"]}"
+```
+
+#### Using Terraform to Configure the App Registration and Managed Identity
+
+Alternatively, you can use the HashiCorp Terraform providers for Azure and Microsoft Entra ID to automate this setup:
+
+```terraform
+# Create a user-assigned managed identity
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "terraform-managed-identity"
+  resource_group_name = "my-resource-group"
+  location            = "eastus"
+}
+
+# Create an app registration for Microsoft 365 API access
+resource "azuread_application" "example" {
+  display_name = "Microsoft365Provider"
+}
+
+# Create a service principal for the application
+resource "azuread_service_principal" "example" {
+  application_id = azuread_application.example.application_id
+}
+
+# Add the required Microsoft Graph API permissions
+resource "azuread_application_api_permission" "example" {
+  application_object_id = azuread_application.example.object_id
+  
+  api_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
+  
+  # Example: DeviceManagementConfiguration.ReadWrite.All permission
+  api_permissions {
+    id   = "9241abd9-d0e6-425a-bd4f-47ba86e767a4"
+    type = "Role"
+  }
+}
+
+# Grant admin consent (if you have sufficient permissions)
+resource "azuread_application_api_permission_admin_consent" "example" {
+  application_object_id = azuread_application.example.object_id
+}
+
+# Make the managed identity an owner of the app registration
+resource "azuread_application_owner" "example" {
+  application_object_id = azuread_application.example.object_id
+  owner_object_id       = azurerm_user_assigned_identity.example.principal_id
+}
+
+# Configure federated credentials for the managed identity
+resource "azuread_application_federated_identity_credential" "example" {
+  application_object_id = azuread_application.example.object_id
+  display_name          = "TerraformManagedIdentity"
+  description           = "Federated credential for Terraform managed identity"
+  audiences             = ["api://AzureADTokenExchange"]
+  issuer                = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+  subject               = azurerm_user_assigned_identity.example.principal_id
+}
+
+# Output important values
+output "tenant_id" {
+  value = data.azurerm_client_config.current.tenant_id
+}
+
+output "client_id" {
+  value = azuread_application.example.application_id
+}
+
+output "managed_identity_id" {
+  value = azurerm_user_assigned_identity.example.id
+}
+```
+
+## Microsoft 365 Provider Configuration
+
+After setting up the Azure infrastructure, configure the Microsoft 365 provider to use managed identity authentication.
+
+### Using Terraform Configuration
+
+#### System-assigned Managed Identity
+
+```terraform
+provider "microsoft365" {
+  auth_method = "managed_identity"
+  tenant_id   = "00000000-0000-0000-0000-000000000000"
+  # No additional entra_id_options required for system-assigned identity
+}
+```
+
+#### User-assigned Managed Identity
+
+```terraform
+provider "microsoft365" {
+  auth_method = "managed_identity"
+  tenant_id   = "00000000-0000-0000-0000-000000000000"
+  entra_id_options = {
+    # Specify either the client ID or resource ID of the user-assigned managed identity
+    managed_identity_id = "00000000-0000-0000-0000-000000000000" # Client ID
+    # OR
+    managed_identity_id = "/subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCE_GROUP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/IDENTITY_NAME" # Resource ID
+  }
+}
+```
+
+### Using Environment Variables (Recommended)
+
+```bash
+# Set these environment variables before running Terraform
+export M365_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export M365_AUTH_METHOD="managed_identity"
+
+# For user-assigned managed identity (optional)
+export M365_MANAGED_IDENTITY_ID="00000000-0000-0000-0000-000000000000"
+# Or using the Azure SDK environment variable
+export AZURE_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+```
+
+With environment variables set, your Terraform configuration can be simplified:
+
+```terraform
+provider "microsoft365" {
+  auth_method = "managed_identity"
+  # No need to specify credentials as they're read from environment variables
+}
+```
+
+### Using HashiCorp Vault for Secret Management
+
+For enhanced security, you can use HashiCorp Vault to store and retrieve the sensitive values needed for authentication. This approach provides:
+
+- Secure storage of tenant IDs, client IDs, and other sensitive values
+- Dynamic secret generation and rotation
+- Fine-grained access control
+- Audit logging for all secret access
+
+Example workflow using Vault:
+
+```terraform
+provider "vault" {
+  # Vault provider configuration
+}
+
+# Retrieve Microsoft 365 credentials from Vault
+data "vault_generic_secret" "m365_credentials" {
+  path = "secret/microsoft365/credentials"
+}
+
+provider "microsoft365" {
+  auth_method = "managed_identity"
+  tenant_id   = data.vault_generic_secret.m365_credentials.data["tenant_id"]
+  
+  # For user-assigned managed identity
+  entra_id_options = {
+    managed_identity_id = data.vault_generic_secret.m365_credentials.data["managed_identity_id"]
+  }
+}
+```
+
+You can also use Vault Agent to inject these values as environment variables:
+
+```hcl
+# Vault Agent template configuration
+template {
+  destination = "/path/to/env-file"
+  contents = <<EOT
+export M365_TENANT_ID="{{with secret "secret/microsoft365/credentials"}}{{.Data.data.tenant_id}}{{end}}"
+export M365_AUTH_METHOD="managed_identity"
+export M365_MANAGED_IDENTITY_ID="{{with secret "secret/microsoft365/credentials"}}{{.Data.data.managed_identity_id}}{{end}}"
+EOT
+}
+```
+
+## Valid Use Cases
+
+Managed identity authentication is **only valid** for:
+
+- Terraform running on Azure Virtual Machines
+- Terraform running on Azure Container Instances
+- Azure DevOps self-hosted agents deployed on Azure VMs
+- CI/CD pipelines running on Azure VMs or containers
+
+## Invalid Use Cases
+
+This authentication method **will not work** for:
+
+- Local development environments (unless using Azure CLI authentication as fallback)
+- Non-Azure hosted CI/CD pipelines (GitHub Actions not hosted on Azure, Jenkins, etc.)
+- Any environment outside the Azure ecosystem
+
+## Advantages
+
+- No secrets to manage or rotate
+- Azure automatically manages the identity lifecycle
+- Reduced risk of credential exposure
+- Simplified operations
+- Seamless integration with Azure RBAC
+
+## Limitations
+
+- Only works when running Terraform on Azure VMs or Container Instances
+- Not available for local development unless using Azure CLI login as a fallback
+- System-assigned identities are tied to the lifecycle of the Azure resource
+- Requires proper configuration of both Azure resources and Microsoft 365 app registrations
+- Not suitable for other Azure services like App Services, Azure Functions, or Azure Automation
+
+## Troubleshooting
+
+- **Managed identity not available**: Verify the managed identity is properly enabled on your Azure resource
+- **Identity not authorized**: Ensure the managed identity has the necessary permissions assigned to the app registration
+- **Token acquisition failed**: Check if your resource has network restrictions preventing token acquisition
+- **User-assigned identity not found**: Verify the ID format and that the identity exists and is attached to your resource
+- **API permission errors**: Confirm that the app registration has the required Microsoft Graph permissions and admin consent
+
+## Additional Resources
+
+- [What are managed identities for Azure resources?](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
+- [How to use managed identities with Azure VMs](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/qs-configure-portal-windows-vm)
+- [How to use managed identities with Azure Container Instances](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity)
+- [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
+- [HashiCorp Terraform Azure Provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [HashiCorp Terraform Microsoft Entra ID Provider documentation](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs)
+- [HashiCorp Vault documentation](https://developer.hashicorp.com/vault/docs)
+- [HashiCorp Vault Azure secrets engine](https://developer.hashicorp.com/vault/docs/secrets/azure)
