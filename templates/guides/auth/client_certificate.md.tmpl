@@ -607,13 +607,11 @@ EOT
 
 2. Configure Vault Agent to save the certificate:
 
-```hcl
 template {
   destination = "/path/to/terraform_cert.pfx"
-  contents = "{{with secret \"secret/microsoft365/certificate\"}}{{.Data.data.certificate | base64Decode}}{{end}}"
+  contents = "{{ `{{with secret \"secret/microsoft365/certificate\"}}{{.Data.data.certificate | base64Decode}}{{end}}` }}"
   perms = 0600
 }
-```
 
 3. Source the environment file and run Terraform:
 
