@@ -60,11 +60,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		data.AppIcon = nil
 	}
 
-	var roleScopeTagIds []attr.Value
-	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
-		roleScopeTagIds = append(roleScopeTagIds, v)
-	}
-	data.RoleScopeTagIds = types.SetValueMust(types.StringType, roleScopeTagIds)
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	data.Categories = MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 

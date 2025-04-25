@@ -1,0 +1,13 @@
+{
+  "@odata.type": "#microsoft.graph.windowsDriverUpdateInventory",
+  "id": "String (identifier)",
+  "name": "String",
+  "version": "String",
+  "manufacturer": "String",
+  "releaseDateTime": "String (timestamp)",
+  "driverClass": "String",
+  "applicableDeviceCount": 1024,
+  "approvalStatus": "String",
+  "category": "String",
+  "deployDateTime": "String (timestamp)"
+}
