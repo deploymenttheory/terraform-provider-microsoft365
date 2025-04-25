@@ -4,6 +4,7 @@ run:
   timeout: 5m
   modules-download-mode: readonly
   allow-parallel-runners: true
+  allow-serial-runners: true
   go: "1.20"
 
 linters:
@@ -14,6 +15,9 @@ linters:
     - staticcheck
     - ineffassign
     - unused
+  disable:
+    # Disable linters that have problems with files in different directories
+    - gochecknoglobals
   exclusions:
     generated: lax
     warn-unused: true
