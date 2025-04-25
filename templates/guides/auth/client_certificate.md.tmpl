@@ -609,7 +609,7 @@ EOT
 
 template {
   destination = "/path/to/terraform_cert.pfx"
-  contents = "{{ `{{with secret \"secret/microsoft365/certificate\"}}{{.Data.data.certificate | base64Decode}}{{end}}` }}"
+  contents = "{{"{{"}}with secret \"secret/microsoft365/certificate\"{{"}}"}}{{"{{"}}".Data.data.certificate | base64Decode{{"}}"}}{{"{{"}}/end{{"}}"}}"
   perms = 0600
 }
 
