@@ -38,16 +38,13 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	// Set general properties
 	constructors.SetStringProperty(data.Name, requestBody.SetName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
-	// Configure template context
 	if err := setTemplateContext(ctx, data, requestBody); err != nil {
 		return nil, err
 	}
 
-	// Set role scope tag IDs
 	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}

@@ -27,7 +27,7 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
 	requestBody.SetTechnologies(&technologies)
 
-	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

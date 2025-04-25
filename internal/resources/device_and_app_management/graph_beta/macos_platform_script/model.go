@@ -17,7 +17,7 @@ type MacOSPlatformScriptResourceModel struct {
 	LastModifiedDateTime        types.String                                                `tfsdk:"last_modified_date_time"`
 	RunAsAccount                types.String                                                `tfsdk:"run_as_account"`
 	FileName                    types.String                                                `tfsdk:"file_name"`
-	RoleScopeTagIds             types.List                                                  `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds             types.Set                                                   `tfsdk:"role_scope_tag_ids"`
 	BlockExecutionNotifications types.Bool                                                  `tfsdk:"block_execution_notifications"`
 	ExecutionFrequency          types.String                                                `tfsdk:"execution_frequency"`
 	RetryCount                  types.Int32                                                 `tfsdk:"retry_count"`

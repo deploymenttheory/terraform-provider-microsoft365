@@ -1,4 +1,4 @@
-package graphBetaDeviceCategory
+package graphBetaWindowsDriverUpdateProfile
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteStateToTerraform maps the base properties of an DeviceCategoryResourceModel to a Terraform state.
-func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCategoryResourceModel, remoteResource graphmodels.DeviceCategoryable) {
+// MapRemoteStateToDataSource maps the remote Windows Driver Update Profile state to the data source model
+func MapRemoteStateToDataSource(ctx context.Context, data *WindowsDriverUpdateProfileDataSourceModel, remoteResource graphmodels.WindowsDriverUpdateProfileable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": types.StringPointerValue(remoteResource.GetId()),
+	tflog.Debug(ctx, "Mapping remote Windows Driver Update Profile to data source model", map[string]interface{}{
+		"resourceId": remoteResource.GetId(),
 	})
 
 	data.ID = types.StringPointerValue(remoteResource.GetId())
@@ -25,7 +25,5 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCategoryResource
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, "Finished mapping remote Windows Driver Update Profile to data source model")
 }

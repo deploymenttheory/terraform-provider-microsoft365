@@ -13,7 +13,7 @@ type LinuxPlatformScriptResourceModel struct {
 	Description        types.String                                                 `tfsdk:"description"`
 	Platforms          types.String                                                 `tfsdk:"platforms"`
 	Technologies       []types.String                                               `tfsdk:"technologies"`
-	RoleScopeTagIds    types.List                                                   `tfsdk:"role_scope_tag_ids"`
+	RoleScopeTagIds    types.Set                                                    `tfsdk:"role_scope_tag_ids"`
 	ScriptContent      types.String                                                 `tfsdk:"script_content"`
 	ExecutionContext   types.String                                                 `tfsdk:"execution_context"`
 	ExecutionFrequency types.String                                                 `tfsdk:"execution_frequency"`

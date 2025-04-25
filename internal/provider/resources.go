@@ -18,6 +18,8 @@ import (
 	graphBetaDeviceAndAppManagementRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/role_scope_tag"
 	graphBetaDeviceAndAppManagementSettingsCatalog "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog"
 	graphBetaDeviceAndAppManagementSettingsCatalogTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog_template"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_driver_update_inventory"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_driver_update_profile"
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
@@ -63,6 +65,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementRoleDefinition.NewRoleDefinitionResource,
 		graphBetaDeviceAndAppManagementRoleDefinitionAssignment.NewRoleDefinitionAssignmentResource,
 		graphBetaDeviceAndAppManagementRoleScopeTag.NewRoleScopeTagResource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileResource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory.NewWindowsDriverUpdateInventoryResource,
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		// Graph Beta - Identity and Access resources

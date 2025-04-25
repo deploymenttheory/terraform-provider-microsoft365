@@ -5,7 +5,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -30,11 +29,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
 	data.FileName = types.StringPointerValue(remoteResource.GetFileName())
 
-	var roleScopeTagIds []attr.Value
-	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
-		roleScopeTagIds = append(roleScopeTagIds, v)
-	}
-	data.RoleScopeTagIds = types.ListValueMust(types.StringType, roleScopeTagIds)
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	data.BlockExecutionNotifications = types.BoolPointerValue(remoteResource.GetBlockExecutionNotifications())
 	data.ExecutionFrequency = state.ISO8601DurationToString(remoteResource.GetExecutionFrequency())

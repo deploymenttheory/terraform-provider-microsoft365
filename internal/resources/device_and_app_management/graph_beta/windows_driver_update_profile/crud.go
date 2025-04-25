@@ -1,4 +1,4 @@
-package graphBetaMacOSPlatformScript
+package graphBetaWindowsDriverUpdateProfile
 
 import (
 	"context"
@@ -11,12 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
-func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object MacOSPlatformScriptResourceModel
+func (r *WindowsDriverUpdateProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WindowsDriverUpdateProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -31,9 +30,6 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -45,7 +41,7 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 	createdResource, err := r.client.
 		DeviceManagement().
-		DeviceShellScripts().
+		WindowsDriverUpdateProfiles().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -55,62 +51,26 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			err := r.client.
-				DeviceManagement().
-				DeviceShellScripts().
-				ByDeviceShellScriptId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readResp := &resource.ReadResponse{
+		State: resp.State,
+	}
+	r.Read(ctx, resource.ReadRequest{
+		State:        resp.State,
+		ProviderMeta: req.ProviderMeta,
+	}, readResp)
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
-
-		resp.State = readResp.State
-		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
-		)
+	resp.Diagnostics.Append(readResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.State = readResp.State
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -123,8 +83,8 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 // The function ensures all components are properly read and mapped into the
 // Terraform state in a single API call, providing a complete view of the
 // resource's current configuration on the server.
-func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object MacOSPlatformScriptResourceModel
+func (r *WindowsDriverUpdateProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WindowsDriverUpdateProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -141,16 +101,11 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	}
 	defer cancel()
 
-	// Read resource with expanded assignments
 	respResource, err := r.client.
 		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(ctx, &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
-			},
-		})
+		WindowsDriverUpdateProfiles().
+		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -167,7 +122,7 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation for macos platform scripts resources.
+// Update handles the Update operation for windows driver update profile resources.
 //
 // The function performs the following operations:
 //   - Patches the existing script resource with updated settings using PATCH
@@ -175,19 +130,14 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 //   - Retrieves the updated resource with expanded assignments
 //   - Maps the remote state back to Terraform
 //
-// The Microsoft Graph Beta API supports direct updates of device shell script resources
+// The Microsoft Graph Beta API supports direct updates of windows driver update profile resources
 // through PATCH operations for the base resource, while assignments are handled through
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
-func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object MacOSPlatformScriptResourceModel
+func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object WindowsDriverUpdateProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -206,7 +156,7 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -214,36 +164,13 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 
 	_, err = r.client.
 		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
+		WindowsDriverUpdateProfiles().
+		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
-	}
-
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
-
-		err = r.client.
-			DeviceManagement().
-			DeviceShellScripts().
-			ByDeviceShellScriptId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
-			return
-		}
 	}
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
@@ -272,7 +199,7 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation for Device Management Script resources.
+// Delete handles the Delete operation for windows driver update profile resources.
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
@@ -280,8 +207,8 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object MacOSPlatformScriptResourceModel
+func (r *WindowsDriverUpdateProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WindowsDriverUpdateProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -298,8 +225,8 @@ func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.D
 
 	err := r.client.
 		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
+		WindowsDriverUpdateProfiles().
+		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

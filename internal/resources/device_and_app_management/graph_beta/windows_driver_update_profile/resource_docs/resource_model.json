@@ -1,0 +1,22 @@
+{
+  "value": {
+    "@odata.type": "#microsoft.graph.windowsDriverUpdateProfile",
+    "id": "55bcc52a-c52a-55bc-2ac5-bc552ac5bc55",
+    "displayName": "Display Name value",
+    "description": "Description value",
+    "approvalType": "automatic",
+    "deviceReporting": 15,
+    "newUpdates": 10,
+    "deploymentDeferralInDays": 8,
+    "createdDateTime": "2017-01-01T00:02:43.5775965-08:00",
+    "lastModifiedDateTime": "2017-01-01T00:00:35.1329464-08:00",
+    "roleScopeTagIds": [
+      "Role Scope Tag Ids value"
+    ],
+    "inventorySyncStatus": {
+      "@odata.type": "microsoft.graph.windowsDriverUpdateProfileInventorySyncStatus",
+      "lastSuccessfulSyncDateTime": "2017-01-01T00:03:28.120883-08:00",
+      "driverInventorySyncState": "success"
+    }
+  }
+}

@@ -10,6 +10,8 @@ import (
 	graphBetaMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/reuseable_policy_settings"
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_inventory"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_profile"
 	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_platform_script"
 
 	// Graph v1.0 - Intune datasources
@@ -38,6 +40,8 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaMacOSPKGApp.NewMacOSPKGAppDataSource,
 		graphBetaReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
 		graphBetaRoleScopeTag.NewRoleScopeTagDataSource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileDataSource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory.NewWindowsDriverUpdateInventoryDataSource,
 		graphBetaWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
 		graphCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 
