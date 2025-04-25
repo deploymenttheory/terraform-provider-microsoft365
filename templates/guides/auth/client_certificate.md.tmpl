@@ -594,26 +594,26 @@ For more advanced scenarios, you can use Vault Agent to automatically retrieve a
 1. Configure Vault Agent template for credentials:
 
 ```hcl
-    template {
-      destination = "/path/to/terraform_creds.env"
-      contents = <<EOT
-    export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-    export M365_AUTH_METHOD="client_certificate"
-    export M365_CLIENT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.client_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-    export M365_CLIENT_CERTIFICATE_PASSWORD={{ "{{" }}with secret "secret/microsoft365/certificate"{{ "}}" }}{{ "{{" }}.Data.data.password{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-    EOT
-    }
+template {
+  destination = "/path/to/terraform_creds.env"
+  contents = <<EOT
+  export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_AUTH_METHOD="client_certificate"
+  export M365_CLIENT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.client_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_CLIENT_CERTIFICATE_PASSWORD={{ "{{" }}with secret "secret/microsoft365/certificate"{{ "}}" }}{{ "{{" }}.Data.data.password{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  EOT
+}
 ```
 
 2. Configure Vault Agent to save the certificate:
 
 ```hcl
-    template {
-      destination = "/path/to/terraform_cert.pfx"
-      contents = "{{ "{{" }}with secret \"secret/microsoft365/certificate\"{{ "}}" }}{{ "{{" }}.Data.data.certificate | base64Decode{{ "}}" }}{{ "{{" }}end{{ "}}" }}"
-      perms = 0600
-    }
-    ```
+template {
+  destination = "/path/to/terraform_cert.pfx"
+  contents = "{{ "{{" }}with secret \"secret/microsoft365/certificate\"{{ "}}" }}{{ "{{" }}.Data.data.certificate | base64Decode{{ "}}" }}{{ "{{" }}end{{ "}}" }}"
+  perms = 0600
+}
+```
 
 3. Source the environment file and run Terraform:
 
