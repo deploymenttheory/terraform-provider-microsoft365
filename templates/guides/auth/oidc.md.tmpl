@@ -301,7 +301,6 @@ terraform apply
 
 Vault Agent can automate the process of fetching secrets and OIDC tokens:
 
-```hcl
 # Vault Agent configuration
 auto_auth {
   method "kubernetes" {
@@ -315,18 +314,17 @@ auto_auth {
 template {
   destination = "/path/to/env-file.sh"
   contents = <<EOT
-#!/bin/bash
-export M365_TENANT_ID="{{with secret "secret/microsoft365/config"}}{{.Data.data.tenant_id}}{{end}}"
-export M365_CLIENT_ID="{{with secret "secret/microsoft365/config"}}{{.Data.data.client_id}}{{end}}"
-export M365_AUTH_METHOD="oidc"
+  #!/bin/bash
+  export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/config"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_CLIENT_ID={{ "{{" }}with secret "secret/microsoft365/config"{{ "}}" }}{{ "{{" }}.Data.data.client_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_AUTH_METHOD="oidc"
 
-# Get OIDC token and save to file
-OIDC_TOKEN="{{with secret "identity/oidc/token/azure-role"}}{{.Data.token}}{{end}}"
-echo "$OIDC_TOKEN" > /tmp/oidc-token.jwt
-export M365_OIDC_TOKEN_FILE_PATH="/tmp/oidc-token.jwt"
+  # Get OIDC token and save to file
+  OIDC_TOKEN={{ "{{" }}with secret "identity/oidc/token/azure-role"{{ "}}" }}{{ "{{" }}.Data.token{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  echo "$OIDC_TOKEN" > /tmp/oidc-token.jwt
+  export M365_OIDC_TOKEN_FILE_PATH="/tmp/oidc-token.jwt"
 EOT
 }
-```
 
 ## Integration Examples
 
