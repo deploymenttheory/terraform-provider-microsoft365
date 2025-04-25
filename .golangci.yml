@@ -1,0 +1,57 @@
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  go: "1.20"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+  exclusions:
+    generated: lax
+    warn-unused: true
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+      - path: internal/hmac/
+        text: "weak cryptographic primitive"
+        linters:
+          - gosec
+    paths:
+      - ".*\\.my\\.go$"
+    paths-except:
+      - ".*\\.my\\.go$"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+  # Use absolute file paths in output
+  path-mode: "abs"
+  sort-order:
+    - linter
+    - severity
+    - file
+
+  show-stats: true
