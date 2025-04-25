@@ -13,14 +13,6 @@ resource "microsoft365_graph_beta_device_and_app_management_linux_platform_scrip
 
   role_scope_tag_ids = ["0"]
 
-  # Optional: Custom timeouts
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-
   # Optional: Assignments
   assignments = {
     all_devices = false
@@ -42,5 +34,13 @@ resource "microsoft365_graph_beta_device_and_app_management_linux_platform_scrip
       "b8c661c2-fa9a-4351-af86-adc1729c343f",
       "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f",
     ]
+  }
+
+  # Optional: Custom timeouts
+  timeouts = {
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
   }
 }

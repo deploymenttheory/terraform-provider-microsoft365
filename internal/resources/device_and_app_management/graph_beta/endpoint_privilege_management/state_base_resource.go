@@ -35,10 +35,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 		roleScopeTagIds = append(roleScopeTagIds, v)
 	}
 
-	data.RoleScopeTagIds = types.ListValueMust(
-		types.StringType,
-		roleScopeTagIds,
-	)
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = state.EnumPtrToTypeString(platforms)

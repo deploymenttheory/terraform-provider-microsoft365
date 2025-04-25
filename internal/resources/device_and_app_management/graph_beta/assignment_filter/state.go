@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -29,16 +28,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	data.AssignmentFilterManagementType = state.EnumPtrToTypeString(remoteResource.GetAssignmentFilterManagementType())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-
-	var roleScopeTagIds []attr.Value
-	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTags()) {
-		roleScopeTagIds = append(roleScopeTagIds, v)
-	}
-
-	data.RoleScopeTags = types.ListValueMust(
-		types.StringType,
-		roleScopeTagIds,
-	)
+	data.RoleScopeTags = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTags())
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

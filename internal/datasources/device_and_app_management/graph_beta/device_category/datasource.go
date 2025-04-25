@@ -12,15 +12,15 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_device_category"
-	ReadTimeout  = 180
+	DataSourceName = "graph_beta_device_and_app_management_device_category"
+	ReadTimeout    = 180
 )
 
 var (
-	// Basic resource interface (CRUD operations)
+	// Basic datasource interface (CRUD operations)
 	_ datasource.DataSource = &DeviceCategoryDataSource{}
 
-	// Allows the resource to be configured with the provider client
+	// Allows the datasource to be configured with the provider client
 	_ datasource.DataSourceWithConfigure = &DeviceCategoryDataSource{}
 )
 
@@ -40,7 +40,7 @@ type DeviceCategoryDataSource struct {
 }
 
 func (d *DeviceCategoryDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
 }
 
 func (d *DeviceCategoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

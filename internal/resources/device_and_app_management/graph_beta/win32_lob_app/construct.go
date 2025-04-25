@@ -24,6 +24,10 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	constructors.SetStringProperty(data.SetupFilePath, requestBody.SetSetupFilePath)
 	constructors.SetStringProperty(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
 
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
+	}
+
 	// Handle MinimumSupportedOperatingSystem
 	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
 		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()

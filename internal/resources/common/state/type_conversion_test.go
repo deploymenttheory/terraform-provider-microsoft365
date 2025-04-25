@@ -533,3 +533,42 @@ func TestDecodeBase64ToString(t *testing.T) {
 		assert.Equal(t, types.StringValue(expected), result, "Should correctly decode a base64 string with padding")
 	})
 }
+
+func TestStringSliceToSet(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Nil slice (zero-length)", func(t *testing.T) {
+		result := StringSliceToSet(ctx, []string{})
+		assert.True(t, result.IsNull(), "Should return types.SetNull() for empty slice")
+	})
+
+	t.Run("Single string in slice", func(t *testing.T) {
+		input := []string{"one"}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should return a Set with one element")
+	})
+
+	t.Run("Multiple strings in slice", func(t *testing.T) {
+		input := []string{"a", "b", "c"}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should return a Set with all input elements")
+	})
+
+	t.Run("Slice with empty string", func(t *testing.T) {
+		input := []string{""}
+		result := StringSliceToSet(ctx, input)
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should handle slice with empty string correctly")
+	})
+
+	t.Run("Slice with GUID value", func(t *testing.T) {
+		input := []string{"e887e7cd-da41-497d-a414-8d9b755aa1d0"}
+		result := StringSliceToSet(ctx, input)
+
+		expected, _ := types.SetValueFrom(ctx, types.StringType, input)
+		assert.Equal(t, expected, result, "Should correctly convert a slice containing a GUID string")
+	})
+
+}

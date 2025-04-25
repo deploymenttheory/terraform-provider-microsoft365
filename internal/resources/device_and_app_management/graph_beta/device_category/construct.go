@@ -20,7 +20,7 @@ func constructResource(ctx context.Context, data *DeviceCategoryResourceModel) (
 
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
-	if err := constructors.SetStringList(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

@@ -316,3 +316,18 @@ func ListNullIfEmpty(elementType attr.Type, values []attr.Value) types.List {
 	}
 	return list
 }
+
+// StringSliceToSet converts a []string to a Terraform types.Set (StringType).
+func StringSliceToSet(ctx context.Context, input []string) types.Set {
+	if len(input) == 0 {
+		return types.SetNull(types.StringType)
+	}
+	set, diags := types.SetValueFrom(ctx, types.StringType, input)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]interface{}{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.SetNull(types.StringType)
+	}
+	return set
+}

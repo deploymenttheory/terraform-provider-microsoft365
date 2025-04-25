@@ -64,12 +64,15 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 		"client_secret":                types.StringValue(helpers.GetEnvString("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString())),
 		"client_certificate":           types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_FILE_PATH", entraIDOptions.ClientCertificate.ValueString())),
 		"client_certificate_password":  types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_PASSWORD", entraIDOptions.ClientCertificatePassword.ValueString())),
-		"send_certificate_chain":       types.BoolValue(helpers.GetEnvBool("M365_SEND_CERTIFICATE_CHAIN", entraIDOptions.SendCertificateChain.ValueBool())),
 		"username":                     types.StringValue(helpers.GetEnvString("M365_USERNAME", entraIDOptions.Username.ValueString())),
-		"password":                     types.StringValue(helpers.GetEnvString("M365_PASSWORD", entraIDOptions.Password.ValueString())),
+		"send_certificate_chain":       types.BoolValue(helpers.GetEnvBool("M365_SEND_CERTIFICATE_CHAIN", entraIDOptions.SendCertificateChain.ValueBool())),
 		"disable_instance_discovery":   types.BoolValue(helpers.GetEnvBool("M365_DISABLE_INSTANCE_DISCOVERY", entraIDOptions.DisableInstanceDiscovery.ValueBool())),
 		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringValue(helpers.GetEnvString("M365_REDIRECT_URI", entraIDOptions.RedirectUrl.ValueString())),
+		"federated_token_file_path":    types.StringValue(helpers.GetEnvString("AZURE_FEDERATED_TOKEN_FILE", entraIDOptions.FederatedTokenFilePath.ValueString())),
+		"managed_identity_id":          types.StringValue(helpers.GetFirstEnvString([]string{"M365_MANAGED_IDENTITY_ID", "AZURE_CLIENT_ID"}, entraIDOptions.ManagedIdentityID.ValueString())),
+		"oidc_token_file_path":         types.StringValue(helpers.GetEnvString("M365_OIDC_TOKEN_FILE_PATH", entraIDOptions.OIDCTokenFilePath.ValueString())),
+		"ado_service_connection_id":    types.StringValue(helpers.GetFirstEnvString([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, entraIDOptions.ADOServiceConnectionID.ValueString())),
 	}), diags
 }
 

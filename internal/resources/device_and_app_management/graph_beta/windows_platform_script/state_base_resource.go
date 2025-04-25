@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -40,14 +39,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatfor
 	data.FileName = types.StringPointerValue(remoteResource.GetFileName())
 	data.RunAs32Bit = types.BoolPointerValue(remoteResource.GetRunAs32Bit())
 
-	var roleScopeTagIds []attr.Value
-	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
-		roleScopeTagIds = append(roleScopeTagIds, v)
-	}
-	data.RoleScopeTagIds = types.ListValueMust(
-		types.StringType,
-		roleScopeTagIds,
-	)
+	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

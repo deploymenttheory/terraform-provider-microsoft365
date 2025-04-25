@@ -9,7 +9,7 @@ permissions:
   contents: read
   packages: read
   statuses: write # To report GitHub Actions status checks
-  
+
 jobs:
   build:
     name: '✨ Linter'
@@ -25,19 +25,19 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
-          
+
       - name: Lint Code Base with Super-Linter
         uses: super-linter/super-linter@v7.3.0
         env:
           DEFAULT_BRANCH: origin/main
-          VALIDATE_ALL_CODEBASE: false # tells the linter to only check files that have been modified in the current pull request
+          VALIDATE_ALL_CODEBASE: true
           VALIDATE_GO: true
           VALIDATE_GOFMT: true
           VALIDATE_GOCYCLO: true
           VALIDATE_GOVET: true
           VALIDATE_GOLANGCI_LINT: true
           VALIDATE_CPD: false # Disable CPD (Copy Paste Detection) for all languages
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MARKDOWN_CONFIG_FILE: .markdown-lint.yml
           FILTER_REGEX_EXCLUDE: |
             .*\.md$|                # Exclude all markdown files

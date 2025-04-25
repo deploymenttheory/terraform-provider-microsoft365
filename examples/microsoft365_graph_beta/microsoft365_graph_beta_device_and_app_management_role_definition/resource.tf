@@ -1,41 +1,28 @@
 resource "microsoft365_graph_beta_device_and_app_management_role_definition" "example" {
-  display_name                = "Custom Intune Role Definition"
-  description                 = "This is a custom Intune role definition for device and app management"
-  is_built_in                 = false
+  display_name                = "android intune"
+  description                 = "Custom role for Intune device administration with limited permissions"
   is_built_in_role_definition = false
 
-  role_permissions {
-    actions = ["microsoft.intune/"]
-    resource_actions {
+  # Scope tags for the role definition
+  role_scope_tag_ids = ["9", "8"]
+
+  role_permissions = [
+    {
       allowed_resource_actions = [
-        "microsoft.intune/deviceConfigurations/read",
-        "microsoft.intune/deviceConfigurations/basic/read",
-        "microsoft.intune/deviceConfigurations/assign/action",
-        "microsoft.intune/managedDevices/read",
-        "microsoft.intune/managedDevices/resetPasscode/action",
-        "microsoft.intune/managedApps/read",
-        "microsoft.intune/mobileApps/read",
-        "microsoft.intune/mobileApps/assign/action"
-      ]
-      not_allowed_resource_actions = [
-        "microsoft.intune/deviceConfigurations/create",
-        "microsoft.intune/deviceConfigurations/delete",
-        "microsoft.intune/managedDevices/delete",
-        "microsoft.intune/managedApps/wipe/action"
+        "Microsoft.Intune_MicrosoftStoreForBusiness_Read",
+        "Microsoft.Intune_AndroidSync_Read",
+        "Microsoft.Intune_AndroidSync_UpdateApps",
+        "Microsoft.Intune_AndroidSync_UpdateOnboarding",
+        "Microsoft.Intune_AndroidSync_UpdateEnrollmentProfiles"
       ]
     }
-  }
-
-  role_scope_tag_ids = [
-    "scope_tag_1",
-    "scope_tag_2"
   ]
 
-  # Optional: Define custom timeouts
+  # Optional Timeout settings  
   timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "30m"
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
   }
 }

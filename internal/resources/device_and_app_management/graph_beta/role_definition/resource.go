@@ -6,11 +6,12 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -84,11 +85,11 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this Intune role definition",
+				MarkdownDescription: "Key of the entity. This is read-only and automatically generated.",
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "Display Name of the Role definition.",
-				Required:            true,
+				Optional:            true,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the Role definition.",
@@ -100,77 +101,42 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Optional:            true,
+				Required:            true,
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
-				MarkdownDescription: "List of Scope Tags for this Entity instance.",
+			"built_in_role_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"Policy and Profile manager",
+						"School Administrator",
+						"Help Desk Operator",
+						"Application Manager",
+						"Endpoint Security Manager",
+						"Read Only Operator",
+						"Intune Role Administrator",
+					),
+				},
+			},
+			"role_scope_tag_ids": schema.SetAttribute{
+				MarkdownDescription: "List of Scope Tags to assign to this intune role definition.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
-			"permissions": schema.ListNestedAttribute{
-				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"actions": schema.ListAttribute{
-							MarkdownDescription: "Allowed actions for this role permission",
-							Optional:            true,
-							ElementType:         types.StringType,
-						},
-						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission",
-							Optional:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Allowed Resource Actions",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-									"not_allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"role_permissions": schema.ListNestedAttribute{
-				MarkdownDescription: "List of Role Permissions this role is allowed to perform. These must match the actionName that is defined as part of the rolePermission.",
+				MarkdownDescription: "List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions.",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"actions": schema.ListAttribute{
-							MarkdownDescription: "Allowed actions for this role permission",
+						"allowed_resource_actions": schema.SetAttribute{
+							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields.",
 							Optional:            true,
 							ElementType:         types.StringType,
-						},
-						"resource_actions": schema.ListNestedAttribute{
-							MarkdownDescription: "Resource actions for this role permission",
-							Optional:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Allowed Resource Actions",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-									"not_allowed_resource_actions": schema.ListAttribute{
-										MarkdownDescription: "Not Allowed Resource Actions",
-										Optional:            true,
-										ElementType:         types.StringType,
-									},
-								},
-							},
 						},
 					},
 				},
 			},
-			"assignments": commonschemagraphbeta.RoleAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

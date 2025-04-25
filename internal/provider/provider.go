@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -18,52 +19,6 @@ var _ provider.Provider = &M365Provider{}
 type M365Provider struct {
 	version string
 	clients *client.GraphClients
-}
-
-// M365ProviderModel describes the provider data model.
-type M365ProviderModel struct {
-	Cloud           types.String `tfsdk:"cloud"`
-	TenantID        types.String `tfsdk:"tenant_id"`
-	AuthMethod      types.String `tfsdk:"auth_method"`
-	EntraIDOptions  types.Object `tfsdk:"entra_id_options"`
-	ClientOptions   types.Object `tfsdk:"client_options"`
-	TelemetryOptout types.Bool   `tfsdk:"telemetry_optout"`
-	DebugMode       types.Bool   `tfsdk:"debug_mode"`
-}
-
-// EntraIDOptionsModel describes the Entra ID options
-type EntraIDOptionsModel struct {
-	ClientID                   types.String `tfsdk:"client_id"`
-	ClientSecret               types.String `tfsdk:"client_secret"`
-	ClientCertificate          types.String `tfsdk:"client_certificate"`
-	ClientCertificatePassword  types.String `tfsdk:"client_certificate_password"`
-	SendCertificateChain       types.Bool   `tfsdk:"send_certificate_chain"`
-	Username                   types.String `tfsdk:"username"`
-	Password                   types.String `tfsdk:"password"`
-	DisableInstanceDiscovery   types.Bool   `tfsdk:"disable_instance_discovery"`
-	AdditionallyAllowedTenants types.List   `tfsdk:"additionally_allowed_tenants"`
-	RedirectUrl                types.String `tfsdk:"redirect_url"`
-}
-
-// ClientOptionsModel describes the client options
-type ClientOptionsModel struct {
-	EnableHeadersInspection types.Bool   `tfsdk:"enable_headers_inspection"`
-	EnableRetry             types.Bool   `tfsdk:"enable_retry"`
-	MaxRetries              types.Int64  `tfsdk:"max_retries"`
-	RetryDelaySeconds       types.Int64  `tfsdk:"retry_delay_seconds"`
-	EnableRedirect          types.Bool   `tfsdk:"enable_redirect"`
-	MaxRedirects            types.Int64  `tfsdk:"max_redirects"`
-	EnableCompression       types.Bool   `tfsdk:"enable_compression"`
-	CustomUserAgent         types.String `tfsdk:"custom_user_agent"`
-	UseProxy                types.Bool   `tfsdk:"use_proxy"`
-	ProxyURL                types.String `tfsdk:"proxy_url"`
-	ProxyUsername           types.String `tfsdk:"proxy_username"`
-	ProxyPassword           types.String `tfsdk:"proxy_password"`
-	TimeoutSeconds          types.Int64  `tfsdk:"timeout_seconds"`
-	EnableChaos             types.Bool   `tfsdk:"enable_chaos"`
-	ChaosPercentage         types.Int64  `tfsdk:"chaos_percentage"`
-	ChaosStatusCode         types.Int64  `tfsdk:"chaos_status_code"`
-	ChaosStatusMessage      types.String `tfsdk:"chaos_status_message"`
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -115,16 +70,30 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Optional: true,
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
+					"- `azure_developer_cli`: Uses the identity logged into the Azure Developer CLI (azd) for authentication. Ideal for local Terraform development when you're already authenticated with azd.\n" +
 					"- `device_code`: Uses a device code flow for authentication.\n" +
 					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +
 					"- `interactive_browser`: Opens a browser for interactive login.\n" +
-					"- `username_password`: Uses username and password for authentication (not recommended for production).\n" +
+					"- `workload_identity`: Uses workload identity federation for Kubernetes pods, enabling them to authenticate via a service account token file.\n" +
+					"- `managed_identity`: Uses Azure managed identity for authentication when Terraform is running on an Azure resource (like a VM, Azure Container Instance, or App Service) that has been assigned a managed identity.\n" +
+					"- `oidc`: Uses generic OpenID Connect (OIDC) authentication with a JWT token from a file or environment variable.\n" +
+					"- `oidc_github`: Uses GitHub Actions-specific OIDC authentication, with support for subject claims that specify repositories, branches, tags, pull requests, and environments for fine-grained trust configurations.\n" +
+					"- `oidc_azure_devops`: Uses Azure DevOps-specific OIDC authentication with service connections, supporting federated credentials for secure pipeline-to-cloud authentication without storing secrets.\n" +
 					"Each method requires different credentials to be provided.\n" +
 					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"client_secret", "client_certificate", "interactive_browser", "username_password", "device_code",
+						"azure_developer_cli",
+						"client_secret",
+						"client_certificate",
+						"interactive_browser",
+						"device_code",
+						"workload_identity",
+						"managed_identity",
+						"oidc",
+						"oidc_github",
+						"oidc_azure_devops",
 					),
 				},
 			},
@@ -348,18 +317,6 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"```\n\n" +
 				"Can be set using the `M365_USERNAME` environment variable.",
 		},
-		"password": schema.StringAttribute{
-			Optional:  true,
-			Sensitive: true,
-			MarkdownDescription: "Used for the 'username_password' authentication method.\n\n" +
-				"The password for resource owner password credentials (ROPC) flow authentication.\n\n" +
-				"**Critical Security Warning:**\n" +
-				"- Storing passwords in plain text is a significant security risk\n" +
-				"- Use environment variables or secure vaults to manage this sensitive information\n" +
-				"- Regularly rotate passwords and monitor for unauthorized access\n" +
-				"- Consider using more secure authentication methods when possible\n\n" +
-				"Can be set using the `M365_PASSWORD` environment variable.",
-		},
 		"disable_instance_discovery": schema.BoolAttribute{
 			Optional: true,
 			MarkdownDescription: "DisableInstanceDiscovery should be set true only by terraform runs" +
@@ -402,6 +359,52 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 			Validators: []validator.String{
 				validateRedirectURL(),
 			},
+		},
+		"federated_token_file_path": schema.StringAttribute{
+			Optional:    true,
+			Description: "Path to a file containing a Kubernetes service account token for workload identity authentication.",
+			MarkdownDescription: "Path to a file containing a Kubernetes service account token for workload identity authentication. " +
+				"This field is only used with the 'workload_identity' authentication method.\n\n" +
+				"In Kubernetes environments with Azure workload identity enabled, this path is typically " +
+				"'/var/run/secrets/azure/tokens/azure-identity-token'. This token file is used to establish " +
+				"federated identity for your workloads running in Kubernetes.\n\n" +
+				"Can be set using the `AZURE_FEDERATED_TOKEN_FILE` environment variable.",
+		},
+		"managed_identity_id": schema.StringAttribute{
+			Optional:    true,
+			Description: "ID of a user-assigned managed identity to authenticate with.",
+			MarkdownDescription: "ID of a user-assigned managed identity to authenticate with. This field is only used with the " +
+				"'managed_identity' authentication method.\n\n" +
+				"If omitted, the system-assigned managed identity will be used. If specified, it can be either:\n" +
+				"- Client ID (GUID): The client ID of the user-assigned managed identity\n" +
+				"- Resource ID: The full Azure resource ID of the user-assigned managed identity in the format " +
+				"`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`\n\n" +
+				"**Note:** Not all Azure hosting environments support all ID types. Some environments may have restrictions on " +
+				"using certain ID formats. If you encounter errors, try using a different ID format or consult the Azure documentation " +
+				"for your specific hosting environment.\n\n" +
+				"Can be set using the `AZURE_CLIENT_ID` or `M365_MANAGED_IDENTITY_ID` environment variables.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^(([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})|(/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^/]+))$`),
+					"must be either a valid GUID (client ID) or a valid Azure resource ID for a managed identity",
+				),
+			},
+		},
+		"oidc_token_file_path": schema.StringAttribute{
+			Optional:    true,
+			Description: "Path to a file containing an OIDC token for authentication.",
+			MarkdownDescription: "Path to a file containing an OIDC token for authentication. This field is only used with the " +
+				"'oidc' authentication method.\n\n" +
+				"The file should contain a valid JWT assertion that will be used to authenticate the application. " +
+				"This is commonly used in CI/CD pipelines or other environments that support OIDC federation with Azure AD.\n\n" +
+				"Can be set using the `M365_OIDC_TOKEN_FILE_PATH` environment variable.",
+		},
+		"ado_service_connection_id": schema.StringAttribute{
+			Optional:    true,
+			Description: "Azure DevOps service connection ID for OIDC authentication.",
+			MarkdownDescription: "Azure DevOps service connection ID for OIDC authentication. This field is only used with the " +
+				"'oidc' authentication method when using Azure DevOps Pipelines.\n\n" +
+				"Can be set using the `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID` or `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` environment variables.",
 		},
 	}
 }

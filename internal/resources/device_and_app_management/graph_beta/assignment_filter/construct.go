@@ -30,7 +30,7 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 		return nil, fmt.Errorf("invalid assignment filter management type: %s", err)
 	}
 
-	if err := constructors.SetStringList(ctx, data.RoleScopeTags, requestBody.SetRoleScopeTags); err != nil {
+	if err := constructors.SetStringSet(ctx, data.RoleScopeTags, requestBody.SetRoleScopeTags); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
