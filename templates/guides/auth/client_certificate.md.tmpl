@@ -610,7 +610,6 @@ For more advanced scenarios, you can use Vault Agent to automatically retrieve a
 ```hcl
     template {
       destination = "/path/to/terraform_cert.pfx"
-      # Escape the inner {{ and }} for the Go template engine
       contents = "{{ "{{" }}with secret \"secret/microsoft365/certificate\"{{ "}}" }}{{ "{{" }}.Data.data.certificate | base64Decode{{ "}}" }}{{ "{{" }}end{{ "}}" }}"
       perms = 0600
     }
