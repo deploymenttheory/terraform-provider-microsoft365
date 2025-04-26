@@ -3,20 +3,20 @@ package provider
 import (
 	"context"
 	// Graph Beta - Intune datasources
-	graphBetaApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/application_category"
-	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/assignment_filter"
-	graphBetaDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/device_category"
-	graphBetaLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/linux_platform_script"
-	graphBetaMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/macos_pkg_app"
-	graphBetaReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/reuseable_policy_settings"
-	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
-	graphBetaWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_inventory"
-	graphBetaWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_profile"
-	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_platform_script"
-	graphBetaWindowsUpdateCatalogItem "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_update_catalog_item"
+	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/application_category"
+	graphBetaDeviceAndAppManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/assignment_filter"
+	graphBetaDeviceAndAppManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/device_category"
+	graphBetaDeviceAndAppManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/linux_platform_script"
+	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/macos_pkg_app"
+	graphBetaDeviceAndAppManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/reuseable_policy_settings"
+	graphBetaDeviceAndAppManagementRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/role_scope_tag"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_inventory"
+	graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_driver_update_profile"
+	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_platform_script"
+	graphBetaDeviceAndAppManagementWindowsUpdateCatalogItem "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/windows_update_catalog_item"
 
 	// Graph v1.0 - Intune datasources
-	graphCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
+	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -34,19 +34,19 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		// Graph Beta - Intune datasources
-		graphBetaApplicationCategory.NewApplicationCategoryDataSource,
-		graphBetaAssignmentFilter.NewAssignmentFilterDataSource,
-		graphBetaDeviceCategory.NewDeviceCategoryDataSource,
-		graphBetaLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
-		graphBetaMacOSPKGApp.NewMacOSPKGAppDataSource,
-		graphBetaReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
-		graphBetaRoleScopeTag.NewRoleScopeTagDataSource,
-		graphBetaWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileDataSource,
-		graphBetaWindowsDriverUpdateInventory.NewWindowsDriverUpdateInventoryDataSource,
-		graphBetaWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
-		graphBetaWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
+		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryDataSource,
+		graphBetaDeviceAndAppManagementAssignmentFilter.NewAssignmentFilterDataSource,
+		graphBetaDeviceAndAppManagementDeviceCategory.NewDeviceCategoryDataSource,
+		graphBetaDeviceAndAppManagementLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
+		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppDataSource,
+		graphBetaDeviceAndAppManagementReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
+		graphBetaDeviceAndAppManagementRoleScopeTag.NewRoleScopeTagDataSource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileDataSource,
+		graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory.NewWindowsDriverUpdateInventoryDataSource,
+		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
+		graphBetaDeviceAndAppManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
 		// Graph v1.0 - Intune datasources
-		graphCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
+		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 
 		// Add microsoft 365 provider datasources here
 	}

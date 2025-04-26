@@ -100,18 +100,24 @@ func (r *WindowsDriverUpdateProfileResource) Schema(ctx context.Context, req res
 				Validators: []validator.String{
 					stringvalidator.OneOf("manual", "automatic"),
 				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
+				},
 			},
-			"device_reporting": schema.Int64Attribute{
+			"device_reporting": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of devices reporting for this profile",
 			},
-			"new_updates": schema.Int64Attribute{
+			"new_updates": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of new driver updates available for this profile.",
 			},
-			"deployment_deferral_in_days": schema.Int64Attribute{
+			"deployment_deferral_in_days": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Deployment deferral settings in days, only applicable when ApprovalType is set to automatic approval.",
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.RequiresOtherAttributeValueInt32(path.Root("approval_type"), "automatic"),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,

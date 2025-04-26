@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
@@ -11,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// BUG NOTE: this is a bug in the Kiota middleware pipeline (its header struct isn’t safe for parallel use).
+// This mutex is a workaround to serialize calls and avoid concurrent map writes.
+var windowsUpdateCatalogItemsMu sync.Mutex
 
 // Read handles the Read operation for Windows Update Catalog Items data source.
 func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -26,7 +31,6 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 	filterType := object.FilterType.ValueString()
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
 
-	// Validate filter_value is provided when filter_type is not "all"
 	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
@@ -41,18 +45,19 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 	}
 	defer cancel()
 
-	// Fetch all catalog items
+	// Fetch all catalog items (serialize to avoid concurrent map writes in Kiota headers)
+	windowsUpdateCatalogItemsMu.Lock()
 	respList, err := d.client.
 		DeviceManagement().
 		WindowsUpdateCatalogItems().
 		Get(ctx, nil)
+	windowsUpdateCatalogItemsMu.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 		return
 	}
 
-	// Parse date filter if necessary
 	var releaseDateTime, endOfSupportDate *time.Time
 
 	if filterType == "release_date_time" || filterType == "end_of_support_date" {
@@ -72,24 +77,20 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 		}
 	}
 
-	// Filter the results based on the specified filter_type and filter_value
 	var filteredItems []WindowsUpdateCatalogItemModel
 	filterValue := object.FilterValue.ValueString()
 
 	for _, item := range respList.GetValue() {
 		switch filterType {
 		case "all":
-			// No filtering, include all items
 			filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
 
 		case "id":
-			// Filter by ID (exact match)
 			if item.GetId() != nil && *item.GetId() == filterValue {
 				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
 			}
 
 		case "display_name":
-			// Filter by display name (case-insensitive substring match)
 			if item.GetDisplayName() != nil && strings.Contains(
 				strings.ToLower(*item.GetDisplayName()),
 				strings.ToLower(filterValue)) {
@@ -97,14 +98,12 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 			}
 
 		case "release_date_time":
-			// Filter by release date time (exact match)
 			itemReleaseDate := item.GetReleaseDateTime()
 			if itemReleaseDate != nil && releaseDateTime != nil && itemReleaseDate.Equal(*releaseDateTime) {
 				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
 			}
 
 		case "end_of_support_date":
-			// Filter by end of support date (exact match)
 			itemEndOfSupportDate := item.GetEndOfSupportDate()
 			if itemEndOfSupportDate != nil && endOfSupportDate != nil && itemEndOfSupportDate.Equal(*endOfSupportDate) {
 				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
@@ -112,10 +111,8 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 		}
 	}
 
-	// Update the model with the filtered items
 	object.Items = filteredItems
 
-	// Set the data in the response
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
