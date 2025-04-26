@@ -1,0 +1,22 @@
+{
+  "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "featureUpdateVersion": "String",
+  "rolloutSettings": {
+    "@odata.type": "microsoft.graph.windowsUpdateRolloutSettings",
+    "offerStartDateTimeInUTC": "String (timestamp)",
+    "offerEndDateTimeInUTC": "String (timestamp)",
+    "offerIntervalInDays": 1024
+  },
+  "createdDateTime": "String (timestamp)",
+  "lastModifiedDateTime": "String (timestamp)",
+  "roleScopeTagIds": [
+    "String"
+  ],
+  "deployableContentDisplayName": "String",
+  "endOfSupportDate": "String (timestamp)",
+  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installFeatureUpdatesOptional": true
+}

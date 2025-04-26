@@ -3,6 +3,7 @@ package constructors
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -168,5 +169,26 @@ func SetObjectsFromStringSet[T any](
 
 	objects := converter(ctx, stringValues)
 	setter(objects)
+	return nil
+}
+
+// StringToTime parses a string value into a time.Time if the value is not null or unknown,
+// and sets it using the provided setter function.
+func StringToTime(value basetypes.StringValue, setter func(*time.Time)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	dateStr := value.ValueString()
+	if dateStr == "" {
+		return nil
+	}
+
+	parsed, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse time string: %s", err)
+	}
+
+	setter(&parsed)
 	return nil
 }

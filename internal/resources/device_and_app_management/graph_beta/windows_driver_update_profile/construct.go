@@ -1,4 +1,3 @@
-// Main entry point to construct the intune windows driver update profile resource for the Terraform provider.
 package graphBetaWindowsDriverUpdateProfile
 
 import (

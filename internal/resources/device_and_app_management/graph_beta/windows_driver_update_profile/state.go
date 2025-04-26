@@ -1,4 +1,3 @@
-// model.go
 package graphBetaWindowsDriverUpdateProfile
 
 import (
