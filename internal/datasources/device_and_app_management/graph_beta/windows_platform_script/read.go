@@ -1,4 +1,4 @@
-package graphbetadevicemanagementscript
+package graphBetaDeviceManagementScript
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -38,7 +37,7 @@ import (
 //   - Retrieves all scripts and searches for matching display name
 //   - Returns error if no matching script is found
 func (d *WindowsPlatformScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var object resource.WindowsPlatformScriptResourceModel
+	var object WindowsPlatformScriptDataSourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
@@ -86,24 +85,8 @@ func (d *WindowsPlatformScriptDataSource) Read(ctx context.Context, req datasour
 			return
 		}
 
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, respResource)
+		MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-		// Get assignments for the script
-		respAssignments, err := d.client.
-			DeviceManagement().
-			DeviceManagementScripts().
-			ByDeviceManagementScriptId(object.ID.ValueString()).
-			Assignments().
-			Get(ctx, nil)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Windows Platform Script Assignments",
-				fmt.Sprintf("Could not read assignments for script ID %s: %s", object.ID.ValueString(), err),
-			)
-			return
-		}
-
-		resource.MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 	} else {
 		// Lookup by display name
 		result, err := d.client.
@@ -134,24 +117,7 @@ func (d *WindowsPlatformScriptDataSource) Read(ctx context.Context, req datasour
 			return
 		}
 
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, foundScript)
-
-		// Get assignments for the found script
-		respAssignments, err := d.client.
-			DeviceManagement().
-			DeviceManagementScripts().
-			ByDeviceManagementScriptId(*foundScript.GetId()).
-			Assignments().
-			Get(ctx, nil)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Windows Platform Script Assignments",
-				fmt.Sprintf("Could not read assignments for script: %s", err),
-			)
-			return
-		}
-
-		resource.MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
+		MapRemoteResourceStateToTerraform(ctx, &object, foundScript)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)

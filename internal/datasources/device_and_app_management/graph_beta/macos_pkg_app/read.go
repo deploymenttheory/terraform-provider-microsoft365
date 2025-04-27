@@ -7,7 +7,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
@@ -25,7 +24,7 @@ import (
 // - The lookup method is optimized based on the provided identifier
 // - The remote state is properly mapped to the Terraform state
 func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var object resource.MacOSPKGAppResourceModel
+	var object MacOSPKGAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
@@ -87,7 +86,7 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
+		MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 	} else {
 		// When looking up by display name, we need to list all mobile apps to find the ID first
 		mobileApps := d.client.
@@ -145,7 +144,7 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
+		MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
