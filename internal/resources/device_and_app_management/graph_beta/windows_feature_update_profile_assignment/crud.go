@@ -1,4 +1,4 @@
-package graphBetaWindowsDriverUpdateProfileAssignment
+package graphBetaWindowsFeatureUpdateProfileAssignment
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 )
 
 // Create handles the Create operation for Windows Driver Update Profile Assignments.
-func (r *WindowsDriverUpdateProfileAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WindowsDriverUpdateProfileAssignmentResourceModel
+func (r *WindowsFeatureUpdateProfileAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WindowsFeatureUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -30,7 +30,7 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Create(ctx context.Contex
 	}
 	defer cancel()
 
-	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
+	if object.WindowsFeatureUpdateProfileID.IsNull() || object.WindowsFeatureUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to create assignments.",
@@ -54,12 +54,12 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Create(ctx context.Contex
 		return
 	}
 
-	profileID := object.WindowsDriverUpdateProfileID.ValueString()
+	profileID := object.WindowsFeatureUpdateProfileID.ValueString()
 
 	err = r.client.
 		DeviceManagement().
-		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(profileID).
+		WindowsFeatureUpdateProfiles().
+		ByWindowsFeatureUpdateProfileId(profileID).
 		Assign().
 		Post(ctx, assignRequest, nil)
 
@@ -90,8 +90,8 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Create(ctx context.Contex
 }
 
 // Read handles the Read operation for Windows Driver Update Profile Assignment resources.
-func (r *WindowsDriverUpdateProfileAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WindowsDriverUpdateProfileAssignmentResourceModel
+func (r *WindowsFeatureUpdateProfileAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WindowsFeatureUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -106,7 +106,7 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Read(ctx context.Context,
 	}
 	defer cancel()
 
-	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
+	if object.WindowsFeatureUpdateProfileID.IsNull() || object.WindowsFeatureUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to read assignments.",
@@ -114,12 +114,14 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Read(ctx context.Context,
 		return
 	}
 
-	profileID := object.WindowsDriverUpdateProfileID.ValueString()
+	profileID := object.WindowsFeatureUpdateProfileID.ValueString()
 
+	// For this resource, we need to read all assignments and filter them
+	// since we're managing multiple assignments in a single resource
 	assignmentsResponse, err := r.client.
 		DeviceManagement().
-		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(profileID).
+		WindowsFeatureUpdateProfiles().
+		ByWindowsFeatureUpdateProfileId(profileID).
 		Assignments().
 		Get(ctx, nil)
 
@@ -147,8 +149,8 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Read(ctx context.Context,
 }
 
 // Update handles the Update operation for Windows Driver Update Profile Assignment resources.
-func (r *WindowsDriverUpdateProfileAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsDriverUpdateProfileAssignmentResourceModel
+func (r *WindowsFeatureUpdateProfileAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object WindowsFeatureUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -163,7 +165,7 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Update(ctx context.Contex
 	}
 	defer cancel()
 
-	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
+	if object.WindowsFeatureUpdateProfileID.IsNull() || object.WindowsFeatureUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to update an assignment.",
@@ -188,12 +190,12 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Update(ctx context.Contex
 		return
 	}
 
-	profileID := object.WindowsDriverUpdateProfileID.ValueString()
+	profileID := object.WindowsFeatureUpdateProfileID.ValueString()
 
 	err = r.client.
 		DeviceManagement().
-		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(profileID).
+		WindowsFeatureUpdateProfiles().
+		ByWindowsFeatureUpdateProfileId(profileID).
 		Assign().
 		Post(ctx, assignRequest, nil)
 
@@ -224,8 +226,8 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Update(ctx context.Contex
 }
 
 // Delete handles the Delete operation for Windows Driver Update Profile Assignment resources.
-func (r *WindowsDriverUpdateProfileAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WindowsDriverUpdateProfileAssignmentResourceModel
+func (r *WindowsFeatureUpdateProfileAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WindowsFeatureUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -240,7 +242,7 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Delete(ctx context.Contex
 	}
 	defer cancel()
 
-	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
+	if object.WindowsFeatureUpdateProfileID.IsNull() || object.WindowsFeatureUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to delete assignments.",
@@ -248,17 +250,17 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Delete(ctx context.Contex
 		return
 	}
 
-	profileID := object.WindowsDriverUpdateProfileID.ValueString()
+	profileID := object.WindowsFeatureUpdateProfileID.ValueString()
 
-	// For a delete operation, we'll submit an empty assignments list to effectively
+	// For a delete operation, we submit an empty assignments list to effectively
 	// remove all assignments managed by this resource
-	assignRequest := devicemanagement.NewWindowsDriverUpdateProfilesItemAssignPostRequestBody()
-	assignRequest.SetAssignments([]graphmodels.WindowsDriverUpdateProfileAssignmentable{})
+	assignRequest := devicemanagement.NewWindowsFeatureUpdateProfilesItemAssignPostRequestBody()
+	assignRequest.SetAssignments([]graphmodels.WindowsFeatureUpdateProfileAssignmentable{})
 
 	err := r.client.
 		DeviceManagement().
-		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(profileID).
+		WindowsFeatureUpdateProfiles().
+		ByWindowsFeatureUpdateProfileId(profileID).
 		Assign().
 		Post(ctx, assignRequest, nil)
 

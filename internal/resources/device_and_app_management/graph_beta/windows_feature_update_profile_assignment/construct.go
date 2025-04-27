@@ -1,4 +1,4 @@
-package graphBetaWindowsDriverUpdateProfileAssignment
+package graphBetaWindowsFeatureUpdateProfileAssignment
 
 import (
 	"context"
@@ -11,12 +11,11 @@ import (
 )
 
 // constructResource creates an assign request body with assignments from the nested blocks
-func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileAssignmentResourceModel) (devicemanagement.WindowsDriverUpdateProfilesItemAssignPostRequestBodyable, error) {
+func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileAssignmentResourceModel) (devicemanagement.WindowsFeatureUpdateProfilesItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
 
-	assignRequest := devicemanagement.NewWindowsDriverUpdateProfilesItemAssignPostRequestBody()
-
-	var assignments []graphmodels.WindowsDriverUpdateProfileAssignmentable
+	assignRequest := devicemanagement.NewWindowsFeatureUpdateProfilesItemAssignPostRequestBody()
+	var assignments []graphmodels.WindowsFeatureUpdateProfileAssignmentable
 
 	for i, assignmentBlock := range data.Assignments {
 		if assignmentBlock.Target.IsNull() || assignmentBlock.Target.IsUnknown() {
@@ -40,7 +39,7 @@ func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileAssi
 		}
 
 		for _, groupID := range groupIDs {
-			assignment := graphmodels.NewWindowsDriverUpdateProfileAssignment()
+			assignment := graphmodels.NewWindowsFeatureUpdateProfileAssignment()
 
 			if targetType == "include" {
 				target := graphmodels.NewGroupAssignmentTarget()
