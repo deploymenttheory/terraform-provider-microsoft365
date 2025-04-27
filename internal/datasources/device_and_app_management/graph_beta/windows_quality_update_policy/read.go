@@ -59,7 +59,6 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 	}
 	defer cancel()
 
-	// Validate that exactly one of ID or DisplayName is provided
 	if object.ID.IsNull() && object.DisplayName.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
@@ -75,7 +74,6 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 		return
 	}
 
-	// Look up by ID if provided
 	if !object.ID.IsNull() {
 		profileID := object.ID.ValueString()
 		tflog.Debug(ctx, fmt.Sprintf("Fetching Windows Quality Update Profile by ID: %s", profileID))
@@ -94,14 +92,11 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 			return
 		}
 
-		// Map the response to the data source model using the dedicated function
 		MapRemoteStateToDataSource(ctx, &object, profile)
 	} else {
-		// Look up by DisplayName
 		displayName := object.DisplayName.ValueString()
 		tflog.Debug(ctx, fmt.Sprintf("Fetching Windows Quality Update Profile by display name: %s", displayName))
 
-		// Get all profiles and filter by display name
 		profilesResult, err := d.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
@@ -115,7 +110,6 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 			return
 		}
 
-		// Find profile by display name
 		var foundProfile graphmodels.WindowsQualityUpdateProfileable
 		for _, profile := range profilesResult.GetValue() {
 			if *profile.GetDisplayName() == displayName {
@@ -132,11 +126,9 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 			return
 		}
 
-		// Map the response to the data source model using the dedicated function
 		MapRemoteStateToDataSource(ctx, &object, foundProfile)
 	}
 
-	// Set the data in the response
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
