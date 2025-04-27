@@ -1,0 +1,1 @@
+https://learn.microsoft.com/en-us/graph/api/resources/adminwindowsupdates?view=graph-rest-beta&preserve-view=true
