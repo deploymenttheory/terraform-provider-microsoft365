@@ -3,7 +3,9 @@ package planmodifiers
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -77,5 +79,51 @@ func BoolDefaultValue(defaultValue bool) BoolModifier {
 			markdownDescription: "Set default value if null",
 		},
 		defaultValue: defaultValue,
+	}
+}
+
+// RequiresOtherAttributeValueBool returns a plan modifier that ensures a Bool attribute
+// can only be used when another specified attribute has a specific string value.
+func RequiresOtherAttributeValueBool(dependencyPath path.Path, requiredValue string) planmodifier.Bool {
+	return &requiresOtherAttributeValueBoolModifier{
+		dependencyPath: dependencyPath,
+		requiredValue:  requiredValue,
+	}
+}
+
+type requiresOtherAttributeValueBoolModifier struct {
+	dependencyPath path.Path
+	requiredValue  string
+}
+
+func (m *requiresOtherAttributeValueBoolModifier) Description(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when %s is set to %q", m.dependencyPath, m.requiredValue)
+}
+
+func (m *requiresOtherAttributeValueBoolModifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Ensures this attribute is only used when `%s` is set to `%s`", m.dependencyPath, m.requiredValue)
+}
+
+func (m *requiresOtherAttributeValueBoolModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	// Skip if the attribute is null in the plan
+	if req.PlanValue.IsNull() {
+		return
+	}
+
+	// Get the dependency attribute's value from the plan
+	var dependencyValue types.String
+	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If dependency is defined, not null, and not the required value, this attribute should not be used
+	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && dependencyValue.ValueString() != m.requiredValue {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid attribute usage",
+			fmt.Sprintf("This attribute can only be used when %s is set to %q", m.dependencyPath, m.requiredValue),
+		)
 	}
 }

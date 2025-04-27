@@ -88,7 +88,7 @@ func (r *WindowsFeatureUpdateProfileAssignmentResource) Schema(ctx context.Conte
 				},
 				MarkdownDescription: "The Identifier of the entity.",
 			},
-			"windows_driver_update_profile_id": schema.StringAttribute{
+			"windows_feature_update_profile_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The ID of the Windows feature Update Profile these assignments belong to.",
 				Validators: []validator.String{

@@ -77,7 +77,7 @@ func (r *WindowsDriverUpdateProfileResource) ImportState(ctx context.Context, re
 // Schema defines the schema for the resource.
 func (r *WindowsDriverUpdateProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Driver Update Profile in Microsoft Intune.",
+		MarkdownDescription: "Manages a Windows Driver Update Profile in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Driver Updates.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -77,7 +77,7 @@ func (r *WindowsFeatureUpdateProfileResource) ImportState(ctx context.Context, r
 // Schema defines the schema for the resource.
 func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Feature Update Profile in Microsoft Intune.",
+		MarkdownDescription: "Manages a Windows Feature Update Profile in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Feature Updates.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
