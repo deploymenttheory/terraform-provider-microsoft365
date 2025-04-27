@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdatePolicy
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *WindowsQualityUpdateProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WindowsQualityUpdateProfileResourceModel
+func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WindowsQualityUpdatePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -41,7 +41,7 @@ func (r *WindowsQualityUpdateProfileResource) Create(ctx context.Context, req re
 
 	createdResource, err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
+		WindowsQualityUpdatePolicies().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -83,8 +83,8 @@ func (r *WindowsQualityUpdateProfileResource) Create(ctx context.Context, req re
 // The function ensures all components are properly read and mapped into the
 // Terraform state in a single API call, providing a complete view of the
 // resource's current configuration on the server.
-func (r *WindowsQualityUpdateProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WindowsQualityUpdateProfileResourceModel
+func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WindowsQualityUpdatePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -103,8 +103,8 @@ func (r *WindowsQualityUpdateProfileResource) Read(ctx context.Context, req reso
 
 	respResource, err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		WindowsQualityUpdatePolicies().
+		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -134,8 +134,8 @@ func (r *WindowsQualityUpdateProfileResource) Read(ctx context.Context, req reso
 // through PATCH operations for the base resource, while assignments are handled through
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
-func (r *WindowsQualityUpdateProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsQualityUpdateProfileResourceModel
+func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object WindowsQualityUpdatePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -164,8 +164,8 @@ func (r *WindowsQualityUpdateProfileResource) Update(ctx context.Context, req re
 
 	_, err = r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		WindowsQualityUpdatePolicies().
+		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -207,8 +207,8 @@ func (r *WindowsQualityUpdateProfileResource) Update(ctx context.Context, req re
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *WindowsQualityUpdateProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WindowsQualityUpdateProfileResourceModel
+func (r *WindowsQualityUpdatePolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WindowsQualityUpdatePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -225,8 +225,8 @@ func (r *WindowsQualityUpdateProfileResource) Delete(ctx context.Context, req re
 
 	err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		WindowsQualityUpdatePolicies().
+		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

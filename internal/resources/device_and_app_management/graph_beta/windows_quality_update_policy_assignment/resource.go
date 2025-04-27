@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfileAssignment
+package graphBetaWindowsQualityUpdatePolicyAssignment
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_windows_quality_update_profile_assignment"
+	ResourceName  = "graph_beta_device_and_app_management_windows_quality_update_policy_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -48,7 +48,7 @@ func NewWindowsQualityUpdateProfileAssignmentResource() resource.Resource {
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
-		ResourcePath: "/deviceManagement/WindowsQualityUpdateProfiles/{WindowsQualityUpdateProfileId}/assignments",
+		ResourcePath: "/deviceManagement/windowsQualityUpdatePolicies/{windowsQualityUpdatePolicyId}/assign",
 	}
 }
 
@@ -79,7 +79,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) ImportState(ctx context.
 // Schema defines the schema for the resource.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows feature Update Profile Assignments in Microsoft Intune.",
+		MarkdownDescription: "Manages Windows quality update Assignments for update policies and update expedite policies in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -88,9 +88,9 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 				},
 				MarkdownDescription: "The Identifier of the entity.",
 			},
-			"windows_quality_update_profile_id": schema.StringAttribute{
+			"windows_quality_update_policy_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The ID of the Windows feature Quality Profile these assignments belong to.",
+				MarkdownDescription: "The ID of the Windows quality update policy these assignments belong to. Can be either an update policy or an expedite update policy",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`),
@@ -102,7 +102,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 		},
 		Blocks: map[string]schema.Block{
 			"assignment": schema.ListNestedBlock{
-				MarkdownDescription: "Assignment configuration for the Windows Quality Update Profile.",
+				MarkdownDescription: "Assignment configuration for the Windows quality update policy.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"target": schema.StringAttribute{

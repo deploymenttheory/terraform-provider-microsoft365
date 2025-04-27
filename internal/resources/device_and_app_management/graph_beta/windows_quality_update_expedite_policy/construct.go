@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdateExpeditePolicy
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // Main entry point to construct the intune windows quality update profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *WindowsQualityUpdateProfileResourceModel) (graphmodels.WindowsQualityUpdateProfileable, error) {
+func constructResource(ctx context.Context, data *WindowsQualityUpdateExpeditePolicyResourceModel) (graphmodels.WindowsQualityUpdateProfileable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewWindowsQualityUpdateProfile()

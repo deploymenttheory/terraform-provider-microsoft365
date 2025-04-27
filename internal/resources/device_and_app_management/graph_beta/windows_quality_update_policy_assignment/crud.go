@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfileAssignment
+package graphBetaWindowsQualityUpdatePolicyAssignment
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Create(ctx context.Conte
 	}
 	defer cancel()
 
-	if object.WindowsQualityUpdateProfileID.IsNull() || object.WindowsQualityUpdateProfileID.ValueString() == "" {
+	if object.WindowsQualityUpdatePolicyID.IsNull() || object.WindowsQualityUpdatePolicyID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to create assignments.",
@@ -54,7 +54,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Create(ctx context.Conte
 		return
 	}
 
-	profileID := object.WindowsQualityUpdateProfileID.ValueString()
+	profileID := object.WindowsQualityUpdatePolicyID.ValueString()
 
 	err = r.client.
 		DeviceManagement().
@@ -106,7 +106,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Read(ctx context.Context
 	}
 	defer cancel()
 
-	if object.WindowsQualityUpdateProfileID.IsNull() || object.WindowsQualityUpdateProfileID.ValueString() == "" {
+	if object.WindowsQualityUpdatePolicyID.IsNull() || object.WindowsQualityUpdatePolicyID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to read assignments.",
@@ -114,7 +114,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Read(ctx context.Context
 		return
 	}
 
-	profileID := object.WindowsQualityUpdateProfileID.ValueString()
+	profileID := object.WindowsQualityUpdatePolicyID.ValueString()
 
 	// For this resource, we need to read all assignments and filter them
 	// since we're managing multiple assignments in a single resource
@@ -165,7 +165,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Update(ctx context.Conte
 	}
 	defer cancel()
 
-	if object.WindowsQualityUpdateProfileID.IsNull() || object.WindowsQualityUpdateProfileID.ValueString() == "" {
+	if object.WindowsQualityUpdatePolicyID.IsNull() || object.WindowsQualityUpdatePolicyID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to update an assignment.",
@@ -190,7 +190,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Update(ctx context.Conte
 		return
 	}
 
-	profileID := object.WindowsQualityUpdateProfileID.ValueString()
+	profileID := object.WindowsQualityUpdatePolicyID.ValueString()
 
 	err = r.client.
 		DeviceManagement().
@@ -242,7 +242,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Delete(ctx context.Conte
 	}
 	defer cancel()
 
-	if object.WindowsQualityUpdateProfileID.IsNull() || object.WindowsQualityUpdateProfileID.ValueString() == "" {
+	if object.WindowsQualityUpdatePolicyID.IsNull() || object.WindowsQualityUpdatePolicyID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to delete assignments.",
@@ -250,7 +250,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Delete(ctx context.Conte
 		return
 	}
 
-	profileID := object.WindowsQualityUpdateProfileID.ValueString()
+	profileID := object.WindowsQualityUpdatePolicyID.ValueString()
 
 	// For a delete operation, we submit an empty assignments list to effectively
 	// remove all assignments managed by this resource

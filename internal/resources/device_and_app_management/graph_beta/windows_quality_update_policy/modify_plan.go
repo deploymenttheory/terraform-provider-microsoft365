@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdatePolicy
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // ModifyPlan handles plan modification for diff suppression
-func (r *WindowsQualityUpdateProfileResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *WindowsQualityUpdatePolicyResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
 	}

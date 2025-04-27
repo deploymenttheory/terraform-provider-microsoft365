@@ -1,5 +1,5 @@
-resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_profile_assignment" "profile_assignments" {
-  windows_quality_update_profile_id = microsoft365_graph_beta_device_and_app_management_windows_quality_update_profile.example.id
+resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy_assignment" "profile_assignments" {
+  windows_quality_update_expedite_policy_id = microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.example.id
   
   assignment {
     target = "include"

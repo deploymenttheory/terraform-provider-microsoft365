@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfileAssignment
+package graphBetaWindowsQualityUpdatePolicyAssignment
 
 import (
 	"context"

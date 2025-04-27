@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdatePolicy
 
 import (
 	"context"
@@ -10,27 +10,17 @@ import (
 )
 
 // Main entry point to construct the intune windows quality update profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *WindowsQualityUpdateProfileResourceModel) (graphmodels.WindowsQualityUpdateProfileable, error) {
+func constructResource(ctx context.Context, data *WindowsQualityUpdatePolicyResourceModel) (graphmodels.WindowsQualityUpdatePolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := graphmodels.NewWindowsQualityUpdateProfile()
+	requestBody := graphmodels.NewWindowsQualityUpdatePolicy()
 
 	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.ReleaseDateDisplayName, requestBody.SetReleaseDateDisplayName)
-	constructors.SetStringProperty(data.DeployableContentDisplayName, requestBody.SetDeployableContentDisplayName)
+	constructors.SetBoolProperty(data.HotpatchEnabled, requestBody.SetHotpatchEnabled)
 
 	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
-	}
-
-	if data.ExpeditedUpdateSettings != nil {
-		expeditedSettings := graphmodels.NewExpeditedWindowsQualityUpdateSettings()
-
-		constructors.SetStringProperty(data.ExpeditedUpdateSettings.QualityUpdateRelease, expeditedSettings.SetQualityUpdateRelease)
-		constructors.SetInt32Property(data.ExpeditedUpdateSettings.DaysUntilForcedReboot, expeditedSettings.SetDaysUntilForcedReboot)
-
-		requestBody.SetExpeditedUpdateSettings(expeditedSettings)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdatePolicy
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the Graph API model into the Terraform state model
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdateProfileResourceModel, remoteResource graphmodels.WindowsQualityUpdateProfileable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdatePolicyResourceModel, remoteResource graphmodels.WindowsQualityUpdatePolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -21,20 +21,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQuality
 	data.ID = types.StringPointerValue(remoteResource.GetId())
 	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
+	data.HotpatchEnabled = types.BoolPointerValue(remoteResource.GetHotpatchEnabled())
 	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
-	data.ReleaseDateDisplayName = types.StringPointerValue(remoteResource.GetReleaseDateDisplayName())
-	data.DeployableContentDisplayName = types.StringPointerValue(remoteResource.GetDeployableContentDisplayName())
-
-	if expeditedSettings := remoteResource.GetExpeditedUpdateSettings(); expeditedSettings != nil {
-		data.ExpeditedUpdateSettings = &ExpeditedWindowsQualityUpdateSettings{
-			QualityUpdateRelease:  types.StringPointerValue(expeditedSettings.GetQualityUpdateRelease()),
-			DaysUntilForcedReboot: state.Int32PtrToTypeInt32(expeditedSettings.GetDaysUntilForcedReboot()),
-		}
-	} else {
-		data.ExpeditedUpdateSettings = nil
-	}
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform", map[string]interface{}{"resourceId": data.ID.ValueString()})
 }

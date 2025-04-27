@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateProfile
+package graphBetaWindowsQualityUpdateExpeditePolicy
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the Graph API model into the Terraform state model
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdateProfileResourceModel, remoteResource graphmodels.WindowsQualityUpdateProfileable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdateExpeditePolicyResourceModel, remoteResource graphmodels.WindowsQualityUpdateProfileable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
