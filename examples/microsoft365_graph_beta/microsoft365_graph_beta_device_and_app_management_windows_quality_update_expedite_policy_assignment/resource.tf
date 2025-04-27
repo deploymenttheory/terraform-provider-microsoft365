@@ -1,5 +1,6 @@
-resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_policy_assignment" "quality_update_policy_assignment" {
-  windows_quality_update_policy_id = microsoft365_graph_beta_device_and_app_management_windows_quality_update_policy.quality_update_policy_example.id
+resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy_assignment" "quality_update_policy_assignment" {
+  windows_quality_update_policy_id = microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.expedite_policy_example.id
+  
 
   assignment {
     target = "include"

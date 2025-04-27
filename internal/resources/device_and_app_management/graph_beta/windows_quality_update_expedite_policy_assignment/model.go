@@ -1,13 +1,13 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-assign?view=graph-rest-beta
-package graphBetaWindowsQualityUpdatePolicyAssignment
+package graphBetaWindowsQualityUpdateExpeditePolicyAssignment
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// WindowsQualityUpdatePolicyAssignmentResourceModel defines the resource model for a Windows Quality Update Policy Assignment
-type WindowsQualityUpdatePolicyAssignmentResourceModel struct {
+// WindowsQualityUpdateProfileAssignmentResourceModel defines the resource model for a Windows Quality Update Profile Assignment
+type WindowsQualityUpdateProfileAssignmentResourceModel struct {
 	ID                           types.String              `tfsdk:"id"`
 	WindowsQualityUpdatePolicyID types.String              `tfsdk:"windows_quality_update_policy_id"`
 	Assignments                  []AssignmentResourceModel `tfsdk:"assignment"`

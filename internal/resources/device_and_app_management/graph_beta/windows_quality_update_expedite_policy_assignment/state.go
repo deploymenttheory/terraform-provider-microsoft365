@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdatePolicyAssignment
+package graphBetaWindowsQualityUpdateExpeditePolicyAssignment
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps properties from multiple assignments to Terraform state.
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdatePolicyAssignmentResourceModel, assignments []graphmodels.WindowsQualityUpdatePolicyAssignmentable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQualityUpdateProfileAssignmentResourceModel, assignments []graphmodels.WindowsQualityUpdateProfileAssignmentable) {
 	if assignments == nil || len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments found")
 		return

@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdatePolicyAssignment
+package graphBetaWindowsQualityUpdateExpeditePolicyAssignment
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 )
 
 // constructResource creates an assign request body with assignments from the nested blocks
-func constructResource(ctx context.Context, data *WindowsQualityUpdatePolicyAssignmentResourceModel) (devicemanagement.WindowsQualityUpdatePoliciesItemAssignPostRequestBodyable, error) {
+func constructResource(ctx context.Context, data *WindowsQualityUpdateProfileAssignmentResourceModel) (devicemanagement.WindowsQualityUpdateProfilesItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
 
-	assignRequest := devicemanagement.NewWindowsQualityUpdatePoliciesItemAssignPostRequestBody()
-	var assignments []graphmodels.WindowsQualityUpdatePolicyAssignmentable
+	assignRequest := devicemanagement.NewWindowsQualityUpdateProfilesItemAssignPostRequestBody()
+	var assignments []graphmodels.WindowsQualityUpdateProfileAssignmentable
 
 	for i, assignmentBlock := range data.Assignments {
 		if assignmentBlock.Target.IsNull() || assignmentBlock.Target.IsUnknown() {

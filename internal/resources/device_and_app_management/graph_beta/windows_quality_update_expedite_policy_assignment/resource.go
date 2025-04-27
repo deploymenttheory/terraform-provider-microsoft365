@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdatePolicyAssignment
+package graphBetaWindowsQualityUpdateExpeditePolicyAssignment
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_windows_quality_update_policy_assignment"
+	ResourceName  = "graph_beta_device_and_app_management_windows_quality_update_expedite_policy_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -48,7 +48,7 @@ func NewWindowsQualityUpdateProfileAssignmentResource() resource.Resource {
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
 		},
-		ResourcePath: "/deviceManagement/windowsQualityUpdatePolicies/%s/assign",
+		ResourcePath: "deviceManagement/windowsQualityUpdateProfiles/%s/assign",
 	}
 }
 

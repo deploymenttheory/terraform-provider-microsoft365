@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdatePolicyAssignment
+package graphBetaWindowsQualityUpdateExpeditePolicyAssignment
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 // Create handles the Create operation for Windows Driver Update Profile Assignments.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WindowsQualityUpdatePolicyAssignmentResourceModel
+	var object WindowsQualityUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -58,8 +58,8 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Create(ctx context.Conte
 
 	err = r.client.
 		DeviceManagement().
-		WindowsQualityUpdatePolicies().
-		ByWindowsQualityUpdatePolicyId(profileID).
+		WindowsQualityUpdateProfiles().
+		ByWindowsQualityUpdateProfileId(profileID).
 		Assign().
 		Post(ctx, assignRequest, nil)
 
@@ -91,7 +91,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Create(ctx context.Conte
 
 // Read handles the Read operation for Windows Driver Update Profile Assignment resources.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WindowsQualityUpdatePolicyAssignmentResourceModel
+	var object WindowsQualityUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -120,8 +120,8 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Read(ctx context.Context
 	// since we're managing multiple assignments in a single resource
 	assignmentsResponse, err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdatePolicies().
-		ByWindowsQualityUpdatePolicyId(profileID).
+		WindowsQualityUpdateProfiles().
+		ByWindowsQualityUpdateProfileId(profileID).
 		Assignments().
 		Get(ctx, nil)
 
@@ -150,7 +150,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Read(ctx context.Context
 
 // Update handles the Update operation for Windows Driver Update Profile Assignment resources.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsQualityUpdatePolicyAssignmentResourceModel
+	var object WindowsQualityUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -194,8 +194,8 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Update(ctx context.Conte
 
 	err = r.client.
 		DeviceManagement().
-		WindowsQualityUpdatePolicies().
-		ByWindowsQualityUpdatePolicyId(profileID).
+		WindowsQualityUpdateProfiles().
+		ByWindowsQualityUpdateProfileId(profileID).
 		Assign().
 		Post(ctx, assignRequest, nil)
 
@@ -227,7 +227,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Update(ctx context.Conte
 
 // Delete handles the Delete operation for Windows Driver Update Profile Assignment resources.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WindowsQualityUpdatePolicyAssignmentResourceModel
+	var object WindowsQualityUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
