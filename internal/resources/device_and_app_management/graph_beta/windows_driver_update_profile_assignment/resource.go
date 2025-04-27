@@ -115,7 +115,7 @@ func (r *WindowsDriverUpdateProfileAssignmentResource) Schema(ctx context.Contex
 						"group_ids": schema.SetAttribute{
 							Required:            true,
 							ElementType:         types.StringType,
-							MarkdownDescription: "Set of Azure AD group IDs for this assignment target.",
+							MarkdownDescription: "Set of Microsoft Entra ID group IDs for this assignment target.",
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
 									stringvalidator.RegexMatches(

@@ -88,9 +88,9 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 				},
 				MarkdownDescription: "The Identifier of the entity.",
 			},
-			"windows_feature_update_profile_id": schema.StringAttribute{
+			"windows_quality_update_profile_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The ID of the Windows feature Update Profile these assignments belong to.",
+				MarkdownDescription: "The ID of the Windows feature Quality Profile these assignments belong to.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`),
@@ -102,7 +102,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 		},
 		Blocks: map[string]schema.Block{
 			"assignment": schema.ListNestedBlock{
-				MarkdownDescription: "Assignment configuration for the Windows feature Update Profile.",
+				MarkdownDescription: "Assignment configuration for the Windows Quality Update Profile.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"target": schema.StringAttribute{
@@ -115,7 +115,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 						"group_ids": schema.SetAttribute{
 							Required:            true,
 							ElementType:         types.StringType,
-							MarkdownDescription: "Set of Azure AD group IDs for this assignment target.",
+							MarkdownDescription: "Set of Microsoft Entra ID group IDs for this assignment target.",
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
 									stringvalidator.RegexMatches(
