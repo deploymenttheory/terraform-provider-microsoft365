@@ -3,6 +3,7 @@ package graphBetaWindowsQualityUpdatePolicy
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
@@ -12,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
+
+// BUG NOTE: this is a bug in the Kiota middleware pipeline (its header struct isn't safe for parallel use).
+// This mutex is a workaround to serialize calls and avoid concurrent map writes.
+var WindowsQualityUpdateMu sync.Mutex
 
 // Create handles the Create operation.
 func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -101,11 +106,13 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 	}
 	defer cancel()
 
+	WindowsQualityUpdateMu.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
+	WindowsQualityUpdateMu.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
