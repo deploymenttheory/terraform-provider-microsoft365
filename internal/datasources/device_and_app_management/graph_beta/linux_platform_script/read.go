@@ -88,17 +88,13 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 }
 
 // findPolicyIdByName looks up a Linux platform script by name and returns its ID
-// findPolicyIdByName looks up a Linux platform script by name and returns its ID
 func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context, name string) (string, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Looking for Linux platform script with name: '%s'", name))
 
-	// Build the filter string using the technologies field
 	filterValue := fmt.Sprintf("technologies/any(t:t eq 'linuxMdm') and name eq '%s'", name)
 
-	// Set up expand to get more complete data
 	expand := []string{"settings"}
 
-	// Create request options with proper filtering and expand
 	requestOptions := &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{
 			Filter: &filterValue,
@@ -115,14 +111,12 @@ func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context,
 		return "", err
 	}
 
-	// Check if we found anything with the combined filter
 	if configPolicies.GetValue() != nil && len(configPolicies.GetValue()) > 0 {
 		policy := configPolicies.GetValue()[0]
 		tflog.Debug(ctx, fmt.Sprintf("Found Linux script with name: '%s' and ID: %s", name, *policy.GetId()))
 		return *policy.GetId(), nil
 	}
 
-	// If we didn't find with combined filter, try just filtering by technology
 	technologyFilter := "technologies/any(t:t eq 'linuxMdm')"
 	requestOptions = &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{
@@ -140,7 +134,6 @@ func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context,
 		return "", err
 	}
 
-	// Now search by name in the returned Linux policies
 	if configPolicies.GetValue() != nil {
 		for _, policy := range configPolicies.GetValue() {
 			if policy.GetName() != nil && *policy.GetName() == name {
@@ -149,7 +142,6 @@ func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context,
 			}
 		}
 
-		// Log available Linux scripts for debugging
 		tflog.Debug(ctx, fmt.Sprintf("Found %d Linux scripts:", len(configPolicies.GetValue())))
 
 		linuxScriptNames := []string{}
@@ -172,7 +164,6 @@ func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context,
 
 // getDataSource fetches all details for a Linux script and maps them to the Terraform model
 func (d *LinuxPlatformScriptDataSource) getDataSource(ctx context.Context, object *resource.LinuxPlatformScriptResourceModel) error {
-	// 1. Fetch base resource
 	baseResource, err := d.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -183,10 +174,8 @@ func (d *LinuxPlatformScriptDataSource) getDataSource(ctx context.Context, objec
 		return err
 	}
 
-	// 2. Map base resource
 	resource.MapRemoteResourceStateToTerraform(ctx, object, baseResource)
 
-	// 3. Fetch settings
 	settingsResponse, err := d.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -198,10 +187,8 @@ func (d *LinuxPlatformScriptDataSource) getDataSource(ctx context.Context, objec
 		return err
 	}
 
-	// 4. Map settings
 	resource.MapRemoteSettingsStateToTerraform(ctx, object, settingsResponse.GetValue())
 
-	// 5. Fetch assignments
 	assignmentsResponse, err := d.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -213,7 +200,6 @@ func (d *LinuxPlatformScriptDataSource) getDataSource(ctx context.Context, objec
 		return err
 	}
 
-	// 6. Map assignments (using a type assertion since assignments API might be different)
 	scriptAssignments, ok := assignmentsResponse.(models.DeviceManagementScriptAssignmentCollectionResponseable)
 	if ok {
 		resource.MapRemoteAssignmentStateToTerraform(ctx, object, scriptAssignments)

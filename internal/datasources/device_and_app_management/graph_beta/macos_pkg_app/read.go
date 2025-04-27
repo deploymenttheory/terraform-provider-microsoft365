@@ -75,8 +75,6 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 
-		// This ensures type safety as the Graph API returns a base interface that needs
-		// to be converted to the specific app type
 		macOSPkgApp, ok := respBaseResource.(graphmodels.MacOSPkgAppable)
 		if !ok {
 			resp.Diagnostics.AddError(
@@ -88,7 +86,6 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		MapRemoteResourceStateToTerraform(ctx, &object, macOSPkgApp)
 	} else {
-		// When looking up by display name, we need to list all mobile apps to find the ID first
 		mobileApps := d.client.
 			DeviceAppManagement().
 			MobileApps()
@@ -133,8 +130,6 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 
-		// This ensures type safety as the Graph API returns a base interface that needs
-		// to be converted to the specific app type
 		macOSPkgApp, ok := respBaseResource.(graphmodels.MacOSPkgAppable)
 		if !ok {
 			resp.Diagnostics.AddError(
