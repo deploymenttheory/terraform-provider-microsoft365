@@ -25,6 +25,7 @@ import (
 	graphBetaDeviceAndAppManagementWindowsFeatureUpdateProfileAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_feature_update_profile_assignment"
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
 	graphBetaDeviceAndAppManagementWindowsQualityUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_profile"
+	graphBetaDeviceAndAppManagementWindowsQualityUpdateProfileAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_profile_assignment"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph v1.0 - Intune resources
@@ -76,6 +77,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementWindowsFeatureUpdateProfileAssignment.NewWindowsFeatureUpdateProfileAssignmentResource,
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceAndAppManagementWindowsQualityUpdateProfile.NewWindowsQualityUpdateProfileResource,
+		graphBetaDeviceAndAppManagementWindowsQualityUpdateProfileAssignment.NewWindowsQualityUpdateProfileAssignmentResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,

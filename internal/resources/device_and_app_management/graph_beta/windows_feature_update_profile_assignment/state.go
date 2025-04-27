@@ -21,18 +21,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 		"assignmentCount": len(assignments),
 	})
 
-	// If we don't have an ID yet, use the first assignment's ID
 	if data.ID.IsNull() || data.ID.IsUnknown() || data.ID.ValueString() == "" {
 		if len(assignments) > 0 && assignments[0] != nil && assignments[0].GetId() != nil {
 			data.ID = types.StringPointerValue(assignments[0].GetId())
 		}
 	}
 
-	// Group assignments by type (include or exclude)
 	includeGroupIDs := make(map[string]bool)
 	excludeGroupIDs := make(map[string]bool)
 
-	// Process all assignments to categorize them
 	for _, assignment := range assignments {
 		if assignment == nil || assignment.GetTarget() == nil {
 			continue
@@ -40,30 +37,21 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 
 		target := assignment.GetTarget()
 
-		// Check for GroupAssignmentTarget (either regular or exclusion)
 		if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok && groupTarget != nil && groupTarget.GetGroupId() != nil {
 			groupID := *groupTarget.GetGroupId()
 
-			// Get the odata.type directly from the target using GetOdataType()
 			if odataType := groupTarget.GetOdataType(); odataType != nil {
 				if strings.Contains(*odataType, "exclusion") || strings.Contains(*odataType, "ExclusionGroupAssignmentTarget") {
-					// This is an exclusion group
 					excludeGroupIDs[groupID] = true
 					tflog.Debug(ctx, fmt.Sprintf("Found exclusion group ID: %s", groupID))
 				} else {
-					// This is a regular inclusion group
 					includeGroupIDs[groupID] = true
 					tflog.Debug(ctx, fmt.Sprintf("Found inclusion group ID: %s", groupID))
 				}
-			} else {
-				// Fallback - if no odata type, assume it's an include
-				includeGroupIDs[groupID] = true
-				tflog.Debug(ctx, fmt.Sprintf("Found inclusion group ID (no odata type): %s", groupID))
 			}
 		}
 	}
 
-	// Convert maps to slices for inclusion and exclusion groups
 	var inclusionGroupIDList []string
 	for id := range includeGroupIDs {
 		inclusionGroupIDList = append(inclusionGroupIDList, id)
@@ -74,12 +62,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 		exclusionGroupIDList = append(exclusionGroupIDList, id)
 	}
 
-	// Create assignment blocks for state
 	var assignmentBlocks []AssignmentResourceModel
 
-	// Add inclusion block if there are any inclusion groups
 	if len(inclusionGroupIDList) > 0 {
-		// Create a set from the inclusion group IDs
 		inclusionSet, diags := types.SetValueFrom(ctx, types.StringType, inclusionGroupIDList)
 		if !diags.HasError() {
 			assignmentBlocks = append(assignmentBlocks, AssignmentResourceModel{
@@ -94,9 +79,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 		}
 	}
 
-	// Add exclusion block if there are any exclusion groups
 	if len(exclusionGroupIDList) > 0 {
-		// Create a set from the exclusion group IDs
 		exclusionSet, diags := types.SetValueFrom(ctx, types.StringType, exclusionGroupIDList)
 		if !diags.HasError() {
 			assignmentBlocks = append(assignmentBlocks, AssignmentResourceModel{
@@ -111,7 +94,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 		}
 	}
 
-	// Set the assignment blocks in the state
 	data.Assignments = assignmentBlocks
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{

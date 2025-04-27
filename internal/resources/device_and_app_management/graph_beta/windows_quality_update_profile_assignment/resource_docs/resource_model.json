@@ -1,5 +1,5 @@
 {
-  "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+  "@odata.type": "#microsoft.graph.windowsQualityUpdateProfileAssignment",
   "id": "String (identifier)",
   "target": {
     "@odata.type": "microsoft.graph.deviceAndAppManagementAssignmentTarget",

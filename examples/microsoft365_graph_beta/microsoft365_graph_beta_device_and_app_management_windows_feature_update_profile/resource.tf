@@ -6,7 +6,6 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_feature_upda
   install_feature_updates_optional                        = false
   role_scope_tag_ids                                      = ["8", "9"]
 
-  # Rollout settings
   rollout_settings = {
     offer_start_date_time_in_utc = "2025-05-01T00:00:00Z"
     offer_end_date_time_in_utc   = "2025-06-30T23:59:59Z"
