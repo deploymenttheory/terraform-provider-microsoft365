@@ -111,15 +111,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "List of Scope Tags for this Entity instance.",
 			},
-			"created_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "DateTime the object was created. Inherited from deviceConfiguration.",
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "DateTime the object was last modified. Inherited from deviceConfiguration.",
-			},
-
 			// Update settings
 			"microsoft_update_service_allowed": schema.BoolAttribute{
 				Optional:            true,

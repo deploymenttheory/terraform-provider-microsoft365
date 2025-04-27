@@ -206,13 +206,13 @@ func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) 
 		return nil
 	}
 
-	// Parse the time string to a TimeOnly object
+	// Parse the time string directly using ParseTimeOnly
 	timeOnly, err := serialization.ParseTimeOnly(timeStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse time string '%s': %v", timeStr, err)
 	}
 
-	// Set the value using the provided setter function
+	// Set the value
 	setter(timeOnly)
 	return nil
 }
