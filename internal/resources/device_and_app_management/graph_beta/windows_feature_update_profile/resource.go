@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -124,7 +125,10 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 			},
 			"install_latest_windows10_on_windows11_ineligible_device": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "If true, the latest Microsoft Windows 10 update will be installed on devices ineligible for Microsoft Windows 11",
+				MarkdownDescription: "Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.",
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.NewRequiresReplaceIfChangedBool(),
+				},
 			},
 			"install_feature_updates_optional": schema.BoolAttribute{
 				Optional:            true,
@@ -149,6 +153,9 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
 		},
 	}
 }

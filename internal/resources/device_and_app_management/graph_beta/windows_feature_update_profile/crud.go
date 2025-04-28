@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,7 +31,7 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -39,10 +40,12 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 		return
 	}
 
+	common.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		Post(ctx, requestBody, nil)
+	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -50,6 +53,33 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 	}
 
 	object.ID = types.StringValue(*createdResource.GetId())
+
+	if object.Assignments != nil && len(object.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+
+		assignRequestBody, err := constructAssignments(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments",
+				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			WindowsFeatureUpdateProfiles().
+			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignRequestBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -101,11 +131,13 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
+	common.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Get(ctx, nil)
+	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -113,6 +145,20 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
+
+	assignmentsResp, err := r.client.
+		DeviceManagement().
+		WindowsFeatureUpdateProfiles().
+		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteAssignmentsToTerraform(ctx, &object, assignmentsResp.GetValue())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -153,24 +199,51 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
-
+	common.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	if object.Assignments != nil && len(object.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+
+		assignRequestBody, err := constructAssignments(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments",
+				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			WindowsFeatureUpdateProfiles().
+			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignRequestBody, nil)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
 	}
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
@@ -181,7 +254,7 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		}, readResp)
 
 		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update: %s", readResp.Diagnostics.Errors()))
 		}
 
 		resp.State = readResp.State
@@ -190,8 +263,8 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error verifying update",
+			fmt.Sprintf("Failed to verify updated resource: %s", err),
 		)
 		return
 	}

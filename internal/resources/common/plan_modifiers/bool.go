@@ -105,12 +105,10 @@ func (m *requiresOtherAttributeValueBoolModifier) MarkdownDescription(ctx contex
 }
 
 func (m *requiresOtherAttributeValueBoolModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.String
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -118,7 +116,6 @@ func (m *requiresOtherAttributeValueBoolModifier) PlanModifyBool(ctx context.Con
 		return
 	}
 
-	// If dependency is defined, not null, and not the required value, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && dependencyValue.ValueString() != m.requiredValue {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
@@ -126,4 +123,36 @@ func (m *requiresOtherAttributeValueBoolModifier) PlanModifyBool(ctx context.Con
 			fmt.Sprintf("This attribute can only be used when %s is set to %q", m.dependencyPath, m.requiredValue),
 		)
 	}
+}
+
+// RequiresReplaceIfChangedBool is a custom PlanModifier for BoolAttribute
+type RequiresReplaceIfChangedBool struct{}
+
+func (m RequiresReplaceIfChangedBool) Description(_ context.Context) string {
+	return "Requires resource replacement if the boolean value changes."
+}
+
+func (m RequiresReplaceIfChangedBool) MarkdownDescription(_ context.Context) string {
+	return "Requires resource replacement if the boolean value changes."
+}
+
+func (m RequiresReplaceIfChangedBool) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+
+	stateVal := req.StateValue.ValueBool()
+	planVal := req.PlanValue.ValueBool()
+
+	if stateVal != planVal {
+		resp.RequiresReplace = true
+	}
+}
+
+// NewRequiresReplaceIfChangedBool returns a new instance of the RequiresReplaceIfChangedBool plan modifier.
+func NewRequiresReplaceIfChangedBool() planmodifier.Bool {
+	return RequiresReplaceIfChangedBool{}
 }

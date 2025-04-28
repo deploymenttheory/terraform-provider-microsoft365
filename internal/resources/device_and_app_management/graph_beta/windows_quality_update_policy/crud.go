@@ -3,9 +3,9 @@ package graphBetaWindowsQualityUpdatePolicy
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,10 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
-
-// BUG NOTE: this is a bug in the Kiota middleware pipeline (its header struct isn't safe for parallel use).
-// This mutex is a workaround to serialize calls and avoid concurrent map writes.
-var WindowsQualityUpdateMu sync.Mutex
 
 // Create handles the Create operation.
 func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -56,6 +52,33 @@ func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req res
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
+	if object.Assignments != nil && len(object.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+
+		assignRequestBody, err := constructAssignments(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments",
+				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			WindowsQualityUpdatePolicies().
+			ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignRequestBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -88,6 +111,7 @@ func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req res
 // The function ensures all components are properly read and mapped into the
 // Terraform state in a single API call, providing a complete view of the
 // resource's current configuration on the server.
+// Read handles the Read operation for Windows Quality Update Policies.
 func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsQualityUpdatePolicyResourceModel
 
@@ -98,7 +122,15 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	if object.ID.IsNull() || object.ID.ValueString() == "" {
+		resp.Diagnostics.AddError(
+			"Missing ID",
+			"Cannot read resource without an ID.",
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading resource with ID: %s", object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -106,20 +138,35 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	WindowsQualityUpdateMu.Lock()
-	respResource, err := r.client.
+	common.GraphSDKMutex.Lock()
+	defer common.GraphSDKMutex.Unlock()
+
+	resourceResp, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
-	WindowsQualityUpdateMu.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, resourceResp)
+
+	assignmentsResp, err := r.client.
+		DeviceManagement().
+		WindowsQualityUpdatePolicies().
+		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	MapRemoteAssignmentsToTerraform(ctx, &object, assignmentsResp.GetValue())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -180,6 +227,32 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		return
 	}
 
+	if object.Assignments != nil && len(object.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+
+		assignRequestBody, err := constructAssignments(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments",
+				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			WindowsQualityUpdatePolicies().
+			ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignRequestBody, nil)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+	}
+
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}
 		r.Read(ctx, resource.ReadRequest{
@@ -188,7 +261,7 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		}, readResp)
 
 		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update: %s", readResp.Diagnostics.Errors()))
 		}
 
 		resp.State = readResp.State
@@ -197,8 +270,8 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error verifying update",
+			fmt.Sprintf("Failed to verify updated resource: %s", err),
 		)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -115,6 +116,9 @@ func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req res
 				MarkdownDescription: "List of the scope tag ids for this profile.",
 			},
 			"timeouts": commonschema.Timeouts(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
 		},
 	}
 }

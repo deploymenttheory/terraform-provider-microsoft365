@@ -30,14 +30,19 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 	data.InstallLatestWindows10OnWindows11IneligibleDevice = state.BoolPtrToTypeBool(remoteResource.GetInstallLatestWindows10OnWindows11IneligibleDevice())
 	data.InstallFeatureUpdatesOptional = state.BoolPtrToTypeBool(remoteResource.GetInstallFeatureUpdatesOptional())
 
+	// Handles scenarios when rollout_settings block is not included within request
+	// equivilent to the rollout option 'Make update available as soon as possible'
 	if rolloutSettings := remoteResource.GetRolloutSettings(); rolloutSettings != nil {
-		data.RolloutSettings = &RolloutSettingsModel{
-			OfferStartDateTimeInUTC: state.TimeToString(rolloutSettings.GetOfferStartDateTimeInUTC()),
-			OfferEndDateTimeInUTC:   state.TimeToString(rolloutSettings.GetOfferEndDateTimeInUTC()),
-			OfferIntervalInDays:     state.Int32PtrToTypeInt32(rolloutSettings.GetOfferIntervalInDays()),
+		if rolloutSettings.GetOfferStartDateTimeInUTC() != nil ||
+			rolloutSettings.GetOfferEndDateTimeInUTC() != nil ||
+			rolloutSettings.GetOfferIntervalInDays() != nil {
+
+			data.RolloutSettings = &RolloutSettingsModel{
+				OfferStartDateTimeInUTC: state.TimeToString(rolloutSettings.GetOfferStartDateTimeInUTC()),
+				OfferEndDateTimeInUTC:   state.TimeToString(rolloutSettings.GetOfferEndDateTimeInUTC()),
+				OfferIntervalInDays:     state.Int32PtrToTypeInt32(rolloutSettings.GetOfferIntervalInDays()),
+			}
 		}
-	} else {
-		data.RolloutSettings = nil
 	}
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform", map[string]interface{}{"resourceId": data.ID.ValueString()})

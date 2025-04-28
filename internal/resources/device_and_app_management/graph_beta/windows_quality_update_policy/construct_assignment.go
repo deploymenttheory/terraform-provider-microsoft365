@@ -1,4 +1,4 @@
-package graphBetaWindowsDriverUpdateProfileAssignment
+package graphBetaWindowsQualityUpdatePolicy
 
 import (
 	"context"
@@ -10,13 +10,12 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource creates an assign request body with assignments from the nested blocks
-func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileAssignmentResourceModel) (devicemanagement.WindowsDriverUpdateProfilesItemAssignPostRequestBodyable, error) {
+// constructAssignments builds the /assign request body from the unified resource model
+func constructAssignments(ctx context.Context, data *WindowsQualityUpdatePolicyResourceModel) (devicemanagement.WindowsQualityUpdatePoliciesItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
 
-	assignRequest := devicemanagement.NewWindowsDriverUpdateProfilesItemAssignPostRequestBody()
-
-	var assignments []graphmodels.WindowsDriverUpdateProfileAssignmentable
+	assignRequest := devicemanagement.NewWindowsQualityUpdatePoliciesItemAssignPostRequestBody()
+	var assignments []graphmodels.WindowsQualityUpdatePolicyAssignmentable
 
 	for i, assignmentBlock := range data.Assignments {
 		if assignmentBlock.Target.IsNull() || assignmentBlock.Target.IsUnknown() {
@@ -39,22 +38,27 @@ func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileAssi
 			continue
 		}
 
+		// Split each group ID into its own assignment object
 		for _, groupID := range groupIDs {
-			assignment := graphmodels.NewWindowsDriverUpdateProfileAssignment()
+			assignment := graphmodels.NewWindowsQualityUpdateProfileAssignment()
 
-			if targetType == "include" {
+			switch targetType {
+			case "include":
 				target := graphmodels.NewGroupAssignmentTarget()
 				target.SetGroupId(&groupID)
 				assignment.SetTarget(target)
 				tflog.Debug(ctx, fmt.Sprintf("Added inclusion group assignment for group: %s", groupID))
-			} else if targetType == "exclude" {
+
+			case "exclude":
 				target := graphmodels.NewExclusionGroupAssignmentTarget()
 				target.SetGroupId(&groupID)
 				assignment.SetTarget(target)
 				tflog.Debug(ctx, fmt.Sprintf("Added exclusion group assignment for group: %s", groupID))
-			} else {
+
+			default:
 				return nil, fmt.Errorf("assignment[%d]: invalid target type: %s", i, targetType)
 			}
+
 			assignments = append(assignments, assignment)
 		}
 	}

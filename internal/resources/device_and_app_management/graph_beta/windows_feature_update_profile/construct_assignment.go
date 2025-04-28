@@ -1,4 +1,4 @@
-package graphBetaWindowsFeatureUpdateProfileAssignment
+package graphBetaWindowsFeatureUpdateProfile
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource creates an assign request body with assignments from the nested blocks
-func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileAssignmentResourceModel) (devicemanagement.WindowsFeatureUpdateProfilesItemAssignPostRequestBodyable, error) {
+// constructAssignments builds the /assign request body from the unified resource model
+func constructAssignments(ctx context.Context, data *WindowsFeatureUpdateProfileResourceModel) (devicemanagement.WindowsFeatureUpdateProfilesItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
 
 	assignRequest := devicemanagement.NewWindowsFeatureUpdateProfilesItemAssignPostRequestBody()
@@ -41,19 +41,23 @@ func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileAss
 		for _, groupID := range groupIDs {
 			assignment := graphmodels.NewWindowsFeatureUpdateProfileAssignment()
 
-			if targetType == "include" {
+			switch targetType {
+			case "include":
 				target := graphmodels.NewGroupAssignmentTarget()
 				target.SetGroupId(&groupID)
 				assignment.SetTarget(target)
 				tflog.Debug(ctx, fmt.Sprintf("Added inclusion group assignment for group: %s", groupID))
-			} else if targetType == "exclude" {
+
+			case "exclude":
 				target := graphmodels.NewExclusionGroupAssignmentTarget()
 				target.SetGroupId(&groupID)
 				assignment.SetTarget(target)
 				tflog.Debug(ctx, fmt.Sprintf("Added exclusion group assignment for group: %s", groupID))
-			} else {
+
+			default:
 				return nil, fmt.Errorf("assignment[%d]: invalid target type: %s", i, targetType)
 			}
+
 			assignments = append(assignments, assignment)
 		}
 	}

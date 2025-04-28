@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -140,6 +141,9 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context,
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
 		},
 	}
 }

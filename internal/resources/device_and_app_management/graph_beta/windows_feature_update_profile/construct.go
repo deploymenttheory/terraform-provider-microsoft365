@@ -10,15 +10,16 @@ import (
 )
 
 // Main entry point to construct the intune windows feature update profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileResourceModel) (graphmodels.WindowsFeatureUpdateProfileable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+//
+// If forUpdate is true, only PATCH-allowed fields are populated.
+func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileResourceModel, forUpdate bool) (graphmodels.WindowsFeatureUpdateProfileable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model (forUpdate=%v)", ResourceName, forUpdate))
 
 	requestBody := graphmodels.NewWindowsFeatureUpdateProfile()
 
 	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 	constructors.SetStringProperty(data.FeatureUpdateVersion, requestBody.SetFeatureUpdateVersion)
-	constructors.SetBoolProperty(data.InstallLatestWindows10OnWindows11IneligibleDevice, requestBody.SetInstallLatestWindows10OnWindows11IneligibleDevice)
 	constructors.SetBoolProperty(data.InstallFeatureUpdatesOptional, requestBody.SetInstallFeatureUpdatesOptional)
 
 	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
@@ -33,6 +34,11 @@ func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileRes
 		constructors.SetInt32Property(data.RolloutSettings.OfferIntervalInDays, rolloutSettings.SetOfferIntervalInDays)
 
 		requestBody.SetRolloutSettings(rolloutSettings)
+	}
+
+	// Immutable field once created. Excluded from update req construction.
+	if !forUpdate {
+		constructors.SetBoolProperty(data.InstallLatestWindows10OnWindows11IneligibleDevice, requestBody.SetInstallLatestWindows10OnWindows11IneligibleDevice)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
