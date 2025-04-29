@@ -20,13 +20,13 @@ var deviceEnrollmentConfigDispatch = map[string]struct {
 	// Indicates that configuration is of type limit which refers to number of devices a user is allowed to enroll.
 	"limit": {
 		EnumType:    graphmodels.LIMIT_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructLimitConfig,
+		Constructor: constructDeviceEnrollmentLimitConfig,
 	},
 
 	// Indicates that configuration is of type default limit which refers to types of devices a user is allowed to enroll by default.
 	"defaultLimit": {
 		EnumType:    graphmodels.DEFAULTLIMIT_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructLimitConfig,
+		Constructor: constructDeviceEnrollmentLimitConfig,
 	},
 
 	// Indicates that configuration is of type default Windows Hello which refers to authentication method devices would use by default.
@@ -175,8 +175,8 @@ func setDeviceEnrollmentPlatformRestriction(ctx context.Context, model *DeviceEn
 	return nil
 }
 
-// constructLimitConfig creates a device enrollment limit configuration
-func constructLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
+// constructDeviceEnrollmentLimitConfig creates a device enrollment limit configuration
+func constructDeviceEnrollmentLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
 	tflog.Debug(ctx, "Constructing limit configuration")
 
 	if data.Windows10EnrollmentCompletionPage == nil {
@@ -185,7 +185,7 @@ func constructLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurati
 
 	limitConfig := graphmodels.NewDeviceEnrollmentLimitConfiguration()
 
-	constructors.SetInt32Property(data.Limit.Limit,
+	constructors.SetInt32Property(data.DeviceEnrollmentLimit.Limit,
 		limitConfig.SetLimit)
 
 	return limitConfig, nil

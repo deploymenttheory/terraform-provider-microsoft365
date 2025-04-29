@@ -15,7 +15,7 @@ func constructAssignments(ctx context.Context, data *DeviceEnrollmentConfigurati
 	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
 
 	assignRequest := devicemanagement.NewDeviceEnrollmentConfigurationsItemAssignPostRequestBody()
-	var assignments []graphmodels.DeviceEnrollmentConfigurationAssignmentable
+	var assignments []graphmodels.EnrollmentConfigurationAssignmentable
 
 	for i, assignmentBlock := range data.Assignments {
 		if assignmentBlock.Target.IsNull() || assignmentBlock.Target.IsUnknown() {
@@ -39,7 +39,7 @@ func constructAssignments(ctx context.Context, data *DeviceEnrollmentConfigurati
 		}
 
 		for _, groupID := range groupIDs {
-			assignment := graphmodels.NewDeviceEnrollmentConfigurationAssignment()
+			assignment := graphmodels.NewEnrollmentConfigurationAssignment()
 
 			switch targetType {
 			case "include":
@@ -66,7 +66,7 @@ func constructAssignments(ctx context.Context, data *DeviceEnrollmentConfigurati
 		return nil, fmt.Errorf("at least one assignment with group_ids is required")
 	}
 
-	assignRequest.SetAssignments(assignments)
+	assignRequest.SetEnrollmentConfigurationAssignments(assignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Final assign request", assignRequest); err != nil {
 		tflog.Error(ctx, "Failed to debug log assign request", map[string]interface{}{

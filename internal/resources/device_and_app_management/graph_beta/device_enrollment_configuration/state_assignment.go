@@ -11,7 +11,7 @@ import (
 )
 
 // MapRemoteAssignmentsToTerraform maps the Graph API assignments into the Terraform consolidated model
-func MapRemoteAssignmentsToTerraform(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, assignments []graphmodels.DeviceEnrollmentConfigurationAssignmentable) {
+func MapRemoteAssignmentsToTerraform(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, assignments []graphmodels.EnrollmentConfigurationAssignmentable) {
 	if assignments == nil || len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments found, clearing assignments field")
 		data.Assignments = nil

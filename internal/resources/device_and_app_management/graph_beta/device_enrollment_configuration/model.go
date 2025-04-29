@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// DeviceEnrollmentConfigurationResourceModel represents the base values for device enrollment configurations
 type DeviceEnrollmentConfigurationResourceModel struct {
 	ID                                types.String                            `tfsdk:"id"`
 	DisplayName                       types.String                            `tfsdk:"display_name"`
@@ -22,7 +23,7 @@ type DeviceEnrollmentConfigurationResourceModel struct {
 	WindowsHelloForBusiness           *WindowsHelloForBusinessModel           `tfsdk:"windows_hello_for_business"`
 	EnrollmentNotifications           *EnrollmentNotificationsModel           `tfsdk:"enrollment_notifications"`
 	DeviceComanagementAuthority       *DeviceComanagementAuthorityModel       `tfsdk:"device_comanagement_authority"`
-	Limit                             *LimitModel                             `tfsdk:"limit"`
+	DeviceEnrollmentLimit             *DeviceEnrollmentLimitModel             `tfsdk:"device_enrollment_limit"`
 	Assignments                       []AssignmentResourceModel               `tfsdk:"assignment"`
 	Timeouts                          timeouts.Value                          `tfsdk:"timeouts"`
 }
@@ -55,6 +56,7 @@ type DeviceEnrollmentPlatformRestriction struct {
 }
 
 // Windows10EnrollmentCompletionPageModel represents Windows 10 enrollment completion page settings
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-windows10enrollmentcompletionpageconfiguration?view=graph-rest-beta
 type Windows10EnrollmentCompletionPageModel struct {
 	AllowDeviceResetOnInstallFailure        types.Bool   `tfsdk:"allow_device_reset_on_install_failure"`
 	AllowDeviceUseOnInstallFailure          types.Bool   `tfsdk:"allow_device_use_on_install_failure"`
@@ -71,6 +73,7 @@ type Windows10EnrollmentCompletionPageModel struct {
 }
 
 // WindowsHelloForBusinessModel represents Windows Hello for Business settings
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentwindowshelloforbusinessconfiguration?view=graph-rest-beta
 type WindowsHelloForBusinessModel struct {
 	State                       types.String `tfsdk:"state"`                          // Possible values: "notConfigured", "enabled", "disabled"
 	EnhancedBiometricsState     types.String `tfsdk:"enhanced_biometrics_state"`      // Possible values: "notConfigured", "enabled", "disabled"
@@ -88,8 +91,9 @@ type WindowsHelloForBusinessModel struct {
 	UnlockWithBiometricsEnabled types.Bool   `tfsdk:"unlock_with_biometrics_enabled"` // Allow biometric gestures (face, fingerprint)
 }
 
+// EnrollmentNotificationsModel represents enrollment notification settings
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentnotificationconfiguration?view=graph-rest-beta
 type EnrollmentNotificationsModel struct {
-	IncludeCompanyPortalLink      types.Bool   `tfsdk:"include_company_portal_link"`
 	SendPushNotification          types.Bool   `tfsdk:"send_push_notification"`
 	NotificationTitle             types.String `tfsdk:"notification_title"`
 	NotificationBody              types.String `tfsdk:"notification_body"`
@@ -102,13 +106,16 @@ type EnrollmentNotificationsModel struct {
 	NotificationTemplates         types.Set    `tfsdk:"notification_templates"`           // Set of strings
 }
 
+// DeviceComanagementAuthorityModel represents device comanagement authority settings
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-devicecomanagementauthorityconfiguration?view=graph-rest-beta
 type DeviceComanagementAuthorityModel struct {
 	ConfigurationManagerAgentCommandLineArgument types.String `tfsdk:"configuration_manager_agent_command_line_argument"`
 	InstallConfigurationManagerAgent             types.Bool   `tfsdk:"install_configuration_manager_agent"`
 	ManagedDeviceAuthority                       types.Int32  `tfsdk:"managed_device_authority"`
 }
 
-type LimitModel struct {
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentlimitconfiguration?view=graph-rest-beta
+type DeviceEnrollmentLimitModel struct {
 	Limit types.Int32 `tfsdk:"limit"`
 }
 

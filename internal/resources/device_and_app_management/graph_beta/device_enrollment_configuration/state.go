@@ -73,7 +73,7 @@ func mapLimitConfigToTerraform(ctx context.Context, data *DeviceEnrollmentConfig
 	tflog.Debug(ctx, "Mapping limit configuration")
 
 	if limitConfig, ok := remoteResource.(graphmodels.DeviceEnrollmentLimitConfigurationable); ok && limitConfig != nil {
-		data.Limit = &LimitModel{
+		data.DeviceEnrollmentLimit = &DeviceEnrollmentLimitModel{
 			Limit: state.Int32PtrToTypeInt32(limitConfig.GetLimit()),
 		}
 	} else {
