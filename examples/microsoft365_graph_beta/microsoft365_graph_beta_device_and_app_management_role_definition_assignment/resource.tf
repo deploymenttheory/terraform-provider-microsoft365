@@ -13,16 +13,16 @@ resource "microsoft365_graph_beta_device_and_app_management_role_definition_assi
 
   # If scope_type is "resourceScope", you need to specify scope members
   scope_members = [
-    "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
-    "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2", # Entra ID security group ID for DevOps team
-    "35d09841-af73-43e6-a59f-024fef1b6b95",
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555",
   ]
 
   # You can also define specific resource scopes
   resource_scopes = [
-    "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
-    "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
-    "35d09841-af73-43e6-a59f-024fef1b6b95" # Entra ID security group ID  for engineering devices
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555"
   ]
 
   # Optional Timeout settings  
@@ -47,9 +47,9 @@ resource "microsoft365_graph_beta_device_and_app_management_role_definition_assi
   scope_type = "allDevices" # One of: "allDevices", "allLicensedUsers", "allDevicesAndLicensedUsers", "resourceScope"
 
 resource_scopes = [
-    "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
-    "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
-    "35d09841-af73-43e6-a59f-024fef1b6b95" # Entra ID security group ID  for engineering devices
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555",
+    "11111111-2222-3333-4444-555555555555"
   ]
 
   # Optional Timeout settings  

@@ -1,4 +1,3 @@
-// Main entry point to construct the intune windows driver update profile resource for the Terraform provider.
 package graphBetaWindowsDriverUpdateProfile
 
 import (
@@ -11,7 +10,7 @@ import (
 )
 
 // Main entry point to construct the intune windows driver update profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileResourceModel) (graphmodels.WindowsDriverUpdateProfileable, error) {
+func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileResourceModel, forUpdate bool) (graphmodels.WindowsDriverUpdateProfileable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewWindowsDriverUpdateProfile()
@@ -19,8 +18,11 @@ func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileReso
 	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 
-	if err := constructors.SetEnumProperty(data.ApprovalType, graphmodels.ParseDriverUpdateProfileApprovalType, requestBody.SetApprovalType); err != nil {
-		return nil, fmt.Errorf("invalid approval type: %s", err)
+	// Immutable field once created. Excluded from update req construction.
+	if !forUpdate {
+		if err := constructors.SetEnumProperty(data.ApprovalType, graphmodels.ParseDriverUpdateProfileApprovalType, requestBody.SetApprovalType); err != nil {
+			return nil, fmt.Errorf("invalid approval type: %s", err)
+		}
 	}
 
 	constructors.SetInt32Property(data.DeploymentDeferralInDays, requestBody.SetDeploymentDeferralInDays)

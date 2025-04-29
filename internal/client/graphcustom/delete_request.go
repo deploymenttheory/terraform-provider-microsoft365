@@ -61,7 +61,6 @@ func DeleteRequestByResourceId(ctx context.Context, adapter abstractions.Request
 	}
 	requestInfo.Headers.Add("Accept", "application/json")
 
-	// Make DELETE request
 	_, err := makeRequest(ctx, adapter, requestInfo)
 	if err != nil {
 		return err

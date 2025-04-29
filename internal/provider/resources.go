@@ -20,7 +20,13 @@ import (
 	graphBetaDeviceAndAppManagementSettingsCatalogTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/settings_catalog_template"
 	graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_driver_update_inventory"
 	graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_driver_update_profile"
+	graphBetaDeviceAndAppManagementWindowsFeatureUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_feature_update_profile"
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
+	graphBetaDeviceAndAppManagementWindowsQualityExpeditePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_expedite_policy"
+	graphBetaDeviceAndAppManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_policy"
+
+	// TODO current broken due to how the sdk builds time fields
+	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_update_ring"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph v1.0 - Intune resources
@@ -67,10 +73,16 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementRoleScopeTag.NewRoleScopeTagResource,
 		graphBetaDeviceAndAppManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileResource,
 		graphBetaDeviceAndAppManagementWindowsDriverUpdateInventory.NewWindowsDriverUpdateInventoryResource,
+		graphBetaDeviceAndAppManagementWindowsFeatureUpdateProfile.NewWindowsFeatureUpdateProfileResource,
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
+		graphBetaDeviceAndAppManagementWindowsQualityExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyResource,
+		graphBetaDeviceAndAppManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
+		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
+
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+
 		// Graph v1.0 - Intune resources
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,

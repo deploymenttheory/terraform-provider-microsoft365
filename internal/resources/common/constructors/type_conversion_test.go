@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -327,4 +328,135 @@ func TestSetObjectsFromStringSet(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Nil(t, result)
+}
+func TestStringToTime(t *testing.T) {
+	// Test case: Valid RFC3339 string
+	validTimeStr := "2023-01-15T08:30:00Z"
+	var resultTime *time.Time
+
+	err := StringToTime(types.StringValue(validTimeStr), func(t *time.Time) {
+		resultTime = t
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resultTime)
+	expectedTime, _ := time.Parse(time.RFC3339, validTimeStr)
+	assert.Equal(t, expectedTime.UTC(), resultTime.UTC())
+
+	// Test case: Invalid time string
+	invalidTimeStr := "not-a-valid-time"
+	err = StringToTime(types.StringValue(invalidTimeStr), func(t *time.Time) {
+		resultTime = t
+	})
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to parse time string")
+
+	// Test case: Empty string
+	resultTime = nil
+	err = StringToTime(types.StringValue(""), func(t *time.Time) {
+		resultTime = t
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTime)
+
+	// Test case: Null string
+	resultTime = nil
+	err = StringToTime(types.StringNull(), func(t *time.Time) {
+		resultTime = t
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTime)
+
+	// Test case: Unknown string
+	resultTime = nil
+	err = StringToTime(types.StringUnknown(), func(t *time.Time) {
+		resultTime = t
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTime)
+}
+
+func TestStringToTimeOnly(t *testing.T) {
+	// Test case: Valid time string
+	validTimeStr := "08:30:00"
+	var resultTimeOnly *serialization.TimeOnly
+
+	err := StringToTimeOnly(types.StringValue(validTimeStr), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resultTimeOnly)
+	assert.True(t, resultTimeOnly.String() == validTimeStr || resultTimeOnly.String() == validTimeStr+".000000000")
+	assert.Contains(t, resultTimeOnly.String(), validTimeStr)
+
+	// Test case: Valid time string with milliseconds
+	validTimeWithMs := "14:45:30.1234567"
+	err = StringToTimeOnly(types.StringValue(validTimeWithMs), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resultTimeOnly)
+	assert.Contains(t, resultTimeOnly.String(), "14:45:30")
+
+	// Test case: Invalid time string
+	invalidTimeStr := "not-a-valid-time"
+	err = StringToTimeOnly(types.StringValue(invalidTimeStr), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to parse time string")
+
+	// Test case: Empty string
+	resultTimeOnly = nil
+	err = StringToTimeOnly(types.StringValue(""), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTimeOnly)
+
+	// Test case: Null string
+	resultTimeOnly = nil
+	err = StringToTimeOnly(types.StringNull(), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTimeOnly)
+
+	// Test case: Unknown string
+	resultTimeOnly = nil
+	err = StringToTimeOnly(types.StringUnknown(), func(to *serialization.TimeOnly) {
+		resultTimeOnly = to
+	})
+
+	assert.NoError(t, err)
+	assert.Nil(t, resultTimeOnly)
+
+	// Test case: Boundary values
+	boundaryTimes := []string{
+		"00:00:00",      // Midnight
+		"23:59:59",      // Just before midnight
+		"23:59:59.9999", // Even closer to midnight
+		"12:00:00",      // Noon
+	}
+
+	for _, timeStr := range boundaryTimes {
+		err = StringToTimeOnly(types.StringValue(timeStr), func(to *serialization.TimeOnly) {
+			resultTimeOnly = to
+		})
+
+		assert.NoError(t, err)
+		assert.NotNil(t, resultTimeOnly)
+		// The TimeOnly.String() method always includes the nanoseconds part
+		// So we verify that the string contains the hours, minutes, and seconds part
+		assert.Contains(t, resultTimeOnly.String(), timeStr[:8]) // First 8 chars (HH:MM:SS)
+	}
 }

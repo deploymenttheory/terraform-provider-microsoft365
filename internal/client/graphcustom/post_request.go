@@ -55,7 +55,6 @@ func PostRequest(
 		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
 	}
 
-	// Add query parameters if provided
 	if config.QueryParameters != nil {
 		for key, value := range config.QueryParameters {
 			requestInfo.QueryParameters[key] = value
@@ -67,7 +66,6 @@ func PostRequest(
 		return nil, fmt.Errorf("error setting content: %v", err)
 	}
 
-	// Send the request using the adapter's Send method
 	result, err := adapter.Send(ctx, requestInfo, factory, errorMappings)
 	if err != nil {
 		return nil, err

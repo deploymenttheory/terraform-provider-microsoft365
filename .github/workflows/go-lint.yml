@@ -1,29 +1,38 @@
-  name: GoLang Linting
-  on:
-    pull_request:
-      types: ['opened', 'synchronize']
-      paths:
-        - '.github/workflows/golint.yaml'
-        - 'vendor/**'
-        - '**.go'
-  
-  jobs:
-    golint:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
-          with:
-            go-version-file: .go-version
-        - uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
-          with:
-            version: 'v1.54.2'
-            args: -v
-  
-    save-artifacts-on-fail:
-      if: ${{ needs.golint.result }} == 'failure'
-      uses: ./.github/workflows/save-artifacts.yml
-  
-    comment-on-fail:
-      if: ${{ needs.golint.result }} == 'failure'
-      uses: ./.github/workflows/comment-failure.yml
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/workflows/golint.yaml'
+      - '**/*.go'
+
+permissions:
+  contents: read
+  pull-requests: read  # Needed for "only-new-issues"
+
+jobs:
+  golint:
+    name: Run GolangCI-Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        with:
+          go-version-file: .go-version  # or specify go-version: stable
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
+        with:
+          version: v2.0
+          args: --timeout=5m --verbose --out-format=colored-line-number
+          only-new-issues: true
+
+  save-artifacts-on-fail:
+    if: ${{ failure() && needs.golint.result == 'failure' }}
+    needs: [golint]
+    uses: ./.github/workflows/save-artifacts.yml
+
+  comment-on-fail:
+    if: ${{ failure() && needs.golint.result == 'failure' }}
+    needs: [golint]
+    uses: ./.github/workflows/comment-failure.yml

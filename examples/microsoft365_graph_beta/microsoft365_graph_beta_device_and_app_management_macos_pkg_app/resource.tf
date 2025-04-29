@@ -51,7 +51,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "exclusionGroupAssignment"
-        group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+        group_id    = "11111111-2222-3333-4444-555555555555"
       }
     },
 
@@ -61,7 +61,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "exclusionGroupAssignment"
-        group_id    = "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
+        group_id    = "11111111-2222-3333-4444-555555555555"
       }
     },
 
@@ -89,7 +89,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "groupAssignment"
-        group_id    = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+        group_id    = "11111111-2222-3333-4444-555555555555"
       }
     },
 
@@ -99,7 +99,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "groupAssignment"
-        group_id    = "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
+        group_id    = "11111111-2222-3333-4444-555555555555"
       }
     }
   ]

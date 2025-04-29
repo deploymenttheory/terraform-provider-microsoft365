@@ -100,13 +100,11 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 		}
 	}
 
-	// Make initial request
 	body, err := makeRequest(ctx, adapter, requestInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	// Try to parse as OData response to check for pagination
 	var firstResponse ODataResponse
 	if err := json.Unmarshal(body, &firstResponse); err != nil {
 		// Not an OData response, return the raw body
@@ -118,7 +116,6 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 		return body, nil
 	}
 
-	// Handle pagination
 	var allResults []json.RawMessage
 	allResults = append(allResults, firstResponse.Value...)
 	nextLink := firstResponse.NextLink

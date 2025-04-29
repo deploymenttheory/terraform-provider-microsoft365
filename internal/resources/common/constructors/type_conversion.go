@@ -3,6 +3,7 @@ package constructors
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -168,5 +169,50 @@ func SetObjectsFromStringSet[T any](
 
 	objects := converter(ctx, stringValues)
 	setter(objects)
+	return nil
+}
+
+// StringToTime parses a string value into a time.Time if the value is not null or unknown,
+// and sets it using the provided setter function.
+func StringToTime(value basetypes.StringValue, setter func(*time.Time)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	dateStr := value.ValueString()
+	if dateStr == "" {
+		return nil
+	}
+
+	parsed, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse time string: %s", err)
+	}
+
+	setter(&parsed)
+	return nil
+}
+
+// StringToTimeOnly converts a string in HH:MM:SS[.mmmmmmm] format to a TimeOnly type for the Microsoft Graph SDK.
+// It handles null or unknown values by returning nil, which is appropriate for optional time fields.
+// The function accepts a basetypes.StringValue (Terraform SDK type) and returns a *serialization.TimeOnly.
+func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	timeStr := value.ValueString()
+	if timeStr == "" {
+		return nil
+	}
+
+	// Parse the time string directly using ParseTimeOnly
+	timeOnly, err := serialization.ParseTimeOnly(timeStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse time string '%s': %v", timeStr, err)
+	}
+
+	// Set the value
+	setter(timeOnly)
 	return nil
 }

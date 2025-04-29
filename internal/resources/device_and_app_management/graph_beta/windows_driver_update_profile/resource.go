@@ -6,6 +6,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -77,7 +78,7 @@ func (r *WindowsDriverUpdateProfileResource) ImportState(ctx context.Context, re
 // Schema defines the schema for the resource.
 func (r *WindowsDriverUpdateProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Driver Update Profile in Microsoft Intune.",
+		MarkdownDescription: "Manages a Windows Driver Update Profile in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Driver Updates.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -100,18 +101,24 @@ func (r *WindowsDriverUpdateProfileResource) Schema(ctx context.Context, req res
 				Validators: []validator.String{
 					stringvalidator.OneOf("manual", "automatic"),
 				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
+				},
 			},
-			"device_reporting": schema.Int64Attribute{
+			"device_reporting": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of devices reporting for this profile",
 			},
-			"new_updates": schema.Int64Attribute{
+			"new_updates": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of new driver updates available for this profile.",
 			},
-			"deployment_deferral_in_days": schema.Int64Attribute{
+			"deployment_deferral_in_days": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Deployment deferral settings in days, only applicable when ApprovalType is set to automatic approval.",
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.RequiresOtherAttributeValueInt32(path.Root("approval_type"), "automatic"),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,
@@ -141,6 +148,9 @@ func (r *WindowsDriverUpdateProfileResource) Schema(ctx context.Context, req res
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
 		},
 	}
 }
