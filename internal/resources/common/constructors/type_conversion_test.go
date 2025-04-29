@@ -3,11 +3,14 @@ package constructors
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
 )
@@ -459,4 +462,183 @@ func TestStringToTimeOnly(t *testing.T) {
 		// So we verify that the string contains the hours, minutes, and seconds part
 		assert.Contains(t, resultTimeOnly.String(), timeStr[:8]) // First 8 chars (HH:MM:SS)
 	}
+}
+
+func TestSetUUIDProperty_ValidUUID(t *testing.T) {
+	expectedUUID := uuid.New()
+	val := basetypes.NewStringValue(expectedUUID.String())
+
+	var actual *uuid.UUID
+	setter := func(u *uuid.UUID) {
+		actual = u
+	}
+
+	err := SetUUIDProperty(val, setter)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, expectedUUID, *actual)
+}
+
+func TestSetUUIDProperty_NullValue(t *testing.T) {
+	val := basetypes.NewStringNull()
+
+	called := false
+	setter := func(u *uuid.UUID) {
+		called = true
+	}
+
+	err := SetUUIDProperty(val, setter)
+
+	assert.NoError(t, err)
+	assert.False(t, called, "Setter should not be called for null value")
+}
+
+func TestSetUUIDProperty_UnknownValue(t *testing.T) {
+	val := basetypes.NewStringUnknown()
+
+	called := false
+	setter := func(u *uuid.UUID) {
+		called = true
+	}
+
+	err := SetUUIDProperty(val, setter)
+
+	assert.NoError(t, err)
+	assert.False(t, called, "Setter should not be called for unknown value")
+}
+
+func TestSetUUIDProperty_EmptyString(t *testing.T) {
+	val := basetypes.NewStringValue("")
+
+	called := false
+	setter := func(u *uuid.UUID) {
+		called = true
+	}
+
+	err := SetUUIDProperty(val, setter)
+
+	assert.NoError(t, err)
+	assert.False(t, called, "Setter should not be called for empty string")
+}
+
+func TestSetUUIDProperty_InvalidUUID(t *testing.T) {
+	val := basetypes.NewStringValue("not-a-uuid")
+
+	var actual *uuid.UUID
+	setter := func(u *uuid.UUID) {
+		actual = u
+	}
+
+	err := SetUUIDProperty(val, setter)
+
+	assert.Error(t, err)
+	assert.Nil(t, actual)
+}
+
+// --- MOCK ENUM ---
+
+type MockBrandingOptions int
+
+const (
+	MOCK_NONE    MockBrandingOptions = 1
+	MOCK_LOGO    MockBrandingOptions = 2
+	MOCK_NAME    MockBrandingOptions = 4
+	MOCK_CONTACT MockBrandingOptions = 8
+)
+
+func MockParseBrandingOptions(input string) (any, error) {
+	var result MockBrandingOptions
+	parts := strings.Split(input, ",")
+	for _, str := range parts {
+		switch strings.TrimSpace(str) {
+		case "none":
+			result |= MOCK_NONE
+		case "logo":
+			result |= MOCK_LOGO
+		case "name":
+			result |= MOCK_NAME
+		case "contact":
+			result |= MOCK_CONTACT
+		default:
+			return nil, nil // simulate Microsoft behavior
+		}
+	}
+	return &result, nil
+}
+
+// --- TESTS ---
+
+func TestSetBitmaskEnumProperty_ValidSingleValue(t *testing.T) {
+	val := basetypes.NewStringValue("logo")
+
+	var actual *MockBrandingOptions
+	setter := func(e *MockBrandingOptions) {
+		actual = e
+	}
+
+	err := SetBitmaskEnumProperty(val, MockParseBrandingOptions, setter)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+	assert.Equal(t, MOCK_LOGO, *actual)
+}
+
+func TestSetBitmaskEnumProperty_ValidMultipleValues(t *testing.T) {
+	val := basetypes.NewStringValue("logo,name")
+
+	var actual *MockBrandingOptions
+	setter := func(e *MockBrandingOptions) {
+		actual = e
+	}
+
+	err := SetBitmaskEnumProperty(val, MockParseBrandingOptions, setter)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
+
+	expected := MOCK_LOGO | MOCK_NAME
+	assert.Equal(t, expected, *actual)
+}
+
+func TestSetBitmaskEnumProperty_InvalidValue(t *testing.T) {
+	val := basetypes.NewStringValue("invalid")
+
+	var actual *MockBrandingOptions
+	setter := func(e *MockBrandingOptions) {
+		actual = e
+	}
+
+	err := SetBitmaskEnumProperty(val, MockParseBrandingOptions, setter)
+
+	assert.NoError(t, err)
+	assert.Nil(t, actual)
+}
+
+func TestSetBitmaskEnumProperty_NullValue(t *testing.T) {
+	val := basetypes.NewStringNull()
+
+	called := false
+	setter := func(e *MockBrandingOptions) {
+		called = true
+	}
+
+	err := SetBitmaskEnumProperty(val, MockParseBrandingOptions, setter)
+
+	assert.NoError(t, err)
+	assert.False(t, called)
+}
+
+func TestSetBitmaskEnumProperty_UnknownValue(t *testing.T) {
+	val := basetypes.NewStringUnknown()
+
+	called := false
+	setter := func(e *MockBrandingOptions) {
+		called = true
+	}
+
+	err := SetBitmaskEnumProperty(val, MockParseBrandingOptions, setter)
+
+	assert.NoError(t, err)
+	assert.False(t, called)
 }
