@@ -9,13 +9,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// configConstructorFunc defines the signature for all config constructor functions
-type configConstructorFunc func(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error)
+// deviceEnrollmentConfigurationDispatch defines the signature for all config constructor functions
+type deviceEnrollmentConfigurationDispatch func(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error)
 
 // deviceEnrollmentConfigDispatch maps string identifiers to their enum type and constructor
 var deviceEnrollmentConfigDispatch = map[string]struct {
 	EnumType    graphmodels.DeviceEnrollmentConfigurationType
-	Constructor configConstructorFunc
+	Constructor deviceEnrollmentConfigurationDispatch
 }{
 	// Indicates that configuration is of type limit which refers to number of devices a user is allowed to enroll.
 	"limit": {
@@ -23,10 +23,16 @@ var deviceEnrollmentConfigDispatch = map[string]struct {
 		Constructor: constructLimitConfig,
 	},
 
-	// Indicates that configuration is of type platform restriction which refers to types of devices a user is allowed to enroll.
-	"platformRestrictions": {
-		EnumType:    graphmodels.PLATFORMRESTRICTIONS_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructPlatformRestrictionsConfig,
+	// Indicates that configuration is of type default limit which refers to types of devices a user is allowed to enroll by default.
+	"defaultLimit": {
+		EnumType:    graphmodels.DEFAULTLIMIT_DEVICEENROLLMENTCONFIGURATIONTYPE,
+		Constructor: constructLimitConfig,
+	},
+
+	// Indicates that configuration is of type default Windows Hello which refers to authentication method devices would use by default.
+	"defaultWindowsHelloForBusiness": {
+		EnumType:    graphmodels.DEFAULTWINDOWSHELLOFORBUSINESS_DEVICEENROLLMENTCONFIGURATIONTYPE,
+		Constructor: constructWindowsHelloForBusinessConfig,
 	},
 
 	// Indicates that configuration is of type Windows Hello which refers to authentication method devices would use.
@@ -35,28 +41,22 @@ var deviceEnrollmentConfigDispatch = map[string]struct {
 		Constructor: constructWindowsHelloForBusinessConfig,
 	},
 
-	// Indicates that configuration is of type default limit which refers to types of devices a user is allowed to enroll by default.
-	"defaultLimit": {
-		EnumType:    graphmodels.DEFAULTLIMIT_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructDefaultLimitConfig,
-	},
-
 	// Indicates that configuration is of type default platform restriction which refers to types of devices a user is allowed to enroll by default.
 	"defaultPlatformRestrictions": {
 		EnumType:    graphmodels.DEFAULTPLATFORMRESTRICTIONS_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructDefaultPlatformRestrictionsConfig,
+		Constructor: constructPlatformRestrictionsConfig,
 	},
 
-	// Indicates that configuration is of type default Windows Hello which refers to authentication method devices would use by default.
-	"defaultWindowsHelloForBusiness": {
-		EnumType:    graphmodels.DEFAULTWINDOWSHELLOFORBUSINESS_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructDefaultWindowsHelloForBusinessConfig,
+	// Indicates that configuration is of type platform restriction which refers to types of devices a user is allowed to enroll.
+	"platformRestrictions": {
+		EnumType:    graphmodels.PLATFORMRESTRICTIONS_DEVICEENROLLMENTCONFIGURATIONTYPE,
+		Constructor: constructPlatformRestrictionsConfig,
 	},
 
 	// Indicates that configuration is of type default Enrollment status page which refers to startup page displayed during OOBE in Autopilot devices by default.
 	"defaultWindows10EnrollmentCompletionPageConfiguration": {
 		EnumType:    graphmodels.DEFAULTWINDOWS10ENROLLMENTCOMPLETIONPAGECONFIGURATION_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructDefaultWindows10EnrollmentCompletionPageConfig,
+		Constructor: constructWindows10EnrollmentCompletionPageConfig,
 	},
 
 	// Indicates that configuration is of type Enrollment status page which refers to startup page displayed during OOBE in Autopilot devices.
@@ -179,49 +179,16 @@ func setDeviceEnrollmentPlatformRestriction(ctx context.Context, model *DeviceEn
 func constructLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
 	tflog.Debug(ctx, "Constructing limit configuration")
 
-	limitConfig := graphmodels.NewDeviceEnrollmentLimitConfiguration()
-
-	return limitConfig, nil
-}
-
-// constructDefaultLimitConfig creates a default device enrollment limit configuration
-func constructDefaultLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing default limit configuration")
-
-	limitConfig := graphmodels.NewDeviceEnrollmentLimitConfiguration()
-
-	return limitConfig, nil
-}
-
-// constructDefaultPlatformRestrictionsConfig creates a default platform restrictions configuration
-func constructDefaultPlatformRestrictionsConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing default platform restrictions configuration")
-
-	platformConfig := graphmodels.NewDeviceEnrollmentPlatformRestrictionsConfiguration()
-
-	return platformConfig, nil
-}
-
-// constructDefaultWindowsHelloForBusinessConfig creates a default Windows Hello for Business configuration
-func constructDefaultWindowsHelloForBusinessConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing default Windows Hello for Business configuration")
-
-	helloConfig := graphmodels.NewDeviceEnrollmentWindowsHelloForBusinessConfiguration()
-
-	return helloConfig, nil
-}
-
-// constructDefaultWindows10EnrollmentCompletionPageConfig creates a default Windows 10 enrollment completion page configuration
-func constructDefaultWindows10EnrollmentCompletionPageConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing default Windows 10 enrollment completion page configuration")
-
-	if data.DefaultWindows10EnrollmentCompletionPage == nil {
-		return nil, fmt.Errorf("default_windows10_enrollment_completion_page block must be defined for this configuration type")
+	if data.Windows10EnrollmentCompletionPage == nil {
+		return nil, fmt.Errorf("limit block must be defined for this configuration type")
 	}
 
-	config := graphmodels.NewDefaultw
+	limitConfig := graphmodels.NewDeviceEnrollmentLimitConfiguration()
 
-	return config, nil
+	constructors.SetInt32Property(data.Limit.Limit,
+		limitConfig.SetLimit)
+
+	return limitConfig, nil
 }
 
 // constructWindows10EnrollmentCompletionPageConfig creates a Windows 10 enrollment completion page configuration
@@ -301,6 +268,10 @@ func constructWindowsHelloForBusinessConfig(ctx context.Context, data *DeviceEnr
 	helloConfig := graphmodels.NewDeviceEnrollmentWindowsHelloForBusinessConfiguration()
 
 	if data.WindowsHelloForBusiness == nil {
+		return nil, fmt.Errorf("windows_hello_for_business block must be defined for this configuration type")
+	}
+
+	if data.WindowsHelloForBusiness == nil {
 		return helloConfig, nil
 	}
 
@@ -353,7 +324,7 @@ func constructDeviceComanagementAuthorityConfig(ctx context.Context, data *Devic
 	config := graphmodels.NewDeviceComanagementAuthorityConfiguration()
 
 	if data.DeviceComanagementAuthority == nil {
-		return config, nil
+		return nil, fmt.Errorf("device_comanagement_authority block must be defined for this configuration type")
 	}
 
 	constructors.SetStringProperty(data.DeviceComanagementAuthority.ConfigurationManagerAgentCommandLineArgument, config.SetConfigurationManagerAgentCommandLineArgument)
@@ -368,8 +339,8 @@ func constructEnrollmentNotificationsConfig(ctx context.Context, data *DeviceEnr
 
 	config := graphmodels.NewDeviceEnrollmentNotificationConfiguration()
 
-	if data.EnrollmentNotifications == nil {
-		return config, nil
+	if data.DeviceComanagementAuthority == nil {
+		return nil, fmt.Errorf("device_enrollment_notification block must be defined for this configuration type")
 	}
 
 	constructors.SetStringProperty(data.EnrollmentNotifications.DefaultLocale, config.SetDefaultLocale)

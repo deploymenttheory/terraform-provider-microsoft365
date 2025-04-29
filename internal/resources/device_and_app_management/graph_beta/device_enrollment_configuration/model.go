@@ -22,9 +22,9 @@ type DeviceEnrollmentConfigurationResourceModel struct {
 	WindowsHelloForBusiness           *WindowsHelloForBusinessModel           `tfsdk:"windows_hello_for_business"`
 	EnrollmentNotifications           *EnrollmentNotificationsModel           `tfsdk:"enrollment_notifications"`
 	DeviceComanagementAuthority       *DeviceComanagementAuthorityModel       `tfsdk:"device_comanagement_authority"`
-
-	Assignments []AssignmentResourceModel `tfsdk:"assignment"`
-	Timeouts    timeouts.Value            `tfsdk:"timeouts"`
+	Limit                             *LimitModel                             `tfsdk:"limit"`
+	Assignments                       []AssignmentResourceModel               `tfsdk:"assignment"`
+	Timeouts                          timeouts.Value                          `tfsdk:"timeouts"`
 }
 
 type NewPlatformRestrictionModel struct {
@@ -106,6 +106,10 @@ type DeviceComanagementAuthorityModel struct {
 	ConfigurationManagerAgentCommandLineArgument types.String `tfsdk:"configuration_manager_agent_command_line_argument"`
 	InstallConfigurationManagerAgent             types.Bool   `tfsdk:"install_configuration_manager_agent"`
 	ManagedDeviceAuthority                       types.Int32  `tfsdk:"managed_device_authority"`
+}
+
+type LimitModel struct {
+	Limit types.Int32 `tfsdk:"limit"`
 }
 
 // AssignmentResourceModel defines a single assignment block within the primary resource
