@@ -241,7 +241,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			"active_hours_start": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("08:00:00"),
 				MarkdownDescription: "Active Hours Start. Part of the Installation Schedule.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
@@ -253,7 +252,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			"active_hours_end": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("17:00:00"),
 				MarkdownDescription: "Active Hours End. Part of the Installation Schedule.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(

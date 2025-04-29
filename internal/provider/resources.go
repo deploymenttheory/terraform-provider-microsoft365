@@ -24,7 +24,9 @@ import (
 	graphBetaDeviceAndAppManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_platform_script"
 	graphBetaDeviceAndAppManagementWindowsQualityExpeditePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_expedite_policy"
 	graphBetaDeviceAndAppManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_quality_update_policy"
-	graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_update_ring"
+
+	// TODO current broken due to how the sdk builds time fields
+	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_update_ring"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph v1.0 - Intune resources
@@ -75,7 +77,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceAndAppManagementWindowsQualityExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyResource,
 		graphBetaDeviceAndAppManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
-		graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
+		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 
 		// Graph Beta - Identity and Access resources

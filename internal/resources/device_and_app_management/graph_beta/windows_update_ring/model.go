@@ -16,6 +16,14 @@ type WindowsUpdateRingResourceModel struct {
 	DriversExcluded                                         types.Bool             `tfsdk:"drivers_excluded"`
 	QualityUpdatesDeferralPeriodInDays                      types.Int32            `tfsdk:"quality_updates_deferral_period_in_days"`
 	FeatureUpdatesDeferralPeriodInDays                      types.Int32            `tfsdk:"feature_updates_deferral_period_in_days"`
+	FeatureUpdatesPauseExpiryDateTime                       types.String           `tfsdk:"feature_updates_pause_expiry_date_time"`
+	FeatureUpdatesPauseStartDate                            types.String           `tfsdk:"feature_updates_pause_start_date"`
+	FeatureUpdatesRollbackStartDateTime                     types.String           `tfsdk:"feature_updates_rollback_start_date_time"`
+	FeatureUpdatesWillBeRolledBack                          types.Bool             `tfsdk:"feature_updates_will_be_rolled_back"`
+	QualityUpdatesPauseExpiryDateTime                       types.String           `tfsdk:"quality_updates_pause_expiry_date_time"`
+	QualityUpdatesPauseStartDate                            types.String           `tfsdk:"quality_updates_pause_start_date"`
+	QualityUpdatesRollbackStartDateTime                     types.String           `tfsdk:"quality_updates_rollback_start_date_time"`
+	QualityUpdatesWillBeRolledBack                          types.Bool             `tfsdk:"quality_updates_will_be_rolled_back"`
 	AllowWindows11Upgrade                                   types.Bool             `tfsdk:"allow_windows11_upgrade"`
 	QualityUpdatesPaused                                    types.Bool             `tfsdk:"quality_updates_paused"`
 	FeatureUpdatesPaused                                    types.Bool             `tfsdk:"feature_updates_paused"`
