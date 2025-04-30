@@ -5,8 +5,9 @@ on:
     types: [opened, synchronize]
     paths:
       - '.github/workflows/golint.yaml'
+      - '.golangci.yml'
       - '**/*.go'
-
+      
 permissions:
   contents: read
   pull-requests: read  # Needed for "only-new-issues"
