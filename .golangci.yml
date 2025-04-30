@@ -158,13 +158,11 @@ output:
 
     # 2) SARIF format for GitHub Code Scanning integration
     sarif:
-      # Write the SARIF to the workspace so you can upload it as an artifact
       path: golangci-lint-report.sarif
 
   # Use relative paths (from the module root) in output
-  path-mode: rel
+  path-mode: ""
 
-  # Sort first by severity, then by file location
   sort-order:
     - severity
     - file
