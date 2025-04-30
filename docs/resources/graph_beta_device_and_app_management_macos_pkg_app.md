@@ -23,9 +23,11 @@ Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are
 
 ### Optional
 
-- `app_icon` (Attributes) The path to the icon file to be uploaded. Resource supports both local file sources and url based sources. (see [below for nested schema](#nestedatt--app_icon))
-- `assignments` (Attributes List) (see [below for nested schema](#nestedatt--assignments))
-- `categories` (Set of String) Set of category names to associate with this application. Valid values are: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'
+- `app_icon` (Attributes) The source information for the app icon (PNG). Supports local file paths or URLs. (see [below for nested schema](#nestedatt--app_icon))
+- `app_installer` (Attributes) Metadata related to the installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
+- `assignments` (Attributes Set) (see [below for nested schema](#nestedatt--assignments))
+- `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
+- `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `developer` (String) The developer of the app.
 - `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
@@ -43,7 +45,6 @@ Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are
 - `dependent_app_count` (Number) The total number of dependencies the child app has. This property is read-only.
 - `id` (String) The unique identifier of the macOS PKG.
 - `is_assigned` (Boolean) The value indicating whether the app is assigned to at least one group. This property is read-only.
-- `last_modified_date_time` (String) The date and time the app was last modified. This property is read-only.
 - `publishing_state` (String) The publishing state for the app. The app cannot be assigned unless the app is published. Possible values are: notPublished, processing, published.
 - `superseded_app_count` (Number) The total number of apps this app is directly or indirectly superseded by. This property is read-only.
 - `superseding_app_count` (Number) The total number of apps this app directly or indirectly supersedes. This property is read-only.
@@ -55,7 +56,22 @@ Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are
 Optional:
 
 - `icon_file_path_source` (String) The file path to the icon file (PNG) to be uploaded.
-- `icon_url_source` (String) The web location of the icon file, can be a http(s) URL.
+- `icon_url_source` (String) The web location of the icon file (PNG), can be a http(s) URL.
+
+
+<a id="nestedatt--app_installer"></a>
+### Nested Schema for `app_installer`
+
+Optional:
+
+- `installer_file_path_source` (String) The path to the PKG file to be uploaded. The file must be a valid `.pkg` file. Value is not returned by API call.
+- `installer_url_source` (String) The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file. Value is not returned by API call.
+
+Read-Only:
+
+- `installer_md5_checksum` (String) The MD5 checksum of the installer file. Used as an additional verification of file integrity and to detect changes.
+- `installer_sha256_checksum` (String) The SHA256 checksum of the installer file. Used as a more secure verification of file integrity and to detect changes.
+- `installer_size_in_bytes` (Number) The size of the installer file in bytes. Used to detect changes in content.
 
 
 <a id="nestedatt--assignments"></a>
@@ -69,17 +85,17 @@ Required:
 - **required**: App is required and will be automatically installed
 - **uninstall**: App will be uninstalled
 - **availableWithoutEnrollment**: App is available without Intune device enrollment
-- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.
+- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets.
 - `target` (Attributes) (see [below for nested schema](#nestedatt--assignments--target))
 
 Optional:
 
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings))
+- `source_id` (String) The identifier of the source of the assignment.
 
 Read-Only:
 
 - `id` (String) The ID of the Intune application associated with this assignment.
-- `source_id` (String) The identifier of the source of the assignment. This property is read-only.
 
 <a id="nestedatt--assignments--target"></a>
 ### Nested Schema for `assignments.target`
@@ -348,6 +364,32 @@ Optional:
 
 
 
+<a id="nestedatt--content_version"></a>
+### Nested Schema for `content_version`
+
+Read-Only:
+
+- `files` (Attributes Set) The files associated with this content version. (see [below for nested schema](#nestedatt--content_version--files))
+- `id` (String) The unique identifier for this content version. This ID is assigned during creation of the content version. Read-only.
+
+<a id="nestedatt--content_version--files"></a>
+### Nested Schema for `content_version.files`
+
+Read-Only:
+
+- `azure_storage_uri` (String) Indicates the Azure Storage URI that the file is uploaded to. Read-only.
+- `azure_storage_uri_expiration` (String) Indicates the date and time when the Azure storage URI expires, in ISO 8601 format. Read-only.
+- `created_date_time` (String) Indicates created date and time associated with app content file, in ISO 8601 format. Read-only.
+- `is_committed` (Boolean) A value indicating whether the file is committed. A committed app content file has been fully uploaded and validated by the Intune service. Read-only.
+- `is_dependency` (Boolean) Indicates whether this content file is a dependency for the main content file.
+- `is_framework_file` (Boolean) Indicates whether this content file is a framework file.
+- `name` (String) Indicates the name of the file.
+- `size` (Number) Indicates the original size of the file, in bytes.
+- `size_encrypted` (Number) Indicates the size of the file after encryption, in bytes.
+- `upload_state` (String) Indicates the state of the current upload request. This property is read-only.
+
+
+
 <a id="nestedatt--macos_pkg_app"></a>
 ### Nested Schema for `macos_pkg_app`
 
@@ -358,7 +400,7 @@ Required:
 
 Optional:
 
-- `included_apps` (Attributes List) List of applications expected to be installed by the PKG. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +
+- `included_apps` (Attributes Set) Define the app bundle identifiers and version numbers to be used to detect the presence of the macOS app installation. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +
 
 ### Notes: +
 - Included app bundle IDs (`CFBundleIdentifier`) and build numbers (`CFBundleShortVersionString`) are used for detecting and monitoring app installation status of the uploaded file. +
@@ -381,8 +423,6 @@ defaults read /Applications/Company\ Portal.app/Contents/Info CFBundleShortVersi
 Alternatively, these values can also be located in the `<app_name>.app/Contents/Info.plist` file inside the mounted PKG or DMG. +
 
 For apps added to Intune, the Intune admin center can also provide the app bundle ID. + (see [below for nested schema](#nestedatt--macos_pkg_app--included_apps))
-- `installer_file_path_source` (String) The path to the PKG file to be uploaded. The file must be a valid `.pkg` file.
-- `installer_url_source` (String) The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file.
 - `post_install_script` (Attributes) (see [below for nested schema](#nestedatt--macos_pkg_app--post_install_script))
 - `pre_install_script` (Attributes) (see [below for nested schema](#nestedatt--macos_pkg_app--pre_install_script))
 
@@ -414,7 +454,7 @@ Optional:
 <a id="nestedatt--macos_pkg_app--included_apps"></a>
 ### Nested Schema for `macos_pkg_app.included_apps`
 
-Optional:
+Required:
 
 - `bundle_id` (String) The `CFBundleIdentifier` of the app as defined in the PKG metadata or appended manually.
 - `bundle_version` (String) The `CFBundleShortVersionString` of the app as defined in the PKG metadata or appended manually.

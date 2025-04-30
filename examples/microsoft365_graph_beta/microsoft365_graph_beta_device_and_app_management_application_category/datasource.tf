@@ -26,7 +26,7 @@ output "category_details" {
     # Basic details
     id           = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.id
     display_name = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.display_name
-    
+
     # Additional metadata
     last_modified_date_time = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.last_modified_date_time
   }
@@ -50,7 +50,7 @@ output "productivity_category_details" {
     # Basic details
     id           = data.microsoft365_graph_beta_device_and_app_management_application_category.productivity_category.id
     display_name = data.microsoft365_graph_beta_device_and_app_management_application_category.productivity_category.display_name
-    
+
     # Additional metadata
     last_modified_date_time = data.microsoft365_graph_beta_device_and_app_management_application_category.productivity_category.last_modified_date_time
   }

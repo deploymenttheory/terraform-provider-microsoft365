@@ -2,7 +2,8 @@ version: "2"
 
 run:
   timeout: 20m
-  modules-download-mode: vendor
+  # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
+  modules-download-mode: readonly
   allow-parallel-runners: true
   allow-serial-runners: false
   concurrency: 2
@@ -17,7 +18,7 @@ issues:
   # Don’t dedupe by line; every instance matters.
   uniq-by-line: false
 
-  # Only fail on new issues introduced by this PR.
+  # Only fail on new issues introduced by new PR's.
   new: true
 
   # Define the “base” for “new” issues as the merge-base against main.
@@ -34,27 +35,35 @@ linters:
   default: none
   enable:
     # Core correctness & compile checks
-    - typecheck      # your code must compile
     - govet          # catches suspicious Go constructs
     - staticcheck    # static analyses (nil‐checks, API misuse, etc.)
     - errcheck       # ensures you never ignore an error return
-    - unused         # finds dead code we longer need
+    - unused         # finds dead code we no longer need
     - ineffassign    # flags assignments that have no effect
   
     # error-handling best practices
-    - errorlint   # flag missing %w wraps
-    - err113      # enforce correct error-handling patterns
+    - errorlint      # flag missing %w wraps
+    - err113         # enforce correct error-handling patterns
 
     # Terraform‐specific safety & resource handling
     - bodyclose      # makes sure every HTTP response body is closed
     - gosec          # scans for security issues (e.g. hardcoded credentials)
-
+    
+    # Specifically important for API clients (Microsoft 365 API)
+    - contextcheck   # check whether function uses a non-inherited context
+    - noctx          # finds sending http request without context.Context
+    - nilnil         # checks that there is no simultaneous return of nil error and invalid value
+    
     # Quality & style
     - gocritic       # catches a variety of performance/style bugs
     - prealloc       # recommends when you can preallocate slices/maps
     - misspell       # finds typos in comments, docs, & variable names
-    - vetshadow   # catch accidental shadowing
-    - gocyclo     # warn on high cyclomatic complexity
+    - gocyclo        # warn on high cyclomatic complexity
+    - wrapcheck      # checks that errors from external packages are wrapped
+    
+    # API/Terraform specific
+    - musttag        # enforce field tags in (un)marshaled structs
+    - tagliatelle    # checks struct tags (important for JSON/XML APIs)
 
   # 3) Per-linter configuration
   settings:
@@ -107,17 +116,18 @@ linters:
           - lll
         source: "^//go:generate "
 
-    # exclude entire files from reporting (still analyzed)
+   # exclude entire files from reporting (still analyzed)
     paths:
-      - ".*\\.my\\.go$"
-      - lib/bad.go
+      - ".*\\.gen\\.go$"          # Generated Go files
+      - ".*_test\\.go$"           # Test files (already handled with more specific rules)
+      - "examples/.*"             # Example code for documentation
+      - "tools/.*"                # Build/helper tools
+      - "scripts/.*"              # Scripts for development
+      - "docs/.*\\.go$"           # Documentation generators
 
-    # but never exclude these, even if they match above
+    # Never exclude these critical paths, even if they match patterns above
     paths-except:
-      - ".*\\.my\\.go$"
-      - lib/bad.go
-
-
+      - "internal/.*\\.go$"       # Core provider logic
 
 formatters:
   # Only run the formatters you actually want to auto‐fix in CI
@@ -159,13 +169,11 @@ output:
 
     # 2) SARIF format for GitHub Code Scanning integration
     sarif:
-      # Write the SARIF to the workspace so you can upload it as an artifact
       path: golangci-lint-report.sarif
 
   # Use relative paths (from the module root) in output
-  path-mode: rel
+  path-mode: ""
 
-  # Sort first by severity, then by file location
   sort-order:
     - severity
     - file

@@ -41,13 +41,13 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_platform_scrip
     all_users   = false
 
     include_group_ids = [
-      "51a96cdd-4b9b-4849-b416-8c94a6d88797",
-      "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+      "11111111-2222-3333-4444-555555555555",
+      "11111111-2222-3333-4444-555555555555"
     ]
 
     exclude_group_ids = [
-      "b8c661c2-fa9a-4351-af86-adc1729c343f",
-      "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f"
+      "11111111-2222-3333-4444-555555555555",
+      "11111111-2222-3333-4444-555555555555"
     ]
   }
 

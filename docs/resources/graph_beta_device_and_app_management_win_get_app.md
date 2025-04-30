@@ -31,7 +31,7 @@ attempting to modify this value will result in a failed request.
 
 ### Optional
 
-- `assignments` (Attributes List) (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `developer` (String) The developer of the app.
 - `display_name` (String) The title of the WinGet app imported from the Microsoft Store for Business.This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
@@ -77,17 +77,17 @@ Required:
 - **required**: App is required and will be automatically installed
 - **uninstall**: App will be uninstalled
 - **availableWithoutEnrollment**: App is available without Intune device enrollment
-- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets. This property is read-only.
+- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets.
 - `target` (Attributes) (see [below for nested schema](#nestedatt--assignments--target))
 
 Optional:
 
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings))
+- `source_id` (String) The identifier of the source of the assignment.
 
 Read-Only:
 
 - `id` (String) The ID of the Intune application associated with this assignment.
-- `source_id` (String) The identifier of the source of the assignment. This property is read-only.
 
 <a id="nestedatt--assignments--target"></a>
 ### Nested Schema for `assignments.target`

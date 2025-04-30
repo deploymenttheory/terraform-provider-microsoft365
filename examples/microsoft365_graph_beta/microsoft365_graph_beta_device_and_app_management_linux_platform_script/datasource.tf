@@ -2,7 +2,7 @@
 data "microsoft365_graph_beta_device_and_app_management_linux_platform_script" "by_id" {
   id = "0d6fee0f-d78d-4b00-87e8-cab65f31bb97"
   timeouts = {
-    read   = "30s"
+    read = "30s"
   }
 }
 
