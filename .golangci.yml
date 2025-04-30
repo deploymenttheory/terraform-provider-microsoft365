@@ -34,7 +34,6 @@ linters:
   default: none
   enable:
     # Core correctness & compile checks
-    - typecheck      # your code must compile
     - govet          # catches suspicious Go constructs
     - staticcheck    # static analyses (nil‐checks, API misuse, etc.)
     - errcheck       # ensures you never ignore an error return
