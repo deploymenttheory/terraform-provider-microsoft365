@@ -1,3 +1,5 @@
+name: '✨ Go Lint'
+
 on:
   pull_request:
     types: [opened, synchronize]
