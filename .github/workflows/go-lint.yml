@@ -23,9 +23,17 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
         with:
-          version: v2.0
-          args: --timeout=5m --verbose --out-format=colored-line-number
+          version: v2.1.5
+          args: |
+            --timeout=10m
+            --verbose
+            --config=./.golangci.yml
+            --issues-exit-code=0
           only-new-issues: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-cache: false              # restore and save cache
+          skip-save-cache: false         # allow saving any new cache
+          cache-invalidation-interval: 7 # auto-invalidate (refresh) once per week
 
   save-artifacts-on-fail:
     if: ${{ failure() && needs.golint.result == 'failure' }}

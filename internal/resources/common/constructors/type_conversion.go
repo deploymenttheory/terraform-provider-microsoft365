@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/microsoft/kiota-abstractions-go/serialization"
@@ -214,5 +215,50 @@ func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) 
 
 	// Set the value
 	setter(timeOnly)
+	return nil
+}
+
+// SetUUIDProperty parses a string as a UUID and sets it using the provided setter.
+// Returns an error if parsing fails. No-op if the value is null, unknown, or empty.
+func SetUUIDProperty(value basetypes.StringValue, setter func(*uuid.UUID)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	raw := value.ValueString()
+	if raw == "" {
+		return nil
+	}
+
+	parsed, err := uuid.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid UUID: %s", err)
+	}
+
+	setter(&parsed)
+	return nil
+}
+
+// SetBitmaskEnumProperty parses a bitmask-style enum and sets it using the provided setter.
+// It expects the parser to return a pointer to the enum (e.g., *MyEnumType).
+func SetBitmaskEnumProperty[T any](value basetypes.StringValue, parser func(string) (any, error), setter func(*T)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	enumVal, err := parser(value.ValueString())
+	if err != nil {
+		return fmt.Errorf("failed to parse enum: %v", err)
+	}
+	if enumVal == nil {
+		return nil // silently ignore like Microsoft's parser
+	}
+
+	typed, ok := enumVal.(*T)
+	if !ok {
+		return fmt.Errorf("failed to cast parsed value to expected type")
+	}
+
+	setter(typed)
 	return nil
 }

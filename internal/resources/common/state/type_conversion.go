@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -330,4 +331,14 @@ func StringSliceToSet(ctx context.Context, input []string) types.Set {
 		return types.SetNull(types.StringType)
 	}
 	return set
+}
+
+// UUIDPtrToTypeString converts a *uuid.UUID to a types.String.
+// If the input is nil, it returns types.StringNull().
+// This is useful for working with UUID values from the Graph API.
+func UUIDPtrToTypeString(id *uuid.UUID) types.String {
+	if id == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(id.String())
 }
