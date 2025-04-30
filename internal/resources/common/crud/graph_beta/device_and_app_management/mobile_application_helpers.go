@@ -30,7 +30,6 @@ func SetInstallerSourcePath(ctx context.Context, metadataObj types.Object) (stri
 	var fileInfo TempFileInfo
 	var metadata sharedmodels.MobileAppMetaDataResourceModel
 
-	// Parse metadata object if available
 	if !metadataObj.IsNull() {
 		diags := metadataObj.As(ctx, &metadata, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -45,7 +44,6 @@ func SetInstallerSourcePath(ctx context.Context, metadataObj types.Object) (stri
 		"installer_url_source":       metadata.InstallerURLSource.String(),
 	})
 
-	// Skip if both are unknown (planning phase)
 	if metadata.InstallerFilePathSource.IsUnknown() && metadata.InstallerURLSource.IsUnknown() {
 		tflog.Debug(ctx, "Installer sources are unknown during plan - skipping")
 		return "", fileInfo, nil
@@ -72,7 +70,6 @@ func SetInstallerSourcePath(ctx context.Context, metadataObj types.Object) (stri
 		return fileInfo.FilePath, fileInfo, nil
 	}
 
-	// Nothing provided
 	return "", fileInfo, fmt.Errorf("installer file not provided; please supply either a local file path or a URL")
 }
 

@@ -120,7 +120,6 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
 	default:
-		// Handle all other cases
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 	}

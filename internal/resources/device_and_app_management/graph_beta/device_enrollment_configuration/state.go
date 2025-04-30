@@ -20,7 +20,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceEnrollme
 
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{"resourceId": remoteResource.GetId()})
 
-	// Map common properties
 	data.ID = types.StringPointerValue(remoteResource.GetId())
 	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())

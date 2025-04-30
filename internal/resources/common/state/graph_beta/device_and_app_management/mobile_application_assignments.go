@@ -94,7 +94,7 @@ func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementA
 	return target
 }
 
-// Change return type from value to pointer
+// mapRemoteSettingsToTerraform
 func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) *sharedmodels.MobileAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil

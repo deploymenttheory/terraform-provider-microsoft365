@@ -25,19 +25,15 @@ func StateConfigurationPolicyAssignment(ctx context.Context, data *sharedmodels.
 		AllUsers:   types.BoolValue(false),
 	}
 
-	// Map All Devices assignments
 	allDeviceAssignments := GetAllDeviceAssignments(assignmentsResponse)
 	MapAllDeviceAssignments(assignments, allDeviceAssignments)
 
-	// Map All Users assignments
 	allUserAssignments := GetAllUserAssignments(assignmentsResponse)
 	MapAllUserAssignments(assignments, allUserAssignments)
 
-	// Map Include Group assignments
 	includeGroupAssignments := GetIncludeGroupAssignments(assignmentsResponse)
 	MapIncludeGroupAssignments(assignments, includeGroupAssignments)
 
-	// Map Exclude Group assignments
 	excludeGroupAssignments := GetExcludeGroupAssignments(assignmentsResponse)
 	MapExcludeGroupAssignments(assignments, excludeGroupAssignments)
 

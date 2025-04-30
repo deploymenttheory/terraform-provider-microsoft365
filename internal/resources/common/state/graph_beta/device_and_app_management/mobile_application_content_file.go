@@ -52,7 +52,6 @@ func MapCommittedContentVersionStateToTerraform(
 	fileObjectType := getFileObjectType()
 	contentVersionObjectType := getContentVersionObjectType()
 
-	// Extract files from response
 	var files []graphmodels.MobileAppContentFileable
 	if err == nil && respFiles != nil {
 		fileCollection, ok := respFiles.(graphmodels.MobileAppContentFileCollectionResponseable)
@@ -68,7 +67,6 @@ func MapCommittedContentVersionStateToTerraform(
 		files = []graphmodels.MobileAppContentFileable{}
 	}
 
-	// Process files
 	var fileElements []attr.Value
 	for i, file := range files {
 		if file == nil {

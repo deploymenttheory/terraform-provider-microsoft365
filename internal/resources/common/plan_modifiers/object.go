@@ -105,12 +105,10 @@ func (m *requiresOtherAttributeEnabledObjectModifier) MarkdownDescription(ctx co
 }
 
 func (m *requiresOtherAttributeEnabledObjectModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.Bool
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -118,7 +116,6 @@ func (m *requiresOtherAttributeEnabledObjectModifier) PlanModifyObject(ctx conte
 		return
 	}
 
-	// If dependency is defined, not null, and false, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

@@ -82,7 +82,6 @@ func evaluateIfContentVersionUpdateRequired(ctx context.Context, object *MacOSPK
 		metadataChanged = true
 	}
 
-	// Retrieve existing committed content version (from API)
 	resource, err := client.
 		DeviceAppManagement().
 		MobileApps().

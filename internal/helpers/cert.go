@@ -53,7 +53,6 @@ import (
 func ParseCertificateData(ctx context.Context, certData []byte, password []byte) ([]*x509.Certificate, crypto.PrivateKey, error) {
 	tflog.Debug(ctx, "Attempting to parse PKCS#12 data")
 
-	// Decode the PKCS#12 data
 	privateKey, certificate, caCerts, err := pkcs12.DecodeChain(certData, string(password))
 	if err != nil {
 		tflog.Error(ctx, "Failed to parse PKCS#12 data", map[string]interface{}{

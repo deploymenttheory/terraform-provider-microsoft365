@@ -32,12 +32,10 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 	constructedSettings := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
 	if len(configModel.Settings) > 0 {
-		// Handle array of settings
 		for _, setting := range configModel.Settings {
 			processSetting(ctx, setting, &constructedSettings)
 		}
 	} else if configModel.Setting != nil {
-		// Handle single instance
 		processSetting(ctx, *configModel.Setting, &constructedSettings)
 	}
 
@@ -270,7 +268,7 @@ func handleSimpleValue(ctx context.Context, valueStruct *sharedmodels.SimpleSett
 	return nil
 }
 
-// Helper function to handle simple setting collections
+// handleSimpleSettingCollection is a helper function to handle simple setting collections
 func handleSimpleSettingCollection(collectionValues []sharedmodels.SimpleSettingCollectionStruct) []graphmodels.DeviceManagementConfigurationSimpleSettingValueable {
 	var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
 	for _, v := range collectionValues {

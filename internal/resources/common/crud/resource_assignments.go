@@ -32,12 +32,10 @@ func ExistsInSlice[T any](item T, slice []T, compareFunc CompareFunc) bool {
 
 // DefaultAssignmentsEqual compares two Assignment instances for equality
 func DefaultAssignmentsEqual(a, b Assignment) bool {
-	// Compare IDs if they are not null or unknown
 	if !a.GetID().IsNull() && !a.GetID().IsUnknown() && !b.GetID().IsNull() && !b.GetID().IsUnknown() {
 		return a.GetID() == b.GetID()
 	}
 
-	// If IDs are not available or not comparable, compare targets
 	return reflect.DeepEqual(a.GetTarget(), b.GetTarget())
 }
 

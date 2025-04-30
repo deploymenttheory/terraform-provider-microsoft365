@@ -57,13 +57,11 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
 	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
-	// Encode the script content
 	encodedScript, err := utilities.Base64Encode(data.ScriptContent.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode script content: %v", err)
 	}
 
-	// 1. Execution Context Setting
 	executionContextSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 	executionContextInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 	executionContextDefId := "linux_customconfig_executioncontext"
@@ -91,7 +89,6 @@ func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([
 	executionContextSetting.SetSettingInstance(executionContextInstance)
 	settings = append(settings, executionContextSetting)
 
-	// 2. Execution Frequency Setting
 	frequencySetting := graphmodels.NewDeviceManagementConfigurationSetting()
 	frequencyInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 	frequencyDefId := "linux_customconfig_executionfrequency"
@@ -116,7 +113,6 @@ func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([
 	frequencySetting.SetSettingInstance(frequencyInstance)
 	settings = append(settings, frequencySetting)
 
-	// 3. Execution Retries Setting
 	retriesSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 	retriesInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 	retriesDefId := "linux_customconfig_executionretries"
@@ -141,7 +137,6 @@ func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([
 	retriesSetting.SetSettingInstance(retriesInstance)
 	settings = append(settings, retriesSetting)
 
-	// 4. Script Content Setting
 	scriptSetting := graphmodels.NewDeviceManagementConfigurationSetting()
 	scriptInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
 	scriptDefId := "linux_customconfig_script"

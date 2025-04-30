@@ -32,12 +32,10 @@ func (m *requiresOtherAttributeEnabledMapModifier) MarkdownDescription(ctx conte
 }
 
 func (m *requiresOtherAttributeEnabledMapModifier) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.Bool
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -45,7 +43,6 @@ func (m *requiresOtherAttributeEnabledMapModifier) PlanModifyMap(ctx context.Con
 		return
 	}
 
-	// If dependency is defined, not null, and false, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

@@ -30,12 +30,10 @@ func (m *requiresOtherAttributeEnabledInt32Modifier) MarkdownDescription(ctx con
 }
 
 func (m *requiresOtherAttributeEnabledInt32Modifier) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.Bool
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -43,7 +41,6 @@ func (m *requiresOtherAttributeEnabledInt32Modifier) PlanModifyInt32(ctx context
 		return
 	}
 
-	// If dependency is defined, not null, and false, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
@@ -76,12 +73,10 @@ func (m *requiresOtherAttributeValueInt32Modifier) MarkdownDescription(ctx conte
 }
 
 func (m *requiresOtherAttributeValueInt32Modifier) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.String
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -89,7 +84,6 @@ func (m *requiresOtherAttributeValueInt32Modifier) PlanModifyInt32(ctx context.C
 		return
 	}
 
-	// If dependency is defined, not null, and not the required value, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && dependencyValue.ValueString() != m.requiredValue {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

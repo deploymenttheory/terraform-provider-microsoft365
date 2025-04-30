@@ -49,11 +49,9 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Construct settings
 	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
 	requestBody.SetSettings(settings)
 
-	// Log the constructed resource
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
@@ -80,7 +78,6 @@ func setTemplateContext(ctx context.Context, data *sharedmodels.SettingsCatalogP
 	requestBody.SetPlatforms(&config.Platform)
 	requestBody.SetTechnologies(&config.Technologies)
 
-	// Set TemplateReference if TemplateID exists
 	if config.TemplateID != "" {
 		templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
 		templateReference.SetTemplateId(&config.TemplateID)

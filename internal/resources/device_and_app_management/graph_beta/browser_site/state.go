@@ -32,7 +32,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 	data.TargetEnvironment = state.EnumPtrToTypeString(remoteResource.GetTargetEnvironment())
 	data.WebUrl = types.StringPointerValue(remoteResource.GetWebUrl())
 
-	// Handle History
 	history := remoteResource.GetHistory()
 	if len(history) == 0 {
 		data.History = []BrowserSiteHistoryResourceModel{}
@@ -43,7 +42,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteResourceMod
 		}
 	}
 
-	// Handle LastModifiedBy
 	if lastModifiedBy := remoteResource.GetLastModifiedBy(); lastModifiedBy != nil {
 		data.LastModifiedBy = MapIdentitySetRemoteStateToTerraform(lastModifiedBy)
 	}

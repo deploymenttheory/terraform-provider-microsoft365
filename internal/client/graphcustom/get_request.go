@@ -107,7 +107,6 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 
 	var firstResponse ODataResponse
 	if err := json.Unmarshal(body, &firstResponse); err != nil {
-		// Not an OData response, return the raw body
 		return body, nil
 	}
 

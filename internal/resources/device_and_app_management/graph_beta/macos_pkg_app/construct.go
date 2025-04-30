@@ -21,7 +21,6 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 
 	baseApp := graphmodels.NewMacOSPkgApp()
 
-	// Set base properties
 	constructors.SetStringProperty(data.Description, baseApp.SetDescription)
 	constructors.SetStringProperty(data.Publisher, baseApp.SetPublisher)
 	constructors.SetStringProperty(data.DisplayName, baseApp.SetDisplayName)
