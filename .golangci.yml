@@ -18,7 +18,7 @@ issues:
   # Don’t dedupe by line; every instance matters.
   uniq-by-line: false
 
-  # Only fail on new issues introduced by this PR.
+  # Only fail on new issues introduced by new PR's.
   new: true
 
   # Define the “base” for “new” issues as the merge-base against main.
@@ -116,17 +116,18 @@ linters:
           - lll
         source: "^//go:generate "
 
-    # exclude entire files from reporting (still analyzed)
+   # exclude entire files from reporting (still analyzed)
     paths:
-      - ".*\\.my\\.go$"
-      - lib/bad.go
+      - ".*\\.gen\\.go$"          # Generated Go files
+      - ".*_test\\.go$"           # Test files (already handled with more specific rules)
+      - "examples/.*"             # Example code for documentation
+      - "tools/.*"                # Build/helper tools
+      - "scripts/.*"              # Scripts for development
+      - "docs/.*\\.go$"           # Documentation generators
 
-    # but never exclude these, even if they match above
+    # Never exclude these critical paths, even if they match patterns above
     paths-except:
-      - ".*\\.my\\.go$"
-      - lib/bad.go
-
-
+      - "internal/.*\\.go$"       # Core provider logic
 
 formatters:
   # Only run the formatters you actually want to auto‐fix in CI
