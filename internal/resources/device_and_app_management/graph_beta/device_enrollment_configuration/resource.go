@@ -142,6 +142,60 @@ func (r *DeviceEnrollmentConfigurationResource) Schema(ctx context.Context, req 
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 		Blocks: map[string]schema.Block{
+			"platform_restriction": schema.SingleNestedBlock{
+				MarkdownDescription: "Single platform enrollment restriction configuration.",
+				Attributes: map[string]schema.Attribute{
+					"platform_type": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The platform type this restriction applies to. Possible values are: `allPlatforms`, `ios`, `windows`, `windowsPhone`, `android`, `androidForWork`, `mac`, `linux`.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								"allPlatforms",
+								"ios",
+								"windows",
+								"windowsPhone",
+								"android",
+								"androidForWork",
+								"mac",
+								"linux",
+							),
+						},
+					},
+					"restriction": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "The platform restriction settings.",
+						Attributes: map[string]schema.Attribute{
+							"platform_blocked": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Block the platform from enrolling.",
+							},
+							"personal_device_enrollment_blocked": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Block personally owned devices from enrolling.",
+							},
+							"os_minimum_version": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Minimum version of the platform.",
+							},
+							"os_maximum_version": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Maximum version of the platform.",
+							},
+							"blocked_manufacturers": schema.SetAttribute{
+								ElementType:         types.StringType,
+								Optional:            true,
+								MarkdownDescription: "Collection of blocked manufacturers.",
+							},
+							"blocked_skus": schema.SetAttribute{
+								ElementType:         types.StringType,
+								Optional:            true,
+								MarkdownDescription: "Collection of blocked SKUs.",
+							},
+						},
+					},
+				},
+			},
+
 			"enrollment_notifications": schema.SingleNestedBlock{
 				MarkdownDescription: "Settings for enrollment notifications sent to end users during device enrollment.",
 				Attributes: map[string]schema.Attribute{
@@ -219,32 +273,6 @@ func (r *DeviceEnrollmentConfigurationResource) Schema(ctx context.Context, req 
 					"notification_sender": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "The sender name for the notification message.",
-					},
-				},
-			},
-			"platform_restriction": schema.SingleNestedBlock{
-				MarkdownDescription: "Platform specific enrollment restrictions",
-				Attributes: map[string]schema.Attribute{
-					"platform_blocked": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Block the platform from enrolling.",
-					},
-					"personal_device_enrollment_blocked": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Block personally owned devices from enrolling.",
-					},
-					"os_minimum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum version of the platform.",
-					},
-					"os_maximum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Maximum version of the platform.",
-					},
-					"blocked_manufacturers": schema.SetAttribute{
-						ElementType:         types.StringType,
-						Optional:            true,
-						MarkdownDescription: "List of blocked manufacturers.",
 					},
 				},
 			},
@@ -459,9 +487,9 @@ func (r *DeviceEnrollmentConfigurationResource) Schema(ctx context.Context, req 
 				Attributes: map[string]schema.Attribute{
 					"limit": schema.Int32Attribute{
 						Optional:            true,
-						MarkdownDescription: "The maximum number of devices that a user can enroll. Maximum of 50.",
+						MarkdownDescription: "The maximum number of devices that a user can enroll. Maximum of 15.",
 						Validators: []validator.Int32{
-							int32validator.AtMost(50),
+							int32validator.AtMost(15),
 						},
 					},
 				},

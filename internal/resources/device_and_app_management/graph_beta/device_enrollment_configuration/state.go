@@ -44,7 +44,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceEnrollme
 			mapPlatformRestrictionsToTerraform(ctx, data, remoteResource)
 
 		case graphmodels.SINGLEPLATFORMRESTRICTION_DEVICEENROLLMENTCONFIGURATIONTYPE:
-			mapSinglePlatformRestrictionToTerraform(ctx, data, remoteResource)
+			mapPlatformRestrictionsToTerraform(ctx, data, remoteResource)
 
 		case graphmodels.WINDOWS10ENROLLMENTCOMPLETIONPAGECONFIGURATION_DEVICEENROLLMENTCONFIGURATIONTYPE,
 			graphmodels.DEFAULTWINDOWS10ENROLLMENTCOMPLETIONPAGECONFIGURATION_DEVICEENROLLMENTCONFIGURATIONTYPE:
@@ -86,130 +86,109 @@ func mapPlatformRestrictionsToTerraform(ctx context.Context, data *DeviceEnrollm
 	tflog.Debug(ctx, "Mapping platform restrictions configuration")
 
 	if platformConfig, ok := remoteResource.(graphmodels.DeviceEnrollmentPlatformRestrictionsConfigurationable); ok && platformConfig != nil {
-		restrictions := &PlatformRestrictionModel{}
+		// Create a new platform restriction model
+		platformRestriction := &NewPlatformRestrictionModel{
+			Restriction: &PlatformRestrictionModel{},
+		}
 
-		// Map each platform restriction
+		// Check each platform and map the first non-nil one we find
 		if androidRestriction := platformConfig.GetAndroidRestriction(); androidRestriction != nil {
-			restrictions.AndroidRestriction = mapPlatformRestriction(ctx, androidRestriction)
+			platformRestriction.PlatformType = types.StringValue("android")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, androidRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Android platform restriction")
+			return
 		}
 
 		if androidForWorkRestriction := platformConfig.GetAndroidForWorkRestriction(); androidForWorkRestriction != nil {
-			restrictions.AndroidForWorkRestriction = mapPlatformRestriction(ctx, androidForWorkRestriction)
+			platformRestriction.PlatformType = types.StringValue("androidForWork")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, androidForWorkRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Android for Work platform restriction")
+			return
 		}
 
 		if iosRestriction := platformConfig.GetIosRestriction(); iosRestriction != nil {
-			restrictions.IOSRestriction = mapPlatformRestriction(ctx, iosRestriction)
+			platformRestriction.PlatformType = types.StringValue("ios")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, iosRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped iOS platform restriction")
+			return
 		}
 
 		if macRestriction := platformConfig.GetMacRestriction(); macRestriction != nil {
-			restrictions.MacRestriction = mapPlatformRestriction(ctx, macRestriction)
+			platformRestriction.PlatformType = types.StringValue("mac")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, macRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Mac platform restriction")
+			return
 		}
 
 		if macOSRestriction := platformConfig.GetMacOSRestriction(); macOSRestriction != nil {
-			restrictions.MacOSRestriction = mapPlatformRestriction(ctx, macOSRestriction)
+			platformRestriction.PlatformType = types.StringValue("macos")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, macOSRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped macOS platform restriction")
+			return
 		}
 
 		if windowsRestriction := platformConfig.GetWindowsRestriction(); windowsRestriction != nil {
-			restrictions.WindowsRestriction = mapPlatformRestriction(ctx, windowsRestriction)
+			platformRestriction.PlatformType = types.StringValue("windows")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, windowsRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Windows platform restriction")
+			return
 		}
 
 		if windowsMobileRestriction := platformConfig.GetWindowsMobileRestriction(); windowsMobileRestriction != nil {
-			restrictions.WindowsMobileRestriction = mapPlatformRestriction(ctx, windowsMobileRestriction)
+			platformRestriction.PlatformType = types.StringValue("windowsMobile")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, windowsMobileRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Windows Mobile platform restriction")
+			return
 		}
 
 		if windowsHomeSkuRestriction := platformConfig.GetWindowsHomeSkuRestriction(); windowsHomeSkuRestriction != nil {
-			restrictions.WindowsHomeSkuRestriction = mapPlatformRestriction(ctx, windowsHomeSkuRestriction)
+			platformRestriction.PlatformType = types.StringValue("windowsHomeSku")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, windowsHomeSkuRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped Windows Home SKU platform restriction")
+			return
 		}
 
 		if tvosRestriction := platformConfig.GetTvosRestriction(); tvosRestriction != nil {
-			restrictions.TVOSRestriction = mapPlatformRestriction(ctx, tvosRestriction)
+			platformRestriction.PlatformType = types.StringValue("tvos")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, tvosRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped tvOS platform restriction")
+			return
 		}
 
 		if visionOSRestriction := platformConfig.GetVisionOSRestriction(); visionOSRestriction != nil {
-			restrictions.VisionOSRestriction = mapPlatformRestriction(ctx, visionOSRestriction)
+			platformRestriction.PlatformType = types.StringValue("visionos")
+			mapPlatformRestrictionProperties(ctx, platformRestriction.Restriction, visionOSRestriction)
+			data.NewPlatformRestriction = platformRestriction
+			tflog.Debug(ctx, "Mapped VisionOS platform restriction")
+			return
 		}
 
-		data.PlatformRestriction = restrictions
+		// If we get here, no platform restrictions were found
+		tflog.Debug(ctx, "No platform restrictions found")
+		data.NewPlatformRestriction = nil
+
 	} else {
 		tflog.Warn(ctx, "Failed to cast to DeviceEnrollmentPlatformRestrictionsConfigurationable")
 	}
 }
 
-// mapPlatformRestriction maps a single platform restriction
-func mapPlatformRestriction(ctx context.Context, restriction graphmodels.DeviceEnrollmentPlatformRestrictionable) *DeviceEnrollmentPlatformRestriction {
-	if restriction == nil {
-		return nil
-	}
-
-	return &DeviceEnrollmentPlatformRestriction{
-		PlatformBlocked:                 state.BoolPtrToTypeBool(restriction.GetPlatformBlocked()),
-		PersonalDeviceEnrollmentBlocked: state.BoolPtrToTypeBool(restriction.GetPersonalDeviceEnrollmentBlocked()),
-		OSMinimumVersion:                types.StringPointerValue(restriction.GetOsMinimumVersion()),
-		OSMaximumVersion:                types.StringPointerValue(restriction.GetOsMaximumVersion()),
-		BlockedManufacturers:            state.StringSliceToSet(ctx, restriction.GetBlockedManufacturers()),
-		BlockedSkus:                     state.StringSliceToSet(ctx, restriction.GetBlockedSkus()),
-	}
-}
-
-// mapSinglePlatformRestrictionToTerraform maps the single platform restriction configuration
-func mapSinglePlatformRestrictionToTerraform(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, remoteResource graphmodels.DeviceEnrollmentConfigurationable) {
-	tflog.Debug(ctx, "Mapping single platform restriction configuration")
-
-	// For single platform restrictions, the Graph API returns a DeviceEnrollmentPlatformRestrictionsConfiguration
-	if platformConfig, ok := remoteResource.(graphmodels.DeviceEnrollmentPlatformRestrictionsConfigurationable); ok && platformConfig != nil {
-		// Access platformType and platformRestriction via backing store since they don't have direct getter methods
-
-		// Try to access the platformType
-		platformTypeVal, err := platformConfig.GetBackingStore().Get("platformType")
-		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Failed to get platformType: %s", err))
-			return
-		}
-
-		if platformTypeVal == nil {
-			tflog.Warn(ctx, "Platform type is nil in single platform restriction configuration")
-			return
-		}
-
-		var platformTypeStr string
-		// Handle different possible types of platformType value
-		switch pt := platformTypeVal.(type) {
-		case *graphmodels.EnrollmentRestrictionPlatformType:
-			platformTypeStr = string(*pt)
-		case string:
-			platformTypeStr = pt
-		default:
-			tflog.Warn(ctx, fmt.Sprintf("Unexpected platform type format: %T", platformTypeVal))
-			return
-		}
-
-		// Try to get the platform restriction
-		restrictionVal, err := platformConfig.GetBackingStore().Get("platformRestriction")
-		if err != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Failed to get platformRestriction: %s", err))
-			return
-		}
-
-		if restrictionVal == nil {
-			tflog.Warn(ctx, "Platform restriction is nil in single platform restriction configuration")
-			return
-		}
-
-		// Convert to the proper type
-		platformRestriction, ok := restrictionVal.(graphmodels.DeviceEnrollmentPlatformRestrictionable)
-		if !ok {
-			tflog.Warn(ctx, "Failed to cast to DeviceEnrollmentPlatformRestrictionable")
-			return
-		}
-
-		// Map to the model
-		data.NewPlatformRestriction = &NewPlatformRestrictionModel{
-			PlatformType: types.StringValue(platformTypeStr),
-			Restriction:  mapPlatformRestriction(ctx, platformRestriction),
-		}
-	} else {
-		tflog.Warn(ctx, "Failed to cast to DeviceEnrollmentPlatformRestrictionsConfigurationable")
-	}
+// mapPlatformRestrictionProperties maps the properties from a DeviceEnrollmentPlatformRestrictionable to a PlatformRestrictionModel
+func mapPlatformRestrictionProperties(ctx context.Context, model *PlatformRestrictionModel, restriction graphmodels.DeviceEnrollmentPlatformRestrictionable) {
+	model.PlatformBlocked = state.BoolPtrToTypeBool(restriction.GetPlatformBlocked())
+	model.PersonalDeviceEnrollmentBlocked = state.BoolPtrToTypeBool(restriction.GetPersonalDeviceEnrollmentBlocked())
+	model.OSMinimumVersion = types.StringPointerValue(restriction.GetOsMinimumVersion())
+	model.OSMaximumVersion = types.StringPointerValue(restriction.GetOsMaximumVersion())
+	model.BlockedManufacturers = state.StringSliceToSet(ctx, restriction.GetBlockedManufacturers())
+	model.BlockedSkus = state.StringSliceToSet(ctx, restriction.GetBlockedSkus())
 }
 
 // mapWindows10EnrollmentCompletionPageToTerraform maps the Windows 10 enrollment completion page configuration

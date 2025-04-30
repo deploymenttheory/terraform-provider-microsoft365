@@ -3,6 +3,7 @@ package graphBetaDeviceEnrollmentConfiguration
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -44,13 +45,19 @@ var deviceEnrollmentConfigDispatch = map[string]struct {
 	// Indicates that configuration is of type default platform restriction which refers to types of devices a user is allowed to enroll by default.
 	"defaultPlatformRestrictions": {
 		EnumType:    graphmodels.DEFAULTPLATFORMRESTRICTIONS_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructPlatformRestrictionsConfig,
+		Constructor: constructNewPlatformRestrictionsConfig,
 	},
 
 	// Indicates that configuration is of type platform restriction which refers to types of devices a user is allowed to enroll.
 	"platformRestrictions": {
 		EnumType:    graphmodels.PLATFORMRESTRICTIONS_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructPlatformRestrictionsConfig,
+		Constructor: constructNewPlatformRestrictionsConfig,
+	},
+
+	// Indicates that configuration is of type single platform restriction which refers to types of devices a user is allowed to enroll.
+	"singlePlatformRestriction": {
+		EnumType:    graphmodels.SINGLEPLATFORMRESTRICTION_DEVICEENROLLMENTCONFIGURATIONTYPE,
+		Constructor: constructNewPlatformRestrictionsConfig,
 	},
 
 	// Indicates that configuration is of type default Enrollment status page which refers to startup page displayed during OOBE in Autopilot devices by default.
@@ -69,12 +76,6 @@ var deviceEnrollmentConfigDispatch = map[string]struct {
 	"deviceComanagementAuthorityConfiguration": {
 		EnumType:    graphmodels.DEVICECOMANAGEMENTAUTHORITYCONFIGURATION_DEVICEENROLLMENTCONFIGURATIONTYPE,
 		Constructor: constructDeviceComanagementAuthorityConfig,
-	},
-
-	// Indicates that configuration is of type single platform restriction which refers to types of devices a user is allowed to enroll.
-	"singlePlatformRestriction": {
-		EnumType:    graphmodels.SINGLEPLATFORMRESTRICTION_DEVICEENROLLMENTCONFIGURATIONTYPE,
-		Constructor: constructSinglePlatformRestrictionConfig,
 	},
 
 	// Indicates that configuration is of type Enrollment Notification which refers to types of notification a user receives during enrollment.
@@ -119,68 +120,77 @@ func constructResource(ctx context.Context, data *DeviceEnrollmentConfigurationR
 	return requestBody, nil
 }
 
-// constructPlatformRestrictionsConfig creates a platform restrictions configuration
-func constructPlatformRestrictionsConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
+// constructNewPlatformRestrictionsConfig creates a platform restrictions configuration
+func constructNewPlatformRestrictionsConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
 	tflog.Debug(ctx, "Constructing platform restrictions configuration")
 
 	platformConfig := graphmodels.NewDeviceEnrollmentPlatformRestrictionsConfiguration()
 
-	if data.PlatformRestriction != nil {
-		platformRestrictions := map[string]struct {
-			model  *DeviceEnrollmentPlatformRestriction
-			setter func(graphmodels.DeviceEnrollmentPlatformRestrictionable)
-		}{
-			"Android":        {data.PlatformRestriction.AndroidRestriction, platformConfig.SetAndroidRestriction},
-			"AndroidForWork": {data.PlatformRestriction.AndroidForWorkRestriction, platformConfig.SetAndroidForWorkRestriction},
-			"iOS":            {data.PlatformRestriction.IOSRestriction, platformConfig.SetIosRestriction},
-			"Mac":            {data.PlatformRestriction.MacRestriction, platformConfig.SetMacRestriction},
-			"macOS":          {data.PlatformRestriction.MacOSRestriction, platformConfig.SetMacOSRestriction},
-			"Windows":        {data.PlatformRestriction.WindowsRestriction, platformConfig.SetWindowsRestriction},
-			"WindowsMobile":  {data.PlatformRestriction.WindowsMobileRestriction, platformConfig.SetWindowsMobileRestriction},
-			"WindowsHomeSku": {data.PlatformRestriction.WindowsHomeSkuRestriction, platformConfig.SetWindowsHomeSkuRestriction},
-			"tvOS":           {data.PlatformRestriction.TVOSRestriction, platformConfig.SetTvosRestriction},
-			"VisionOS":       {data.PlatformRestriction.VisionOSRestriction, platformConfig.SetVisionOSRestriction},
+	if data.NewPlatformRestriction != nil && !data.NewPlatformRestriction.PlatformType.IsNull() {
+		restriction := graphmodels.NewDeviceEnrollmentPlatformRestriction()
+
+		constructors.SetBoolProperty(data.NewPlatformRestriction.Restriction.PlatformBlocked, restriction.SetPlatformBlocked)
+		constructors.SetBoolProperty(data.NewPlatformRestriction.Restriction.PersonalDeviceEnrollmentBlocked, restriction.SetPersonalDeviceEnrollmentBlocked)
+		constructors.SetStringProperty(data.NewPlatformRestriction.Restriction.OSMinimumVersion, restriction.SetOsMinimumVersion)
+		constructors.SetStringProperty(data.NewPlatformRestriction.Restriction.OSMaximumVersion, restriction.SetOsMaximumVersion)
+
+		if err := constructors.SetStringSet(ctx, data.NewPlatformRestriction.Restriction.BlockedManufacturers, restriction.SetBlockedManufacturers); err != nil {
+			return nil, fmt.Errorf("failed to set blocked manufacturers: %s", err)
 		}
 
-		// Process each platform restriction
-		for platform, data := range platformRestrictions {
-			if data.model != nil {
-				restriction := graphmodels.NewDeviceEnrollmentPlatformRestriction()
-				if err := setDeviceEnrollmentPlatformRestriction(ctx, data.model, restriction); err != nil {
-					return nil, fmt.Errorf("failed to set %s restriction: %s", platform, err)
-				}
-				data.setter(restriction)
-			}
+		if err := constructors.SetStringSet(ctx, data.NewPlatformRestriction.Restriction.BlockedSkus, restriction.SetBlockedSkus); err != nil {
+			return nil, fmt.Errorf("failed to set blocked skus: %s", err)
 		}
+
+		platformType := data.NewPlatformRestriction.PlatformType.ValueString()
+
+		switch strings.ToLower(platformType) {
+		case "android":
+			tflog.Debug(ctx, "Applying restrictions to Android platform")
+			platformConfig.SetAndroidRestriction(restriction)
+		case "androidforwork":
+			tflog.Debug(ctx, "Applying restrictions to Android for Work platform")
+			platformConfig.SetAndroidForWorkRestriction(restriction)
+		case "ios":
+			tflog.Debug(ctx, "Applying restrictions to iOS platform")
+			platformConfig.SetIosRestriction(restriction)
+		case "mac":
+			tflog.Debug(ctx, "Applying restrictions to Mac platform")
+			platformConfig.SetMacRestriction(restriction)
+		case "macos":
+			tflog.Debug(ctx, "Applying restrictions to macOS platform")
+			platformConfig.SetMacOSRestriction(restriction)
+		case "windows":
+			tflog.Debug(ctx, "Applying restrictions to Windows platform")
+			platformConfig.SetWindowsRestriction(restriction)
+		case "windowsmobile":
+			tflog.Debug(ctx, "Applying restrictions to Windows Mobile platform")
+			platformConfig.SetWindowsMobileRestriction(restriction)
+		case "windowshomesku":
+			tflog.Debug(ctx, "Applying restrictions to Windows Home SKU platform")
+			platformConfig.SetWindowsHomeSkuRestriction(restriction)
+		case "tvos":
+			tflog.Debug(ctx, "Applying restrictions to tvOS platform")
+			platformConfig.SetTvosRestriction(restriction)
+		case "visionos":
+			tflog.Debug(ctx, "Applying restrictions to VisionOS platform")
+			platformConfig.SetVisionOSRestriction(restriction)
+		default:
+			return nil, fmt.Errorf("unsupported platform type: %s", platformType)
+		}
+	} else {
+		return nil, fmt.Errorf("platform_type is required for platform restriction configuration")
 	}
 
 	return platformConfig, nil
 }
 
-// setDeviceEnrollmentPlatformRestriction sets properties from the model to the restriction object
-func setDeviceEnrollmentPlatformRestriction(ctx context.Context, model *DeviceEnrollmentPlatformRestriction, restriction graphmodels.DeviceEnrollmentPlatformRestrictionable) error {
-	constructors.SetBoolProperty(model.PlatformBlocked, restriction.SetPlatformBlocked)
-	constructors.SetBoolProperty(model.PersonalDeviceEnrollmentBlocked, restriction.SetPersonalDeviceEnrollmentBlocked)
-	constructors.SetStringProperty(model.OSMinimumVersion, restriction.SetOsMinimumVersion)
-	constructors.SetStringProperty(model.OSMaximumVersion, restriction.SetOsMaximumVersion)
-
-	if err := constructors.SetStringSet(ctx, model.BlockedManufacturers, restriction.SetBlockedManufacturers); err != nil {
-		return fmt.Errorf("failed to set blocked manufacturers: %s", err)
-	}
-
-	if err := constructors.SetStringSet(ctx, model.BlockedSkus, restriction.SetBlockedSkus); err != nil {
-		return fmt.Errorf("failed to set blocked skus: %s", err)
-	}
-
-	return nil
-}
-
 // constructDeviceEnrollmentLimitConfig creates a device enrollment limit configuration
 func constructDeviceEnrollmentLimitConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing limit configuration")
+	tflog.Debug(ctx, "Constructing device enrollment limit configuration")
 
-	if data.Windows10EnrollmentCompletionPage == nil {
-		return nil, fmt.Errorf("limit block must be defined for this configuration type")
+	if data.DeviceEnrollmentLimit == nil {
+		return nil, fmt.Errorf("device enrollment limit block must be defined for this configuration type")
 	}
 
 	limitConfig := graphmodels.NewDeviceEnrollmentLimitConfiguration()
@@ -234,32 +244,32 @@ func constructWindows10EnrollmentCompletionPageConfig(ctx context.Context, data 
 	return completionConfig, nil
 }
 
-// constructSinglePlatformRestrictionConfig creates a single platform restriction configuration
-func constructSinglePlatformRestrictionConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing single platform restriction configuration")
+// // constructSinglePlatformRestrictionConfig creates a single platform restriction configuration
+// func constructSinglePlatformRestrictionConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {
+// 	tflog.Debug(ctx, "Constructing single platform restriction configuration")
 
-	if data.NewPlatformRestriction == nil || data.NewPlatformRestriction.Restriction == nil {
-		return nil, fmt.Errorf("new_platform_restriction block is required for singlePlatformRestriction configuration")
-	}
+// 	if data.NewPlatformRestriction == nil || data.NewPlatformRestriction.Restriction == nil {
+// 		return nil, fmt.Errorf("new_platform_restriction block is required for singlePlatformRestriction configuration")
+// 	}
 
-	platformConfig := graphmodels.NewDeviceEnrollmentPlatformRestrictionConfiguration()
+// 	platformConfig := graphmodels.NewDeviceEnrollmentPlatformRestrictionConfiguration()
 
-	restriction := graphmodels.NewDeviceEnrollmentPlatformRestriction()
-	if err := setDeviceEnrollmentPlatformRestriction(ctx, data.NewPlatformRestriction.Restriction, restriction); err != nil {
-		return nil, fmt.Errorf("failed to construct platform restriction: %s", err)
-	}
-	platformConfig.SetPlatformRestriction(restriction)
+// 	restriction := graphmodels.NewDeviceEnrollmentPlatformRestriction()
+// 	if err := setDeviceEnrollmentPlatformRestriction(ctx, data.NewPlatformRestriction.Restriction, restriction); err != nil {
+// 		return nil, fmt.Errorf("failed to construct platform restriction: %s", err)
+// 	}
+// 	platformConfig.SetPlatformRestriction(restriction)
 
-	if err := constructors.SetEnumProperty(
-		data.NewPlatformRestriction.PlatformType,
-		graphmodels.ParseEnrollmentRestrictionPlatformType,
-		platformConfig.SetPlatformType,
-	); err != nil {
-		return nil, fmt.Errorf("failed to set platform type: %s", err)
-	}
+// 	if err := constructors.SetEnumProperty(
+// 		data.NewPlatformRestriction.PlatformType,
+// 		graphmodels.ParseEnrollmentRestrictionPlatformType,
+// 		platformConfig.SetPlatformType,
+// 	); err != nil {
+// 		return nil, fmt.Errorf("failed to set platform type: %s", err)
+// 	}
 
-	return platformConfig, nil
-}
+// 	return platformConfig, nil
+// }
 
 // constructWindowsHelloForBusinessConfig creates a Windows Hello for Business configuration
 func constructWindowsHelloForBusinessConfig(ctx context.Context, data *DeviceEnrollmentConfigurationResourceModel, configType graphmodels.DeviceEnrollmentConfigurationType) (graphmodels.DeviceEnrollmentConfigurationable, error) {

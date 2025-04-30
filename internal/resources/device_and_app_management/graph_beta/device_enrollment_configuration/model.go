@@ -8,45 +8,34 @@ import (
 
 // DeviceEnrollmentConfigurationResourceModel represents the base values for device enrollment configurations
 type DeviceEnrollmentConfigurationResourceModel struct {
-	ID                                types.String                            `tfsdk:"id"`
-	DisplayName                       types.String                            `tfsdk:"display_name"`
-	Description                       types.String                            `tfsdk:"description"`
-	Priority                          types.Int32                             `tfsdk:"priority"`
-	CreatedDateTime                   types.String                            `tfsdk:"created_date_time"`
-	LastModifiedDateTime              types.String                            `tfsdk:"last_modified_date_time"`
-	Version                           types.Int32                             `tfsdk:"version"`
-	DeviceEnrollmentConfigurationType types.String                            `tfsdk:"device_enrollment_configuration_type"`
-	RoleScopeTagIds                   types.Set                               `tfsdk:"role_scope_tag_ids"`
-	NewPlatformRestriction            *NewPlatformRestrictionModel            `tfsdk:"new_platform_restriction"`
-	PlatformRestriction               *PlatformRestrictionModel               `tfsdk:"platform_restriction"`
-	Windows10EnrollmentCompletionPage *Windows10EnrollmentCompletionPageModel `tfsdk:"windows10_enrollment_completion_page"`
-	WindowsHelloForBusiness           *WindowsHelloForBusinessModel           `tfsdk:"windows_hello_for_business"`
-	EnrollmentNotifications           *EnrollmentNotificationsModel           `tfsdk:"enrollment_notifications"`
-	DeviceComanagementAuthority       *DeviceComanagementAuthorityModel       `tfsdk:"device_comanagement_authority"`
-	DeviceEnrollmentLimit             *DeviceEnrollmentLimitModel             `tfsdk:"device_enrollment_limit"`
-	Assignments                       []AssignmentResourceModel               `tfsdk:"assignment"`
-	Timeouts                          timeouts.Value                          `tfsdk:"timeouts"`
+	ID                                       types.String                            `tfsdk:"id"`
+	DisplayName                              types.String                            `tfsdk:"display_name"`
+	Description                              types.String                            `tfsdk:"description"`
+	Priority                                 types.Int32                             `tfsdk:"priority"`
+	CreatedDateTime                          types.String                            `tfsdk:"created_date_time"`
+	LastModifiedDateTime                     types.String                            `tfsdk:"last_modified_date_time"`
+	Version                                  types.Int32                             `tfsdk:"version"`
+	DeviceEnrollmentConfigurationType        types.String                            `tfsdk:"device_enrollment_configuration_type"`
+	RoleScopeTagIds                          types.Set                               `tfsdk:"role_scope_tag_ids"`
+	NewPlatformRestriction                   *NewPlatformRestrictionModel            `tfsdk:"platform_restriction"`
+	DefaultWindows10EnrollmentCompletionPage *Windows10EnrollmentCompletionPageModel `tfsdk:"default_windows10_enrollment_completion_page"`
+	Windows10EnrollmentCompletionPage        *Windows10EnrollmentCompletionPageModel `tfsdk:"windows10_enrollment_completion_page"`
+	WindowsHelloForBusiness                  *WindowsHelloForBusinessModel           `tfsdk:"windows_hello_for_business"`
+	EnrollmentNotifications                  *EnrollmentNotificationsModel           `tfsdk:"enrollment_notifications"`
+	DeviceComanagementAuthority              *DeviceComanagementAuthorityModel       `tfsdk:"device_comanagement_authority"`
+	DeviceEnrollmentLimit                    *DeviceEnrollmentLimitModel             `tfsdk:"device_enrollment_limit"`
+	Assignments                              []AssignmentResourceModel               `tfsdk:"assignment"`
+	Timeouts                                 timeouts.Value                          `tfsdk:"timeouts"`
 }
 
 type NewPlatformRestrictionModel struct {
-	PlatformType types.String                         `tfsdk:"platform_type"`
-	Restriction  *DeviceEnrollmentPlatformRestriction `tfsdk:"restriction"`
+	PlatformType types.String              `tfsdk:"platform_type"`
+	Restriction  *PlatformRestrictionModel `tfsdk:"restriction"`
 }
 
+// PlatformRestrictionModel represents platform restriction settings
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentplatformrestrictionconfiguration?view=graph-rest-beta
 type PlatformRestrictionModel struct {
-	AndroidRestriction        *DeviceEnrollmentPlatformRestriction `tfsdk:"android_restriction"`
-	AndroidForWorkRestriction *DeviceEnrollmentPlatformRestriction `tfsdk:"android_for_work_restriction"`
-	IOSRestriction            *DeviceEnrollmentPlatformRestriction `tfsdk:"ios_restriction"`
-	MacRestriction            *DeviceEnrollmentPlatformRestriction `tfsdk:"mac_restriction"`
-	MacOSRestriction          *DeviceEnrollmentPlatformRestriction `tfsdk:"macos_restriction"`
-	WindowsRestriction        *DeviceEnrollmentPlatformRestriction `tfsdk:"windows_restriction"`
-	WindowsMobileRestriction  *DeviceEnrollmentPlatformRestriction `tfsdk:"windows_mobile_restriction"`
-	WindowsHomeSkuRestriction *DeviceEnrollmentPlatformRestriction `tfsdk:"windows_home_sku_restriction"`
-	TVOSRestriction           *DeviceEnrollmentPlatformRestriction `tfsdk:"tvos_restriction"`
-	VisionOSRestriction       *DeviceEnrollmentPlatformRestriction `tfsdk:"vision_os_restriction"`
-}
-
-type DeviceEnrollmentPlatformRestriction struct {
 	PlatformBlocked                 types.Bool   `tfsdk:"platform_blocked"`
 	PersonalDeviceEnrollmentBlocked types.Bool   `tfsdk:"personal_device_enrollment_blocked"`
 	OSMinimumVersion                types.String `tfsdk:"os_minimum_version"`
