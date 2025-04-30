@@ -1,13 +1,14 @@
 name: '✨ Go Lint'
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize]
     paths:
       - '.github/workflows/golint.yaml'
       - '.golangci.yml'
       - '**/*.go'
-      
+
 permissions:
   contents: read
   pull-requests: read  # Needed for "only-new-issues"
