@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_device_category Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages Device Categories in Microsoft Intune.
+  Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories
 ---
 
 # microsoft365_graph_beta_device_and_app_management_device_category (Resource)
 
-Manages Device Categories in Microsoft Intune.
+Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories
 
 ## Example Usage
 
@@ -32,17 +32,17 @@ resource "microsoft365_graph_beta_device_and_app_management_device_category" "ex
 
 ### Required
 
-- `display_name` (String) The display name of the assignment filter.
+- `display_name` (String) The display name of the Intune device category
 
 ### Optional
 
-- `description` (String) The optional description of the assignment filter.
+- `description` (String) The optional description of the Intune device category
 - `role_scope_tag_ids` (List of String) List of scope tag IDs for this device category.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) The unique identifier for this Device Category
+- `id` (String) The unique identifier for this Intune device category
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

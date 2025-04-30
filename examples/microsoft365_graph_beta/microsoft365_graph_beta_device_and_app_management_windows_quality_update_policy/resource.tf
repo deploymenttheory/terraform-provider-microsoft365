@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_quality_upda
       "11111111-2222-3333-4444-555555555555"
     ]
   }
-  
+
   assignment {
     target = "exclude"
     group_ids = [

@@ -7,9 +7,9 @@ output "all_windows_updates" {
   description = "All Windows Update Catalog Items retrieved from Intune"
   value = [
     for item in data.microsoft365_graph_beta_device_and_app_management_windows_update_catalog_item.all.items : {
-      id                 = item.id
-      display_name       = item.display_name
-      release_date_time  = item.release_date_time
+      id                  = item.id
+      display_name        = item.display_name
+      release_date_time   = item.release_date_time
       end_of_support_date = item.end_of_support_date
     }
   ]
@@ -87,5 +87,5 @@ output "updates_by_end_of_support" {
 
 output "end_of_support_count" {
   description = "Number of updates with end of support date on October 12, 2027"
-  value = length(data.microsoft365_graph_beta_device_and_app_management_windows_update_catalog_item.by_end_of_support.items)
+  value       = length(data.microsoft365_graph_beta_device_and_app_management_windows_update_catalog_item.by_end_of_support.items)
 }

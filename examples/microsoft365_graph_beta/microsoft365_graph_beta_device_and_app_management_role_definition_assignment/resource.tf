@@ -46,7 +46,7 @@ resource "microsoft365_graph_beta_device_and_app_management_role_definition_assi
   # Scope type defines the target of this assignment
   scope_type = "allDevices" # One of: "allDevices", "allLicensedUsers", "allDevicesAndLicensedUsers", "resourceScope"
 
-resource_scopes = [
+  resource_scopes = [
     "11111111-2222-3333-4444-555555555555",
     "11111111-2222-3333-4444-555555555555",
     "11111111-2222-3333-4444-555555555555"
