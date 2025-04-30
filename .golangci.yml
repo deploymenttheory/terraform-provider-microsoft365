@@ -31,27 +31,30 @@ issues:
 
 
 linters:
-  # 1) Disable all linters by default…
   default: none
-
-  # 2) …then opt in only to the ones you care about
   enable:
-    - asciicheck
-    - bidichk
-    - errcheck
-    - gocritic
-    - govet
-    - ineffassign
-    - misspell
-    - nakedret
-    - prealloc
-    - reassign
-    - staticcheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - vetshadow
+    # Core correctness & compile checks
+    - typecheck      # your code must compile
+    - govet          # catches suspicious Go constructs
+    - staticcheck    # static analyses (nil‐checks, API misuse, etc.)
+    - errcheck       # ensures you never ignore an error return
+    - unused         # finds dead code we longer need
+    - ineffassign    # flags assignments that have no effect
+  
+    # error-handling best practices
+    - errorlint   # flag missing %w wraps
+    - err113      # enforce correct error-handling patterns
+
+    # Terraform‐specific safety & resource handling
+    - bodyclose      # makes sure every HTTP response body is closed
+    - gosec          # scans for security issues (e.g. hardcoded credentials)
+
+    # Quality & style
+    - gocritic       # catches a variety of performance/style bugs
+    - prealloc       # recommends when you can preallocate slices/maps
+    - misspell       # finds typos in comments, docs, & variable names
+    - vetshadow   # catch accidental shadowing
+    - gocyclo     # warn on high cyclomatic complexity
 
   # 3) Per-linter configuration
   settings:
