@@ -2,7 +2,8 @@ version: "2"
 
 run:
   timeout: 20m
-  modules-download-mode: vendor
+  # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
+  modules-download-mode: readonly
   allow-parallel-runners: true
   allow-serial-runners: false
   concurrency: 2
