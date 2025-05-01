@@ -390,28 +390,28 @@ func TestDateOnlyPtrToString(t *testing.T) {
 func TestByteToString(t *testing.T) {
 	t.Run("Empty byte slice", func(t *testing.T) {
 		input := []byte{}
-		result := ByteToString(input)
+		result := ByteStringToBase64(input)
 		assert.Equal(t, "", result, "Should return an empty string for empty byte slice")
 	})
 
 	t.Run("Non-empty byte slice", func(t *testing.T) {
 		input := []byte("Hello, World!")
 		expected := "SGVsbG8sIFdvcmxkIQ==" // Base64 encoded "Hello, World!"
-		result := ByteToString(input)
+		result := ByteStringToBase64(input)
 		assert.Equal(t, expected, result, "Should return base64 encoded string")
 	})
 
 	t.Run("Byte slice with special characters", func(t *testing.T) {
 		input := []byte("Hello, 世界!")
 		expected := "SGVsbG8sIOS4lueVjCE=" // Base64 encoded "Hello, 世界!"
-		result := ByteToString(input)
+		result := ByteStringToBase64(input)
 		assert.Equal(t, expected, result, "Should correctly encode special characters")
 	})
 
 	t.Run("Byte slice with null bytes", func(t *testing.T) {
 		input := []byte{0, 1, 2, 3}
 		expected := "AAECAw==" // Base64 encoded [0, 1, 2, 3]
-		result := ByteToString(input)
+		result := ByteStringToBase64(input)
 		assert.Equal(t, expected, result, "Should correctly encode null bytes")
 	})
 }

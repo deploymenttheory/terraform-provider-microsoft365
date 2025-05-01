@@ -218,6 +218,27 @@ func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) 
 	return nil
 }
 
+// StringToDateOnly parses a string value into a DateOnly if the value is not null or unknown,
+// and sets it using the provided setter function.
+func StringToDateOnly(value basetypes.StringValue, setter func(*serialization.DateOnly)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	dateStr := value.ValueString()
+	if dateStr == "" {
+		return nil
+	}
+
+	parsedDate, err := serialization.ParseDateOnly(dateStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse date string: %s", err)
+	}
+
+	setter(parsedDate)
+	return nil
+}
+
 // SetUUIDProperty parses a string as a UUID and sets it using the provided setter.
 // Returns an error if parsing fails. No-op if the value is null, unknown, or empty.
 func SetUUIDProperty(value basetypes.StringValue, setter func(*uuid.UUID)) error {

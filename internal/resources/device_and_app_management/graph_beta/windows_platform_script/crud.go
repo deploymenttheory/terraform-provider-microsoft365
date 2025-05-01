@@ -38,7 +38,6 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// create resource
 	requestResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
@@ -51,7 +50,6 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 
 	object.ID = types.StringValue(*requestResource.GetId())
 
-	// create assignments
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
