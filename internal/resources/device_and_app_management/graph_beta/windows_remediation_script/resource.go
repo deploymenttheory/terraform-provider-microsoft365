@@ -262,36 +262,38 @@ func AssignmentBlock() schema.ListNestedBlock {
 								Default:             booldefault.StaticBool(true),
 								MarkdownDescription: "Whether to run the remediation script for this group assignment.",
 							},
-							"run_schedule": schema.SingleNestedAttribute{
+							"run_schedule": schema.ListNestedAttribute{
 								Optional:            true,
 								MarkdownDescription: "Run schedule for this group assignment.",
-								Attributes: map[string]schema.Attribute{
-									"schedule_type": schema.StringAttribute{
-										Required:            true,
-										MarkdownDescription: "Type of schedule. Can be 'daily', 'hourly', or 'once'.",
-										Validators: []validator.String{
-											stringvalidator.OneOf("daily", "hourly", "once"),
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"schedule_type": schema.StringAttribute{
+											Required:            true,
+											MarkdownDescription: "Type of schedule. Can be 'daily', 'hourly', or 'once'.",
+											Validators: []validator.String{
+												stringvalidator.OneOf("daily", "hourly", "once"),
+											},
 										},
-									},
-									"interval": schema.Int32Attribute{
-										Optional:            true,
-										Computed:            true,
-										Default:             int32default.StaticInt32(1),
-										MarkdownDescription: "Interval for the schedule.",
-									},
-									"time": schema.StringAttribute{
-										Optional:            true,
-										MarkdownDescription: "Time of day for daily and once schedules (e.g., '14:30:00').",
-									},
-									"date": schema.StringAttribute{
-										Optional:            true,
-										MarkdownDescription: "Date for once schedule (e.g., '2025-05-01').",
-									},
-									"use_utc": schema.BoolAttribute{
-										Optional:            true,
-										Computed:            true,
-										Default:             booldefault.StaticBool(false),
-										MarkdownDescription: "Whether to use UTC time.",
+										"interval": schema.Int32Attribute{
+											Optional:            true,
+											Computed:            true,
+											Default:             int32default.StaticInt32(1),
+											MarkdownDescription: "Interval for the schedule.",
+										},
+										"time": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Time of day for daily and once schedules (e.g., '14:30:00').",
+										},
+										"date": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Date for once schedule (e.g., '2025-05-01').",
+										},
+										"use_utc": schema.BoolAttribute{
+											Optional:            true,
+											Computed:            true,
+											Default:             booldefault.StaticBool(false),
+											MarkdownDescription: "Whether to use UTC time.",
+										},
 									},
 								},
 							},

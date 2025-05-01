@@ -13,40 +13,77 @@ import (
 )
 
 // constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
+// constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, assignments []WindowsRemediationScriptAssignmentResourceModel) (devicemanagement.DeviceHealthScriptsItemAssignPostRequestBodyable, error) {
 	if assignments == nil {
 		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
 	}
 
-	tflog.Debug(ctx, "Starting Device Health Script assignment construction")
+	tflog.Debug(ctx, "Starting Device Health Script assignment construction", map[string]interface{}{
+		"assignmentCount": len(assignments),
+	})
 
 	requestBody := devicemanagement.NewDeviceHealthScriptsItemAssignPostRequestBody()
 	scriptAssignments := make([]graphmodels.DeviceHealthScriptAssignmentable, 0)
 
 	// Process each assignment block
-	for _, assignment := range assignments {
+	for idx, assignment := range assignments {
+		tflog.Debug(ctx, "Processing assignment block", map[string]interface{}{
+			"index":             idx,
+			"allDevices":        assignment.AllDevices.ValueBool(),
+			"allUsers":          assignment.AllUsers.ValueBool(),
+			"includeGroupsNull": assignment.IncludeGroups.IsNull(),
+			"includeGroupsLen":  len(assignment.IncludeGroups.Elements()),
+			"excludeGroupsNull": assignment.ExcludeGroupIds.IsNull(),
+			"excludeGroupsLen":  len(assignment.ExcludeGroupIds.Elements()),
+		})
+
 		// Check All Devices
 		if !assignment.AllDevices.IsNull() && assignment.AllDevices.ValueBool() {
+			tflog.Debug(ctx, "Adding all devices assignment")
 			scriptAssignments = append(scriptAssignments, constructAllDevicesAssignment(ctx, assignment))
 		}
 
 		// Check All Users
 		if !assignment.AllUsers.IsNull() && assignment.AllUsers.ValueBool() {
+			tflog.Debug(ctx, "Adding all users assignment")
 			scriptAssignments = append(scriptAssignments, constructAllUsersAssignment(ctx, assignment))
 		}
 
-		// Check Include Groups - Updated logic
+		// Check Include Groups
 		if !assignment.IncludeGroups.IsNull() && len(assignment.IncludeGroups.Elements()) > 0 {
+			tflog.Debug(ctx, "Processing include groups", map[string]interface{}{
+				"count": len(assignment.IncludeGroups.Elements()),
+			})
 			includeAssignments := constructGroupIncludeAssignments(ctx, assignment)
-			scriptAssignments = append(scriptAssignments, includeAssignments...)
+			if len(includeAssignments) > 0 {
+				scriptAssignments = append(scriptAssignments, includeAssignments...)
+				tflog.Debug(ctx, "Added include group assignments", map[string]interface{}{
+					"addedCount": len(includeAssignments),
+				})
+			} else {
+				tflog.Warn(ctx, "No include group assignments were constructed")
+			}
 		}
 
 		// Check Exclude Groups
 		if !assignment.ExcludeGroupIds.IsNull() && len(assignment.ExcludeGroupIds.Elements()) > 0 {
+			tflog.Debug(ctx, "Processing exclude groups", map[string]interface{}{
+				"count": len(assignment.ExcludeGroupIds.Elements()),
+			})
 			excludeAssignments := constructGroupExcludeAssignments(ctx, assignment)
-			scriptAssignments = append(scriptAssignments, excludeAssignments...)
+			if len(excludeAssignments) > 0 {
+				scriptAssignments = append(scriptAssignments, excludeAssignments...)
+				tflog.Debug(ctx, "Added exclude group assignments", map[string]interface{}{
+					"addedCount": len(excludeAssignments),
+				})
+			}
 		}
 	}
+
+	tflog.Debug(ctx, "Completed assignment construction", map[string]interface{}{
+		"totalAssignments": len(scriptAssignments),
+	})
 
 	requestBody.SetDeviceHealthScriptAssignments(scriptAssignments)
 
@@ -60,10 +97,17 @@ func constructAssignment(ctx context.Context, assignments []WindowsRemediationSc
 }
 
 // constructGroupIncludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for included groups
+// constructGroupIncludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for included groups
 func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
 	var assignments []graphmodels.DeviceHealthScriptAssignmentable
 
+	tflog.Debug(ctx, "Entering constructGroupIncludeAssignments", map[string]interface{}{
+		"includeGroups.IsNull":    config.IncludeGroups.IsNull(),
+		"includeGroups.IsUnknown": config.IncludeGroups.IsUnknown(),
+	})
+
 	if config.IncludeGroups.IsNull() {
+		tflog.Debug(ctx, "IncludeGroups is null, returning empty assignments")
 		return assignments
 	}
 
@@ -77,8 +121,20 @@ func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemedia
 		return assignments
 	}
 
-	for _, group := range includeGroups {
+	tflog.Debug(ctx, "Successfully parsed include groups", map[string]interface{}{
+		"count": len(includeGroups),
+	})
+
+	for idx, group := range includeGroups {
+		tflog.Debug(ctx, "Processing include group", map[string]interface{}{
+			"index":   idx,
+			"groupId": group.GroupId.ValueString(),
+		})
+
 		if group.GroupId.IsNull() || group.GroupId.IsUnknown() || group.GroupId.ValueString() == "" {
+			tflog.Warn(ctx, "Skipping group with null/empty GroupId", map[string]interface{}{
+				"index": idx,
+			})
 			continue
 		}
 
@@ -87,11 +143,17 @@ func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemedia
 
 		constructors.SetStringProperty(group.GroupId, target.SetGroupId)
 
+		// Set filter ID and type if present
 		if !group.IncludeGroupsFilterId.IsNull() && !group.IncludeGroupsFilterId.IsUnknown() {
 			constructors.SetStringProperty(group.IncludeGroupsFilterId,
 				target.SetDeviceAndAppManagementAssignmentFilterId)
 
 			if !group.IncludeGroupsFilterType.IsNull() && !group.IncludeGroupsFilterType.IsUnknown() {
+				tflog.Debug(ctx, "Setting filter type", map[string]interface{}{
+					"groupId":    group.GroupId.ValueString(),
+					"filterType": group.IncludeGroupsFilterType.ValueString(),
+				})
+
 				err := constructors.SetEnumProperty(group.IncludeGroupsFilterType,
 					graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 					target.SetDeviceAndAppManagementAssignmentFilterType)
@@ -110,25 +172,52 @@ func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemedia
 		if !group.RunRemediationScript.IsNull() {
 			runRemediation := group.RunRemediationScript.ValueBool()
 			assignment.SetRunRemediationScript(&runRemediation)
+			tflog.Debug(ctx, "Set RunRemediationScript", map[string]interface{}{
+				"groupId":              group.GroupId.ValueString(),
+				"runRemediationScript": runRemediation,
+			})
 		}
 
-		// Set run schedule if specified - Updated to handle List
+		// Set run schedule if specified
 		if !group.RunSchedule.IsNull() && len(group.RunSchedule.Elements()) > 0 {
+			tflog.Debug(ctx, "Processing run schedule", map[string]interface{}{
+				"groupId":             group.GroupId.ValueString(),
+				"runScheduleElements": len(group.RunSchedule.Elements()),
+			})
+
 			schedule := constructRunSchedule(ctx, group.RunSchedule)
 			if schedule != nil {
 				assignment.SetRunSchedule(schedule)
+				tflog.Debug(ctx, "Set run schedule for group", map[string]interface{}{
+					"groupId": group.GroupId.ValueString(),
+				})
 			}
 		}
 
 		assignments = append(assignments, assignment)
+		tflog.Debug(ctx, "Added include group assignment", map[string]interface{}{
+			"groupId": group.GroupId.ValueString(),
+			"index":   idx,
+		})
 	}
+
+	tflog.Debug(ctx, "Completed constructGroupIncludeAssignments", map[string]interface{}{
+		"totalAssignments": len(assignments),
+	})
 
 	return assignments
 }
 
 // constructRunSchedule constructs the appropriate schedule type based on the schedule configuration
+// constructRunSchedule constructs the appropriate schedule type based on the schedule configuration
 func constructRunSchedule(ctx context.Context, scheduleList types.List) graphmodels.DeviceHealthScriptRunScheduleable {
+	tflog.Debug(ctx, "Entering constructRunSchedule", map[string]interface{}{
+		"scheduleList.IsNull":   scheduleList.IsNull(),
+		"scheduleList.Elements": len(scheduleList.Elements()),
+	})
+
 	if scheduleList.IsNull() || len(scheduleList.Elements()) == 0 {
+		tflog.Debug(ctx, "No schedule elements found, returning nil")
 		return nil
 	}
 
@@ -143,19 +232,29 @@ func constructRunSchedule(ctx context.Context, scheduleList types.List) graphmod
 	}
 
 	schedule := schedules[0]
+	tflog.Debug(ctx, "Parsed first schedule", map[string]interface{}{
+		"scheduleType": schedule.ScheduleType.ValueString(),
+		"interval":     schedule.Interval.ValueInt32(),
+		"time":         schedule.Time.ValueString(),
+		"date":         schedule.Date.ValueString(),
+		"useUtc":       schedule.UseUtc.ValueBool(),
+	})
 
 	switch schedule.ScheduleType.ValueString() {
 	case "daily":
+		tflog.Debug(ctx, "Creating daily schedule")
 		dailySchedule := graphmodels.NewDeviceHealthScriptDailySchedule()
 		constructors.SetInt32Property(schedule.Interval, dailySchedule.SetInterval)
 		constructors.StringToTimeOnly(schedule.Time, dailySchedule.SetTime)
 		constructors.SetBoolProperty(schedule.UseUtc, dailySchedule.SetUseUtc)
 		return dailySchedule
 	case "hourly":
+		tflog.Debug(ctx, "Creating hourly schedule")
 		hourlySchedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
 		constructors.SetInt32Property(schedule.Interval, hourlySchedule.SetInterval)
 		return hourlySchedule
 	case "once":
+		tflog.Debug(ctx, "Creating once schedule")
 		onceSchedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
 		constructors.SetInt32Property(schedule.Interval, onceSchedule.SetInterval)
 		constructors.StringToDateOnly(schedule.Date, onceSchedule.SetDate)
