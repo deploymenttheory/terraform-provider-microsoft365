@@ -30,7 +30,6 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			return nil
 		}
 
-		// Continue searching through the structure
 		for k, v := range configV {
 			if respChild, ok := respV[k]; ok {
 				PreserveSecretSettings(v, respChild)

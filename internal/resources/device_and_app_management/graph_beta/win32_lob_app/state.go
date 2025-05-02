@@ -41,7 +41,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
 		data.LargeIcon = sharedmodels.MimeContentResourceModel{
 			Type:  types.StringPointerValue(largeIcon.GetTypeEscaped()),
-			Value: types.StringValue(state.ByteToString(largeIcon.GetValue())),
+			Value: types.StringValue(state.ByteStringToBase64(largeIcon.GetValue())),
 		}
 	}
 

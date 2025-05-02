@@ -157,7 +157,6 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel) []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable {
 	var assignments []graphsdkmodels.DeviceManagementConfigurationPolicyAssignmentable
 
-	// Check if we have any non-null, non-empty values
 	hasValidExcludes := false
 	for _, groupId := range config.ExcludeGroupIds {
 		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
@@ -166,7 +165,6 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 		}
 	}
 
-	// Only process if we have valid excludes
 	if hasValidExcludes {
 		for _, groupId := range config.ExcludeGroupIds {
 			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {

@@ -127,9 +127,22 @@ func DateOnlyPtrToString(date *serialization.DateOnly) types.String {
 	return types.StringValue(date.String())
 }
 
-// ByteToString converts a byte slice to a string.
-// It returns the byte slice encoded as a base64 string.
-func ByteToString(b []byte) string {
+// BytesToString safely converts a byte slice to types.String.
+// Returns types.StringNull() if the byte slice is nil, otherwise
+// converts the byte slice to a string and wraps it in types.String.
+// This is useful for script content which is stored as []byte but needs
+// to be represented as a string in Terraform.
+func BytesToString(value []byte) types.String {
+	if value == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(string(value))
+}
+
+// ByteStringToBase64 converts a byte slice to a base64-encoded string.
+// This is useful for when the bytes represent binary data that should be
+// base64 encoded. For script content that is already UTF-8, use BytesToString.
+func ByteStringToBase64(b []byte) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
@@ -341,4 +354,12 @@ func UUIDPtrToTypeString(id *uuid.UUID) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(id.String())
+}
+
+// TimeOnlyPtrToString converts a TimeOnly pointer to a Terraform string.
+func TimeOnlyPtrToString(time *serialization.TimeOnly) types.String {
+	if time == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(time.String())
 }

@@ -43,7 +43,6 @@ func configureGraphClientOptions(ctx context.Context, config *M365ProviderModel)
 	defaultMiddleware = addUserAgentHandler(ctx, defaultMiddleware, &clientOptionsModel)
 	defaultMiddleware = addHeadersInspectionHandler(ctx, defaultMiddleware, &clientOptionsModel)
 
-	// Create and configure HTTP client with proxy settings and middleware
 	httpClient, err := configureHTTPClientWithProxyAndMiddleware(ctx, config, defaultMiddleware)
 	if err != nil {
 		tflog.Error(ctx, "Failed to configure HTTP client with proxy and middleware", map[string]interface{}{"error": err})
@@ -130,7 +129,6 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 			},
 		}
 
-		// Create the retry handler and add it to the middleware
 		retryHandler := khttp.NewRetryHandlerWithOptions(retryOptions)
 		middleware = append(middleware, retryHandler)
 		tflog.Debug(ctx, "Retry handler with jitter added to middleware")

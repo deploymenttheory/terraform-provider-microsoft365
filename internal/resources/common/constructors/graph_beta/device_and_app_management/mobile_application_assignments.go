@@ -389,13 +389,11 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 		settings.SetAutoUpdateSettings(autoUpdateSettings)
 	}
 
-	// Set DeliveryOptimizationPriority
 	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
 	if err != nil {
 		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
 	}
 
-	// Set InstallTimeSettings
 	if data.InstallTimeSettings != nil {
 		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
 
@@ -418,13 +416,11 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 		settings.SetInstallTimeSettings(installTimeSettings)
 	}
 
-	// Set Notifications
 	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Notifications: %v", err)
 	}
 
-	// Set RestartSettings
 	if data.RestartSettings != nil {
 		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
 
@@ -445,7 +441,6 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 
 	settings := graphmodels.NewWin32LobAppAssignmentSettings()
 
-	// Handle AutoUpdateSettings
 	if data.AutoUpdateSettings != nil {
 		autoUpdateSettings := graphmodels.NewWin32LobAppAutoUpdateSettings()
 
@@ -457,13 +452,11 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 		settings.SetAutoUpdateSettings(autoUpdateSettings)
 	}
 
-	// Handle DeliveryOptimizationPriority
 	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
 	if err != nil {
 		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
 	}
 
-	// Handle InstallTimeSettings
 	if data.InstallTimeSettings != nil {
 		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
 
@@ -486,7 +479,6 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 		settings.SetInstallTimeSettings(installTimeSettings)
 	}
 
-	// Handle Notifications
 	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Notifications: %v", err)

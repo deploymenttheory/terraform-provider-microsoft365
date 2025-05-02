@@ -101,7 +101,6 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		// Create the block URL with the SAS token and the new block ID
 		blockURL := fmt.Sprintf("%s&comp=block&blockid=%s", sasUri, blockID)
 
-		// Upload the block with retry logic
 		err = retry.RetryContext(ctx, blockUploadTimeout, func() *retry.RetryError {
 			uploadCtx, cancel := context.WithTimeout(ctx, blockUploadTimeout)
 			defer cancel()

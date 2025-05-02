@@ -73,17 +73,14 @@ type useStateForUnknownList struct {
 }
 
 func (m useStateForUnknownList) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	// If the value is known, do nothing
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
 
-	// If there is no state value, do nothing
 	if req.StateValue.IsNull() {
 		return
 	}
 
-	// Use state value
 	resp.PlanValue = req.StateValue
 }
 
@@ -119,12 +116,10 @@ func (m *requiresOtherAttributeEnabledListModifier) MarkdownDescription(ctx cont
 }
 
 func (m *requiresOtherAttributeEnabledListModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
 
-	// Get the dependency attribute's value from the plan
 	var dependencyValue types.Bool
 	diags := req.Plan.GetAttribute(ctx, m.dependencyPath, &dependencyValue)
 	resp.Diagnostics.Append(diags...)
@@ -132,7 +127,6 @@ func (m *requiresOtherAttributeEnabledListModifier) PlanModifyList(ctx context.C
 		return
 	}
 
-	// If dependency is defined, not null, and false, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

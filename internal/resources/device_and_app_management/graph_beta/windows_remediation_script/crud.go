@@ -1,4 +1,4 @@
-package graphBetaWindowsQualityUpdateExpeditePolicy
+package graphBetaWindowsRemediationScript
 
 import (
 	"context"
@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
-func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WindowsQualityUpdateExpeditePolicyResourceModel
+func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object DeviceHealthScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -31,6 +32,9 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -40,9 +44,9 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 		return
 	}
 
-	createdResource, err := r.client.
+	baseResource, err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
+		DeviceHealthScripts().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -50,33 +54,36 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignments != nil && len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
-
-		assignRequestBody, err := constructAssignments(ctx, &object)
+	if object.Assignment != nil {
+		requestAssignment, err := constructAssignment(ctx, object.Assignment)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignments",
-				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+				"Error constructing assignment for Create Method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
 		}
 
-		err = r.client.
-			DeviceManagement().
-			WindowsQualityUpdateProfiles().
-			ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, assignRequestBody, nil)
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			err := r.client.
+				DeviceManagement().
+				DeviceHealthScripts().
+				ByDeviceHealthScriptId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
+		})
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -84,21 +91,28 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
 		return
 	}
-
-	resp.State = readResp.State
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
@@ -111,8 +125,8 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 // The function ensures all components are properly read and mapped into the
 // Terraform state in a single API call, providing a complete view of the
 // resource's current configuration on the server.
-func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WindowsQualityUpdateExpeditePolicyResourceModel
+func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceHealthScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -132,9 +146,13 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 	common.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-		Get(ctx, nil)
+		DeviceHealthScripts().
+		ByDeviceHealthScriptId(object.ID.ValueString()).
+		Get(ctx, &devicemanagement.DeviceHealthScriptsDeviceHealthScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceHealthScriptsDeviceHealthScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
@@ -144,20 +162,6 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	assignmentsResp, err := r.client.
-		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentsToTerraform(ctx, &object, assignmentsResp.GetValue())
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -166,7 +170,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Update handles the Update operation for windows driver update profile resources.
+// Update handles the Update operation for macos platform scripts resources.
 //
 // The function performs the following operations:
 //   - Patches the existing script resource with updated settings using PATCH
@@ -174,14 +178,19 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 //   - Retrieves the updated resource with expanded assignments
 //   - Maps the remote state back to Terraform
 //
-// The Microsoft Graph Beta API supports direct updates of windows driver update profile resources
+// The Microsoft Graph Beta API supports direct updates of device shell script resources
 // through PATCH operations for the base resource, while assignments are handled through
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
-func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsQualityUpdateExpeditePolicyResourceModel
+func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object DeviceHealthScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -200,7 +209,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
@@ -208,8 +217,8 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 
 	_, err = r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		DeviceHealthScripts().
+		ByDeviceHealthScriptId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -217,30 +226,27 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 		return
 	}
 
-	if object.Assignments != nil && len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
-
-		assignRequestBody, err := constructAssignments(ctx, &object)
+	if object.Assignment != nil {
+		requestAssignment, err := constructAssignment(ctx, object.Assignment)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing assignments",
-				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
+				"Error constructing assignment for update method",
+				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 			)
 			return
 		}
 
 		err = r.client.
 			DeviceManagement().
-			WindowsQualityUpdateProfiles().
-			ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+			DeviceHealthScripts().
+			ByDeviceHealthScriptId(object.ID.ValueString()).
 			Assign().
-			Post(ctx, assignRequestBody, nil)
+			Post(ctx, requestAssignment, nil)
+
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 			return
 		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
 	}
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
@@ -251,7 +257,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 		}, readResp)
 
 		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update: %s", readResp.Diagnostics.Errors()))
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
 		}
 
 		resp.State = readResp.State
@@ -260,8 +266,8 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error verifying update",
-			fmt.Sprintf("Failed to verify updated resource: %s", err),
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
 		)
 		return
 	}
@@ -269,7 +275,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
-// Delete handles the Delete operation for windows driver update profile resources.
+// Delete handles the Delete operation for Device Management Script resources.
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
@@ -277,8 +283,8 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *WindowsQualityUpdateExpeditePolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WindowsQualityUpdateExpeditePolicyResourceModel
+func (r *DeviceHealthScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceHealthScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -295,8 +301,8 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Delete(ctx context.Context,
 
 	err := r.client.
 		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		DeviceHealthScripts().
+		ByDeviceHealthScriptId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

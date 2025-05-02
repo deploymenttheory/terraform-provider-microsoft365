@@ -15,7 +15,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: 'Checkout Repository'
+      - name: Check Out
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0

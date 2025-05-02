@@ -36,7 +36,9 @@ jobs:
         with:
           egress-policy: audit
           
-      - uses: actions/checkout@v4.2.2
+      - name: Check Out  
+        uses: actions/checkout@v4.2.2
+
       - uses: actions/setup-go@v5.4.0
         with:
           go-version-file: 'go.mod'

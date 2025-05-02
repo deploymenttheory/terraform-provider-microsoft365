@@ -15,26 +15,22 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (gra
 
 	requestBody := graphmodels.NewBrowserSite()
 
-	// Set basic properties
 	constructors.SetBoolProperty(data.AllowRedirect, requestBody.SetAllowRedirect)
 	constructors.SetStringProperty(data.Comment, requestBody.SetComment)
 	constructors.SetStringProperty(data.WebUrl, requestBody.SetWebUrl)
 
-	// Handle compatibility mode enum
 	if err := constructors.SetEnumProperty(data.CompatibilityMode,
 		graphmodels.ParseBrowserSiteCompatibilityMode,
 		requestBody.SetCompatibilityMode); err != nil {
 		return nil, fmt.Errorf("failed to set compatibility mode: %v", err)
 	}
 
-	// Handle merge type enum
 	if err := constructors.SetEnumProperty(data.MergeType,
 		graphmodels.ParseBrowserSiteMergeType,
 		requestBody.SetMergeType); err != nil {
 		return nil, fmt.Errorf("failed to set merge type: %v", err)
 	}
 
-	// Handle target environment enum
 	if err := constructors.SetEnumProperty(data.TargetEnvironment,
 		graphmodels.ParseBrowserSiteTargetEnvironment,
 		requestBody.SetTargetEnvironment); err != nil {

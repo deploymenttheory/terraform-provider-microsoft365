@@ -139,13 +139,12 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 	defer cancel()
 
 	common.GraphSDKMutex.Lock()
-	defer common.GraphSDKMutex.Unlock()
-
 	resourceResp, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
+	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)

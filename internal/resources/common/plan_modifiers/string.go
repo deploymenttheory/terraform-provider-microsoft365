@@ -40,7 +40,6 @@ type useStateForUnknownString struct {
 }
 
 func (m useStateForUnknownString) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	// If the value is unknown and there's a state value, use the state value
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
@@ -128,7 +127,6 @@ type caseInsensitiveString struct {
 }
 
 func (m caseInsensitiveString) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	// For config values that don't match state, preserve their case
 	if req.ConfigValue.IsNull() || req.StateValue.IsNull() {
 		resp.PlanValue = req.ConfigValue
 		return
@@ -183,7 +181,6 @@ func (m *requiresOtherAttributeEnabledModifier) MarkdownDescription(ctx context.
 
 // PlanModifyString implements the plan modification logic.
 func (m *requiresOtherAttributeEnabledModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	// Skip if the attribute is null in the plan
 	if req.PlanValue.IsNull() {
 		return
 	}
@@ -196,7 +193,6 @@ func (m *requiresOtherAttributeEnabledModifier) PlanModifyString(ctx context.Con
 		return
 	}
 
-	// If dependency is defined, not null, and false, this attribute should not be used
 	if !dependencyValue.IsNull() && !dependencyValue.IsUnknown() && !dependencyValue.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

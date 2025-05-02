@@ -116,8 +116,8 @@
 - ReusablePolicySettings
 - ReusableSettings
 - RoleAssignments
-- RoleDefinitions
-- RoleScopeTags
+- RoleDefinitions - Complete
+- RoleScopeTags - Complete
 - ScopedForResourceWithResource
 - SendCustomNotificationToCompanyPortal
 - ServiceNowConnections
@@ -182,13 +182,13 @@
 - WindowsAutopilotDeploymentProfiles
 - WindowsAutopilotDeviceIdentities
 - WindowsAutopilotSettings
-- WindowsDriverUpdateProfiles
-- WindowsFeatureUpdateProfiles
+- WindowsDriverUpdateProfiles - Complete
+- WindowsFeatureUpdateProfiles - Complete
 - WindowsInformationProtectionAppLearningSummaries
 - WindowsInformationProtectionNetworkLearningSummaries
 - WindowsMalwareInformation
-- WindowsQualityUpdatePolicies
-- WindowsQualityUpdateProfiles
+- WindowsQualityUpdatePolicies - Complete
+- WindowsQualityUpdateProfiles - Complete
 - WindowsUpdateCatalogItems
 - ZebraFotaArtifacts
 - ZebraFotaConnector

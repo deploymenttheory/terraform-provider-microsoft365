@@ -86,6 +86,5 @@ func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies
 		values = append(values, types.StringValue("windowsOsRecovery"))
 	}
 
-	// Return a types.List
 	return types.ListValueMust(types.StringType, values)
 }
