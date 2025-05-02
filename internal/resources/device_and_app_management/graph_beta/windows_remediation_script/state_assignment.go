@@ -2,217 +2,262 @@ package graphBetaWindowsRemediationScript
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteAssignmentStateToTerraform maps remote assignment state to Terraform state
-func MapRemoteAssignmentStateToTerraform(ctx context.Context, state *DeviceHealthScriptResourceModel, remoteAssignments []graphmodels.DeviceHealthScriptAssignmentable) {
+// MapRemoteAssignmentStateToTerraform maps the remote assignment state to Terraform state
+// following a similar structure to the constructAssignment function
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHealthScriptResourceModel, remoteAssignments []graphmodels.DeviceHealthScriptAssignmentable) {
 	if remoteAssignments == nil || len(remoteAssignments) == 0 {
 		tflog.Debug(ctx, "No remote assignments found")
-		state.Assignment = nil
+		tfState.Assignment = nil
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote assignment state to Terraform state")
+	tflog.Debug(ctx, "Starting to map remote assignment state to Terraform state", map[string]interface{}{
+		"assignmentCount": len(remoteAssignments),
+	})
 
+	// Initialize assignment configuration
 	assignment := &WindowsRemediationScriptAssignmentResourceModel{
 		AllDevices: types.BoolValue(false),
 		AllUsers:   types.BoolValue(false),
 	}
 
-	var includeGroups []IncludeGroupResourceModel
-	var excludeGroups []string
+	// Track include and exclude groups separately to build the sets
+	var includeGroups []attr.Value
+	var excludeGroupIds []attr.Value
 
-	// Process each remote assignment
-	for _, remoteAssignment := range remoteAssignments {
+	// Process each assignment
+	for idx, remoteAssignment := range remoteAssignments {
 		if remoteAssignment == nil || remoteAssignment.GetTarget() == nil {
+			tflog.Debug(ctx, "Skipping nil assignment or target", map[string]interface{}{
+				"index": idx,
+			})
 			continue
 		}
 
 		target := remoteAssignment.GetTarget()
+		targetType := fmt.Sprintf("%T", target)
 
-		// Process assignment based on target type
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"index":      idx,
+			"targetType": targetType,
+		})
+
+		// Handle different target types
 		switch t := target.(type) {
-		case *graphmodels.AllDevicesAssignmentTarget:
-			processAllDevicesTarget(ctx, assignment, t)
-		case *graphmodels.AllLicensedUsersAssignmentTarget:
-			processAllUsersTarget(ctx, assignment, t)
-		case *graphmodels.GroupAssignmentTarget:
-			group := processGroupIncludeTarget(ctx, remoteAssignment, t)
-			if group != nil {
-				includeGroups = append(includeGroups, *group)
+		case graphmodels.AllDevicesAssignmentTargetable:
+			tflog.Debug(ctx, "Found AllDevicesAssignmentTarget")
+			assignment.AllDevices = types.BoolValue(true)
+			assignment.AllDevicesFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
+			assignment.AllDevicesFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
+
+		case graphmodels.AllLicensedUsersAssignmentTargetable:
+			tflog.Debug(ctx, "Found AllLicensedUsersAssignmentTarget")
+			assignment.AllUsers = types.BoolValue(true)
+			assignment.AllUsersFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
+			assignment.AllUsersFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
+
+		case graphmodels.GroupAssignmentTargetable:
+			tflog.Debug(ctx, "Found GroupAssignmentTarget")
+			groupId := t.GetGroupId()
+
+			if groupId == nil || *groupId == "" {
+				tflog.Warn(ctx, "Skipping group assignment with nil or empty group ID")
+				continue
 			}
-		case *graphmodels.ExclusionGroupAssignmentTarget:
-			groupId := processGroupExcludeTarget(ctx, t)
-			if groupId != "" {
-				excludeGroups = append(excludeGroups, groupId)
+
+			// Create include group attributes map
+			attrs := map[string]attr.Value{
+				"group_id":                   state.StringPointerValue(groupId),
+				"include_groups_filter_type": state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType()),
+				"include_groups_filter_id":   state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId()),
+				"run_remediation_script":     state.BoolPointerValue(remoteAssignment.GetRunRemediationScript()),
+				"run_schedule":               mapRunScheduleToTerraform(ctx, remoteAssignment.GetRunSchedule()),
 			}
+
+			// Create the object and add it to include groups
+			includeGroupObj, diags := types.ObjectValue(getIncludeGroupAttrTypes(), attrs)
+			if diags.HasError() {
+				tflog.Error(ctx, "Failed to create include group object", map[string]interface{}{
+					"errors":  diags.Errors(),
+					"groupId": *groupId,
+				})
+				continue
+			}
+
+			includeGroups = append(includeGroups, includeGroupObj)
+			tflog.Debug(ctx, "Added include group", map[string]interface{}{
+				"groupId": *groupId,
+			})
+
+		case graphmodels.ExclusionGroupAssignmentTargetable:
+			tflog.Debug(ctx, "Found ExclusionGroupAssignmentTarget")
+			groupId := t.GetGroupId()
+
+			if groupId == nil || *groupId == "" {
+				tflog.Warn(ctx, "Skipping exclusion group with nil or empty group ID")
+				continue
+			}
+
+			excludeGroupIds = append(excludeGroupIds, state.StringPointerValue(groupId))
+			tflog.Debug(ctx, "Added exclude group", map[string]interface{}{
+				"groupId": *groupId,
+			})
+
+		default:
+			tflog.Warn(ctx, "Unknown assignment target type", map[string]interface{}{
+				"type": targetType,
+			})
 		}
 	}
 
-	// Set include groups
-	setIncludeGroups(ctx, assignment, includeGroups)
+	// Set include groups in assignment if any
+	if len(includeGroups) > 0 {
+		includeGroupsSet, diags := types.SetValue(
+			types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()},
+			includeGroups,
+		)
 
-	// Set exclude groups
-	setExcludeGroups(ctx, assignment, excludeGroups)
-
-	state.Assignment = []WindowsRemediationScriptAssignmentResourceModel{*assignment}
-
-	tflog.Debug(ctx, "Finished mapping remote assignment state to Terraform state")
-}
-
-// processAllDevicesTarget handles all devices assignment target
-func processAllDevicesTarget(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, target *graphmodels.AllDevicesAssignmentTarget) {
-	tflog.Debug(ctx, "Found all devices assignment")
-	assignment.AllDevices = types.BoolValue(true)
-
-	if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-		assignment.AllDevicesFilterId = types.StringValue(*filterId)
-	}
-	if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-		assignment.AllDevicesFilterType = types.StringValue(filterType.String())
-	}
-}
-
-// processAllUsersTarget handles all users assignment target
-func processAllUsersTarget(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, target *graphmodels.AllLicensedUsersAssignmentTarget) {
-	tflog.Debug(ctx, "Found all users assignment")
-	assignment.AllUsers = types.BoolValue(true)
-
-	if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-		assignment.AllUsersFilterId = types.StringValue(*filterId)
-	}
-	if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-		assignment.AllUsersFilterType = types.StringValue(filterType.String())
-	}
-}
-
-// processGroupIncludeTarget handles group include assignment target
-func processGroupIncludeTarget(ctx context.Context, remoteAssignment graphmodels.DeviceHealthScriptAssignmentable, target *graphmodels.GroupAssignmentTarget) *IncludeGroupResourceModel {
-	groupId := target.GetGroupId()
-	if groupId == nil {
-		return nil
-	}
-
-	tflog.Debug(ctx, "Found include group assignment", map[string]interface{}{
-		"groupId": *groupId,
-	})
-
-	includeGroup := &IncludeGroupResourceModel{
-		GroupId: types.StringValue(*groupId),
-	}
-
-	if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-		includeGroup.IncludeGroupsFilterId = types.StringValue(*filterId)
-	}
-	if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-		includeGroup.IncludeGroupsFilterType = types.StringValue(filterType.String())
-	}
-
-	// Map run remediation script
-	if runRemediation := remoteAssignment.GetRunRemediationScript(); runRemediation != nil {
-		includeGroup.RunRemediationScript = types.BoolValue(*runRemediation)
-	}
-
-	// Map run schedule
-	// if schedule := remoteAssignment.GetRunSchedule(); schedule != nil {
-	// 	runSchedule, err := mapRunScheduleToTerraform(ctx, schedule)
-	// 	if err != nil {
-	// 		tflog.Error(ctx, "Failed to map run schedule", map[string]interface{}{
-	// 			"error": err.Error(),
-	// 		})
-	// 	} else {
-	// 		includeGroup.RunSchedule = runSchedule
-	// 	}
-	// }
-
-	return includeGroup
-}
-
-// processGroupExcludeTarget handles group exclude assignment target
-func processGroupExcludeTarget(ctx context.Context, target *graphmodels.ExclusionGroupAssignmentTarget) string {
-	groupId := target.GetGroupId()
-	if groupId == nil {
-		return ""
-	}
-
-	tflog.Debug(ctx, "Found exclude group assignment", map[string]interface{}{
-		"groupId": *groupId,
-	})
-	return *groupId
-}
-
-// setIncludeGroups sets the include groups on the assignment
-func setIncludeGroups(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, includeGroups []IncludeGroupResourceModel) {
-	if len(includeGroups) == 0 {
-		assignment.IncludeGroups = types.SetNull(getIncludeGroupObjectType())
-		return
-	}
-
-	includeGroupElements := make([]attr.Value, 0, len(includeGroups))
-	includeGroupObjType := getIncludeGroupObjectType()
-
-	for _, group := range includeGroups {
-		groupObj := createIncludeGroupObject(ctx, group, includeGroupObjType)
-		if groupObj != nil {
-			includeGroupElements = append(includeGroupElements, groupObj)
-		}
-	}
-
-	if len(includeGroupElements) > 0 {
-		includeGroupsSet, diags := types.SetValue(includeGroupObjType, includeGroupElements)
 		if diags.HasError() {
 			tflog.Error(ctx, "Failed to create include groups set", map[string]interface{}{
 				"errors": diags.Errors(),
 			})
-			assignment.IncludeGroups = types.SetNull(includeGroupObjType)
+			assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
 		} else {
 			assignment.IncludeGroups = includeGroupsSet
+			tflog.Debug(ctx, "Set include groups", map[string]interface{}{
+				"count": len(includeGroups),
+			})
 		}
 	} else {
-		assignment.IncludeGroups = types.SetNull(includeGroupObjType)
+		assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
 	}
-}
 
-// setExcludeGroups sets the exclude groups on the assignment
-func setExcludeGroups(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, excludeGroups []string) {
-	if len(excludeGroups) > 0 {
-		excludeSet, diags := types.SetValueFrom(ctx, types.StringType, excludeGroups)
+	// Set exclude groups in assignment if any
+	if len(excludeGroupIds) > 0 {
+		excludeGroupsSet, diags := types.SetValue(types.StringType, excludeGroupIds)
+
 		if diags.HasError() {
 			tflog.Error(ctx, "Failed to create exclude groups set", map[string]interface{}{
 				"errors": diags.Errors(),
 			})
+			assignment.ExcludeGroupIds = types.SetNull(types.StringType)
 		} else {
-			assignment.ExcludeGroupIds = excludeSet
+			assignment.ExcludeGroupIds = excludeGroupsSet
+			tflog.Debug(ctx, "Set exclude groups", map[string]interface{}{
+				"count": len(excludeGroupIds),
+			})
 		}
 	} else {
 		assignment.ExcludeGroupIds = types.SetNull(types.StringType)
 	}
+
+	// Set the assignment in the state
+	tfState.Assignment = []WindowsRemediationScriptAssignmentResourceModel{*assignment}
+
+	tflog.Debug(ctx, "Completed mapping of remote assignment state to Terraform state", map[string]interface{}{
+		"includeGroupsCount": len(includeGroups),
+		"excludeGroupsCount": len(excludeGroupIds),
+		"allDevices":         assignment.AllDevices.ValueBool(),
+		"allUsers":           assignment.AllUsers.ValueBool(),
+	})
 }
 
-// getIncludeGroupObjectType returns the object type for include groups
-func getIncludeGroupObjectType() types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"group_id":                   types.StringType,
-			"include_groups_filter_type": types.StringType,
-			"include_groups_filter_id":   types.StringType,
-			"run_remediation_script":     types.BoolType,
-			"run_schedule": types.ListType{
-				ElemType: types.ObjectType{
-					AttrTypes: getRunScheduleObjectTypes(),
-				},
+// mapRunScheduleToTerraform maps a GraphAPI run schedule to Terraform types
+func mapRunScheduleToTerraform(ctx context.Context, schedule graphmodels.DeviceHealthScriptRunScheduleable) types.List {
+	if schedule == nil {
+		tflog.Debug(ctx, "Run schedule is nil")
+		return types.ListNull(types.ObjectType{AttrTypes: getRunScheduleAttrTypes()})
+	}
+
+	tflog.Debug(ctx, "Mapping run schedule", map[string]interface{}{
+		"scheduleType": fmt.Sprintf("%T", schedule),
+	})
+
+	scheduleAttrs := map[string]attr.Value{
+		"schedule_type": types.StringNull(),
+		"interval":      types.Int32Null(),
+		"time":          types.StringNull(),
+		"date":          types.StringNull(),
+		"use_utc":       types.BoolNull(),
+	}
+
+	// Map based on schedule type
+	switch s := schedule.(type) {
+	case *graphmodels.DeviceHealthScriptDailySchedule:
+		scheduleAttrs["schedule_type"] = types.StringValue("daily")
+		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
+		scheduleAttrs["time"] = state.TimeOnlyPtrToString(s.GetTime())
+		scheduleAttrs["use_utc"] = state.BoolPointerValue(s.GetUseUtc())
+
+	case *graphmodels.DeviceHealthScriptHourlySchedule:
+		scheduleAttrs["schedule_type"] = types.StringValue("hourly")
+		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
+
+	case *graphmodels.DeviceHealthScriptRunOnceSchedule:
+		scheduleAttrs["schedule_type"] = types.StringValue("once")
+		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
+		scheduleAttrs["time"] = state.TimeOnlyPtrToString(s.GetTime())
+		scheduleAttrs["date"] = state.DateOnlyPtrToString(s.GetDate())
+		scheduleAttrs["use_utc"] = state.BoolPointerValue(s.GetUseUtc())
+
+	default:
+		tflog.Warn(ctx, "Unknown schedule type", map[string]interface{}{
+			"type": fmt.Sprintf("%T", schedule),
+		})
+		return types.ListNull(types.ObjectType{AttrTypes: getRunScheduleAttrTypes()})
+	}
+
+	// Create schedule object
+	scheduleObj, diags := types.ObjectValue(getRunScheduleAttrTypes(), scheduleAttrs)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to create schedule object", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return types.ListNull(types.ObjectType{AttrTypes: getRunScheduleAttrTypes()})
+	}
+
+	// Create and return list with single schedule
+	scheduleList, diags := types.ListValue(
+		types.ObjectType{AttrTypes: getRunScheduleAttrTypes()},
+		[]attr.Value{scheduleObj},
+	)
+
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to create schedule list", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return types.ListNull(types.ObjectType{AttrTypes: getRunScheduleAttrTypes()})
+	}
+
+	return scheduleList
+}
+
+// getIncludeGroupAttrTypes returns the attribute types for an include group
+func getIncludeGroupAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"group_id":                   types.StringType,
+		"include_groups_filter_type": types.StringType,
+		"include_groups_filter_id":   types.StringType,
+		"run_remediation_script":     types.BoolType,
+		"run_schedule": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: getRunScheduleAttrTypes(),
 			},
 		},
 	}
 }
 
-// getRunScheduleObjectTypes returns the attribute types for run schedule
-func getRunScheduleObjectTypes() map[string]attr.Type {
+// getRunScheduleAttrTypes returns the attribute types for a run schedule
+func getRunScheduleAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"schedule_type": types.StringType,
 		"interval":      types.Int32Type,
@@ -220,24 +265,4 @@ func getRunScheduleObjectTypes() map[string]attr.Type {
 		"date":          types.StringType,
 		"use_utc":       types.BoolType,
 	}
-}
-
-// createIncludeGroupObject creates an include group object
-func createIncludeGroupObject(ctx context.Context, group IncludeGroupResourceModel, objType types.ObjectType) attr.Value {
-	attrs := map[string]attr.Value{
-		"group_id":                   group.GroupId,
-		"include_groups_filter_type": group.IncludeGroupsFilterType,
-		"include_groups_filter_id":   group.IncludeGroupsFilterId,
-		"run_remediation_script":     group.RunRemediationScript,
-		"run_schedule":               group.RunSchedule,
-	}
-
-	groupObj, diags := types.ObjectValue(objType.AttrTypes, attrs)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create include group object", map[string]interface{}{
-			"errors": diags.Errors(),
-		})
-		return nil
-	}
-	return groupObj
 }

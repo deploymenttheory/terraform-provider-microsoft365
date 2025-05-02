@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,7 +15,6 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation.
 // Create handles the Create operation.
 func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object DeviceHealthScriptResourceModel
@@ -143,6 +143,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
+	common.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
@@ -152,6 +153,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 				Expand: []string{"assignments"},
 			},
 		})
+	common.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)

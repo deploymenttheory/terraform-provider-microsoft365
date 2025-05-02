@@ -355,3 +355,11 @@ func UUIDPtrToTypeString(id *uuid.UUID) types.String {
 	}
 	return types.StringValue(id.String())
 }
+
+// TimeOnlyPtrToString converts a TimeOnly pointer to a Terraform string.
+func TimeOnlyPtrToString(time *serialization.TimeOnly) types.String {
+	if time == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(time.String())
+}

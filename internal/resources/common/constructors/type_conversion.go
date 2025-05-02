@@ -194,7 +194,7 @@ func StringToTime(value basetypes.StringValue, setter func(*time.Time)) error {
 	return nil
 }
 
-// StringToTimeOnly converts a string in HH:MM:SS[.mmmmmmm] format to a TimeOnly type for the Microsoft Graph SDK.
+// StringToTimeOnly converts a string in HH:MM format to a TimeOnly type for the Microsoft Graph SDK.
 // It handles null or unknown values by returning nil, which is appropriate for optional time fields.
 // The function accepts a basetypes.StringValue (Terraform SDK type) and returns a *serialization.TimeOnly.
 func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) error {
@@ -207,13 +207,13 @@ func StringToTimeOnly(value types.String, setter func(*serialization.TimeOnly)) 
 		return nil
 	}
 
-	// Parse the time string directly using ParseTimeOnly
-	timeOnly, err := serialization.ParseTimeOnly(timeStr)
+	timeValue, err := time.Parse("15:04:05", timeStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse time string '%s': %v", timeStr, err)
 	}
 
-	// Set the value
+	timeOnly := serialization.NewTimeOnly(timeValue)
+
 	setter(timeOnly)
 	return nil
 }

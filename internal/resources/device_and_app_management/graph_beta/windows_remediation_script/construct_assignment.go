@@ -6,13 +6,11 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
 // constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, assignments []WindowsRemediationScriptAssignmentResourceModel) (devicemanagement.DeviceHealthScriptsItemAssignPostRequestBodyable, error) {
 	if assignments == nil {
@@ -97,7 +95,6 @@ func constructAssignment(ctx context.Context, assignments []WindowsRemediationSc
 }
 
 // constructGroupIncludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for included groups
-// constructGroupIncludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for included groups
 func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
 	var assignments []graphmodels.DeviceHealthScriptAssignmentable
 
@@ -178,11 +175,10 @@ func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemedia
 			})
 		}
 
-		// Set run schedule if specified
-		if !group.RunSchedule.IsNull() && len(group.RunSchedule.Elements()) > 0 {
+		if group.RunSchedule != nil {
 			tflog.Debug(ctx, "Processing run schedule", map[string]interface{}{
-				"groupId":             group.GroupId.ValueString(),
-				"runScheduleElements": len(group.RunSchedule.Elements()),
+				"groupId":      group.GroupId.ValueString(),
+				"scheduleType": group.RunSchedule.ScheduleType.ValueString(),
 			})
 
 			schedule := constructRunSchedule(ctx, group.RunSchedule)
@@ -208,31 +204,14 @@ func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemedia
 	return assignments
 }
 
-// constructRunSchedule constructs the appropriate schedule type based on the schedule configuration
-// constructRunSchedule constructs the appropriate schedule type based on the schedule configuration
-func constructRunSchedule(ctx context.Context, scheduleList types.List) graphmodels.DeviceHealthScriptRunScheduleable {
-	tflog.Debug(ctx, "Entering constructRunSchedule", map[string]interface{}{
-		"scheduleList.IsNull":   scheduleList.IsNull(),
-		"scheduleList.Elements": len(scheduleList.Elements()),
-	})
-
-	if scheduleList.IsNull() || len(scheduleList.Elements()) == 0 {
-		tflog.Debug(ctx, "No schedule elements found, returning nil")
+// constructRunSchedule constructs the appropriate schedule type based on the schedule model
+func constructRunSchedule(ctx context.Context, schedule *RunScheduleResourceModel) graphmodels.DeviceHealthScriptRunScheduleable {
+	if schedule == nil {
+		tflog.Debug(ctx, "Schedule is nil, returning nil")
 		return nil
 	}
 
-	// Get the first schedule element from the list
-	var schedules []RunScheduleResourceModel
-	diags := scheduleList.ElementsAs(ctx, &schedules, false)
-	if diags.HasError() || len(schedules) == 0 {
-		tflog.Error(ctx, "Failed to parse run schedule elements", map[string]interface{}{
-			"error": diags.Errors(),
-		})
-		return nil
-	}
-
-	schedule := schedules[0]
-	tflog.Debug(ctx, "Parsed first schedule", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing run schedule from model", map[string]interface{}{
 		"scheduleType": schedule.ScheduleType.ValueString(),
 		"interval":     schedule.Interval.ValueInt32(),
 		"time":         schedule.Time.ValueString(),
@@ -248,11 +227,13 @@ func constructRunSchedule(ctx context.Context, scheduleList types.List) graphmod
 		constructors.StringToTimeOnly(schedule.Time, dailySchedule.SetTime)
 		constructors.SetBoolProperty(schedule.UseUtc, dailySchedule.SetUseUtc)
 		return dailySchedule
+
 	case "hourly":
 		tflog.Debug(ctx, "Creating hourly schedule")
 		hourlySchedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
 		constructors.SetInt32Property(schedule.Interval, hourlySchedule.SetInterval)
 		return hourlySchedule
+
 	case "once":
 		tflog.Debug(ctx, "Creating once schedule")
 		onceSchedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
@@ -261,6 +242,7 @@ func constructRunSchedule(ctx context.Context, scheduleList types.List) graphmod
 		constructors.StringToTimeOnly(schedule.Time, onceSchedule.SetTime)
 		constructors.SetBoolProperty(schedule.UseUtc, onceSchedule.SetUseUtc)
 		return onceSchedule
+
 	default:
 		tflog.Warn(ctx, "Unknown schedule type", map[string]interface{}{
 			"scheduleType": schedule.ScheduleType.ValueString(),

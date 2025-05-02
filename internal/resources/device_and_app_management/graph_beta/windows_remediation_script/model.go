@@ -52,11 +52,11 @@ type WindowsRemediationScriptAssignmentResourceModel struct {
 // IncludeGroupResourceModel represents a group with its corresponding filter type , filter group ID
 // and it's optional run schedule.
 type IncludeGroupResourceModel struct {
-	GroupId                 types.String `tfsdk:"group_id"`
-	IncludeGroupsFilterType types.String `tfsdk:"include_groups_filter_type"`
-	IncludeGroupsFilterId   types.String `tfsdk:"include_groups_filter_id"`
-	RunRemediationScript    types.Bool   `tfsdk:"run_remediation_script"`
-	RunSchedule             types.List   `tfsdk:"run_schedule"`
+	GroupId                 types.String              `tfsdk:"group_id"`
+	IncludeGroupsFilterType types.String              `tfsdk:"include_groups_filter_type"`
+	IncludeGroupsFilterId   types.String              `tfsdk:"include_groups_filter_id"`
+	RunRemediationScript    types.Bool                `tfsdk:"run_remediation_script"`
+	RunSchedule             *RunScheduleResourceModel `tfsdk:"run_schedule"`
 }
 
 // RunScheduleResourceModel represents different schedule types for include groups
