@@ -1,4 +1,4 @@
-package sharedStater
+package graphBetaLinuxPlatformScript
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// StateConfigurationPolicyAssignment maps the remote policy assignment state to the Terraform state
-func StateConfigurationPolicyAssignment(ctx context.Context, data *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
+// MapRemoteAssignmentStateToTerraform maps the remote policy assignment state to the Terraform state
+func MapRemoteAssignmentStateToTerraform(ctx context.Context, data *LinuxPlatformScriptResourceModel, assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
 		tflog.Debug(ctx, "Assignments response is nil")
 		return
@@ -25,71 +25,43 @@ func StateConfigurationPolicyAssignment(ctx context.Context, data *sharedmodels.
 		AllUsers:   types.BoolValue(false),
 	}
 
+	// Map All Devices assignments
 	allDeviceAssignments := GetAllDeviceAssignments(assignmentsResponse)
 	MapAllDeviceAssignments(assignments, allDeviceAssignments)
 
+	// Map All Users assignments
 	allUserAssignments := GetAllUserAssignments(assignmentsResponse)
 	MapAllUserAssignments(assignments, allUserAssignments)
 
+	// Map Include Group assignments
 	includeGroupAssignments := GetIncludeGroupAssignments(assignmentsResponse)
 	MapIncludeGroupAssignments(assignments, includeGroupAssignments)
 
+	// Map Exclude Group assignments
 	excludeGroupAssignments := GetExcludeGroupAssignments(assignmentsResponse)
 	MapExcludeGroupAssignments(assignments, excludeGroupAssignments)
 
-	//data.Assignments = assignments
+	data.Assignments = assignments
 
 	tflog.Debug(ctx, "Finished mapping assignment to Terraform state")
 }
 
 // MapAllDeviceAssignments maps the all devices assignment configuration to the assignments model
-func MapAllDeviceAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
-	if len(allDeviceAssignments) == 0 {
-		return
-	}
-
-	assignments.AllDevices = types.BoolValue(true)
-
-	if target := allDeviceAssignments[0].GetTarget(); target != nil {
-		if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
-			assignments.AllDevicesFilterId = types.StringValue(*filterId)
-		} else {
-			assignments.AllDevicesFilterId = types.StringNull()
-		}
-
-		if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil && assignments.AllDevicesFilterId.ValueString() != "" {
-			assignments.AllDevicesFilterType = state.EnumPtrToTypeString(filterType)
-		} else {
-			assignments.AllDevicesFilterType = types.StringValue("none")
-		}
+func MapAllDeviceAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allDeviceAssignments []models.DeviceManagementScriptAssignmentable) {
+	if len(allDeviceAssignments) > 0 {
+		assignments.AllDevices = types.BoolValue(true)
 	}
 }
 
 // MapAllUserAssignments maps the all users assignment configuration to the assignments model
-func MapAllUserAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allUserAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
-	if len(allUserAssignments) == 0 {
-		return
-	}
-
-	assignments.AllUsers = types.BoolValue(true)
-
-	if target := allUserAssignments[0].GetTarget(); target != nil {
-		if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
-			assignments.AllUsersFilterId = types.StringValue(*filterId)
-		} else {
-			assignments.AllUsersFilterId = types.StringNull()
-		}
-
-		if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil && assignments.AllUsersFilterId.ValueString() != "" {
-			assignments.AllUsersFilterType = state.EnumPtrToTypeString(filterType)
-		} else {
-			assignments.AllUsersFilterType = types.StringValue("none")
-		}
+func MapAllUserAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, allUserAssignments []models.DeviceManagementScriptAssignmentable) {
+	if len(allUserAssignments) > 0 {
+		assignments.AllUsers = types.BoolValue(true)
 	}
 }
 
 // MapIncludeGroupAssignments maps the include groups assignment configuration to the assignments model
-func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, includeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(includeGroupAssignments) == 0 {
 		return
 	}
@@ -123,13 +95,12 @@ func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSetting
 }
 
 // MapExcludeGroupAssignments maps the exclude groups assignment configuration to the assignments model
-func MapExcludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable) {
+func MapExcludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSettingsAssignmentResourceModel, excludeGroupAssignments []models.DeviceManagementScriptAssignmentable) {
 	if len(excludeGroupAssignments) == 0 {
-		assignments.ExcludeGroupIds = nil
 		return
 	}
 
-	excludeGroupIds := make([]types.String, 0, len(excludeGroupAssignments))
+	excludeGroupIds := make([]types.String, 0)
 	for _, assignment := range excludeGroupAssignments {
 		if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
 			if groupId := target.GetGroupId(); groupId != nil {
@@ -143,22 +114,18 @@ func MapExcludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSetting
 		return excludeGroupIds[i].ValueString() < excludeGroupIds[j].ValueString()
 	})
 
-	if len(excludeGroupIds) > 0 {
-		assignments.ExcludeGroupIds = excludeGroupIds
-	} else {
-		assignments.ExcludeGroupIds = nil
-	}
+	assignments.ExcludeGroupIds = excludeGroupIds
 }
 
 // Helpers
 
 // GetAllDeviceAssignments retrieves all device assignments from the list of assignments
-func GetAllDeviceAssignments(assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) []models.DeviceManagementConfigurationPolicyAssignmentable {
+func GetAllDeviceAssignments(assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) []models.DeviceManagementScriptAssignmentable {
 	if assignmentsResponse == nil {
 		return nil
 	}
 
-	var allDeviceAssignments []models.DeviceManagementConfigurationPolicyAssignmentable
+	var allDeviceAssignments []models.DeviceManagementScriptAssignmentable
 	assignments := assignmentsResponse.GetValue()
 
 	for _, assignment := range assignments {
@@ -173,12 +140,12 @@ func GetAllDeviceAssignments(assignmentsResponse models.DeviceManagementConfigur
 }
 
 // GetAllUserAssignments retrieves all user assignments from the list of assignments
-func GetAllUserAssignments(assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) []models.DeviceManagementConfigurationPolicyAssignmentable {
+func GetAllUserAssignments(assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) []models.DeviceManagementScriptAssignmentable {
 	if assignmentsResponse == nil {
 		return nil
 	}
 
-	var allUserAssignments []models.DeviceManagementConfigurationPolicyAssignmentable
+	var allUserAssignments []models.DeviceManagementScriptAssignmentable
 	assignments := assignmentsResponse.GetValue()
 
 	for _, assignment := range assignments {
@@ -193,12 +160,12 @@ func GetAllUserAssignments(assignmentsResponse models.DeviceManagementConfigurat
 }
 
 // GetIncludeGroupAssignments retrieves include group assignments from the list of assignments
-func GetIncludeGroupAssignments(assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) []models.DeviceManagementConfigurationPolicyAssignmentable {
+func GetIncludeGroupAssignments(assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) []models.DeviceManagementScriptAssignmentable {
 	if assignmentsResponse == nil {
 		return nil
 	}
 
-	var includeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable
+	var includeGroupAssignments []models.DeviceManagementScriptAssignmentable
 	assignments := assignmentsResponse.GetValue()
 
 	for _, assignment := range assignments {
@@ -213,12 +180,12 @@ func GetIncludeGroupAssignments(assignmentsResponse models.DeviceManagementConfi
 }
 
 // GetExcludeGroupAssignments retrieves exclude group assignments from the list of assignments
-func GetExcludeGroupAssignments(assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) []models.DeviceManagementConfigurationPolicyAssignmentable {
+func GetExcludeGroupAssignments(assignmentsResponse models.DeviceManagementScriptAssignmentCollectionResponseable) []models.DeviceManagementScriptAssignmentable {
 	if assignmentsResponse == nil {
 		return nil
 	}
 
-	var excludeGroupAssignments []models.DeviceManagementConfigurationPolicyAssignmentable
+	var excludeGroupAssignments []models.DeviceManagementScriptAssignmentable
 	assignments := assignmentsResponse.GetValue()
 
 	for _, assignment := range assignments {
