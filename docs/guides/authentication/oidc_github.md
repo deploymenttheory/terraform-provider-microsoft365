@@ -61,6 +61,7 @@ Key benefits of this approach include:
 - **Conditional access**: Fine-grained control over which workflows can obtain tokens
 - **Reduced attack surface**: Eliminates risk of leaked or compromised credentials
 
+```bash
 +-------------------+          +--------------------------------------+          +-----------------+          +--------------------+
 |                   |          |                                      |          |                 |          |                    |
 | GitHub Actions    |          | GitHub OIDC Provider                 |          | Azure AD /      |          | Microsoft Graph    |
@@ -121,6 +122,7 @@ Key benefits of this approach include:
           | Authorization: Bearer <token>        |                                        |                            |
           |───────────────────────────────────────────────────────────────────────────────────────────────────────────►|
           |                                      |                                        |                            |
+```
 
 ## Setup
 
