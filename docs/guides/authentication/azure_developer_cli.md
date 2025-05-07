@@ -13,13 +13,13 @@ The Microsoft 365 provider can leverage the Azure Developer CLI (azd) authentica
 
 - [Prerequisites](#prerequisites)
 - [How It Works](#how-it-works)
-- [Setup](#setup)
-  - [Installing Azure Developer CLI](#installing-azure-developer-cli)
-  - [Authentication Steps](#authentication-steps)
-- [Configuration](#configuration)
-  - [Using Terraform Configuration](#using-terraform-configuration)
-  - [Using Environment Variables](#using-environment-variables-recommended)
 - [Use Cases](#use-cases)
+- [Setup](#setup)
+  - [Installing the Azure Developer CLI](#installing-the-azure-developer-cli)
+  - [Authentication Steps](#authentication-steps)
+- [Terraform Configuration](#terraform-configuration)
+  - [Using Provider](#using-the-provider)
+  - [Using Environment Variables](#using-environment-variables-recommended)
 - [Integration with Development Workflows](#integration-with-development-workflows)
   - [Visual Studio Code Integration](#visual-studio-code-integration)
   - [Switching Between Authentication Methods](#switching-between-authentication-methods)
@@ -35,48 +35,46 @@ The Microsoft 365 provider can leverage the Azure Developer CLI (azd) authentica
 
 ## How It Works
 
-This authentication method leverages the existing Azure Developer CLI authentication, which stores tokens in a local credential cache. When you use this method:
+This authentication method leverages the Azure Developer CLI authentication, which stores tokens in a local credential cache. When you use this method:
 
 1. The provider checks if the Azure Developer CLI is installed and authenticated
 2. It uses the existing credential to acquire tokens for Microsoft Graph
 3. No additional app registrations or secrets are required
 
 The Azure Developer CLI authentication method simplifies development by:
+
 - Eliminating the need to create and manage separate app registrations
 - Removing the need to handle sensitive client secrets or certificates
 - Using the same authentication context as your other Azure development tools
 - Supporting automatic token renewal when tokens expire
 
+## Use Cases
+
+Azure Developer CLI authentication is ideal for:
+
+- **Local development**: Quick setup for development environments
+- **Prototyping**: Rapidly test Terraform configurations without configuration overhead
+- **Cross-service development**: Maintain consistent authentication when working with both Azure and Microsoft 365 resources
+- **Personal automation**: Scripts and tools that run in the context of your own user account
+- **Testing and troubleshooting**: Simplified authentication for debugging issues
+
+This approach is especially valuable for developers who:
+
+- Already use the Azure Developer CLI in their workflow
+- Need to quickly switch between multiple projects or tenants
+- Want to minimize credential management during development
+- Prefer to use their own user account permissions for development
+
 ## Setup
 
-### Installing Azure Developer CLI
+### Installing the Azure Developer CLI
 
 Before you can use this authentication method, you need to install the Azure Developer CLI:
 
-**For Windows:**
-```powershell
-# Using winget
-winget install Microsoft.Azd
+You can follow the installation steps based on your OS type here: [Azure Developer CLI (azd) installation guide](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
 
-# Using PowerShell
-powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
-```
+You can verify the installation with:
 
-**For macOS:**
-```bash
-# Using Homebrew
-brew install azure-developer-cli
-
-# Using curl
-curl -fsSL https://aka.ms/install-azd.sh | bash
-```
-
-**For Linux:**
-```bash
-curl -fsSL https://aka.ms/install-azd.sh | bash
-```
-
-Verify the installation:
 ```bash
 azd version
 ```
@@ -84,6 +82,7 @@ azd version
 ### Authentication Steps
 
 1. Authenticate with the Azure Developer CLI:
+
    ```bash
    # Basic authentication to your default tenant
    azd auth login
@@ -92,16 +91,11 @@ azd version
    azd auth login --tenant-id 00000000-0000-0000-0000-000000000000
    ```
 
-2. Verify authentication is successful:
-   ```bash
-   azd account show
-   ```
+2. No additional app registration setup is required for this authentication method
 
-3. No additional app registration setup is required for this authentication method
+## Terraform Configuration
 
-## Configuration
-
-### Using Terraform Configuration
+### using the provider
 
 The minimal configuration required:
 
@@ -148,33 +142,15 @@ provider "microsoft365" {
 }
 ```
 
-## Use Cases
-
-Azure Developer CLI authentication is ideal for:
-
-- **Local development**: Quick setup for development environments
-- **Prototyping**: Rapidly test Terraform configurations without configuration overhead
-- **Cross-service development**: Maintain consistent authentication when working with both Azure and Microsoft 365 resources
-- **Personal automation**: Scripts and tools that run in the context of your own user account
-- **Testing and troubleshooting**: Simplified authentication for debugging issues
-
-This approach is especially valuable for developers who:
-- Already use Azure Developer CLI in their workflow
-- Need to quickly switch between multiple projects or tenants
-- Want to minimize credential management during development
-- Prefer to use their own user account permissions for development
-
 ## Integration with Development Workflows
 
-### Visual Studio Code Integration
+### VS Code Task Configuration
 
-The Azure Developer CLI works seamlessly with Visual Studio Code:
+To streamline your Terraform workflow using Azure Developer CLI authentication in VS Code:
 
-1. Install the [Azure Developer CLI extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.azure-dev) for VS Code
-2. Use the Azure icon in the activity bar to sign in
-3. Run Terraform commands from the integrated terminal after authentication
-
-Example VS Code task configuration:
+1. Create a `.vscode` directory at the root of your vscode workspace.
+2. Create or edit a file called `tasks.json` inside this directory
+3. Add the task configuration shown below
 
 ```json
 {
@@ -187,7 +163,31 @@ Example VS Code task configuration:
       "options": {
         "env": {
           "M365_AUTH_METHOD": "azure_developer_cli",
-          "M365_TENANT_ID": "00000000-0000-0000-0000-000000000000"
+          "M365_TENANT_ID": "your-tenant-id-here"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform Plan",
+      "type": "shell",
+      "command": "terraform plan",
+      "options": {
+        "env": {
+          "M365_AUTH_METHOD": "azure_developer_cli",
+          "M365_TENANT_ID": "your-tenant-id-here"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Terraform Destroy",
+      "type": "shell",
+      "command": "terraform destroy",
+      "options": {
+        "env": {
+          "M365_AUTH_METHOD": "azure_developer_cli",
+          "M365_TENANT_ID": "your-tenant-id-here"
         }
       },
       "problemMatcher": []
@@ -195,6 +195,20 @@ Example VS Code task configuration:
   ]
 }
 ```
+
+4. Replace "your-tenant-id-here" with your actual Microsoft Entra ID tenant ID
+5. Save the file
+6. Access these tasks in VS Code by:
+
+Pressing Ctrl+Shift+P (or Cmd+Shift+P on macOS)
+Typing "Tasks: Run Task"
+Selecting one of your defined tasks
+
+
+
+You can extend this with additional customized tasks for your specific workflow needs.
+
+This configuration creates three common Terraform tasks (init+apply, plan, and destroy) that all use the Azure Developer CLI authentication method automatically, without requiring you to set those environment variables manually each time.
 
 ### Switching Between Authentication Methods
 
@@ -277,13 +291,16 @@ esac
   azd auth login --tenant-id <tenant-id>
   ```
 
-- **Permission errors**: 
-  ```
+- **Permission errors**:
+
+  ```bash
   Error: Insufficient privileges to complete the operation
   ```
+
   The authenticated user must have the necessary permissions for Microsoft Graph operations. Check your user permissions in the Microsoft Entra admin center.
 
 - **Debug mode**: Enable debug logging for more detailed information:
+
   ```terraform
   provider "microsoft365" {
     auth_method = "azure_developer_cli"
@@ -296,3 +313,11 @@ esac
   - Azure Developer CLI: `azd version`
   - Terraform: `terraform version`
   - Microsoft 365 Provider: Check your provider version constraints
+
+  ## Additional Resources
+
+- [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
+- [Azure Developer CLI VS Code extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.azure-dev)
+- [Azure Developer CLI GitHub repository](https://github.com/Azure/azure-dev)
+- [Terraform Microsoft 365 Provider examples](https://github.com/hashicorp/terraform-provider-azuread/tree/main/examples)
+- [Microsoft Learn: Authenticate to Azure using Azure CLI](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli)
