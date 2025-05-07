@@ -31,7 +31,7 @@ terraform {
 
 See the official Terraform documentation for more information about [requiring providers](https://developer.hashicorp.com/terraform/language/providers/requirements).
 
-# Authenticating to Microsoft 365
+## Authenticating to Microsoft 365
 
 This Terraform provider supports multiple authentication methods for accessing Microsoft 365 services:
 
@@ -45,6 +45,7 @@ This Terraform provider supports multiple authentication methods for accessing M
 * [Authenticating using GitHub OIDC](./guides/authentication/oidc_github.md)
 * [Authenticating using Azure DevOps OIDC](./guides/authentication/oidc_azure_devops.md)
 * [Authenticating using Azure Developer CLI](./guides/authentication/azure_developer_cli.md)
+
 ## Using Environment Variables
 
 We recommend using Environment Variables to pass the credentials to the provider.
