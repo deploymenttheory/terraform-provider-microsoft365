@@ -54,7 +54,7 @@ jobs:
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
         cd $GITHUB_WORKSPACE
-        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
+        tfplugindocs generate --provider-name terraform-provider-microsoft365 --rendered-provider-name "Microsoft 365"
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check

@@ -4,7 +4,7 @@ description: |-
   
 ---
 
-# terraform-provider-microsoft365 Provider
+# Microsoft 365 Provider
 
 The community Microsoft 365 provider allows managing environments and other resources within [Microsoft 365](https://www.microsoft.com/en-gb/microsoft-365/products-apps-services).
 
@@ -31,21 +31,20 @@ terraform {
 
 See the official Terraform documentation for more information about [requiring providers](https://developer.hashicorp.com/terraform/language/providers/requirements).
 
-## Authenticating to Microsoft 365
+# Authenticating to Microsoft 365
 
 This Terraform provider supports multiple authentication methods for accessing Microsoft 365 services:
 
-* [Authenticating using Client Secret](./guides/authentication/client_secret.md)
-* [Authenticating using Client Certificate](./guides/authentication/client_certificate.md)
-* [Authenticating using Device Code](./guides/authentication/device_code.md)
-* [Authenticating using Interactive Browser](./guides/authentication/interactive_browser.md)
-* [Authenticating using Workload Identity](./guides/authentication/workload_identity.md)
-* [Authenticating using Managed Identity](./guides/authentication/managed_identity.md)
-* [Authenticating using OIDC](./guides/authentication/oidc.md)
-* [Authenticating using GitHub OIDC](./guides/authentication/oidc_github.md)
-* [Authenticating using Azure DevOps OIDC](./guides/authentication/oidc_azure_devops.md)
-* [Authenticating using Azure Developer CLI](./guides/authentication/azure_developer_cli.md)
-
+* [Authenticating using Client Secret](./guides/authentication/client_secret.html)
+* [Authenticating using Client Certificate](./guides/authentication/client_certificate.html)
+* [Authenticating using Device Code](./guides/authentication/device_code.html)
+* [Authenticating using Interactive Browser](./guides/authentication/interactive_browser.html)
+* [Authenticating using Workload Identity](./guides/authentication/workload_identity.html)
+* [Authenticating using Managed Identity](./guides/authentication/managed_identity.html)
+* [Authenticating using OIDC](./guides/authentication/oidc.html)
+* [Authenticating using GitHub OIDC](./guides/authentication/oidc_github.html)
+* [Authenticating using Azure DevOps OIDC](./guides/authentication/oidc_azure_devops.html)
+* [Authenticating using Azure Developer CLI](./guides/authentication/azure_developer_cli.html)
 ## Using Environment Variables
 
 We recommend using Environment Variables to pass the credentials to the provider.
@@ -172,9 +171,14 @@ variable "tenant_id" {
 }
 
 variable "auth_method" {
-  description = "The authentication method to use for the Entra ID application to authenticate the provider. Options: 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'username_password'. Can also be set using the `M365_AUTH_METHOD` environment variable."
+  description = "The authentication method to use for the Entra ID application to authenticate the provider. Options: 'azure_developer_cli' (uses Azure Developer CLI identity), 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'workload_identity' (for Kubernetes pods), 'managed_identity' (for Azure resources), 'oidc' (generic OpenID Connect), 'oidc_github' (GitHub Actions-specific), 'oidc_azure_devops' (Azure DevOps-specific). Can also be set using the `M365_AUTH_METHOD` environment variable."
   type        = string
-  default     = "client_certificate"
+  default     = "client_secret"
+  
+  validation {
+    condition     = contains(["azure_developer_cli", "client_secret", "client_certificate", "interactive_browser", "device_code", "workload_identity", "managed_identity", "oidc", "oidc_github", "oidc_azure_devops"], var.auth_method)
+    error_message = "The auth_method must be one of: azure_developer_cli, client_secret, client_certificate, interactive_browser, device_code, workload_identity, managed_identity, oidc, oidc_github, oidc_azure_devops."
+  }
 }
 
 variable "telemetry_optout" {
@@ -226,13 +230,6 @@ variable "send_certificate_chain" {
 variable "username" {
   description = "The username for username/password authentication. Can also be set using the `M365_USERNAME` environment variable."
   type        = string
-  default     = ""
-}
-
-variable "password" {
-  description = "The password for username/password authentication. Can also be set using the `M365_PASSWORD` environment variable."
-  type        = string
-  sensitive   = true
   default     = ""
 }
 
