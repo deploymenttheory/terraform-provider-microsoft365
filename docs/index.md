@@ -31,20 +31,21 @@ terraform {
 
 See the official Terraform documentation for more information about [requiring providers](https://developer.hashicorp.com/terraform/language/providers/requirements).
 
-# Authenticating to Microsoft 365
+## Authenticating to Microsoft 365
 
 This Terraform provider supports multiple authentication methods for accessing Microsoft 365 services:
 
-* [Authenticating using Client Secret](./guides/authentication/client_secret.html)
-* [Authenticating using Client Certificate](./guides/authentication/client_certificate.html)
-* [Authenticating using Device Code](./guides/authentication/device_code.html)
-* [Authenticating using Interactive Browser](./guides/authentication/interactive_browser.html)
-* [Authenticating using Workload Identity](./guides/authentication/workload_identity.html)
-* [Authenticating using Managed Identity](./guides/authentication/managed_identity.html)
-* [Authenticating using OIDC](./guides/authentication/oidc.html)
-* [Authenticating using GitHub OIDC](./guides/authentication/oidc_github.html)
-* [Authenticating using Azure DevOps OIDC](./guides/authentication/oidc_azure_devops.html)
-* [Authenticating using Azure Developer CLI](./guides/authentication/azure_developer_cli.html)
+* [Authenticating using Client Secret](guides/authentication/client_secret.md)
+* [Authenticating using Client Certificate](guides/authentication/client_certificate.md)
+* [Authenticating using Device Code](guides/authentication/device_code.md)
+* [Authenticating using Interactive Browser](guides/authentication/interactive_browser.md)
+* [Authenticating using Workload Identity](guides/authentication/workload_identity.md)
+* [Authenticating using Managed Identity](guides/authentication/managed_identity.md)
+* [Authenticating using OIDC](guides/authentication/oidc.md)
+* [Authenticating using GitHub OIDC](guides/authentication/oidc_github.md)
+* [Authenticating using Azure DevOps OIDC](guides/authentication/oidc_azure_devops.md)
+* [Authenticating using Azure Developer CLI](guides/authentication/azure_developer_cli.md)
+
 ## Using Environment Variables
 
 We recommend using Environment Variables to pass the credentials to the provider.

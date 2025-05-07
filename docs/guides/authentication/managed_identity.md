@@ -276,9 +276,9 @@ You can also use Vault Agent to inject these values as environment variables:
 template {
   destination = "/path/to/env-file"
   contents = <<EOT
-  export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_TENANT_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.tenant_id}}{{end}}
   export M365_AUTH_METHOD="managed_identity"
-  export M365_MANAGED_IDENTITY_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.managed_identity_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_MANAGED_IDENTITY_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.managed_identity_id}}{{end}}
   EOT
 }
 

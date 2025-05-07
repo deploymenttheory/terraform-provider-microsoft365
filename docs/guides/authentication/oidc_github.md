@@ -444,10 +444,10 @@ When troubleshooting, systematically verify each component:
      ```bash
      # In your workflow
      env:
-       M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
-       M365_AUTH_METHOD: "oidc_github"
-       M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
-       M365_OIDC_AUDIENCE: "api://AzureADTokenExchange"
+      M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
+      M365_AUTH_METHOD: "oidc_github"
+      M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
+      M365_OIDC_AUDIENCE: "api://AzureADTokenExchange"
      ```
 
    - Verify the auth_method is set to "oidc_github"

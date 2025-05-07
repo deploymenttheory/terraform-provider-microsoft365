@@ -597,10 +597,10 @@ For more advanced scenarios, you can use Vault Agent to automatically retrieve a
 template {
   destination = "/path/to/terraform_creds.env"
   contents = <<EOT
-  export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_TENANT_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.tenant_id}}{{end}}
   export M365_AUTH_METHOD="client_certificate"
-  export M365_CLIENT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.client_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-  export M365_CLIENT_CERTIFICATE_PASSWORD={{ "{{" }}with secret "secret/microsoft365/certificate"{{ "}}" }}{{ "{{" }}.Data.data.password{{ "}}" }}{{ "{{" }}end{{ "}}" }}
+  export M365_CLIENT_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.client_id}}{{end}}
+  export M365_CLIENT_CERTIFICATE_PASSWORD={{with secret "secret/microsoft365/certificate"}}{{.Data.data.password}}{{end}}
   EOT
 }
 ```
@@ -610,7 +610,7 @@ template {
 ```hcl
 template {
   destination = "/path/to/terraform_cert.pfx"
-  contents = "{{ "{{" }}with secret \"secret/microsoft365/certificate\"{{ "}}" }}{{ "{{" }}.Data.data.certificate | base64Decode{{ "}}" }}{{ "{{" }}end{{ "}}" }}"
+  contents = "{{with secret \"secret/microsoft365/certificate\"}}{{.Data.data.certificate | base64Decode}}{{end}}"
   perms = 0600
 }
 ```

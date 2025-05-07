@@ -386,11 +386,11 @@ spec:
         vault.hashicorp.com/agent-inject-secret-m365-config: "secret/data/microsoft365/config"
         # Escape the inner delimiters for the outer Go template engine
         vault.hashicorp.com/agent-inject-template-m365-config: |
-          {{ `{{- with secret "secret/data/microsoft365/config" -}}` }}
-          export M365_TENANT_ID="{{ `{{ .Data.data.tenant_id }}` }}"
-          export M365_CLIENT_ID="{{ `{{ .Data.data.client_id }}` }}"
+          {{- with secret "secret/data/microsoft365/config" -}}
+          export M365_TENANT_ID="{{ .Data.data.tenant_id }}"
+          export M365_CLIENT_ID="{{ .Data.data.client_id }}"
           export M365_AUTH_METHOD="workload_identity"
-          {{ `{{- end -}}` }}
+          {{- end -}}
         vault.hashicorp.com/role: "terraform-role"
     spec:
       serviceAccountName: terraform-m365-sa
