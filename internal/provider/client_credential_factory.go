@@ -328,9 +328,16 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderMo
 		options)
 }
 
-// GitHubOIDCStrategy implements the credential strategy for GitHub Actions OIDC authentication
+// GitHubOIDCStrategy implements the credential strategy for GitHub Actions OIDC authentication.
+// It relies on two environment variables injected by GitHub Actions when `permissions: id-token: write` is set:
+//   - ACTIONS_ID_TOKEN_REQUEST_URL: the endpoint to request the short-lived OIDC JWT.
+//   - ACTIONS_ID_TOKEN_REQUEST_TOKEN: the bearer token used to authenticate the request for the OIDC JWT.
+//
+// These are provided automatically by the runner and are required to fetch an OIDC assertion without storing long-lived credentials.
 type GitHubOIDCStrategy struct{}
 
+// GetCredential obtains an Azure TokenCredential by exchanging the GitHub Actions OIDC token for an Azure access token.
+// It reads the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN env vars (injected by GitHub) to fetch
 func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *M365ProviderModel, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	var entraIDOptions EntraIDOptionsModel
 	config.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
@@ -340,7 +347,6 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *M365Prov
 		"client_id": entraIDOptions.ClientID.ValueString(),
 	})
 
-	// Check if GitHub Actions environment variables are set
 	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
 	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 
@@ -366,7 +372,6 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *M365Prov
 	}
 
 	getAssertion := func(ctx context.Context) (string, error) {
-		// GitHub Actions provides an endpoint to request the JWT token
 		req, err := http.NewRequestWithContext(ctx, "GET", requestURL, nil)
 		if err != nil {
 			return "", fmt.Errorf("failed to create request for GitHub OIDC token: %w", err)

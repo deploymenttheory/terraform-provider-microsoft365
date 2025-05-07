@@ -27,6 +27,7 @@ This process enables a modern, secure authentication flow without the need to ma
 - An OIDC token provider capable of generating valid JWTs with the required claims
 - Permissions to create and configure app registrations in Microsoft Entra ID
 - Ability to configure federated identity credentials
+- Terraform provider deploymenttheory/microsoft365 version >= v0.11.0-alpha
 
 ## Common Use Cases
 
@@ -49,7 +50,7 @@ You can configure the required infrastructure using either the Azure CLI or Terr
 ```bash
 # Set variables
 TENANT_ID="00000000-0000-0000-0000-000000000000"
-APP_NAME="terraform-m365-provider"
+APP_NAME="terraform-provider-microsoft365"
 
 # Create the app registration
 APP_ID=$(az ad app create --display-name $APP_NAME --query appId -o tsv)
@@ -80,6 +81,7 @@ az ad app federated-credential create \
 ```
 
 The key parameters to configure are:
+
 - `issuer`: The OIDC issuer URL of your identity provider
 - `subject`: The subject identity you want to trust (varies by provider)
 - `audiences`: The intended audience of the token (usually "api://AzureADTokenExchange")
@@ -207,6 +209,7 @@ For a custom identity server, ensure it supports:
 3. Proper key rotation and token validation
 
 The token must include these claims:
+
 - `iss` (issuer): Must match the issuer configured in the federated credential
 - `sub` (subject): Must match the subject configured in the federated credential
 - `aud` (audience): Typically "api://AzureADTokenExchange"
