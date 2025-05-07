@@ -18,7 +18,7 @@ The Microsoft 365 provider can use a Service Principal with Client Secret to aut
   - [Setup Using PowerShell](#setup-using-powershell)
 - [Configuration](#configuration)
   - [Using Terraform Configuration](#using-terraform-configuration)
-  - [Using Environment Variables](#using-environment-variables-recommended)
+  - [Using Environment Variables](#using-environment-variables)
 - [Integration with HashiCorp Vault](#integration-with-hashicorp-vault)
   - [Storing Credentials in Vault](#storing-credentials-in-vault)
   - [Retrieving Credentials During Terraform Runs](#retrieving-credentials-during-terraform-runs)
@@ -30,6 +30,42 @@ The Microsoft 365 provider can use a Service Principal with Client Secret to aut
 
 - A Microsoft Entra ID tenant
 - Permissions to create an app registration in your tenant
+
+## How Client Secret Authentication Works
+
+1. The provider loads authentication configuration from either Terraform configuration or environment variables (M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET).
+2. The provider constructs an OAuth 2.0 token request to Microsoft Entra ID's token endpoint:
+
+```bash
+POST https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={client-id}&client_secret={client-secret}&scope=https://graph.microsoft.com/.default&grant_type=client_credentials
+```
+
+3. Microsoft Entra ID validates the client credentials by checking that the client ID exists, the client secret is correct and not expired, and that the app has been granted the requested permissions.
+4. If validation succeeds, Entra ID issues an access token in JWT format with claims about the client, tenant, and authorized scopes:
+
+```bash
+json{
+  "token_type": "Bearer",
+  "expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imk..."
+}
+```
+
+5. The provider stores the token and its expiration time in memory, handling automatic refreshing when the token approaches expiration.
+6. For each API request to Microsoft Graph, the provider includes the access token in the Authorization header:
+
+```bash
+GET https://graph.microsoft.com/v1.0/deviceManagement/deviceConfigurations
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imk...
+```
+
+7. Microsoft Graph validates the token, checking its signature, expiration time, audience claim, and permissions.
+8. If the token is valid and contains the necessary permissions, Microsoft Graph processes the request and returns the response.
+9. The provider processes the response data to manage Terraform resources, handling pagination and error conditions.
+10. This process repeats for each API request, with the provider automatically refreshing the token when needed, providing a persistent authenticated session for the duration of Terraform operations.
 
 ## Setup
 
@@ -373,12 +409,12 @@ For more advanced scenarios, you can use Vault Agent to automatically retrieve a
 ```hcl
 template {
   destination = "/path/to/terraform.env"
-  contents = <<EOT
-  export M365_TENANT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.tenant_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-  export M365_AUTH_METHOD="client_secret"
-  export M365_CLIENT_ID={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.client_id{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-  export M365_CLIENT_SECRET={{ "{{" }}with secret "secret/microsoft365/credentials"{{ "}}" }}{{ "{{" }}.Data.data.client_secret{{ "}}" }}{{ "{{" }}end{{ "}}" }}
-  EOT
+  contents    = <<EOT
+export M365_TENANT_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.tenant_id}}{{end}}
+export M365_AUTH_METHOD="client_secret"
+export M365_CLIENT_ID={{with secret "secret/microsoft365/credentials"}}{{.Data.data.client_id}}{{end}}
+export M365_CLIENT_SECRET={{with secret "secret/microsoft365/credentials"}}{{.Data.data.client_secret}}{{end}}
+EOT
 }
 ```
 
