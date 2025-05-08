@@ -31,20 +31,24 @@ terraform {
 
 See the official Terraform documentation for more information about [requiring providers](https://developer.hashicorp.com/terraform/language/providers/requirements).
 
-# Authenticating to Microsoft 365
+## Authenticating to Microsoft 365
 
-This Terraform provider supports multiple authentication methods for accessing Microsoft 365 services:
+This Terraform provider supports multiple authentication methods for accessing Microsoft 365 services. Each authentication method has specific use cases, 
+benefits, and limitations. Please review the appropriate guide in the authentication section to determine which method best suits your deployment scenario.
 
-* [Authenticating using Client Secret](./guides/authentication/client_secret.html)
-* [Authenticating using Client Certificate](./guides/authentication/client_certificate.html)
-* [Authenticating using Device Code](./guides/authentication/device_code.html)
-* [Authenticating using Interactive Browser](./guides/authentication/interactive_browser.html)
-* [Authenticating using Workload Identity](./guides/authentication/workload_identity.html)
-* [Authenticating using Managed Identity](./guides/authentication/managed_identity.html)
-* [Authenticating using OIDC](./guides/authentication/oidc.html)
-* [Authenticating using GitHub OIDC](./guides/authentication/oidc_github.html)
-* [Authenticating using Azure DevOps OIDC](./guides/authentication/oidc_azure_devops.html)
-* [Authenticating using Azure Developer CLI](./guides/authentication/azure_developer_cli.html)
+Supported authentication methods include:
+
+- Client Secret authentication
+- Client Certificate authentication 
+- Device Code authentication
+- Interactive Browser authentication
+- Workload Identity authentication
+- Managed Identity authentication
+- OIDC (generic) authentication
+- GitHub OIDC authentication
+- Azure DevOps OIDC authentication
+- Azure Developer CLI authentication
+
 ## Using Environment Variables
 
 We recommend using Environment Variables to pass the credentials to the provider.
@@ -174,7 +178,7 @@ variable "auth_method" {
   description = "The authentication method to use for the Entra ID application to authenticate the provider. Options: 'azure_developer_cli' (uses Azure Developer CLI identity), 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'workload_identity' (for Kubernetes pods), 'managed_identity' (for Azure resources), 'oidc' (generic OpenID Connect), 'oidc_github' (GitHub Actions-specific), 'oidc_azure_devops' (Azure DevOps-specific). Can also be set using the `M365_AUTH_METHOD` environment variable."
   type        = string
   default     = "client_secret"
-  
+
   validation {
     condition     = contains(["azure_developer_cli", "client_secret", "client_certificate", "interactive_browser", "device_code", "workload_identity", "managed_identity", "oidc", "oidc_github", "oidc_azure_devops"], var.auth_method)
     error_message = "The auth_method must be one of: azure_developer_cli, client_secret, client_certificate, interactive_browser, device_code, workload_identity, managed_identity, oidc, oidc_github, oidc_azure_devops."
