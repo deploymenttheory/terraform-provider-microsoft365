@@ -1,0 +1,17 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "M365 Admin"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph/microsoft365_graph_m365_admin_m365_apps_installation_options/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+

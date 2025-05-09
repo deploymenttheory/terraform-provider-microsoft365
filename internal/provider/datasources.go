@@ -17,6 +17,10 @@ import (
 	graphBetaDeviceManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_quality_update_policy"
 	graphBetaDeviceManagementWindowsUpdateCatalogItem "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_update_catalog_item"
 
+	// Graph Beta - M365 Admin datasources
+	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/m365_admin/graph_beta/browser_site"
+	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/m365_admin/graph_beta/browser_site_list"
+
 	// Graph v1.0 - Intune datasources
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
@@ -35,7 +39,7 @@ import (
 //	[]func() datasource.DataSource: A slice of functions, each returning a datasource.DataSource.
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Graph Beta - Intune datasources
+		// Graph Beta - Intune Device Management datasources
 		graphBetaDeviceManagementApplicationCategory.NewApplicationCategoryDataSource,
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
@@ -49,7 +53,10 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdateProfileDataSource,
 		graphBetaDeviceManagementWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
-		// Graph v1.0 - Intune datasources
+		// Graph Beta - M365 Admin datasources
+		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
+		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
+		// Graph v1.0 - Intune Device and App Management datasources
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 
 		// Add microsoft 365 provider datasources here

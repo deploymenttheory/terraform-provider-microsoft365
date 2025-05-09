@@ -1,0 +1,19 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The Microsoft 365 Intune browser site data source provides information about browser sites configured in Internet Explorer Mode site lists. 
+Browser sites define URLs that should open in Internet Explorer compatibility mode within Microsoft Edge. 
+This data source allows filtering by all sites, a specific ID, or by web URL pattern.
+
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_m365_admin_browser_site_list/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

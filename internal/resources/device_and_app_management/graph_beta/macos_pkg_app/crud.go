@@ -77,7 +77,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Step 3: Construct the base resource from the Terraform model
-	createdResource, err := constructResource(ctx, &object, installerSourcePath)
+	requestBody, err := constructResource(ctx, &object, installerSourcePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -90,11 +90,13 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(ctx, createdResource, nil)
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
+
 	object.ID = types.StringValue(*baseResource.GetId())
 	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
 

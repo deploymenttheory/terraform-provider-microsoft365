@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -44,10 +44,12 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -67,12 +69,14 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			err := r.client.
 				DeviceManagement().
 				DeviceHealthScripts().
 				ByDeviceHealthScriptId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -143,7 +147,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	common.GraphSDKMutex.Lock()
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
@@ -153,7 +157,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 				Expand: []string{"assignments"},
 			},
 		})
-	common.GraphSDKMutex.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -215,11 +219,13 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
 		ByDeviceHealthScriptId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -236,12 +242,14 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceHealthScripts().
 			ByDeviceHealthScriptId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
@@ -299,11 +307,13 @@ func (r *DeviceHealthScriptResource) Delete(ctx context.Context, req resource.De
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
 		ByDeviceHealthScriptId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
