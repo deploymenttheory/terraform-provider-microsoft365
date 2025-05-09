@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_device_category Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_device_category Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Device Categories from Microsoft Intune with explicit filtering options.
@@ -32,9 +32,9 @@ data "microsoft365_graph_beta_device_management_device_category" "by_name" {
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_device_category" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -51,10 +51,10 @@ output "all_categories_names" {
 
 output "all_categories_details" {
   description = "Detailed information for all categories"
-  value       = [for cat in data.microsoft365_graph_beta_device_management_device_category.all_categories.items : {
-    id          = cat.id
+  value = [for cat in data.microsoft365_graph_beta_device_management_device_category.all_categories.items : {
+    id           = cat.id
     display_name = cat.display_name
-    description = cat.description
+    description  = cat.description
   }]
 }
 
@@ -72,12 +72,12 @@ output "specific_category_name" {
 # Using consistent types in conditional
 output "specific_category_details" {
   description = "Complete details of the category with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_device_category.specific_category.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_device_category.specific_category.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -93,7 +93,7 @@ output "name_filtered_categories_count" {
 
 output "name_filtered_categories" {
   description = "List of categories matching the display name filter"
-  value       = [for cat in data.microsoft365_graph_beta_device_management_device_category.by_name.items : {
+  value = [for cat in data.microsoft365_graph_beta_device_management_device_category.by_name.items : {
     id           = cat.id
     display_name = cat.display_name
     description  = cat.description
@@ -103,12 +103,12 @@ output "name_filtered_categories" {
 # Using consistent types in conditional
 output "name_filtered_first_category" {
   description = "Details of the first category matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_device_category.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_device_category.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -121,20 +121,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_device_category.specific_category.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].id
-      name = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_device_category.specific_category.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_device_category.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_device_category.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_device_category.all_categories.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_device_category.all_categories.items[0].id
-      name = data.microsoft365_graph_beta_device_management_device_category.all_categories.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_device_category.all_categories.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_device_category.all_categories.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_device_category.all_categories.items[0].description
     } : {}
   }

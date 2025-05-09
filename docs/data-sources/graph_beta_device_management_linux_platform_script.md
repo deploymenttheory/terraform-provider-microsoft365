@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_linux_platform_script Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_linux_platform_script Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Linux Platform Scripts from Microsoft Intune with explicit filtering options.
@@ -32,9 +32,9 @@ data "microsoft365_graph_beta_device_management_linux_platform_script" "by_name"
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_linux_platform_script" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -51,10 +51,10 @@ output "all_scripts_names" {
 
 output "all_scripts_details" {
   description = "Detailed information for all scripts"
-  value       = [for script in data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items : {
-    id          = script.id
+  value = [for script in data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items : {
+    id           = script.id
     display_name = script.display_name
-    description = script.description
+    description  = script.description
   }]
 }
 
@@ -72,12 +72,12 @@ output "specific_script_name" {
 # Using consistent types in conditional
 output "specific_script_details" {
   description = "Complete details of the script with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -93,7 +93,7 @@ output "name_filtered_scripts_count" {
 
 output "name_filtered_scripts" {
   description = "List of scripts matching the display name filter"
-  value       = [for script in data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items : {
+  value = [for script in data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items : {
     id           = script.id
     display_name = script.display_name
     description  = script.description
@@ -103,12 +103,12 @@ output "name_filtered_scripts" {
 # Using consistent types in conditional
 output "name_filtered_first_script" {
   description = "Details of the first script matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -121,20 +121,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].id
-      name = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_linux_platform_script.specific_script.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_linux_platform_script.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items[0].id
-      name = data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_linux_platform_script.all_scripts.items[0].description
     } : {}
   }

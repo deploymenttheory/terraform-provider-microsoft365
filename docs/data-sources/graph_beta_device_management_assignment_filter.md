@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_assignment_filter Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_assignment_filter Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Assignment Filters from Microsoft Intune with explicit filtering options.
@@ -32,9 +32,9 @@ data "microsoft365_graph_beta_device_and_app_management_assignment_filter" "by_n
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_and_app_management_assignment_filter" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -51,10 +51,10 @@ output "all_filters_names" {
 
 output "all_filters_details" {
   description = "Detailed information for all filters"
-  value       = [for filter in data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items : {
-    id          = filter.id
+  value = [for filter in data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items : {
+    id           = filter.id
     display_name = filter.display_name
-    description = filter.description
+    description  = filter.description
   }]
 }
 
@@ -72,12 +72,12 @@ output "specific_filter_name" {
 # Using consistent types in conditional
 output "specific_filter_details" {
   description = "Complete details of the filter with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].id
     display_name = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].display_name
     description  = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -93,7 +93,7 @@ output "name_filtered_filters_count" {
 
 output "name_filtered_filters" {
   description = "List of filters matching the display name filter"
-  value       = [for filter in data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items : {
+  value = [for filter in data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items : {
     id           = filter.id
     display_name = filter.display_name
     description  = filter.description
@@ -103,12 +103,12 @@ output "name_filtered_filters" {
 # Using consistent types in conditional
 output "name_filtered_first_filter" {
   description = "Details of the first filter matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -121,20 +121,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].id
-      name = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].id
+      name        = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].display_name
       description = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.specific_filter.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].id
-      name = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].id
+      name        = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].display_name
       description = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].description
     } : {}
   }
@@ -143,10 +143,10 @@ output "comparison_summary" {
 # Using assignment filter data in another resource
 resource "microsoft365_some_other_resource" "example" {
   count = length(data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items) > 0 ? 1 : 0
-  
-  name = "Resource using ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].display_name}"
+
+  name      = "Resource using ${data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].display_name}"
   filter_id = data.microsoft365_graph_beta_device_and_app_management_assignment_filter.all_filters.items[0].id
-  
+
   # Other resource configuration...
 }
 ```

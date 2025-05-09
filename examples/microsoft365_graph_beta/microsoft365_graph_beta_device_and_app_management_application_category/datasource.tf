@@ -18,9 +18,9 @@ data "microsoft365_graph_beta_device_and_app_management_application_category" "b
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_and_app_management_application_category" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -37,10 +37,10 @@ output "all_categories_names" {
 
 output "all_categories_details" {
   description = "Detailed information for all categories"
-  value       = [for cat in data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items : {
-    id                   = cat.id
-    display_name         = cat.display_name
-    last_modified        = cat.last_modified_date_time
+  value = [for cat in data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items : {
+    id            = cat.id
+    display_name  = cat.display_name
+    last_modified = cat.last_modified_date_time
   }]
 }
 
@@ -58,16 +58,16 @@ output "specific_category_name" {
 # Use consistent types in conditional
 output "specific_category_details" {
   description = "Complete details of the category with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items) > 0 ? {
-    id                   = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].id
-    display_name         = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].display_name
-    last_modified        = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].last_modified_date_time
-    found                = true
-  } : {
-    id                   = ""
-    display_name         = ""
-    last_modified        = ""
-    found                = false
+  value = length(data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items) > 0 ? {
+    id            = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].id
+    display_name  = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].display_name
+    last_modified = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].last_modified_date_time
+    found         = true
+    } : {
+    id            = ""
+    display_name  = ""
+    last_modified = ""
+    found         = false
   }
 }
 
@@ -79,26 +79,26 @@ output "name_filtered_categories_count" {
 
 output "name_filtered_categories" {
   description = "List of categories matching the display name filter"
-  value       = [for cat in data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items : {
-    id                   = cat.id
-    display_name         = cat.display_name
-    last_modified        = cat.last_modified_date_time
+  value = [for cat in data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items : {
+    id            = cat.id
+    display_name  = cat.display_name
+    last_modified = cat.last_modified_date_time
   }]
 }
 
 # Use consistent types in conditional
 output "name_filtered_first_category" {
   description = "Details of the first category matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items) > 0 ? {
-    id                   = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].id
-    display_name         = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].display_name
-    last_modified        = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].last_modified_date_time
-    found                = true
-  } : {
-    id                   = ""
-    display_name         = ""
-    last_modified        = ""
-    found                = false
+  value = length(data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items) > 0 ? {
+    id            = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].id
+    display_name  = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].display_name
+    last_modified = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].last_modified_date_time
+    found         = true
+    } : {
+    id            = ""
+    display_name  = ""
+    last_modified = ""
+    found         = false
   }
 }
 
@@ -123,17 +123,17 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].id
+      id   = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].id
       name = data.microsoft365_graph_beta_device_and_app_management_application_category.specific_category.items[0].display_name
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].id
+      id   = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].id
       name = data.microsoft365_graph_beta_device_and_app_management_application_category.by_name.items[0].display_name
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items[0].id
+      id   = data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items[0].id
       name = data.microsoft365_graph_beta_device_and_app_management_application_category.all_categories.items[0].display_name
     } : {}
   }

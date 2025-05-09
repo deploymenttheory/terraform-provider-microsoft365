@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_role_scope_tag Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_role_scope_tag Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Role Scope Tags from Microsoft Intune with explicit filtering options.
@@ -32,9 +32,9 @@ data "microsoft365_graph_beta_device_management_role_scope_tag" "by_name" {
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_role_scope_tag" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -51,10 +51,10 @@ output "all_tags_names" {
 
 output "all_tags_details" {
   description = "Detailed information for all tags"
-  value       = [for tag in data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items : {
-    id          = tag.id
+  value = [for tag in data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items : {
+    id           = tag.id
     display_name = tag.display_name
-    description = tag.description
+    description  = tag.description
   }]
 }
 
@@ -72,12 +72,12 @@ output "specific_tag_name" {
 # Using consistent types in conditional
 output "specific_tag_details" {
   description = "Complete details of the tag with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -93,7 +93,7 @@ output "name_filtered_tags_count" {
 
 output "name_filtered_tags" {
   description = "List of tags matching the display name filter"
-  value       = [for tag in data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items : {
+  value = [for tag in data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items : {
     id           = tag.id
     display_name = tag.display_name
     description  = tag.description
@@ -103,12 +103,12 @@ output "name_filtered_tags" {
 # Using consistent types in conditional
 output "name_filtered_first_tag" {
   description = "Details of the first tag matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -121,20 +121,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].id
-      name = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_role_scope_tag.specific_tag.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_role_scope_tag.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items[0].id
-      name = data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_role_scope_tag.all_tags.items[0].description
     } : {}
   }

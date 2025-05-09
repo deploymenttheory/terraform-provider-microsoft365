@@ -18,9 +18,9 @@ data "microsoft365_graph_beta_device_management_windows_quality_update_expedite_
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -37,7 +37,7 @@ output "all_expedite_policies_names" {
 
 output "all_expedite_policies_details" {
   description = "Detailed information for all expedite policies"
-  value       = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items : {
+  value = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items : {
     id           = policy.id
     display_name = policy.display_name
     description  = policy.description
@@ -58,12 +58,12 @@ output "specific_expedite_policy_name" {
 # Using consistent types in conditional
 output "specific_expedite_policy_details" {
   description = "Complete details of the expedite policy with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -79,7 +79,7 @@ output "name_filtered_expedite_policies_count" {
 
 output "name_filtered_expedite_policies" {
   description = "List of expedite policies matching the display name filter"
-  value       = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items : {
+  value = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items : {
     id           = policy.id
     display_name = policy.display_name
     description  = policy.description
@@ -89,12 +89,12 @@ output "name_filtered_expedite_policies" {
 # Using consistent types in conditional
 output "name_filtered_first_expedite_policy" {
   description = "Details of the first expedite policy matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -107,20 +107,20 @@ output "expedite_policy_comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.specific_policy.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].description
     } : {}
   }
@@ -129,10 +129,10 @@ output "expedite_policy_comparison_summary" {
 # Example of using the data in another resource
 resource "microsoft365_some_other_resource" "example" {
   count = length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items) > 0 ? 1 : 0
-  
-  name = "Resource referencing ${data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].display_name}"
+
+  name               = "Resource referencing ${data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].display_name}"
   expedite_policy_id = data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items[0].id
-  
+
   # Other resource configuration...
 }
 
@@ -142,10 +142,10 @@ resource "microsoft365_some_policy_association" "associations" {
     for idx, policy in data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items : policy.id => policy
     if length(data.microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.all_policies.items) > 0
   }
-  
-  policy_id = each.key
+
+  policy_id   = each.key
   policy_name = each.value.display_name
-  enabled = true
-  
+  enabled     = true
+
   # Other association configuration...
 }

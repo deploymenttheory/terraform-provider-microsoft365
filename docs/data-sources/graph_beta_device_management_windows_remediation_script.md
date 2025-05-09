@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_remediation_script Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_remediation_script Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Windows Remediation Scripts from Microsoft Intune with explicit filtering options. Windows Remediation Scripts are PowerShell scripts that can be deployed to devices to help remediate issues.
@@ -33,9 +33,9 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "by_
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_windows_remediation_script" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -52,7 +52,7 @@ output "all_remediation_scripts_names" {
 
 output "all_remediation_scripts_details" {
   description = "Detailed information for all remediation scripts"
-  value       = [for script in data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items : {
+  value = [for script in data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items : {
     id           = script.id
     display_name = script.display_name
     description  = script.description
@@ -73,12 +73,12 @@ output "specific_remediation_script_name" {
 # Using consistent types in conditional
 output "specific_remediation_script_details" {
   description = "Complete details of the script with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -94,7 +94,7 @@ output "name_filtered_remediation_scripts_count" {
 
 output "name_filtered_remediation_scripts" {
   description = "List of scripts matching the display name filter"
-  value       = [for script in data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items : {
+  value = [for script in data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items : {
     id           = script.id
     display_name = script.display_name
     description  = script.description
@@ -104,12 +104,12 @@ output "name_filtered_remediation_scripts" {
 # Using consistent types in conditional
 output "name_filtered_first_remediation_script" {
   description = "Details of the first script matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -122,20 +122,20 @@ output "remediation_script_comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_remediation_script.specific_script.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_remediation_script.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].description
     } : {}
   }
@@ -144,10 +144,10 @@ output "remediation_script_comparison_summary" {
 # Example of using the data in another resource
 resource "microsoft365_some_resource" "example" {
   count = length(data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items) > 0 ? 1 : 0
-  
-  name = "Resource referencing ${data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].display_name}"
+
+  name      = "Resource referencing ${data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].display_name}"
   script_id = data.microsoft365_graph_beta_device_management_windows_remediation_script.all_scripts.items[0].id
-  
+
   # Other resource configuration...
 }
 ```

@@ -18,9 +18,9 @@ data "microsoft365_graph_beta_device_management_windows_feature_update_profile" 
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_windows_feature_update_profile" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -37,7 +37,7 @@ output "all_profiles_names" {
 
 output "all_profiles_details" {
   description = "Detailed information for all profiles"
-  value       = [for profile in data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items : {
+  value = [for profile in data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items : {
     id           = profile.id
     display_name = profile.display_name
     description  = profile.description
@@ -58,12 +58,12 @@ output "specific_profile_name" {
 # Using consistent types in conditional
 output "specific_profile_details" {
   description = "Complete details of the profile with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -79,7 +79,7 @@ output "name_filtered_profiles_count" {
 
 output "name_filtered_profiles" {
   description = "List of profiles matching the display name filter"
-  value       = [for profile in data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items : {
+  value = [for profile in data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items : {
     id           = profile.id
     display_name = profile.display_name
     description  = profile.description
@@ -89,12 +89,12 @@ output "name_filtered_profiles" {
 # Using consistent types in conditional
 output "name_filtered_first_profile" {
   description = "Details of the first profile matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -107,20 +107,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.specific_profile.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.all_profiles.items[0].description
     } : {}
   }
@@ -129,9 +129,9 @@ output "comparison_summary" {
 # Using the data in a configuration
 resource "microsoft365_some_other_resource" "example" {
   count = length(data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items) > 0 ? 1 : 0
-  
-  name = "Resource using ${data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].display_name}"
+
+  name       = "Resource using ${data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].display_name}"
   profile_id = data.microsoft365_graph_beta_device_management_windows_feature_update_profile.by_name.items[0].id
-  
+
   # Other resource configuration...
 }

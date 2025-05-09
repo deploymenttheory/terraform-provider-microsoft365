@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_quality_update_policy Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_quality_update_policy Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves information about a Windows Driver Update Profile in Microsoft Intune.
@@ -33,9 +33,9 @@ data "microsoft365_graph_beta_device_management_windows_quality_update_policy" "
 # Custom timeout configuration
 data "microsoft365_graph_beta_device_management_windows_quality_update_policy" "with_timeout" {
   filter_type = "all"
-  
+
   timeouts = {
-    read = "1m" 
+    read = "1m"
   }
 }
 
@@ -52,7 +52,7 @@ output "all_policies_names" {
 
 output "all_policies_details" {
   description = "Detailed information for all policies"
-  value       = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items : {
+  value = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items : {
     id           = policy.id
     display_name = policy.display_name
     description  = policy.description
@@ -73,12 +73,12 @@ output "specific_policy_name" {
 # Using consistent types in conditional
 output "specific_policy_details" {
   description = "Complete details of the policy with the specified ID"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -94,7 +94,7 @@ output "name_filtered_policies_count" {
 
 output "name_filtered_policies" {
   description = "List of policies matching the display name filter"
-  value       = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items : {
+  value = [for policy in data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items : {
     id           = policy.id
     display_name = policy.display_name
     description  = policy.description
@@ -104,12 +104,12 @@ output "name_filtered_policies" {
 # Using consistent types in conditional
 output "name_filtered_first_policy" {
   description = "Details of the first policy matching the display name filter (if any)"
-  value       = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items) > 0 ? {
+  value = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items) > 0 ? {
     id           = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].id
     display_name = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].display_name
     description  = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].description
     found        = true
-  } : {
+    } : {
     id           = ""
     display_name = ""
     description  = ""
@@ -122,20 +122,20 @@ output "comparison_summary" {
   description = "Summary comparison of results from each filtering method"
   value = {
     by_id = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.specific_policy.items[0].description
     } : {}
-    
+
     by_name = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.by_name.items[0].description
     } : {}
-    
+
     all_first = length(data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items) > 0 ? {
-      id = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items[0].id
-      name = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items[0].display_name
+      id          = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items[0].id
+      name        = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items[0].display_name
       description = data.microsoft365_graph_beta_device_management_windows_quality_update_policy.all_policies.items[0].description
     } : {}
   }
