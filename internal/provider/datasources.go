@@ -3,8 +3,8 @@ package provider
 import (
 	"context"
 	// Graph Beta - Intune datasources
+	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_beta/macos_pkg_app"
-	graphBetaDeviceManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/application_category"
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/device_category"
 	graphBetaDeviceManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/linux_platform_script"
@@ -14,8 +14,11 @@ import (
 	graphBetaDeviceManagementWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_driver_update_profile"
 	graphBetaDeviceManagementWindowsFeatureUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_feature_update_profile"
 	graphBetaDeviceManagementWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_platform_script"
+	graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_quality_update_expedite_policy"
 	graphBetaDeviceManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_quality_update_policy"
+	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_remediation_script"
 	graphBetaDeviceManagementWindowsUpdateCatalogItem "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_update_catalog_item"
+	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - M365 Admin datasources
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/m365_admin/graph_beta/browser_site"
@@ -40,11 +43,11 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		// Graph Beta - Intune Device Management datasources
-		graphBetaDeviceManagementApplicationCategory.NewApplicationCategoryDataSource,
+		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryDataSource,
+		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppDataSource,
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
 		graphBetaDeviceManagementLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
-		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppDataSource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
 		graphBetaDeviceManagementRoleScopeTag.NewRoleScopeTagDataSource,
 		graphBetaDeviceManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileDataSource,
@@ -52,7 +55,10 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsFeatureUpdateProfile.NewWindowsFeatureUpdateProfileDataSource,
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdateProfileDataSource,
 		graphBetaDeviceManagementWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
+		graphBetaDeviceManagementWindowsRemediationScript.NewWindowsRemediationScriptDataSource,
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
+		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
+		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,

@@ -1,37 +1,40 @@
+// read.go (updated with proper technology enum handling)
 package graphBetaLinuxPlatformScript
 
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/linux_platform_script"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Read handles the Read operation for Linux Platform Script data sources.
-//
-// The function supports two methods of looking up a Linux Platform Script:
-// 1. By ID - Uses a direct API call to fetch the specific script
-// 2. By Name - Lists all configuration policies and finds the matching Linux Platform Script
-//
-// The function ensures that:
-// - Either ID or Name is provided (but not both)
-// - The lookup method is optimized based on the provided identifier
-// - The remote state is properly mapped to the Terraform state
+// Read handles the Read operation for Linux Platform Scripts data source.
 func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var object resource.LinuxPlatformScriptResourceModel
+	var object LinuxPlatformScriptDataSourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	filterType := object.FilterType.ValueString()
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
+
+	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
+		resp.Diagnostics.AddError(
+			"Missing Required Parameter",
+			fmt.Sprintf("filter_value must be provided when filter_type is '%s'", filterType),
+		)
 		return
 	}
 
@@ -41,171 +44,100 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 	}
 	defer cancel()
 
-	if object.ID.IsNull() && object.Name.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Either id or name must be provided",
-		)
-		return
-	}
+	var filteredItems []LinuxPlatformScriptModel
+	filterValue := object.FilterValue.ValueString()
 
-	if !object.ID.IsNull() && !object.Name.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Only one of id or name should be provided, not both",
-		)
-		return
-	}
+	// For ID filter, we can make a direct API call
+	if filterType == "id" {
+		constants.GraphSDKMutex.Lock()
+		respItem, err := d.client.
+			DeviceManagement().
+			ConfigurationPolicies().
+			ByDeviceManagementConfigurationPolicyId(filterValue).
+			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
 
-	if !object.ID.IsNull() {
-		tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
-	} else {
-		tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with Name: %s", d.ProviderTypeName, d.TypeName, object.Name.ValueString()))
-
-		policyId, err := d.getResourceIdByName(ctx, object.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Linux Platform Script",
-				err.Error(),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		object.ID = types.StringValue(policyId)
+		// Verify this is a Linux platform script
+		if hasLinuxMdmTechnology(respItem) {
+			filteredItems = append(filteredItems, MapRemoteStateToDataSource(respItem))
+		} else {
+			resp.Diagnostics.AddError(
+				"Error Reading Linux Platform Script",
+				fmt.Sprintf("The configuration policy with ID %s is not a Linux platform script", filterValue),
+			)
+			return
+		}
+	} else {
+		// For all other filters, we need to get all Linux scripts and filter locally
+		// Set up technology filter for Linux platform scripts
+		technologyFilter := "technologies/any(t:t eq 'linuxMdm')"
+
+		requestOptions := &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{
+				Filter: &technologyFilter,
+			},
+		}
+
+		constants.GraphSDKMutex.Lock()
+		respList, err := d.client.
+			DeviceManagement().
+			ConfigurationPolicies().
+			Get(ctx, requestOptions)
+		constants.GraphSDKMutex.Unlock()
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			return
+		}
+
+		for _, item := range respList.GetValue() {
+			// Ensure this is a Linux platform script
+			if !hasLinuxMdmTechnology(item) {
+				continue
+			}
+
+			switch filterType {
+			case "all":
+				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+
+			case "display_name":
+				if item.GetName() != nil && strings.Contains(
+					strings.ToLower(*item.GetName()),
+					strings.ToLower(filterValue)) {
+					filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+				}
+			}
+		}
 	}
 
-	if err := d.getDataSource(ctx, &object); err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
-		return
-	}
+	object.Items = filteredItems
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Linux Platform Script Datasource Read Method: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
 }
 
-// findPolicyIdByName looks up a Linux platform script by name and returns its ID
-func (d *LinuxPlatformScriptDataSource) getResourceIdByName(ctx context.Context, name string) (string, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Looking for Linux platform script with name: '%s'", name))
-
-	filterValue := fmt.Sprintf("technologies/any(t:t eq 'linuxMdm') and name eq '%s'", name)
-
-	expand := []string{"settings"}
-
-	requestOptions := &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
-		QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{
-			Filter: &filterValue,
-			Expand: expand,
-		},
+// hasLinuxMdmTechnology checks if a configuration policy has the Linux MDM technology
+func hasLinuxMdmTechnology(policy graphmodels.DeviceManagementConfigurationPolicyable) bool {
+	techEnum := policy.GetTechnologies()
+	if techEnum == nil {
+		return false
 	}
+	techString := (*techEnum).String()
 
-	configPolicies, err := d.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		Get(ctx, requestOptions)
-
-	if err != nil {
-		return "", err
-	}
-
-	if configPolicies.GetValue() != nil && len(configPolicies.GetValue()) > 0 {
-		policy := configPolicies.GetValue()[0]
-		tflog.Debug(ctx, fmt.Sprintf("Found Linux script with name: '%s' and ID: %s", name, *policy.GetId()))
-		return *policy.GetId(), nil
-	}
-
-	technologyFilter := "technologies/any(t:t eq 'linuxMdm')"
-	requestOptions = &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
-		QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{
-			Filter: &technologyFilter,
-			Expand: expand,
-		},
-	}
-
-	configPolicies, err = d.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		Get(ctx, requestOptions)
-
-	if err != nil {
-		return "", err
-	}
-
-	if configPolicies.GetValue() != nil {
-		for _, policy := range configPolicies.GetValue() {
-			if policy.GetName() != nil && *policy.GetName() == name {
-				tflog.Debug(ctx, fmt.Sprintf("Found Linux script with name: '%s' and ID: %s", name, *policy.GetId()))
-				return *policy.GetId(), nil
-			}
+	for _, tech := range strings.Split(techString, ",") {
+		if tech == "linuxMdm" {
+			return true
 		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Found %d Linux scripts:", len(configPolicies.GetValue())))
-
-		linuxScriptNames := []string{}
-		for _, policy := range configPolicies.GetValue() {
-			if policy.GetName() != nil {
-				linuxScriptNames = append(linuxScriptNames, *policy.GetName())
-				tflog.Debug(ctx, fmt.Sprintf("Linux script: Name='%s', ID='%s'", *policy.GetName(), *policy.GetId()))
-			}
-		}
-
-		if len(linuxScriptNames) > 0 {
-			tflog.Debug(ctx, fmt.Sprintf("Available Linux script names: %v", linuxScriptNames))
-		}
-	} else {
-		tflog.Debug(ctx, "No Linux scripts found with technology 'linuxMdm'")
 	}
 
-	return "", fmt.Errorf("no Linux platform script found with name: %s", name)
-}
-
-// getDataSource fetches all details for a Linux script and maps them to the Terraform model
-func (d *LinuxPlatformScriptDataSource) getDataSource(ctx context.Context, object *resource.LinuxPlatformScriptResourceModel) error {
-	baseResource, err := d.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
-
-	if err != nil {
-		return err
-	}
-
-	resource.MapRemoteResourceStateToTerraform(ctx, object, baseResource)
-
-	settingsResponse, err := d.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(ctx, nil)
-
-	if err != nil {
-		return err
-	}
-
-	resource.MapRemoteSettingsStateToTerraform(ctx, object, settingsResponse.GetValue())
-
-	assignmentsResponse, err := d.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		return err
-	}
-
-	scriptAssignments, ok := assignmentsResponse.(models.DeviceManagementScriptAssignmentCollectionResponseable)
-	if ok {
-		resource.MapRemoteAssignmentStateToTerraform(ctx, object, scriptAssignments)
-	} else {
-		tflog.Warn(ctx, "Couldn't cast assignments to DeviceManagementScriptAssignmentCollectionResponseable")
-	}
-
-	return nil
+	return false
 }

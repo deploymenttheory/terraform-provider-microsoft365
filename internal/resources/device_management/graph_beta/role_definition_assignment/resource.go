@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_role_definition_assignment"
+	ResourceName  = "graph_beta_device_management_role_definition_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -89,7 +89,7 @@ func (r *RoleDefinitionAssignmentResource) ImportState(ctx context.Context, req 
 // Schema defines the schema for the resource
 func (r *RoleDefinitionAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The resource `graph_beta_device_and_app_management_role_definition_assignment` manages a Role Assignment in Microsoft 365",
+		MarkdownDescription: "The resource `graph_beta_device_management_role_definition_assignment` manages a Role Assignment in Microsoft 365",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Key of the Role Assignment. This is read-only and automatically generated.",

@@ -1,29 +1,22 @@
+// read.go
 package graphBetaDeviceCategory
 
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/device_category"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Read handles the Read operation for Device Category data sources.
-//
-// The function supports two methods of looking up a device category:
-// 1. By ID - Uses a direct API call to fetch the specific category
-// 2. By DisplayName - Lists all categories and finds the matching one
-//
-// The function ensures that:
-// - Either ID or DisplayName is provided (but not both)
-// - The lookup method is optimized based on the provided identifier
-// - The remote state is properly mapped to the Terraform state
+// Read handles the Read operation for Device Categories data source.
 func (d *DeviceCategoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var object resource.DeviceCategoryResourceModel
+	var object DeviceCategoryDataSourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
@@ -32,7 +25,16 @@ func (d *DeviceCategoryDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
+	filterType := object.FilterType.ValueString()
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
+
+	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
+		resp.Diagnostics.AddError(
+			"Missing Required Parameter",
+			fmt.Sprintf("filter_value must be provided when filter_type is '%s'", filterType),
+		)
+		return
+	}
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -40,76 +42,60 @@ func (d *DeviceCategoryDataSource) Read(ctx context.Context, req datasource.Read
 	}
 	defer cancel()
 
-	if object.ID.IsNull() && object.DisplayName.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Either id or display_name must be provided",
-		)
-		return
-	}
+	var filteredItems []DeviceCategoryModel
+	filterValue := object.FilterValue.ValueString()
 
-	if !object.ID.IsNull() && !object.DisplayName.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Only one of id or display_name should be provided, not both",
-		)
-		return
-	}
-
-	if !object.ID.IsNull() {
-		category, err := d.client.
+	// For ID filter, we can make a direct API call
+	if filterType == "id" {
+		constants.GraphSDKMutex.Lock()
+		respItem, err := d.client.
 			DeviceManagement().
 			DeviceCategories().
-			ByDeviceCategoryId(object.ID.ValueString()).
+			ByDeviceCategoryId(filterValue).
 			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Device Category",
-				fmt.Sprintf("Could not read device category ID %s: %s", object.ID.ValueString(), err),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		resource.MapRemoteStateToTerraform(ctx, &object, category)
+		filteredItems = append(filteredItems, MapRemoteStateToDataSource(respItem))
 	} else {
-		categories := d.client.
+		// For all other filters, we need to get all categories and filter locally
+		constants.GraphSDKMutex.Lock()
+		respList, err := d.client.
 			DeviceManagement().
-			DeviceCategories()
-
-		result, err := categories.Get(ctx, nil)
+			DeviceCategories().
+			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Device Categories",
-				fmt.Sprintf("Could not read device categories: %s", err),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		var foundCategory graphmodels.DeviceCategoryable
-		for _, category := range result.GetValue() {
-			if category.GetDisplayName() != nil && *category.GetDisplayName() == object.DisplayName.ValueString() {
-				foundCategory = category
-				break
+		for _, item := range respList.GetValue() {
+			switch filterType {
+			case "all":
+				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+
+			case "display_name":
+				if item.GetDisplayName() != nil && strings.Contains(
+					strings.ToLower(*item.GetDisplayName()),
+					strings.ToLower(filterValue)) {
+					filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+				}
 			}
 		}
-
-		if foundCategory == nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Device Category",
-				fmt.Sprintf("No device category found with display name: %s", object.DisplayName.ValueString()),
-			)
-			return
-		}
-
-		resource.MapRemoteStateToTerraform(ctx, &object, foundCategory)
 	}
+
+	object.Items = filteredItems
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
 }

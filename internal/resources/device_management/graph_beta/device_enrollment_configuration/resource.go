@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_device_enrollment_configuration"
+	ResourceName  = "graph_beta_device_management_device_enrollment_configuration"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180

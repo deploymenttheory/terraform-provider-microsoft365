@@ -1,44 +1,22 @@
+// read.go
 package graphBetaRoleScopeTag
 
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
-	resource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/role_scope_tag"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Read handles the Read operation for Role Scope Tag data sources.
-//
-// The function supports two methods of looking up an Role Scope Tag:
-// 1. By ID - Uses a direct API call to fetch the specific filter
-// 2. By DisplayName - Lists all filters and finds the matching one
-//
-// The function ensures that:
-// - Either ID or DisplayName is provided (but not both)
-// - The lookup method is optimized based on the provided identifier
-// - The remote state is properly mapped to the Terraform state
-//
-// The function will:
-//  1. Extract and validate the configuration
-//  2. Verify that exactly one identifier (ID or DisplayName) is provided
-//  3. Perform the appropriate API call based on the provided identifier
-//  4. Map the remote state to the Terraform state
-//  5. Handle any errors and return appropriate diagnostics
-//
-// If using ID:
-//   - Makes a direct GET request to the specific resource endpoint
-//   - Returns error if the ID is not found
-//
-// If using DisplayName:
-//   - Retrieves all filters and searches for matching display name
-//   - Returns error if no matching filter is found
+// Read handles the Read operation for Role Scope Tag data source.
 func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var object resource.RoleScopeTagResourceModel
+	var object RoleScopeTagDataSourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
@@ -47,7 +25,16 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", d.ProviderTypeName, d.TypeName, object.ID.ValueString()))
+	filterType := object.FilterType.ValueString()
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
+
+	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
+		resp.Diagnostics.AddError(
+			"Missing Required Parameter",
+			fmt.Sprintf("filter_value must be provided when filter_type is '%s'", filterType),
+		)
+		return
+	}
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -55,71 +42,60 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 	defer cancel()
 
-	if object.ID.IsNull() && object.DisplayName.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Either id or display_name must be provided",
-		)
-		return
-	}
-	if !object.ID.IsNull() && !object.DisplayName.IsNull() {
-		resp.Diagnostics.AddError(
-			"Invalid Configuration",
-			"Only one of id or display_name should be provided, not both",
-		)
-		return
-	}
+	var filteredItems []RoleScopeTagModel
+	filterValue := object.FilterValue.ValueString()
 
-	if !object.ID.IsNull() {
-		filter, err := d.client.
+	// For ID filter, we can make a direct API call
+	if filterType == "id" {
+		constants.GraphSDKMutex.Lock()
+		respItem, err := d.client.
 			DeviceManagement().
 			RoleScopeTags().
-			ByRoleScopeTagId(object.ID.ValueString()).
+			ByRoleScopeTagId(filterValue).
 			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Role Scope Tag",
-				fmt.Sprintf("Could not read Role Scope Tag ID %s: %s", object.ID.ValueString(), err),
-			)
-			return
-		}
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, filter)
-	} else {
-		filters := d.client.
-			DeviceManagement().
-			RoleScopeTags()
-		result, err := filters.Get(ctx, nil)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Role Scope Tags",
-				fmt.Sprintf("Could not read Role Scope Tags: %s", err),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		var foundFilter graphmodels.RoleScopeTagable
-		for _, filter := range result.GetValue() {
-			if *filter.GetDisplayName() == object.DisplayName.ValueString() {
-				foundFilter = filter
-				break
+		filteredItems = append(filteredItems, MapRemoteStateToDataSource(respItem))
+	} else {
+		// For all other filters, we need to get all role scope tags and filter locally
+		constants.GraphSDKMutex.Lock()
+		respList, err := d.client.
+			DeviceManagement().
+			RoleScopeTags().
+			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			return
+		}
+
+		for _, item := range respList.GetValue() {
+			switch filterType {
+			case "all":
+				filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+
+			case "display_name":
+				if item.GetDisplayName() != nil && strings.Contains(
+					strings.ToLower(*item.GetDisplayName()),
+					strings.ToLower(filterValue)) {
+					filteredItems = append(filteredItems, MapRemoteStateToDataSource(item))
+				}
 			}
 		}
-
-		if foundFilter == nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Role Scope Tag",
-				fmt.Sprintf("No Role Scope Tag found with display name: %s", object.DisplayName.ValueString()),
-			)
-			return
-		}
-
-		resource.MapRemoteResourceStateToTerraform(ctx, &object, foundFilter)
 	}
+
+	object.Items = filteredItems
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
 }
