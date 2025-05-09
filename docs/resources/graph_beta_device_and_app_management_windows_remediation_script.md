@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_windows_remediation_script Resource - microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_windows_remediation_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Device Health Script in Microsoft Intune. Device health scripts can detect and remediate issues on Windows devices.

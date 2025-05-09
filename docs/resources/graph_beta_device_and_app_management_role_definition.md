@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_role_definition Resource - microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_role_definition Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   The resource role_definition manages a Role Definition in Microsoft 365

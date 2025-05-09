@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Browser Site Lists from Microsoft 365 Admin Centre with explicit filtering options.
@@ -41,7 +41,7 @@ output "all_site_lists" {
 # Output just the names of all site lists
 output "site_list_names" {
   value = [
-    for item in data.microsoft365_graph_beta_m365_admin_browser_site_list.all.items : 
+    for item in data.microsoft365_graph_beta_m365_admin_browser_site_list.all.items :
     item.display_name
   ]
 }
@@ -80,13 +80,13 @@ output "site_lists_by_display_name" {
 
 # Count of results from display name search
 output "display_name_match_count" {
-  value = length(data.microsoft365_graph_beta_m365_admin_browser_site_list.by_display_name.items)
+  value       = length(data.microsoft365_graph_beta_m365_admin_browser_site_list.by_display_name.items)
   description = "Number of browser site lists that match the display name filter"
 }
 
 # Check if ID lookup returned a result
 output "id_lookup_found" {
-  value = length(data.microsoft365_graph_beta_m365_admin_browser_site_list.by_id.items) > 0
+  value       = length(data.microsoft365_graph_beta_m365_admin_browser_site_list.by_id.items) > 0
   description = "Whether the browser site list with the specified ID was found"
 }
 
