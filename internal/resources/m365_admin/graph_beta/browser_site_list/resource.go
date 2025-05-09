@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_browser_site_list"
+	ResourceName  = "graph_beta_m365_admin_browser_site_list"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -76,7 +76,7 @@ func (r *BrowserSiteListResource) ImportState(ctx context.Context, req resource.
 
 func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a browser site list in Microsoft Intune.",
+		Description: "Manages a browser site list in Microsoft 365 Admin Centre. Settings > Org settings > Microsoft Edge site lists.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The unique identifier for the site list.",

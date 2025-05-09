@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_linux_platform_script Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_linux_platform_script Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages an Intune Linux platform script using the 'configurationPolicies' Graph Beta API.

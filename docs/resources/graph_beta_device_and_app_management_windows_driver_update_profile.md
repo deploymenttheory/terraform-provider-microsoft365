@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_windows_driver_update_profile Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_windows_driver_update_profile Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Windows Driver Update Profile in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Driver Updates.

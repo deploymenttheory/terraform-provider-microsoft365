@@ -1,4 +1,4 @@
-package common
+package constants
 
 import "sync"
 
@@ -13,4 +13,6 @@ import "sync"
 //
 // By acquiring this mutex around Graph API calls (Get, Post, Patch, Delete),
 // we ensure only one request is processed at a time through the Kiota pipeline, preventing concurrency issues and plugin crashes.
+//
+// You cannot set a mutex as a constant in go.
 var GraphSDKMutex sync.Mutex

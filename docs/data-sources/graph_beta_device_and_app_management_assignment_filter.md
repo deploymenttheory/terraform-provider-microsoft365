@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_assignment_filter Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_assignment_filter Data Source - microsoft365"
 subcategory: "Intune"
 description: |-
   

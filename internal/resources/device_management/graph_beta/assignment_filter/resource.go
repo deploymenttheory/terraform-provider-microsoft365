@@ -80,7 +80,7 @@ func (r *AssignmentFilterResource) ImportState(ctx context.Context, req resource
 // Schema returns the schema for the resource.
 func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages Assignment Filters in Microsoft Intune.",
+		Description: "Manages Assignment Filters in Microsoft Intune. Tenant administration -> Assignment filters",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

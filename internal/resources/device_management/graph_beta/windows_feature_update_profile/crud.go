@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,12 +40,12 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 		return
 	}
 
-	common.GraphSDKMutex.Lock()
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		Post(ctx, requestBody, nil)
-	common.GraphSDKMutex.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -131,13 +131,13 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	common.GraphSDKMutex.Lock()
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Get(ctx, nil)
-	common.GraphSDKMutex.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -207,13 +207,13 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		)
 		return
 	}
-	common.GraphSDKMutex.Lock()
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	common.GraphSDKMutex.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)

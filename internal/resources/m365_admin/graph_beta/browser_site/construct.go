@@ -37,6 +37,9 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (gra
 		return nil, fmt.Errorf("failed to set target environment: %v", err)
 	}
 
+	// Note: We don't need to set history from the input data since it's computed
+	// The history field is populated by the API and we only read it
+
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),

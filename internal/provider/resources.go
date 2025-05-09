@@ -6,8 +6,6 @@ import (
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/assignment_filter"
-	graphBetaDeviceManagementBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/browser_site"
-	graphBetaDeviceManagementBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/browser_site_list"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/device_category"
 	graphBetaDeviceManagementDeviceEnrollmentConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/device_enrollment_configuration"
 	graphBetaDeviceManagementEndpointPrivilegeManagement "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/endpoint_privilege_management"
@@ -27,6 +25,15 @@ import (
 	graphBetaDeviceManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/windows_quality_update_policy"
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/windows_remediation_script"
 
+	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/graph_beta/conditional_access_policy"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	// Graph Beta - M365 Admin Centre
+	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site"
+	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site_list"
+	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/m365_apps_installation_options"
+
 	// TODO current broken due to how the sdk builds time fields
 	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_update_ring"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
@@ -35,12 +42,6 @@ import (
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 	graphDeviceAndAppManagementCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_provisioning_policy"
 	graphDeviceAndAppManagementCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_user_setting"
-
-	graphDeviceAndAppManagementM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/m365_apps_installation_options"
-
-	// Graph Beta - Identity and Access resources
-	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/graph_beta/conditional_access_policy"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -60,8 +61,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Intune resources
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,
-		graphBetaDeviceManagementBrowserSite.NewBrowserSiteResource,
-		graphBetaDeviceManagementBrowserSiteList.NewBrowserSiteListResource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryResource,
 		graphBetaDeviceManagementDeviceEnrollmentConfiguration.NewDeviceEnrollmentConfigurationResource,
 		graphBetaDeviceManagementEndpointPrivilegeManagement.NewEndpointPrivilegeManagementResource,
@@ -87,11 +86,17 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 
+		// Graph Beta - M365 Admin Centre
+		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,
+		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListResource,
+
 		// Graph v1.0 - Intune resources
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
-		graphDeviceAndAppManagementM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
+
+		// Graph v1.0 - M365 Admin Centre
+		graphDeviceM365AdminM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		// Add microsoft 365 provider resources here
 	}
 }

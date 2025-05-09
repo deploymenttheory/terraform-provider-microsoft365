@@ -4,18 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
-
-// BUG NOTE: this is a bug in the Kiota middleware pipeline (its header struct isn’t safe for parallel use).
-// This mutex is a workaround to serialize calls and avoid concurrent map writes.
-var windowsUpdateCatalogItemsMu sync.Mutex
 
 // Read handles the Read operation for Windows Update Catalog Items data source.
 func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -46,12 +42,12 @@ func (d *WindowsUpdateCatalogItemDataSource) Read(ctx context.Context, req datas
 	defer cancel()
 
 	// Fetch all catalog items (serialize to avoid concurrent map writes in Kiota headers)
-	windowsUpdateCatalogItemsMu.Lock()
+	constants.GraphSDKMutex.Lock()
 	respList, err := d.client.
 		DeviceManagement().
 		WindowsUpdateCatalogItems().
 		Get(ctx, nil)
-	windowsUpdateCatalogItemsMu.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

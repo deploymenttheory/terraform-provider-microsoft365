@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_device_and_app_management_m365_apps_installation_options"
+	ResourceName  = "graph_m365_admin_m365_apps_installation_options"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180

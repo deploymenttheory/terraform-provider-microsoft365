@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_browser_site"
+	ResourceName  = "graph_beta_m365_admin_browser_site"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -122,38 +122,6 @@ func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "The date and time when the site was deleted.",
 				Computed:    true,
 			},
-			"history": schema.ListNestedAttribute{
-				Description: "The history of modifications applied to the site.",
-				Computed:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"allow_redirect": schema.BoolAttribute{
-							Description: "Controls the behavior of redirected sites for this history entry.",
-							Computed:    true,
-						},
-						"comment": schema.StringAttribute{
-							Description: "The comment for this history entry.",
-							Computed:    true,
-						},
-						"compatibility_mode": schema.StringAttribute{
-							Description: "The compatibility mode for this history entry.",
-							Computed:    true,
-						},
-						"merge_type": schema.StringAttribute{
-							Description: "The merge type for this history entry.",
-							Computed:    true,
-						},
-						"published_date_time": schema.StringAttribute{
-							Description: "The date and time when this history entry was published.",
-							Computed:    true,
-						},
-						"target_environment": schema.StringAttribute{
-							Description: "The target environment for this history entry.",
-							Computed:    true,
-						},
-					},
-				},
-			},
 			"last_modified_date_time": schema.StringAttribute{
 				Description: "The date and time when the site was last modified.",
 				Computed:    true,
@@ -173,7 +141,13 @@ func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "The target environment that the site should open in.",
 				Required:    true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("internetExplorerMode", "internetExplorer11", "microsoftEdge", "configurable", "none", "unknownFutureValue"),
+					stringvalidator.OneOf(
+						"internetExplorerMode",
+						"internetExplorer11",
+						"microsoftEdge",
+						"configurable",
+						"none",
+						"unknownFutureValue"),
 				},
 			},
 			"web_url": schema.StringAttribute{

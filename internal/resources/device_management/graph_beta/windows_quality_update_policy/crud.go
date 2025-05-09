@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -138,13 +138,13 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	common.GraphSDKMutex.Lock()
+	constants.GraphSDKMutex.Lock()
 	resourceResp, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
-	common.GraphSDKMutex.Unlock()
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)

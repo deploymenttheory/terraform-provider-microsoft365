@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -78,11 +79,13 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 		profileID := object.ID.ValueString()
 		tflog.Debug(ctx, fmt.Sprintf("Fetching Windows Quality Update Profile by ID: %s", profileID))
 
+		constants.GraphSDKMutex.Lock()
 		profile, err := d.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
 			ByWindowsQualityUpdateProfileId(profileID).
 			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -97,10 +100,12 @@ func (d *WindowsQualityUpdateProfileDataSource) Read(ctx context.Context, req da
 		displayName := object.DisplayName.ValueString()
 		tflog.Debug(ctx, fmt.Sprintf("Fetching Windows Quality Update Profile by display name: %s", displayName))
 
+		constants.GraphSDKMutex.Lock()
 		profilesResult, err := d.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
 			Get(ctx, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			resp.Diagnostics.AddError(
