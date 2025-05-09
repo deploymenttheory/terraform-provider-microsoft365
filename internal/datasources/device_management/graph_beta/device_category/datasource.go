@@ -5,14 +5,15 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
-	DataSourceName = "graph_beta_device_and_app_management_device_category"
+	DataSourceName = "graph_beta_device_management_device_category"
 	ReadTimeout    = 180
 )
 
@@ -47,27 +48,41 @@ func (d *DeviceCategoryDataSource) Configure(ctx context.Context, req datasource
 	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
+// Schema defines the schema for the data source
 func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Retrieves Device Categories from Microsoft Intune with explicit filtering options.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+			"filter_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "id", "display_name"),
+				},
+			},
+			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the device category.",
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'.",
 			},
-			"display_name": schema.StringAttribute{
-				Optional:            true,
+			"items": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "The display name of the device category.",
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The description of the device category.",
-			},
-			"role_scope_tag_ids": schema.ListAttribute{
-				Computed:            true,
-				MarkdownDescription: "Indicates role scope tags assigned for the device category.",
-				ElementType:         types.StringType,
+				MarkdownDescription: "The list of Device Categories that match the filter criteria.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The ID of the device category.",
+						},
+						"display_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The display name of the device category.",
+						},
+						"description": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The description of the device category.",
+						},
+					},
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

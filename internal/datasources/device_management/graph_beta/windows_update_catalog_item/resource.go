@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_and_app_management_windows_update_catalog_item"
+	DataSourceName = "graph_beta_device_management_windows_update_catalog_item"
 	ReadTimeout    = 180
 )
 

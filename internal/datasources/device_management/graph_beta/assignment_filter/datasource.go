@@ -5,14 +5,15 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_assignment_filter"
+	ResourceName = "graph_beta_device_management_assignment_filter"
 	ReadTimeout  = 180
 )
 
@@ -43,47 +44,41 @@ func (d *AssignmentFilterDataSource) Metadata(_ context.Context, req datasource.
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
+// Schema defines the schema for the data source
 func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Retrieves Assignment Filters from Microsoft Intune with explicit filtering options.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+			"filter_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "id", "display_name"),
+				},
+			},
+			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the assignment filter.",
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'.",
 			},
-			"display_name": schema.StringAttribute{
-				Optional:            true,
+			"items": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "The display name of the assignment filter.",
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The description of the assignment filter.",
-			},
-			"platform": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The Intune device management type (platform) for the assignment filter.",
-			},
-			"rule": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Rule definition of the assignment filter.",
-			},
-			"assignment_filter_management_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Indicates filter is applied to either 'devices' or 'apps' management type.",
-			},
-			"created_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The creation time of the assignment filter.",
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Last modified time of the assignment filter.",
-			},
-			"role_scope_tags": schema.ListAttribute{
-				Computed:            true,
-				MarkdownDescription: "Indicates role scope tags assigned for the assignment filter.",
-				ElementType:         types.StringType,
+				MarkdownDescription: "The list of Assignment Filters that match the filter criteria.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The ID of the assignment filter.",
+						},
+						"display_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The display name of the assignment filter.",
+						},
+						"description": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The description of the assignment filter.",
+						},
+					},
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

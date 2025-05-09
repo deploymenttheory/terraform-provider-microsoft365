@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_reuseable_policy_setting"
+	ResourceName  = "graph_beta_device_management_reuseable_policy_setting"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180

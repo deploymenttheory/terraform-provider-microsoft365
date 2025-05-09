@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_device_and_app_management_cloud_pc_user_setting Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_device_and_app_management_cloud_pc_user_setting Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   

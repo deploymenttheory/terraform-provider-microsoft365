@@ -5,14 +5,15 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
-	ResourceName = "graph_beta_device_and_app_management_reuseable_policy_setting"
+	ResourceName = "graph_beta_device_management_reuseable_policy_setting"
 	ReadTimeout  = 180
 )
 
@@ -44,51 +45,44 @@ func (r *ReuseablePolicySettingsDataSource) Metadata(ctx context.Context, req da
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
-func (d *ReuseablePolicySettingsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+// Schema defines the schema for the data source
+func (d *ReuseablePolicySettingsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management." +
-			"Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate" +
-			"directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings" +
+		MarkdownDescription: "Retrieves Reusable Policy Settings from Microsoft Intune with explicit filtering options. " +
+			"Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate " +
+			"directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings " +
 			"group are automatically passed to the policies that reference the group.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+			"filter_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "id", "display_name"),
+				},
+			},
+			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The unique identifier for this Reuseable Settings Policy",
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'.",
 			},
-			"display_name": schema.StringAttribute{
-				Optional:            true,
+			"items": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "The reusable setting display name supplied by user.",
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Reuseable Settings Policy description",
-			},
-			"settings": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Reuseable Settings Policy with settings catalog settings defined as a valid JSON string.",
-			},
-			"created_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Creation date and time of the settings catalog policy",
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Last modification date and time of the settings catalog policy",
-			},
-			"version": schema.Int32Attribute{
-				Computed:            true,
-				MarkdownDescription: "Version of the policy",
-			},
-			"referencing_configuration_policies": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "List of configuration policies referencing this reuseable policy",
-			},
-			"referencing_configuration_policy_count": schema.Int32Attribute{
-				Computed:            true,
-				MarkdownDescription: "Number of configuration policies referencing this reuseable policy",
+				MarkdownDescription: "The list of Reusable Policy Settings that match the filter criteria.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The ID of the reusable policy setting.",
+						},
+						"display_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The display name of the reusable policy setting.",
+						},
+						"description": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The description of the reusable policy setting.",
+						},
+					},
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

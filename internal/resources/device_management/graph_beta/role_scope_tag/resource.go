@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_role_scope_tag"
+	ResourceName  = "graph_beta_device_management_role_scope_tag"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
