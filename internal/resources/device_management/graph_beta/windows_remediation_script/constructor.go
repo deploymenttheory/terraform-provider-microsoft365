@@ -39,8 +39,9 @@ func constructResource(ctx context.Context, data *DeviceHealthScriptResourceMode
 	}
 
 	var detParams []DeviceHealthScriptParameterModel
-	if err := data.DetectionScriptParameters.ElementsAs(ctx, &detParams, false); err != nil {
-		return nil, fmt.Errorf("unable to read detectionScriptParameters: %w", err)
+
+	if diags := data.DetectionScriptParameters.ElementsAs(ctx, &detParams, false); diags.HasError() {
+		return nil, fmt.Errorf("unable to read detectionScriptParameters: %s", diags)
 	}
 
 	if len(detParams) > 0 {
