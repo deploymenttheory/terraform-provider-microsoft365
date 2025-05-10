@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.11.0-alpha...v0.11.1-alpha) (2025-05-10)
+
+
+### Bug Fixes
+
+* for enum handling within GetDeviceEnrollmentConfigurationType ([#437](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/437)) ([896c291](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/896c2918aa799ec20127a79538a06cfe1cff892e))
+* for handling enum ([ce13f69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ce13f693c89723f9766c02519f17596ea328d7e2))
+* for handling enum ([6e2f1ff](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6e2f1ff38ef16ddbcd405eff88c380371e315856))
+* refactored docs for repo restructure ([546ebb4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/546ebb4ff5dfe06b9b6c9febad4223a4acf71abf))
+* refactored docs for repo restructure ([#435](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/435)) ([3b14e78](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3b14e78f1db1659b176983abced03e04b32195d6))
+
 ## [0.11.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.10.0-alpha...v0.11.0-alpha) (2025-05-07)
 
 
