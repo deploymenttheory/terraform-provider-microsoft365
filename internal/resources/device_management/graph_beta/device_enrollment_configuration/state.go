@@ -30,7 +30,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceEnrollme
 	data.Version = state.Int32PtrToTypeInt32(remoteResource.GetVersion())
 
 	if configType := remoteResource.GetDeviceEnrollmentConfigurationType(); configType != nil {
-		data.DeviceEnrollmentConfigurationType = types.StringValue(string(*configType))
+		data.DeviceEnrollmentConfigurationType = types.StringValue(configType.String())
 
 		// Map configuration type-specific properties
 		switch *configType {
