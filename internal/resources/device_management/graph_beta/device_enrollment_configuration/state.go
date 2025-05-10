@@ -3,7 +3,6 @@ package graphBetaDeviceEnrollmentConfiguration
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,7 +29,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceEnrollme
 	data.Version = state.Int32PtrToTypeInt32(remoteResource.GetVersion())
 
 	if configType := remoteResource.GetDeviceEnrollmentConfigurationType(); configType != nil {
-		data.DeviceEnrollmentConfigurationType = types.StringValue(string(*configType))
+		data.DeviceEnrollmentConfigurationType = types.StringValue(configType.String())
 
 		// Map configuration type-specific properties
 		switch *configType {
@@ -195,7 +194,7 @@ func mapWindows10EnrollmentCompletionPageToTerraform(ctx context.Context, data *
 	tflog.Debug(ctx, "Mapping Windows 10 enrollment completion page configuration")
 
 	if configType := remoteResource.GetDeviceEnrollmentConfigurationType(); configType != nil {
-		if strings.Contains(string(*configType), "DEFAULT") {
+		if *configType == graphmodels.DEFAULTWINDOWS10ENROLLMENTCOMPLETIONPAGECONFIGURATION_DEVICEENROLLMENTCONFIGURATIONTYPE {
 			mapDefaultWindows10EnrollmentCompletionPageToTerraform(ctx, data, remoteResource)
 			return
 		}
