@@ -195,7 +195,7 @@ func mapWindows10EnrollmentCompletionPageToTerraform(ctx context.Context, data *
 	tflog.Debug(ctx, "Mapping Windows 10 enrollment completion page configuration")
 
 	if configType := remoteResource.GetDeviceEnrollmentConfigurationType(); configType != nil {
-		if strings.Contains(string(*configType), "DEFAULT") {
+		if strings.Contains(configType.String(), "DEFAULT") {
 			mapDefaultWindows10EnrollmentCompletionPageToTerraform(ctx, data, remoteResource)
 			return
 		}
