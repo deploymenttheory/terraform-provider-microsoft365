@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_driver_update_inventory Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_driver_update_inventory Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages Windows Driver Update Inventory in Microsoft Intune.

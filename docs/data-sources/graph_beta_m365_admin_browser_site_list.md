@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Data Source - microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Browser Site Lists from Microsoft 365 Admin Centre with explicit filtering options.
