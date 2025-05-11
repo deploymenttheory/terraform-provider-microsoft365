@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Resource - microsoft365"
+page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a browser site list in Microsoft 365 Admin Centre. Settings > Org settings > Microsoft Edge site lists.
