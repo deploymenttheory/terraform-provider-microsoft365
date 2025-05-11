@@ -22,5 +22,4 @@ type MacOSPKGAppModel struct {
 	DisplayName     types.String `tfsdk:"display_name"`
 	Description     types.String `tfsdk:"description"`
 	CreatedDateTime types.String `tfsdk:"created_date_time"`
-	RoleScopeTagIds types.Set    `tfsdk:"role_scope_tag_ids"`
 }

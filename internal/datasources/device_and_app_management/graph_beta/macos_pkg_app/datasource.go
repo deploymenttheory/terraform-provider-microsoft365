@@ -82,10 +82,6 @@ func (d *MacOSPKGAppDataSource) Schema(ctx context.Context, _ datasource.SchemaR
 							Computed:            true,
 							MarkdownDescription: "The date and time the app was created. This property is read-only.",
 						},
-						"role_scope_tag_ids": schema.SetAttribute{
-							Computed:            true,
-							MarkdownDescription: "Set of scope tag ids for this mobile app.",
-						},
 					},
 				},
 			},
