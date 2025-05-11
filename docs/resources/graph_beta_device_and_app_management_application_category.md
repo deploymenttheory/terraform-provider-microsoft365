@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_application_category Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_application_category Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manage Intune mobile app categories. Mobile app categories are used to organize apps in the Intune Company Portal.

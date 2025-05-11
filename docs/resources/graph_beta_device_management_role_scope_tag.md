@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_role_scope_tag Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_role_scope_tag Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages Role Scope Tags in Microsoft Intune.

@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_win_get_app Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_win_get_app Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages an Intune Microsoft Store app (new) resource aka winget, using the mobileapps graph beta API.
