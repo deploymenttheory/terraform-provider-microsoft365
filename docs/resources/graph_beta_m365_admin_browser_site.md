@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_m365_admin_browser_site Resource - microsoft365"
+page_title: "microsoft365_graph_beta_m365_admin_browser_site Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a browser site in Microsoft Intune.
