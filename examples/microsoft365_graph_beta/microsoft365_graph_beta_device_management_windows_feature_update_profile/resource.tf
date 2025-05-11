@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_device_and_app_management_windows_feature_update_profile" "example" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example" {
   display_name                                            = "Windows 11 22H2 Deployment x"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"
@@ -40,7 +40,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_feature_upda
 
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_windows_feature_update_profile" "example_2" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example_2" {
   display_name                                            = "Windows 11 22H2 Deployment y"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"
@@ -79,7 +79,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_feature_upda
   }
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_windows_feature_update_profile" "example_3" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example_3" {
   display_name                                            = "Windows 11 22H2 Deployment z"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"

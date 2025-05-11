@@ -1,7 +1,7 @@
 
-resource "microsoft365_graph_beta_device_and_app_management_role_definition_assignment" "resource_scope_example" {
+resource "microsoft365_graph_beta_device_management_role_definition_assignment" "resource_scope_example" {
   # You can reference either a role definition ID or use a built-in role name
-  role_definition_id = microsoft365_graph_beta_device_and_app_management_role_definition.example.id
+  role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
   # OR
   # built_in_role_name = "Help Desk Operator"
 
@@ -34,9 +34,9 @@ resource "microsoft365_graph_beta_device_and_app_management_role_definition_assi
   }
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_role_definition_assignment" "all_devices_example" {
+resource "microsoft365_graph_beta_device_management_role_definition_assignment" "all_devices_example" {
   # You can reference either a role definition ID or use a built-in role name
-  role_definition_id = microsoft365_graph_beta_device_and_app_management_role_definition.example.id
+  role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
   # OR
   # built_in_role_name = "Help Desk Operator"
 

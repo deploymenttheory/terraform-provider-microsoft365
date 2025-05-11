@@ -12,7 +12,7 @@ Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. 
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy" "example" {
+resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "example" {
   display_name       = "Windows Quality Update expedite policy"
   description        = "Emergency fixes"
   role_scope_tag_ids = ["9", "8"]

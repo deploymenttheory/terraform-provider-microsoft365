@@ -13,7 +13,7 @@ Manages Role Scope Tags in Microsoft Intune.
 
 ```terraform
 # Example of creating a basic role scope tag with a group assignment
-resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "helpdesk" {
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "helpdesk" {
   display_name = "Helpdesk Support Tag"
   description  = "Role scope tag for helpdesk support staff"
 
@@ -28,14 +28,14 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "hel
 }
 
 # Example of creating multiple related role scope tags with assignments
-resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "it_support" {
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "it_support" {
   display_name = "IT Support Tag"
   description  = "Role scope tag for IT support teams"
 
   assignments = ["00000000-0000-0000-0000-000000000002"]
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "device_management" {
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_management" {
   display_name = "Device Management Tag"
   description  = "Role scope tag for device management teams"
 
@@ -53,7 +53,7 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "dev
 }
 
 # Example showing data source usage to reference an existing role scope tag
-data "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "existing" {
+data "microsoft365_graph_beta_device_management_role_scope_tag" "existing" {
   display_name = "Existing Tag"
 }
 
@@ -79,7 +79,7 @@ variable "support_teams" {
 }
 
 # Creating multiple tags using variables
-resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "support_teams" {
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "support_teams" {
   for_each = { for team in var.support_teams : team.name => team }
 
   display_name = each.value.name
@@ -96,11 +96,11 @@ resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "sup
 
 # Output examples
 output "helpdesk_tag_id" {
-  value = microsoft365_graph_beta_device_and_app_management_role_scope_tag.helpdesk.id
+  value = microsoft365_graph_beta_device_management_role_scope_tag.helpdesk.id
 }
 
 output "all_support_team_ids" {
-  value = [for tag in microsoft365_graph_beta_device_and_app_management_role_scope_tag.support_teams : tag.id]
+  value = [for tag in microsoft365_graph_beta_device_management_role_scope_tag.support_teams : tag.id]
 }
 
 # Example of a role scope tag with conditional assignments based on environment
@@ -109,7 +109,7 @@ variable "environment" {
   default = "production"
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_role_scope_tag" "environment_specific" {
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "environment_specific" {
   display_name = "Environment-Specific Support Tag"
   description  = "Role scope tag for ${var.environment} environment"
 

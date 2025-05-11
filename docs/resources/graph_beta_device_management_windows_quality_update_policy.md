@@ -12,7 +12,7 @@ Manages a Windows Quality Update Policy in Microsoft Intune. This correlates to 
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_policy" "quality_update_policy_example" {
+resource "microsoft365_graph_beta_device_management_windows_quality_update_policy" "quality_update_policy_example" {
   display_name       = "Windows Quality Update Policy"
   description        = "Monthly quality updates for Windows devices"
   hotpatch_enabled   = true

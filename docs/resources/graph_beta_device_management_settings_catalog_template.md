@@ -12,7 +12,7 @@ Manages a Settings Catalog policy template in Microsoft Intune for `Windows`, `m
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_template" "windows_anti_virus_defender_update_controls" {
+resource "microsoft365_graph_beta_device_management_settings_catalog_template" "windows_anti_virus_defender_update_controls" {
   name                           = "Windows - Defender Update controls"
   description                    = "terraform test for settings catalog templates"
   settings_catalog_template_type = "windows_anti_virus_defender_update_controls"
@@ -114,7 +114,7 @@ resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_tem
 }
 
 
-resource "microsoft365_graph_beta_device_and_app_management_settings_catalog_template" "windows_anti_virus_microsoft_defender_antivirus_exclusions" {
+resource "microsoft365_graph_beta_device_management_settings_catalog_template" "windows_anti_virus_microsoft_defender_antivirus_exclusions" {
   name                           = "Windows - Defender Update anti virus exclusions"
   description                    = "terraform test for settings catalog templates"
   settings_catalog_template_type = "windows_anti_virus_microsoft_defender_antivirus_exclusions"

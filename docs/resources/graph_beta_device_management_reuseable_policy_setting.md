@@ -14,7 +14,7 @@ Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune f
 ```terraform
 // Example: Reuseable Policy Setting Resource
 
-resource "microsoft365_graph_beta_device_and_app_management_reuseable_policy_setting" "example" {
+resource "microsoft365_graph_beta_device_management_reuseable_policy_setting" "example" {
   display_name = "epm certificate"
   description  = "Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate directly to an elevation rule"
   settings = jsonencode({

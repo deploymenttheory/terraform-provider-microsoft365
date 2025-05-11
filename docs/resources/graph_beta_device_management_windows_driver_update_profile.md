@@ -12,7 +12,7 @@ Manages a Windows Driver Update Profile in Microsoft Intune. This correlates to 
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_windows_driver_update_profile" "manual_example" {
+resource "microsoft365_graph_beta_device_management_windows_driver_update_profile" "manual_example" {
   display_name       = "Windows Driver Updates - Production x"
   description        = "Driver update profile for production machines"
   approval_type      = "manual"
@@ -36,7 +36,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_driver_updat
   }
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_windows_driver_update_profile" "automatic_example" {
+resource "microsoft365_graph_beta_device_management_windows_driver_update_profile" "automatic_example" {
   display_name                = "Windows Driver Updates - Production y"
   description                 = "Driver update profile for production machines"
   approval_type               = "automatic"

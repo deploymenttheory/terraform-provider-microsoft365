@@ -12,7 +12,7 @@ Manages an Intune Linux platform script using the 'configurationPolicies' Graph 
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_linux_platform_script" "example" {
+resource "microsoft365_graph_beta_device_management_linux_platform_script" "example" {
   name                = "Example Linux Script"
   description         = "Example script to demonstrate Linux platform script configuration"
   execution_context   = "user" // Possible values are user, root

@@ -12,7 +12,7 @@ The resource `role_definition` manages a Role Definition in Microsoft 365
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_role_definition" "example" {
+resource "microsoft365_graph_beta_device_management_role_definition" "example" {
   display_name                = "android intune"
   description                 = "Custom role for Intune device administration with limited permissions"
   is_built_in_role_definition = false

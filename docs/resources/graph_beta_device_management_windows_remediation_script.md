@@ -12,7 +12,7 @@ Manages a Device Health Script in Microsoft Intune. Device health scripts can de
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_windows_remediation_script" "basic_example" {
+resource "microsoft365_graph_beta_device_management_windows_remediation_script" "basic_example" {
   display_name            = "windows remediation script with no assignments"
   description             = "Simple script applied to no devices"
   publisher               = "Contoso IT"
@@ -57,7 +57,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_remediation_
 }
 
 
-resource "microsoft365_graph_beta_device_and_app_management_windows_remediation_script" "windows_remediation_script_with_scoping" {
+resource "microsoft365_graph_beta_device_management_windows_remediation_script" "windows_remediation_script_with_scoping" {
   display_name            = "windows remediation script with assignment options"
   description             = "Simple script applied to scoped devices"
   publisher               = "Contoso IT"
