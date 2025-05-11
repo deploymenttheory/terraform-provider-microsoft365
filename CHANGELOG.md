@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.11.0-alpha...v0.12.0-alpha) (2025-05-11)
+
+
+### Features
+
+* added refactored unit tests for provider build and credential factory ([bd7691c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bd7691c76d6403dadb4eb68d76ba37093f506b9b))
+* added refactored unit tests for provider build and credential factory ([#439](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/439)) ([c191a93](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c191a9345c962f5f19a1bfd76dcafb3fb1deec01))
+* mocking scaffolding ([f1be6d1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f1be6d1f6fddfca091d34df19750da364545c1b1))
+* mocks scaffolding ([#440](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/440)) ([9ee57df](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ee57dfc4eecebb95c35c0e60686925d3228c2c6))
+* refactored data source for maospkgapp ([#442](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/442)) ([fec56b7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fec56b72934dc5c9fbd1dad05e8d690fab0793ab))
+* refactored macospkg app datasource with example ([cbc1681](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cbc1681feca36a096ea63b69dc61540178b21447))
+
+
+### Bug Fixes
+
+* examples so that device_management examples are reflective ([d6856b4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d6856b480ef5a0c9f7277592bc391eb47487b443))
+* examples so that device_management examples are reflective ([#441](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/441)) ([6062154](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6062154d0eedb88177fec252a4c5fb5f925ca24a))
+* for enum handling within GetDeviceEnrollmentConfigurationType ([#437](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/437)) ([896c291](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/896c2918aa799ec20127a79538a06cfe1cff892e))
+* for handling enum ([ce13f69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ce13f693c89723f9766c02519f17596ea328d7e2))
+* for handling enum ([6e2f1ff](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6e2f1ff38ef16ddbcd405eff88c380371e315856))
+* refactored docs for repo restructure ([546ebb4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/546ebb4ff5dfe06b9b6c9febad4223a4acf71abf))
+* refactored docs for repo restructure ([#435](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/435)) ([3b14e78](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3b14e78f1db1659b176983abced03e04b32195d6))
+
 ## [0.11.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.10.0-alpha...v0.11.0-alpha) (2025-05-07)
 
 
