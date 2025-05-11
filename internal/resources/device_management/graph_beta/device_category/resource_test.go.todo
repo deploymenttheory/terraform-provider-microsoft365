@@ -1,0 +1,173 @@
+// Copyright (c) DeploymentTheory Corp.
+// Licensed under the MIT license.
+
+package graphBetaDeviceCategory_test
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/jarcoal/httpmock"
+)
+
+func TestUnitDeviceCategory_Basic(t *testing.T) {
+	// Set environment variables for test
+	os.Setenv("M365_CLOUD", "public")
+	os.Setenv("M365_AUTH_METHOD", "client_secret")
+	os.Setenv("M365_TENANT_ID", "00000000-0000-0000-0000-000000000000")
+	os.Setenv("M365_CLIENT_ID", "00000000-0000-0000-0000-000000000000")
+	os.Setenv("M365_CLIENT_SECRET", "fake-secret")
+
+	// Ensure cleanup
+	defer func() {
+		os.Unsetenv("M365_CLOUD")
+		os.Unsetenv("M365_AUTH_METHOD")
+		os.Unsetenv("M365_TENANT_ID")
+		os.Unsetenv("M365_CLIENT_ID")
+		os.Unsetenv("M365_CLIENT_SECRET")
+	}()
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Activate all necessary mocks including authentication
+	mocks.ActivateMicrosoftGraphMocks()
+
+	// Register specific mock responses for this test
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceCategories",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(http.StatusCreated, `{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCategories/$entity",
+				"id": "00000000-0000-0000-0000-000000000001",
+				"displayName": "Test Device Category",
+				"description": "Test Description for Device Category",
+				"roleScopeTagIds": ["0"]
+			}`), nil
+		})
+
+	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/00000000-0000-0000-0000-000000000001$`),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(http.StatusOK, `{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCategories/$entity",
+				"id": "00000000-0000-0000-0000-000000000001",
+				"displayName": "Test Device Category",
+				"description": "Test Description for Device Category",
+				"roleScopeTagIds": ["0"]
+			}`), nil
+		})
+
+	httpmock.RegisterRegexpResponder("PATCH", regexp.MustCompile(`^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/00000000-0000-0000-0000-000000000001$`),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(http.StatusOK, `{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCategories/$entity",
+				"id": "00000000-0000-0000-0000-000000000001",
+				"displayName": "Updated Device Category",
+				"description": "Updated Description for Device Category",
+				"roleScopeTagIds": ["0"]
+			}`), nil
+		})
+
+	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/00000000-0000-0000-0000-000000000001$`),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(http.StatusNoContent, ``), nil
+		})
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				resource "microsoft365_graph_beta_device_management_device_category" "test" {
+					display_name = "Test Device Category"
+					description  = "Test Description for Device Category"
+				}`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "id", "00000000-0000-0000-0000-000000000001"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "display_name", "Test Device Category"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "description", "Test Description for Device Category"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "role_scope_tag_ids.0", "0"),
+				),
+			},
+			{
+				Config: `
+				resource "microsoft365_graph_beta_device_management_device_category" "test" {
+					display_name = "Updated Device Category"
+					description  = "Updated Description for Device Category"
+				}`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "id", "00000000-0000-0000-0000-000000000001"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "display_name", "Updated Device Category"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "description", "Updated Description for Device Category"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_category.test", "role_scope_tag_ids.0", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitDeviceCategory_Validation(t *testing.T) {
+	// Set environment variables for test
+	os.Setenv("M365_CLOUD", "public")
+	os.Setenv("M365_AUTH_METHOD", "client_secret")
+	os.Setenv("M365_TENANT_ID", "00000000-0000-0000-0000-000000000000")
+	os.Setenv("M365_CLIENT_ID", "00000000-0000-0000-0000-000000000000")
+	os.Setenv("M365_CLIENT_SECRET", "fake-secret")
+
+	// Ensure cleanup
+	defer func() {
+		os.Unsetenv("M365_CLOUD")
+		os.Unsetenv("M365_AUTH_METHOD")
+		os.Unsetenv("M365_TENANT_ID")
+		os.Unsetenv("M365_CLIENT_ID")
+		os.Unsetenv("M365_CLIENT_SECRET")
+	}()
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Activate all necessary mocks including authentication
+	mocks.ActivateMicrosoftGraphMocks()
+
+	// Test for empty display_name validation
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				resource "microsoft365_graph_beta_device_management_device_category" "test" {
+					display_name = ""
+					description  = "Test Description"
+				}`,
+				ExpectError: regexp.MustCompile("display_name cannot be empty"),
+			},
+		},
+	})
+
+	// Test for long description validation
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "microsoft365_graph_beta_device_management_device_category" "test" {
+					display_name = "Test Category"
+					description  = "%s"
+				}`, strings.Repeat("a", 1025)), // Create a description that's too long
+				ExpectError: regexp.MustCompile("description cannot exceed 1024 characters"),
+			},
+		},
+	})
+}
+
+// TestAccDeviceCategory_Basic - skipping acceptance test definition for brevity
