@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_macos_pkg_app Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_macos_pkg_app Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves macOS PKG Apps from Microsoft Intune with explicit filtering options.

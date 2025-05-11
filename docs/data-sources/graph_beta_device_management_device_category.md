@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_device_category Data Source - microsoft365"
+page_title: "microsoft365_graph_beta_device_management_device_category Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
   Retrieves Device Categories from Microsoft Intune with explicit filtering options.
