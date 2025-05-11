@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_management Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_management Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Endpoint Privilege Management Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.

@@ -14,7 +14,6 @@ func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.MacOSPkgAp
 		DisplayName:     state.StringPointerValue(data.GetDisplayName()),
 		Description:     state.StringPointerValue(data.GetDescription()),
 		CreatedDateTime: state.TimeToString(data.GetCreatedDateTime()),
-		RoleScopeTagIds: state.StringSliceToSet(ctx, data.GetRoleScopeTagIds()),
 	}
 
 	return model
