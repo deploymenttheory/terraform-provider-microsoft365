@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_management Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_management Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Endpoint Privilege Management Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
@@ -14,7 +14,7 @@ Manages a Endpoint Privilege Management Policy using Settings Catalog in Microso
 ```terraform
 # epm elevation settings policy example
 
-resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_management" "epm_elevation_settings_policy" {
+resource "microsoft365_graph_beta_device_management_endpoint_privilege_management" "epm_elevation_settings_policy" {
   name                           = "EPM Base Elevation settings policy"
   description                    = "Elevation settings policy"
   role_scope_tag_ids             = ["0"]
@@ -130,7 +130,7 @@ resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_m
 
 # epm elevation rules policy example
 
-resource "microsoft365_graph_beta_device_and_app_management_endpoint_privilege_management" "epm_elevation_rules_policy" {
+resource "microsoft365_graph_beta_device_management_endpoint_privilege_management" "epm_elevation_rules_policy" {
   name                           = "EPM Elevation rules policy"
   description                    = "Elevation rules policy"
   role_scope_tag_ids             = ["0"]

@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_device_and_app_management_windows_driver_update_inventory" "example" {
+resource "microsoft365_graph_beta_device_management_windows_driver_update_inventory" "example" {
   # Required attributes
   name                             = "Intel HD Graphics Driver"
   version                          = "27.20.100.8681"

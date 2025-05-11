@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_settings_catalog Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_settings_catalog Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
@@ -12,7 +12,7 @@ Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iP
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_settings_catalog" "test_macOS" {
+resource "microsoft365_graph_beta_device_management_settings_catalog" "test_macOS" {
   name               = "Test Settings Catalog Profile - macOS"
   description        = ""
   platforms          = "macOS"

@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_macos_platform_script Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_macos_platform_script Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta API.
@@ -14,7 +14,7 @@ Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta
 ```terraform
 // Example: Device Shell Script Resource
 
-resource "microsoft365_graph_beta_device_and_app_management_macos_platform_script" "example" {
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "example" {
   # Required fields
   display_name = "MacOS Shell Script"
   description  = "Example shell script for MacOS devices"

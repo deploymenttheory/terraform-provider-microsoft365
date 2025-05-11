@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_device_and_app_management_settings_catalog" "test_macOS" {
+resource "microsoft365_graph_beta_device_management_settings_catalog" "test_macOS" {
   name               = "Test Settings Catalog Profile - macOS"
   description        = ""
   platforms          = "macOS"

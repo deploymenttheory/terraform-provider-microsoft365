@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy Resource - microsoft365"
 subcategory: "Intune"
 description: |-
   Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.
@@ -12,7 +12,7 @@ Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. 
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy" "example" {
+resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "example" {
   display_name       = "Windows Quality Update expedite policy"
   description        = "Emergency fixes"
   role_scope_tag_ids = ["9", "8"]
