@@ -22,12 +22,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 		// Terraform will treat the desired state as "no assignments". In order to reconcile this
 		// with the actual state (which may still have existing assignments in Intune), we need to
 		// explicitly clear those assignments.
-		//
-		// The Microsoft Graph API interprets a POST /assign call with an empty array as a command
-		// to remove all current assignments from the app.
-		requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
-		requestBody.SetMobileAppAssignments([]graphmodels.MobileAppAssignmentable{})
-		return requestBody, nil
+		return deviceappmanagement.NewMobileAppsItemAssignPostRequestBody(), nil
 	}
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")

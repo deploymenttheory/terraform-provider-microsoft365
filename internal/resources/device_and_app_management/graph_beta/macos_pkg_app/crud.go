@@ -631,7 +631,6 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Step 3:  Updated Assignments
-	//if object.Assignments != nil && !state.ID.IsNull() {
 	if !state.ID.IsNull() {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
