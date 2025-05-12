@@ -534,15 +534,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
 	// 4. Get app metadata by processing app installer file
-	installerPath, tempInfo, err := helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
-	if err != nil {
-		resp.Diagnostics.AddError("Error determining installer path", err.Error())
-		return
-	}
-	if tempInfo.ShouldCleanup {
-		defer helpers.CleanupTempFile(ctx, tempInfo)
-	}
-
 	var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
 	if !req.State.Raw.IsNull() {
 		diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &existingMetadata)
@@ -550,15 +541,34 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 			resp.Diagnostics.Append(diags...)
 			return
 		}
+		object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
 	}
 
-	metadata, err := helpers.GetAppMetadata(ctx, installerPath, &existingMetadata)
-	if err != nil {
-		resp.Diagnostics.AddError("Error capturing app installer metadata", err.Error())
-		return
-	}
+	// installerPath, tempInfo, err := helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
+	// if err != nil {
+	// 	resp.Diagnostics.AddError("Error determining installer path", err.Error())
+	// 	return
+	// }
+	// if tempInfo.ShouldCleanup {
+	// 	defer helpers.CleanupTempFile(ctx, tempInfo)
+	// }
 
-	object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, metadata)
+	// var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
+	// if !req.State.Raw.IsNull() {
+	// 	diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &existingMetadata)
+	// 	if diags.HasError() {
+	// 		resp.Diagnostics.Append(diags...)
+	// 		return
+	// 	}
+	// }
+
+	// metadata, err := helpers.GetAppMetadata(ctx, installerPath, &existingMetadata)
+	// if err != nil {
+	// 	resp.Diagnostics.AddError("Error capturing app installer metadata", err.Error())
+	// 	return
+	// }
+
+	//object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, metadata)
 
 	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
