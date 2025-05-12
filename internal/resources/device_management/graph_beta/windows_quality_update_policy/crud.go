@@ -40,10 +40,12 @@ func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req res
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -64,12 +66,14 @@ func (r *WindowsQualityUpdatePolicyResource) Create(ctx context.Context, req res
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsQualityUpdatePolicies().
 			ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
@@ -153,12 +157,14 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 
 	MapRemoteResourceStateToTerraform(ctx, &object, resourceResp)
 
+	constants.GraphSDKMutex.Lock()
 	assignmentsResp, err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -215,11 +221,13 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -238,12 +246,15 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsQualityUpdatePolicies().
 			ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
@@ -302,11 +313,13 @@ func (r *WindowsQualityUpdatePolicyResource) Delete(ctx context.Context, req res
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
 		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

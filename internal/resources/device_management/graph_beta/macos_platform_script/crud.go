@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -43,10 +44,12 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -66,12 +69,15 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			err := r.client.
 				DeviceManagement().
 				DeviceShellScripts().
 				ByDeviceShellScriptId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
+
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
 			}
@@ -142,6 +148,7 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	defer cancel()
 
 	// Read resource with expanded assignments
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
@@ -151,6 +158,7 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 				Expand: []string{"assignments"},
 			},
 		})
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -212,11 +220,13 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		DeviceShellScripts().
 		ByDeviceShellScriptId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -233,12 +243,14 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceShellScripts().
 			ByDeviceShellScriptId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
@@ -296,11 +308,13 @@ func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceShellScripts().
 		ByDeviceShellScriptId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

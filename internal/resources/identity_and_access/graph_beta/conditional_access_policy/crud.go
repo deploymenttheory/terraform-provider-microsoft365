@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,11 +55,13 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	conditionalAccessPolicy, err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -117,12 +120,14 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	conditionalAccessPolicy, err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -178,12 +183,14 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -233,12 +240,14 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
 		ByConditionalAccessPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

@@ -66,12 +66,14 @@ func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req 
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceEnrollmentConfigurations().
 			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
@@ -138,13 +140,14 @@ func (r *DeviceEnrollmentConfigurationResource) Read(ctx context.Context, req re
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	// Get assignments
+	constants.GraphSDKMutex.Lock()
 	assignmentsResp, err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -214,12 +217,15 @@ func (r *DeviceEnrollmentConfigurationResource) Update(ctx context.Context, req 
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceEnrollmentConfigurations().
 			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
@@ -271,11 +277,13 @@ func (r *DeviceEnrollmentConfigurationResource) Delete(ctx context.Context, req 
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

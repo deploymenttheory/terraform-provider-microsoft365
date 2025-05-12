@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,10 +41,12 @@ func (r *WindowsUpdateRingResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -94,11 +97,13 @@ func (r *WindowsUpdateRingResource) Read(ctx context.Context, req resource.ReadR
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -154,11 +159,13 @@ func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -208,11 +215,13 @@ func (r *WindowsUpdateRingResource) Delete(ctx context.Context, req resource.Del
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

@@ -66,12 +66,14 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsFeatureUpdateProfiles().
 			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
@@ -146,12 +148,14 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
+	constants.GraphSDKMutex.Lock()
 	assignmentsResp, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -207,6 +211,7 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		)
 		return
 	}
+
 	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
@@ -232,12 +237,15 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsFeatureUpdateProfiles().
 			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
@@ -296,11 +304,13 @@ func (r *WindowsFeatureUpdateProfileResource) Delete(ctx context.Context, req re
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
