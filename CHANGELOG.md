@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.12.0-alpha...v0.13.0-alpha) (2025-05-12)
+
+
+### Features
+
+* mobile app assignments can now be set in any order with modify plan (diff supression) ([c8f97ef](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c8f97ef7201c1a79efc3850add74eac0e78468be))
+
+
+### Bug Fixes
+
+* added mutex to all api calls to defender against Kiota's middleware (e.g., HeadersInspectionHandler) when modifing shared header maps during HTTP request processing. appears to be a bug in the latest version ([976ad22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/976ad22dea6b1ddf6e3027714a04c449b73ac11c))
+* added mutex to all api calls to defender against Kiota's middleware (e.g., HeadersInspectionHandler) when modifing shared header maps during HTTP request processing. appears to be a bug in the latest version ([#450](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/450)) ([10327c8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/10327c856db27c79ae6883677a48049c6caf2a1e))
+* base resource updates for macos_pkg_app doesnt use redundant file size checks ([6162a1d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6162a1d4dc9860de2aa812ff386289bd6fc387f7))
+* defined default values and plan modifier for role_scope_tag_ids ([e8909e0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e8909e0fc876dbe03422bfb26943ac872cfab432))
+* for parrallism issues with concurrent header map settings in client mobile apps ([49561f6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/49561f64cea87bd23eab9dda180824ddfd8934de))
+* for role_scope_tag_ids ([#444](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/444)) ([b1e0fd8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b1e0fd819d4956ee065e96d4300fb24785719dc2))
+* removed conditional access. complete refactor required with latest sdk version ([4cb550d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4cb550d56f376cb30bde71c71b4699e63653e07c))
+
 ## [0.12.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.11.0-alpha...v0.12.0-alpha) (2025-05-11)
 
 
