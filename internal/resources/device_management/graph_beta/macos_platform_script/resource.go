@@ -9,6 +9,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -121,10 +122,16 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Script file name.",
 				Required:            true,
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
-				MarkdownDescription: "List of Scope Tag IDs for this PowerShellScript instance.",
-				Optional:            true,
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
 			},
 			"block_execution_notifications": schema.BoolAttribute{
 				MarkdownDescription: "Does not notify the user a script is being executed.",

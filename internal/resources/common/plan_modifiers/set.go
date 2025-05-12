@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// defaultValueSet is a Set plan modifier that sets a default value when the config is null or empty
+
 type SetModifier interface {
 	planmodifier.Set
 	Description(context.Context) string
@@ -56,26 +58,40 @@ func UseStateForUnknownSet() SetModifier {
 	}
 }
 
+// defaultValueSet is a Set plan modifier that sets a default value when the config is null or empty
 type defaultValueSet struct {
 	setModifier
 	defaultValue types.Set
 }
 
+// PlanModifySet sets the plan value to the default set if the config is null or empty.
 func (m defaultValueSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	if !req.PlanValue.IsNull() {
+	if !req.PlanValue.IsNull() && len(req.PlanValue.Elements()) > 0 {
 		return
 	}
-
 	resp.PlanValue = m.defaultValue
 }
 
-func DefaultValueSet(defaultValue []attr.Value) SetModifier {
+// DefaultSetValue returns a SetModifier that sets the default value to the specified set.
+func DefaultSetValue(defaultValue []attr.Value) planmodifier.Set {
 	return defaultValueSet{
 		setModifier: setModifier{
 			description:         fmt.Sprintf("Default value set to %v", defaultValue),
 			markdownDescription: fmt.Sprintf("Default value set to `%v`", defaultValue),
 		},
 		defaultValue: types.SetValueMust(types.StringType, defaultValue),
+	}
+}
+
+// DefaultSetEmptyValue returns a SetModifier that sets the default value to an empty set.
+func DefaultSetEmptyValue() planmodifier.Set {
+	emptySet, _ := types.SetValue(types.StringType, []attr.Value{})
+	return defaultValueSet{
+		setModifier: setModifier{
+			description:         "Default value set to empty set",
+			markdownDescription: "Default value set to empty set",
+		},
+		defaultValue: emptySet,
 	}
 }
 

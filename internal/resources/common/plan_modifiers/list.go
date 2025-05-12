@@ -31,6 +31,8 @@ func (m listModifier) MarkdownDescription(ctx context.Context) string {
 	return m.markdownDescription
 }
 
+//------------------------------------------------------------------------------
+
 type defaultValueList struct {
 	listModifier
 	defaultValue types.List

@@ -104,12 +104,13 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 				Sensitive:           true,
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this linux device management script.",
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue(
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
 					),
 				},

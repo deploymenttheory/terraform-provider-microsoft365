@@ -198,12 +198,12 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					planmodifiers.DefaultListValue([]attr.Value{types.StringValue("mdm")}),
 				},
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this Windows Settings Catalog profile.",
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue(
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
 					),
 				},
