@@ -544,32 +544,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
 	}
 
-	// installerPath, tempInfo, err := helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError("Error determining installer path", err.Error())
-	// 	return
-	// }
-	// if tempInfo.ShouldCleanup {
-	// 	defer helpers.CleanupTempFile(ctx, tempInfo)
-	// }
-
-	// var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
-	// if !req.State.Raw.IsNull() {
-	// 	diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &existingMetadata)
-	// 	if diags.HasError() {
-	// 		resp.Diagnostics.Append(diags...)
-	// 		return
-	// 	}
-	// }
-
-	// metadata, err := helpers.GetAppMetadata(ctx, installerPath, &existingMetadata)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError("Error capturing app installer metadata", err.Error())
-	// 	return
-	// }
-
-	//object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, metadata)
-
 	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -657,7 +631,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Step 3:  Updated Assignments
-	if object.Assignments != nil && !state.ID.IsNull() {
+	//if object.Assignments != nil && !state.ID.IsNull() {
+	if !state.ID.IsNull() {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
