@@ -48,6 +48,7 @@ func NewConditionalAccessPolicyResource() resource.Resource {
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",
+			"Policy.Read.All", // https://developer.microsoft.com/en-us/graph/known-issues/?search=13671
 		},
 	}
 }
