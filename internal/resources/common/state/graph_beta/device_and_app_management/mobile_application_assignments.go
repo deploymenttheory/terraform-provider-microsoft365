@@ -13,9 +13,9 @@ import (
 
 // StateMobileAppAssignment maps remote assignments to a slice of assignment resource models
 func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) []sharedmodels.MobileAppAssignmentResourceModel {
-	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil {
-		tflog.Debug(ctx, "Remote assignments response is nil")
-		return []sharedmodels.MobileAppAssignmentResourceModel{}
+	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil || len(remoteAssignmentsResponse.GetValue()) == 0 {
+		tflog.Debug(ctx, "Remote assignments response is empty")
+		return nil
 	}
 
 	remoteAssignments := remoteAssignmentsResponse.GetValue()

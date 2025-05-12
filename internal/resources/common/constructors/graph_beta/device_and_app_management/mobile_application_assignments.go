@@ -18,7 +18,7 @@ import (
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
 func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
-		return nil, fmt.Errorf("mobile app assignment data is required")
+		return nil, fmt.Errorf("the 'assignments' block must contain at least one mobile application assignment when defined")
 	}
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
