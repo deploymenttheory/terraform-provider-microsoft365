@@ -26,7 +26,7 @@ import (
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/windows_remediation_script"
 
 	// Graph Beta - Identity and Access resources
-	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/identity_and_access/graph_beta/conditional_access_policy"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	// Graph Beta - M365 Admin Centre
@@ -84,7 +84,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 
 		// Graph Beta - Identity and Access resources
-		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,
