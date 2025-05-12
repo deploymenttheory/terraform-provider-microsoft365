@@ -9,10 +9,10 @@ import (
 // ValidateMobileAppAssignmentSettings validates the mobile app assignment settings across all assignments
 func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignmentResourceModel) error {
 
-	// Rule 1: Validate assignment ordering
-	if err := validateAssignmentOrdering(config); err != nil {
-		return err
-	}
+	// // Rule 1: Validate assignment ordering
+	// if err := validateAssignmentOrdering(config); err != nil {
+	// 	return err
+	// }
 
 	// Track usage of special target types
 	allDevicesCount := 0

@@ -7,6 +7,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -119,9 +120,15 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
-				MarkdownDescription: "List of Scope Tags to assign to this intune role definition.",
-				Optional:            true,
 				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
 			},
 			"role_permissions": schema.ListNestedAttribute{
 				MarkdownDescription: "List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions.",

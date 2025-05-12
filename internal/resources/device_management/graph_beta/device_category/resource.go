@@ -94,12 +94,13 @@ func (r *DeviceCategoryResource) Schema(ctx context.Context, req resource.Schema
 				Optional:    true,
 				Description: "The optional description of the Intune device category",
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this device category.",
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue(
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
 					),
 				},

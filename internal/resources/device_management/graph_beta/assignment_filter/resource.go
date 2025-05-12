@@ -9,6 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -127,10 +128,16 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Computed:    true,
 				Description: "Last modified time of the assignment filter.",
 			},
-			"role_scope_tags": schema.ListAttribute{
-				Optional:    true,
-				Description: "Indicates role scope tags assigned for the assignment filter.",
-				ElementType: types.StringType,
+			"role_scope_tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

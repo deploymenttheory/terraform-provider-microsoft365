@@ -17,9 +17,6 @@ func MapAppMetadataStateToTerraform(ctx context.Context, metadata *sharedmodels.
 		AttrTypes: map[string]attr.Type{
 			"installer_file_path_source": types.StringType,
 			"installer_url_source":       types.StringType,
-			"installer_size_in_bytes":    types.Int64Type,
-			"installer_md5_checksum":     types.StringType,
-			"installer_sha256_checksum":  types.StringType,
 		},
 	}
 
@@ -30,9 +27,6 @@ func MapAppMetadataStateToTerraform(ctx context.Context, metadata *sharedmodels.
 	values := map[string]attr.Value{
 		"installer_file_path_source": metadata.InstallerFilePathSource,
 		"installer_url_source":       metadata.InstallerURLSource,
-		"installer_size_in_bytes":    metadata.InstallerSizeInBytes,
-		"installer_md5_checksum":     metadata.InstallerMD5Checksum,
-		"installer_sha256_checksum":  metadata.InstallerSHA256Checksum,
 	}
 
 	objValue, diags := types.ObjectValue(objectType.AttrTypes, values)

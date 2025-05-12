@@ -6,23 +6,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 )
 
-func MobileAppAssignmentSchema() schema.SetNestedAttribute {
-	return schema.SetNestedAttribute{
+func MobileAppAssignmentSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
 		Optional: true,
-		PlanModifiers: []planmodifier.Set{
-			setplanmodifier.UseStateForUnknown(),
+		PlanModifiers: []planmodifier.List{
+			listplanmodifier.UseStateForUnknown(),
+			planmodifiers.MobileAppAssignmentsListModifier(),
 		},
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
-					MarkdownDescription: "The ID of the Intune application associated with this assignment.",
+					MarkdownDescription: "The ID of the app assignment associated with the Intune application.",
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),

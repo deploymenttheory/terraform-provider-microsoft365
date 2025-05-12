@@ -8,6 +8,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
+
+	// validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,7 +18,11 @@ import (
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
 func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
-		return nil, fmt.Errorf("mobile app assignment data is required")
+		// When the 'assignments' block is omitted or removed from the Terraform configuration,
+		// Terraform will treat the desired state as "no assignments". In order to reconcile this
+		// with the actual state (which may still have existing assignments in Intune), we need to
+		// explicitly clear those assignments.
+		return deviceappmanagement.NewMobileAppsItemAssignPostRequestBody(), nil
 	}
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")

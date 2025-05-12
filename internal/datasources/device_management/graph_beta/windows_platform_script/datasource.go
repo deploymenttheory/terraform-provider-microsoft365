@@ -62,7 +62,7 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Description of the windows platform script.",
 				Computed:            true,
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				MarkdownDescription: "List of Scope Tag IDs for this PowerShellScript instance.",
 				Computed:            true,
 				ElementType:         types.StringType,

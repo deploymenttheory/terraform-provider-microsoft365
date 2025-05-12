@@ -2,11 +2,7 @@ package helpers
 
 import (
 	"context"
-	"crypto/md5"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
@@ -84,56 +80,4 @@ func CleanupTempFile(ctx context.Context, fileInfo TempFileInfo) {
 	} else {
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed temporary file: %s", fileInfo.FilePath))
 	}
-}
-
-// GetAppMetadata computes and sets the metadata for the installer file (size and checksums)
-// used for evaluation for content version updates and other purposes
-func GetAppMetadata(
-	ctx context.Context,
-	installerSourcePath string,
-	existingMetadata *sharedmodels.MobileAppMetaDataResourceModel,
-) (*sharedmodels.MobileAppMetaDataResourceModel, error) {
-	fileInfo, err := os.Stat(installerSourcePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get file information: %v", err)
-	}
-
-	currentSize := fileInfo.Size()
-
-	tflog.Debug(ctx, "Computed installer file size", map[string]interface{}{
-		"file_path":  installerSourcePath,
-		"size_bytes": currentSize,
-	})
-
-	md5Hash := md5.New()
-	sha256Hash := sha256.New()
-
-	file, err := os.Open(installerSourcePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file for checksums: %v", err)
-	}
-	defer file.Close()
-
-	multiWriter := io.MultiWriter(md5Hash, sha256Hash)
-
-	if _, err := io.Copy(multiWriter, file); err != nil {
-		return nil, fmt.Errorf("failed to read file for checksums: %v", err)
-	}
-
-	md5Checksum := hex.EncodeToString(md5Hash.Sum(nil))
-	sha256Checksum := hex.EncodeToString(sha256Hash.Sum(nil))
-
-	tflog.Debug(ctx, "Computed installer file checksums", map[string]interface{}{
-		"file_path":       installerSourcePath,
-		"md5_checksum":    md5Checksum,
-		"sha256_checksum": sha256Checksum,
-	})
-
-	return &sharedmodels.MobileAppMetaDataResourceModel{
-		InstallerFilePathSource: existingMetadata.InstallerFilePathSource,
-		InstallerURLSource:      existingMetadata.InstallerURLSource,
-		InstallerSizeInBytes:    types.Int64Value(currentSize),
-		InstallerMD5Checksum:    types.StringValue(md5Checksum),
-		InstallerSHA256Checksum: types.StringValue(sha256Checksum),
-	}, nil
 }
