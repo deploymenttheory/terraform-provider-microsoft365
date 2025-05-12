@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
@@ -60,10 +61,12 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -83,12 +86,14 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			_, err := r.client.
 				DeviceManagement().
 				ConfigurationPolicies().
 				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -165,11 +170,13 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -190,11 +197,14 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	}
 
 	var settingsResponse []byte
+
+	constants.GraphSDKMutex.Lock()
 	settingsResponse, err = graphcustom.GetRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		settingsConfig,
 	)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -203,12 +213,14 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 
 	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
+	constants.GraphSDKMutex.Lock()
 	assignmentsResponse, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -273,7 +285,13 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		RequestBody: requestBody,
 	}
 
-	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
+	constants.GraphSDKMutex.Lock()
+	err = graphcustom.PutRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		putRequest)
+	constants.GraphSDKMutex.Unlock()
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
@@ -290,12 +308,14 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			_, err := r.client.
 				DeviceManagement().
 				ConfigurationPolicies().
 				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
@@ -359,11 +379,13 @@ func (r *EndpointPrivilegeManagementResource) Delete(ctx context.Context, req re
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

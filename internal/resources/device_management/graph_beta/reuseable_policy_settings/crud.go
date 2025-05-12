@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
@@ -60,10 +61,12 @@ func (r *ReuseablePolicySettingsResource) Create(ctx context.Context, req resour
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		ReusablePolicySettings().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -135,6 +138,7 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 	defer cancel()
 
 	// resource type doesn't export expand. hence select param usage
+	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceManagement().
 		ReusablePolicySettings().
@@ -155,12 +159,13 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 				},
 			},
 		})
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
-	// Log the response using DebugLogGraphObject
+
 	if err := constructors.DebugLogGraphObject(ctx, "Raw Response from Graph API", baseResource); err != nil {
 		tflog.Error(ctx, "Failed to debug log response", map[string]interface{}{
 			"error": err.Error(),
@@ -225,7 +230,13 @@ func (r *ReuseablePolicySettingsResource) Update(ctx context.Context, req resour
 		RequestBody: requestBody,
 	}
 
-	err = graphcustom.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest)
+	constants.GraphSDKMutex.Lock()
+	err = graphcustom.PutRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		putRequest)
+	constants.GraphSDKMutex.Unlock()
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
@@ -295,11 +306,13 @@ func (r *ReuseablePolicySettingsResource) Delete(ctx context.Context, req resour
 		"id":       deleteConfig.ResourceID,
 	})
 
+	constants.GraphSDKMutex.Lock()
 	err := graphcustom.DeleteRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		deleteConfig,
 	)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

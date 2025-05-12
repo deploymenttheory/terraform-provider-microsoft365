@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,7 +51,6 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		builtInRoleName = data.BuiltInRoleName.ValueString()
 	}
 
-	// Construct the assignment
 	requestBody, err := constructResource(
 		ctx,
 		roleDefinitionID,
@@ -58,6 +58,7 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		builtInRoleName,
 		&data,
 	)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment",
@@ -66,11 +67,12 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	// Create the assignment via API
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
@@ -120,22 +122,21 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Fetch the assignment
+	constants.GraphSDKMutex.Lock()
 	resource, err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	// Map the API response to our model
 	MapRemoteResourceStateToTerraform(ctx, &data, resource)
 
-	// Save the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -188,19 +189,19 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	// Update the assignment via API
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update Assignment", r.WritePermissions)
 		return
 	}
 
-	// Read the updated resource to refresh state
 	readResp := &resource.ReadResponse{
 		State: resp.State,
 	}
@@ -236,12 +237,13 @@ func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	// Delete the assignment
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete Assignment", r.WritePermissions)

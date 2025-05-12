@@ -39,7 +39,6 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
     post_install_script = {
       script_content = base64encode("#!/bin/bash\necho macOS PKG Post-install script example")
     }
-
   }
 
   # Optional: Add timeouts

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -48,12 +49,14 @@ func (r *WindowsDriverUpdateInventoryResource) Create(ctx context.Context, req r
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		ByWindowsDriverUpdateProfileId(object.WindowsDriverUpdateProfileID.ValueString()).
 		DriverInventories().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -113,6 +116,7 @@ func (r *WindowsDriverUpdateInventoryResource) Read(ctx context.Context, req res
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
@@ -120,6 +124,7 @@ func (r *WindowsDriverUpdateInventoryResource) Read(ctx context.Context, req res
 		DriverInventories().
 		ByWindowsDriverUpdateInventoryId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -174,6 +179,7 @@ func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req r
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
@@ -181,6 +187,7 @@ func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req r
 		DriverInventories().
 		ByWindowsDriverUpdateInventoryId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -239,6 +246,7 @@ func (r *WindowsDriverUpdateInventoryResource) Delete(ctx context.Context, req r
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
@@ -246,6 +254,7 @@ func (r *WindowsDriverUpdateInventoryResource) Delete(ctx context.Context, req r
 		DriverInventories().
 		ByWindowsDriverUpdateInventoryId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

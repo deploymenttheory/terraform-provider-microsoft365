@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,10 +40,12 @@ func (r *WindowsDriverUpdateProfileResource) Create(ctx context.Context, req res
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		Post(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -63,12 +66,14 @@ func (r *WindowsDriverUpdateProfileResource) Create(ctx context.Context, req res
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsDriverUpdateProfiles().
 			ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
@@ -128,11 +133,13 @@ func (r *WindowsDriverUpdateProfileResource) Read(ctx context.Context, req resou
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -141,12 +148,14 @@ func (r *WindowsDriverUpdateProfileResource) Read(ctx context.Context, req resou
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
+	constants.GraphSDKMutex.Lock()
 	assignmentsResp, err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -203,11 +212,13 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -226,12 +237,15 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 			return
 		}
 
+		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsDriverUpdateProfiles().
 			ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
+		constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
@@ -290,11 +304,13 @@ func (r *WindowsDriverUpdateProfileResource) Delete(ctx context.Context, req res
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
 		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
