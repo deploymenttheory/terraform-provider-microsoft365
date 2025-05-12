@@ -290,12 +290,12 @@ func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resou
 					),
 				},
 			},
-			"role_scope_tag_ids": schema.ListAttribute{
+			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of scope tag IDs for this Settings Catalog template profile.",
-				PlanModifiers: []planmodifier.List{
-					planmodifiers.DefaultListValue(
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
 					),
 				},
