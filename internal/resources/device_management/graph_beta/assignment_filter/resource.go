@@ -127,7 +127,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Computed:    true,
 				Description: "Last modified time of the assignment filter.",
 			},
-			"role_scope_tags": schema.ListAttribute{
+			"role_scope_tags": schema.SetAttribute{
 				Optional:    true,
 				Description: "Indicates role scope tags assigned for the assignment filter.",
 				ElementType: types.StringType,

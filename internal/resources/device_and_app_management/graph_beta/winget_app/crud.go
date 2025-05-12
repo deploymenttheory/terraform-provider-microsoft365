@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
@@ -46,10 +47,12 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		Post(context.Background(), createdResource, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -69,12 +72,14 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -136,11 +141,13 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	resource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -160,12 +167,15 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	MapRemoteResourceStateToTerraform(ctx, &object, winGetApp)
 
+	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read Assignments", r.ReadPermissions)
 		return
@@ -214,11 +224,13 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -236,12 +248,14 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+			constants.GraphSDKMutex.Lock()
 			err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
+			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -298,11 +312,13 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	defer cancel()
 
+	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
+	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
