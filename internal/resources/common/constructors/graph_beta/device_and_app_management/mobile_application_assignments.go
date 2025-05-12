@@ -7,7 +7,8 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
+
+	// validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -21,9 +22,9 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
 
-	if err := validators.ValidateMobileAppAssignmentSettings(data); err != nil {
-		return nil, err
-	}
+	// if err := validators.ValidateMobileAppAssignmentSettings(data); err != nil {
+	// 	return nil, err
+	// }
 
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	var assignments []graphmodels.MobileAppAssignmentable

@@ -135,3 +135,5 @@ func (m *requiresOtherAttributeEnabledListModifier) PlanModifyList(ctx context.C
 		)
 	}
 }
+
+//------------------------------------------------------------------------------
