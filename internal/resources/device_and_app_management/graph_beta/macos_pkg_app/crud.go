@@ -281,16 +281,16 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 
 		// Step 12: Wait for commit to complete
 		tflog.Debug(ctx, "Waiting for file commit to complete")
+
+		constants.GraphSDKMutex.Lock()
 		maxRetries := 10
 		for i := 0; i < maxRetries; i++ {
 
-			constants.GraphSDKMutex.Lock()
 			file, err := contentBuilder.
 				ByMobileAppContentId(*contentVersion.GetId()).
 				Files().
 				ByMobileAppContentFileId(*createdFile.GetId()).
 				Get(ctx, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -313,14 +313,12 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 					continue
 				}
 
-				constants.GraphSDKMutex.Lock()
 				err = contentBuilder.
 					ByMobileAppContentId(*contentVersion.GetId()).
 					Files().
 					ByMobileAppContentFileId(*createdFile.GetId()).
 					Commit().
 					Post(ctx, commitBody, nil)
-				constants.GraphSDKMutex.Unlock()
 
 				if err != nil {
 					tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
@@ -337,18 +335,17 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			}
 			time.Sleep(10 * time.Second)
 		}
+		constants.GraphSDKMutex.Unlock()
 
 		// Step 13: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()
 		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 
-		constants.GraphSDKMutex.Lock()
 		_, err = r.client.
 			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
 			Patch(ctx, updatePayload, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
