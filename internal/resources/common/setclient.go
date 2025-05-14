@@ -59,7 +59,6 @@ func getClient[T any, R any](ctx context.Context, providerData any, resp R, name
 			"actual":   fmt.Sprintf("%T", providerData),
 		})
 
-		// Type assertion to access the AddError method
 		if respWithDiagnostics, ok := any(resp).(interface{ AddError(string, string) }); ok {
 			respWithDiagnostics.AddError(
 				"Unexpected Provider Data Type",

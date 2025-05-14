@@ -1,6 +1,6 @@
 ---
 page_title: "Authentication with Azure DevOps OIDC"
-subcategory: "Authentication"
+subcategory: "Guides/Authentication"
 description: |-
   This guide demonstrates how to authenticate with Microsoft 365 using Azure DevOps Pipelines OIDC tokens.
 ---

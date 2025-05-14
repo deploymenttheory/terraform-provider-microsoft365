@@ -8,20 +8,20 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   owner                   = "Example Owner"
   developer               = "Example Developer"
   notes                   = "This is a macOS PKG application managed through Terraform."
-  role_scope_tag_ids      = [9]
+  role_scope_tag_ids      = [microsoft365_graph_beta_device_management_role_scope_tag.example.id, "2"]
 
   categories = [
-    microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id, # custom
-    "Business", # built-in
+    microsoft365_graph_beta_device_and_app_management_application_category.example.id, # custom app category
+    "Business", # builtin category
     "Productivity",
   ]
 
   app_icon = {
-    icon_file_path_source = "/Users/dafyddwatkins/Downloads/Firefox_logo.png"
+    icon_file_path_source = "/path/to/Firefox_logo.png"
   }
 
   app_installer = {
-    installer_file_path_source = "/Users/dafyddwatkins/Downloads/Firefox_136.0.pkg"
+    installer_file_path_source = "/path/to/Firefox_136.0.pkg"
   }
 
 
@@ -41,7 +41,10 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
     }
   }
 
-  # Optional: Add timeouts
+  # App Assignments with no scope defined
+  assignments = []
+
+  # Optional: Add timeouts block
   timeouts = {
     create = "3m"
     read   = "20s"
@@ -60,7 +63,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   owner                   = "Example Owner"
   developer               = "Example Developer"
   notes                   = "This is a macOS PKG application managed through Terraform."
-  role_scope_tag_ids      = [8, 9]
+  role_scope_tag_ids      = [microsoft365_graph_beta_device_management_role_scope_tag.example.id, "2"]
 
   categories = [
     microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id,
@@ -68,12 +71,12 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
     "Productivity",
   ]
 
-  app_icon = {
-    icon_file_path_source = "/Users/dafyddwatkins/Downloads/Firefox_logo.png"
+ app_icon = {
+    icon_file_path_source = "/path/to/Firefox_logo.png"
   }
 
   app_installer = {
-    installer_file_path_source = "/Users/dafyddwatkins/Downloads/Firefox_136.0.pkg"
+    installer_file_path_source = "/path/to/Firefox_136.0.pkg"
   }
 
 
@@ -103,7 +106,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "exclusionGroupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
+        group_id    = "00000000-0000-0000-0000-000000000001"
       }
     },
 
@@ -113,7 +116,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "exclusionGroupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
+        group_id    = "00000000-0000-0000-0000-000000000002"
       }
     },
 
@@ -141,7 +144,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "groupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
+        group_id    = "00000000-0000-0000-0000-000000000003"
       }
     },
 
@@ -151,27 +154,16 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
       source = "direct"
       target = {
         target_type = "groupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
+        group_id    = "00000000-0000-0000-0000-000000000004"
       }
     }
   ]
 
   # Optional: Add timeouts
   timeouts = {
-    create = "3m"
+    create = "2m"
     read   = "20s"
-    update = "3m"
+    update = "2m"
     delete = "20s"
-  }
-}
-
-resource "microsoft365_graph_beta_device_and_app_management_application_category" "web_browser" {
-  display_name = "Web Browser"
-
-  timeouts = {
-    create = "10s"
-    read   = "10s"
-    update = "10s"
-    delete = "10s"
   }
 }

@@ -18,11 +18,12 @@ import (
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
 func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
+		requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 		// When the 'assignments' block is omitted or removed from the Terraform configuration,
 		// Terraform will treat the desired state as "no assignments". In order to reconcile this
 		// with the actual state (which may still have existing assignments in Intune), we need to
 		// explicitly clear those assignments.
-		return deviceappmanagement.NewMobileAppsItemAssignPostRequestBody(), nil
+		return requestBody, nil
 	}
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
