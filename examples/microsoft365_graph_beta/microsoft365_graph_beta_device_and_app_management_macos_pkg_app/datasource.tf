@@ -2,7 +2,7 @@
 data "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "all_apps" {
   filter_type = "all"
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }
@@ -28,7 +28,7 @@ data "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "by_id" {
   filter_type  = "id"
   filter_value = "00000000-0000-0000-0000-000000000001" # Replace with actual app ID
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }
@@ -43,7 +43,7 @@ data "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "by_name"
   filter_type  = "display_name"
   filter_value = "Adobe" # This will find all apps with "Adobe" in the name
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }
