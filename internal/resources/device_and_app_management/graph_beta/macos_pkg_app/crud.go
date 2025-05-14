@@ -88,12 +88,10 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Step 4: Create the mobile app base resource in Graph API
-	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -112,7 +110,10 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
+		//constants.GraphSDKMutex.Lock()
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		//constants.GraphSDKMutex.Unlock()
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
@@ -127,14 +128,12 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 
 		content := graphmodels.NewMobileAppContent()
 
-		constants.GraphSDKMutex.Lock()
 		contentBuilder := r.client.
 			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
 			GraphMacOSPkgApp().
 			ContentVersions()
-		constants.GraphSDKMutex.Unlock()
 
 		contentVersion, err := contentBuilder.Post(ctx, content, nil)
 		if err != nil {
@@ -173,13 +172,11 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		// Step 9: Wait for Graph API to generate a valid Azure Storage URI
 		tflog.Debug(ctx, "Waiting for Graph API to generate a valid Azure Storage URI")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
 			file, err := contentBuilder.
 				ByMobileAppContentId(*contentVersion.GetId()).
 				Files().
 				ByMobileAppContentFileId(*createdFile.GetId()).
 				Get(ctx, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				tflog.Debug(ctx, fmt.Sprintf("Failed to get file status: %v", err))
@@ -254,14 +251,12 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 				return retry.NonRetryableError(fmt.Errorf("failed to construct commit request: %v", err))
 			}
 
-			constants.GraphSDKMutex.Lock()
 			err = contentBuilder.
 				ByMobileAppContentId(*contentVersion.GetId()).
 				Files().
 				ByMobileAppContentFileId(*createdFile.GetId()).
 				Commit().
 				Post(ctx, commitBody, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				tflog.Debug(ctx, fmt.Sprintf("Failed to commit file: %v", err))
@@ -282,60 +277,76 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		// Step 12: Wait for commit to complete
 		tflog.Debug(ctx, "Waiting for file commit to complete")
 
-		constants.GraphSDKMutex.Lock()
-		maxRetries := 10
-		for i := 0; i < maxRetries; i++ {
+		err = WaitForFileCommitCompletion(
+			ctx,
+			contentBuilder,
+			*contentVersion.GetId(),
+			*createdFile.GetId(),
+			encryptionInfo,
+			resp,
+			r.WritePermissions,
+		)
 
-			file, err := contentBuilder.
-				ByMobileAppContentId(*contentVersion.GetId()).
-				Files().
-				ByMobileAppContentFileId(*createdFile.GetId()).
-				Get(ctx, nil)
-
-			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-				return
-			}
-
-			state := *file.GetUploadState()
-
-			tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, state.String()))
-			if state == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "File commit completed successfully")
-				break
-			}
-
-			if state == graphmodels.COMMITFILEFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
-				tflog.Debug(ctx, "File commit failed; retrying commit request")
-				commitBody, err := construct.CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
-				if err != nil {
-					tflog.Debug(ctx, fmt.Sprintf("Error constructing commit request during retry: %v", err))
-					continue
-				}
-
-				err = contentBuilder.
-					ByMobileAppContentId(*contentVersion.GetId()).
-					Files().
-					ByMobileAppContentFileId(*createdFile.GetId()).
-					Commit().
-					Post(ctx, commitBody, nil)
-
-				if err != nil {
-					tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
-					continue
-				}
-			}
-
-			if i == maxRetries-1 {
-				resp.Diagnostics.AddError(
-					"Error waiting for file commit",
-					fmt.Sprintf("File commit did not complete after %d attempts. Last state: %s", maxRetries, state.String()),
-				)
-				return
-			}
-			time.Sleep(10 * time.Second)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error waiting for file commit",
+				err.Error(),
+			)
+			return
 		}
-		constants.GraphSDKMutex.Unlock()
+
+		// maxRetries := 10
+		// for i := 0; i < maxRetries; i++ {
+
+		// 	file, err := contentBuilder.
+		// 		ByMobileAppContentId(*contentVersion.GetId()).
+		// 		Files().
+		// 		ByMobileAppContentFileId(*createdFile.GetId()).
+		// 		Get(ctx, nil)
+
+		// 	if err != nil {
+		// 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		// 		return
+		// 	}
+
+		// 	state := *file.GetUploadState()
+
+		// 	tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, state.String()))
+		// 	if state == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
+		// 		tflog.Debug(ctx, "File commit completed successfully")
+		// 		break
+		// 	}
+
+		// 	if state == graphmodels.COMMITFILEFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
+		// 		tflog.Debug(ctx, "File commit failed; retrying commit request")
+		// 		commitBody, err := construct.CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
+		// 		if err != nil {
+		// 			tflog.Debug(ctx, fmt.Sprintf("Error constructing commit request during retry: %v", err))
+		// 			continue
+		// 		}
+
+		// 		err = contentBuilder.
+		// 			ByMobileAppContentId(*contentVersion.GetId()).
+		// 			Files().
+		// 			ByMobileAppContentFileId(*createdFile.GetId()).
+		// 			Commit().
+		// 			Post(ctx, commitBody, nil)
+
+		// 		if err != nil {
+		// 			tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
+		// 			continue
+		// 		}
+		// 	}
+
+		// 	if i == maxRetries-1 {
+		// 		resp.Diagnostics.AddError(
+		// 			"Error waiting for file commit",
+		// 			fmt.Sprintf("File commit did not complete after %d attempts. Last state: %s", maxRetries, state.String()),
+		// 		)
+		// 		return
+		// 	}
+		// 	time.Sleep(10 * time.Second)
+		// }
 
 		// Step 13: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()
@@ -351,11 +362,12 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
+
 		tflog.Debug(ctx, "App updated successfully with committed content version")
 	}
 
 	// Step 14: Apply Assignments
-	if object.Assignments != nil {
+	if len(object.Assignments) > 0 {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -369,14 +381,12 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		retryTimeout := time.Until(deadline) - time.Second
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
 			err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -446,13 +456,11 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 		},
 	}
 
-	constants.GraphSDKMutex.Lock()
 	respBaseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Get(ctx, requestParameters)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -478,7 +486,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	if committedVersionIdPtr != nil && *committedVersionIdPtr != "" {
 		committedVersionId := *committedVersionIdPtr
 
-		constants.GraphSDKMutex.Lock()
 		respFiles, err := r.client.DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(object.ID.ValueString()).
@@ -487,7 +494,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 			ByMobileAppContentId(committedVersionId).
 			Files().
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -514,14 +520,12 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// 3. app assignments
-	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -596,13 +600,11 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -627,36 +629,84 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
-	// Step 3:  Updated Assignments
+	// In the Update method in crud.go
+	// Step 3: Updated Assignments
 	if !state.ID.IsNull() {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
+		if len(object.Assignments) == 0 {
+			tflog.Debug(ctx, "Empty assignments array detected. Removing all existing assignments individually")
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
-			err := r.client.
+			respAssignments, err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
+				Assignments().
+				Get(ctx, nil)
 
 			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
 			}
-			return nil
-		})
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
+			assignments := respAssignments.GetValue()
+
+			if assignments == nil {
+				tflog.Debug(ctx, "No assignments found to remove")
+			} else {
+				for _, assignment := range assignments {
+					if assignment.GetId() == nil {
+						continue // Skip assignments without an ID
+					}
+
+					assignmentId := *assignment.GetId()
+					tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s", assignmentId))
+
+					err := r.client.
+						DeviceAppManagement().
+						MobileApps().
+						ByMobileAppId(object.ID.ValueString()).
+						Assignments().
+						ByMobileAppAssignmentId(assignmentId).
+						Delete(ctx, nil)
+
+					if err != nil {
+						errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+						return
+					}
+
+					tflog.Debug(ctx, fmt.Sprintf("Successfully deleted assignment with ID: %s", assignmentId))
+				}
+
+				tflog.Debug(ctx, "All assignments have been removed successfully")
+			}
+		} else {
+			// Handle normal assignment update (non-empty assignments)
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment for Update Method",
+					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				)
+				return
+			}
+
+			err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+				err := r.client.
+					DeviceAppManagement().
+					MobileApps().
+					ByMobileAppId(object.ID.ValueString()).
+					Assign().
+					Post(ctx, requestAssignment, nil)
+
+				if err != nil {
+					return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+				}
+				return nil
+			})
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
 		}
 	}
 	// No update logic is defined here intentionally for the reupload of mobile apps as any changes to either
@@ -725,13 +775,11 @@ func (r *MacOSPKGAppResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

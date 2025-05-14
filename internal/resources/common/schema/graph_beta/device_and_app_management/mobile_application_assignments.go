@@ -16,7 +16,7 @@ import (
 
 func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
-		Optional: true,
+		Required: true,
 		PlanModifiers: []planmodifier.List{
 			listplanmodifier.UseStateForUnknown(),
 			planmodifiers.MobileAppAssignmentsListModifier(),

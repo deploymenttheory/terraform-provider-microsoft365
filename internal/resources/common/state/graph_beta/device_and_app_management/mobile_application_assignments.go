@@ -15,7 +15,7 @@ import (
 func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) []sharedmodels.MobileAppAssignmentResourceModel {
 	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil || len(remoteAssignmentsResponse.GetValue()) == 0 {
 		tflog.Debug(ctx, "Remote assignments response is empty")
-		return nil
+		return []sharedmodels.MobileAppAssignmentResourceModel{}
 	}
 
 	remoteAssignments := remoteAssignmentsResponse.GetValue()
