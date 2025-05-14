@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.13.0-alpha...v0.14.0-alpha) (2025-05-14)
+
+
+### Features
+
+* added datasource microsoft365_utility_macos_pkg_app_metadata ([2c2cbca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2c2cbca7feb8d1336c9327e487767ecec1e4bc35))
+
+
+### Bug Fixes
+
+* final fixes for macos assignments ([8d998cf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8d998cfc27ccb4aa1b4bab3be60823f479b7cf85))
+* final fixes for macos assignments ([#451](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/451)) ([7e3b853](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7e3b853731d22cc832840ceab3ca9c7a256418c4))
+* for mutex handling for SetCommittedContentVersion ([058bf32](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/058bf32f301bc9b5082f668427aaf4ca3cff3878))
+
 ## [0.13.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.12.0-alpha...v0.13.0-alpha) (2025-05-12)
 
 
