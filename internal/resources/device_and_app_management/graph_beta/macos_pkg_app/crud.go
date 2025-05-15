@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud/graph_beta/device_and_app_management"
@@ -110,9 +109,9 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		//constants.GraphSDKMutex.Lock()
+		//
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
-		//constants.GraphSDKMutex.Unlock()
+		//
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -156,12 +155,10 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 		// Step 8: Create the content file resource in Graph API
 		tflog.Debug(ctx, "Creating content file resource in Graph API")
 
-		constants.GraphSDKMutex.Lock()
 		createdFile, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
 			Files().
 			Post(ctx, contentFile, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -294,59 +291,6 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 			)
 			return
 		}
-
-		// maxRetries := 10
-		// for i := 0; i < maxRetries; i++ {
-
-		// 	file, err := contentBuilder.
-		// 		ByMobileAppContentId(*contentVersion.GetId()).
-		// 		Files().
-		// 		ByMobileAppContentFileId(*createdFile.GetId()).
-		// 		Get(ctx, nil)
-
-		// 	if err != nil {
-		// 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-		// 		return
-		// 	}
-
-		// 	state := *file.GetUploadState()
-
-		// 	tflog.Debug(ctx, fmt.Sprintf("Commit status check %d: state=%s", i+1, state.String()))
-		// 	if state == graphmodels.COMMITFILESUCCESS_MOBILEAPPCONTENTFILEUPLOADSTATE {
-		// 		tflog.Debug(ctx, "File commit completed successfully")
-		// 		break
-		// 	}
-
-		// 	if state == graphmodels.COMMITFILEFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
-		// 		tflog.Debug(ctx, "File commit failed; retrying commit request")
-		// 		commitBody, err := construct.CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
-		// 		if err != nil {
-		// 			tflog.Debug(ctx, fmt.Sprintf("Error constructing commit request during retry: %v", err))
-		// 			continue
-		// 		}
-
-		// 		err = contentBuilder.
-		// 			ByMobileAppContentId(*contentVersion.GetId()).
-		// 			Files().
-		// 			ByMobileAppContentFileId(*createdFile.GetId()).
-		// 			Commit().
-		// 			Post(ctx, commitBody, nil)
-
-		// 		if err != nil {
-		// 			tflog.Debug(ctx, fmt.Sprintf("Error during commit retry: %v", err))
-		// 			continue
-		// 		}
-		// 	}
-
-		// 	if i == maxRetries-1 {
-		// 		resp.Diagnostics.AddError(
-		// 			"Error waiting for file commit",
-		// 			fmt.Sprintf("File commit did not complete after %d attempts. Last state: %s", maxRetries, state.String()),
-		// 		)
-		// 		return
-		// 	}
-		// 	time.Sleep(10 * time.Second)
-		// }
 
 		// Step 13: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSPkgApp()

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -42,14 +41,13 @@ func (d *BrowserSiteListDataSource) Read(ctx context.Context, req datasource.Rea
 	defer cancel()
 
 	// Serialize access to the Graph API to prevent concurrent map writes in Kiota
-	constants.GraphSDKMutex.Lock()
+
 	respList, err := d.client.
 		Admin().
 		Edge().
 		InternetExplorerMode().
 		SiteLists().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

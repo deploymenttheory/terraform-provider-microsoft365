@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -47,12 +46,10 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		Post(context.Background(), createdResource, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -61,7 +58,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignments != nil {
+	if len(object.Assignments) > 0 {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -72,14 +69,13 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
+
 			err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
 				Assign().
 				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -141,13 +137,18 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
-	resource, err := r.client.
+	// 1. get base resource with expanded query to return categories
+	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
+			Expand: []string{"categories"},
+		},
+	}
+
+	respBaseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
-		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
+		Get(ctx, requestParameters)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -156,36 +157,30 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// This ensures type safety as the Graph API returns a base interface that needs
 	// to be converted to the specific app type to access WinGetApp-specific fields.
-	winGetApp, ok := resource.(graphmodels.WinGetAppable)
+	winGetApp, ok := respBaseResource.(graphmodels.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Resource type mismatch",
-			fmt.Sprintf("Expected resource of type WinGetAppable but got %T", resource),
+			fmt.Sprintf("Expected resource of type WinGetAppable but got %T", respBaseResource),
 		)
 		return
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, winGetApp)
 
-	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read Assignments", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	// Only map assignments if there are any assignments returned and the object has an assignments block
-	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
-		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
-		sharedstater.StateMobileAppAssignment(ctx, object.Assignments, respAssignments)
-	}
+	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -224,48 +219,95 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	if object.Assignments != nil && state.Assignments != nil && !state.ID.IsNull() {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
+	// In the Update method in crud.go
+	// Step 3: Updated Assignments
+	if !state.ID.IsNull() {
+		if len(object.Assignments) == 0 {
+			tflog.Debug(ctx, "Empty assignments array detected. Removing all existing assignments individually")
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
-			err := r.client.
+			respAssignments, err := r.client.
 				DeviceAppManagement().
 				MobileApps().
 				ByMobileAppId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
+				Assignments().
+				Get(ctx, nil)
 
 			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
 			}
-			return nil
-		})
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
+			assignments := respAssignments.GetValue()
+
+			if assignments == nil {
+				tflog.Debug(ctx, "No assignments found to remove")
+			} else {
+				for _, assignment := range assignments {
+					if assignment.GetId() == nil {
+						continue // Skip assignments without an ID
+					}
+
+					assignmentId := *assignment.GetId()
+					tflog.Debug(ctx, fmt.Sprintf("Deleting assignment with ID: %s", assignmentId))
+
+					err := r.client.
+						DeviceAppManagement().
+						MobileApps().
+						ByMobileAppId(object.ID.ValueString()).
+						Assignments().
+						ByMobileAppAssignmentId(assignmentId).
+						Delete(ctx, nil)
+
+					if err != nil {
+						errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+						return
+					}
+
+					tflog.Debug(ctx, fmt.Sprintf("Successfully deleted assignment with ID: %s", assignmentId))
+				}
+
+				tflog.Debug(ctx, "All assignments have been removed successfully")
+			}
+		} else {
+			// Handle normal assignment update (non-empty assignments)
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment for Update Method",
+					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				)
+				return
+			}
+
+			err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+				err := r.client.
+					DeviceAppManagement().
+					MobileApps().
+					ByMobileAppId(object.ID.ValueString()).
+					Assign().
+					Post(ctx, requestAssignment, nil)
+
+				if err != nil {
+					return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+				}
+				return nil
+			})
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
 		}
 	}
 
@@ -312,13 +354,11 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

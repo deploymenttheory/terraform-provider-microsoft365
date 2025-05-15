@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,12 +40,10 @@ func (r *ApplicationCategoryResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileAppCategories().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -104,13 +101,11 @@ func (r *ApplicationCategoryResource) Read(ctx context.Context, req resource.Rea
 		defer cancel()
 	}
 
-	constants.GraphSDKMutex.Lock()
 	resource, err := r.client.
 		DeviceAppManagement().
 		MobileAppCategories().
 		ByMobileAppCategoryId(object.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -155,13 +150,11 @@ func (r *ApplicationCategoryResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileAppCategories().
 		ByMobileAppCategoryId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -210,13 +203,11 @@ func (r *ApplicationCategoryResource) Delete(ctx context.Context, req resource.D
 		defer cancel()
 	}
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceAppManagement().
 		MobileAppCategories().
 		ByMobileAppCategoryId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

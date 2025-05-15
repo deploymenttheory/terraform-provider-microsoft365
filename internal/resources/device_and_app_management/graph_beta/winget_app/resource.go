@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -67,7 +68,7 @@ type WinGetAppResource struct {
 
 // Metadata returns the resource type name.
 func (r *WinGetAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = constants.PROVIDER_NAME + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.

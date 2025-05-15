@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -67,12 +66,10 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
@@ -122,13 +119,11 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	resource, err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -189,13 +184,11 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update Assignment", r.WritePermissions)
@@ -237,13 +230,11 @@ func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		RoleAssignments().
 		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete Assignment", r.WritePermissions)

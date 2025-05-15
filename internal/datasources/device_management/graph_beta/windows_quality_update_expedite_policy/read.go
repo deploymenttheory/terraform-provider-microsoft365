@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -47,13 +46,12 @@ func (d *WindowsQualityUpdateExpeditePolicyDataSource) Read(ctx context.Context,
 
 	// For ID filter, we can make a direct API call
 	if filterType == "id" {
-		constants.GraphSDKMutex.Lock()
+
 		respItem, err := d.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
 			ByWindowsQualityUpdateProfileId(filterValue).
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -63,12 +61,11 @@ func (d *WindowsQualityUpdateExpeditePolicyDataSource) Read(ctx context.Context,
 		filteredItems = append(filteredItems, MapRemoteStateToDataSource(respItem))
 	} else {
 		// For all other filters, we need to get all policies and filter locally
-		constants.GraphSDKMutex.Lock()
+
 		respList, err := d.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -81,13 +78,11 @@ func (d *WindowsQualityUpdateExpeditePolicyDataSource) Read(ctx context.Context,
 				continue
 			}
 
-			constants.GraphSDKMutex.Lock()
 			expediteSettings, err := d.client.
 				DeviceManagement().
 				WindowsQualityUpdateProfiles().
 				ByWindowsQualityUpdateProfileId(*profile.GetId()).
 				Get(ctx, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				tflog.Warn(ctx, fmt.Sprintf("Error getting expedite settings for profile %s: %s", *profile.GetId(), err))

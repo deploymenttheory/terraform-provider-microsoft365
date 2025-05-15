@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,12 +50,10 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -76,14 +73,13 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
+
 			_, err := r.client.
 				DeviceManagement().
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
 				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
@@ -155,13 +151,11 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		ByRoleScopeTagId(object.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -170,14 +164,12 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	constants.GraphSDKMutex.Lock()
 	assignmentsResponse, err = r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		ByRoleScopeTagId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -230,13 +222,11 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		ByRoleScopeTagId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -254,14 +244,13 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 
 		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
+
 			_, err := r.client.
 				DeviceManagement().
 				RoleScopeTags().
 				ByRoleScopeTagId(object.ID.ValueString()).
 				Assign().
 				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
@@ -324,13 +313,11 @@ func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		ByRoleScopeTagId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

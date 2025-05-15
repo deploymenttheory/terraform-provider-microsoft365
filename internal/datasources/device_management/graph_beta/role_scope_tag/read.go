@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -47,13 +46,12 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	// For ID filter, we can make a direct API call
 	if filterType == "id" {
-		constants.GraphSDKMutex.Lock()
+
 		respItem, err := d.client.
 			DeviceManagement().
 			RoleScopeTags().
 			ByRoleScopeTagId(filterValue).
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -63,12 +61,11 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 		filteredItems = append(filteredItems, MapRemoteStateToDataSource(respItem))
 	} else {
 		// For all other filters, we need to get all role scope tags and filter locally
-		constants.GraphSDKMutex.Lock()
+
 		respList, err := d.client.
 			DeviceManagement().
 			RoleScopeTags().
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

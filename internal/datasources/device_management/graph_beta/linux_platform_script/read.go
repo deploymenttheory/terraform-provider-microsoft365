@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -49,13 +48,12 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 
 	// For ID filter, we can make a direct API call
 	if filterType == "id" {
-		constants.GraphSDKMutex.Lock()
+
 		respItem, err := d.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(filterValue).
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -83,12 +81,10 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 			},
 		}
 
-		constants.GraphSDKMutex.Lock()
 		respList, err := d.client.
 			DeviceManagement().
 			ConfigurationPolicies().
 			Get(ctx, requestOptions)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

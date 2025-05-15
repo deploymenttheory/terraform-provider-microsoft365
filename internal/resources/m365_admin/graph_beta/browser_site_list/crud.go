@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,14 +38,12 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	createdSiteList, err := r.client.
 		Admin().
 		Edge().
 		InternetExplorerMode().
 		SiteLists().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -83,7 +80,6 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	browserSiteList, err := r.client.
 		Admin().
 		Edge().
@@ -91,7 +87,6 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 		SiteLists().
 		ByBrowserSiteListId(state.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -134,7 +129,6 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		Admin().
 		Edge().
@@ -142,7 +136,6 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		SiteLists().
 		ByBrowserSiteListId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -174,7 +167,6 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		Admin().
 		Edge().
@@ -182,7 +174,6 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 		SiteLists().
 		ByBrowserSiteListId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
