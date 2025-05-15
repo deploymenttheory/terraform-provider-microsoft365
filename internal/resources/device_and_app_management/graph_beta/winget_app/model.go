@@ -15,6 +15,7 @@ type WinGetAppResourceModel struct {
 	DisplayName                   types.String                                    `tfsdk:"display_name"`
 	Description                   types.String                                    `tfsdk:"description"`
 	Publisher                     types.String                                    `tfsdk:"publisher"`
+	Categories                    types.Set                                       `tfsdk:"categories"`
 	LargeIcon                     types.Object                                    `tfsdk:"large_icon"`
 	CreatedDateTime               types.String                                    `tfsdk:"created_date_time"`
 	LastModifiedDateTime          types.String                                    `tfsdk:"last_modified_date_time"`

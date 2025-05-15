@@ -5,6 +5,7 @@ import (
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -62,7 +63,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	data.Categories = MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
+	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}

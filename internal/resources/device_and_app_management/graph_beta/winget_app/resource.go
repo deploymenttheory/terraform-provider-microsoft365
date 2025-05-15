@@ -9,11 +9,13 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -94,6 +96,38 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				},
 				MarkdownDescription: "The unique identifier for this Intune Microsoft Store app",
 			},
+			"display_name": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: "The title of the WinGet app imported from the Microsoft Store for Business." +
+					"This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+			},
+			"description": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+			},
+			"publisher": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: "The publisher of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+			},
+			"categories": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(Other apps|Books & Reference|Data management|Productivity|Business|Development & Design|Photos & Media|Collaboration & Social|Computer management|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$`),
+							"must be either a predefined category name or a valid GUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+						),
+					),
+				},
+			},
 			"package_identifier": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The **unique package identifier** for the WinGet/Microsoft Store app from the storefront.\n\n" +
@@ -143,38 +177,22 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				MarkdownDescription: "When set to `true`, the provider will automatically fetch metadata from the Microsoft Store for Business " +
 					"using the package identifier. This will populate the `display_name`, `description`, `publisher`, and 'icon' fields.",
 			},
-			"display_name": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: "The title of the WinGet app imported from the Microsoft Store for Business." +
-					"This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
-			},
-			"description": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
-			},
-			"publisher": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: "The publisher of the WinGet/ Microsoft Store for Business app." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
-			},
 			"install_experience": schema.SingleNestedAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The install experience settings associated with this application.the value is idempotent and any changes to this field will trigger a recreation of the application.",
 				Attributes: map[string]schema.Attribute{
 					"run_as_account": schema.StringAttribute{
 						Required: true,
-						MarkdownDescription: "The account type (System or User) that actions should be run as on target devices. " +
+						MarkdownDescription: "The account type (System or User) that actions should be run as on target devices.  " +
 							"Required at creation time.",
 						Validators: []validator.String{
 							stringvalidator.OneOf("system", "user"),
 						},
 					},
 				},
-				MarkdownDescription: "The install experience settings associated with this application.",
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
 			},
 			"large_icon": schema.SingleNestedAttribute{
 				Computed: true,

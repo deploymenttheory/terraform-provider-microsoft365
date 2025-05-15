@@ -37,7 +37,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	createdResource, err := constructResource(ctx, &object)
+	createdResource, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -57,6 +57,25 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
+	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
+
+	if !object.Categories.IsNull() {
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		//
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		//
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
+	}
 
 	if len(object.Assignments) > 0 {
 		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "WindowsStoreApp")
@@ -212,7 +231,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
