@@ -146,7 +146,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			// 			"WindowsStoreApp",
 			// 			"WindowsUniversalAppX",
 			// 			"WindowsWebApp",
-			// 			"MacOSPKGAppResource",
 			// 		),
 			// 	},
 			// },

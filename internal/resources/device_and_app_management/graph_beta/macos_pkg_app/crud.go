@@ -312,7 +312,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Step 14: Apply Assignments
 	if len(object.Assignments) > 0 {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "MacOSPkgApp")
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -624,7 +624,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			}
 		} else {
 			// Handle normal assignment update (non-empty assignments)
-			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "MacOSPkgApp")
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error constructing assignment for Update Method",

@@ -506,8 +506,15 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 									},
 								},
 								"notifications": schema.StringAttribute{
-									MarkdownDescription: "The notification settings for the assignment. Possible values: showAll, showReboot, hideAll",
+									MarkdownDescription: "The notification settings for the assignment. The supported values are 'showAll', 'showReboot', 'hideAll'.",
 									Optional:            true,
+									Validators: []validator.String{
+										stringvalidator.OneOf(
+											"showAll",
+											"showReboot",
+											"hideAll",
+										),
+									},
 								},
 								"restart_settings": schema.SingleNestedAttribute{
 									Optional: true,

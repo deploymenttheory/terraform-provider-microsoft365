@@ -59,7 +59,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	if len(object.Assignments) > 0 {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "WindowsStoreApp")
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -68,8 +68,10 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 			return
 		}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		deadline, _ := ctx.Deadline()
+		retryTimeout := time.Until(deadline) - time.Second
 
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 			err := r.client.
 				DeviceAppManagement().
 				MobileApps().
@@ -281,7 +283,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 			}
 		} else {
 			// Handle normal assignment update (non-empty assignments)
-			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "WindowsStoreApp")
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error constructing assignment for Update Method",

@@ -16,7 +16,7 @@ import (
 )
 
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
+func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel, appType string) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
 		requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 		// When the 'assignments' block is omitted or removed from the Terraform configuration,
@@ -28,7 +28,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
 
-	if err := validators.ValidateMobileAppAssignmentSettings(data); err != nil {
+	if err := validators.ValidateMobileAppAssignmentSettings(ctx, appType, data); err != nil {
 		return nil, err
 	}
 
