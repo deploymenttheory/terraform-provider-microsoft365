@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
+	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -36,6 +37,16 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
+
+	if len(object.Assignments) > 0 {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments); err != nil {
+			resp.Diagnostics.AddError(
+				"Error validating macOS pkg application assignments",
+				fmt.Sprintf("Validation failed: %s", err.Error()),
+			)
+			return
+		}
+	}
 
 	createdResource, err := constructResource(ctx, &object, false)
 	if err != nil {
@@ -78,7 +89,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if len(object.Assignments) > 0 {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "WindowsStoreApp")
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -231,6 +242,17 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
+	if len(object.Assignments) > 0 {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments); err != nil {
+			resp.Diagnostics.AddError(
+				"Error validating macOS pkg application assignments",
+				fmt.Sprintf("Validation failed: %s", err.Error()),
+			)
+			return
+		}
+	}
+
+	// Step 1: Update the base mobile app resource
 	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -251,7 +273,24 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// In the Update method in crud.go
+	// Step 2: Updated Categories
+	if !object.Categories.Equal(state.Categories) {
+		tflog.Debug(ctx, "Categories have changed — updating categories")
+
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	}
+
 	// Step 3: Updated Assignments
 	if !state.ID.IsNull() {
 		if len(object.Assignments) == 0 {
@@ -302,7 +341,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 			}
 		} else {
 			// Handle normal assignment update (non-empty assignments)
-			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "WindowsStoreApp")
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error constructing assignment for Update Method",

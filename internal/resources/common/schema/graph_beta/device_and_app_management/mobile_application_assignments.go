@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -81,16 +83,35 @@ func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 							},
 						},
 						"group_id": schema.StringAttribute{
-							MarkdownDescription: "The entra ID group ID for the application assignment target.",
+							MarkdownDescription: "The entra ID group ID for the application assignment target. Required when target_type is 'groupAssignment', 'exclusionGroupAssignment', or 'androidFotaDeployment'.",
 							Optional:            true,
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+									"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								),
+							},
 						},
 						"collection_id": schema.StringAttribute{
-							MarkdownDescription: "The SCCM group collection ID for the application assignment target.",
+							MarkdownDescription: "The SCCM group collection ID for the application assignment target. Default collections start with 'SMS', while custom collections start with your site code (e.g., 'MEM').",
 							Optional:            true,
+							Validators: []validator.String{
+								// Validator for SCCM collection ID format
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^[A-Za-z]{2,8}[0-9A-Za-z]{8}$`),
+									"Must be a valid SCCM collection ID format. Default collections start with 'SMS' followed by an alphanumeric ID. Custom collections start with your site code (e.g., 'MEM') followed by an alphanumeric ID.",
+								),
+							},
 						},
 						"device_and_app_management_assignment_filter_id": schema.StringAttribute{
 							MarkdownDescription: "The Id of the scope filter applied to the target assignment.",
 							Optional:            true,
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+									"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								),
+							},
 						},
 						"device_and_app_management_assignment_filter_type": schema.StringAttribute{
 							Optional: true,

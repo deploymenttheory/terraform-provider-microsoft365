@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
+	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,6 +64,16 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
+
+	if len(object.Assignments) > 0 {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments); err != nil {
+			resp.Diagnostics.AddError(
+				"Error validating macOS pkg application assignments",
+				fmt.Sprintf("Validation failed: %s", err.Error()),
+			)
+			return
+		}
+	}
 
 	// Step 1: Determine installer source path (local or download via URL)
 	installerSourcePath, tempFileInfo, err := helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
@@ -312,7 +323,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Step 14: Apply Assignments
 	if len(object.Assignments) > 0 {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "MacOSPkgApp")
+		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -521,10 +532,22 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
+
+	if len(object.Assignments) > 0 {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments); err != nil {
+			resp.Diagnostics.AddError(
+				"Error validating macOS pkg application assignments",
+				fmt.Sprintf("Validation failed: %s", err.Error()),
+			)
+			return
+		}
+	}
+
 	// Ensure cleanup of temporary file when we're done
 	if tempFileInfo.ShouldCleanup {
 		defer helpers.CleanupTempFile(ctx, tempFileInfo)
 	}
+
 	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -573,7 +596,6 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
-	// In the Update method in crud.go
 	// Step 3: Updated Assignments
 	if !state.ID.IsNull() {
 		if len(object.Assignments) == 0 {
@@ -624,7 +646,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 			}
 		} else {
 			// Handle normal assignment update (non-empty assignments)
-			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments, "MacOSPkgApp")
+			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error constructing assignment for Update Method",

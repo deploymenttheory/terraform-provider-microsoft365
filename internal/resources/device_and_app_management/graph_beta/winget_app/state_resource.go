@@ -51,7 +51,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 	data.SupersedingAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
 
-	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
 		data.InstallExperience = &WinGetAppInstallExperienceResourceModel{
 			RunAsAccount: state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),

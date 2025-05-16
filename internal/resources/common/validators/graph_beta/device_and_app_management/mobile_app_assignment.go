@@ -36,6 +36,11 @@ func ValidateMobileAppAssignmentSettings(ctx context.Context, appType string, co
 		if err := validateRestartSettings(i, assignment); err != nil {
 			return err
 		}
+
+		// Rule 5: Validate required group_id for valid assignment target types
+		if err := validateRequiredGroupId(i, assignment); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -246,6 +251,43 @@ func validateRestartSettings(index int, assignment sharedmodels.MobileAppAssignm
 				"assignment[%d]: restart_notification_snooze_duration (%d) cannot be more than half the difference between grace_period_in_minutes and countdown_display_before_restart (%d)",
 				index, snooze, maxSnooze,
 			)
+		}
+	}
+
+	return nil
+}
+
+// validateRequiredGroupId checks if group_id is provided when specific target types are used
+func validateRequiredGroupId(index int, assignment sharedmodels.MobileAppAssignmentResourceModel) error {
+	if !assignment.Target.TargetType.IsNull() {
+		targetType := assignment.Target.TargetType.ValueString()
+
+		// List of target types that require a group_id
+		requiresGroupId := map[string]bool{
+			"androidFotaDeployment":    true,
+			"exclusionGroupAssignment": true,
+			"groupAssignment":          true,
+			// Not including "configurationManagerCollection" as it uses collectionId instead
+		}
+
+		if requiresGroupId[targetType] {
+			// Check if group_id exists and is not empty
+			if assignment.Target.GroupId.IsNull() || assignment.Target.GroupId.ValueString() == "" {
+				return fmt.Errorf(
+					"assignment[%d]: target_type '%s' requires a valid group_id to be specified",
+					index, targetType,
+				)
+			}
+		}
+
+		// Special case for configurationManagerCollection which requires collectionId
+		if targetType == "configurationManagerCollection" {
+			if assignment.Target.CollectionId.IsNull() || assignment.Target.CollectionId.ValueString() == "" {
+				return fmt.Errorf(
+					"assignment[%d]: target_type 'configurationManagerCollection' requires a valid collection_id to be specified",
+					index,
+				)
+			}
 		}
 	}
 

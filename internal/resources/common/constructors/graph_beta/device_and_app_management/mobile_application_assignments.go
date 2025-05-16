@@ -7,7 +7,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 
 	// validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -16,7 +15,7 @@ import (
 )
 
 // ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel, appType string) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
+func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
 	if len(data) == 0 {
 		requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 		// When the 'assignments' block is omitted or removed from the Terraform configuration,
@@ -27,10 +26,6 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 	}
 
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
-
-	if err := validators.ValidateMobileAppAssignmentSettings(ctx, appType, data); err != nil {
-		return nil, err
-	}
 
 	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
 	var assignments []graphmodels.MobileAppAssignmentable
