@@ -5,16 +5,23 @@ import (
 	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 )
 
 // ValidateMobileAppAssignmentSettings validates the mobile app assignment settings across all assignments
-func ValidateMobileAppAssignmentSettings(ctx context.Context, appType string, config []sharedmodels.MobileAppAssignmentResourceModel) error {
+func ValidateMobileAppAssignmentSettings(ctx context.Context, appType string, config []sharedmodels.MobileAppAssignmentResourceModel, graphClient *msgraphsdk.GraphServiceClient) error {
 
 	// Track usage of special target types
 	allDevicesCount := 0
 	allLicensedUsersCount := 0
 	firstAllDevicesIndex := -1
 	firstAllLicensedUsersIndex := -1
+
+	// Rule 0: Validate that group IDs are only used once across all assignments
+	if err := validateUniqueGroupIds(config); err != nil {
+		return err
+	}
 
 	for i, assignment := range config {
 		// Rule 1: Validate app-type specific requirements
@@ -39,6 +46,16 @@ func ValidateMobileAppAssignmentSettings(ctx context.Context, appType string, co
 
 		// Rule 5: Validate required group_id for valid assignment target types
 		if err := validateRequiredGroupId(i, assignment); err != nil {
+			return err
+		}
+
+		// Rule 6: Validate that assignment filters exist in the system
+		if err := validateAssignmentFilterExists(ctx, i, assignment, graphClient); err != nil {
+			return err
+		}
+
+		// Rule 7: Validate that group IDs exist in the system
+		if err := validateGroupIdExists(ctx, i, assignment, graphClient); err != nil {
 			return err
 		}
 	}
@@ -288,6 +305,121 @@ func validateRequiredGroupId(index int, assignment sharedmodels.MobileAppAssignm
 					index,
 				)
 			}
+		}
+	}
+
+	return nil
+}
+
+// validateAssignmentFilterExists checks if the specified assignment filter exists in the system
+func validateAssignmentFilterExists(ctx context.Context, index int, assignment sharedmodels.MobileAppAssignmentResourceModel, client *msgraphsdk.GraphServiceClient) error {
+	// Skip validation if client is nil (for backward compatibility)
+	if client == nil {
+		return nil
+	}
+
+	// If a filter ID is specified, verify it exists
+	if !assignment.Target.DeviceAndAppManagementAssignmentFilterId.IsNull() &&
+		assignment.Target.DeviceAndAppManagementAssignmentFilterId.ValueString() != "" {
+		filterId := assignment.Target.DeviceAndAppManagementAssignmentFilterId.ValueString()
+
+		_, err := client.
+			DeviceManagement().
+			AssignmentFilters().
+			ByDeviceAndAppManagementAssignmentFilterId(filterId).
+			Get(ctx, nil)
+
+		if err != nil {
+			// Check if it's a "not found" error (404) from Graph API
+			if odataErr, ok := err.(*odataerrors.ODataError); ok {
+				if odataErr.ResponseStatusCode == 404 {
+					return fmt.Errorf(
+						"assignment[%d]: specified assignment filter ID '%s' was not found in the system",
+						index, filterId,
+					)
+				}
+			}
+			// For any other errors, return a generic error message
+			return fmt.Errorf(
+				"assignment[%d]: error validating assignment filter ID '%s': %v",
+				index, filterId, err,
+			)
+		}
+	}
+
+	return nil
+}
+
+// validateGroupIdExists checks if the specified group ID exists in the system
+func validateGroupIdExists(ctx context.Context, index int, assignment sharedmodels.MobileAppAssignmentResourceModel, client *msgraphsdk.GraphServiceClient) error {
+	// Skip validation if client is nil (for backward compatibility)
+	if client == nil {
+		return nil
+	}
+
+	// Check if this assignment requires a group ID validation
+	if !assignment.Target.TargetType.IsNull() {
+		targetType := assignment.Target.TargetType.ValueString()
+
+		requiresGroupId := map[string]bool{
+			"androidFotaDeployment":    true,
+			"exclusionGroupAssignment": true,
+			"groupAssignment":          true,
+		}
+
+		// Only validate group IDs for target types that require them
+		if requiresGroupId[targetType] && !assignment.Target.GroupId.IsNull() &&
+			assignment.Target.GroupId.ValueString() != "" {
+			groupId := assignment.Target.GroupId.ValueString()
+
+			_, err := client.Groups().
+				ByGroupId(groupId).
+				Get(ctx, nil)
+
+			if err != nil {
+				// Check if it's a "not found" error (404) from Graph API
+				if odataErr, ok := err.(*odataerrors.ODataError); ok {
+					if odataErr.ResponseStatusCode == 404 {
+						return fmt.Errorf(
+							"assignment[%d]: specified group ID '%s' for target type '%s' was not found in the system",
+							index, groupId, targetType,
+						)
+					}
+				}
+				// For any other errors, return a generic error message
+				return fmt.Errorf(
+					"assignment[%d]: error validating group ID '%s': %v",
+					index, groupId, err,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateUniqueGroupIds checks that group IDs are only used once across all assignments
+func validateUniqueGroupIds(config []sharedmodels.MobileAppAssignmentResourceModel) error {
+	usedGroupIds := make(map[string]int)
+
+	for i, assignment := range config {
+		if assignment.Target.TargetType.IsNull() {
+			continue
+		}
+
+		targetType := assignment.Target.TargetType.ValueString()
+
+		if targetType == "groupAssignment" && !assignment.Target.GroupId.IsNull() && assignment.Target.GroupId.ValueString() != "" {
+			groupId := assignment.Target.GroupId.ValueString()
+
+			if prevIndex, exists := usedGroupIds[groupId]; exists {
+				return fmt.Errorf(
+					"assignment[%d]: group ID '%s' is already used in assignment[%d]. A group ID can only be targeted once across all assignments",
+					i, groupId, prevIndex,
+				)
+			}
+
+			usedGroupIds[groupId] = i
 		}
 	}
 

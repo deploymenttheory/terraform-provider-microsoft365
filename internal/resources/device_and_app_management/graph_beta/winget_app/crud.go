@@ -39,9 +39,9 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	retryTimeout := time.Until(deadline) - time.Second
 
 	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments); err != nil {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
 			resp.Diagnostics.AddError(
-				"Error validating macOS pkg application assignments",
+				"Error validating Windows Store application assignments",
 				fmt.Sprintf("Validation failed: %s", err.Error()),
 			)
 			return
@@ -243,9 +243,9 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	retryTimeout := time.Until(deadline) - time.Second
 
 	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments); err != nil {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
 			resp.Diagnostics.AddError(
-				"Error validating macOS pkg application assignments",
+				"Error validating Windows Store application assignments",
 				fmt.Sprintf("Validation failed: %s", err.Error()),
 			)
 			return

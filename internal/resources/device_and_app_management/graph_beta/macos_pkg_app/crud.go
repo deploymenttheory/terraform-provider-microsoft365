@@ -66,7 +66,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	retryTimeout := time.Until(deadline) - time.Second
 
 	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments); err != nil {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments, r.client); err != nil {
 			resp.Diagnostics.AddError(
 				"Error validating macOS pkg application assignments",
 				fmt.Sprintf("Validation failed: %s", err.Error()),
@@ -534,9 +534,9 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	retryTimeout := time.Until(deadline) - time.Second
 
 	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments); err != nil {
+		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "MacOSPkgApp", object.Assignments, r.client); err != nil {
 			resp.Diagnostics.AddError(
-				"Error validating macOS pkg application assignments",
+				"Error validating Windows Store application assignments",
 				fmt.Sprintf("Validation failed: %s", err.Error()),
 			)
 			return
