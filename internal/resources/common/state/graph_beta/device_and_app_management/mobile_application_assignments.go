@@ -48,22 +48,48 @@ func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.Mo
 // 2. Second tier: Within same intent, sort by target_type alphabetically
 // 3. Third tier: Within same target_type, sort by group_id alphabetically
 func SortMobileAppAssignments(assignments []sharedmodels.MobileAppAssignmentResourceModel) {
+	// Define intent order priorities based on observed API behavior
+	intentOrder := map[string]int{
+		"required":                   1,
+		"available":                  2,
+		"uninstall":                  3,
+		"availableWithoutEnrollment": 4, // Add for completeness
+	}
+
+	// Define target type order priorities based on observed API behavior
+	targetTypeOrder := map[string]int{
+		"groupAssignment":          1,
+		"exclusionGroupAssignment": 2,
+		"allLicensedUsers":         3,
+		"allDevices":               4,
+		// Add others as needed
+	}
+
 	sort.SliceStable(assignments, func(i, j int) bool {
-		// First tier: Sort by intent alphabetically
-		if assignments[i].Intent.ValueString() != assignments[j].Intent.ValueString() {
-			return assignments[i].Intent.ValueString() < assignments[j].Intent.ValueString()
+		// First sort by intent according to API's priority
+		iIntent := intentOrder[assignments[i].Intent.ValueString()]
+		jIntent := intentOrder[assignments[j].Intent.ValueString()]
+		if iIntent != jIntent {
+			return iIntent < jIntent
 		}
 
-		// Second tier: Within same intent, sort by target_type alphabetically
-		if assignments[i].Target.TargetType.ValueString() != assignments[j].Target.TargetType.ValueString() {
-			return assignments[i].Target.TargetType.ValueString() < assignments[j].Target.TargetType.ValueString()
+		// Then sort by target type according to API's priority
+		iTargetType := targetTypeOrder[assignments[i].Target.TargetType.ValueString()]
+		jTargetType := targetTypeOrder[assignments[j].Target.TargetType.ValueString()]
+		if iTargetType != jTargetType {
+			return iTargetType < jTargetType
 		}
 
-		// Third tier: Within same target_type, sort by group_id alphabetically
-		if !assignments[i].Target.GroupId.IsNull() && !assignments[j].Target.GroupId.IsNull() {
-			return assignments[i].Target.GroupId.ValueString() < assignments[j].Target.GroupId.ValueString()
+		// For group assignments with same intent and target type, sort by group ID
+		if assignments[i].Target.TargetType.ValueString() == "groupAssignment" &&
+			assignments[j].Target.TargetType.ValueString() == "groupAssignment" &&
+			!assignments[i].Target.GroupId.IsNull() &&
+			!assignments[j].Target.GroupId.IsNull() {
+			return assignments[i].Target.GroupId.ValueString() <
+				assignments[j].Target.GroupId.ValueString()
 		}
 
+		// Default to original order for equivalent assignments
 		return i < j
 	})
 }
