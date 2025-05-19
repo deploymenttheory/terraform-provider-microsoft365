@@ -125,3 +125,5 @@ func ExactlyOneOf(attributeNames ...string) validator.Object {
 		AttributeNames: attributeNames,
 	}
 }
+
+// -----------------------------------------------------------------------------------

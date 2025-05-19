@@ -1,0 +1,189 @@
+<svg viewBox="0 0 1200 1500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="1500" fill="#f8f9fa" />
+  
+  <!-- Title -->
+  <text x="600" y="40" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">Complete Assignment Filter Creation Flow</text>
+  <text x="600" y="70" font-family="Arial" font-size="18" text-anchor="middle" font-style="italic">From HCL to Graph API with Validation Details</text>
+  
+  <!-- Top Section: HCL to Schema to Model -->
+  <rect x="50" y="100" width="1100" height="560" rx="5" ry="5" fill="#f0f5ff" stroke="#2f54eb" stroke-width="2" />
+  <text x="600" y="130" font-family="Arial" font-size="22" text-anchor="middle" font-weight="bold">HCL to Schema to Resource Model Flow</text>
+  
+  <!-- HCL Configuration -->
+  <rect x="150" y="150" width="900" height="90" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="600" y="175" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">Terraform Configuration (HCL)</text>
+  <text x="180" y="200" font-family="Arial" font-size="14" text-anchor="start">
+    resource "microsoft365_graph_beta_device_management_assignment_filter" "example" {
+  </text>
+  <text x="200" y="220" font-family="Arial" font-size="14" text-anchor="start">
+    display_name = "My Filter", platform = "windows10AndLater", rule = "...", ...
+  </text>
+  
+  <!-- Terraform Core Parsing -->
+  <rect x="350" y="270" width="500" height="50" rx="5" ry="5" fill="#fff2e8" stroke="#fa8c16" stroke-width="2" />
+  <text x="600" y="300" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Terraform Core - Parse HCL &amp; Prepare Plan</text>
+  
+  <!-- Schema Definition -->
+  <rect x="100" y="350" width="450" height="280" rx="5" ry="5" fill="#f6ffed" stroke="#52c41a" stroke-width="2" />
+  <text x="325" y="375" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">Schema Definition (resource.go)</text>
+  
+  <text x="120" y="405" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Defines expected attributes</text>
+  <text x="120" y="430" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Sets required/optional status</text>
+  <text x="120" y="455" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Defines attribute types (String, Bool, etc.)</text>
+  
+  <rect x="120" y="475" width="410" height="120" rx="3" ry="3" fill="#fff" stroke="#52c41a" stroke-width="1" />
+  <text x="130" y="495" font-family="Arial" font-size="14" text-anchor="start" fill="#262626" font-weight="bold">Validation Definitions:</text>
+  <text x="140" y="520" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Platform must be in validPlatformTypes[]</text>
+  <text x="140" y="545" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Management Type must be valid</text>
+  <text x="140" y="570" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- String validators ensure allowed values only</text>
+  
+  <text x="120" y="605" font-family="Arial" font-size="14" text-anchor="start" fill="#262626" font-style="italic">Schema creates a contract for what's expected from HCL</text>
+  
+  <!-- Resource Model -->
+  <rect x="650" y="350" width="450" height="280" rx="5" ry="5" fill="#f9f0ff" stroke="#722ed1" stroke-width="2" />
+  <text x="875" y="375" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">Resource Model (model.go)</text>
+  
+  <text x="670" y="405" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Go struct representation of the resource</text>
+  <text x="670" y="430" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Maps to schema via tfsdk tags</text>
+  <text x="670" y="455" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">- Stores both user input and computed values</text>
+  
+  <rect x="670" y="475" width="410" height="120" rx="3" ry="3" fill="#fff" stroke="#722ed1" stroke-width="1" />
+  <text x="680" y="495" font-family="Arial" font-size="14" text-anchor="start" fill="#262626" font-weight="bold">Structure Example:</text>
+  <text x="690" y="520" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">type AssignmentFilterResourceModel struct {</text>
+  <text x="700" y="545" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">ID types.String `tfsdk:"id"`</text>
+  <text x="700" y="570" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">DisplayName types.String `tfsdk:"display_name"`</text>
+  <text x="690" y="595" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">}</text>
+  
+  <!-- Middle section: Plan Validation and Mapping -->
+  <rect x="50" y="690" width="1100" height="170" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="600" y="720" font-family="Arial" font-size="22" text-anchor="middle" font-weight="bold">Plan Validation and Model Population</text>
+  
+  <rect x="100" y="750" width="350" height="80" rx="5" ry="5" fill="#fff" stroke="#1890ff" stroke-width="1" />
+  <text x="125" y="780" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">1. Plan is validated against Schema</text>
+  <text x="125" y="805" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">2. Validation errors become Diagnostics</text>
+  
+  <rect x="600" y="750" width="500" height="80" rx="5" ry="5" fill="#fff" stroke="#1890ff" stroke-width="1" />
+  <text x="625" y="780" font-family="Arial" font-size="16" text-anchor="start" font-weight="bold" fill="#262626">resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)</text>
+  <text x="625" y="805" font-family="Arial" font-size="14" text-anchor="start" fill="#262626">Maps validated plan values into AssignmentFilterResourceModel</text>
+  
+  <!-- Bottom Section: Create Function Flow -->
+  <rect x="50" y="890" width="1100" height="580" rx="5" ry="5" fill="#fff2e8" stroke="#fa8c16" stroke-width="2" />
+  <text x="600" y="920" font-family="Arial" font-size="22" text-anchor="middle" font-weight="bold">Assignment Filter Create Function Flow</text>
+  
+  <!-- Create Flow Steps -->
+  <rect x="325" y="950" width="550" height="40" rx="5" ry="5" fill="#52c41a" />
+  <text x="600" y="975" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Get plan from request into object (Validation happens here)</text>
+  
+  <rect x="325" y="1010" width="550" height="40" rx="5" ry="5" fill="#40a9ff" />
+  <text x="600" y="1035" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Handle timeout context (from config or default 180s)</text>
+  
+  <rect x="325" y="1070" width="550" height="40" rx="5" ry="5" fill="#40a9ff" />
+  <text x="600" y="1095" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Calculate retry timeout based on context deadline</text>
+  
+  <rect x="325" y="1130" width="550" height="40" rx="5" ry="5" fill="#52c41a" />
+  <text x="600" y="1155" font-family="Arial" font-size="14" text-anchor="middle" fill="white">constructResource() - Map Resource Model to Graph API model</text>
+  
+  <rect x="325" y="1190" width="550" height="40" rx="5" ry="5" fill="#40a9ff" />
+  <text x="600" y="1215" font-family="Arial" font-size="14" text-anchor="middle" fill="white">POST request to Graph API (DeviceManagement/AssignmentFilters)</text>
+  
+  <rect x="325" y="1250" width="550" height="40" rx="5" ry="5" fill="#40a9ff" />
+  <text x="600" y="1275" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Set ID in model from Graph API response</text>
+  
+  <rect x="325" y="1310" width="550" height="40" rx="5" ry="5" fill="#40a9ff" />
+  <text x="600" y="1335" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Set initial state with model (including ID)</text>
+  
+  <rect x="325" y="1370" width="550" height="40" rx="5" ry="5" fill="#f5222d" />
+  <text x="600" y="1395" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Read with retry to fetch full state from API</text>
+  
+  <rect x="425" y="1430" width="350" height="40" rx="20" ry="20" fill="#52c41a" />
+  <text x="600" y="1455" font-family="Arial" font-size="16" text-anchor="middle" fill="white">End Create - Resource is deployed</text>
+  
+  <!-- Construct Resource Function Detail -->
+  <rect x="925" y="1080" width="200" height="140" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="1025" y="1100" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">constructResource()</text>
+  <text x="935" y="1125" font-family="Arial" font-size="12" text-anchor="start">1. Creates filter object</text>
+  <text x="935" y="1145" font-family="Arial" font-size="12" text-anchor="start">2. Maps model fields to API object</text>
+  <text x="935" y="1165" font-family="Arial" font-size="12" text-anchor="start">3. Converts types.String to string*</text>
+  <text x="935" y="1185" font-family="Arial" font-size="12" text-anchor="start">4. Validates and converts enums</text>
+  <text x="935" y="1205" font-family="Arial" font-size="12" text-anchor="start">5. Returns API request body</text>
+  
+  <!-- Error Paths -->
+  <rect x="950" y="950" width="150" height="40" rx="5" ry="5" fill="#f5222d" />
+  <text x="1025" y="975" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Validation Error</text>
+  <line x1="875" y1="970" x2="950" y2="970" stroke="#f5222d" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="910" y="955" font-family="Arial" font-size="12" text-anchor="middle">Error</text>
+  
+  <rect x="950" y="1130" width="150" height="40" rx="5" ry="5" fill="#f5222d" />
+  <text x="1025" y="1155" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Construction Error</text>
+  <line x1="875" y1="1150" x2="950" y2="1150" stroke="#f5222d" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="910" y="1135" font-family="Arial" font-size="12" text-anchor="middle">Error</text>
+  
+  <rect x="950" y="1190" width="150" height="40" rx="5" ry="5" fill="#f5222d" />
+  <text x="1025" y="1215" font-family="Arial" font-size="14" text-anchor="middle" fill="white">API Error</text>
+  <line x1="875" y1="1210" x2="950" y2="1210" stroke="#f5222d" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="910" y="1195" font-family="Arial" font-size="12" text-anchor="middle">Error</text>
+  
+  <rect x="950" y="1370" width="150" height="40" rx="5" ry="5" fill="#f5222d" />
+  <text x="1025" y="1395" font-family="Arial" font-size="14" text-anchor="middle" fill="white">Read Error</text>
+  <line x1="875" y1="1390" x2="950" y2="1390" stroke="#f5222d" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="910" y="1375" font-family="Arial" font-size="12" text-anchor="middle">Error</text>
+  
+  <!-- Validation Details -->
+  <rect x="75" y="1130" width="200" height="180" rx="5" ry="5" fill="#fff" stroke="#52c41a" stroke-width="2" />
+  <text x="175" y="1150" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Validation Points</text>
+  <text x="85" y="1175" font-family="Arial" font-size="12" text-anchor="start">1. HCL syntax validation (Core)</text>
+  <text x="85" y="1195" font-family="Arial" font-size="12" text-anchor="start">2. Schema validation (plan vs schema)</text>
+  <text x="85" y="1215" font-family="Arial" font-size="12" text-anchor="start">3. Type conversion validation</text>
+  <text x="85" y="1235" font-family="Arial" font-size="12" text-anchor="start">4. Enum validation in constructResource</text>
+  <text x="85" y="1255" font-family="Arial" font-size="12" text-anchor="start">5. API request validation</text>
+  <text x="85" y="1275" font-family="Arial" font-size="12" text-anchor="start">6. State validation during Read</text>
+  
+  <!-- Read Function Detail -->
+  <rect x="75" y="1330" width="200" height="120" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="175" y="1350" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Read Function</text>
+  <text x="85" y="1375" font-family="Arial" font-size="12" text-anchor="start">1. Gets resource from API by ID</text>
+  <text x="85" y="1395" font-family="Arial" font-size="12" text-anchor="start">2. Maps API response to model</text>
+  <text x="85" y="1415" font-family="Arial" font-size="12" text-anchor="start">3. Includes server-side values</text>
+  <text x="85" y="1435" font-family="Arial" font-size="12" text-anchor="start">4. Sets complete state</text>
+  
+  <!-- Connector arrows -->
+  <!-- HCL to Core to Schema section -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+    </marker>
+  </defs>
+  
+  <line x1="600" y1="240" x2="600" y2="270" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="320" x2="600" y2="340" stroke="#000" stroke-width="2" />
+  <line x1="600" y1="340" x2="325" y2="340" stroke="#000" stroke-width="2" />
+  <line x1="600" y1="340" x2="875" y2="340" stroke="#000" stroke-width="2" />
+  <line x1="325" y1="340" x2="325" y2="350" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="875" y1="340" x2="875" y2="350" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <line x1="325" y1="630" x2="325" y2="650" stroke="#000" stroke-width="2" />
+  <line x1="875" y1="630" x2="875" y2="650" stroke="#000" stroke-width="2" />
+  <line x1="325" y1="650" x2="600" y2="650" stroke="#000" stroke-width="2" />
+  <line x1="875" y1="650" x2="600" y2="650" stroke="#000" stroke-width="2" />
+  <line x1="600" y1="650" x2="600" y2="690" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <!-- Plan to Create section -->
+  <line x1="600" y1="830" x2="600" y2="890" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <!-- Create flow arrows -->
+  <line x1="600" y1="990" x2="600" y2="1010" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1050" x2="600" y2="1070" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1110" x2="600" y2="1130" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1170" x2="600" y2="1190" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1230" x2="600" y2="1250" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1290" x2="600" y2="1310" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1350" x2="600" y2="1370" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="600" y1="1410" x2="600" y2="1430" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <!-- constructResource connection -->
+  <line x1="875" y1="1150" x2="925" y2="1150" stroke="#1890ff" stroke-width="2" />
+  
+  <!-- Read function connection -->
+  <line x1="275" y1="1390" x2="325" y2="1390" stroke="#1890ff" stroke-width="2" />
+</svg>

@@ -1,18 +1,16 @@
 package sharedValidators
 
 import (
+	"context"
 	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 )
 
 // ValidateMobileAppAssignmentSettings validates the mobile app assignment settings across all assignments
-func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignmentResourceModel) error {
-
-	// // Rule 1: Validate assignment ordering
-	// if err := validateAssignmentOrdering(config); err != nil {
-	// 	return err
-	// }
+func ValidateMobileAppAssignmentSettings(ctx context.Context, appType string, config []sharedmodels.MobileAppAssignmentResourceModel, graphClient *msgraphsdk.GraphServiceClient) error {
 
 	// Track usage of special target types
 	allDevicesCount := 0
@@ -20,7 +18,17 @@ func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignme
 	firstAllDevicesIndex := -1
 	firstAllLicensedUsersIndex := -1
 
+	// Rule 0: Validate that group IDs are only used once across all assignments
+	if err := validateUniqueGroupIds(config); err != nil {
+		return err
+	}
+
 	for i, assignment := range config {
+		// Rule 1: Validate app-type specific requirements
+		if err := validateMobileAppAssignmentType(appType, i, assignment); err != nil {
+			return err
+		}
+
 		// Rule 2: Validate install time settings based on intent
 		if err := validateInstallTimeSettings(i, assignment); err != nil {
 			return err
@@ -35,80 +43,47 @@ func ValidateMobileAppAssignmentSettings(config []sharedmodels.MobileAppAssignme
 		if err := validateRestartSettings(i, assignment); err != nil {
 			return err
 		}
+
+		// Rule 5: Validate required group_id for valid assignment target types
+		if err := validateRequiredGroupId(i, assignment); err != nil {
+			return err
+		}
+
+		// Rule 6: Validate that assignment filters exist in the system
+		if err := validateAssignmentFilterExists(ctx, i, assignment, graphClient); err != nil {
+			return err
+		}
+
+		// Rule 7: Validate that group IDs exist in the system
+		if err := validateGroupIdExists(ctx, i, assignment, graphClient); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-// validateAssignmentOrdering ensures assignments follow the required ordering:
-// 1. First tier: Sort by intent alphabetically
-// 2. Second tier: Within same intent, sort by target_type alphabetically
-// 3. Third tier: Within same target_type, sort by group_id alphabetically
-func validateAssignmentOrdering(config []sharedmodels.MobileAppAssignmentResourceModel) error {
-	if len(config) <= 1 {
-		return nil // No ordering needed for 0 or 1 assignments
-	}
-
-	for i := 0; i < len(config)-1; i++ {
-		current := config[i]
-		next := config[i+1]
-
-		// Get intent values, treating null as empty string for comparison
-		currentIntent := ""
-		nextIntent := ""
-		if !current.Intent.IsNull() {
-			currentIntent = current.Intent.ValueString()
-		}
-		if !next.Intent.IsNull() {
-			nextIntent = next.Intent.ValueString()
+// validateMobileAppAssignmentType validates app-type specific requirements for assignments
+func validateMobileAppAssignmentType(appType string, index int, assignment sharedmodels.MobileAppAssignmentResourceModel) error {
+	// Special handling for WindowsStoreApp type
+	if appType == "WindowsStoreApp" {
+		// First check if settings exists
+		if assignment.Settings == nil {
+			return fmt.Errorf("assignment[%d] is missing required 'settings' field for application_type '%s'", index, appType)
 		}
 
-		// Compare intents (First tier)
-		if currentIntent > nextIntent {
-			return fmt.Errorf(
-				"invalid mobile app assignment ordering between index %d and %d: intent '%s' must come before '%s'",
-				i, i+1, nextIntent, currentIntent,
-			)
+		// Then check if win_get exists
+		if assignment.Settings.WinGet == nil {
+			return fmt.Errorf("assignment[%d] is missing required 'settings.win_get' field for application_type '%s'", index, appType)
 		}
 
-		// If intents are equal, compare target_types (Second tier)
-		if currentIntent == nextIntent {
-			currentTargetType := ""
-			nextTargetType := ""
-			if !current.Target.TargetType.IsNull() {
-				currentTargetType = current.Target.TargetType.ValueString()
-			}
-			if !next.Target.TargetType.IsNull() {
-				nextTargetType = next.Target.TargetType.ValueString()
-			}
-
-			if currentTargetType > nextTargetType {
-				return fmt.Errorf(
-					"invalid mobile app assignment ordering between index %d and %d: for intent '%s', target_type '%s' must come before '%s'",
-					i, i+1, currentIntent, nextTargetType, currentTargetType,
-				)
-			}
-
-			// If target_types are equal, compare group_ids (Third tier)
-			if currentTargetType == nextTargetType {
-				currentGroupID := ""
-				nextGroupID := ""
-				if !current.Target.GroupId.IsNull() {
-					currentGroupID = current.Target.GroupId.ValueString()
-				}
-				if !next.Target.GroupId.IsNull() {
-					nextGroupID = next.Target.GroupId.ValueString()
-				}
-
-				if currentGroupID > nextGroupID {
-					return fmt.Errorf(
-						"invalid mobile app assignment ordering between index %d and %d: for intent '%s' and target_type '%s', group_id '%s' must come before '%s'",
-						i, i+1, currentIntent, currentTargetType, nextGroupID, currentGroupID,
-					)
-				}
-			}
+		// Finally check notifications
+		if assignment.Settings.WinGet.Notifications.IsNull() || assignment.Settings.WinGet.Notifications.IsUnknown() {
+			return fmt.Errorf("assignment[%d] is missing required 'settings.win_get.notifications' field for application_type '%s'", index, appType)
 		}
 	}
+
+	// Add similar checks for other application types as needed
 
 	return nil
 }
@@ -293,6 +268,158 @@ func validateRestartSettings(index int, assignment sharedmodels.MobileAppAssignm
 				"assignment[%d]: restart_notification_snooze_duration (%d) cannot be more than half the difference between grace_period_in_minutes and countdown_display_before_restart (%d)",
 				index, snooze, maxSnooze,
 			)
+		}
+	}
+
+	return nil
+}
+
+// validateRequiredGroupId checks if group_id is provided when specific target types are used
+func validateRequiredGroupId(index int, assignment sharedmodels.MobileAppAssignmentResourceModel) error {
+	if !assignment.Target.TargetType.IsNull() {
+		targetType := assignment.Target.TargetType.ValueString()
+
+		// List of target types that require a group_id
+		requiresGroupId := map[string]bool{
+			"androidFotaDeployment":    true,
+			"exclusionGroupAssignment": true,
+			"groupAssignment":          true,
+			// Not including "configurationManagerCollection" as it uses collectionId instead
+		}
+
+		if requiresGroupId[targetType] {
+			// Check if group_id exists and is not empty
+			if assignment.Target.GroupId.IsNull() || assignment.Target.GroupId.ValueString() == "" {
+				return fmt.Errorf(
+					"assignment[%d]: target_type '%s' requires a valid group_id to be specified",
+					index, targetType,
+				)
+			}
+		}
+
+		// Special case for configurationManagerCollection which requires collectionId
+		if targetType == "configurationManagerCollection" {
+			if assignment.Target.CollectionId.IsNull() || assignment.Target.CollectionId.ValueString() == "" {
+				return fmt.Errorf(
+					"assignment[%d]: target_type 'configurationManagerCollection' requires a valid collection_id to be specified",
+					index,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateAssignmentFilterExists checks if the specified assignment filter exists in the system
+func validateAssignmentFilterExists(ctx context.Context, index int, assignment sharedmodels.MobileAppAssignmentResourceModel, client *msgraphsdk.GraphServiceClient) error {
+	// Skip validation if client is nil (for backward compatibility)
+	if client == nil {
+		return nil
+	}
+
+	// If a filter ID is specified, verify it exists
+	if !assignment.Target.DeviceAndAppManagementAssignmentFilterId.IsNull() &&
+		assignment.Target.DeviceAndAppManagementAssignmentFilterId.ValueString() != "" {
+		filterId := assignment.Target.DeviceAndAppManagementAssignmentFilterId.ValueString()
+
+		_, err := client.
+			DeviceManagement().
+			AssignmentFilters().
+			ByDeviceAndAppManagementAssignmentFilterId(filterId).
+			Get(ctx, nil)
+
+		if err != nil {
+			// Check if it's a "not found" error (404) from Graph API
+			if odataErr, ok := err.(*odataerrors.ODataError); ok {
+				if odataErr.ResponseStatusCode == 404 {
+					return fmt.Errorf(
+						"assignment[%d]: specified assignment filter ID '%s' was not found in the system",
+						index, filterId,
+					)
+				}
+			}
+			// For any other errors, return a generic error message
+			return fmt.Errorf(
+				"assignment[%d]: error validating assignment filter ID '%s': %v",
+				index, filterId, err,
+			)
+		}
+	}
+
+	return nil
+}
+
+// validateGroupIdExists checks if the specified group ID exists in the system
+func validateGroupIdExists(ctx context.Context, index int, assignment sharedmodels.MobileAppAssignmentResourceModel, client *msgraphsdk.GraphServiceClient) error {
+	// Skip validation if client is nil (for backward compatibility)
+	if client == nil {
+		return nil
+	}
+
+	// Check if this assignment requires a group ID validation
+	if !assignment.Target.TargetType.IsNull() {
+		targetType := assignment.Target.TargetType.ValueString()
+
+		requiresGroupId := map[string]bool{
+			"androidFotaDeployment":    true,
+			"exclusionGroupAssignment": true,
+			"groupAssignment":          true,
+		}
+
+		// Only validate group IDs for target types that require them
+		if requiresGroupId[targetType] && !assignment.Target.GroupId.IsNull() &&
+			assignment.Target.GroupId.ValueString() != "" {
+			groupId := assignment.Target.GroupId.ValueString()
+
+			_, err := client.Groups().
+				ByGroupId(groupId).
+				Get(ctx, nil)
+
+			if err != nil {
+				// Check if it's a "not found" error (404) from Graph API
+				if odataErr, ok := err.(*odataerrors.ODataError); ok {
+					if odataErr.ResponseStatusCode == 404 {
+						return fmt.Errorf(
+							"assignment[%d]: specified group ID '%s' for target type '%s' was not found in the system",
+							index, groupId, targetType,
+						)
+					}
+				}
+				// For any other errors, return a generic error message
+				return fmt.Errorf(
+					"assignment[%d]: error validating group ID '%s': %v",
+					index, groupId, err,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateUniqueGroupIds checks that group IDs are only used once across all assignments
+func validateUniqueGroupIds(config []sharedmodels.MobileAppAssignmentResourceModel) error {
+	usedGroupIds := make(map[string]int)
+
+	for i, assignment := range config {
+		if assignment.Target.TargetType.IsNull() {
+			continue
+		}
+
+		targetType := assignment.Target.TargetType.ValueString()
+
+		if targetType == "groupAssignment" && !assignment.Target.GroupId.IsNull() && assignment.Target.GroupId.ValueString() != "" {
+			groupId := assignment.Target.GroupId.ValueString()
+
+			if prevIndex, exists := usedGroupIds[groupId]; exists {
+				return fmt.Errorf(
+					"assignment[%d]: group ID '%s' is already used in assignment[%d]. A group ID can only be targeted once across all assignments",
+					i, groupId, prevIndex,
+				)
+			}
+
+			usedGroupIds[groupId] = i
 		}
 	}
 

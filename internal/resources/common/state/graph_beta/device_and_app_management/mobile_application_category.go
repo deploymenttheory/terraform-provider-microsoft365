@@ -1,4 +1,4 @@
-package graphBetaMacOSPKGApp
+package sharedStater
 
 import (
 	"context"

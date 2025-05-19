@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -49,13 +48,12 @@ func (d *WindowsUpdateRingDataSource) Read(ctx context.Context, req datasource.R
 
 	// For ID filter, we can make a direct API call
 	if filterType == "id" {
-		constants.GraphSDKMutex.Lock()
+
 		respItem, err := d.client.
 			DeviceManagement().
 			DeviceConfigurations().
 			ByDeviceConfigurationId(filterValue).
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -74,12 +72,11 @@ func (d *WindowsUpdateRingDataSource) Read(ctx context.Context, req datasource.R
 		}
 	} else {
 		// For all other filters, we need to get all device configurations and filter for Windows Update Rings
-		constants.GraphSDKMutex.Lock()
+
 		respList, err := d.client.
 			DeviceManagement().
 			DeviceConfigurations().
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

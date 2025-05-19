@@ -1,38 +1,48 @@
+// In a file like mobileapp_assignment_plan_modifiers.go
 package planmodifiers
 
 import (
 	"context"
-	"reflect"
-	"sort"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 )
 
+// MobileAppAssignmentsListModifier handles the reordering of assignments by the API
 func MobileAppAssignmentsListModifier() planmodifier.List {
-	return &mobileAppAssignmentsListPlanModifier{}
+	return &mobileAppAssignmentsModifier{}
 }
 
-type mobileAppAssignmentsListPlanModifier struct{}
+// mobileAppAssignmentsModifier implements planmodifier.List
+type mobileAppAssignmentsModifier struct{}
 
-func (m *mobileAppAssignmentsListPlanModifier) Description(ctx context.Context) string {
-	return "Ensures correct ordering of mobile app assignments by matching content rather than relying on list position"
+// Description returns a plain text description of the validator's behavior
+func (m *mobileAppAssignmentsModifier) Description(ctx context.Context) string {
+	return "Handles reordering of assignments by the Microsoft Graph API"
 }
 
-func (m *mobileAppAssignmentsListPlanModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ensures correct ordering of mobile app assignments by matching content rather than relying on list position"
+// MarkdownDescription returns a markdown formatted description of the validator's behavior
+func (m *mobileAppAssignmentsModifier) MarkdownDescription(ctx context.Context) string {
+	return "Handles reordering of assignments by the Microsoft Graph API"
 }
 
-func (m *mobileAppAssignmentsListPlanModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	tflog.Debug(ctx, "Entered MobileAppAssignmentsListPlanModifier method")
-
-	if req.StateValue.IsNull() || req.PlanValue.IsNull() {
-		tflog.Debug(ctx, "State or plan value is null, skipping assignment modification")
+// PlanModifyList is called when the provider is creating the plan for assignments
+func (m *mobileAppAssignmentsModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	// Only apply this logic during update operations
+	if req.State.Raw.IsNull() {
 		return
 	}
 
-	var planAssignments, stateAssignments []types.Object
+	// If plan is null, we're removing all assignments - no need to sort
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var planAssignments, stateAssignments []sharedmodels.MobileAppAssignmentResourceModel
 
 	diags := req.PlanValue.ElementsAs(ctx, &planAssignments, false)
 	if diags.HasError() {
@@ -46,93 +56,188 @@ func (m *mobileAppAssignmentsListPlanModifier) PlanModifyList(ctx context.Contex
 		return
 	}
 
-	// Sort assignments by the same logic as the stating logic
-	// which is the same as the resp from intune.
-	sortMobileAppAssignments(planAssignments)
-	sortMobileAppAssignments(stateAssignments)
+	// Order doesn't matter for creation (API will reorder)
+	// But for updates or reads, need to match API's ordering
+	// Order doesn't matter for creation (API will reorder)
+	// But for updates or reads, need to match API's ordering
+	if len(planAssignments) > 0 && len(stateAssignments) > 0 {
+		// Sort both the plan and state assignments the same way
+		sharedstater.SortMobileAppAssignments(planAssignments)
+		sharedstater.SortMobileAppAssignments(stateAssignments)
 
-	// Strip assignment IDs as they are computed in the schema and so will never be in the plan.
-	stripAssignmentIds(ctx, req, planAssignments)
-	stripAssignmentIds(ctx, req, stateAssignments)
+		// Create a new plan value with sorted assignments
+		elemType := req.PlanValue.Type(ctx).(types.ListType).ElemType
 
-	tflog.Debug(ctx, "Sorted plan assignments", map[string]interface{}{"assignments": planAssignments})
-	tflog.Debug(ctx, "Sorted state assignments", map[string]interface{}{"assignments": stateAssignments})
+		// Convert the sorted assignments back to a list value
+		sortedAssignments := make([]attr.Value, len(planAssignments))
 
-	if reflect.DeepEqual(planAssignments, stateAssignments) {
-		resp.PlanValue = req.StateValue
-		tflog.Debug(ctx, "Assignments match after sorting; reusing state ordering")
-	} else {
-		tflog.Debug(ctx, "Assignments differ after sorting; using plan value")
-	}
-}
+		for i, assignment := range planAssignments {
+			// Convert each assignment to attr.Value
+			assignmentMap := map[string]attr.Value{
+				"id":        types.StringValue(assignment.Id.ValueString()),
+				"intent":    types.StringValue(assignment.Intent.ValueString()),
+				"source":    types.StringValue(assignment.Source.ValueString()),
+				"source_id": assignment.SourceId,
+				"target": types.ObjectValueMust(
+					map[string]attr.Type{
+						"target_type": types.StringType,
+						"device_and_app_management_assignment_filter_id":   types.StringType,
+						"device_and_app_management_assignment_filter_type": types.StringType,
+						"group_id":      types.StringType,
+						"collection_id": types.StringType,
+					},
+					map[string]attr.Value{
+						"target_type": types.StringValue(assignment.Target.TargetType.ValueString()),
+						"device_and_app_management_assignment_filter_id":   assignment.Target.DeviceAndAppManagementAssignmentFilterId,
+						"device_and_app_management_assignment_filter_type": types.StringValue(assignment.Target.DeviceAndAppManagementAssignmentFilterType.ValueString()),
+						"group_id":      assignment.Target.GroupId,
+						"collection_id": assignment.Target.CollectionId,
+					},
+				),
+			}
 
-// sortMobileAppAssignments sorts a slice of mobile app assignments
-// The sort order is as follows:
-// 1. First tier: Sort by intent alphabetically
-// 2. Second tier: Within same intent, sort by target_type alphabetically
-// 3. Third tier: Within same target_type, sort by group_id alphabetically
-func sortMobileAppAssignments(assignments []types.Object) {
-	sort.SliceStable(assignments, func(i, j int) bool {
-		// First tier: Sort by intent alphabetically
-		intentI := getStringAttr(assignments[i], "intent")
-		intentJ := getStringAttr(assignments[j], "intent")
-		if intentI != intentJ {
-			return intentI < intentJ
+			// Handle settings which could be null
+			if assignment.Settings != nil {
+				// Create a settings object based on which type is set
+				settingsMap := map[string]attr.Value{
+					"android_managed_store":        types.ObjectNull(map[string]attr.Type{}),
+					"ios_lob":                      types.ObjectNull(map[string]attr.Type{}),
+					"ios_store":                    types.ObjectNull(map[string]attr.Type{}),
+					"ios_vpp":                      types.ObjectNull(map[string]attr.Type{}),
+					"macos_lob":                    types.ObjectNull(map[string]attr.Type{}),
+					"macos_vpp":                    types.ObjectNull(map[string]attr.Type{}),
+					"microsoft_store_for_business": types.ObjectNull(map[string]attr.Type{}),
+					"win32_catalog":                types.ObjectNull(map[string]attr.Type{}),
+					"win32_lob":                    types.ObjectNull(map[string]attr.Type{}),
+					"win_get":                      types.ObjectNull(map[string]attr.Type{}),
+					"windows_app_x":                types.ObjectNull(map[string]attr.Type{}),
+					"windows_universal_app_x":      types.ObjectNull(map[string]attr.Type{}),
+				}
+
+				// Handle WinGet settings
+				if assignment.Settings.WinGet != nil {
+					// Initialize the winGetMap with appropriate types for nested objects
+					winGetMap := map[string]attr.Value{
+						"notifications": types.StringValue(assignment.Settings.WinGet.Notifications.ValueString()),
+						// Initialize with empty objects that match the expected schema
+						"install_time_settings": types.ObjectValueMust(
+							map[string]attr.Type{
+								"deadline_date_time": types.StringType,
+								"use_local_time":     types.BoolType,
+							},
+							map[string]attr.Value{
+								"deadline_date_time": types.StringNull(),
+								"use_local_time":     types.BoolNull(),
+							},
+						),
+						"restart_settings": types.ObjectValueMust(
+							map[string]attr.Type{
+								"countdown_display_before_restart_in_minutes":     types.Int64Type,
+								"grace_period_in_minutes":                         types.Int64Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+							},
+							map[string]attr.Value{
+								"countdown_display_before_restart_in_minutes":     types.Int64Null(),
+								"grace_period_in_minutes":                         types.Int64Null(),
+								"restart_notification_snooze_duration_in_minutes": types.Int64Null(),
+							},
+						),
+					}
+
+					// Handle install time settings
+					if assignment.Settings.WinGet.InstallTimeSettings != nil {
+						installTimeMap := map[string]attr.Value{
+							"deadline_date_time": types.StringValue(assignment.Settings.WinGet.InstallTimeSettings.DeadlineDateTime.ValueString()),
+							"use_local_time":     types.BoolValue(assignment.Settings.WinGet.InstallTimeSettings.UseLocalTime.ValueBool()),
+						}
+
+						winGetMap["install_time_settings"] = types.ObjectValueMust(
+							map[string]attr.Type{
+								"deadline_date_time": types.StringType,
+								"use_local_time":     types.BoolType,
+							},
+							installTimeMap,
+						)
+					}
+
+					// Handle restart settings
+					if assignment.Settings.WinGet.RestartSettings != nil {
+						restartMap := map[string]attr.Value{
+							"countdown_display_before_restart_in_minutes":     types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt32())),
+							"grace_period_in_minutes":                         types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.GracePeriodInMinutes.ValueInt32())),
+							"restart_notification_snooze_duration_in_minutes": types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt32())),
+						}
+
+						winGetMap["restart_settings"] = types.ObjectValueMust(
+							map[string]attr.Type{
+								"countdown_display_before_restart_in_minutes":     types.Int64Type,
+								"grace_period_in_minutes":                         types.Int64Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+							},
+							restartMap,
+						)
+					}
+
+					// Create the win_get object with consistent schema
+					settingsMap["win_get"] = types.ObjectValueMust(
+						map[string]attr.Type{
+							"notifications": types.StringType,
+							"install_time_settings": types.ObjectType{AttrTypes: map[string]attr.Type{
+								"deadline_date_time": types.StringType,
+								"use_local_time":     types.BoolType,
+							}},
+							"restart_settings": types.ObjectType{AttrTypes: map[string]attr.Type{
+								"countdown_display_before_restart_in_minutes":     types.Int64Type,
+								"grace_period_in_minutes":                         types.Int64Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+							}},
+						},
+						winGetMap,
+					)
+				}
+
+				// Handle other settings types similarly...
+				// For example, for Android, iOS, etc.
+
+				assignmentMap["settings"] = types.ObjectValueMust(
+					map[string]attr.Type{
+						"android_managed_store":        types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"ios_lob":                      types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"ios_store":                    types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"ios_vpp":                      types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"macos_lob":                    types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"macos_vpp":                    types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"microsoft_store_for_business": types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"win32_catalog":                types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"win32_lob":                    types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"win_get":                      types.ObjectType{AttrTypes: map[string]attr.Type{"notifications": types.StringType, "install_time_settings": types.ObjectType{AttrTypes: map[string]attr.Type{}}, "restart_settings": types.ObjectType{AttrTypes: map[string]attr.Type{}}}},
+						"windows_app_x":                types.ObjectType{AttrTypes: map[string]attr.Type{}},
+						"windows_universal_app_x":      types.ObjectType{AttrTypes: map[string]attr.Type{}},
+					},
+					settingsMap,
+				)
+			} else {
+				// If settings is null, add an empty settings object
+				assignmentMap["settings"] = types.ObjectNull(map[string]attr.Type{})
+			}
+
+			// Create the assignment object and add it to the list
+			assignmentObj, diags := types.ObjectValue(elemType.(types.ObjectType).AttrTypes, assignmentMap)
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+
+			sortedAssignments[i] = assignmentObj
 		}
 
-		// Second tier: Sort by target_type alphabetically
-		targetTypeI := getNestedStringAttr(assignments[i], "target", "target_type")
-		targetTypeJ := getNestedStringAttr(assignments[j], "target", "target_type")
-		if targetTypeI != targetTypeJ {
-			return targetTypeI < targetTypeJ
+		// Create the sorted list and set it as the plan value
+		sortedList, diags := types.ListValue(elemType, sortedAssignments)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
 
-		// Third tier: Sort by group_id alphabetically if neither are null
-		groupIDI := getNestedStringAttr(assignments[i], "target", "group_id")
-		groupIDJ := getNestedStringAttr(assignments[j], "target", "group_id")
-
-		// Handle potential empty strings from nulls uniformly
-		if groupIDI != groupIDJ {
-			return groupIDI < groupIDJ
-		}
-
-		// Final fallback to ensure stability
-		return i < j
-	})
-}
-
-func stripAssignmentIds(ctx context.Context, req planmodifier.ListRequest, assignments []types.Object) {
-	for i := range assignments {
-		attrs := assignments[i].Attributes()
-		attrs["id"] = types.StringNull()
-		assignments[i] = types.ObjectValueMust(req.PlanValue.ElementType(ctx).(types.ObjectType).AttrTypes, attrs)
+		resp.PlanValue = sortedList
 	}
-}
-
-func getStringAttr(obj types.Object, attrName string) string {
-	attr, ok := obj.Attributes()[attrName]
-	if !ok || attr.IsNull() || attr.IsUnknown() {
-		return ""
-	}
-
-	val, ok := attr.(types.String)
-	if !ok {
-		return ""
-	}
-
-	return val.ValueString()
-}
-
-func getNestedStringAttr(obj types.Object, nestedName, attrName string) string {
-	nestedAttr, ok := obj.Attributes()[nestedName]
-	if !ok || nestedAttr.IsNull() || nestedAttr.IsUnknown() {
-		return ""
-	}
-
-	nestedObj, ok := nestedAttr.(types.Object)
-	if !ok {
-		return ""
-	}
-
-	return getStringAttr(nestedObj, attrName)
 }

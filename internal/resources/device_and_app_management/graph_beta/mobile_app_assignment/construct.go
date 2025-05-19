@@ -1,4 +1,4 @@
-package sharedConstructors
+package graphBetaDeviceAndAppManagementAppAssignment
 
 import (
 	"context"
@@ -6,89 +6,71 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 
 	// validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// ConstructMobileAppAssignment constructs and returns a MobileAppsItemAssignPostRequestBody
-func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.MobileAppAssignmentResourceModel) (deviceappmanagement.MobileAppsItemAssignPostRequestBodyable, error) {
-	if len(data) == 0 {
-		requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
-		// When the 'assignments' block is omitted or removed from the Terraform configuration,
-		// Terraform will treat the desired state as "no assignments". In order to reconcile this
-		// with the actual state (which may still have existing assignments in Intune), we need to
-		// explicitly clear those assignments.
-		return requestBody, nil
-	}
-
+// ConstructMobileAppAssignment constructs and returns a MobileAppAssignment
+func ConstructMobileAppAssignment(ctx context.Context, data MobileAppAssignmentResourceModel) (graphmodels.MobileAppAssignmentable, error) {
 	tflog.Debug(ctx, "Starting mobile app assignment construction")
 
-	requestBody := deviceappmanagement.NewMobileAppsItemAssignPostRequestBody()
-	var assignments []graphmodels.MobileAppAssignmentable
+	assignment := graphmodels.NewMobileAppAssignment()
 
-	for _, assignmentData := range data {
-		assignment := graphmodels.NewMobileAppAssignment()
-
-		// Set Intent
-		if !assignmentData.Intent.IsNull() {
-			intentValue, err := graphmodels.ParseInstallIntent(assignmentData.Intent.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing install intent: %v", err)
-			}
-			assignment.SetIntent(intentValue.(*graphmodels.InstallIntent))
-		}
-
-		// Set Target
-		target, err := constructAssignmentTarget(ctx, &assignmentData.Target)
+	// Set Intent
+	if !data.Intent.IsNull() {
+		intentValue, err := graphmodels.ParseInstallIntent(data.Intent.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
+			return nil, fmt.Errorf("error parsing install intent: %v", err)
 		}
-		assignment.SetTarget(target)
+		assignment.SetIntent(intentValue.(*graphmodels.InstallIntent))
+	}
 
-		// Set Source
-		if !assignmentData.Source.IsNull() {
-			sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(assignmentData.Source.ValueString())
-			if err != nil {
-				return nil, fmt.Errorf("error parsing source: %v", err)
-			}
-			assignment.SetSource(sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource))
+	// Set Target
+	target, err := constructAssignmentTarget(ctx, &data.Target)
+	if err != nil {
+		return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
+	}
+	assignment.SetTarget(target)
+
+	// Set Source
+	if !data.Source.IsNull() {
+		sourceValue, err := graphmodels.ParseDeviceAndAppManagementAssignmentSource(data.Source.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("error parsing source: %v", err)
 		}
+		assignment.SetSource(sourceValue.(*graphmodels.DeviceAndAppManagementAssignmentSource))
+	}
 
-		// Set SourceId
-		if !assignmentData.SourceId.IsNull() {
-			id := assignmentData.SourceId.ValueString()
-			assignment.SetSourceId(&id)
-		}
+	// Set SourceId
+	if !data.SourceId.IsNull() {
+		id := data.SourceId.ValueString()
+		assignment.SetSourceId(&id)
+	}
 
-		// Set Settings
-		settings, err := constructMobileAppAssignmentSettings(ctx, assignmentData.Settings)
+	// Set Settings
+	if data.Settings != nil {
+		settings, err := constructMobileAppAssignmentSettings(ctx, data.Settings)
 		if err != nil {
 			return nil, fmt.Errorf("error constructing settings: %v", err)
 		}
 		if settings != nil {
 			assignment.SetSettings(settings)
 		}
-
-		assignments = append(assignments, assignment)
 	}
 
-	requestBody.SetMobileAppAssignments(assignments)
-
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to mobile app assignment request body", map[string]interface{}{
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment", assignment); err != nil {
+		tflog.Error(ctx, "Failed to log mobile app assignment", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	return requestBody, nil
+	return assignment, nil
 }
 
 // constructAssignmentTarget constructs the mobile app deployment assignment target
-func constructAssignmentTarget(ctx context.Context, data *sharedmodels.AssignmentTargetResourceModel) (graphmodels.DeviceAndAppManagementAssignmentTargetable, error) {
+func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResourceModel) (graphmodels.DeviceAndAppManagementAssignmentTargetable, error) {
 	if data == nil {
 		return nil, fmt.Errorf("assignment target data is required")
 	}
@@ -151,7 +133,7 @@ func constructAssignmentTarget(ctx context.Context, data *sharedmodels.Assignmen
 	return target, nil
 }
 
-func constructMobileAppAssignmentSettings(ctx context.Context, data *sharedmodels.MobileAppAssignmentSettingsResourceModel) (graphmodels.MobileAppAssignmentSettingsable, error) {
+func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAssignmentSettingsResourceModel) (graphmodels.MobileAppAssignmentSettingsable, error) {
 	if data == nil {
 		return nil, nil
 	}
@@ -272,7 +254,7 @@ func constructMobileAppAssignmentSettings(ctx context.Context, data *sharedmodel
 	return nil, nil
 }
 
-func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data *sharedmodels.AndroidManagedStoreAssignmentSettingsResourceModel) (*graphmodels.AndroidManagedStoreAppAssignmentSettings, error) {
+func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data *AndroidManagedStoreAssignmentSettingsResourceModel) (*graphmodels.AndroidManagedStoreAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("android Managed Store data is required")
 	}
@@ -298,7 +280,7 @@ func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data
 	return settings, nil
 }
 
-func constructIosLobAppAssignmentSettings(data *sharedmodels.IosLobAppAssignmentSettingsResourceModel) (*graphmodels.IosLobAppAssignmentSettings, error) {
+func constructIosLobAppAssignmentSettings(data *IosLobAppAssignmentSettingsResourceModel) (*graphmodels.IosLobAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS Lob App data is required")
 	}
@@ -313,7 +295,7 @@ func constructIosLobAppAssignmentSettings(data *sharedmodels.IosLobAppAssignment
 	return settings, nil
 }
 
-func constructIosStoreAppAssignmentSettings(data *sharedmodels.IosStoreAppAssignmentSettingsResourceModel) (*graphmodels.IosStoreAppAssignmentSettings, error) {
+func constructIosStoreAppAssignmentSettings(data *IosStoreAppAssignmentSettingsResourceModel) (*graphmodels.IosStoreAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS Store App data is required")
 	}
@@ -328,7 +310,7 @@ func constructIosStoreAppAssignmentSettings(data *sharedmodels.IosStoreAppAssign
 	return settings, nil
 }
 
-func constructIosVppAppAssignmentSettings(data *sharedmodels.IosVppAppAssignmentSettingsResourceModel) (*graphmodels.IosVppAppAssignmentSettings, error) {
+func constructIosVppAppAssignmentSettings(data *IosVppAppAssignmentSettingsResourceModel) (*graphmodels.IosVppAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS VPP App data is required")
 	}
@@ -345,7 +327,7 @@ func constructIosVppAppAssignmentSettings(data *sharedmodels.IosVppAppAssignment
 	return settings, nil
 }
 
-func constructMacOsVppAppAssignmentSettings(data *sharedmodels.MacOsVppAppAssignmentSettingsResourceModel) (*graphmodels.MacOsVppAppAssignmentSettings, error) {
+func constructMacOsVppAppAssignmentSettings(data *MacOsVppAppAssignmentSettingsResourceModel) (*graphmodels.MacOsVppAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("MacOS VPP App data is required")
 	}
@@ -360,7 +342,7 @@ func constructMacOsVppAppAssignmentSettings(data *sharedmodels.MacOsVppAppAssign
 	return settings, nil
 }
 
-func constructMicrosoftStoreForBusinessAppAssignmentSettings(data *sharedmodels.MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel) (*graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings, error) {
+func constructMicrosoftStoreForBusinessAppAssignmentSettings(data *MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel) (*graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("microsoft Store for Business App data is required")
 	}
@@ -372,7 +354,7 @@ func constructMicrosoftStoreForBusinessAppAssignmentSettings(data *sharedmodels.
 	return settings, nil
 }
 
-func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogAppAssignmentSettingsResourceModel) (*graphmodels.Win32CatalogAppAssignmentSettings, error) {
+func constructWin32CatalogAppAssignmentSettings(data *Win32CatalogAppAssignmentSettingsResourceModel) (*graphmodels.Win32CatalogAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("Win32Catalog App data is required")
 	}
@@ -436,7 +418,7 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 	return settings, nil
 }
 
-func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssignmentSettingsResourceModel) (*graphmodels.Win32LobAppAssignmentSettings, error) {
+func constructWin32LobAppAssignmentSettings(data *Win32LobAppAssignmentSettingsResourceModel) (*graphmodels.Win32LobAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("Win32 LOB App data is required")
 	}
@@ -499,7 +481,7 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 	return settings, nil
 }
 
-func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsAppXAppAssignmentSettings, error) {
+func constructWindowsAppXAssignmentSettings(data *WindowsAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsAppXAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("windows AppX App data is required")
 	}
@@ -511,7 +493,7 @@ func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssign
 	return settings, nil
 }
 
-func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsUniversalAppXAppAssignmentSettings, error) {
+func constructWindowsUniversalAppXAssignmentSettings(data *WindowsUniversalAppXAssignmentSettingsResourceModel) (*graphmodels.WindowsUniversalAppXAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("windows Universal AppX App data is required")
 	}
@@ -522,7 +504,7 @@ func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsU
 
 	return settings, nil
 }
-func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignmentSettingsResourceModel) (*graphmodels.WinGetAppAssignmentSettings, error) {
+func constructWinGetAppAssignmentSettings(data *WinGetAppAssignmentSettingsResourceModel) (*graphmodels.WinGetAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("winGet settings data is required")
 	}

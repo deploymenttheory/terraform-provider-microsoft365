@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -54,13 +53,11 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 			},
 		}
 
-		constants.GraphSDKMutex.Lock()
 		respBaseResource, err := d.client.
 			DeviceAppManagement().
 			MobileApps().
 			ByMobileAppId(filterValue).
 			Get(ctx, requestParameters)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -79,12 +76,11 @@ func (d *MacOSPKGAppDataSource) Read(ctx context.Context, req datasource.ReadReq
 		filteredItems = append(filteredItems, MapRemoteStateToDataSource(ctx, macOSPkgApp))
 	} else {
 		// For all other filters, we need to get all macOS PKG apps and filter locally
-		constants.GraphSDKMutex.Lock()
+
 		respList, err := d.client.
 			DeviceAppManagement().
 			MobileApps().
 			Get(ctx, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)

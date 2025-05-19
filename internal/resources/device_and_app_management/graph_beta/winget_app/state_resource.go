@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -50,7 +51,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 	data.SupersedingAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = state.Int32PtrToTypeInt64(remoteResource.GetSupersededAppCount())
 
-	// Handle InstallExperience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
 		data.InstallExperience = &WinGetAppInstallExperienceResourceModel{
 			RunAsAccount: state.EnumPtrToTypeString(installExperience.GetRunAsAccount()),
@@ -78,6 +78,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 	}
 
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+
+	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

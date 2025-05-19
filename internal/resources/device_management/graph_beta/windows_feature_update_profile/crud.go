@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,12 +39,10 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -66,14 +63,12 @@ func (r *WindowsFeatureUpdateProfileResource) Create(ctx context.Context, req re
 			return
 		}
 
-		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsFeatureUpdateProfiles().
 			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
@@ -133,13 +128,11 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -148,14 +141,12 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	constants.GraphSDKMutex.Lock()
 	assignmentsResp, err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -212,13 +203,11 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -237,14 +226,12 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 			return
 		}
 
-		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			WindowsFeatureUpdateProfiles().
 			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
@@ -304,13 +291,11 @@ func (r *WindowsFeatureUpdateProfileResource) Delete(ctx context.Context, req re
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
 		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
-	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -22,7 +20,7 @@ import (
 func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WinGetAppResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of %s resource", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -38,21 +36,29 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	createdResource, err := constructResource(ctx, &object)
+	// if object.Assignments != nil {
+	// 	if err := ValidateWinGetAppAssignments(ctx, object.Assignments, r.client); err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error validating Win Get application assignments",
+	// 			fmt.Sprintf("Validation failed: %s", err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
+
+	requestBody, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(context.Background(), createdResource, nil)
-	constants.GraphSDKMutex.Unlock()
+		Post(context.Background(), requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -60,32 +66,17 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
+	tflog.Debug(ctx, fmt.Sprintf("Base resource %s created with ID: %s", ResourceName, object.ID.ValueString()))
 
-	if object.Assignments != nil {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+	if !object.Categories.IsNull() {
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
-			err := r.client.
-				DeviceAppManagement().
-				MobileApps().
-				ByMobileAppId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -120,20 +111,20 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create method for %s with ID: %s", ResourceName, object.ID.ValueString()))
 }
 
 // Read handles the Read operation.
 func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WinGetAppResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -141,13 +132,18 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
-	resource, err := r.client.
+	// 1. get base resource with expanded query to return categories
+	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
+			Expand: []string{"categories"},
+		},
+	}
+
+	respBaseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
-		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
+		Get(ctx, requestParameters)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -156,52 +152,56 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// This ensures type safety as the Graph API returns a base interface that needs
 	// to be converted to the specific app type to access WinGetApp-specific fields.
-	winGetApp, ok := resource.(graphmodels.WinGetAppable)
+	winGetApp, ok := respBaseResource.(graphmodels.WinGetAppable)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Resource type mismatch",
-			fmt.Sprintf("Expected resource of type WinGetAppable but got %T", resource),
+			fmt.Sprintf("Expected resource of type WinGetAppable but got %T", respBaseResource),
 		)
 		return
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, winGetApp)
 
-	constants.GraphSDKMutex.Lock()
-	respAssignments, err := r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
+	// respAssignments, err := r.client.
+	// 	DeviceAppManagement().
+	// 	MobileApps().
+	// 	ByMobileAppId(object.ID.ValueString()).
+	// 	Assignments().
+	// 	Get(ctx, nil)
 
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read Assignments", r.ReadPermissions)
-		return
-	}
+	// if err != nil {
+	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+	// 	return
+	// }
 
-	// Only map assignments if there are any assignments returned and the object has an assignments block
-	if respAssignments != nil && len(respAssignments.GetValue()) > 0 {
-		object.Assignments = make([]sharedmodels.MobileAppAssignmentResourceModel, len(respAssignments.GetValue()))
-		sharedstater.StateMobileAppAssignment(ctx, object.Assignments, respAssignments)
-	}
+	// winGetAssignments, assignmentDiags := StateWinGetAppAssignments(ctx, respAssignments)
+	// resp.Diagnostics.Append(assignmentDiags...)
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
+	// object.Assignments = winGetAssignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation.
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object, state WinGetAppResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -215,56 +215,51 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	requestBody, err := constructResource(ctx, &object)
+	// if object.Assignments != nil {
+	// 	if err := ValidateWinGetAppAssignments(ctx, object.Assignments, r.client); err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error validating Win Get application assignments",
+	// 			fmt.Sprintf("Validation failed: %s", err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
+
+	// Step 1: Update the base mobile app resource
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	if object.Assignments != nil && state.Assignments != nil && !state.ID.IsNull() {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+	// Step 2: Updated Categories
+	if !object.Categories.Equal(state.Categories) {
+		tflog.Debug(ctx, fmt.Sprintf("Updating categories for resource %s with ID: %s", ResourceName, object.ID.ValueString()))
+
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-			constants.GraphSDKMutex.Lock()
-			err := r.client.
-				DeviceAppManagement().
-				MobileApps().
-				ByMobileAppId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-			constants.GraphSDKMutex.Unlock()
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
-
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}
@@ -292,14 +287,14 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for %s with ID: %s", ResourceName, object.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
 func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WinGetAppResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of %s resource with ID: %s", ResourceName, object.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -312,20 +307,18 @@ func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceAppManagement().
 		MobileApps().
 		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished deletion of resource %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	resp.State.RemoveResource(ctx)
 }

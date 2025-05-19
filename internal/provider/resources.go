@@ -2,9 +2,13 @@ package provider
 
 import (
 	"context"
-	// Graph Beta - Intune resources
+	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
+	graphBetaDeviceAndAppManagementAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/mobile_app_assignment"
+	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
+
+	// Graph Beta - Device management
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/device_category"
 	graphBetaDeviceManagementDeviceEnrollmentConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/device_enrollment_configuration"
@@ -36,7 +40,6 @@ import (
 
 	// TODO current broken due to how the sdk builds time fields
 	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/windows_update_ring"
-	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph v1.0 - Intune resources
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
@@ -58,14 +61,17 @@ import (
 // Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		// Graph Beta - Intune resources
+		// Graph Beta - Device & app management
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
+		graphBetaDeviceAndAppManagementAppAssignment.NewMobileAppAssignmentResource,
+		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
+		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
+		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryResource,
 		graphBetaDeviceManagementDeviceEnrollmentConfiguration.NewDeviceEnrollmentConfigurationResource,
 		graphBetaDeviceManagementEndpointPrivilegeManagement.NewEndpointPrivilegeManagementResource,
 		graphBetaDeviceManagementLinuxPlatformScript.NewLinuxPlatformScriptResource,
-		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceManagementMacOSPlatformScript.NewMacOSPlatformScriptResource,
 		graphBetaDeviceManagementSettingsCatalog.NewSettingsCatalogResource,
 		graphBetaDeviceManagementSettingsCatalogTemplate.NewDeviceManagementTemplateResource,
@@ -81,7 +87,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsQualityExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyResource,
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
 		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
-		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 
 		// Graph Beta - Identity and Access resources
 		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,

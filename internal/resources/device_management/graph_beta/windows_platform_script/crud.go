@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,12 +38,10 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	requestResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -63,14 +60,12 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 			return
 		}
 
-		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceManagementScripts().
 			ByDeviceManagementScriptId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -78,13 +73,11 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 		}
 	}
 
-	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Get(context.Background(), nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -92,14 +85,12 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
@@ -143,13 +134,11 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -158,14 +147,12 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -217,13 +204,11 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(state.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update - Delete", r.WritePermissions)
@@ -240,12 +225,10 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	requestResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -265,14 +248,12 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 			return
 		}
 
-		constants.GraphSDKMutex.Lock()
 		err = r.client.
 			DeviceManagement().
 			DeviceManagementScripts().
 			ByDeviceManagementScriptId(object.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
-		constants.GraphSDKMutex.Unlock()
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -280,13 +261,11 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		}
 	}
 
-	constants.GraphSDKMutex.Lock()
 	respResource, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Get(context.Background(), nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -294,14 +273,12 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
-	constants.GraphSDKMutex.Lock()
 	respAssignments, err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
@@ -340,13 +317,11 @@ func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

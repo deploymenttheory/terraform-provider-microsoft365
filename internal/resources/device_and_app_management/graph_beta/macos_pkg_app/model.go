@@ -11,32 +11,31 @@ import (
 
 // MacOSPKGAppResourceModel represents the root Terraform resource model for intune applications
 type MacOSPKGAppResourceModel struct {
-	ID                    types.String                                    `tfsdk:"id"`
-	DisplayName           types.String                                    `tfsdk:"display_name"`
-	Description           types.String                                    `tfsdk:"description"`
-	Publisher             types.String                                    `tfsdk:"publisher"`
-	AppIcon               *sharedmodels.MobileAppIconResourceModel        `tfsdk:"app_icon"`
-	CreatedDateTime       types.String                                    `tfsdk:"created_date_time"`
-	IsFeatured            types.Bool                                      `tfsdk:"is_featured"`
-	PrivacyInformationUrl types.String                                    `tfsdk:"privacy_information_url"`
-	InformationUrl        types.String                                    `tfsdk:"information_url"`
-	Owner                 types.String                                    `tfsdk:"owner"`
-	Developer             types.String                                    `tfsdk:"developer"`
-	Notes                 types.String                                    `tfsdk:"notes"`
-	UploadState           types.Int64                                     `tfsdk:"upload_state"`
-	PublishingState       types.String                                    `tfsdk:"publishing_state"`
-	IsAssigned            types.Bool                                      `tfsdk:"is_assigned"`
-	RoleScopeTagIds       types.Set                                       `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount     types.Int64                                     `tfsdk:"dependent_app_count"`
-	SupersedingAppCount   types.Int64                                     `tfsdk:"superseding_app_count"`
-	SupersededAppCount    types.Int64                                     `tfsdk:"superseded_app_count"`
-	Assignments           []sharedmodels.MobileAppAssignmentResourceModel `tfsdk:"assignments"`
-	Categories            types.Set                                       `tfsdk:"categories"`
-	Relationships         []MobileAppRelationshipResourceModel            `tfsdk:"relationships"`
-	MacOSPkgApp           *MacOSPkgAppResourceModel                       `tfsdk:"macos_pkg_app"`
-	AppInstaller          types.Object                                    `tfsdk:"app_installer"`
-	ContentVersion        types.List                                      `tfsdk:"content_version"`
-	Timeouts              timeouts.Value                                  `tfsdk:"timeouts"`
+	ID                    types.String                             `tfsdk:"id"`
+	DisplayName           types.String                             `tfsdk:"display_name"`
+	Description           types.String                             `tfsdk:"description"`
+	Publisher             types.String                             `tfsdk:"publisher"`
+	AppIcon               *sharedmodels.MobileAppIconResourceModel `tfsdk:"app_icon"`
+	CreatedDateTime       types.String                             `tfsdk:"created_date_time"`
+	IsFeatured            types.Bool                               `tfsdk:"is_featured"`
+	PrivacyInformationUrl types.String                             `tfsdk:"privacy_information_url"`
+	InformationUrl        types.String                             `tfsdk:"information_url"`
+	Owner                 types.String                             `tfsdk:"owner"`
+	Developer             types.String                             `tfsdk:"developer"`
+	Notes                 types.String                             `tfsdk:"notes"`
+	UploadState           types.Int64                              `tfsdk:"upload_state"`
+	PublishingState       types.String                             `tfsdk:"publishing_state"`
+	IsAssigned            types.Bool                               `tfsdk:"is_assigned"`
+	RoleScopeTagIds       types.Set                                `tfsdk:"role_scope_tag_ids"`
+	DependentAppCount     types.Int64                              `tfsdk:"dependent_app_count"`
+	SupersedingAppCount   types.Int64                              `tfsdk:"superseding_app_count"`
+	SupersededAppCount    types.Int64                              `tfsdk:"superseded_app_count"`
+	Categories            types.Set                                `tfsdk:"categories"`
+	Relationships         []MobileAppRelationshipResourceModel     `tfsdk:"relationships"`
+	MacOSPkgApp           *MacOSPkgAppResourceModel                `tfsdk:"macos_pkg_app"`
+	AppInstaller          types.Object                             `tfsdk:"app_installer"`
+	ContentVersion        types.List                               `tfsdk:"content_version"`
+	Timeouts              timeouts.Value                           `tfsdk:"timeouts"`
 }
 
 // MobileAppRelationshipResourceModel represents the Terraform resource model for a Mobile App Relationship

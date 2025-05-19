@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,12 +51,10 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	constants.GraphSDKMutex.Lock()
 	createdResource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		Post(ctx, requestBody, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -105,13 +102,11 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	resource, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
@@ -119,14 +114,12 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
-	constants.GraphSDKMutex.Lock()
 	assignmentsList, err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
 		RoleAssignments().
 		Get(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read Assignments List", r.ReadPermissions)
@@ -144,13 +137,11 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 			}
 			assignmentID := *listAssignment.GetId()
 
-			constants.GraphSDKMutex.Lock()
 			full, err := r.client.
 				DeviceManagement().
 				RoleAssignments().
 				ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
 				Get(ctx, nil)
-			constants.GraphSDKMutex.Unlock()
 
 			if err != nil {
 				tflog.Warn(ctx, fmt.Sprintf("Failed to fetch details for assignment ID %s: %s", assignmentID, err))
@@ -194,12 +185,11 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
-	constants.GraphSDKMutex.Lock()
+
 	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update RoleDefinition", r.WritePermissions)
 		return
 	}
-	constants.GraphSDKMutex.Unlock()
 
 	tflog.Debug(ctx, "Patched base RoleDefinition successfully")
 
@@ -232,13 +222,11 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 	}
 	defer cancel()
 
-	constants.GraphSDKMutex.Lock()
 	err := r.client.
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(data.ID.ValueString()).
 		Delete(ctx, nil)
-	constants.GraphSDKMutex.Unlock()
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

@@ -1,49 +1,44 @@
-package sharedStater
+package graphBetaDeviceAndAppManagementAppAssignment
 
 import (
 	"context"
 
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// StateMobileAppAssignment maps remote assignments to a slice of assignment resource models
-func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.MobileAppAssignmentResourceModel, remoteAssignmentsResponse graphmodels.MobileAppAssignmentCollectionResponseable) []sharedmodels.MobileAppAssignmentResourceModel {
-	if remoteAssignmentsResponse == nil || remoteAssignmentsResponse.GetValue() == nil || len(remoteAssignmentsResponse.GetValue()) == 0 {
-		tflog.Debug(ctx, "Remote assignments response is empty")
-		return []sharedmodels.MobileAppAssignmentResourceModel{}
+// MapRemoteStateToTerraform maps a remote assignment to the Terraform resource model
+func MapRemoteStateToTerraform(ctx context.Context, model MobileAppAssignmentResourceModel, assignment graphmodels.MobileAppAssignmentable) MobileAppAssignmentResourceModel {
+	if assignment == nil {
+		tflog.Debug(ctx, "Remote assignment is nil")
+		return model
 	}
 
-	remoteAssignments := remoteAssignmentsResponse.GetValue()
+	// Map the remote assignment to the Terraform model
+	model.ID = state.StringPointerValue(assignment.GetId())
+	model.Intent = state.EnumPtrToTypeString(assignment.GetIntent())
+	model.Source = state.EnumPtrToTypeString(assignment.GetSource())
+	model.SourceId = state.StringPointerValue(assignment.GetSourceId())
 
-	newAssignments := make([]sharedmodels.MobileAppAssignmentResourceModel, 0, len(remoteAssignments))
-
-	for _, remoteAssignment := range remoteAssignments {
-		newAssignments = append(newAssignments, sharedmodels.MobileAppAssignmentResourceModel{
-			Id:       state.StringPointerValue(remoteAssignment.GetId()),
-			Intent:   state.EnumPtrToTypeString(remoteAssignment.GetIntent()),
-			Source:   state.EnumPtrToTypeString(remoteAssignment.GetSource()),
-			SourceId: state.StringPointerValue(remoteAssignment.GetSourceId()),
-			Target:   mapRemoteTargetToTerraform(remoteAssignment.GetTarget()),
-			Settings: mapRemoteSettingsToTerraform(remoteAssignment.GetSettings()),
-		})
+	// Map target and settings
+	if target := assignment.GetTarget(); target != nil {
+		model.Target = mapRemoteTargetToTerraform(target)
 	}
 
-	SortMobileAppAssignments(newAssignments)
+	if settings := assignment.GetSettings(); settings != nil {
+		model.Settings = mapRemoteSettingsToTerraform(settings)
+	}
 
-	tflog.Debug(ctx, "Finished mapping remote assignments to Terraform state", map[string]interface{}{
-		"assignment_count": len(newAssignments),
-	})
+	tflog.Debug(ctx, "Finished mapping remote assignment to Terraform state")
 
-	return newAssignments
+	return model
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
-func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) sharedmodels.AssignmentTargetResourceModel {
-	target := sharedmodels.AssignmentTargetResourceModel{
+func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetResourceModel {
+	target := AssignmentTargetResourceModel{
 		DeviceAndAppManagementAssignmentFilterId:   types.StringPointerValue(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
 		DeviceAndAppManagementAssignmentFilterType: state.EnumPtrToTypeString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
 	}
@@ -68,56 +63,56 @@ func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementA
 }
 
 // mapRemoteSettingsToTerraform
-func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) *sharedmodels.MobileAppAssignmentSettingsResourceModel {
+func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignmentSettingsable) *MobileAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	var settings sharedmodels.MobileAppAssignmentSettingsResourceModel
+	var settings MobileAppAssignmentSettingsResourceModel
 
 	switch v := remoteSettings.(type) {
 	case *graphmodels.AndroidManagedStoreAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			AndroidManagedStore: mapAndroidManagedStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.IosLobAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			IosLob: mapIosLobSettingsToTerraform(v),
 		}
 	case *graphmodels.IosStoreAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			IosStore: mapIosStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.IosVppAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			IosVpp: mapIosVppSettingsToTerraform(v),
 		}
 	case *graphmodels.MacOsLobAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			MacOsLob: mapMacOsLobSettingsToTerraform(v),
 		}
 	case *graphmodels.MacOsVppAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			MacOsVpp: mapMacOsVppSettingsToTerraform(v),
 		}
 	case *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			MicrosoftStoreForBusiness: mapMicrosoftStoreSettingsToTerraform(v),
 		}
 	case *graphmodels.Win32LobAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			Win32Lob: mapWin32LobSettingsToTerraform(v),
 		}
 	case *graphmodels.WindowsAppXAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			WindowsAppX: mapWindowsAppXSettingsToTerraform(v),
 		}
 	case *graphmodels.WindowsUniversalAppXAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			WindowsUniversalAppX: mapWindowsUniversalAppXSettingsToTerraform(v),
 		}
 	case *graphmodels.WinGetAppAssignmentSettings:
-		settings = sharedmodels.MobileAppAssignmentSettingsResourceModel{
+		settings = MobileAppAssignmentSettingsResourceModel{
 			WinGet: mapWinGetSettingsToTerraform(v),
 		}
 	default:
@@ -128,24 +123,24 @@ func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignment
 }
 
 // mapAndroidManagedStoreSettingsToTerraform maps an Android managed store settings to a Terraform assignment settings
-func mapAndroidManagedStoreSettingsToTerraform(remoteSettings *graphmodels.AndroidManagedStoreAppAssignmentSettings) *sharedmodels.AndroidManagedStoreAssignmentSettingsResourceModel {
+func mapAndroidManagedStoreSettingsToTerraform(remoteSettings *graphmodels.AndroidManagedStoreAppAssignmentSettings) *AndroidManagedStoreAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.AndroidManagedStoreAssignmentSettingsResourceModel{
+	return &AndroidManagedStoreAssignmentSettingsResourceModel{
 		AndroidManagedStoreAppTrackIds: state.StringListToTypeList(remoteSettings.GetAndroidManagedStoreAppTrackIds()),
 		AutoUpdateMode:                 state.EnumPtrToTypeString(remoteSettings.GetAutoUpdateMode()),
 	}
 }
 
 // mapIosLobSettingsToTerraform maps an iOS LOB settings to a Terraform assignment settings
-func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmentSettings) *sharedmodels.IosLobAppAssignmentSettingsResourceModel {
+func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmentSettings) *IosLobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.IosLobAppAssignmentSettingsResourceModel{
+	return &IosLobAppAssignmentSettingsResourceModel{
 		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
 		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
 		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
@@ -154,12 +149,12 @@ func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmen
 }
 
 // mapIosStoreSettingsToTerraform maps an iOS store settings to a Terraform assignment settings
-func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssignmentSettings) *sharedmodels.IosStoreAppAssignmentSettingsResourceModel {
+func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssignmentSettings) *IosStoreAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.IosStoreAppAssignmentSettingsResourceModel{
+	return &IosStoreAppAssignmentSettingsResourceModel{
 		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
 		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
 		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
@@ -168,12 +163,12 @@ func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssig
 }
 
 // mapIosVppSettingsToTerraform maps an iOS VPP settings to a Terraform assignment settings
-func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmentSettings) *sharedmodels.IosVppAppAssignmentSettingsResourceModel {
+func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmentSettings) *IosVppAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.IosVppAppAssignmentSettingsResourceModel{
+	return &IosVppAppAssignmentSettingsResourceModel{
 		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
 		PreventAutoAppUpdate:     state.BoolPtrToTypeBool(remoteSettings.GetPreventAutoAppUpdate()),
 		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
@@ -184,23 +179,23 @@ func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmen
 }
 
 // mapMacOsLobSettingsToTerraform maps a macOS LOB settings to a Terraform assignment settings
-func mapMacOsLobSettingsToTerraform(remoteSettings *graphmodels.MacOsLobAppAssignmentSettings) *sharedmodels.MacOsLobAppAssignmentSettingsResourceModel {
+func mapMacOsLobSettingsToTerraform(remoteSettings *graphmodels.MacOsLobAppAssignmentSettings) *MacOsLobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.MacOsLobAppAssignmentSettingsResourceModel{
+	return &MacOsLobAppAssignmentSettingsResourceModel{
 		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
 	}
 }
 
 // mapMacOsVppSettingsToTerraform maps a macOS VPP settings to a Terraform assignment settings
-func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssignmentSettings) *sharedmodels.MacOsVppAppAssignmentSettingsResourceModel {
+func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssignmentSettings) *MacOsVppAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.MacOsVppAppAssignmentSettingsResourceModel{
+	return &MacOsVppAppAssignmentSettingsResourceModel{
 		PreventAutoAppUpdate:     state.BoolPtrToTypeBool(remoteSettings.GetPreventAutoAppUpdate()),
 		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
 		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
@@ -209,29 +204,29 @@ func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssig
 }
 
 // mapMicrosoftStoreSettingsToTerraform maps a Microsoft Store settings to a Terraform assignment settings
-func mapMicrosoftStoreSettingsToTerraform(remoteSettings *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings) *sharedmodels.MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel {
+func mapMicrosoftStoreSettingsToTerraform(remoteSettings *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings) *MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel{
+	return &MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel{
 		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
 // mapWin32LobSettingsToTerraform maps a Win32 LOB settings to a Terraform assignment settings
-func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssignmentSettings) *sharedmodels.Win32LobAppAssignmentSettingsResourceModel {
+func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssignmentSettings) *Win32LobAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	settings := &sharedmodels.Win32LobAppAssignmentSettingsResourceModel{
+	settings := &Win32LobAppAssignmentSettingsResourceModel{
 		DeliveryOptimizationPriority: state.EnumPtrToTypeString(remoteSettings.GetDeliveryOptimizationPriority()),
 		Notifications:                state.EnumPtrToTypeString(remoteSettings.GetNotifications()),
 	}
 
 	if installSettings := remoteSettings.GetInstallTimeSettings(); installSettings != nil {
-		settings.InstallTimeSettings = &sharedmodels.MobileAppInstallTimeSettingsResourceModel{
+		settings.InstallTimeSettings = &MobileAppInstallTimeSettingsResourceModel{
 			DeadlineDateTime: state.TimeToString(installSettings.GetDeadlineDateTime()),
 			StartDateTime:    state.TimeToString(installSettings.GetStartDateTime()),
 			UseLocalTime:     state.BoolPtrToTypeBool(installSettings.GetUseLocalTime()),
@@ -239,7 +234,7 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 	}
 
 	if restartSettings := remoteSettings.GetRestartSettings(); restartSettings != nil {
-		settings.RestartSettings = &sharedmodels.MobileAppAssignmentSettingsRestartResourceModel{
+		settings.RestartSettings = &MobileAppAssignmentSettingsRestartResourceModel{
 			CountdownDisplayBeforeRestart:     state.Int32PtrToTypeInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
 			GracePeriodInMinutes:              state.Int32PtrToTypeInt32(restartSettings.GetGracePeriodInMinutes()),
 			RestartNotificationSnoozeDuration: state.Int32PtrToTypeInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
@@ -250,46 +245,46 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 }
 
 // mapWindowsAppXSettingsToTerraform maps a Windows AppX settings to a Terraform assignment settings
-func mapWindowsAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsAppXAppAssignmentSettings) *sharedmodels.WindowsAppXAssignmentSettingsResourceModel {
+func mapWindowsAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsAppXAppAssignmentSettings) *WindowsAppXAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.WindowsAppXAssignmentSettingsResourceModel{
+	return &WindowsAppXAssignmentSettingsResourceModel{
 		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
 // mapWindowsUniversalAppXSettingsToTerraform maps a Windows Universal AppX settings to a Terraform assignment settings
-func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsUniversalAppXAppAssignmentSettings) *sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel {
+func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsUniversalAppXAppAssignmentSettings) *WindowsUniversalAppXAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	return &sharedmodels.WindowsUniversalAppXAssignmentSettingsResourceModel{
+	return &WindowsUniversalAppXAssignmentSettingsResourceModel{
 		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
 // mapWinGetSettingsToTerraform maps a WinGet settings to a Terraform assignment settings
-func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmentSettings) *sharedmodels.WinGetAppAssignmentSettingsResourceModel {
+func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmentSettings) *WinGetAppAssignmentSettingsResourceModel {
 	if remoteSettings == nil {
 		return nil
 	}
 
-	winGetSettings := &sharedmodels.WinGetAppAssignmentSettingsResourceModel{
+	winGetSettings := &WinGetAppAssignmentSettingsResourceModel{
 		Notifications: state.EnumPtrToTypeString(remoteSettings.GetNotifications()),
 	}
 
 	if installSettings := remoteSettings.GetInstallTimeSettings(); installSettings != nil {
-		winGetSettings.InstallTimeSettings = &sharedmodels.WinGetAppInstallTimeSettingsResourceModel{
+		winGetSettings.InstallTimeSettings = &WinGetAppInstallTimeSettingsResourceModel{
 			UseLocalTime:     types.BoolPointerValue(installSettings.GetUseLocalTime()),
 			DeadlineDateTime: state.TimeToString(installSettings.GetDeadlineDateTime()),
 		}
 	}
 
 	if restartSettings := remoteSettings.GetRestartSettings(); restartSettings != nil {
-		winGetSettings.RestartSettings = &sharedmodels.WinGetAppRestartSettingsResourceModel{
+		winGetSettings.RestartSettings = &WinGetAppRestartSettingsResourceModel{
 			CountdownDisplayBeforeRestartInMinutes:     state.Int32PtrToTypeInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
 			GracePeriodInMinutes:                       state.Int32PtrToTypeInt32(restartSettings.GetGracePeriodInMinutes()),
 			RestartNotificationSnoozeDurationInMinutes: state.Int32PtrToTypeInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
