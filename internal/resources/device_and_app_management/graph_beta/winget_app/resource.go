@@ -85,7 +85,6 @@ func (r *WinGetAppResource) ImportState(ctx context.Context, req resource.Import
 
 // Schema returns the schema for the resource.
 func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an Intune Microsoft Store app (new) resource aka winget, using the mobileapps graph beta API.",
 		Attributes: map[string]schema.Attribute{
@@ -260,8 +259,8 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
 			},
-			"assignments": wingetAppAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			//"assignments": wingetAppAssignmentsSchema(),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }
@@ -273,21 +272,21 @@ func wingetAppAssignmentsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional: true,
 		Computed: true,
-		MarkdownDescription: "The Intune app install intent defined by the admin. Possible values for winget apps are:\n\n" +
-			"- **available**: App is available for users to install\n" +
-			"- **required**: App is required and will be automatically installed\n" +
-			"- **uninstall**: App will be uninstalled",
-		PlanModifiers: []planmodifier.Object{
-			planmodifiers.UseStateForUnknownObject(),
-		},
+		MarkdownDescription: "Configures application deployment assignments for this Microsoft Store (WinGet) application in Intune.\n\n" +
+			"App assignments define which users or devices receive the application and how it's delivered. Assignments support:\n\n" +
+			"* Targeting groups by entra group id, all devices, or all licensed users\n" +
+			"* Assignment filters to refine targeting with dynamic criteria\n" +
+			"* Installation deadlines and restart behaviors\n" +
+			"* Notification controls for end-users\n\n" +
+			"Each assignment must have an intent (required, available, or uninstall) which determines the application installation intent delivered to assigned devices.",
 		Attributes: map[string]schema.Attribute{
 			// Required assignments set
 			"required": schema.SetNestedAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.UseStateForUnknownSet(),
-				},
+				MarkdownDescription: "A set of assignments with **required** intent, where the app will be automatically installed " +
+					"on assigned devices without user intervention. Required installations can include deadline times and " +
+					"restart settings. Commonly used for critical applications that must be deployed to specific devices or users.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: commonAssignmentAttrs(),
 				},
@@ -296,9 +295,10 @@ func wingetAppAssignmentsSchema() schema.SingleNestedAttribute {
 			"available": schema.SetNestedAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.UseStateForUnknownSet(),
-				},
+				MarkdownDescription: "A set of assignments with **available** intent, where the app appears in the Company Portal " +
+					"for users to install at their discretion. The app is not automatically installed, giving users control " +
+					"over when or whether to install it. Ideal for optional applications or applications where user timing " +
+					"preferences should be respected.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: commonAssignmentAttrs(),
 				},
@@ -307,9 +307,10 @@ func wingetAppAssignmentsSchema() schema.SingleNestedAttribute {
 			"uninstall": schema.SetNestedAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.UseStateForUnknownSet(),
-				},
+				MarkdownDescription: "A set of assignments with **uninstall** intent, where the app will be automatically removed " +
+					"from assigned devices. Useful for retiring applications, removing unapproved software, or preparing " +
+					"for a replacement application. Uninstallation can be targeted to specific groups, with appropriate " +
+					"notification settings to alert users.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: commonAssignmentAttrs(),
 				},
@@ -397,8 +398,7 @@ func commonAssignmentAttrs() map[string]schema.Attribute {
 				"assignment_filter_type": schema.StringAttribute{
 					Optional: true,
 					Computed: true,
-					Default:  stringdefault.StaticString("none"),
-					MarkdownDescription: "The type of scope filter for the target assignment. Defaults to 'none'. Possible values are:\n\n" +
+					MarkdownDescription: "The type of scope filter for the target assignment. Possible values are:\n\n" +
 						"- **include**: Only include devices or users matching the filter\n" +
 						"- **exclude**: Exclude devices or users matching the filter\n" +
 						"- **none**: No assignment filter applied",

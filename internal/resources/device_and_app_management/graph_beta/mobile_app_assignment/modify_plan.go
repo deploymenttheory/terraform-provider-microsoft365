@@ -1,4 +1,4 @@
-package graphBetaWinGetApp
+package graphBetaDeviceAndAppManagementAppAssignment
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // ModifyPlan handles plan modification for MacOS PKG apps diff suppression to avoid state inconsistency errors
-func (r *WinGetAppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *MobileAppAssignmentResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
 	}
