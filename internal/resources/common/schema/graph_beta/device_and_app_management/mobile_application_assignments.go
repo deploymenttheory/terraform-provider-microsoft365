@@ -12,17 +12,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
+	//planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 )
 
 func MobileAppAssignmentSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Required: true,
-		PlanModifiers: []planmodifier.List{
-			listplanmodifier.UseStateForUnknown(),
-			planmodifiers.MobileAppAssignmentsListModifier(),
-		},
+		// PlanModifiers: []planmodifier.List{
+		// 	listplanmodifier.UseStateForUnknown(),
+		// 	planmodifiers.MobileAppAssignmentsListModifier(),
+		// },
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{

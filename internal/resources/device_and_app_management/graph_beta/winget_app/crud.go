@@ -8,8 +8,6 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
-	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
-	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,15 +36,15 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
-			resp.Diagnostics.AddError(
-				"Error validating Windows Store application assignments",
-				fmt.Sprintf("Validation failed: %s", err.Error()),
-			)
-			return
-		}
-	}
+	// if len(object.Assignments) > 0 {
+	// 	if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error validating Windows Store application assignments",
+	// 			fmt.Sprintf("Validation failed: %s", err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	createdResource, err := constructResource(ctx, &object, false)
 	if err != nil {
@@ -88,13 +86,10 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	if len(object.Assignments) > 0 {
-		requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
+	if object.Assignments != nil {
+		requestAssignment, diags := ConstructWinGetAppAssignments(ctx, object.Assignments)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -212,7 +207,12 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	object.Assignments = sharedstater.StateMobileAppAssignment(ctx, nil, respAssignments)
+	winGetAssignments, assignmentDiags := StateWinGetAppAssignments(ctx, respAssignments)
+	resp.Diagnostics.Append(assignmentDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	object.Assignments = winGetAssignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -233,6 +233,11 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -242,15 +247,15 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	if len(object.Assignments) > 0 {
-		if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
-			resp.Diagnostics.AddError(
-				"Error validating Windows Store application assignments",
-				fmt.Sprintf("Validation failed: %s", err.Error()),
-			)
-			return
-		}
-	}
+	// if len(object.Assignments) > 0 {
+	// 	if err := validators.ValidateMobileAppAssignmentSettings(ctx, "WindowsStoreApp", object.Assignments, r.client); err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error validating Windows Store application assignments",
+	// 			fmt.Sprintf("Validation failed: %s", err.Error()),
+	// 		)
+	// 		return
+	// 	}
+	// }
 
 	// Step 1: Update the base mobile app resource
 	requestBody, err := constructResource(ctx, &object, true)
@@ -293,8 +298,13 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 
 	// Step 3: Updated Assignments
 	if !state.ID.IsNull() {
-		if len(object.Assignments) == 0 {
-			tflog.Debug(ctx, "Empty assignments array detected. Removing all existing assignments individually")
+		// Check if assignments block is present
+		if object.Assignments == nil ||
+			(object.Assignments.Required.IsNull() &&
+				object.Assignments.Available.IsNull() &&
+				object.Assignments.Uninstall.IsNull()) {
+
+			tflog.Debug(ctx, "Empty assignments detected. Removing all existing assignments")
 
 			respAssignments, err := r.client.
 				DeviceAppManagement().
@@ -341,12 +351,9 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 			}
 		} else {
 			// Handle normal assignment update (non-empty assignments)
-			requestAssignment, err := construct.ConstructMobileAppAssignment(ctx, object.Assignments)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error constructing assignment for Update Method",
-					fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-				)
+			requestAssignment, diags := ConstructWinGetAppAssignments(ctx, object.Assignments)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
 				return
 			}
 
@@ -359,7 +366,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 					Post(ctx, requestAssignment, nil)
 
 				if err != nil {
-					return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+					return retry.RetryableError(fmt.Errorf("failed to update assignments: %s", err))
 				}
 				return nil
 			})

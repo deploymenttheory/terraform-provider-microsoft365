@@ -13,5 +13,7 @@ func (r *WinGetAppResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 		return
 	}
 
-	tflog.Debug(ctx, "Modify Plan Place holder")
+	tflog.Debug(ctx, "Starting ModifyPlan for WinGetApp resource")
+
+	tflog.Debug(ctx, "Finished ModifyPlan for WinGetApp resource")
 }

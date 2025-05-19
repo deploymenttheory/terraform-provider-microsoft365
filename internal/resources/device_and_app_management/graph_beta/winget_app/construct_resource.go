@@ -115,43 +115,6 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel, isUpda
 	}
 	requestBody.SetAdditionalData(additionalData)
 
-	// Fields that are idempotent and should only be set during creation
-	// if !isUpdate {
-	// 	if data.InstallExperience != nil && !data.InstallExperience.RunAsAccount.IsNull() {
-	// 		installExperience := graphmodels.NewWinGetAppInstallExperience()
-	// 		runAsAccount := data.InstallExperience.RunAsAccount.ValueString()
-	// 		switch runAsAccount {
-	// 		case "system":
-	// 			systemAccount := graphmodels.SYSTEM_RUNASACCOUNTTYPE
-	// 			installExperience.SetRunAsAccount(&systemAccount)
-	// 		case "user":
-	// 			userAccount := graphmodels.USER_RUNASACCOUNTTYPE
-	// 			installExperience.SetRunAsAccount(&userAccount)
-	// 		default:
-	// 			// This should never happen due to schema validation
-	// 			return nil, fmt.Errorf("invalid run_as_account value: %s. Expected 'system' or 'user'", runAsAccount)
-	// 		}
-	// 		requestBody.SetInstallExperience(installExperience)
-	// 	}
-	// }
-
-	// if data.InstallExperience != nil && !data.InstallExperience.RunAsAccount.IsNull() {
-	// 	installExperience := graphmodels.NewWinGetAppInstallExperience()
-	// 	runAsAccount := data.InstallExperience.RunAsAccount.ValueString()
-	// 	switch runAsAccount {
-	// 	case "system":
-	// 		systemAccount := graphmodels.SYSTEM_RUNASACCOUNTTYPE
-	// 		installExperience.SetRunAsAccount(&systemAccount)
-	// 	case "user":
-	// 		userAccount := graphmodels.USER_RUNASACCOUNTTYPE
-	// 		installExperience.SetRunAsAccount(&userAccount)
-	// 	default:
-	// 		// This should never happen due to schema validation
-	// 		return nil, fmt.Errorf("invalid run_as_account value: %s. Expected 'system' or 'user'", runAsAccount)
-	// 	}
-	// 	requestBody.SetInstallExperience(installExperience)
-	// }
-
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
