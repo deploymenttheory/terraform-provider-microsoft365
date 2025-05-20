@@ -1,0 +1,18 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The Microsoft 365 Intune mobile app data source provides information about mobile applications in Microsoft Intune. 
+It allows querying and filtering mobile apps based on various criteria. You can find details on how to construct OData
+queries [here](https://learn.microsoft.com/en-us/graph/filter-query-parameter?tabs=go).
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_mobile_app/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

@@ -3,8 +3,10 @@ package errors
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -27,38 +29,6 @@ type GraphErrorInfo struct {
 	Headers        *abstractions.ResponseHeaders
 	RequestDetails string
 	RetryAfter     string
-}
-
-// standardErrorDescriptions provides consistent error messaging across the provider
-var standardErrorDescriptions = map[int]ErrorDescription{
-	400: {
-		Summary: "Bad Request - 400",
-		Detail:  "The request was invalid or malformed. Please check the request parameters and try again.",
-	},
-	401: {
-		Summary: "Unauthorized - 401",
-		Detail:  "Authentication failed. Please check your Entra ID credentials and permissions.",
-	},
-	403: {
-		Summary: "Forbidden - 403",
-		Detail:  "Your credentials lack sufficient authorisation to perform this operation. Grant the required Microsoft Graph permissions to your Entra ID authentication method.",
-	},
-	404: {
-		Summary: "Not Found - 404",
-		Detail:  "The requested resource was not found.",
-	},
-	409: {
-		Summary: "Conflict - 409",
-		Detail:  "The operation failed due to a conflicts with the current state of the target resource. this might be due to multiple clients modifying the same resource simultaneously,the requested resource may not be in the state that was expected, or the request itself may create a conflict if it is completed.",
-	},
-	429: {
-		Summary: "Too Many Requests - 429",
-		Detail:  "Request throttled by Microsoft Graph API rate limits. Please try again later.",
-	},
-	500: {
-		Summary: "Internal Server Error - 500",
-		Detail:  "Microsoft Graph API encountered an internal error.. Please try again later.",
-	},
 }
 
 // HandleGraphError processes Graph API errors and dispatches them appropriately
@@ -119,6 +89,15 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
 
+	case 503:
+		if operation == "Read" {
+			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
+			handleServiceUnavailableError(ctx, errorInfo, resp)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
+
 	default:
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructErrorDetail(errorDesc.Detail, errorInfo.ErrorMessage))
@@ -144,68 +123,221 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 		"error":      err.Error(),
 	})
 
-	if apiErr, ok := err.(abstractions.ApiErrorable); ok {
-		errorInfo.StatusCode = apiErr.GetStatusCode()
-		errorInfo.Headers = apiErr.GetResponseHeaders()
-
-		if headers := apiErr.GetResponseHeaders(); headers != nil {
-			for _, key := range headers.ListKeys() {
-				values := headers.Get(key)
-				if len(values) > 0 {
-					errorInfo.RequestDetails += fmt.Sprintf("%s: %v\n", key, values)
-				}
-			}
-		}
-
-		if odataErr, ok := err.(*odataerrors.ODataError); ok {
-			errorInfo.IsODataError = true
-			if mainError := odataErr.GetErrorEscaped(); mainError != nil {
-				if code := mainError.GetCode(); code != nil {
-					errorInfo.ErrorCode = *code
-				}
-				if message := mainError.GetMessage(); message != nil && *message != "" {
-					errorInfo.ErrorMessage = *message
-				}
-
-				details := mainError.GetDetails()
-				if len(details) > 0 {
-					var detailMessages []string
-					for _, detail := range details {
-						if msg := detail.GetMessage(); msg != nil && *msg != "" {
-							detailMessages = append(detailMessages, *msg)
-						}
-					}
-					if len(detailMessages) > 0 {
-						errorInfo.ErrorMessage += "\nDetails: " + strings.Join(detailMessages, "; ")
-					}
-				}
-
-				if innerError := mainError.GetInnerError(); innerError != nil {
-					if reqID := innerError.GetRequestId(); reqID != nil {
-						errorInfo.AdditionalData["request_id"] = *reqID
-					}
-					if clientReqID := innerError.GetClientRequestId(); clientReqID != nil {
-						errorInfo.AdditionalData["client_request_id"] = *clientReqID
-					}
-					if date := innerError.GetDate(); date != nil {
-						errorInfo.AdditionalData["error_date"] = date.String()
-					}
-				}
-			}
-		} else if apiBaseErr, ok := apiErr.(*abstractions.ApiError); ok {
-			if apiBaseErr.Message != "" {
-				errorInfo.ErrorMessage = apiBaseErr.Message
-			}
-		}
-	}
-
-	// If after all processing we still don't have an error message, use the original error
-	if errorInfo.ErrorMessage == "" {
-		errorInfo.ErrorMessage = err.Error()
+	switch typedErr := err.(type) {
+	case *url.Error:
+		processURLError(ctx, typedErr, &errorInfo)
+	case abstractions.ApiErrorable:
+		processAPIError(ctx, typedErr, &errorInfo)
+	default:
+		// For unknown error types, set a sensible default
+		errorInfo.StatusCode = 500 // Internal Server Error
+		errorInfo.ErrorCode = "UnknownError"
 	}
 
 	logErrorDetails(ctx, &errorInfo)
 	return errorInfo
+}
+
+// processURLError handles URL specific errors
+func processURLError(ctx context.Context, urlErr *url.Error, errorInfo *GraphErrorInfo) {
+	tflog.Debug(ctx, "URL error detected", map[string]interface{}{
+		"url": urlErr.URL,
+		"op":  urlErr.Op,
+		"err": urlErr.Err.Error(),
+	})
+
+	// Handle different URL error cases
+	switch {
+	case strings.Contains(urlErr.Error(), "context deadline exceeded"):
+		errorInfo.StatusCode = 504 // Gateway Timeout
+		errorInfo.ErrorCode = "RequestTimeout"
+		// Use a general error message, details will be added later from standardErrorDescriptions
+	case strings.Contains(urlErr.Error(), "connection refused"):
+		errorInfo.StatusCode = 503 // Service Unavailable
+		errorInfo.ErrorCode = "ConnectionRefused"
+	case strings.Contains(urlErr.Error(), "no such host"):
+		errorInfo.StatusCode = 503 // Service Unavailable
+		errorInfo.ErrorCode = "HostNotFound"
+	default:
+		errorInfo.StatusCode = 400 // Bad Request
+		errorInfo.ErrorCode = "URLError"
+	}
+
+	// Store the original error message for context
+	errorInfo.AdditionalData["original_error"] = urlErr.Error()
+
+	// Set a consistent error message that will be enhanced with details from standardErrorDescriptions
+	// when added to diagnostics
+	errorInfo.ErrorMessage = urlErr.Error()
+}
+
+// processAPIError handles Microsoft Graph API specific errors
+func processAPIError(ctx context.Context, apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo) {
+	errorInfo.StatusCode = apiErr.GetStatusCode()
+	errorInfo.Headers = apiErr.GetResponseHeaders()
+
+	extractHeadersFromError(apiErr, errorInfo)
+
+	switch typedApiErr := apiErr.(type) {
+	case *odataerrors.ODataError:
+		processODataError(ctx, typedApiErr, errorInfo)
+	case *abstractions.ApiError:
+		// For API errors, use the error message
+		if typedApiErr.Message != "" {
+			errorInfo.ErrorMessage = typedApiErr.Message
+		}
+	}
+}
+
+// extractHeadersFromError extracts header information from the API error
+func extractHeadersFromError(apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo) {
+	if headers := apiErr.GetResponseHeaders(); headers != nil {
+		for _, key := range headers.ListKeys() {
+			values := headers.Get(key)
+			if len(values) > 0 {
+				errorInfo.RequestDetails += fmt.Sprintf("%s: %v\n", key, values)
+			}
+		}
+	}
+}
+
+// processODataError handles OData specific errors
+func processODataError(ctx context.Context, odataErr *odataerrors.ODataError, errorInfo *GraphErrorInfo) {
+	errorInfo.IsODataError = true
+
+	// Get the main error object (inside the "error" property in JSON)
+	if mainError := odataErr.GetErrorEscaped(); mainError != nil {
+		// Extract information from the main error object
+		extractErrorInfo(ctx, mainError, errorInfo, true)
+
+		// Process inner errors recursively to find the most specific error code
+		if innerError := mainError.GetInnerError(); innerError != nil {
+			processInnerErrorRecursively(ctx, innerError, errorInfo)
+		}
+	}
+}
+
+// extractErrorInfo extracts common properties from an error object
+func extractErrorInfo(ctx context.Context, errorObj interface{}, errorInfo *GraphErrorInfo, isTopLevel bool) {
+	// Handle different error object types
+	switch typedError := errorObj.(type) {
+	case odataerrors.MainErrorable:
+		// Extract code
+		if code := typedError.GetCode(); code != nil && *code != "" {
+			// Only overwrite the code if this is the top level, or if we don't have a code yet
+			if isTopLevel || errorInfo.ErrorCode == "" {
+				errorInfo.ErrorCode = *code
+				tflog.Debug(ctx, "Found error code", map[string]interface{}{
+					"code":  *code,
+					"level": "main",
+				})
+
+				// Add description for known error codes
+				if description, exists := commonODataErrorCodes[*code]; exists {
+					errorInfo.AdditionalData["error_description"] = description
+				}
+			}
+		}
+
+		// Extract message
+		if message := typedError.GetMessage(); message != nil && *message != "" {
+			// For top-level errors, this becomes the primary error message
+			if isTopLevel {
+				errorInfo.ErrorMessage = *message
+			} else {
+				// For nested errors, add as additional context
+				errorInfo.AdditionalData["inner_message"] = *message
+			}
+
+			tflog.Debug(ctx, "Found error message", map[string]interface{}{
+				"message": *message,
+				"level":   "main",
+			})
+		}
+
+		// Process details array
+		details := typedError.GetDetails()
+		if len(details) > 0 {
+			tflog.Debug(ctx, "Processing error details", map[string]interface{}{
+				"detail_count": len(details),
+			})
+
+			var detailsInfo []map[string]string
+			var detailMessages []string
+
+			for i, detail := range details {
+				detailInfo := make(map[string]string)
+
+				if code := detail.GetCode(); code != nil && *code != "" {
+					detailInfo["code"] = *code
+				}
+
+				if msg := detail.GetMessage(); msg != nil && *msg != "" {
+					detailInfo["message"] = *msg
+					detailMessages = append(detailMessages, *msg)
+				}
+
+				if target := detail.GetTarget(); target != nil && *target != "" {
+					detailInfo["target"] = *target
+				}
+
+				if len(detailInfo) > 0 {
+					detailsInfo = append(detailsInfo, detailInfo)
+					tflog.Debug(ctx, "Processed detail", map[string]interface{}{
+						"index": i,
+						"info":  detailInfo,
+					})
+				}
+			}
+
+			if len(detailsInfo) > 0 {
+				errorInfo.AdditionalData["details"] = detailsInfo
+			}
+
+			if len(detailMessages) > 0 {
+				errorInfo.ErrorMessage += "\nDetails: " + strings.Join(detailMessages, "; ")
+			}
+		}
+	}
+}
+
+// processInnerErrorRecursively processes inner errors to find the most specific error code
+func processInnerErrorRecursively(ctx context.Context, innerError odataerrors.InnerErrorable, errorInfo *GraphErrorInfo) {
+	if innerError == nil {
+		return
+	}
+
+	tflog.Debug(ctx, "Processing inner error", map[string]interface{}{
+		"has_inner_error": true,
+	})
+
+	// Extract request/client IDs and date
+	if reqID := innerError.GetRequestId(); reqID != nil && *reqID != "" {
+		errorInfo.AdditionalData["request_id"] = *reqID
+	}
+
+	if clientReqID := innerError.GetClientRequestId(); clientReqID != nil && *clientReqID != "" {
+		errorInfo.AdditionalData["client_request_id"] = *clientReqID
+	}
+
+	if date := innerError.GetDate(); date != nil {
+		errorInfo.AdditionalData["error_date"] = date.String()
+	}
+
+	// Extract more specific code if available
+	if code := innerError.GetOdataType(); code != nil && *code != "" {
+		// Inner error codes are often more specific, so they take precedence
+		errorInfo.ErrorCode = *code
+		tflog.Debug(ctx, "Found inner error code", map[string]interface{}{
+			"code": *code,
+		})
+
+		// Add description for known error codes
+		if description, exists := commonODataErrorCodes[*code]; exists {
+			errorInfo.AdditionalData["inner_error_description"] = description
+		}
+	}
+
 }
 
 // getErrorDescription returns a standard error description based on the HTTP status code
@@ -270,6 +402,33 @@ func handleRateLimitError(ctx context.Context, errorInfo GraphErrorInfo, resp in
 	return errorInfo
 }
 
+// handleServiceUnavailableError processes 503 Service Unavailable errors
+func handleServiceUnavailableError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}) {
+	retryAfter := "unspecified"
+	if headers := errorInfo.Headers; headers != nil {
+		retryValues := headers.Get("Retry-After")
+		if len(retryValues) > 0 {
+			retryAfter = retryValues[0]
+			errorInfo.RetryAfter = retryAfter
+		}
+	}
+
+	tflog.Warn(ctx, "Service temporarily unavailable", map[string]interface{}{
+		"retry_after": retryAfter,
+		"details":     errorInfo.ErrorMessage,
+	})
+
+	errorDesc := getErrorDescription(503)
+	detail := fmt.Sprintf(
+		"%s\nThe service may be experiencing high load or undergoing maintenance.\nRetry-After: %s\nDetails: %s",
+		errorDesc.Detail,
+		retryAfter,
+		errorInfo.ErrorMessage,
+	)
+
+	addErrorToDiagnostics(ctx, resp, errorDesc.Summary, detail)
+}
+
 // addErrorToDiagnostics adds an error to the response diagnostics
 func addErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detail string) {
 	switch r := resp.(type) {
@@ -280,6 +439,8 @@ func addErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detai
 	case *resource.UpdateResponse:
 		r.Diagnostics.AddError(summary, detail)
 	case *resource.DeleteResponse:
+		r.Diagnostics.AddError(summary, detail)
+	case *datasource.ReadResponse:
 		r.Diagnostics.AddError(summary, detail)
 	default:
 		tflog.Error(ctx, "Unknown response type in addErrorToDiagnostics")
