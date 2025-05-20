@@ -24,7 +24,6 @@ type MobileAppDataSourceModel struct {
 
 // MobileAppModel represents a single mobile app with common fields
 type MobileAppModel struct {
-	// Common fields for all app types
 	ID                    types.String   `tfsdk:"id"`
 	DisplayName           types.String   `tfsdk:"display_name"`
 	Description           types.String   `tfsdk:"description"`
