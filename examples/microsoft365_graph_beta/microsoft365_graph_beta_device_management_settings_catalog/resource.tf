@@ -5,7 +5,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog" "windows_h
   technologies       = ["mdm"]
   role_scope_tag_ids = ["0"]
 
-  settings = {
+  configuration_policy = {
     settings = [
       {
         id = "0"
