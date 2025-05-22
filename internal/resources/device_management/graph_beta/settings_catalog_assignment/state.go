@@ -2,6 +2,7 @@ package graphBetaDeviceManagementConfigurationPolicyAssignment
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,25 +11,23 @@ import (
 )
 
 // MapRemoteStateToTerraform maps a remote assignment to the Terraform resource model
-func MapRemoteStateToTerraform(ctx context.Context, model DeviceManagementConfigurationPolicyAssignmentResourceModel, assignment graphmodels.DeviceManagementConfigurationPolicyAssignmentable) DeviceManagementConfigurationPolicyAssignmentResourceModel {
+func MapRemoteStateToTerraform(ctx context.Context, data DeviceManagementConfigurationPolicyAssignmentResourceModel, assignment graphmodels.DeviceManagementConfigurationPolicyAssignmentable) DeviceManagementConfigurationPolicyAssignmentResourceModel {
 	if assignment == nil {
 		tflog.Debug(ctx, "Remote assignment is nil")
-		return model
+		return data
 	}
 
-	// Map the remote assignment to the Terraform model
-	model.ID = state.StringPointerValue(assignment.GetId())
-	model.Source = state.EnumPtrToTypeString(assignment.GetSource())
-	model.SourceId = state.StringPointerValue(assignment.GetSourceId())
+	data.ID = state.StringPointerValue(assignment.GetId())
+	data.Source = state.EnumPtrToTypeString(assignment.GetSource())
+	data.SourceId = state.StringPointerValue(assignment.GetSourceId())
 
-	// Map target
 	if target := assignment.GetTarget(); target != nil {
-		model.Target = mapRemoteTargetToTerraform(target)
+		data.Target = mapRemoteTargetToTerraform(target)
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote assignment to Terraform state")
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 
-	return model
+	return data
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target

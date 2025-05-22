@@ -2,6 +2,7 @@ package graphM365AppsInstallationOptions
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -39,5 +40,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *M365AppsInstallationOp
 		data.AppsForMac = nil
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state for M365AppsInstallationOptions")
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

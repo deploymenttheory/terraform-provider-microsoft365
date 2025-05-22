@@ -2,6 +2,7 @@ package graphBetaWindowsQualityUpdateExpeditePolicy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -36,5 +37,5 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQuality
 		data.ExpeditedUpdateSettings = nil
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform", map[string]interface{}{"resourceId": data.ID.ValueString()})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }

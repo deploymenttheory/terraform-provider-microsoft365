@@ -2,6 +2,7 @@ package graphBetaDeviceCategory
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,7 +26,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCategoryResource
 	data.Description = types.StringPointerValue(remoteResource.GetDescription())
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

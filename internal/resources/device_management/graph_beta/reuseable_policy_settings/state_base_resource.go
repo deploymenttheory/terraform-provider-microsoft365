@@ -3,6 +3,7 @@ package graphBetaReuseablePolicySettings
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -89,7 +90,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 		sharedStater.StateReusablePolicySettings(ctx, data, settingsJson)
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

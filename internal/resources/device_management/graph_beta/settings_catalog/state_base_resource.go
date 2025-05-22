@@ -2,6 +2,7 @@ package graphBetaSettingsCatalog
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -46,9 +47,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }
 
 func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies graphmodels.DeviceManagementConfigurationTechnologies) types.List {

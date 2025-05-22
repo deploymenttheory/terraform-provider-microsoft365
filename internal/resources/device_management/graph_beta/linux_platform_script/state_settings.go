@@ -13,7 +13,5 @@ func MapRemoteSettingsStateToTerraform(ctx context.Context, data *LinuxPlatformS
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map settings state to Terraform state")
-
 	tflog.Debug(ctx, "Finished mapping settings state to Terraform state")
 }

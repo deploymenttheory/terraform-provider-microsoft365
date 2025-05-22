@@ -2,6 +2,7 @@ package graphBetaDeviceAndAppManagementAppAssignment
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,30 +11,28 @@ import (
 )
 
 // MapRemoteStateToTerraform maps a remote assignment to the Terraform resource model
-func MapRemoteStateToTerraform(ctx context.Context, model MobileAppAssignmentResourceModel, assignment graphmodels.MobileAppAssignmentable) MobileAppAssignmentResourceModel {
+func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentResourceModel, assignment graphmodels.MobileAppAssignmentable) MobileAppAssignmentResourceModel {
 	if assignment == nil {
 		tflog.Debug(ctx, "Remote assignment is nil")
-		return model
+		return data
 	}
 
-	// Map the remote assignment to the Terraform model
-	model.ID = state.StringPointerValue(assignment.GetId())
-	model.Intent = state.EnumPtrToTypeString(assignment.GetIntent())
-	model.Source = state.EnumPtrToTypeString(assignment.GetSource())
-	model.SourceId = state.StringPointerValue(assignment.GetSourceId())
+	data.ID = state.StringPointerValue(assignment.GetId())
+	data.Intent = state.EnumPtrToTypeString(assignment.GetIntent())
+	data.Source = state.EnumPtrToTypeString(assignment.GetSource())
+	data.SourceId = state.StringPointerValue(assignment.GetSourceId())
 
-	// Map target and settings
 	if target := assignment.GetTarget(); target != nil {
-		model.Target = mapRemoteTargetToTerraform(target)
+		data.Target = mapRemoteTargetToTerraform(target)
 	}
 
 	if settings := assignment.GetSettings(); settings != nil {
-		model.Settings = mapRemoteSettingsToTerraform(settings)
+		data.Settings = mapRemoteSettingsToTerraform(settings)
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote assignment to Terraform state")
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 
-	return model
+	return data
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target

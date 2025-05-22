@@ -63,7 +63,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceEnrollme
 		}
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform", map[string]interface{}{"resourceId": data.ID.ValueString()})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
 // mapLimitConfigToTerraform maps the limit configuration specific fields

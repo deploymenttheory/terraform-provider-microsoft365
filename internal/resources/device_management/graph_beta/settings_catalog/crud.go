@@ -189,7 +189,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	err = StateConfigurationPolicySettingsFromSDK(ctx, &object, settingsResponse)
+	err = StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error mapping settings state",

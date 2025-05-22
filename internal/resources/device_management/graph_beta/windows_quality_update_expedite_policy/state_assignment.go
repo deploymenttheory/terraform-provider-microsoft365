@@ -79,7 +79,6 @@ func MapRemoteAssignmentsToTerraform(ctx context.Context, data *WindowsQualityUp
 
 	data.Assignments = assignmentBlocks
 
-	tflog.Debug(ctx, "Finished mapping assignments into Terraform state", map[string]interface{}{
-		"assignmentBlockCount": len(assignmentBlocks),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating assignments for resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }
