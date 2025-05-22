@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.13.0-alpha...v0.14.0-alpha) (2025-05-22)
+
+
+### Features
+
+* added datasource microsoft365_utility_macos_pkg_app_metadata ([2c2cbca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2c2cbca7feb8d1336c9327e487767ecec1e4bc35))
+* added managed device clean up rule with examples ([fc33266](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fc332665c817df572c0d349ec4d68ccf1b037570))
+* added managed device clean up rule with examples ([#463](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/463)) ([f1a8777](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f1a87770fa8e61a0edbc8370876cf86b4cb07850))
+* added mobile app data source with odata queries ([3a1c0f4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3a1c0f414e70ea9c55f36b31c1c48e85feb2aa02))
+* added setting catalog in native hcl ([596d6c9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/596d6c9f0454810004ff30a3177a5c4ec2bc4ebc))
+* added settings catalog in native hcl ([#461](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/461)) ([6e5e693](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6e5e6937324d83df7fe5f96445dc45f851bf771f))
+* added validation for mobile app assignments for 8 invalid scenarios ([cc88fd1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cc88fd104a35cf071e4a5693a84420f57d1151d8))
+* mobile app assignments ([80c892e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/80c892ec95186025afc2c6f7edbd61f7ed1863e4))
+* mobile app assignments resource with examples ([#453](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/453)) ([498ff50](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/498ff5087f942dffa701be9da736c8d3e1a5dde2))
+
+
+### Bug Fixes
+
+* final fixes for macos assignments ([8d998cf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8d998cfc27ccb4aa1b4bab3be60823f479b7cf85))
+* final fixes for macos assignments ([#451](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/451)) ([7e3b853](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7e3b853731d22cc832840ceab3ca9c7a256418c4))
+* for mutex handling for SetCommittedContentVersion ([058bf32](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/058bf32f301bc9b5082f668427aaf4ca3cff3878))
+* for successful stating logging with resource name and resource id ([8c81932](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8c819320ff467a553640c8ff5ce9c78c5f7cf76a))
+* for winget assignments ([8a2bdd0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8a2bdd03111f263f47db1614ba1e0fb8deb5a650))
+* migrating winget app assignments to sets ([2272cc6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2272cc64166db8c02accd2a243d79a646fc3dfe4))
+* minor fix for sorting order of assignments ([fb50e0f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fb50e0fbac88e72d4d784f400131449be1c4ff07))
+* moved mobile app assignment validation to create and update funcs to fail early if any hcl mistakes before any rresources get deployed ([8c79958](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8c79958155e1445d959487a27cd66ddca38947b3))
+* removed mutex, going with parallism of 1 instead ([dd0e6d8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dd0e6d822dcf3eb6fd43bbdea105d62020dc488f))
+* typo fix for datasource ([5c60f13](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5c60f13a9ce6d8701d9310ea41f07e1104524967))
+* win_get_app now skips property 'InstallExperience' and 'PackageIdentifier' as it cannot be patched during update operations. and added support for app categories ([8b5a4a5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8b5a4a59a43e6bddb6e82a3763713a85bcfe4047))
+
 ## [0.13.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.12.0-alpha...v0.13.0-alpha) (2025-05-12)
 
 
