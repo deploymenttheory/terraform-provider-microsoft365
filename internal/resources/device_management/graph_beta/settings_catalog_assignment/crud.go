@@ -1,4 +1,4 @@
-package graphBetaWindowsRemediationScriptAssignment
+package graphBetaDeviceManagementConfigurationPolicyAssignment
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
-// Create handles the Create operation for Device Health Script Assignment resources.
+// Create handles the Create operation for Device Management Configuration Policy Assignment resources.
 //
 //   - Retrieves the planned configuration from the create request
 //   - Constructs the resource request body from the plan
@@ -21,8 +21,8 @@ import (
 //   - Sets initial state with planned values
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
-func (r *DeviceHealthScriptAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object DeviceHealthScriptAssignmentResourceModel
+func (r *DeviceManagementConfigurationPolicyAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -51,13 +51,13 @@ func (r *DeviceHealthScriptAssignmentResource) Create(ctx context.Context, req r
 
 	createdResource, err := r.client.
 		DeviceManagement().
-		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.DeviceHealthScriptId.ValueString()).
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
 		Assignments().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
@@ -93,19 +93,13 @@ func (r *DeviceHealthScriptAssignmentResource) Create(ctx context.Context, req r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Device Health Script Assignment resources.
+// Read handles the Read operation for Device Management Configuration Policy Assignment resources.
 //
 //   - Retrieves the current state from the read request
 //   - Gets the base resource details from the API
 //   - Maps the base resource details to Terraform state
-//
-// Read handles the Read operation for Device Health Script Assignment resources.
-//
-//   - Retrieves the current state from the read request
-//   - Gets the base resource details from the API
-//   - Maps the base resource details to Terraform state
-func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object DeviceHealthScriptAssignmentResourceModel
+func (r *DeviceManagementConfigurationPolicyAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -115,8 +109,8 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s for Device Health Script: %s",
-		ResourceName, object.ID.ValueString(), object.DeviceHealthScriptId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s for Configuration Policy: %s",
+		ResourceName, object.ID.ValueString(), object.ConfigurationPolicyId.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -126,10 +120,10 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 
 	resource, err := r.client.
 		DeviceManagement().
-		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.DeviceHealthScriptId.ValueString()).
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
 		Assignments().
-		ByDeviceHealthScriptAssignmentId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyAssignmentId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -137,7 +131,7 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, object, resource)
+	object = MapRemoteStateToTerraform(ctx, object, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -147,7 +141,7 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Device Health Script Assignment resources.
+// Update handles the Update operation for Device Management Configuration Policy Assignment resources.
 //
 //   - Retrieves the planned configuration from the update request
 //   - Retrieves the current state from the update request
@@ -155,8 +149,8 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 //   - Sends PATCH request to update the resource in the API
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
-func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceHealthScriptAssignmentResourceModel
+func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
@@ -185,10 +179,10 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 
 	_, err = r.client.
 		DeviceManagement().
-		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.DeviceHealthScriptId.ValueString()).
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
 		Assignments().
-		ByDeviceHealthScriptAssignmentId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyAssignmentId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -222,14 +216,14 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for Device Health Script Assignment resources.
+// Delete handles the Delete operation for Device Management Configuration Policy Assignment resources.
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
 //   - Sends DELETE request to remove the resource from the API
 //   - Cleans up by removing the resource from Terraform state
-func (r *DeviceHealthScriptAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object DeviceHealthScriptAssignmentResourceModel
+func (r *DeviceManagementConfigurationPolicyAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -246,10 +240,10 @@ func (r *DeviceHealthScriptAssignmentResource) Delete(ctx context.Context, req r
 
 	err := r.client.
 		DeviceManagement().
-		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.DeviceHealthScriptId.ValueString()).
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
 		Assignments().
-		ByDeviceHealthScriptAssignmentId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyAssignmentId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementTemplate
+package graphBetaDeviceManagementTemplateJson
 
 import (
 	"context"

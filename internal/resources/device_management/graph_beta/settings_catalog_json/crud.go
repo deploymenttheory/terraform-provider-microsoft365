@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogJson
 
 import (
 	"context"
@@ -32,7 +32,7 @@ import (
 // The function ensures that both the settings catalog profile and its assignments
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
-func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -146,7 +146,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
-func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
@@ -240,7 +240,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 //
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
-func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -350,7 +350,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *SettingsCatalogJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))

@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogJson
 
 import (
 	"context"
