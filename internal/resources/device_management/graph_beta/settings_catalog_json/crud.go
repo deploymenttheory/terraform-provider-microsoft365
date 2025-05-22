@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogJson
 
 import (
 	"context"
@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_management"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -31,7 +33,7 @@ import (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object SettingsCatalogProfileResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -71,7 +73,7 @@ func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.C
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	if object.Assignments != nil {
-		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -145,9 +147,8 @@ func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.C
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object SettingsCatalogProfileResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
-	var settingsResponse models.DeviceManagementConfigurationSettingCollectionResponseable
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -178,26 +179,31 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	settingsResponse, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(ctx, nil)
+	settingsConfig := graphcustom.GetRequestConfig{
+		APIVersion:        graphcustom.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		EndpointSuffix:    "/settings",
+		ResourceIDPattern: "('id')",
+		ResourceID:        object.ID.ValueString(),
+		QueryParameters: map[string]string{
+			"$expand": "children",
+		},
+	}
+
+	var settingsResponse []byte
+
+	settingsResponse, err = graphcustom.GetRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		settingsConfig,
+	)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	err = StateConfigurationPolicySettingsFromSDK(ctx, &object, settingsResponse)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error mapping settings state",
-			fmt.Sprintf("Could not map settings to Terraform state: %s", err.Error()),
-		)
-		return
-	}
+	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
 	assignmentsResponse, err = r.client.
 		DeviceManagement().
@@ -211,7 +217,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
+	sharedstater.StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -235,7 +241,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object SettingsCatalogProfileResourceModel
+	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
 
@@ -280,7 +286,7 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 	}
 
 	if object.Assignments != nil {
-		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
+		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",

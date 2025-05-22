@@ -55,36 +55,36 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignment != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignment)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
+	// if object.Assignment != nil {
+	// 	requestAssignment, err := constructAssignment(ctx, object.Assignment)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error constructing assignment for Create Method",
+	// 			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+	// 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 
-			err := r.client.
-				DeviceManagement().
-				DeviceHealthScripts().
-				ByDeviceHealthScriptId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
+	// 		err := r.client.
+	// 			DeviceManagement().
+	// 			DeviceHealthScripts().
+	// 			ByDeviceHealthScriptId(object.ID.ValueString()).
+	// 			Assign().
+	// 			Post(ctx, requestAssignment, nil)
 
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
+	// 		if err != nil {
+	// 			return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+	// 		}
+	// 		return nil
+	// 	})
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
-	}
+	// 	if err != nil {
+	// 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+	// 		return
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -224,28 +224,28 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	if object.Assignment != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignment)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-			)
-			return
-		}
+	// if object.Assignment != nil {
+	// 	requestAssignment, err := constructAssignment(ctx, object.Assignment)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Error constructing assignment for update method",
+	// 			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 		)
+	// 		return
+	// 	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceHealthScripts().
-			ByDeviceHealthScriptId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	// 	err = r.client.
+	// 		DeviceManagement().
+	// 		DeviceHealthScripts().
+	// 		ByDeviceHealthScriptId(object.ID.ValueString()).
+	// 		Assign().
+	// 		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
-			return
-		}
-	}
+	// 	if err != nil {
+	// 		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+	// 		return
+	// 	}
+	// }
 
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}

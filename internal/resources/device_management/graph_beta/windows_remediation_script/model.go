@@ -8,25 +8,25 @@ import (
 
 // DeviceHealthScriptResourceModel defines the schema for a Device Health Script.
 type DeviceHealthScriptResourceModel struct {
-	ID                        types.String                                      `tfsdk:"id"`
-	DisplayName               types.String                                      `tfsdk:"display_name"`
-	Description               types.String                                      `tfsdk:"description"`
-	Publisher                 types.String                                      `tfsdk:"publisher"`
-	RunAs32Bit                types.Bool                                        `tfsdk:"run_as_32_bit"`
-	RunAsAccount              types.String                                      `tfsdk:"run_as_account"`
-	EnforceSignatureCheck     types.Bool                                        `tfsdk:"enforce_signature_check"`
-	DetectionScriptContent    types.String                                      `tfsdk:"detection_script_content"`
-	RemediationScriptContent  types.String                                      `tfsdk:"remediation_script_content"`
-	RoleScopeTagIds           types.Set                                         `tfsdk:"role_scope_tag_ids"`
-	Version                   types.String                                      `tfsdk:"version"`
-	IsGlobalScript            types.Bool                                        `tfsdk:"is_global_script"`
-	DeviceHealthScriptType    types.String                                      `tfsdk:"device_health_script_type"`
-	CreatedDateTime           types.String                                      `tfsdk:"created_date_time"`
-	LastModifiedDateTime      types.String                                      `tfsdk:"last_modified_date_time"`
-	HighestAvailableVersion   types.String                                      `tfsdk:"highest_available_version"`
-	DetectionScriptParameters types.List                                        `tfsdk:"detection_script_parameters"`
-	Assignment                []WindowsRemediationScriptAssignmentResourceModel `tfsdk:"assignment"`
-	Timeouts                  timeouts.Value                                    `tfsdk:"timeouts"`
+	ID                        types.String `tfsdk:"id"`
+	DisplayName               types.String `tfsdk:"display_name"`
+	Description               types.String `tfsdk:"description"`
+	Publisher                 types.String `tfsdk:"publisher"`
+	RunAs32Bit                types.Bool   `tfsdk:"run_as_32_bit"`
+	RunAsAccount              types.String `tfsdk:"run_as_account"`
+	EnforceSignatureCheck     types.Bool   `tfsdk:"enforce_signature_check"`
+	DetectionScriptContent    types.String `tfsdk:"detection_script_content"`
+	RemediationScriptContent  types.String `tfsdk:"remediation_script_content"`
+	RoleScopeTagIds           types.Set    `tfsdk:"role_scope_tag_ids"`
+	Version                   types.String `tfsdk:"version"`
+	IsGlobalScript            types.Bool   `tfsdk:"is_global_script"`
+	DeviceHealthScriptType    types.String `tfsdk:"device_health_script_type"`
+	CreatedDateTime           types.String `tfsdk:"created_date_time"`
+	LastModifiedDateTime      types.String `tfsdk:"last_modified_date_time"`
+	HighestAvailableVersion   types.String `tfsdk:"highest_available_version"`
+	DetectionScriptParameters types.List   `tfsdk:"detection_script_parameters"`
+	//Assignment                []WindowsRemediationScriptAssignmentResourceModel `tfsdk:"assignment"`
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
 // DeviceHealthScriptParameterModel defines a single script parameter.

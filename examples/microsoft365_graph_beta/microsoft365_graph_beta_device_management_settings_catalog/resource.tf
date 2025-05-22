@@ -1,355 +1,155 @@
-resource "microsoft365_graph_beta_device_management_settings_catalog" "test_macOS" {
-  name               = "Test Settings Catalog Profile - macOS"
-  description        = ""
-  platforms          = "macOS"
-  technologies       = ["mdm", "appleRemoteManagement"]
+resource "microsoft365_graph_beta_device_management_settings_catalog" "windows_hello_for_business" {
+  name               = "pure_hcl_test"
+  description        = "18.01.2025\nContext: User\n\nWindows Hello for Business is Set here rather than in enrollment blade globally to allow for targetting specific groups or users.\n\nRef: https://deviceadvice.io/2020/06/22/how-to-set-up-windows-hello-for-business-for-cloud-only-devices/"
+  platforms          = "windows10"
+  technologies       = ["mdm"]
   role_scope_tag_ids = ["0"]
 
-  settings = jsonencode({
-
-    "settings" : [
+  settings = {
+    settings = [
       {
-        "settingInstance" : {
-          "groupSettingCollectionValue" : [
-            {
-              "settingValueTemplateReference" : null,
-              "children" : [
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "choiceSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "value" : "com.apple.mcx_disableguestaccount_true",
-                    "children" : []
-                  },
-                  "settingDefinitionId" : "com.apple.mcx_disableguestaccount"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "choiceSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "value" : "com.apple.mcx_enableguestaccount_true",
-                    "children" : []
-                  },
-                  "settingDefinitionId" : "com.apple.mcx_enableguestaccount"
-                }
-              ]
-            }
-          ],
-          "settingInstanceTemplateReference" : null,
-          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId" : "com.apple.mcx_com.apple.mcx-accounts"
-        },
-        "id" : "0"
+        id = "0"
+        setting_instance = {
+          odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          setting_definition_id               = "device_vendor_msft_passportforwork_biometrics_usebiometrics"
+          setting_instance_template_reference = null
+          choice_setting_value = {
+            value                            = "device_vendor_msft_passportforwork_biometrics_usebiometrics_true"
+            setting_value_template_reference = null
+            children                         = []
+          }
+        }
       },
       {
-        "settingInstance" : {
-          "groupSettingCollectionValue" : [
-            {
-              "settingValueTemplateReference" : null,
-              "children" : [
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavaccountdescription"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavhostname"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "valueState" : "notEncrypted",
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
-                    "value" : "test-password"
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavpassword"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
-                    "value" : 1
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavport"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavprincipalurl"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "choiceSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "value" : "com.apple.caldav.account_caldavusessl_true",
-                    "children" : []
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavusessl"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "{{USERNAME}}"
-                  },
-                  "settingDefinitionId" : "com.apple.caldav.account_caldavusername"
-                }
-              ]
-            }
-          ],
-          "settingInstanceTemplateReference" : null,
-          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId" : "com.apple.caldav.account_com.apple.caldav.account"
-        },
-        "id" : "1"
+        id = "1"
+        setting_instance = {
+          odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          setting_definition_id               = "device_vendor_msft_passportforwork_biometrics_facialfeaturesuseenhancedantispoofing"
+          setting_instance_template_reference = null
+          choice_setting_value = {
+            value                            = "device_vendor_msft_passportforwork_biometrics_facialfeaturesuseenhancedantispoofing_true"
+            setting_value_template_reference = null
+            children                         = []
+          }
+        }
       },
       {
-        "settingInstance" : {
-          "groupSettingCollectionValue" : [
+        id = "2"
+        setting_instance = {
+          odata_type                          = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance"
+          setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}"
+          setting_instance_template_reference = null
+          group_setting_collection_value = [
             {
-              "settingValueTemplateReference" : null,
-              "children" : [
+              setting_value_template_reference = null
+              children = [
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavaccountdescription"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_digits"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_digits_0"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
                 },
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavhostname"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_enablepinrecovery"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_enablepinrecovery_true"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
                 },
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "valueState" : "notEncrypted",
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
-                    "value" : "e7776185-0499-4e47-bdf5-1b3bc42ba965"
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavpassword"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_expiration"
+                  setting_instance_template_reference = null
+                  simple_setting_value = {
+                    odata_type                       = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+                    setting_value_template_reference = null
+                    value                            = 0
+                  }
                 },
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
-                    "value" : 1
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavport"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_lowercaseletters"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_lowercaseletters_0"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
                 },
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "choiceSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "value" : "com.apple.carddav.account_carddavusessl_true",
-                    "children" : []
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavusessl"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_maximumpinlength"
+                  setting_instance_template_reference = null
+                  simple_setting_value = {
+                    odata_type                       = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+                    setting_value_template_reference = null
+                    value                            = 12
+                  }
                 },
                 {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "{{USERNAME}}"
-                  },
-                  "settingDefinitionId" : "com.apple.carddav.account_carddavusername"
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_minimumpinlength"
+                  setting_instance_template_reference = null
+                  simple_setting_value = {
+                    odata_type                       = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+                    setting_value_template_reference = null
+                    value                            = 6
+                  }
+                },
+                {
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_history"
+                  setting_instance_template_reference = null
+                  simple_setting_value = {
+                    odata_type                       = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+                    setting_value_template_reference = null
+                    value                            = 2
+                  }
+                },
+                {
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_requiresecuritydevice"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_requiresecuritydevice_true"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
+                },
+                {
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_specialcharacters"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_specialcharacters_2"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
+                },
+                {
+                  odata_type                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+                  setting_definition_id               = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_uppercaseletters"
+                  setting_instance_template_reference = null
+                  choice_setting_value = {
+                    value                            = "user_vendor_msft_passportforwork_{tenantid}_policies_pincomplexity_uppercaseletters_0"
+                    setting_value_template_reference = null
+                    children                         = []
+                  }
                 }
               ]
             }
-          ],
-          "settingInstanceTemplateReference" : null,
-          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId" : "com.apple.carddav.account_com.apple.carddav.account"
-        },
-        "id" : "2"
-      },
-      {
-        "settingInstance" : {
-          "groupSettingCollectionValue" : [
-            {
-              "settingValueTemplateReference" : null,
-              "children" : [
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapaccountdescription"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "thing"
-                  },
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapaccounthostname"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "valueState" : "notEncrypted",
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
-                    "value" : "762b8bea-3715-449e-b4cd-abc0cb5e16ad"
-                  },
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapaccountpassword"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "choiceSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "value" : "com.apple.ldap.account_ldapaccountusessl_true",
-                    "children" : []
-                  },
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapaccountusessl"
-                },
-                {
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "simpleSettingValue" : {
-                    "settingValueTemplateReference" : null,
-                    "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "value" : "{{USERNAME}}"
-                  },
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapaccountusername"
-                },
-                {
-                  "groupSettingCollectionValue" : [
-                    {
-                      "settingValueTemplateReference" : null,
-                      "children" : [
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                          "simpleSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                            "value" : "thing"
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingdescription"
-                        },
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                          "choiceSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "value" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingscope_2",
-                            "children" : []
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingscope"
-                        },
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                          "simpleSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                            "value" : "thing"
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingsearchbase"
-                        }
-                      ]
-                    },
-                    {
-                      "settingValueTemplateReference" : null,
-                      "children" : [
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                          "simpleSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                            "value" : "thing"
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingdescription"
-                        },
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                          "choiceSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "value" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingscope_2",
-                            "children" : []
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingscope"
-                        },
-                        {
-                          "settingInstanceTemplateReference" : null,
-                          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                          "simpleSettingValue" : {
-                            "settingValueTemplateReference" : null,
-                            "@odata.type" : "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                            "value" : "thing"
-                          },
-                          "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings_item_ldapsearchsettingsearchbase"
-                        }
-                      ]
-                    }
-                  ],
-                  "settingInstanceTemplateReference" : null,
-                  "@odata.type" : "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-                  "settingDefinitionId" : "com.apple.ldap.account_ldapsearchsettings"
-                }
-              ]
-            }
-          ],
-          "settingInstanceTemplateReference" : null,
-          "@odata.type" : "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId" : "com.apple.ldap.account_com.apple.ldap.account"
-        },
-        "id" : "3"
+          ]
+        }
       }
     ]
-  })
+  }
 
   assignments = {
     all_devices = false

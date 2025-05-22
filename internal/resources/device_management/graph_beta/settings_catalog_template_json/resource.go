@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementTemplate
+package graphBetaDeviceManagementTemplateJson
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_settings_catalog_template"
+	ResourceName  = "graph_beta_device_management_settings_catalog_template_json"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -31,20 +31,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceManagementTemplateResource{}
+	_ resource.Resource = &DeviceManagementTemplateJsonResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithConfigure = &DeviceManagementTemplateJsonResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithImportState = &DeviceManagementTemplateJsonResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceManagementTemplateResource{}
+	_ resource.ResourceWithModifyPlan = &DeviceManagementTemplateJsonResource{}
 )
 
-func NewDeviceManagementTemplateResource() resource.Resource {
-	return &DeviceManagementTemplateResource{
+func NewDeviceManagementTemplateJsonResource() resource.Resource {
+	return &DeviceManagementTemplateJsonResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -55,7 +55,7 @@ func NewDeviceManagementTemplateResource() resource.Resource {
 	}
 }
 
-type DeviceManagementTemplateResource struct {
+type DeviceManagementTemplateJsonResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -65,22 +65,22 @@ type DeviceManagementTemplateResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceManagementTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DeviceManagementTemplateJsonResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceManagementTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DeviceManagementTemplateJsonResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceManagementTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DeviceManagementTemplateJsonResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Function to create the full device management configuration policy schema
-func (r *DeviceManagementTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy template in Microsoft Intune for `Windows`, `macOS`, `Linux`, `iOS/iPadOS` and `Android`.",
 		Attributes: map[string]schema.Attribute{

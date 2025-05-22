@@ -1,8 +1,9 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogJson
 
 import (
 	"context"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -11,7 +12,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a SettingsCatalogProfileResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalogProfileResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

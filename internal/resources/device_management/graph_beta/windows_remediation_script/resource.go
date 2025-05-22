@@ -195,9 +195,9 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
-		Blocks: map[string]schema.Block{
-			"assignment": AssignmentBlock(),
-		},
+		// Blocks: map[string]schema.Block{
+		// 	"assignment": AssignmentBlock(),
+		// },
 	}
 }
 

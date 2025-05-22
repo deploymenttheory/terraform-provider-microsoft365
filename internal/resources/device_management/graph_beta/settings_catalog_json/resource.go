@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogJson
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema/graph_beta/device_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators"
+	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/validators/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -21,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_settings_catalog"
+	ResourceName  = "graph_beta_device_management_settings_catalog_json"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -108,10 +109,57 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"configuration_policy": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings Catalog (configuration policy) settings",
-				Attributes:          DeviceConfigV2Attributes(),
+			"settings": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "Settings Catalog Policy template settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. " +
+					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
+					" [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/Export-IntuneSettingsCatalogConfigurationById.ps1) " +
+					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
+					"terraform documentation for the settings catalog template for examples and how to correctly format the HCL.\n\n" +
+					"A correctly formatted field in the HCL should begin and end like this:\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settings\": [\n" +
+					"    {\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n" +
+					"**Note:** Settings must always be provided as an array within the settings field, even when configuring a single setting." +
+					"This is required because the Microsoft Graph SDK for Go always returns settings in an array format\n\n" +
+					"**Note:** When configuring secret values (identified by @odata.type: \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\") " +
+					"ensure the valueState is set to \"notEncrypted\". The value \"encryptedValueToken\" is reserved for server" +
+					"responses and should not be used when creating or updating settings.\n\n" +
+					"```hcl\n" +
+					"settings = jsonencode({\n" +
+					"  \"settings\": [\n" +
+					"    {\n" +
+					"      \"id\": \"0\",\n" +
+					"      \"settingInstance\": {\n" +
+					"        \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance\",\n" +
+					"        \"settingDefinitionId\": \"com.apple.loginwindow_autologinpassword\",\n" +
+					"        \"settingInstanceTemplateReference\": null,\n" +
+					"        \"simpleSettingValue\": {\n" +
+					"          \"@odata.type\": \"#microsoft.graph.deviceManagementConfigurationSecretSettingValue\",\n" +
+					"          \"valueState\": \"notEncrypted\",\n" +
+					"          \"value\": \"your_secret_value\",\n" +
+					"          \"settingValueTemplateReference\": null\n" +
+					"        }\n" +
+					"      }\n" +
+					"    }\n" +
+					"  ]\n" +
+					"})\n" +
+					"```\n\n",
+				Validators: []validator.String{
+					customValidator.JSONSchemaValidator(),
+					sharedValidators.SettingsCatalogValidator(),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.NormalizeJSONPlanModifier{},
+				},
 			},
 			"platforms": schema.StringAttribute{
 				Optional: true,

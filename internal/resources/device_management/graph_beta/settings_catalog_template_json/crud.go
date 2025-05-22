@@ -1,4 +1,4 @@
-package graphBetaDeviceManagementTemplate
+package graphBetaDeviceManagementTemplateJson
 
 import (
 	"context"
@@ -32,7 +32,7 @@ import (
 // The function ensures that both the Device Management Template  and its assignments
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
-func (r *DeviceManagementTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -146,7 +146,7 @@ func (r *DeviceManagementTemplateResource) Create(ctx context.Context, req resou
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
-func (r *DeviceManagementTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
@@ -240,7 +240,7 @@ func (r *DeviceManagementTemplateResource) Read(ctx context.Context, req resourc
 //
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
-func (r *DeviceManagementTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
@@ -350,7 +350,7 @@ func (r *DeviceManagementTemplateResource) Update(ctx context.Context, req resou
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *DeviceManagementTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *DeviceManagementTemplateJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
