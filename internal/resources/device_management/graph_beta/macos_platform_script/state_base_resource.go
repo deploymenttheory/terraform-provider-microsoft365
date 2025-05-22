@@ -3,6 +3,7 @@ package graphBetaMacOSPlatformScript
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,7 +36,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.ExecutionFrequency = state.ISO8601DurationToString(remoteResource.GetExecutionFrequency())
 	data.ScriptContent = state.DecodeBase64ToString(ctx, string(remoteResource.GetScriptContent()))
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

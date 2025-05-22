@@ -2,6 +2,7 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,7 +31,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
 	data.RoleScopeTags = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTags())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

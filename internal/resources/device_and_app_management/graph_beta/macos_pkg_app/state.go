@@ -2,6 +2,7 @@ package graphBetaMacOSPKGApp
 
 import (
 	"context"
+	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -70,10 +71,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 	mapMacOSPKGAppStateToTerraform(ctx, data.MacOSPkgApp, remoteResource)
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId":  data.ID.ValueString(),
-		"displayName": data.DisplayName.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }
 
 // mapMacOSPKGAppStateToTerraform handle fields specific to macOs pkgs

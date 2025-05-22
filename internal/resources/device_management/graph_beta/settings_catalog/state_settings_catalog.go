@@ -10,9 +10,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// StateConfigurationPolicySettingsFromSDK maps settings from Graph SDK models to Terraform state
-func StateConfigurationPolicySettingsFromSDK(ctx context.Context, data *SettingsCatalogProfileResourceModel, settingsResponse graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) error {
-	tflog.Debug(ctx, "Starting to map settings from Graph SDK models to Terraform state")
+// StateConfigurationPolicySettings maps settings from Graph  models to Terraform state
+func StateConfigurationPolicySettings(ctx context.Context, data *SettingsCatalogProfileResourceModel, settingsResponse graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) error {
+	tflog.Debug(ctx, "Starting to map settings from Graph  models to Terraform state")
 
 	if settingsResponse == nil {
 		tflog.Debug(ctx, "No settings response data to process")
@@ -30,7 +30,7 @@ func StateConfigurationPolicySettingsFromSDK(ctx context.Context, data *Settings
 	var mappedSettings []Setting
 
 	for _, apiSetting := range settings {
-		setting, err := mapSDKSettingToModel(ctx, apiSetting)
+		setting, err := mapSettingToModel(ctx, apiSetting)
 		if err != nil {
 			tflog.Warn(ctx, "Failed to map setting", map[string]interface{}{
 				"error": err.Error(),
@@ -46,15 +46,13 @@ func StateConfigurationPolicySettingsFromSDK(ctx context.Context, data *Settings
 	deviceConfigModel.Settings = mappedSettings
 	data.ConfigurationPolicy = deviceConfigModel
 
-	tflog.Debug(ctx, "Finished mapping settings to Terraform state", map[string]interface{}{
-		"settings_count": len(mappedSettings),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating settings catalog resource %s with id %s", ResourceName, data.ID.ValueString()))
 
 	return nil
 }
 
-// mapSDKSettingToModel converts a Graph SDK setting to our Terraform model
-func mapSDKSettingToModel(ctx context.Context, apiSetting graphmodels.DeviceManagementConfigurationSettingable) (*Setting, error) {
+// mapSettingToModel converts a Graph  setting to our Terraform model
+func mapSettingToModel(ctx context.Context, apiSetting graphmodels.DeviceManagementConfigurationSettingable) (*Setting, error) {
 	if apiSetting == nil {
 		return nil, fmt.Errorf("API setting is nil")
 	}
@@ -72,7 +70,7 @@ func mapSDKSettingToModel(ctx context.Context, apiSetting graphmodels.DeviceMana
 		return nil, fmt.Errorf("setting instance is nil")
 	}
 
-	mappedInstance, err := mapSDKSettingInstanceToModel(ctx, settingInstance)
+	mappedInstance, err := mapSettingInstanceToModel(ctx, settingInstance)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map setting instance: %w", err)
 	}
@@ -82,8 +80,8 @@ func mapSDKSettingToModel(ctx context.Context, apiSetting graphmodels.DeviceMana
 	return setting, nil
 }
 
-// mapSDKSettingInstanceToModel converts a Graph SDK setting instance to our model
-func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingInstanceable) (*SettingInstance, error) {
+// mapSettingInstanceToModel converts a Graph  setting instance to our model
+func mapSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceManagementConfigurationSettingInstanceable) (*SettingInstance, error) {
 	if instance == nil {
 		return nil, fmt.Errorf("setting instance is nil")
 	}
@@ -102,14 +100,14 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 
 	// Map instance template reference
 	if instanceTemplateRef := instance.GetSettingInstanceTemplateReference(); instanceTemplateRef != nil {
-		settingInstance.SettingInstanceTemplateReference = mapSDKInstanceTemplateReference(instanceTemplateRef)
+		settingInstance.SettingInstanceTemplateReference = mapInstanceTemplateReference(instanceTemplateRef)
 	}
 
 	// Type-specific mapping based on the concrete type
 	switch typedInstance := instance.(type) {
 	case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 		if simpleValue := typedInstance.GetSimpleSettingValue(); simpleValue != nil {
-			mappedSimpleValue, err := mapSDKSimpleSettingValue(ctx, simpleValue)
+			mappedSimpleValue, err := mapSimpleSettingValue(ctx, simpleValue)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map simple setting value: %w", err)
 			}
@@ -118,7 +116,7 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 
 	case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
 		if choiceValue := typedInstance.GetChoiceSettingValue(); choiceValue != nil {
-			mappedChoiceValue, err := mapSDKChoiceSettingValue(ctx, choiceValue)
+			mappedChoiceValue, err := mapChoiceSettingValue(ctx, choiceValue)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map choice setting value: %w", err)
 			}
@@ -128,7 +126,7 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 	case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
 		simpleCollectionValues := typedInstance.GetSimpleSettingCollectionValue()
 		if len(simpleCollectionValues) > 0 {
-			mappedCollection, err := mapSDKSimpleSettingCollection(ctx, simpleCollectionValues)
+			mappedCollection, err := mapSimpleSettingCollection(ctx, simpleCollectionValues)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map simple setting collection: %w", err)
 			}
@@ -141,7 +139,7 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 	case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
 		choiceCollectionValues := typedInstance.GetChoiceSettingCollectionValue()
 		if len(choiceCollectionValues) > 0 {
-			mappedCollection, err := mapSDKChoiceSettingCollection(ctx, choiceCollectionValues)
+			mappedCollection, err := mapChoiceSettingCollection(ctx, choiceCollectionValues)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map choice setting collection: %w", err)
 			}
@@ -154,7 +152,7 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 	case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
 		groupCollectionValues := typedInstance.GetGroupSettingCollectionValue()
 		if len(groupCollectionValues) > 0 {
-			mappedCollection, err := mapSDKGroupSettingCollection(ctx, groupCollectionValues)
+			mappedCollection, err := mapGroupSettingCollection(ctx, groupCollectionValues)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map group setting collection: %w", err)
 			}
@@ -168,30 +166,23 @@ func mapSDKSettingInstanceToModel(ctx context.Context, instance graphmodels.Devi
 	return settingInstance, nil
 }
 
-// mapSDKSimpleSettingValue converts SDK simple setting value to our model
-func mapSDKSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManagementConfigurationSimpleSettingValueable) (*SimpleSettingStruct, error) {
+// mapSimpleSettingValue converts  simple setting value to our model
+func mapSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManagementConfigurationSimpleSettingValueable) (*SimpleSettingStruct, error) {
 	if value == nil {
 		return nil, fmt.Errorf("simple setting value is nil")
 	}
 
 	simpleValue := &SimpleSettingStruct{}
 
-	// Map OData type
 	if odataType := value.GetOdataType(); odataType != nil {
 		simpleValue.ODataType = types.StringValue(*odataType)
 	}
 
-	// Map value template reference
 	if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
-		simpleValue.SettingValueTemplateReference = mapSDKValueTemplateReference(valueTemplateRef)
+		simpleValue.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 	}
 
-	// Handle different types of simple values
 	switch typedValue := value.(type) {
-	case graphmodels.DeviceManagementConfigurationStringSettingValueable:
-		if stringVal := typedValue.GetValue(); stringVal != nil {
-			simpleValue.Value = types.StringValue(*stringVal)
-		}
 
 	case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
 		if intVal := typedValue.GetValue(); intVal != nil {
@@ -202,8 +193,14 @@ func mapSDKSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManag
 		if secretVal := typedValue.GetValue(); secretVal != nil {
 			simpleValue.Value = types.StringValue(*secretVal)
 		}
+
 		if valueState := typedValue.GetValueState(); valueState != nil {
 			simpleValue.ValueState = types.StringValue(valueState.String())
+		}
+
+	case graphmodels.DeviceManagementConfigurationStringSettingValueable:
+		if stringVal := typedValue.GetValue(); stringVal != nil {
+			simpleValue.Value = types.StringValue(*stringVal)
 		}
 
 	default:
@@ -213,8 +210,8 @@ func mapSDKSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManag
 	return simpleValue, nil
 }
 
-// mapSDKChoiceSettingValue converts SDK choice setting value to our model
-func mapSDKChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManagementConfigurationChoiceSettingValueable) (*ChoiceSettingStruct, error) {
+// mapChoiceSettingValue converts  choice setting value to our model
+func mapChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManagementConfigurationChoiceSettingValueable) (*ChoiceSettingStruct, error) {
 	if value == nil {
 		return nil, fmt.Errorf("choice setting value is nil")
 	}
@@ -228,13 +225,13 @@ func mapSDKChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManag
 
 	// Map value template reference
 	if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
-		choiceValue.SettingValueTemplateReference = mapSDKValueTemplateReference(valueTemplateRef)
+		choiceValue.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 	}
 
 	// FIXED: Always initialize children, even if empty
 	children := value.GetChildren()
 	if len(children) > 0 {
-		mappedChildren, err := mapSDKChoiceSettingChildren(ctx, children)
+		mappedChildren, err := mapChoiceSettingChildren(ctx, children)
 		if err != nil {
 			return nil, fmt.Errorf("failed to map choice setting children: %w", err)
 		}
@@ -247,8 +244,8 @@ func mapSDKChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManag
 	return choiceValue, nil
 }
 
-// mapSDKSimpleSettingCollection converts SDK simple setting collection to our model
-func mapSDKSimpleSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable) ([]SimpleSettingCollectionStruct, error) {
+// mapSimpleSettingCollection converts  simple setting collection to our model
+func mapSimpleSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable) ([]SimpleSettingCollectionStruct, error) {
 	var result []SimpleSettingCollectionStruct
 
 	for _, value := range values {
@@ -261,7 +258,7 @@ func mapSDKSimpleSettingCollection(ctx context.Context, values []graphmodels.Dev
 
 		// Map value template reference
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
-			collectionItem.SettingValueTemplateReference = mapSDKValueTemplateReference(valueTemplateRef)
+			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
 		// Map value (assuming string type for collection items)
@@ -282,8 +279,8 @@ func mapSDKSimpleSettingCollection(ctx context.Context, values []graphmodels.Dev
 	return result, nil
 }
 
-// mapSDKChoiceSettingCollection converts SDK choice setting collection to our model
-func mapSDKChoiceSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationChoiceSettingValueable) ([]ChoiceSettingCollectionStruct, error) {
+// mapChoiceSettingCollection converts  choice setting collection to our model
+func mapChoiceSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationChoiceSettingValueable) ([]ChoiceSettingCollectionStruct, error) {
 	var result []ChoiceSettingCollectionStruct
 
 	for _, value := range values {
@@ -296,13 +293,13 @@ func mapSDKChoiceSettingCollection(ctx context.Context, values []graphmodels.Dev
 
 		// Map value template reference
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
-			collectionItem.SettingValueTemplateReference = mapSDKValueTemplateReference(valueTemplateRef)
+			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
 		// FIXED: Always initialize children, even if empty
 		children := value.GetChildren()
 		if len(children) > 0 {
-			mappedChildren, err := mapSDKChoiceSettingCollectionChildren(ctx, children)
+			mappedChildren, err := mapChoiceSettingCollectionChildren(ctx, children)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map choice setting collection children: %w", err)
 			}
@@ -318,8 +315,8 @@ func mapSDKChoiceSettingCollection(ctx context.Context, values []graphmodels.Dev
 	return result, nil
 }
 
-// mapSDKGroupSettingCollection converts SDK group setting collection to our model
-func mapSDKGroupSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationGroupSettingValueable) ([]GroupSettingCollectionStruct, error) {
+// mapGroupSettingCollection converts  group setting collection to our model
+func mapGroupSettingCollection(ctx context.Context, values []graphmodels.DeviceManagementConfigurationGroupSettingValueable) ([]GroupSettingCollectionStruct, error) {
 	var result []GroupSettingCollectionStruct
 
 	for _, value := range values {
@@ -327,13 +324,13 @@ func mapSDKGroupSettingCollection(ctx context.Context, values []graphmodels.Devi
 
 		// Map value template reference
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
-			groupItem.SettingValueTemplateReference = mapSDKValueTemplateReference(valueTemplateRef)
+			groupItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
 		// FIXED: Always initialize children, even if empty
 		children := value.GetChildren()
 		if len(children) > 0 {
-			mappedChildren, err := mapSDKGroupSettingCollectionChildren(ctx, children)
+			mappedChildren, err := mapGroupSettingCollectionChildren(ctx, children)
 			if err != nil {
 				return nil, fmt.Errorf("failed to map group setting collection children: %w", err)
 			}
@@ -349,8 +346,8 @@ func mapSDKGroupSettingCollection(ctx context.Context, values []graphmodels.Devi
 	return result, nil
 }
 
-// mapSDKChoiceSettingChildren converts SDK choice setting children to our model
-func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]ChoiceSettingChild, error) {
+// mapChoiceSettingChildren converts  choice setting children to our model
+func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]ChoiceSettingChild, error) {
 	var result []ChoiceSettingChild
 
 	for _, child := range children {
@@ -366,14 +363,14 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 
 		// Map instance template reference
 		if instanceTemplateRef := child.GetSettingInstanceTemplateReference(); instanceTemplateRef != nil {
-			childItem.SettingInstanceTemplateReference = mapSDKInstanceTemplateReference(instanceTemplateRef)
+			childItem.SettingInstanceTemplateReference = mapInstanceTemplateReference(instanceTemplateRef)
 		}
 
 		// Type-specific mapping
 		switch typedChild := child.(type) {
 		case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 			if simpleValue := typedChild.GetSimpleSettingValue(); simpleValue != nil {
-				mappedSimpleValue, err := mapSDKSimpleSettingValue(ctx, simpleValue)
+				mappedSimpleValue, err := mapSimpleSettingValue(ctx, simpleValue)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map child simple setting value: %w", err)
 				}
@@ -383,7 +380,7 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 		case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
 			simpleCollectionValues := typedChild.GetSimpleSettingCollectionValue()
 			if len(simpleCollectionValues) > 0 {
-				mappedCollection, err := mapSDKSimpleSettingCollection(ctx, simpleCollectionValues)
+				mappedCollection, err := mapSimpleSettingCollection(ctx, simpleCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map child simple setting collection: %w", err)
 				}
@@ -395,7 +392,7 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 
 		case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
 			if choiceValue := typedChild.GetChoiceSettingValue(); choiceValue != nil {
-				mappedChoiceValue, err := mapSDKChoiceSettingValue(ctx, choiceValue)
+				mappedChoiceValue, err := mapChoiceSettingValue(ctx, choiceValue)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map child choice setting value: %w", err)
 				}
@@ -405,7 +402,7 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 		case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
 			choiceCollectionValues := typedChild.GetChoiceSettingCollectionValue()
 			if len(choiceCollectionValues) > 0 {
-				mappedCollection, err := mapSDKChoiceSettingCollection(ctx, choiceCollectionValues)
+				mappedCollection, err := mapChoiceSettingCollection(ctx, choiceCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map child choice setting collection: %w", err)
 				}
@@ -418,7 +415,7 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 		case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
 			groupCollectionValues := typedChild.GetGroupSettingCollectionValue()
 			if len(groupCollectionValues) > 0 {
-				mappedCollection, err := mapSDKGroupSettingCollection(ctx, groupCollectionValues)
+				mappedCollection, err := mapGroupSettingCollection(ctx, groupCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map child group setting collection: %w", err)
 				}
@@ -435,8 +432,8 @@ func mapSDKChoiceSettingChildren(ctx context.Context, children []graphmodels.Dev
 	return result, nil
 }
 
-// mapSDKChoiceSettingCollectionChildren converts SDK choice setting collection children to our model
-func mapSDKChoiceSettingCollectionChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]ChoiceSettingCollectionChild, error) {
+// mapChoiceSettingCollectionChildren converts  choice setting collection children to our model
+func mapChoiceSettingCollectionChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]ChoiceSettingCollectionChild, error) {
 	var result []ChoiceSettingCollectionChild
 
 	for _, child := range children {
@@ -452,14 +449,14 @@ func mapSDKChoiceSettingCollectionChildren(ctx context.Context, children []graph
 
 		// Map instance template reference
 		if instanceTemplateRef := child.GetSettingInstanceTemplateReference(); instanceTemplateRef != nil {
-			childItem.SettingInstanceTemplateReference = mapSDKInstanceTemplateReference(instanceTemplateRef)
+			childItem.SettingInstanceTemplateReference = mapInstanceTemplateReference(instanceTemplateRef)
 		}
 
 		// Type-specific mapping (choice collection children have limited types)
 		switch typedChild := child.(type) {
 		case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 			if simpleValue := typedChild.GetSimpleSettingValue(); simpleValue != nil {
-				mappedSimpleValue, err := mapSDKSimpleSettingValue(ctx, simpleValue)
+				mappedSimpleValue, err := mapSimpleSettingValue(ctx, simpleValue)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map choice collection child simple setting value: %w", err)
 				}
@@ -469,7 +466,7 @@ func mapSDKChoiceSettingCollectionChildren(ctx context.Context, children []graph
 		case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
 			simpleCollectionValues := typedChild.GetSimpleSettingCollectionValue()
 			if len(simpleCollectionValues) > 0 {
-				mappedCollection, err := mapSDKSimpleSettingCollection(ctx, simpleCollectionValues)
+				mappedCollection, err := mapSimpleSettingCollection(ctx, simpleCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map choice collection child simple setting collection: %w", err)
 				}
@@ -486,8 +483,8 @@ func mapSDKChoiceSettingCollectionChildren(ctx context.Context, children []graph
 	return result, nil
 }
 
-// mapSDKGroupSettingCollectionChildren converts SDK group setting collection children to our model
-func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]GroupSettingCollectionChild, error) {
+// mapGroupSettingCollectionChildren converts  group setting collection children to our model
+func mapGroupSettingCollectionChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]GroupSettingCollectionChild, error) {
 	var result []GroupSettingCollectionChild
 
 	for _, child := range children {
@@ -503,14 +500,14 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 
 		// Map instance template reference
 		if instanceTemplateRef := child.GetSettingInstanceTemplateReference(); instanceTemplateRef != nil {
-			childItem.SettingInstanceTemplateReference = mapSDKInstanceTemplateReference(instanceTemplateRef)
+			childItem.SettingInstanceTemplateReference = mapInstanceTemplateReference(instanceTemplateRef)
 		}
 
 		// Type-specific mapping (group children can have all types)
 		switch typedChild := child.(type) {
 		case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 			if simpleValue := typedChild.GetSimpleSettingValue(); simpleValue != nil {
-				mappedSimpleValue, err := mapSDKSimpleSettingValue(ctx, simpleValue)
+				mappedSimpleValue, err := mapSimpleSettingValue(ctx, simpleValue)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map group child simple setting value: %w", err)
 				}
@@ -520,7 +517,7 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 		case graphmodels.DeviceManagementConfigurationSimpleSettingCollectionInstanceable:
 			simpleCollectionValues := typedChild.GetSimpleSettingCollectionValue()
 			if len(simpleCollectionValues) > 0 {
-				mappedCollection, err := mapSDKSimpleSettingCollection(ctx, simpleCollectionValues)
+				mappedCollection, err := mapSimpleSettingCollection(ctx, simpleCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map group child simple setting collection: %w", err)
 				}
@@ -532,7 +529,7 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 
 		case graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable:
 			if choiceValue := typedChild.GetChoiceSettingValue(); choiceValue != nil {
-				mappedChoiceValue, err := mapSDKChoiceSettingValue(ctx, choiceValue)
+				mappedChoiceValue, err := mapChoiceSettingValue(ctx, choiceValue)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map group child choice setting value: %w", err)
 				}
@@ -542,7 +539,7 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 		case graphmodels.DeviceManagementConfigurationChoiceSettingCollectionInstanceable:
 			choiceCollectionValues := typedChild.GetChoiceSettingCollectionValue()
 			if len(choiceCollectionValues) > 0 {
-				mappedCollection, err := mapSDKChoiceSettingCollection(ctx, choiceCollectionValues)
+				mappedCollection, err := mapChoiceSettingCollection(ctx, choiceCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map group child choice setting collection: %w", err)
 				}
@@ -555,7 +552,7 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 		case graphmodels.DeviceManagementConfigurationGroupSettingCollectionInstanceable:
 			groupCollectionValues := typedChild.GetGroupSettingCollectionValue()
 			if len(groupCollectionValues) > 0 {
-				mappedCollection, err := mapSDKGroupSettingCollection(ctx, groupCollectionValues)
+				mappedCollection, err := mapGroupSettingCollection(ctx, groupCollectionValues)
 				if err != nil {
 					return nil, fmt.Errorf("failed to map group child group setting collection: %w", err)
 				}
@@ -572,8 +569,8 @@ func mapSDKGroupSettingCollectionChildren(ctx context.Context, children []graphm
 	return result, nil
 }
 
-// mapSDKInstanceTemplateReference converts SDK instance template reference to our model
-func mapSDKInstanceTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingInstanceTemplateReferenceable) *SettingInstanceTemplateReference {
+// mapInstanceTemplateReference converts  instance template reference to our model
+func mapInstanceTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingInstanceTemplateReferenceable) *SettingInstanceTemplateReference {
 	if ref == nil {
 		return nil
 	}
@@ -586,8 +583,8 @@ func mapSDKInstanceTemplateReference(ref graphmodels.DeviceManagementConfigurati
 	return templateRef
 }
 
-// mapSDKValueTemplateReference converts SDK value template reference to our model
-func mapSDKValueTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable) *SettingValueTemplateReference {
+// mapValueTemplateReference converts  value template reference to our model
+func mapValueTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable) *SettingValueTemplateReference {
 	if ref == nil {
 		return nil
 	}

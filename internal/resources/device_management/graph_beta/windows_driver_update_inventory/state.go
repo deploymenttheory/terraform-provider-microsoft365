@@ -3,6 +3,7 @@ package graphBetaWindowsDriverUpdateInventory
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,7 +33,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 	data.DeployDateTime = state.TimeToString(remoteResource.GetDeployDateTime())
 	data.ApplicableDeviceCount = state.Int32PtrToTypeInt32(remoteResource.GetApplicableDeviceCount())
 
-	tflog.Debug(ctx, "Finished mapping remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

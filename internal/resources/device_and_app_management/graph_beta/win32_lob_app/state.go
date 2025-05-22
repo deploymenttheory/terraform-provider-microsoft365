@@ -197,7 +197,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		}
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

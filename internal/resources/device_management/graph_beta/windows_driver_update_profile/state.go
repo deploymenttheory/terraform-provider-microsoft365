@@ -2,6 +2,7 @@ package graphBetaWindowsDriverUpdateProfile
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -47,5 +48,5 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 		data.InventorySyncStatus = types.ObjectNull(inventorySyncStatusTypes)
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform", map[string]interface{}{"resourceId": data.ID.ValueString()})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }

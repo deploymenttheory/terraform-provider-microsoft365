@@ -2,6 +2,7 @@ package graphBetaRoleDefinitionAssignment
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -51,7 +52,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		}
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state", map[string]interface{}{
-		"assignmentId": assignmentID,
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

@@ -2,6 +2,7 @@ package graphBetaBrowserSiteList
 
 import (
 	"context"
+	"fmt"
 
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -28,9 +29,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *BrowserSiteListResourc
 	data.Revision = types.StringPointerValue(remoteResource.GetRevision())
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }
 
 func MapIdentitySetRemoteStateToTerraform(identitySet graphmodels.IdentitySetable) sharedmodels.IdentitySetResourceModel {

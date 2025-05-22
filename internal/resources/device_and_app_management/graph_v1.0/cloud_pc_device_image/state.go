@@ -2,6 +2,7 @@ package graphCloudPcDeviceImage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,7 +32,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcDeviceImageReso
 	data.Status = state.EnumPtrToTypeString(remoteResource.GetStatus())
 	data.Version = types.StringPointerValue(remoteResource.GetVersion())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

@@ -2,7 +2,7 @@ package graphCloudPcUserSetting
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,11 +28,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 	data.ResetEnabled = types.BoolPointerValue(remoteState.GetResetEnabled())
 	data.RestorePointSetting = mapRestorePointSetting(remoteState.GetRestorePointSetting())
 
-	finalState, _ := json.MarshalIndent(data, "", "  ")
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-		"finalState": string(finalState),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }
 
 func mapRestorePointSetting(restorePointSetting models.CloudPcRestorePointSettingable) *CloudPcRestorePointSettingModel {

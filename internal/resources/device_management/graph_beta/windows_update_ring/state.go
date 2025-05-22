@@ -2,6 +2,7 @@ package graphBetaWindowsUpdateRing
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -65,4 +66,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 	data.ScheduleImminentRestartWarningInMinutes = state.Int32PtrToTypeInt32(apiData.GetScheduleImminentRestartWarningInMinutes())
 	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
 	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

@@ -3,6 +3,7 @@ package graphBetaWinGetApp
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state"
@@ -81,7 +82,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WinGetAppResou
 
 	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
-		"resourceId": data.ID.ValueString(),
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+
 }

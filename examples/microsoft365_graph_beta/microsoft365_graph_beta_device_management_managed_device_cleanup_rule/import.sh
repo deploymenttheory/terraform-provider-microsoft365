@@ -1,0 +1,2 @@
+# Import existing cleanup rule
+terraform import microsoft365_graph_beta_device_management_managed_device_cleanup_rule.example {id}
