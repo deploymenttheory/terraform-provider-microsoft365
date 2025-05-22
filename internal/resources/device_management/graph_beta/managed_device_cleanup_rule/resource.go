@@ -43,9 +43,11 @@ func NewManagedDeviceCleanupRuleResource() resource.Resource {
 	return &ManagedDeviceCleanupRuleResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementManagedDevices.Read.All,",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementManagedDevices.ReadWrite.All",
 		},
 		ResourcePath: "deviceManagement/managedDeviceCleanupRules",
 	}
