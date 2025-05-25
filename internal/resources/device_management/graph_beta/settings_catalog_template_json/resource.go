@@ -293,7 +293,8 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				Computed:            true,
+				MarkdownDescription: "Set of scope tag IDs for this Entity instance.",
 				PlanModifiers: []planmodifier.Set{
 					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},

@@ -1,3 +1,2 @@
-# Using the provider-default project ID, the import ID is:
 # {resource_id}
 terraform import microsoft365_graph_beta_device_management_assignment_filter.example assignment-filter-id
