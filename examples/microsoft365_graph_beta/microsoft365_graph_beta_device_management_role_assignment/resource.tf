@@ -1,5 +1,5 @@
 
-resource "microsoft365_graph_beta_device_management_role_definition_assignment" "resource_scope_example" {
+resource "microsoft365_graph_beta_device_management_role_assignment" "resource_scope_example" {
   # You can reference either a role definition ID or use a built-in role name
   role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
   # OR
@@ -34,7 +34,7 @@ resource "microsoft365_graph_beta_device_management_role_definition_assignment" 
   }
 }
 
-resource "microsoft365_graph_beta_device_management_role_definition_assignment" "all_devices_example" {
+resource "microsoft365_graph_beta_device_management_role_assignment" "all_devices_example" {
   # You can reference either a role definition ID or use a built-in role name
   role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
   # OR
