@@ -5,7 +5,7 @@ resource "microsoft365_graph_beta_device_management_managed_device_cleanup_rule"
   device_cleanup_rule_platform_type           = "androidDeviceAdministrator"
   device_inactivity_before_retirement_in_days = 90
 
-  timeouts {
+  timeouts = {
     create = "10m"
     read   = "5m"
     update = "10m"
