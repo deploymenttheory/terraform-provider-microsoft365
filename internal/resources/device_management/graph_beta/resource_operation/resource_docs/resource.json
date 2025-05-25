@@ -1,0 +1,9 @@
+{
+  "@odata.type": "#microsoft.graph.resourceOperation",
+  "id": "String (identifier)",
+  "resource": "String",
+  "resourceName": "String",
+  "actionName": "String",
+  "description": "String",
+  "enabledForScopeValidation": true
+}

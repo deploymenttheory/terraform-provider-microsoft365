@@ -17,7 +17,9 @@ import (
 	graphBetaDeviceManagementMacOSPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/macos_platform_script"
 	graphBetaDeviceManagementManagedDeviceCleanupRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/managed_device_cleanup_rule"
 	graphBetaDeviceManagementOperationApprovalPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/operation_approval_policy"
+	graphBetaDeviceManagementResourceOperation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/resource_operation"
 	graphBetaDeviceManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/reuseable_policy_settings"
+
 	graphBetaDeviceManagementRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/role_assignment"
 	graphBetaDeviceManagementRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/role_definition"
 	graphBetaDeviceManagementRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_management/graph_beta/role_scope_tag"
@@ -103,6 +105,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
 		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 		graphBetaDeviceManagementOperationApprovalPolicy.NewOperationApprovalPolicyResource,
+		graphBetaDeviceManagementResourceOperation.NewResourceOperationResource,
 
 		// Graph Beta - Identity and Access resources
 		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,

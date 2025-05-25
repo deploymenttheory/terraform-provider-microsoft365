@@ -161,8 +161,8 @@ func addRedirectHandler(ctx context.Context, middleware []khttp.Middleware, opti
 func addCompressionHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptionsModel) []khttp.Middleware {
 	if options.EnableCompression.ValueBool() {
 		tflog.Debug(ctx, "Configuring compression handler")
-		compressionOptions := khttp.NewCompressionOptions(true)
-		compressionHandler := khttp.NewCompressionHandlerWithOptions(compressionOptions)
+		compressionOptions := khttp.NewCompressionOptionsReference(true)
+		compressionHandler := khttp.NewCompressionHandlerWithOptions(*compressionOptions)
 		middleware = append(middleware, compressionHandler)
 		tflog.Debug(ctx, "Compression handler added to middleware")
 	} else {
