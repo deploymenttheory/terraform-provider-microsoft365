@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.operationApprovalPolicy",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "lastModifiedDateTime": "String (timestamp)",
+  "policyType": "String",
+  "policyPlatform": "String",
+  "policySet": {
+    "@odata.type": "microsoft.graph.operationApprovalPolicySet",
+    "policyType": "String",
+    "policyPlatform": "String"
+  },
+  "approverGroupIds": [
+    "String"
+  ]
+}
