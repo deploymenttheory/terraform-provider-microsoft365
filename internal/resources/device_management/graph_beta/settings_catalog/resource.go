@@ -30,20 +30,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &SettingsCatalogJsonResource{}
+	_ resource.Resource = &SettingsCatalogResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &SettingsCatalogJsonResource{}
+	_ resource.ResourceWithConfigure = &SettingsCatalogResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &SettingsCatalogJsonResource{}
+	_ resource.ResourceWithImportState = &SettingsCatalogResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &SettingsCatalogJsonResource{}
+	_ resource.ResourceWithModifyPlan = &SettingsCatalogResource{}
 )
 
-func NewSettingsCatalogJsonResource() resource.Resource {
-	return &SettingsCatalogJsonResource{
+func NewSettingsCatalogResource() resource.Resource {
+	return &SettingsCatalogResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -54,7 +54,7 @@ func NewSettingsCatalogJsonResource() resource.Resource {
 	}
 }
 
-type SettingsCatalogJsonResource struct {
+type SettingsCatalogResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -64,22 +64,22 @@ type SettingsCatalogJsonResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *SettingsCatalogJsonResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SettingsCatalogResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *SettingsCatalogJsonResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SettingsCatalogResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *SettingsCatalogJsonResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SettingsCatalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Function to create the full device management configuration policy schema
-func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{

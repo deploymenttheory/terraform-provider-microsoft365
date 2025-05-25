@@ -79,10 +79,10 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) ImportState(ctx context.
 // Schema returns the schema for the resource.
 func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages Windows Quality Update Profile Assignments in Microsoft Intune.",
+		Description: "Manages Windows Quality Update Policy and Windows Quality Update expedite Policy Assignments in Microsoft Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the windows quality update profile assignment.",
+				MarkdownDescription: "The ID of the windows quality update policy assignment.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -90,7 +90,7 @@ func (r *WindowsQualityUpdateProfileAssignmentResource) Schema(ctx context.Conte
 			},
 			"windows_quality_update_profile_id": schema.StringAttribute{
 				Required:    true,
-				Description: "The ID of the windows quality update profile to attach the assignment to.",
+				Description: "The ID of the windows quality update policy or Windows Quality Update expedite Policy to attach the assignment to.",
 			},
 			"target": schema.SingleNestedAttribute{
 				Required: true,
