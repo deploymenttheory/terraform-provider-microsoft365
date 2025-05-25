@@ -2,12 +2,12 @@
 resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "group_example" {
   windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000001"
 
-  target {
+  target = {
     target_type = "groupAssignment"
     group_id    = "00000000-0000-0000-0000-000000000002"
   }
 
-  timeouts {
+  timeouts = {
     create = "10s"
     read   = "10s"
     update = "10s"
@@ -19,7 +19,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_profi
 resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "sccm_example" {
   windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000004"
 
-  target {
+  target = {
     target_type   = "configurationManagerCollection"
     collection_id = "MEMABCDEF01"
   }
@@ -30,10 +30,9 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_profi
 resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "exclusion_example" {
   windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000007"
 
-  target {
+  target = {
     target_type = "exclusionGroupAssignment"
     group_id    = "00000000-0000-0000-0000-000000000008"
   }
 
-  # No settings block needed for exclusion assignments
 }
