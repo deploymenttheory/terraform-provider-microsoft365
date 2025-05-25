@@ -1,0 +1,3 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_terms_and_conditions_assignment.example terms-and-conditions-assignment-id
+
