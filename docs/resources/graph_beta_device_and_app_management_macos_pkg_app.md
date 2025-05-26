@@ -22,20 +22,20 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   owner                   = "Example Owner"
   developer               = "Example Developer"
   notes                   = "This is a macOS PKG application managed through Terraform."
-  role_scope_tag_ids      = [8, 9]
+  role_scope_tag_ids      = [microsoft365_graph_beta_device_management_role_scope_tag.example.id, "2"]
 
   categories = [
-    microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id, // custom category
-    "Business",                                                                            // built-in example
+    microsoft365_graph_beta_device_and_app_management_application_category.example.id, # custom app category
+    "Business", # builtin category
     "Productivity",
   ]
 
   app_icon = {
-    icon_file_path_source = "/local/path/Firefox_logo.png"
+    icon_file_path_source = "/path/to/Firefox_logo.png"
   }
 
   app_installer = {
-    installer_file_path_source = "/local/path/Firefox_136.0.pkg"
+    installer_file_path_source = "/path/to/Firefox_136.0.pkg"
   }
 
 
@@ -53,72 +53,9 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
     post_install_script = {
       script_content = base64encode("#!/bin/bash\necho macOS PKG Post-install script example")
     }
-
   }
 
-  # App assignments configuration
-  assignments = [
-
-    # Assignment 1: Exclusion group with available intent
-    {
-      intent = "available"
-      source = "direct"
-      target = {
-        target_type = "exclusionGroupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
-      }
-    },
-
-    # Assignment 2: Another exclusion group with available intent
-    {
-      intent = "available"
-      source = "direct"
-      target = {
-        target_type = "exclusionGroupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
-      }
-    },
-
-    # Assignment 3: All devices with required intent
-    {
-      intent = "required"
-      source = "direct"
-      target = {
-        target_type = "allDevices"
-      }
-    },
-
-    # Assignment 4: All licensed users with required intent
-    {
-      intent = "required"
-      source = "direct"
-      target = {
-        target_type = "allLicensedUsers"
-      }
-    },
-
-    # Assignment 5: Group assignment with required intent
-    {
-      intent = "required"
-      source = "direct"
-      target = {
-        target_type = "groupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
-      }
-    },
-
-    # Assignment 6: Another group assignment with required intent
-    {
-      intent = "required"
-      source = "direct"
-      target = {
-        target_type = "groupAssignment"
-        group_id    = "11111111-2222-3333-4444-555555555555"
-      }
-    }
-  ]
-
-  # Optional: Add timeouts
+  # Optional: Add timeouts block
   timeouts = {
     create = "3m"
     read   = "20s"
@@ -141,7 +78,6 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 
 - `app_icon` (Attributes) The source information for the app icon (PNG). Supports local file paths or URLs. (see [below for nested schema](#nestedatt--app_icon))
 - `app_installer` (Attributes) Metadata related to the installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
-- `assignments` (Attributes Set) (see [below for nested schema](#nestedatt--assignments))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `developer` (String) The developer of the app.
@@ -152,7 +88,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 - `owner` (String) The owner of the app.
 - `privacy_information_url` (String) The privacy statement Url.
 - `relationships` (Attributes List) List of relationships associated with this application. (see [below for nested schema](#nestedatt--relationships))
-- `role_scope_tag_ids` (Set of String) Set of scope tag ids for this mobile app.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -182,302 +118,6 @@ Optional:
 
 - `installer_file_path_source` (String) The path to the PKG file to be uploaded. The file must be a valid `.pkg` file. Value is not returned by API call.
 - `installer_url_source` (String) The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file. Value is not returned by API call.
-
-Read-Only:
-
-- `installer_md5_checksum` (String) The MD5 checksum of the installer file. Used as an additional verification of file integrity and to detect changes.
-- `installer_sha256_checksum` (String) The SHA256 checksum of the installer file. Used as a more secure verification of file integrity and to detect changes.
-- `installer_size_in_bytes` (Number) The size of the installer file in bytes. Used to detect changes in content.
-
-
-<a id="nestedatt--assignments"></a>
-### Nested Schema for `assignments`
-
-Required:
-
-- `intent` (String) The Intune app install intent defined by the admin. Possible values are:
-
-- **available**: App is available for users to install
-- **required**: App is required and will be automatically installed
-- **uninstall**: App will be uninstalled
-- **availableWithoutEnrollment**: App is available without Intune device enrollment
-- `source` (String) The resource type which is the source for the assignment. Possible values are: direct, policySets.
-- `target` (Attributes) (see [below for nested schema](#nestedatt--assignments--target))
-
-Optional:
-
-- `settings` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings))
-- `source_id` (String) The identifier of the source of the assignment.
-
-Read-Only:
-
-- `id` (String) The ID of the Intune application associated with this assignment.
-
-<a id="nestedatt--assignments--target"></a>
-### Nested Schema for `assignments.target`
-
-Required:
-
-- `target_type` (String) The target group type for the application assignment. Possible values are:
-
-- **allDevices**: Target all devices in the tenant
-- **allLicensedUsers**: Target all licensed users in the tenant
-- **androidFotaDeployment**: Target Android FOTA deployment
-- **configurationManagerCollection**: Target System Centre Configuration Manager collection
-- **exclusionGroupAssignment**: Target a specific Entra ID group for exclusion
-- **groupAssignment**: Target a specific Entra ID group
-
-Optional:
-
-- `collection_id` (String) The SCCM group collection ID for the application assignment target.
-- `device_and_app_management_assignment_filter_id` (String) The Id of the scope filter applied to the target assignment.
-- `device_and_app_management_assignment_filter_type` (String) The type of scope filter for the target assignment. Defaults to 'none'. Possible values are:
-
-- **include**: Only include devices or users matching the filter
-- **exclude**: Exclude devices or users matching the filter
-- **none**: No assignment filter applied
-- `group_id` (String) The entra ID group ID for the application assignment target.
-
-
-<a id="nestedatt--assignments--settings"></a>
-### Nested Schema for `assignments.settings`
-
-Optional:
-
-- `android_managed_store` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--android_managed_store))
-- `ios_lob` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--ios_lob))
-- `ios_store` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--ios_store))
-- `ios_vpp` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--ios_vpp))
-- `macos_lob` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--macos_lob))
-- `macos_vpp` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--macos_vpp))
-- `microsoft_store_for_business` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--microsoft_store_for_business))
-- `win32_catalog` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--win32_catalog))
-- `win32_lob` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--win32_lob))
-- `win_get` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--win_get))
-- `windows_app_x` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--windows_app_x))
-- `windows_universal_app_x` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--windows_universal_app_x))
-
-<a id="nestedatt--assignments--settings--android_managed_store"></a>
-### Nested Schema for `assignments.settings.android_managed_store`
-
-Optional:
-
-- `android_managed_store_app_track_ids` (List of String) The track IDs to enable for this app assignment.
-- `auto_update_mode` (String) The prioritization of automatic updates for this app assignment. Possible values are:
-
-- **default**: Default auto-update mode
-- **postponed**: Updates are postponed
-- **priority**: Updates are prioritized
-- **unknownFutureValue**: Reserved for future use
-
-
-<a id="nestedatt--assignments--settings--ios_lob"></a>
-### Nested Schema for `assignments.settings.ios_lob`
-
-Optional:
-
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
-- `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
-
-
-<a id="nestedatt--assignments--settings--ios_store"></a>
-### Nested Schema for `assignments.settings.ios_store`
-
-Optional:
-
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
-- `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
-
-
-<a id="nestedatt--assignments--settings--ios_vpp"></a>
-### Nested Schema for `assignments.settings.ios_vpp`
-
-Optional:
-
-- `is_removable` (Boolean) Whether or not the app can be removed by the user. By default, this property is set to FALSE.
-- `prevent_auto_app_update` (Boolean) When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to FALSE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) Whether or not to uninstall the app when device is removed from Intune. By default, this property is set to FALSE.
-- `use_device_licensing` (Boolean) Whether or not to use device licensing. By default, this property is set to FALSE.
-- `vpn_configuration_id` (String) The VPN Configuration Id to apply for this app.
-
-
-<a id="nestedatt--assignments--settings--macos_lob"></a>
-### Nested Schema for `assignments.settings.macos_lob`
-
-Optional:
-
-- `uninstall_on_device_removal` (Boolean) When TRUE, the macOS LOB app will be uninstalled when the device is removed from Intune management. When FALSE, the macOS LOB app will not be uninstalled when the device is removed from management. By default, this property is set to FALSE.
-
-
-<a id="nestedatt--assignments--settings--macos_vpp"></a>
-### Nested Schema for `assignments.settings.macos_vpp`
-
-Optional:
-
-- `prevent_auto_app_update` (Boolean) When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to null which internally is treated as FALSE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to null which internally is treated as FALSE.
-- `uninstall_on_device_removal` (Boolean) When TRUE, the macOS VPP app will be uninstalled when the device is removed from Intune management. When FALSE, the macOS VPP app will not be uninstalled when the device is removed from management. By default, this property is set to FALSE.
-- `use_device_licensing` (Boolean) When TRUE indicates that the macOS VPP app should use device-based licensing. When FALSE indicates that the macOS VPP app should use user-based licensing. By default, this property is set to FALSE.
-
-
-<a id="nestedatt--assignments--settings--microsoft_store_for_business"></a>
-### Nested Schema for `assignments.settings.microsoft_store_for_business`
-
-Optional:
-
-- `use_device_context` (Boolean) When TRUE, indicates that device execution context will be used for the Microsoft Store for Business mobile app. When FALSE, indicates that user context will be used for the Microsoft Store for Business mobile app. By default, this property is set to FALSE. Once this property has been set to TRUE it cannot be changed.
-
-
-<a id="nestedatt--assignments--settings--win32_catalog"></a>
-### Nested Schema for `assignments.settings.win32_catalog`
-
-Optional:
-
-- `auto_update_settings` (Attributes) The auto-update settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_catalog--auto_update_settings))
-- `delivery_optimization_priority` (String) The delivery optimization priority for this app assignment. This setting is not supported in National Cloud environments. Possible values are:
-
-- **notConfigured**: Not configured or background normal delivery optimization priority
-- **foreground**: Foreground delivery optimization priority
-- `install_time_settings` (Attributes) The install time settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_catalog--install_time_settings))
-- `notifications` (String) The notification status for this app assignment. Possible values are:
-
-- **showAll**: Show all notifications
-- **showReboot**: Show only reboot notifications
-- **hideAll**: Hide all notifications
-- `restart_settings` (Attributes) The reboot settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_catalog--restart_settings))
-
-<a id="nestedatt--assignments--settings--win32_catalog--auto_update_settings"></a>
-### Nested Schema for `assignments.settings.win32_catalog.auto_update_settings`
-
-Optional:
-
-- `auto_update_superseded_apps_state` (String) The auto-update superseded apps setting for the app assignment. Default value is notConfigured. Possible values are:
-
-- **notConfigured**: Auto-update is not configured
-- **enabled**: Auto-update is enabled
-- **unknownFutureValue**: Reserved for future use
-
-
-<a id="nestedatt--assignments--settings--win32_catalog--install_time_settings"></a>
-### Nested Schema for `assignments.settings.win32_catalog.install_time_settings`
-
-Optional:
-
-- `deadline_date_time` (String) The time at which the app should be installed.
-- `start_date_time` (String) The time at which the app should be available for installation.
-- `use_local_time` (Boolean) Whether the local device time or UTC time should be used when determining the available and deadline times.
-
-
-<a id="nestedatt--assignments--settings--win32_catalog--restart_settings"></a>
-### Nested Schema for `assignments.settings.win32_catalog.restart_settings`
-
-Optional:
-
-- `countdown_display_before_restart_in_minutes` (Number) The number of minutes before the restart time to display the countdown dialog for pending restarts.
-- `grace_period_in_minutes` (Number) The number of minutes to wait before restarting the device after an app installation.
-- `restart_notification_snooze_duration_in_minutes` (Number) The number of minutes to snooze the restart notification dialog when the snooze button is selected.
-
-
-
-<a id="nestedatt--assignments--settings--win32_lob"></a>
-### Nested Schema for `assignments.settings.win32_lob`
-
-Optional:
-
-- `auto_update_settings` (Attributes) The auto-update settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_lob--auto_update_settings))
-- `delivery_optimization_priority` (String) The delivery optimization priority for this app assignment. This setting is notsupported in National Cloud environments. Possible values are: notConfigured, foreground.- **notConfigured**: Not configured or background normal delivery optimization priority.
-- **foreground**: Foreground delivery optimization priority.
-- `install_time_settings` (Attributes) The install time settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_lob--install_time_settings))
-- `notifications` (String) The notification status for this app assignment. Possible values are:
-
-- **showAll**: Show all notifications
-- **showReboot**: Show only reboot notifications
-- **hideAll**: Hide all notifications
-- `restart_settings` (Attributes) The reboot settings to apply for this app assignment. (see [below for nested schema](#nestedatt--assignments--settings--win32_lob--restart_settings))
-
-<a id="nestedatt--assignments--settings--win32_lob--auto_update_settings"></a>
-### Nested Schema for `assignments.settings.win32_lob.auto_update_settings`
-
-Optional:
-
-- `auto_update_superseded_apps_state` (String) The auto-update superseded apps setting for the app assignment. Default value is notConfigured. Possible values are:
-
-- **notConfigured**: Auto-update is not configured
-- **enabled**: Auto-update is enabled
-- **unknownFutureValue**: Reserved for future use
-
-
-<a id="nestedatt--assignments--settings--win32_lob--install_time_settings"></a>
-### Nested Schema for `assignments.settings.win32_lob.install_time_settings`
-
-Optional:
-
-- `deadline_date_time` (String) The time at which the app should be installed.
-- `start_date_time` (String) The time at which the app should be available for installation.
-- `use_local_time` (Boolean) Whether the local device time or UTC time should be used when determining the available and deadline times.
-
-
-<a id="nestedatt--assignments--settings--win32_lob--restart_settings"></a>
-### Nested Schema for `assignments.settings.win32_lob.restart_settings`
-
-Optional:
-
-- `countdown_display_before_restart_in_minutes` (Number) The number of minutes before the restart time to display the countdown dialog for pending restarts.
-- `grace_period_in_minutes` (Number) The number of minutes to wait before restarting the device after an app installation.
-- `restart_notification_snooze_duration_in_minutes` (Number) The number of minutes to snooze the restart notification dialog when the snooze button is selected.
-
-
-
-<a id="nestedatt--assignments--settings--win_get"></a>
-### Nested Schema for `assignments.settings.win_get`
-
-Optional:
-
-- `install_time_settings` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--win_get--install_time_settings))
-- `notifications` (String) The notification settings for the assignment. Possible values: showAll, showReboot, hideAll
-- `restart_settings` (Attributes) (see [below for nested schema](#nestedatt--assignments--settings--win_get--restart_settings))
-
-<a id="nestedatt--assignments--settings--win_get--install_time_settings"></a>
-### Nested Schema for `assignments.settings.win_get.install_time_settings`
-
-Optional:
-
-- `deadline_date_time` (String) The time at which the app should be installed.
-- `use_local_time` (Boolean) Whether the local device time or UTC time should be used when determining the deadline times.
-
-
-<a id="nestedatt--assignments--settings--win_get--restart_settings"></a>
-### Nested Schema for `assignments.settings.win_get.restart_settings`
-
-Optional:
-
-- `countdown_display_before_restart_in_minutes` (Number) The number of minutes before the restart time to display the countdown dialog for pending restarts.
-- `grace_period_in_minutes` (Number) The number of minutes to wait before restarting the device after an app installation.
-- `restart_notification_snooze_duration_in_minutes` (Number) The number of minutes to snooze the restart notification dialog when the snooze button is selected.
-
-
-
-<a id="nestedatt--assignments--settings--windows_app_x"></a>
-### Nested Schema for `assignments.settings.windows_app_x`
-
-Optional:
-
-- `use_device_context` (Boolean) When TRUE, indicates that device execution context will be used for the AppX mobile app. When FALSE, indicates that user context will be used for the AppX mobile app. By default, this property is set to FALSE. Once this property has been set to TRUE it cannot be changed.
-
-
-<a id="nestedatt--assignments--settings--windows_universal_app_x"></a>
-### Nested Schema for `assignments.settings.windows_universal_app_x`
-
-Optional:
-
-- `use_device_context` (Boolean) If true, uses device execution context for Windows Universal AppX mobile app. Device-context install is not allowed when this type of app is targeted with Available intent. Defaults to false.
-
-
 
 
 <a id="nestedatt--content_version"></a>

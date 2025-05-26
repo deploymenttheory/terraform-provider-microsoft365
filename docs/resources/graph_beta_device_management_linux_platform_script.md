@@ -75,7 +75,7 @@ resource "microsoft365_graph_beta_device_management_linux_platform_script" "exam
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the linux device management script.
-- `role_scope_tag_ids` (List of String) List of scope tag IDs for this linux device management script.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

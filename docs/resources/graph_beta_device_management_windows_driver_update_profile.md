@@ -83,7 +83,7 @@ resource "microsoft365_graph_beta_device_management_windows_driver_update_profil
 - `assignment` (Block List) Assignments for Windows Quality Update policies, specifying groups to include or exclude. (see [below for nested schema](#nestedblock--assignment))
 - `deployment_deferral_in_days` (Number) Deployment deferral settings in days, only applicable when ApprovalType is set to automatic approval.
 - `description` (String) The description of the profile which is specified by the user.
-- `role_scope_tag_ids` (Set of String) List of Scope Tags for this Driver Update entity.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

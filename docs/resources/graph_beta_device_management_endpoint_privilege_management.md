@@ -366,7 +366,7 @@ settings = jsonencode({
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Endpoint Privilege Management Policy description
-- `role_scope_tag_ids` (List of String) List of scope tag IDs for this Windows Settings Catalog profile.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

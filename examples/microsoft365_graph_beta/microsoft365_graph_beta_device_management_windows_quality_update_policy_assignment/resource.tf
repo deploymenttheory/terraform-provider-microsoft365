@@ -1,6 +1,6 @@
 # Basic group assignment with rollout settings
-resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "group_example" {
-  windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000001"
+resource "microsoft365_graph_beta_device_management_windows_quality_update_policy_assignment" "group_example" {
+  windows_quality_update_policy_id = "00000000-0000-0000-0000-000000000001"
 
   target = {
     target_type = "groupAssignment"
@@ -16,8 +16,8 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_profi
 }
 
 # SCCM collection assignment with comprehensive settings
-resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "sccm_example" {
-  windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000004"
+resource "microsoft365_graph_beta_device_management_windows_quality_update_policy_assignment" "sccm_example" {
+  windows_quality_update_policy_id = "00000000-0000-0000-0000-000000000004"
 
   target = {
     target_type   = "configurationManagerCollection"
@@ -27,8 +27,8 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_profi
 }
 
 # Exclusion group assignment (minimal configuration)
-resource "microsoft365_graph_beta_device_management_windows_quality_update_profile_assignment" "exclusion_example" {
-  windows_quality_update_profile_id = "00000000-0000-0000-0000-000000000007"
+resource "microsoft365_graph_beta_device_management_windows_quality_update_policy_assignment" "exclusion_example" {
+  windows_quality_update_policy_id = "00000000-0000-0000-0000-000000000007"
 
   target = {
     target_type = "exclusionGroupAssignment"

@@ -54,7 +54,7 @@ output "existing_script_group_assignments" {
 ### Read-Only
 
 - `description` (String) Description of the windows platform script.
-- `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
+- `role_scope_tag_ids` (Set of String) List of Scope Tag IDs for this PowerShellScript instance.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

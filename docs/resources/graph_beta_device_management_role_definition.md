@@ -56,7 +56,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "example" {
 - `display_name` (String) Display Name of the Role definition.
 - `is_built_in` (Boolean) Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.
 - `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions. (see [below for nested schema](#nestedatt--role_permissions))
-- `role_scope_tag_ids` (Set of String) List of Scope Tags to assign to this intune role definition.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

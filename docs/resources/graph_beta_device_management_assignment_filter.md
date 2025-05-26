@@ -43,7 +43,7 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "example"
 
 - `assignment_filter_management_type` (String) Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: devices, apps, unknownFutureValue. Default filter will be applied to 'devices'.
 - `description` (String) The optional description of the assignment filter.
-- `role_scope_tags` (List of String) Indicates role scope tags assigned for the assignment filter.
+- `role_scope_tags` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

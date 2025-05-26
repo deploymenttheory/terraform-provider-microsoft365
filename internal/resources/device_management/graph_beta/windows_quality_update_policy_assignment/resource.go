@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_windows_quality_update_profile_assignment"
+	ResourceName  = "graph_beta_device_management_windows_quality_update_policy_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180

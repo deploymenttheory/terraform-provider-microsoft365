@@ -37,7 +37,7 @@ resource "microsoft365_graph_beta_device_management_device_category" "example" {
 ### Optional
 
 - `description` (String) The optional description of the Intune device category
-- `role_scope_tag_ids` (List of String) List of scope tag IDs for this device category.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

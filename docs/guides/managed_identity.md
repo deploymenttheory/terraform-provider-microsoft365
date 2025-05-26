@@ -1,6 +1,6 @@
 ---
 page_title: "Authentication with Managed Identity"
-subcategory: "Authentication"
+subcategory: "Guides/Authentication"
 description: |-
   This guide demonstrates how to authenticate with Microsoft 365 using managed identities for Azure resources.
 ---
