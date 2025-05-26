@@ -1,9 +1,9 @@
 # Extract metadata from a local PKG file
 data "microsoft365_utility_macos_pkg_app_metadata" "local_example" {
   installer_file_path_source = "/path/to/your/application.pkg"
-  
+
   timeouts = {
-    read = "4m"  # Extended timeout for large PKG files
+    read = "4m" # Extended timeout for large PKG files
   }
 }
 
@@ -15,18 +15,18 @@ output "pkg_metadata" {
     bundle_id = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_identifier
     version   = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_short_version_string
     name      = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.name
-    
+
     # Installation details
     install_location = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.install_location
     package_ids      = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.package_ids
     app_paths        = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.app_paths
     min_os_version   = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.min_os_version
-    
+
     # File information
-    size_mb        = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.size_mb
-    md5_checksum   = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.md5_checksum
+    size_mb         = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.size_mb
+    md5_checksum    = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.md5_checksum
     sha256_checksum = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.sha256_checksum
-    
+
     # Bundles information
     included_bundles = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.included_bundles
   }
@@ -65,17 +65,17 @@ output "md5_checksum" {
 
 # Example of using the extracted metadata with a macOS PKG app resource
 resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "firefox" {
-  display_name    = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.name
-  description     = "Firefox browser deployed via Intune"
-  publisher       = "Mozilla"
-  
+  display_name = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.name
+  description  = "Firefox browser deployed via Intune"
+  publisher    = "Mozilla"
+
   # Use the extracted metadata directly
-  bundle_id       = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_identifier
-  version         = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_short_version_string
-  
+  bundle_id = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_identifier
+  version   = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.cf_bundle_short_version_string
+
   # Use the same file for the actual deployment
   installer_file_path_source = "/Users/dafyddwatkins/Downloads/Firefox 134.0.pkg"
-  
+
   # Optional: Use other extracted metadata
   minimum_os_version = data.microsoft365_utility_macos_pkg_app_metadata.local_example.metadata.min_os_version
 }

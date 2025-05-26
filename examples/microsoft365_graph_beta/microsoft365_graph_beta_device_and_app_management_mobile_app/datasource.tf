@@ -24,7 +24,7 @@ output "all_intune_apps_summary" {
 
 # Example 2: Get all intune mobile apps for a specific app type
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "all_winget_apps" {
-  filter_type = "all"
+  filter_type     = "all"
   app_type_filter = "win32LobApp"
   timeouts = {
     read = "10s"
@@ -40,9 +40,9 @@ output "all_intune_winget_apps" {
 output "all_intune_winget_apps_summary" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_winget_apps.items != null ? [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_winget_apps.items : {
-      id          = app.id
-      name        = app.display_name
-      isAssigned  = app.is_assigned
+      id         = app.id
+      name       = app.display_name
+      isAssigned = app.is_assigned
     }
   ] : []
 }
@@ -92,7 +92,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "app_date_fi
   filter_type  = "odata"
   odata_filter = "createdDateTime gt 2025-01-01"
   odata_top    = 5
-  
+
   timeouts = {
     read = "20s"
   }
@@ -104,7 +104,7 @@ output "app_created_after_creation_date" {
 
 # Example 5: filter by odata query where display name contains 'Firefox' and app type is winGet
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "odata_contains_query" {
-  filter_type = "odata" 
+  filter_type  = "odata"
   odata_filter = "contains(displayName, 'Firefox')"
 
   timeouts = {
