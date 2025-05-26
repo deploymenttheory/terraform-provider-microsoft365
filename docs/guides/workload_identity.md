@@ -1,6 +1,6 @@
 ---
 page_title: "Authentication with Workload Identity"
-subcategory: "Guides/Authentication"
+subcategory: "Authentication"
 description: |-
   This guide demonstrates how to authenticate with Microsoft 365 using workload identity federation for Kubernetes.
 ---
