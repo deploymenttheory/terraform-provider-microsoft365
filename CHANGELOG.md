@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.0-alpha...v0.14.1-alpha) (2025-05-26)
+
+
+### Bug Fixes
+
+* added close stale issues maintainence pipeline ([1d90efd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1d90efd55aab386abff032eda94948987f69d50f))
+* added close stale issues maintainence pipeline ([#475](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/475)) ([40affe2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/40affe22d27c45128e8b4f7887419f10d41efc58))
+* docs ([0a676f8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0a676f87825c2d75b2c3ed5175d48474e23ec28d))
+* for doc gen pipeline ([f959ac8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f959ac87f1d6ea3e0d66b9979502a5c1f914466f))
+* for doc gen pipeline ([d3fecdf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d3fecdf388ed6ad8e82fffffce38cbdd0126553a))
+* for doc gen pipeline ([#471](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/471)) ([c93301e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c93301e7f95b32b56ed812ba5f373d2c2d3b0d80))
+* for doc gen pipeline ([#473](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/473)) ([3c58522](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3c58522f6f1522eca9da2b4ee613b32b96319368))
+* unit test trigger ([2bf41c4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2bf41c4a70e4a47e268bb9d68950dda48d24bfe0))
+* unit test trigger ([#474](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/474)) ([e426630](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e42663025764a290342fde1a4f489a19931e94a1))
+
 ## [0.14.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.13.0-alpha...v0.14.0-alpha) (2025-05-25)
 
 
