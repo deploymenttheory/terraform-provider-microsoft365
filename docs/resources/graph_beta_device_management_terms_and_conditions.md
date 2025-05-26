@@ -17,7 +17,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "terms
   display_name = "Enterprise Security and Compliance Policy"
   description  = "Terms and conditions for enterprise device management and security compliance"
   title        = "Enterprise Device Management Agreement"
-  
+
   body_text = <<-EOT
     ENTERPRISE DEVICE MANAGEMENT AGREEMENT
     
@@ -47,13 +47,13 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "terms
     
     By accepting these terms, you acknowledge understanding and agree to comply with all stated policies.
   EOT
-  
+
   acceptance_statement = <<-EOT
     I understand that by accepting these terms and conditions, I am agreeing to comply with all company policies regarding device usage, security requirements, and data protection. I acknowledge that violation of these terms may result in disciplinary action up to and including termination of employment and/or device access restrictions.
   EOT
-  
-  role_scope_tag_ids  = ["0", "1", "2"]  # Default scope + custom scopes
-  
+
+  role_scope_tag_ids = ["0", "1", "2"] # Default scope + custom scopes
+
   timeouts = {
     create = "10m"
     read   = "5m"
