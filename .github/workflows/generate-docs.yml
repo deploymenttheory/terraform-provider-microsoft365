@@ -1,7 +1,7 @@
 name: Generate Docs
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths-ignore:
@@ -30,7 +30,7 @@ jobs:
     - name: Check Out
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         
     - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
@@ -39,7 +39,7 @@ jobs:
 
     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # 3.1.2
       with:
-        terraform_version: '1.10.2'
+        terraform_version: '1.12.1'
         terraform_wrapper: true
     
     # Creates provider documentation for godoc.org and pkg.go.dev
