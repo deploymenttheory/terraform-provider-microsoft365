@@ -1,5 +1,5 @@
-resource "microsoft365_graph_beta_device_management_device_health_script_assignment" "daily_example" {
-  device_health_script_id = "00000000-0000-0000-0000-000000000001"
+resource "microsoft365_graph_beta_device_management_windows_remediation_script_assignment" "daily_example" {
+  device_health_remediation_id = "00000000-0000-0000-0000-000000000001"
 
   target {
     target_type = "groupAssignment"
@@ -29,8 +29,8 @@ resource "microsoft365_graph_beta_device_management_device_health_script_assignm
   }
 }
 
-resource "graph_beta_device_management_device_health_script_assignment" "hourly_example" {
-  device_health_script_id = "00000000-0000-0000-0000-000000000003"
+resource "graph_beta_device_management_windows_remediation_script_assignment" "hourly_example" {
+  device_health_remediation_id = "00000000-0000-0000-0000-000000000003"
 
 
   target {
@@ -54,8 +54,8 @@ resource "graph_beta_device_management_device_health_script_assignment" "hourly_
   }
 }
 
-resource "graph_beta_device_management_device_health_script_assignment" "once_example" {
-  device_health_script_id = "00000000-0000-0000-0000-000000000004"
+resource "graph_beta_device_management_windows_remediation_script_assignment" "once_example" {
+  device_health_remediation_id = "00000000-0000-0000-0000-000000000004"
 
   target {
     target_type   = "configurationManagerCollection"

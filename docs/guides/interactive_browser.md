@@ -1,6 +1,6 @@
 ---
 page_title: "Authentication with Interactive Browser"
-subcategory: "Authentication"
+subcategory: "Guides/Authentication"
 description: |-
   This guide demonstrates how to authenticate with Microsoft 365 using interactive browser authentication.
 ---

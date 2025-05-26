@@ -57,7 +57,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
 - `assignment` (Block List) Assignments for Windows Quality Update policies, specifying groups to include or exclude. (see [below for nested schema](#nestedblock--assignment))
 - `description` (String) The description of the policy which is specified by the user. Max allowed length is 1500 chars.
 - `hotpatch_enabled` (Boolean) Indicates if hotpatch is enabled for the tenants. When 'true', tenant can apply quality updates without rebooting their devices. When 'false', tenant devices will receive cold patch associated with Windows quality updates.
-- `role_scope_tag_ids` (Set of String) List of the scope tag ids for this profile.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

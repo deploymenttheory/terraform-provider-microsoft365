@@ -70,7 +70,7 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the windows platform script.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
-- `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `run_as_32_bit` (Boolean) A value indicating whether the PowerShell script should run as 32-bit.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

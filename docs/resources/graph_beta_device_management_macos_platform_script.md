@@ -78,7 +78,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 - `description` (String) Optional description for the macOS Platform Script.
 - `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.
 - `retry_count` (Number) Number of times for the script to be retried if it fails.
-- `role_scope_tag_ids` (List of String) List of Scope Tag IDs for this PowerShellScript instance.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -113,7 +113,6 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# {resource_id}
 terraform import microsoft365_graph_beta_device_and_app_management_device_shell_script.example device-shell-script-id
 ```
 

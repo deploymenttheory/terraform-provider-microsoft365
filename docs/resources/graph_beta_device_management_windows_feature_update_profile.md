@@ -144,7 +144,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
 - `description` (String) The description of the profile which is specified by the user.
 - `install_feature_updates_optional` (Boolean) If true, the Windows 11 update will become optional
 - `install_latest_windows10_on_windows11_ineligible_device` (Boolean) Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.
-- `role_scope_tag_ids` (Set of String) List of Scope Tags for this Feature Update entity.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `rollout_settings` (Attributes) The windows update rollout settings, including offer start date time, offer end date time, and days between each set of offers. (see [below for nested schema](#nestedatt--rollout_settings))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

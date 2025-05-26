@@ -60,7 +60,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 - `assignment` (Block List) Assignments for Windows Quality Update policies, specifying groups to include or exclude. (see [below for nested schema](#nestedblock--assignment))
 - `description` (String) The description of the profile which is specified by the user.
 - `expedited_update_settings` (Attributes) Expedited Quality update settings. (see [below for nested schema](#nestedatt--expedited_update_settings))
-- `role_scope_tag_ids` (Set of String) List of Intune Scope Tags for this Quality Update entity.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

@@ -30,7 +30,7 @@ Manages a Device Enrollment Configuration in Microsoft Intune.
 - `enrollment_notifications` (Block, Optional) Settings for enrollment notifications sent to end users during device enrollment. (see [below for nested schema](#nestedblock--enrollment_notifications))
 - `platform_restriction` (Block, Optional) Single platform enrollment restriction configuration. (see [below for nested schema](#nestedblock--platform_restriction))
 - `priority` (Number) Priority is used when a user exists in multiple groups that are assigned enrollment configuration. Users are subject only to the configuration with the lowest priority value.
-- `role_scope_tag_ids` (Set of String) List of Scope Tags for this entity.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `windows10_enrollment_completion_page` (Block, Optional) Windows 10 enrollment completion page settings which specify the information shown to users during device enrollment. (see [below for nested schema](#nestedblock--windows10_enrollment_completion_page))
 - `windows_hello_for_business` (Block, Optional) Settings for Windows Hello for Business authentication on Windows devices. (see [below for nested schema](#nestedblock--windows_hello_for_business))
