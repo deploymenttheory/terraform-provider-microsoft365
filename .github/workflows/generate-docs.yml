@@ -17,8 +17,6 @@ permissions:
 jobs:
   provider-docs:
     name: '📚 Generate Go and TF Provider Docs'
-    # Only run this workflow on release-please branches
-    if: startsWith(github.head_ref, 'release-please')
     runs-on: ubuntu-latest
     steps:
 
