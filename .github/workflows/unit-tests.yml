@@ -1,8 +1,8 @@
 name: Unit Tests
 
 on:
-  push:
-    branches: [ '*' ]
+  pull_request:
+    branches: [ 'main' ]
     paths-ignore:
       - '**/*.yml'
       - '**/*.md'
