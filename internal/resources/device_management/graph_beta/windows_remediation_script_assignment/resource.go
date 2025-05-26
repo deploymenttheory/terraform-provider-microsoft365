@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_device_health_script_assignment"
+	ResourceName  = "graph_beta_device_management_windows_remediation_script_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
