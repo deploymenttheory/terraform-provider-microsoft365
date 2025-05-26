@@ -1,0 +1,54 @@
+name: Close Stale Issues
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Run daily at 8 AM UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e # v9.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Issue settings
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            It will be closed in 2 days if no further activity occurs. 
+            If you believe this issue is still relevant, please comment to keep it open.
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity. 
+            If you believe this was closed in error, please reopen it or create a new issue.
+          
+          # PR settings  
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed in 2 days if no further activity occurs.
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity.
+            If you'd like to continue this work, please reopen it or create a new pull request.
+          
+          # Timing (in days)
+          days-before-stale: 7
+          days-before-close: 2
+          
+          # Labels
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,bug,enhancement'
+          exempt-pr-labels: 'pinned,security'
+          
+          # Behavior
+          remove-stale-when-updated: true
+          operations-per-run: 100
