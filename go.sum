@@ -202,8 +202,8 @@ github.com/microsoft/kiota-serialization-text-go v1.1.2 h1:7OfKFlzdjpPygca/+Otqa
 github.com/microsoft/kiota-serialization-text-go v1.1.2/go.mod h1:QNTcswkBPFY3QVBFmzfk00UMNViKQtV0AQKCrRw5ibM=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.137.0 h1:ajMfirCX9+Xc7a543/ocslt6WoL+YccwmqfDhEnf16k=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.137.0/go.mod h1:Zh/s2dFQByhDuzIB6SQL4y8SQbD+AEy9jQY4adIHvp0=
-github.com/microsoftgraph/msgraph-sdk-go v1.70.0 h1:T47hLDqF+839Ibo+SvQmReuh+Bbmdg3//RUtta0pz8c=
-github.com/microsoftgraph/msgraph-sdk-go v1.70.0/go.mod h1:5ncg4aauxM5XKHo/xvAq7Cjl6+Dqu6lOtoihSGKtDt4=
+github.com/microsoftgraph/msgraph-sdk-go v1.72.0 h1:yKYJ46dJgX6XdI79zI2kotiBPIYktMQs1ad2DVz81rk=
+github.com/microsoftgraph/msgraph-sdk-go v1.72.0/go.mod h1:5ncg4aauxM5XKHo/xvAq7Cjl6+Dqu6lOtoihSGKtDt4=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2 h1:5jCUSosTKaINzPPQXsz7wsHWwknyBmJSu8+ZWxx3kdQ=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2/go.mod h1:iD75MK3LX8EuwjDYCmh0hkojKXK6VKME33u4daCo3cE=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=
