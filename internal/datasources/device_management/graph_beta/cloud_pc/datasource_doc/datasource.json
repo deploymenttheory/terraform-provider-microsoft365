@@ -1,0 +1,38 @@
+{
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.cloudPC",
+      "aadDeviceId": "f5ff445f-7488-40f8-8ab9-ee784a9c1f33",
+      "id": "662009bc-7732-4f6f-8726-25883518ffff",
+      "displayName": "Demo-1",
+      "imageDisplayName": "Windows-10 19h1-evd",
+      "managedDeviceId": "bdc8e6dd-0455-4412-83d9-c818664fffff",
+      "managedDeviceName": "A00002GI001",
+      "provisioningPolicyId": "7ed725ad-0a00-4117-b557-d965c373ffff",
+      "provisioningPolicyName": "HR provisioning policy",
+      "onPremisesConnectionName": "Azure network connection for HR",
+      "servicePlanId": "dbb9148c-ff83-4a4c-8d7f-28752e93ffff",
+      "servicePlanName": "lite",
+      "servicePlanType": "enterprise",
+      "status": "provisioned",
+      "userPrincipalName": "dujanjic@contoso.com",
+      "lastModifiedDateTime": "2020-11-03T10:29:57Z",
+      "statusDetails": null,
+      "gracePeriodEndDateTime": "2020-11-010T20:00:34Z",
+      "provisioningType": "dedicated",
+      "deviceRegionName": "eastus2",
+      "diskEncryptionState": "encryptedUsingPlatformManagedKey"
+    }
+  ]
+}
+
+{
+  "@odata.type": "#microsoft.graph.cloudPcStatusDetail",
+  "code": "String",
+  "message": "String",
+  "additionalInformation": [
+    {
+      "@odata.type": "microsoft.graph.keyValuePair"
+    }
+  ]
+}
