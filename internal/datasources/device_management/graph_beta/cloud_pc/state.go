@@ -25,11 +25,11 @@ func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.CloudPCabl
 		Status:                   state.EnumPtrToTypeString(data.GetStatus()),
 		UserPrincipalName:        state.StringPointerValue(data.GetUserPrincipalName()),
 		LastModifiedDateTime:     state.TimeToString(data.GetLastModifiedDateTime()),
-		StatusDetails:            state.StringPointerValue(data.GetStatusDetails()),
-		GracePeriodEndDateTime:   state.TimeToString(data.GetGracePeriodEndDateTime()),
-		ProvisioningType:         state.EnumPtrToTypeString(data.GetProvisioningType()),
-		DeviceRegionName:         state.StringPointerValue(data.GetDeviceRegionName()),
-		DiskEncryptionState:      state.EnumPtrToTypeString(data.GetDiskEncryptionState()),
+		//StatusDetails:            state.StringPointerValue(data.GetStatusDetails()),
+		GracePeriodEndDateTime: state.TimeToString(data.GetGracePeriodEndDateTime()),
+		ProvisioningType:       state.EnumPtrToTypeString(data.GetProvisioningType()),
+		DeviceRegionName:       state.StringPointerValue(data.GetDeviceRegionName()),
+		DiskEncryptionState:    state.EnumPtrToTypeString(data.GetDiskEncryptionState()),
 	}
 
 	return model
