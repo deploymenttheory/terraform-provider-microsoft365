@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.1-alpha...v0.15.0-alpha) (2025-05-30)
+
+
+### Features
+
+* added multiple onboarding resources ([602135e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/602135e85aeab9ad2f8923c437004be647357d58))
+* added windows autopilot and assignments thereof ([#488](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/488)) ([5ffe081](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ffe08175062fa490c4b7babc5e8ecf658cc3ba3))
+* half implementation of cloudPC as a datasource ([68e7a43](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/68e7a43dc062a7808d2265f7b76c7a354fff5d85))
+
+
+### Bug Fixes
+
+* for examples ([244a04b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/244a04b7ef7521d33ffcf42e0af0015d4d2791c8))
+* rearraging provider docs ([a0aab65](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a0aab656a60e99ef2554e053d01fdad5c4539016))
+
 ## [0.14.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.0-alpha...v0.14.1-alpha) (2025-05-26)
 
 
