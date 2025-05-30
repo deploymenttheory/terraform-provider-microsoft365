@@ -127,3 +127,43 @@ func ExactlyOneOf(attributeNames ...string) validator.Object {
 }
 
 // -----------------------------------------------------------------------------------
+
+// stringLengthValidator validates that a string field does not exceed a maximum length
+type stringLengthValidator struct {
+	maxLength int
+}
+
+// Description describes the validation in plain text formatting.
+func (v stringLengthValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("string length must not exceed %d characters", v.maxLength)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v stringLengthValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v stringLengthValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+	if len(value) > v.maxLength {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"String Too Long",
+			fmt.Sprintf("String length %d exceeds maximum allowed length of %d characters", len(value), v.maxLength),
+		)
+	}
+}
+
+// StringLengthAtMost returns a string validator which ensures that the string
+// does not exceed the specified maximum length.
+func StringLengthAtMost(maxLength int) validator.String {
+	return &stringLengthValidator{
+		maxLength: maxLength,
+	}
+}

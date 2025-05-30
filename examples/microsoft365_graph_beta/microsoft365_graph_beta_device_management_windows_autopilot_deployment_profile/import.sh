@@ -1,0 +1,3 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.example windows-autopilot-deployment-profile-id
+

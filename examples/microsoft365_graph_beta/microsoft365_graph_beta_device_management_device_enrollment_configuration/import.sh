@@ -1,0 +1,2 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_device_enrollment_configuration.example device-enrollment-configuration-id

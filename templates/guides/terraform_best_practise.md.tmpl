@@ -1,6 +1,6 @@
 ---
 page_title: "Terraform Best Practices"
-subcategory: "Guides/Operations"
+subcategory: "Operations"
 description: |-
   Best practices for operating the Microsoft 365 Terraform provider at scale, including performance, concurrency, and reliability considerations.
 ---
