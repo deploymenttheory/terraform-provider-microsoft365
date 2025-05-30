@@ -93,3 +93,44 @@ func MobileAppMacOSLobInstallerMetadataSchema() schema.SingleNestedAttribute {
 		},
 	}
 }
+
+// MobileAppDmgInstallerMetadataSchema returns schema for macOS DMG app installer metadata
+func MobileAppDmgInstallerMetadataSchema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: "Metadata related to the DMG installer file, such as size and checksums. This is automatically computed during app creation and updates.",
+		PlanModifiers: []planmodifier.Object{
+			planmodifiers.UseStateForUnknownObject(),
+		},
+		Attributes: map[string]schema.Attribute{
+			"installer_file_path_source": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The path to the DMG installer file to be uploaded. The file must be a valid `.dmg` file. Value is not returned by API call.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`.*\.dmg$`),
+						"File path must point to a valid .dmg file.",
+					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"installer_url_source": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The web location of the DMG installer file, can be a http(s) URL. The file must be a valid `.dmg` file. Value is not returned by API call.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+						"Must be a valid URL.",
+					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+		},
+	}
+}

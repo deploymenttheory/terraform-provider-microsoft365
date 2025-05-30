@@ -1,4 +1,4 @@
-package graphBetaMacOSPKGApp
+package graphBetaMacOSDmgApp
 
 import (
 	"context"
@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_macos_pkg_app"
+	ResourceName  = "graph_beta_device_and_app_management_macos_dmg_app"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -32,20 +32,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &MacOSPKGAppResource{}
+	_ resource.Resource = &MacOSDmgAppResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &MacOSPKGAppResource{}
+	_ resource.ResourceWithConfigure = &MacOSDmgAppResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &MacOSPKGAppResource{}
+	_ resource.ResourceWithImportState = &MacOSDmgAppResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &MacOSPKGAppResource{}
+	_ resource.ResourceWithModifyPlan = &MacOSDmgAppResource{}
 )
 
-func NewMacOSPKGAppResource() resource.Resource {
-	return &MacOSPKGAppResource{
+func NewMacOSDmgAppResource() resource.Resource {
+	return &MacOSDmgAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
@@ -58,7 +58,7 @@ func NewMacOSPKGAppResource() resource.Resource {
 	}
 }
 
-type MacOSPKGAppResource struct {
+type MacOSDmgAppResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -68,98 +68,43 @@ type MacOSPKGAppResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *MacOSPKGAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *MacOSDmgAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *MacOSPKGAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *MacOSDmgAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
-func (r *MacOSPKGAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *MacOSDmgAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
-func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.",
+		MarkdownDescription: "Manages an Intune macOS app (DMG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier of the macOS PKG.",
+				MarkdownDescription: "The unique identifier of the macOS DMG app.",
 			},
-			// "application_type": schema.StringAttribute{
-			// 	Required: true,
-			// 	MarkdownDescription: "The type of Intune application to deploy. Possible values are:" +
-			// 		"`AndroidForWorkApp`, `AndroidLobApp`, `AndroidManagedStoreApp`, `AndroidManagedStoreWebApp`," +
-			// 		"`AndroidStoreApp`, `IosiPadOSWebClip`, `IosLobApp`, `IosStoreApp`, `IosVppApp`, `MacOSDmgApp`," +
-			// 		"`MacOSLobApp`, `MacOSMicrosoftDefenderApp`, `MacOSMicrosoftEdgeApp`, `MacOSOfficeSuiteApp`," +
-			// 		"`MacOSPkgApp`, `MacOsVppApp`, `MacOSWebClip`, `ManagedAndroidLobApp`, `ManagedAndroidStoreApp`," +
-			// 		"`ManagedApp`, `ManagedIOSLobApp`, `ManagedIOSStoreApp`, `ManagedMobileLobApp`, `MicrosoftStoreForBusinessApp`," +
-			// 		"`MobileLobApp`, `OfficeSuiteApp`, `WebApp`, `Win32CatalogApp`, `Win32LobApp`, `WindowsAppX`," +
-			// 		"`WindowsMicrosoftEdgeApp`, `WindowsMobileMSI`, `WindowsPhone81AppX`, `WindowsPhone81AppXBundle`," +
-			// 		"`WindowsPhone81StoreApp`, `WindowsPhoneXAP`, `WindowsStoreApp`, `WindowsUniversalAppX`, `WindowsWebApp`, `MacOSPKGAppResource`",
-			// 	Validators: []validator.String{
-			// 		stringvalidator.OneOf(
-			// 			"AndroidForWorkApp",
-			// 			"AndroidLobApp",
-			// 			"AndroidManagedStoreApp",
-			// 			"AndroidManagedStoreWebApp",
-			// 			"AndroidStoreApp",
-			// 			"IosiPadOSWebClip",
-			// 			"IosLobApp",
-			// 			"IosStoreApp",
-			// 			"IosVppApp",
-			// 			"MacOSDmgApp",
-			// 			"MacOSLobApp",
-			// 			"MacOSMicrosoftDefenderApp",
-			// 			"MacOSMicrosoftEdgeApp",
-			// 			"MacOSOfficeSuiteApp",
-			// 			"MacOSPkgApp",
-			// 			"MacOsVppApp",
-			// 			"MacOSWebClip",
-			// 			"ManagedAndroidLobApp",
-			// 			"ManagedAndroidStoreApp",
-			// 			"ManagedApp",
-			// 			"ManagedIOSLobApp",
-			// 			"ManagedIOSStoreApp",
-			// 			"ManagedMobileLobApp",
-			// 			"MicrosoftStoreForBusinessApp",
-			// 			"MobileLobApp",
-			// 			"OfficeSuiteApp",
-			// 			"WebApp",
-			// 			"Win32CatalogApp",
-			// 			"Win32LobApp",
-			// 			"WindowsAppX",
-			// 			"WindowsMicrosoftEdgeApp",
-			// 			"WindowsMobileMSI",
-			// 			"WindowsPhone81AppX",
-			// 			"WindowsPhone81AppXBundle",
-			// 			"WindowsPhone81StoreApp",
-			// 			"WindowsPhoneXAP",
-			// 			"WindowsStoreApp",
-			// 			"WindowsUniversalAppX",
-			// 			"WindowsWebApp",
-			// 		),
-			// 	},
-			// },
 			"is_featured": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin.",
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The privacy statement Url.",
+				MarkdownDescription: "The privacy statement URL.",
 			},
 			"information_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The more information Url.",
+				MarkdownDescription: "The more information URL.",
 			},
 			"owner": schema.StringAttribute{
 				Optional:            true,
@@ -175,15 +120,15 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The title of the Intune macOS pkg application.",
+				MarkdownDescription: "The title of the Intune macOS DMG application.",
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "A detailed description of the Intune macOS pkg application.",
+				MarkdownDescription: "A detailed description of the Intune macOS DMG application.",
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
+				MarkdownDescription: "The publisher of the Intune macOS DMG application.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 1024),
 				},
@@ -191,7 +136,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
+				MarkdownDescription: "Set of category names to associate with this application. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
@@ -314,16 +259,18 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
-			"macos_pkg_app": schema.SingleNestedAttribute{
-				MarkdownDescription: "The path to the PKG file to be uploaded. Resource supports both local file sources and url based sources.",
+			"macos_dmg_app": schema.SingleNestedAttribute{
+				MarkdownDescription: "The path to the DMG file to be uploaded. Resource supports both local file sources and URL based sources.",
 				Optional:            true,
 				Validators: []validator.Object{
 					validators.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
 				},
 				Attributes: map[string]schema.Attribute{
 					"ignore_version_detection": schema.BoolAttribute{
-						Required:            true,
-						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
+						Optional:            true,
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if the app is installed on a device. When FALSE, indicates that the app's version will be used to detect if the app is installed on a device. Set this to true for apps that use a self update feature. The default value is FALSE.",
 					},
 					"included_apps": schema.SetNestedAttribute{
 						Optional: true,
@@ -331,38 +278,32 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						PlanModifiers: []planmodifier.Set{
 							planmodifiers.UseStateForUnknownSet(),
 						},
-						MarkdownDescription: "Define the app bundle identifiers and version numbers to be used to detect the presence of the macOS app installation. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +\n" +
-							"\n" +
-							"### Notes: +\n" +
-							"- Included app bundle IDs (`CFBundleIdentifier`) and build numbers (`CFBundleShortVersionString`) are used for detecting and monitoring app installation status of the uploaded file. +\n" +
-							"- The list should **only** contain the application(s) installed by the uploaded file in the `/Applications` folder on macOS. +\n" +
-							"- Any other type of file that is not an application or is not installed in the `/Applications` folder should **not** be included. +\n" +
-							"- If the list contains files that are not applications or none of the listed apps are installed, app installation status will **not** report success. +\n" +
-							"- When multiple apps are present in the PKG, the **first app** in the list is used to identify the application. +\n" +
-							"\n" +
-							"### Example: +\n" +
-							"To retrieve the `CFBundleIdentifier` and `CFBundleShortVersionString` of an installed application, you can use the macOS Terminal: +\n" +
-							"\n" +
-							"```bash +\n" +
-							"# Retrieve the Bundle Identifier +\n" +
-							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleIdentifier +\n" +
-							"\n" +
-							"# Retrieve the Short Version String +\n" +
-							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleShortVersionString +\n" +
-							"``` +\n" +
-							"\n" +
-							"Alternatively, these values can also be located in the `<app_name>.app/Contents/Info.plist` file inside the mounted PKG or DMG. +\n" +
-							"\n" +
-							"For apps added to Intune, the Intune admin center can also provide the app bundle ID. +\n",
+						MarkdownDescription: "Define the app bundle identifiers and version numbers to be used to detect the presence of the macOS app installation. This list is dynamically populated based on the DMG metadata, and users can also append additional entries. Maximum of 500 apps.\n\n" +
+							"### Notes:\n" +
+							"- Included app bundle IDs (`CFBundleIdentifier`) and build numbers (`CFBundleShortVersionString`) are used for detecting and monitoring app installation status of the uploaded file.\n" +
+							"- The list should **only** contain the application(s) installed by the uploaded file in the `/Applications` folder on macOS.\n" +
+							"- Any other type of file that is not an application or is not installed in the `/Applications` folder should **not** be included.\n" +
+							"- If the list contains files that are not applications or none of the listed apps are installed, app installation status will **not** report success.\n" +
+							"- When multiple apps are present in the DMG, the **first app** in the list is used to identify the application.\n\n" +
+							"### Example:\n" +
+							"To retrieve the `CFBundleIdentifier` and `CFBundleShortVersionString` of an installed application, you can use the macOS Terminal:\n\n" +
+							"```bash\n" +
+							"# Retrieve the Bundle Identifier\n" +
+							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleIdentifier\n\n" +
+							"# Retrieve the Short Version String\n" +
+							"defaults read /Applications/Company\\ Portal.app/Contents/Info CFBundleShortVersionString\n" +
+							"```\n\n" +
+							"Alternatively, these values can also be located in the `<app_name>.app/Contents/Info.plist` file inside the mounted DMG.\n\n" +
+							"For apps added to Intune, the Intune admin center can also provide the app bundle ID.",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"bundle_id": schema.StringAttribute{
 									Required:            true,
-									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the PKG metadata or appended manually.",
+									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the DMG metadata or appended manually.",
 								},
 								"bundle_version": schema.StringAttribute{
 									Required:            true,
-									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the PKG metadata or appended manually.",
+									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the DMG metadata or appended manually.",
 								},
 							},
 						},
@@ -449,36 +390,24 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								Default:             booldefault.StaticBool(false),
 								MarkdownDescription: "Application supports macOS 14.0 or later. Defaults to `false`.",
 							},
-						},
-					},
-					"pre_install_script": schema.SingleNestedAttribute{
-						Optional: true,
-						Attributes: map[string]schema.Attribute{
-							"script_content": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "Base64 encoded shell script to execute on macOS device before app installation. Requires base64encode()",
-							},
-						},
-					},
-					"post_install_script": schema.SingleNestedAttribute{
-						Optional: true,
-						Attributes: map[string]schema.Attribute{
-							"script_content": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "Base64 encoded shell script to execute on macOS device after app installation. Requires base64encode()",
+							"v15_0": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 15.0 or later. Defaults to `false`.",
 							},
 						},
 					},
 					"primary_bundle_id": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "The bundleId of the primary app in the PKG. Maps to CFBundleIdentifier in the app's bundle configuration.",
+						MarkdownDescription: "The bundleId of the primary app in the DMG. Maps to CFBundleIdentifier in the app's bundle configuration.",
 						PlanModifiers: []planmodifier.String{
 							planmodifiers.UseStateForUnknownString(),
 						},
 					},
 					"primary_bundle_version": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "The version of the primary app in the PKG. Maps to CFBundleShortVersion in the app's bundle configuration.",
+						MarkdownDescription: "The version of the primary app in the DMG. Maps to CFBundleShortVersion in the app's bundle configuration.",
 						PlanModifiers: []planmodifier.String{
 							planmodifiers.UseStateForUnknownString(),
 						},
@@ -486,7 +415,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
-			"app_installer":   commonschemagraphbeta.MobileAppMacOSPkgInstallerMetadataSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppDmgInstallerMetadataSchema(),
 			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
 			"timeouts":        commonschema.Timeouts(ctx),
 		},

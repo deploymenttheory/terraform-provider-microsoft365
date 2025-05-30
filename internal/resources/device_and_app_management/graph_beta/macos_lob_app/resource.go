@@ -205,10 +205,10 @@ func (r *MacOSLobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
-			"upload_state": schema.Int64Attribute{
+			"upload_state": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
@@ -238,24 +238,24 @@ func (r *MacOSLobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"dependent_app_count": schema.Int64Attribute{
+			"dependent_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
-			"superseding_app_count": schema.Int64Attribute{
+			"superseding_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
-			"superseded_app_count": schema.Int64Attribute{
+			"superseded_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
@@ -314,10 +314,10 @@ func (r *MacOSLobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 							},
 						},
 					},
-					"md5_hash_chunk_size": schema.Int64Attribute{
+					"md5_hash_chunk_size": schema.Int32Attribute{
 						Computed: true,
-						PlanModifiers: []planmodifier.Int64{
-							planmodifiers.UseStateForUnknownInt64(),
+						PlanModifiers: []planmodifier.Int32{
+							planmodifiers.UseStateForUnknownInt32(),
 						},
 						MarkdownDescription: "The chunk size for MD5 hash. This is '0' or empty if the package was uploaded directly. If the Intune App Wrapping Tool is used to create a .intunemac, this value can be found inside the Detection.xml file.",
 					},

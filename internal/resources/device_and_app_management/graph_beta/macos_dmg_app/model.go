@@ -1,7 +1,7 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-mobileapp?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macospkgapp?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macosdmgapp?view=graph-rest-beta
 
-package graphBetaMacOSPKGApp
+package graphBetaMacOSDmgApp
 
 import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// MacOSPKGAppResourceModel represents the root Terraform resource model for intune applications
-type MacOSPKGAppResourceModel struct {
+// MacOSDmgAppResourceModel represents the root Terraform resource model for intune macOS DMG applications
+type MacOSDmgAppResourceModel struct {
 	ID                    types.String                             `tfsdk:"id"`
 	DisplayName           types.String                             `tfsdk:"display_name"`
 	Description           types.String                             `tfsdk:"description"`
@@ -32,7 +32,7 @@ type MacOSPKGAppResourceModel struct {
 	SupersededAppCount    types.Int32                              `tfsdk:"superseded_app_count"`
 	Categories            types.Set                                `tfsdk:"categories"`
 	Relationships         []MobileAppRelationshipResourceModel     `tfsdk:"relationships"`
-	MacOSPkgApp           *MacOSPkgAppResourceModel                `tfsdk:"macos_pkg_app"`
+	MacOSDmgApp           *MacOSDmgAppDetailsResourceModel         `tfsdk:"macos_dmg_app"`
 	AppInstaller          types.Object                             `tfsdk:"app_installer"`
 	ContentVersion        types.List                               `tfsdk:"content_version"`
 	Timeouts              timeouts.Value                           `tfsdk:"timeouts"`
@@ -53,15 +53,12 @@ type MobileAppRelationshipResourceModel struct {
 	TargetType                 types.String `tfsdk:"target_type"`
 }
 
-// MacOSPkgApp
-
-// MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
-type MacOSPkgAppResourceModel struct {
+// MacOSDmgAppDetailsResourceModel represents the Terraform resource model for a MacOS DMG Application
+// Based on Microsoft Graph MicrosoftGraphMacOSDmgApp which extends MicrosoftGraphMobileLobApp
+type MacOSDmgAppDetailsResourceModel struct {
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	IncludedApps                    types.Set                                 `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
-	PostInstallScript               *MacOSAppScriptResourceModel              `tfsdk:"post_install_script"`
-	PreInstallScript                *MacOSAppScriptResourceModel              `tfsdk:"pre_install_script"`
 	PrimaryBundleId                 types.String                              `tfsdk:"primary_bundle_id"`
 	PrimaryBundleVersion            types.String                              `tfsdk:"primary_bundle_version"`
 }
@@ -81,15 +78,12 @@ type MacOSMinimumOperatingSystemResourceModel struct {
 	V120  types.Bool `tfsdk:"v12_0"`  // macOS 12.0 or later
 	V130  types.Bool `tfsdk:"v13_0"`  // macOS 13.0 or later
 	V140  types.Bool `tfsdk:"v14_0"`  // macOS 14.0 or later
+	V150  types.Bool `tfsdk:"v15_0"`  // macOS 15.0 or later
 }
 
-// MacOSIncludedAppResourceModel represents an included app in the PKG
+// MacOSIncludedAppResourceModel represents an included app in the DMG
+// This uses the same structure as PKG apps for IncludedApps
 type MacOSIncludedAppResourceModel struct {
 	BundleId      types.String `tfsdk:"bundle_id"`
 	BundleVersion types.String `tfsdk:"bundle_version"`
-}
-
-// MacOSAppScriptResourceModel represents the scripts for pre/post installation
-type MacOSAppScriptResourceModel struct {
-	ScriptContent types.String `tfsdk:"script_content"` // Base64 encoded shell script
 }

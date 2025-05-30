@@ -23,13 +23,13 @@ type MacOSLobAppResourceModel struct {
 	Owner                 types.String                             `tfsdk:"owner"`
 	Developer             types.String                             `tfsdk:"developer"`
 	Notes                 types.String                             `tfsdk:"notes"`
-	UploadState           types.Int64                              `tfsdk:"upload_state"`
+	UploadState           types.Int32                              `tfsdk:"upload_state"`
 	PublishingState       types.String                             `tfsdk:"publishing_state"`
 	IsAssigned            types.Bool                               `tfsdk:"is_assigned"`
 	RoleScopeTagIds       types.Set                                `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount     types.Int64                              `tfsdk:"dependent_app_count"`
-	SupersedingAppCount   types.Int64                              `tfsdk:"superseding_app_count"`
-	SupersededAppCount    types.Int64                              `tfsdk:"superseded_app_count"`
+	DependentAppCount     types.Int32                              `tfsdk:"dependent_app_count"`
+	SupersedingAppCount   types.Int32                              `tfsdk:"superseding_app_count"`
+	SupersededAppCount    types.Int32                              `tfsdk:"superseded_app_count"`
 	Categories            types.Set                                `tfsdk:"categories"`
 	Relationships         []MobileAppRelationshipResourceModel     `tfsdk:"relationships"`
 	MacOSLobApp           *MacOSLobAppDetailsResourceModel         `tfsdk:"macos_lob_app"`
@@ -60,7 +60,7 @@ type MacOSLobAppDetailsResourceModel struct {
 	BuildNumber                     types.String                              `tfsdk:"build_number"`
 	VersionNumber                   types.String                              `tfsdk:"version_number"`
 	ChildApps                       []MacOSLobChildAppResourceModel           `tfsdk:"child_apps"`
-	MD5HashChunkSize                types.Int64                               `tfsdk:"md5_hash_chunk_size"`
+	MD5HashChunkSize                types.Int32                               `tfsdk:"md5_hash_chunk_size"`
 	MD5Hash                         types.List                                `tfsdk:"md5_hash"`
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	InstallAsManaged                types.Bool                                `tfsdk:"install_as_managed"`

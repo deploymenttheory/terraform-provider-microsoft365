@@ -28,7 +28,7 @@ func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.MobileAppa
 		PublishingState:       state.EnumPtrToTypeString(data.GetPublishingState()),
 		DependentAppCount:     state.Int32PointerValue(data.GetDependentAppCount()),
 		SupersededAppCount:    state.Int32PointerValue(data.GetSupersededAppCount()),
-		SupersedingAppCount:   state.Int32PointerValue(data.GetSupersedingAppCount()),
+		SupersedingAppCount:   state.Int32PtrToTypeInt32(data.GetSupersedingAppCount()),
 	}
 
 	// Handle role scope tag IDs

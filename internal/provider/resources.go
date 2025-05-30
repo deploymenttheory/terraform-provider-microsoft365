@@ -4,6 +4,7 @@ import (
 	"context"
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/application_category"
+	graphBetaDeviceAndAppManagementMacOSDmgApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_dmg_app"
 	graphBetaDeviceAndAppManagementMacOSLobApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_lob_app"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaDeviceAndAppManagementAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/mobile_app_assignment"
@@ -79,6 +80,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Device & app management
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceAndAppManagementAppAssignment.NewMobileAppAssignmentResource,
+		graphBetaDeviceAndAppManagementMacOSDmgApp.NewMacOSDmgAppResource,
 		graphBetaDeviceAndAppManagementMacOSLobApp.NewMacOSLobAppResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,

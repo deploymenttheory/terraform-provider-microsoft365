@@ -265,9 +265,18 @@ func Int64PointerValue(value *int64) types.Int64 {
 	return types.Int64Value(*value)
 }
 
-// Int32PointerValue safely converts a *int32 to types.Int64.
+// Int32PointerValue safely converts a *int32 to types.Int32.
+// Returns types.Int32Null() if the pointer is nil.
+func Int32PointerValue(value *int32) types.Int32 {
+	if value == nil {
+		return types.Int32Null()
+	}
+	return types.Int32Value(*value)
+}
+
+// Int32PointerToInt64Value safely converts a *int32 to types.Int64.
 // Returns types.Int64Null() if the pointer is nil.
-func Int32PointerValue(value *int32) types.Int64 {
+func Int32PointerToInt64Value(value *int32) types.Int64 {
 	if value == nil {
 		return types.Int64Null()
 	}
