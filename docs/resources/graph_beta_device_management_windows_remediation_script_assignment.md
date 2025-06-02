@@ -28,10 +28,10 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script_a
       interval = 2
 
       # Time of day, in HH:MM:SS.
-      time     = "14:30:00"
+      time = "14:30:00"
 
       # Whether to use UTC (true) or local device time (false).
-      use_utc  = true
+      use_utc = true
     }
   }
 
@@ -57,7 +57,7 @@ resource "graph_beta_device_management_windows_remediation_script_assignment" "h
       # Hours between runs. Default is 1, valid 1–23.
       interval = 3
 
-      use_utc  = false
+      use_utc = false
     }
   }
   timeouts = {
@@ -81,7 +81,7 @@ resource "graph_beta_device_management_windows_remediation_script_assignment" "o
       # ISO-8601 timestamp for the one-time run
       start_date_time = "2025-06-01T10:00:00Z"
 
-      use_utc         = true
+      use_utc = true
     }
   }
 }

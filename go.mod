@@ -4,14 +4,14 @@ go 1.24.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.9.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.0
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
-	github.com/hashicorp/terraform-plugin-go v0.27.0
+	github.com/hashicorp/terraform-plugin-go v0.28.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.0
@@ -19,8 +19,8 @@ require (
 	github.com/microsoft/kiota-abstractions-go v1.9.2
 	github.com/microsoft/kiota-http-go v1.5.3
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.137.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.70.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.138.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.72.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
@@ -107,7 +107,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect

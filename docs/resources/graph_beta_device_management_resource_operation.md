@@ -52,7 +52,7 @@ resource "microsoft365_graph_beta_device_management_resource_operation" "policy_
   resource_name = "DeviceConfigurationPolicy"
   action_name   = "Update"
   description   = "Allows updating device configuration policies"
-  
+
   timeouts = {
     create = "10m"
     read   = "5m"
@@ -85,7 +85,7 @@ variable "resource_operations" {
 
 resource "microsoft365_graph_beta_device_management_resource_operation" "bulk_operations" {
   for_each = var.resource_operations
-  
+
   resource_name = each.value.resource_name
   action_name   = each.value.action_name
   description   = each.value.description
