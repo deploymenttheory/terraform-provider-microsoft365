@@ -9,11 +9,32 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [macOSDmgApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macosdmgapp?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_macos_dmg_app/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **macOS Specific**: This resource is specifically for managing DMG (Disk Image) applications on macOS devices.
+- **App Deployment**: DMG files are a common format for distributing macOS applications and contain the app bundle and installer.
+- **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
+- **Detection Rules**: Configure detection rules to determine if the app is successfully installed on target devices.
+- **Installation Context**: DMG apps can be installed in user or device context depending on configuration.
+- **File Size Limits**: Be aware of file size limitations when uploading large DMG files to Intune.
 
 ## Import
 

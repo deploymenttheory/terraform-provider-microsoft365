@@ -9,11 +9,33 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [windowsAutopilotDeploymentProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeploymentprofile?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Windows Autopilot**: This resource manages Windows Autopilot deployment profiles that define the out-of-box experience (OOBE) for devices.
+- **Device Configuration**: Deployment profiles control how devices are configured during the initial setup process.
+- **User Experience**: Profiles can be configured to provide a customized and streamlined setup experience for end users.
+- **Assignment Required**: Profiles must be assigned to Windows Autopilot device groups to take effect.
+- **Profile Types**: Supports both User-Driven and Self-Deploying deployment scenarios.
+- **OOBE Customization**: Configure settings like skip privacy settings, create local admin account, and join domain options.
+- **Hybrid Azure AD**: Supports both cloud-only and hybrid Azure AD join scenarios.
 
 ## Import
 

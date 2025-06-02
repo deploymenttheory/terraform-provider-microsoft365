@@ -9,11 +9,35 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [roleDefinition resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-roledefinition?view=graph-rest-beta)
+- [Create roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_role_definition/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Role-Based Access Control**: This resource defines custom roles for Microsoft Intune role-based access control (RBAC).
+- **Granular Permissions**: Allows creation of roles with specific permissions tailored to organizational needs.
+- **Built-in vs Custom**: Custom role definitions supplement built-in Intune roles with organization-specific requirements.
+- **Resource Actions**: Role definitions specify which actions can be performed on specific Intune resources.
+- **Assignment Support**: Custom roles can be assigned to users and groups through role assignments.
+- **Scope Management**: Works with scope tags to limit the scope of permissions within the organization.
+- **Security Principle**: Follow the principle of least privilege when creating custom role definitions.
+- **Permission Categories**: Permissions are organized by resource types like devices, apps, policies, and configuration.
 
 ## Import
 

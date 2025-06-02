@@ -9,11 +9,35 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
+- [Create roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_role_scope_tag/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Scope Management**: This resource creates scope tags to limit the scope of administrative permissions in Microsoft Intune.
+- **Multi-Tenant Support**: Scope tags enable delegation of management to different departments or geographic regions.
+- **Resource Isolation**: Objects tagged with scope tags are only visible to administrators with matching scope permissions.
+- **Assignment Integration**: Scope tags work with role assignments to define what resources administrators can manage.
+- **Default Scope**: All objects are created with the "Default" scope tag unless explicitly assigned different tags.
+- **Inheritance**: Some objects inherit scope tags from their parent objects (e.g., apps inherit from app categories).
+- **Permission Boundaries**: Administrators can only manage objects that have scope tags matching their assigned permissions.
+- **Organizational Structure**: Use scope tags to mirror your organizational structure and delegation requirements.
 
 ## Import
 

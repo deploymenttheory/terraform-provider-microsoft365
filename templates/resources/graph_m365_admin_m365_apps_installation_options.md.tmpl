@@ -9,9 +9,32 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `OrgSettings.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph/microsoft365_graph_m365_admin_m365_apps_installation_options/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **M365 Apps Installation**: This resource manages organization-wide installation options for Microsoft 365 Apps (formerly Office 365).
+- **Update Channels**: Configure which update channel (Current, Monthly Enterprise, Semi-Annual Enterprise) devices receive updates from.
+- **Installation Source**: Control whether users can install apps from the Office CDN or enterprise deployment tools.
+- **User Install Permissions**: Manage whether users can install Office apps from the Office 365 portal.
+- **Tenant-Wide Settings**: These settings apply across the entire Microsoft 365 tenant.
+- **Deployment Control**: Helps IT administrators maintain control over Office application deployments and updates.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph/microsoft365_graph_m365_admin_m365_apps_installation_options/import.sh" }}
 

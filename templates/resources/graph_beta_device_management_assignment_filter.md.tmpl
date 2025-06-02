@@ -9,11 +9,40 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [deviceAndAppManagementAssignmentFilter resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_assignment_filter/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Assignment Filters**: This resource creates filters that can be used to refine policy and app assignments to specific devices or users.
+- **Filter Rules**: Use device properties like device model, OS version, or custom attributes to create targeted assignments.
+- **Include/Exclude**: Filters can be used to include or exclude devices from policy assignments based on the defined criteria.
+- **Platform Support**: Filters support multiple device platforms including Windows, iOS, macOS, and Android.
+- **Dynamic Targeting**: Provides dynamic targeting capabilities that automatically include/exclude devices as they meet filter criteria.
+- **Rule Syntax**: Filters use a specific rule syntax for defining conditions (e.g., device.model -eq "Surface Pro").
+- **Assignment Flexibility**: Enhances the flexibility of Intune policy assignments beyond just group-based targeting.
+
+## Common Filter Examples
+
+- **Device Model**: `device.model -eq "Surface Pro 7"`
+- **OS Version**: `device.osVersion -startsWith "10.0.19"`
+- **Enrollment Type**: `device.enrollmentProfileName -eq "Corporate Devices"`
+- **Device Category**: `device.deviceCategory -eq "Corporate"`
 
 ## Import
 

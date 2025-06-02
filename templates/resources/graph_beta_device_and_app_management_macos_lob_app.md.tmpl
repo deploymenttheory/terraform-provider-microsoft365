@@ -9,11 +9,34 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [macOSLobApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macoslobapp?view=graph-rest-beta)
+- [Create macOSLobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macoslobapp-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_macos_lob_app/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **macOS Specific**: This resource is specifically for managing Line of Business (LOB) applications on macOS devices.
+- **App Bundle Format**: LOB apps are typically in .app bundle format and are custom applications developed for the organization.
+- **Content Upload**: The resource handles uploading the app content to Intune for distribution.
+- **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
+- **Detection Rules**: Configure detection rules to determine if the app is successfully installed on target devices.
+- **Installation Context**: LOB apps can be installed in user or device context depending on configuration.
+- **Bundle Identifier**: The app's bundle identifier (CFBundleIdentifier) is used for app detection and management.
 
 ## Import
 

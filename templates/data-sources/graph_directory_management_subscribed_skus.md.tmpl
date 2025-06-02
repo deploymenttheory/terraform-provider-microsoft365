@@ -1,0 +1,32 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Directory Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `LicenseAssignment.Read.All`, `Directory.Read.All`, `Organization.Read.All`
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph/microsoft365_graph_directory_management_subscribed_skus/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **License Information**: This data source retrieves information about commercial subscriptions that an organization has acquired using the [List subscribedSkus](https://learn.microsoft.com/en-us/graph/api/subscribedsku-list?view=graph-rest-1.0&tabs=http) Microsoft Graph API.
+- **Filtering**: Results can be filtered by SKU ID, SKU part number, or applies to (User/Company).
+- **License Usage**: The data includes consumed units vs prepaid units to help with license management.
+- **Service Plans**: Each SKU includes detailed service plan information with provisioning status.
+- **No User Permissions**: This provider only supports application permissions, not delegated user permissions.

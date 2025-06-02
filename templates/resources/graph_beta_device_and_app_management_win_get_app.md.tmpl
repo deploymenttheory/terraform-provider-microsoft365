@@ -9,11 +9,35 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [winGetApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-wingetapp?view=graph-rest-beta)
+- [Create winGetApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_win_get_app/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Windows Specific**: This resource is specifically for managing WinGet applications on Windows devices.
+- **Windows Package Manager**: WinGet is Microsoft's official package manager for Windows, providing access to thousands of applications.
+- **Package Source**: Apps are sourced from the Windows Package Manager Community Repository or Microsoft Store.
+- **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
+- **Package Identifier**: Uses package identifiers from the WinGet repository (e.g., `Microsoft.PowerToys`).
+- **Automatic Updates**: WinGet apps can be configured for automatic updates through the Windows Package Manager.
+- **Installation Context**: Apps can be installed in user or system context depending on the package configuration.
+- **Version Management**: Specific versions can be targeted, or the latest version can be automatically selected.
 
 ## Import
 

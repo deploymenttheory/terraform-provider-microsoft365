@@ -49,6 +49,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	// Graph Beta - User resources
+	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/user/graph_beta/license_assignment"
+
+	// Graph Beta - Group resources
+	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/group/graph_beta/license_assignment"
+
 	// Graph Beta - M365 Admin Centre
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site_list"
@@ -122,6 +128,12 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+
+		// Graph Beta - User resources
+		graphBetaUserLicenseAssignment.NewUserLicenseAssignmentResource,
+
+		// Graph Beta - Group resources
+		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
 
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,

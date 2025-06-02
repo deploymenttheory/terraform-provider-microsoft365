@@ -27,6 +27,9 @@ import (
 	// Graph v1.0 - Intune datasources
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
+	// Graph v1.0 - Directory Management datasources
+	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/directory_management/graph/subscribed_skus"
+
 	// Utilities
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/datasources/device_and_app_management/utilities/macos_pkg_app_metadata"
 
@@ -68,6 +71,8 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
 		// Graph v1.0 - Intune Device and App Management datasources
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
+		// Graph v1.0 - Directory Management datasources
+		graphDirectoryManagementSubscribedSkus.NewSubscribedSkusDataSource,
 
 		// Utilities
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,

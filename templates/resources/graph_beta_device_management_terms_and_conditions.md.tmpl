@@ -9,11 +9,31 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [termsAndConditions resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-companyterms-termsandconditions?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_terms_and_conditions/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Terms and Conditions**: This resource manages company terms and conditions that are presented to users during device enrollment.
+- **Version Management**: Each update to terms and conditions creates a new version that users must accept.
+- **User Acceptance Tracking**: The system tracks which users have accepted which versions of the terms and conditions.
+- **Enrollment Requirement**: Users may be required to accept terms and conditions before completing device enrollment.
+- **HTML Content Support**: The body text supports rich HTML formatting for comprehensive legal documentation.
 
 ## Import
 
