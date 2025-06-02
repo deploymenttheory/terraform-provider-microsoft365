@@ -4,6 +4,8 @@ import (
 	"context"
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/application_category"
+	graphBetaDeviceAndAppManagementMacOSDmgApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_dmg_app"
+	graphBetaDeviceAndAppManagementMacOSLobApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_lob_app"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaDeviceAndAppManagementAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/mobile_app_assignment"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/device_and_app_management/graph_beta/winget_app"
@@ -47,6 +49,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	// Graph Beta - User resources
+	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/user/graph_beta/license_assignment"
+
+	// Graph Beta - Group resources
+	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/group/graph_beta/license_assignment"
+
 	// Graph Beta - M365 Admin Centre
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site_list"
@@ -78,6 +86,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Device & app management
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceAndAppManagementAppAssignment.NewMobileAppAssignmentResource,
+		graphBetaDeviceAndAppManagementMacOSDmgApp.NewMacOSDmgAppResource,
+		graphBetaDeviceAndAppManagementMacOSLobApp.NewMacOSLobAppResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		// Graph Beta - Device management
@@ -118,6 +128,12 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+
+		// Graph Beta - User resources
+		graphBetaUserLicenseAssignment.NewUserLicenseAssignmentResource,
+
+		// Graph Beta - Group resources
+		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
 
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,

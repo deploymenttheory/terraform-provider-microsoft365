@@ -1,6 +1,6 @@
 ---
 page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
-subcategory: "Intune"
+subcategory: "M365 Admin"
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
@@ -9,11 +9,34 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [browserSite resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta)
+- [Create browserSite](https://learn.microsoft.com/en-us/graph/api/browsersitelist-post-sites?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `BrowserSiteLists.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_m365_admin_browser_site/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Browser Site Management**: This resource manages individual sites within Microsoft Edge browser site lists.
+- **Internet Explorer Mode**: Sites are commonly used to configure which websites should open in Internet Explorer mode within Microsoft Edge.
+- **Compatibility Lists**: Helps manage legacy web applications that require Internet Explorer for proper functionality.
+- **Site Types**: Supports different site types including neutral sites, enterprise mode sites, and sites that should open in Microsoft Edge.
+- **URL Patterns**: Supports various URL formats including specific URLs, domains, and wildcard patterns.
+- **Policy Integration**: Sites integrate with Microsoft Edge administrative templates and Group Policy settings.
+- **Centralized Management**: Provides IT administrators with centralized control over browser behavior for specific websites.
 
 ## Import
 

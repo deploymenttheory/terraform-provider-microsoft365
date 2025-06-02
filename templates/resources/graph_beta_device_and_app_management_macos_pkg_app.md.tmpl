@@ -9,11 +9,35 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [macOSPkgApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macospkgapp?view=graph-rest-beta)
+- [Create macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_macos_pkg_app/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **macOS Specific**: This resource is specifically for managing PKG (Package) applications on macOS devices.
+- **Installer Package Format**: PKG files are macOS installer packages that can contain applications, system files, or configuration data.
+- **Installation Process**: PKG files are executed by the macOS Installer framework and can run pre/post-installation scripts.
+- **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
+- **Detection Rules**: Configure detection rules to determine if the package is successfully installed on target devices.
+- **System Privileges**: PKG installations typically require administrative privileges and run with elevated permissions.
+- **File Size Limits**: Be aware of file size limitations when uploading large PKG files to Intune.
+- **Included Apps**: PKG can contain multiple applications, and the system tracks which apps are installed by the package.
 
 ## Import
 

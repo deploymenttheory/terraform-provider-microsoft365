@@ -66,8 +66,25 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 
 	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
+	// Initialize Relationships as null list since we don't currently map this field
+	data.Relationships = types.ListNull(types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":                            types.StringType,
+			"source_display_name":           types.StringType,
+			"source_display_version":        types.StringType,
+			"source_id":                     types.StringType,
+			"source_publisher_display_name": types.StringType,
+			"target_display_name":           types.StringType,
+			"target_display_version":        types.StringType,
+			"target_id":                     types.StringType,
+			"target_publisher":              types.StringType,
+			"target_publisher_display_name": types.StringType,
+			"target_type":                   types.StringType,
+		},
+	})
+
 	if data.MacOSPkgApp == nil {
-		data.MacOSPkgApp = &MacOSPkgAppResourceModel{}
+		data.MacOSPkgApp = &MacOSPKGAppDetailsResourceModel{}
 	}
 	mapMacOSPKGAppStateToTerraform(ctx, data.MacOSPkgApp, remoteResource)
 
@@ -76,9 +93,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 }
 
 // mapMacOSPKGAppStateToTerraform handle fields specific to macOs pkgs
-func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
+func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPKGAppDetailsResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
 	if data == nil {
-		data = &MacOSPkgAppResourceModel{}
+		data = &MacOSPKGAppDetailsResourceModel{}
 	}
 
 	data.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
@@ -86,7 +103,7 @@ func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResour
 	data.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
 
 	apps := remoteResource.GetIncludedApps()
-	data.IncludedApps = BuildObjectSetFromSlice(
+	data.IncludedApps = state.BuildObjectSetFromSlice(
 		ctx,
 		map[string]attr.Type{
 			"bundle_id":      types.StringType,
@@ -120,6 +137,7 @@ func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResour
 		data.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
 		data.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
 		data.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
+		data.MinimumSupportedOperatingSystem.V150 = state.BoolPointerValue(minOS.GetV150())
 	}
 
 	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {
@@ -136,49 +154,4 @@ func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPkgAppResour
 		data.PostInstallScript.ScriptContent = state.StringPointerValue(postScript.GetScriptContent())
 	}
 
-}
-
-// BuildObjectSetFromSlice
-func BuildObjectSetFromSlice(
-	ctx context.Context,
-	attrTypes map[string]attr.Type,
-	extract func(i int) map[string]attr.Value,
-	length int,
-) types.Set {
-	objectType := types.ObjectType{AttrTypes: attrTypes}
-
-	if length == 0 {
-		emptySet, diags := types.SetValue(objectType, []attr.Value{})
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create empty set", map[string]interface{}{
-				"errors": diags.Errors(),
-			})
-			return types.SetNull(objectType)
-		}
-		return emptySet
-	}
-
-	var elements []attr.Value
-	for i := 0; i < length; i++ {
-		values := extract(i)
-		obj, diags := types.ObjectValue(attrTypes, values)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to build object for Set", map[string]interface{}{
-				"index":  i,
-				"errors": diags.Errors(),
-			})
-			continue
-		}
-		elements = append(elements, obj)
-	}
-
-	set, diags := types.SetValue(objectType, elements)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to build Set", map[string]interface{}{
-			"errors": diags.Errors(),
-		})
-		return types.SetNull(objectType)
-	}
-
-	return set
 }

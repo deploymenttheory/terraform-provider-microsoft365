@@ -9,6 +9,54 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// Int32Modifier defines the interface for int32 plan modifiers
+type Int32Modifier interface {
+	planmodifier.Int32
+	Description(context.Context) string
+	MarkdownDescription(context.Context) string
+}
+
+type int32Modifier struct {
+	description         string
+	markdownDescription string
+}
+
+func (m int32Modifier) Description(ctx context.Context) string {
+	return m.description
+}
+
+func (m int32Modifier) MarkdownDescription(ctx context.Context) string {
+	return m.markdownDescription
+}
+
+// UseStateForUnknown implementation
+type useStateForUnknownInt32 struct {
+	int32Modifier
+}
+
+func (m useStateForUnknownInt32) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+
+	if req.StateValue.IsNull() {
+		return
+	}
+
+	resp.PlanValue = req.StateValue
+}
+
+// UseStateForUnknownInt32 returns a plan modifier that copies a known prior state int32
+// value into a planned unknown value.
+func UseStateForUnknownInt32() Int32Modifier {
+	return useStateForUnknownInt32{
+		int32Modifier: int32Modifier{
+			description:         "Use state value if unknown",
+			markdownDescription: "Use state value if unknown",
+		},
+	}
+}
+
 // RequiresOtherAttributeEnabledInt32 returns a plan modifier that ensures an Int32 attribute
 // can only be used when another specified attribute is enabled (set to true).
 func RequiresOtherAttributeEnabledInt32(dependencyPath path.Path) planmodifier.Int32 {

@@ -4,6 +4,10 @@
 *.dylib
 *.so
 
+# Terraform provider binaries
+terraform-provider-*
+*.zip
+
 # Terraform files
 *.tfstate
 *.tfstate.*

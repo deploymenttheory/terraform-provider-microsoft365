@@ -20,7 +20,7 @@ type ExtractedFields struct {
 	Values   map[string]string
 }
 
-func ExtractFieldsFromFiles(ctx context.Context, filePath string, pattern string, fields []Field) ([]ExtractedFields, error) {
+func ExtractFieldsFromPKGFile(ctx context.Context, filePath string, pattern string, fields []Field) ([]ExtractedFields, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("opening file: %w", err)

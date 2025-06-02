@@ -95,7 +95,7 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Extracting metadata from PKG file: %s", installerSourcePath))
-	extractedFields, err := utility.ExtractFieldsFromFiles(
+	extractedFields, err := utility.ExtractFieldsFromPKGFile(
 		ctx,
 		installerSourcePath,
 		"Info.plist",

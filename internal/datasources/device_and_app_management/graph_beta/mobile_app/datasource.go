@@ -174,7 +174,7 @@ func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaReq
 							Computed:            true,
 							MarkdownDescription: "Notes for the app.",
 						},
-						"upload_state": schema.Int64Attribute{
+						"upload_state": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "The upload state.",
 						},
@@ -191,15 +191,15 @@ func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaReq
 							ElementType:         types.StringType,
 							MarkdownDescription: "List of scope tag ids for this mobile app.",
 						},
-						"dependent_app_count": schema.Int64Attribute{
+						"dependent_app_count": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "The total number of dependencies the child app has.",
 						},
-						"superseded_app_count": schema.Int64Attribute{
+						"superseded_app_count": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by.",
 						},
-						"superseding_app_count": schema.Int64Attribute{
+						"superseding_app_count": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "The total number of apps this app directly or indirectly supersedes.",
 						},

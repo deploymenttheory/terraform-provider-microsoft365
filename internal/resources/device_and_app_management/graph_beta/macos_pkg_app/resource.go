@@ -184,6 +184,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"publisher": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 1024),
+				},
 			},
 			"categories": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -257,10 +260,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
-			"upload_state": schema.Int64Attribute{
+			"upload_state": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
@@ -290,24 +293,24 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"dependent_app_count": schema.Int64Attribute{
+			"dependent_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
-			"superseding_app_count": schema.Int64Attribute{
+			"superseding_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
-			"superseded_app_count": schema.Int64Attribute{
+			"superseded_app_count": schema.Int32Attribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
@@ -319,8 +322,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				Attributes: map[string]schema.Attribute{
 					"ignore_version_detection": schema.BoolAttribute{
-						Required:            true,
-						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
+						Optional:            true,
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if the app is installed on a device. When FALSE, indicates that the app's version will be used to detect if the app is installed on a device. Set this to true for apps that use a self update feature. The default value is FALSE.",
 					},
 					"included_apps": schema.SetNestedAttribute{
 						Optional: true,
@@ -446,6 +451,12 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								Default:             booldefault.StaticBool(false),
 								MarkdownDescription: "Application supports macOS 14.0 or later. Defaults to `false`.",
 							},
+							"v15_0": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 15.0 or later. Defaults to `false`.",
+							},
 						},
 					},
 					"pre_install_script": schema.SingleNestedAttribute{
@@ -483,7 +494,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
-			"app_installer":   commonschemagraphbeta.MobileAppInstallerMetadataSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppMacOSPkgInstallerMetadataSchema(),
 			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
 			"timeouts":        commonschema.Timeouts(ctx),
 		},

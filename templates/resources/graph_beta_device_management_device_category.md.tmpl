@@ -9,11 +9,35 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [deviceCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicecategory?view=graph-rest-beta)
+- [Create deviceCategory](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicecategory-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.ReadWrite.All`
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_device_category/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Device Organization**: This resource creates categories to organize and group managed devices in Microsoft Intune.
+- **Custom Categories**: Allows creation of custom device categories beyond the default categories.
+- **Assignment Rules**: Device categories can be used in assignment filters and conditional access policies.
+- **User Assignment**: During enrollment, users or administrators can assign devices to specific categories.
+- **Policy Targeting**: Categories help target policies and applications to specific groups of devices.
+- **Reporting**: Device categories enhance reporting and provide better device management insights.
+- **Enrollment Integration**: Categories can be automatically assigned during device enrollment workflows.
+- **Naming Conventions**: Use clear, descriptive names for categories to improve device management efficiency.
 
 ## Import
 

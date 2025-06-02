@@ -23,16 +23,16 @@ type MacOSPKGAppResourceModel struct {
 	Owner                 types.String                             `tfsdk:"owner"`
 	Developer             types.String                             `tfsdk:"developer"`
 	Notes                 types.String                             `tfsdk:"notes"`
-	UploadState           types.Int64                              `tfsdk:"upload_state"`
+	UploadState           types.Int32                              `tfsdk:"upload_state"`
 	PublishingState       types.String                             `tfsdk:"publishing_state"`
 	IsAssigned            types.Bool                               `tfsdk:"is_assigned"`
 	RoleScopeTagIds       types.Set                                `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount     types.Int64                              `tfsdk:"dependent_app_count"`
-	SupersedingAppCount   types.Int64                              `tfsdk:"superseding_app_count"`
-	SupersededAppCount    types.Int64                              `tfsdk:"superseded_app_count"`
+	DependentAppCount     types.Int32                              `tfsdk:"dependent_app_count"`
+	SupersedingAppCount   types.Int32                              `tfsdk:"superseding_app_count"`
+	SupersededAppCount    types.Int32                              `tfsdk:"superseded_app_count"`
 	Categories            types.Set                                `tfsdk:"categories"`
-	Relationships         []MobileAppRelationshipResourceModel     `tfsdk:"relationships"`
-	MacOSPkgApp           *MacOSPkgAppResourceModel                `tfsdk:"macos_pkg_app"`
+	Relationships         types.List                               `tfsdk:"relationships"`
+	MacOSPkgApp           *MacOSPKGAppDetailsResourceModel         `tfsdk:"macos_pkg_app"`
 	AppInstaller          types.Object                             `tfsdk:"app_installer"`
 	ContentVersion        types.List                               `tfsdk:"content_version"`
 	Timeouts              timeouts.Value                           `tfsdk:"timeouts"`
@@ -53,10 +53,8 @@ type MobileAppRelationshipResourceModel struct {
 	TargetType                 types.String `tfsdk:"target_type"`
 }
 
-// MacOSPkgApp
-
-// MacOSPkgAppResourceModel represents the Terraform resource model for a MacOS PKG Application
-type MacOSPkgAppResourceModel struct {
+// MacOSPKGAppDetailsResourceModel represents the Terraform resource model for a MacOS PKG Application
+type MacOSPKGAppDetailsResourceModel struct {
 	IgnoreVersionDetection          types.Bool                                `tfsdk:"ignore_version_detection"`
 	IncludedApps                    types.Set                                 `tfsdk:"included_apps"`
 	MinimumSupportedOperatingSystem *MacOSMinimumOperatingSystemResourceModel `tfsdk:"minimum_supported_operating_system"`
@@ -81,6 +79,7 @@ type MacOSMinimumOperatingSystemResourceModel struct {
 	V120  types.Bool `tfsdk:"v12_0"`  // macOS 12.0 or later
 	V130  types.Bool `tfsdk:"v13_0"`  // macOS 13.0 or later
 	V140  types.Bool `tfsdk:"v14_0"`  // macOS 14.0 or later
+	V150  types.Bool `tfsdk:"v15_0"`  // macOS 15.0 or later
 }
 
 // MacOSIncludedAppResourceModel represents an included app in the PKG

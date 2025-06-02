@@ -38,10 +38,10 @@ type MobileAppModel struct {
 	PublishingState       types.String   `tfsdk:"publishing_state"`
 	IsAssigned            types.Bool     `tfsdk:"is_assigned"`
 	IsFeatured            types.Bool     `tfsdk:"is_featured"`
-	UploadState           types.Int64    `tfsdk:"upload_state"`
-	DependentAppCount     types.Int64    `tfsdk:"dependent_app_count"`
-	SupersededAppCount    types.Int64    `tfsdk:"superseded_app_count"`
-	SupersedingAppCount   types.Int64    `tfsdk:"superseding_app_count"`
+	UploadState           types.Int32    `tfsdk:"upload_state"`
+	DependentAppCount     types.Int32    `tfsdk:"dependent_app_count"`
+	SupersededAppCount    types.Int32    `tfsdk:"superseded_app_count"`
+	SupersedingAppCount   types.Int32    `tfsdk:"superseding_app_count"`
 	RoleScopeTagIds       []types.String `tfsdk:"role_scope_tag_ids"`
 	Categories            []types.String `tfsdk:"categories"`
 }
