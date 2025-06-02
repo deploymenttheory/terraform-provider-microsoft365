@@ -322,8 +322,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				Attributes: map[string]schema.Attribute{
 					"ignore_version_detection": schema.BoolAttribute{
-						Required:            true,
-						MarkdownDescription: "Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.",
+						Optional:            true,
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if the app is installed on a device. When FALSE, indicates that the app's version will be used to detect if the app is installed on a device. Set this to true for apps that use a self update feature. The default value is FALSE.",
 					},
 					"included_apps": schema.SetNestedAttribute{
 						Optional: true,
@@ -448,6 +450,12 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
 								MarkdownDescription: "Application supports macOS 14.0 or later. Defaults to `false`.",
+							},
+							"v15_0": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Application supports macOS 15.0 or later. Defaults to `false`.",
 							},
 						},
 					},

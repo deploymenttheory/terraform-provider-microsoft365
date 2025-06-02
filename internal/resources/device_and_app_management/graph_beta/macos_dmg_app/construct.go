@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
+
 	//utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_dmg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -111,97 +111,74 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 			tflog.Debug(ctx, "Mapped minimum supported operating system")
 		}
 
-	// 	// Extract and set metadata from DMG file if available
-	// 	if installerSourcePath != "" {
-	// 		err := extractAndSetDMGMetadata(ctx, baseApp, data, installerSourcePath)
-	// 		if err != nil {
-	// 			return nil, fmt.Errorf("failed to extract DMG metadata: %w", err)
-	// 		}
-	// 	}
+		// Handle included apps from Terraform configuration
+		if !data.MacOSDmgApp.IncludedApps.IsNull() && !data.MacOSDmgApp.IncludedApps.IsUnknown() {
+			includedAppsElements := data.MacOSDmgApp.IncludedApps.Elements()
+			var includedApps []graphmodels.MacOSIncludedAppable
+			var primaryBundleId, primaryBundleVersion string
+			var isPrimarySet bool
 
-	// 	constructors.SetBoolProperty(data.MacOSDmgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+			for _, elem := range includedAppsElements {
+				objVal, ok := elem.(types.Object)
+				if !ok {
+					tflog.Error(ctx, fmt.Sprintf("Expected object type for included app, got %T", elem))
+					continue
+				}
 
-	// 	// Map included apps if provided
-	// 	if !data.MacOSDmgApp.IncludedApps.IsNull() && !data.MacOSDmgApp.IncludedApps.IsUnknown() {
-	// 		var includedAppsElements []MacOSIncludedAppResourceModel
-	// 		diags := data.MacOSDmgApp.IncludedApps.ElementsAs(ctx, &includedAppsElements, false)
-	// 		if diags.HasError() {
-	// 			return nil, fmt.Errorf("error extracting included apps: %s", diags.Errors())
-	// 		}
+				attrs := objVal.Attributes()
+				includedApp := graphmodels.NewMacOSIncludedApp()
 
-	// 		var includedApps []graphmodels.MacOSIncludedAppable
-	// 		for _, app := range includedAppsElements {
-	// 			includedApp := graphmodels.NewMacOSIncludedApp()
-	// 			constructors.SetStringProperty(app.BundleId, includedApp.SetBundleId)
-	// 			constructors.SetStringProperty(app.BundleVersion, includedApp.SetBundleVersion)
-	// 			includedApps = append(includedApps, includedApp)
-	// 		}
-	// 		baseApp.SetIncludedApps(includedApps)
-	// 		tflog.Debug(ctx, fmt.Sprintf("Mapped %d included apps", len(includedApps)))
-	// 	}
+				// Set the OData type for the included app
+				odataType := "#microsoft.graph.macOSIncludedApp"
+				includedApp.SetOdataType(&odataType)
 
-	// 	// Set primary bundle properties if provided
-	// 	constructors.SetStringProperty(data.MacOSDmgApp.PrimaryBundleId, baseApp.SetPrimaryBundleId)
-	// 	constructors.SetStringProperty(data.MacOSDmgApp.PrimaryBundleVersion, baseApp.SetPrimaryBundleVersion)
-	// }
+				var currentBundleId, currentBundleVersion string
+
+				if bundleId, exists := attrs["bundle_id"]; exists {
+					if bundleIdStr, ok := bundleId.(types.String); ok && !bundleIdStr.IsNull() {
+						constructors.SetStringProperty(bundleIdStr, includedApp.SetBundleId)
+						currentBundleId = bundleIdStr.ValueString()
+					}
+				}
+
+				if bundleVersion, exists := attrs["bundle_version"]; exists {
+					if bundleVersionStr, ok := bundleVersion.(types.String); ok && !bundleVersionStr.IsNull() {
+						constructors.SetStringProperty(bundleVersionStr, includedApp.SetBundleVersion)
+						currentBundleVersion = bundleVersionStr.ValueString()
+					}
+				}
+
+				// Set the first included app as the primary bundle
+				if !isPrimarySet && currentBundleId != "" && currentBundleVersion != "" {
+					primaryBundleId = currentBundleId
+					primaryBundleVersion = currentBundleVersion
+					isPrimarySet = true
+					tflog.Debug(ctx, fmt.Sprintf("Set primary bundle: ID=%s, Version=%s", primaryBundleId, primaryBundleVersion))
+				}
+
+				includedApps = append(includedApps, includedApp)
+			}
+
+			// Set the primary bundle properties
+			if isPrimarySet {
+				baseApp.SetPrimaryBundleId(&primaryBundleId)
+				baseApp.SetPrimaryBundleVersion(&primaryBundleVersion)
+			}
+
+			baseApp.SetIncludedApps(includedApps)
+			tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from Terraform configuration", len(includedApps)))
+		}
+
+		// Set ignore version detection
+		constructors.SetBoolProperty(data.MacOSDmgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+	}
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	tflog.Debug(ctx, "Successfully constructed macOS DMG app resource")
 	return requestBody, nil
 }
-
-// // extractAndSetDMGMetadata extracts metadata from DMG file and sets it on the base app
-// // Note: DMG metadata extraction will reuse the same PKG utility since both are Apple package formats
-// func extractAndSetDMGMetadata(ctx context.Context, baseApp graphmodels.MacOSDmgAppable, data *MacOSDmgAppResourceModel, installerSourcePath string) error {
-// 	if !strings.HasSuffix(strings.ToLower(installerSourcePath), ".dmg") {
-// 		return fmt.Errorf("file must be a .dmg file, got: %s", installerSourcePath)
-// 	}
-
-// 	// Extract fields from all Info.plist files in the DMG using the resolved path
-// 	fields := []utility.Field{
-// 		{Key: "CFBundleIdentifier", Required: true},
-// 		{Key: "CFBundleShortVersionString", Required: true},
-// 	}
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Extracting metadata from DMG file: %s", installerSourcePath))
-// 	extractedFields, err := utility.ExtractFieldsFromDMGFile(
-// 		ctx,
-// 		installerSourcePath,
-// 		"Info.plist",
-// 		fields,
-// 	)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to extract metadata from DMG file: %w", err)
-// 	}
-
-// 	if len(extractedFields) == 0 {
-// 		return fmt.Errorf("no Info.plist files found in the DMG installer at %s", installerSourcePath)
-// 	}
-
-// 	// First Info.plist becomes primary bundle
-// 	primaryBundleId := extractedFields[0].Values["CFBundleIdentifier"]
-// 	primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
-// 	constructors.SetStringProperty(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
-// 	constructors.SetStringProperty(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
-
-// 	// All entries are set as included apps (including primary)
-// 	var includedApps []graphmodels.MacOSIncludedAppable
-// 	for _, fields := range extractedFields {
-// 		includedApp := graphmodels.NewMacOSIncludedApp()
-// 		constructors.SetStringProperty(
-// 			types.StringValue(fields.Values["CFBundleIdentifier"]),
-// 			includedApp.SetBundleId,
-// 		)
-// 		constructors.SetStringProperty(
-// 			types.StringValue(fields.Values["CFBundleShortVersionString"]),
-// 			includedApp.SetBundleVersion,
-// 		)
-// 		includedApps = append(includedApps, includedApp)
-// 	}
-
-// 	baseApp.SetIncludedApps(includedApps)
-// 	tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from DMG metadata", len(includedApps)))
-
-// 	return nil
-// }

@@ -273,8 +273,7 @@ func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						MarkdownDescription: "When TRUE, indicates that the app's version will NOT be used to detect if the app is installed on a device. When FALSE, indicates that the app's version will be used to detect if the app is installed on a device. Set this to true for apps that use a self update feature. The default value is FALSE.",
 					},
 					"included_apps": schema.SetNestedAttribute{
-						Optional: true,
-						Computed: true,
+						Required: true,
 						PlanModifiers: []planmodifier.Set{
 							planmodifiers.UseStateForUnknownSet(),
 						},
@@ -300,12 +299,32 @@ func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								"bundle_id": schema.StringAttribute{
 									Required:            true,
 									MarkdownDescription: "The `CFBundleIdentifier` of the app as defined in the DMG metadata or appended manually.",
+									PlanModifiers: []planmodifier.String{
+										planmodifiers.UseStateForUnknownString(),
+									},
 								},
 								"bundle_version": schema.StringAttribute{
 									Required:            true,
 									MarkdownDescription: "The `CFBundleShortVersionString` of the app as defined in the DMG metadata or appended manually.",
+									PlanModifiers: []planmodifier.String{
+										planmodifiers.UseStateForUnknownString(),
+									},
 								},
 							},
+						},
+					},
+					"primary_bundle_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "The bundleId of the primary app in the DMG. Maps to CFBundleIdentifier in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
+					},
+					"primary_bundle_version": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "The version of the primary app in the DMG. Maps to CFBundleShortVersion in the app's bundle configuration.",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
 						},
 					},
 					"minimum_supported_operating_system": schema.SingleNestedAttribute{
@@ -396,20 +415,6 @@ func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								Default:             booldefault.StaticBool(false),
 								MarkdownDescription: "Application supports macOS 15.0 or later. Defaults to `false`.",
 							},
-						},
-					},
-					"primary_bundle_id": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "The bundleId of the primary app in the DMG. Maps to CFBundleIdentifier in the app's bundle configuration.",
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
-						},
-					},
-					"primary_bundle_version": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "The version of the primary app in the DMG. Maps to CFBundleShortVersion in the app's bundle configuration.",
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.UseStateForUnknownString(),
 						},
 					},
 				},

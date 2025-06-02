@@ -31,7 +31,7 @@ type MacOSDmgAppResourceModel struct {
 	SupersedingAppCount   types.Int32                              `tfsdk:"superseding_app_count"`
 	SupersededAppCount    types.Int32                              `tfsdk:"superseded_app_count"`
 	Categories            types.Set                                `tfsdk:"categories"`
-	Relationships         []MobileAppRelationshipResourceModel     `tfsdk:"relationships"`
+	Relationships         types.List                               `tfsdk:"relationships"`
 	MacOSDmgApp           *MacOSDmgAppDetailsResourceModel         `tfsdk:"macos_dmg_app"`
 	AppInstaller          types.Object                             `tfsdk:"app_installer"`
 	ContentVersion        types.List                               `tfsdk:"content_version"`

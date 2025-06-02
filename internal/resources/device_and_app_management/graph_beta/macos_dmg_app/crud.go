@@ -3,20 +3,48 @@ package graphBetaMacOSDmgApp
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/shared_models/graph_beta/device_and_app_management"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/state/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the complete creation workflow for a macOS DMG app resource in Intune.
+//
+// The function performs the following steps:
+//
+// 1. Reads the planned resource state from Terraform.
+// 2. Constructs and creates the base resource from the Terraform model.
+//
+// If a package installer file is provided, the workflow continues as follows:
+//
+//  3. Initializes a new content version.
+//  4. Encrypts the installer file locally (producing a .bin file) and constructs the file metadata,
+//     including file size, encrypted file size, and encryption metadata (keys, digest, IV, MAC, etc.).
+//  5. Creates a content file resource (with the metadata) in Graph API under the new content version.
+//  6. Waits (via a retry loop using GET) for the Graph API to generate a valid Azure Storage SAS URI for the content file.
+//  7. Retrieves the SAS URI and uploads the encrypted file (.bin) directly to Azure Blob Storage in chunks.
+//  8. Commits the file by sending a commit request (including the encryption metadata) to Graph API,
+//     and waits until the commit is confirmed.
+//  9. Updates the mobile app resource (via a PATCH call) to set its committedContentVersion, so that
+//     Intune uses the newly committed content file.
+//  10. Assigns any mobile app assignments to the mobile app
+//
+// Finally, if app assignments are provided, the function creates the assignments, and then
+// performs a final read of the resource state to verify successful creation.
 func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MacOSDmgAppResourceModel
 
@@ -81,14 +109,17 @@ func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
+		//
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		//
+
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 	}
 
-	// If a DMG installer file is provided, process the content version and file upload
+	// If a package installer file is provided, process the content version and file upload
 	if installerSourcePath != "" {
 
 		// Step 6: Initialize content version
@@ -167,19 +198,18 @@ func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateReq
 				return retry.NonRetryableError(fmt.Errorf("azure storage URI request failed"))
 			}
 
-			return retry.RetryableError(fmt.Errorf("upload state %s is not ready", state.String()))
+			tflog.Debug(ctx, fmt.Sprintf("Waiting for Azure Storage URI, current state: %s", state.String()))
+			return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", state.String()))
 		})
-
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error waiting for Azure Storage URI",
-				fmt.Sprintf("Failed to get Azure Storage URI: %s", err.Error()),
-			)
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
-		// Step 10: Get the file with Azure Storage URI
-		file, err := contentBuilder.
+		// Step 10: Retrieve the Azure Storage URI and upload the encrypted file
+		tflog.Debug(ctx, "Retrieving file status for Azure Storage URI")
+
+		fileStatus, err := contentBuilder.
 			ByMobileAppContentId(*contentVersion.GetId()).
 			Files().
 			ByMobileAppContentFileId(*createdFile.GetId()).
@@ -190,25 +220,28 @@ func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 11: Upload encrypted file to Azure Storage
-		tflog.Debug(ctx, "Uploading encrypted file to Azure Storage")
-		encryptedFilePath := installerSourcePath + ".bin"
-		defer helpers.CleanupTempFile(ctx, helpers.TempFileInfo{
-			FilePath:      encryptedFilePath,
-			ShouldCleanup: true,
-		})
-
-		err = construct.UploadToAzureStorage(ctx, *file.GetAzureStorageUri(), encryptedFilePath)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error uploading file to Azure Storage",
-				fmt.Sprintf("Failed to upload encrypted file: %s", err.Error()),
-			)
+		if fileStatus.GetAzureStorageUri() == nil {
+			tflog.Debug(ctx, "Azure Storage URI is nil in the retrieved file status")
+			errors.HandleGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, "Create", r.WritePermissions)
 			return
 		}
 
-		// Step 12: Commit the file
-		tflog.Debug(ctx, "Committing file")
+		tflog.Debug(ctx, fmt.Sprintf("Retrieved Azure Storage URI: %s", *fileStatus.GetAzureStorageUri()))
+
+		// IMPORTANT: Upload the encrypted file (.bin) not the original source file.
+		encryptedFilePath := installerSourcePath + ".bin"
+
+		tflog.Debug(ctx, fmt.Sprintf("Uploading encrypted file: %s", encryptedFilePath))
+
+		err = construct.UploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), encryptedFilePath)
+		if err != nil {
+			tflog.Debug(ctx, fmt.Sprintf("Failed to upload to Azure Storage: %v", err))
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
+
+		// Step 11: Commit the file with encryption metadata
+		tflog.Debug(ctx, "Committing file with encryption metadata")
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			commitBody, err := construct.CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
 			if err != nil {
@@ -238,19 +271,28 @@ func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateReq
 			return
 		}
 
-		// Step 13: Wait for commit completion
-		tflog.Debug(ctx, "Waiting for commit completion")
-		err = waitForCommitCompletion(ctx, r.client, object.ID.ValueString(), *contentVersion.GetId(), retryTimeout)
+		// Step 12: Wait for commit to complete
+		tflog.Debug(ctx, "Waiting for file commit to complete")
+
+		err = WaitForFileCommitCompletion(
+			ctx,
+			contentBuilder,
+			*contentVersion.GetId(),
+			*createdFile.GetId(),
+			encryptionInfo,
+			resp,
+			r.WritePermissions,
+		)
+
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error waiting for commit completion",
-				fmt.Sprintf("Failed waiting for commit completion: %s", err.Error()),
+				"Error waiting for file commit",
+				err.Error(),
 			)
 			return
 		}
 
-		// Step 14: Update the mobile app with the committed content version
-		tflog.Debug(ctx, "Updating mobile app with committed content version")
+		// Step 13: Update the App with the Committed Content Version
 		updatePayload := graphmodels.NewMacOSDmgApp()
 		updatePayload.SetCommittedContentVersion(contentVersion.GetId())
 
@@ -268,28 +310,48 @@ func (r *MacOSDmgAppResource) Create(ctx context.Context, req resource.CreateReq
 		tflog.Debug(ctx, "App updated successfully with committed content version")
 	}
 
-	// Step 15: Read the resource to get the final state
-	readReq := resource.ReadRequest{
-		State: resp.State,
-	}
-	readResp := resource.ReadResponse{
-		State: resp.State,
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	r.Read(ctx, readReq, &readResp)
-	resp.State = readResp.State
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
+		return
+	}
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Read retrieves the current state of a macOS DMG app resource from Intune.
 func (r *MacOSDmgAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MacOSDmgAppResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting to read resource: %s", ResourceName))
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -297,34 +359,107 @@ func (r *MacOSDmgAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	appId := object.ID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Reading DMG app with ID: %s", appId))
+	// 1. get base resource with expanded query to return categories
+	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
+			Expand: []string{"categories"},
+		},
+	}
 
-	mobileApp, err := r.client.
+	respBaseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(appId).
-		GraphMacOSDmgApp().
-		Get(ctx, nil)
+		ByMobileAppId(object.ID.ValueString()).
+		Get(ctx, requestParameters)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, mobileApp)
+	// This ensures type safety as the Graph API returns a base interface that needs
+	// to be converted to the specific app type
+	macOSDmgApp, ok := respBaseResource.(graphmodels.MacOSDmgAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Resource type mismatch",
+			fmt.Sprintf("Expected resource of type MacOSDmgAppable but got %T", respBaseResource),
+		)
+		return
+	}
 
+	MapRemoteResourceStateToTerraform(ctx, &object, macOSDmgApp)
+
+	// 2. get committed app content file versions
+	committedVersionIdPtr := macOSDmgApp.GetCommittedContentVersion()
+
+	if committedVersionIdPtr != nil && *committedVersionIdPtr != "" {
+		committedVersionId := *committedVersionIdPtr
+
+		respFiles, err := r.client.DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(object.ID.ValueString()).
+			GraphMacOSDmgApp().
+			ContentVersions().
+			ByMobileAppContentId(committedVersionId).
+			Files().
+			Get(ctx, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+			return
+		}
+
+		var installerFileName string
+		if macOSDmgApp.GetFileName() != nil {
+			installerFileName = *macOSDmgApp.GetFileName()
+		} else {
+			var metadataObj sharedmodels.MobileAppMetaDataResourceModel
+			if !object.AppInstaller.IsNull() {
+				diags := object.AppInstaller.As(ctx, &metadataObj, basetypes.ObjectAsOptions{})
+				if !diags.HasError() && !metadataObj.InstallerFilePathSource.IsNull() {
+					filePath := metadataObj.InstallerFilePathSource.ValueString()
+					if filePath != "" {
+						installerFileName = filepath.Base(filePath)
+					}
+				}
+			}
+		}
+
+		object.ContentVersion = sharedstater.MapCommittedContentVersionStateToTerraform(ctx, committedVersionId, respFiles, err, installerFileName)
+	}
+
+	// 3. Get app metadata by processing app installer file
+	var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
+	if !req.State.Raw.IsNull() {
+		diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &existingMetadata)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
+	}
+
+	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	tflog.Debug(ctx, fmt.Sprintf("Finished reading resource: %s with ID: %s", ResourceName, object.ID.ValueString()))
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Update handles updates to a macOS DMG app resource in Intune.
 func (r *MacOSDmgAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object MacOSDmgAppResourceModel
+	var object, state MacOSDmgAppResourceModel
+	var installerSourcePath string
+	var tempFileInfo helpers.TempFileInfo
+	var err error
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting to update resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -335,24 +470,37 @@ func (r *MacOSDmgAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	appId := object.ID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Updating DMG app with ID: %s", appId))
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
 
-	// Construct the update request
-	requestBody, err := constructResource(ctx, &object, "")
+	// Ensure cleanup of temporary file when we're done
+	if tempFileInfo.ShouldCleanup {
+		defer helpers.CleanupTempFile(ctx, tempFileInfo)
+	}
+
+	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Update method",
+			"Error determining installer file path",
+			err.Error(),
+		)
+		return
+	}
+
+	// Step 1: Update the base mobile app resource
+	requestBody, err := constructResource(ctx, &object, installerSourcePath)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
 		)
 		return
 	}
 
-	// Update the resource
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(appId).
+		ByMobileAppId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -360,8 +508,10 @@ func (r *MacOSDmgAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Handle category updates
-	if !object.Categories.IsNull() {
+	// Step 2: Updated Categories
+	if !object.Categories.Equal(state.Categories) {
+		tflog.Debug(ctx, "Categories have changed — updating categories")
+
 		var categoryValues []string
 		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
 		if diags.HasError() {
@@ -369,24 +519,60 @@ func (r *MacOSDmgAppResource) Update(ctx context.Context, req resource.UpdateReq
 			return
 		}
 
-		err = construct.AssignMobileAppCategories(ctx, r.client, appId, categoryValues, r.ReadPermissions)
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}
 
-	// Read the updated resource
-	readReq := resource.ReadRequest{
-		State: resp.State,
-	}
-	readResp := resource.ReadResponse{
-		State: resp.State,
+	// No update logic is defined here intentionally for the reupload of mobile apps as any changes to either
+	// installer_file_path_source orinstaller_url_source triggers a destory and redeploy. Implementation attempts were
+	// becoming grossly complex and overly difficult for not much benefit.
+	// Rationale
+	// Intune's default behaviour is to append new mobileAppContentFiles to a new mobileContainedApp versions. Incrementing by 1
+	// and references only the latest version.
+	// The Api docs suggest you can delete existing mobileContainedApp versions but you cannot if they are commited. Meaning
+	// there are disparities between the api docs and what was possible with the go sdk.
+	// https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcontent-delete?view=graph-rest-1.0 <- doesnt work ?
+	//
+	// This causes terraform stating issues as we are not interesting in tracking previous versions, we only want the latest
+	// mobileContainedApp version and it's mobileAppContentFiles within.
+	// with no delete option this would cause stating issues.
+	//
+	// Since in real world scenarios' updating the mobile app content files would mean a new app deployment in real terms,
+	// as the only time you'd do this is if the app has installation bugs or unintended Ux. I believe force replacing
+	// the mobile app acheices the same outcome from a sys admin perspective.
+	//
+	// This approach ensures that the logic used to auto generate the detection logic for included_apps. Is always run and keeps
+	// the code more concise.
+	//
+
+	// Read updated resource state
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
+		return
 	}
 
-	r.Read(ctx, readReq, &readResp)
-	resp.State = readResp.State
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
 
 // Delete removes a macOS DMG app resource from Intune.
