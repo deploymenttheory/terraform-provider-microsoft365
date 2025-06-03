@@ -9,6 +9,25 @@ description: |-
 
 Manages an Intune Linux platform script using the 'configurationPolicies' Graph Beta API.
 
+## Microsoft Documentation
+
+- [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
+- [Create deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
@@ -130,6 +149,20 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Linux Settings Catalog**: This resource manages Linux platform scripts through the Intune Settings Catalog, not as standalone shell scripts.
+- **Configuration Policies**: Linux scripts are deployed as device configuration policies using the settings catalog framework.
+- **Script Execution**: Scripts are executed on Linux devices using the Microsoft Intune app for Linux.
+- **User vs Root Context**: Scripts can run as the current user or with root/sudo privileges depending on configuration.
+- **Assignment Required**: Policies must be assigned to device or user groups to be deployed.
+- **Distribution Support**: Supports major Linux distributions including Ubuntu, RHEL, CentOS, and SUSE.
+- **Policy Validation**: Intune provides configuration status reporting and logs for troubleshooting.
+- **Return Codes**: Scripts should use appropriate exit codes to indicate success or failure.
+- **Security Context**: Scripts running with elevated privileges should be carefully reviewed for security implications.
+- **Settings Catalog Framework**: Uses the same underlying technology as Windows and macOS settings catalog policies.
+- **Platform Requirements**: Requires Microsoft Intune app for Linux to be installed and enrolled.
 
 ## Import
 

@@ -9,6 +9,25 @@ description: |-
 
 The resource `graph_beta_device_management_role_definition_assignment` manages a Role Assignment in Microsoft 365
 
+## Microsoft Documentation
+
+- [deviceAndAppManagementRoleAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-deviceandappmanagementroleassignment?view=graph-rest-beta)
+- [Create deviceAndAppManagementRoleAssignment](https://learn.microsoft.com/en-us/graph/api/intune-rbac-deviceandappmanagementroleassignment-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

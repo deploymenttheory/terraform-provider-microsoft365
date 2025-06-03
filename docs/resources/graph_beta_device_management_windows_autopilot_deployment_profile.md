@@ -9,6 +9,18 @@ description: |-
 
 Manages a Windows Autopilot Deployment Profile in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [windowsAutopilotDeploymentProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeploymentprofile?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -155,6 +167,16 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Windows Autopilot**: This resource manages Windows Autopilot deployment profiles that define the out-of-box experience (OOBE) for devices.
+- **Device Configuration**: Deployment profiles control how devices are configured during the initial setup process.
+- **User Experience**: Profiles can be configured to provide a customized and streamlined setup experience for end users.
+- **Assignment Required**: Profiles must be assigned to Windows Autopilot device groups to take effect.
+- **Profile Types**: Supports both User-Driven and Self-Deploying deployment scenarios.
+- **OOBE Customization**: Configure settings like skip privacy settings, create local admin account, and join domain options.
+- **Hybrid Azure AD**: Supports both cloud-only and hybrid Azure AD join scenarios.
 
 ## Import
 

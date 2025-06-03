@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_m365_admin_browser_site Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "M365 Admin"
 description: |-
   Manages a browser site in Microsoft Intune.
 ---
@@ -8,6 +8,19 @@ description: |-
 # microsoft365_graph_beta_m365_admin_browser_site (Resource)
 
 Manages a browser site in Microsoft Intune.
+
+## Microsoft Documentation
+
+- [browserSite resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta)
+- [Create browserSite](https://learn.microsoft.com/en-us/graph/api/browsersitelist-post-sites?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `BrowserSiteLists.ReadWrite.All`
 
 ## Example Usage
 
@@ -65,6 +78,16 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Browser Site Management**: This resource manages individual sites within Microsoft Edge browser site lists.
+- **Internet Explorer Mode**: Sites are commonly used to configure which websites should open in Internet Explorer mode within Microsoft Edge.
+- **Compatibility Lists**: Helps manage legacy web applications that require Internet Explorer for proper functionality.
+- **Site Types**: Supports different site types including neutral sites, enterprise mode sites, and sites that should open in Microsoft Edge.
+- **URL Patterns**: Supports various URL formats including specific URLs, domains, and wildcard patterns.
+- **Policy Integration**: Sites integrate with Microsoft Edge administrative templates and Group Policy settings.
+- **Centralized Management**: Provides IT administrators with centralized control over browser behavior for specific websites.
 
 ## Import
 

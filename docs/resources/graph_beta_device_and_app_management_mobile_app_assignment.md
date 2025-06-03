@@ -9,6 +9,25 @@ description: |-
 
 Manages Mobile App Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [mobileAppAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappassignment?view=graph-rest-beta)
+- [Create mobileAppAssignment](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

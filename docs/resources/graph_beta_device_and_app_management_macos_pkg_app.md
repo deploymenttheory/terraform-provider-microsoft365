@@ -9,6 +9,19 @@ description: |-
 
 Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.
 
+## Microsoft Documentation
+
+- [macOSPkgApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macospkgapp?view=graph-rest-beta)
+- [Create macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -35,7 +48,9 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   }
 
   app_installer = {
+    // either installer_file_path_source or installer_url_source must be provided
     installer_file_path_source = "/path/to/Firefox_136.0.pkg"
+    installer_url_source       = "https://example.com/Firefox_136.0.pkg"
   }
 
 
@@ -77,7 +92,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 ### Optional
 
 - `app_icon` (Attributes) The source information for the app icon (PNG). Supports local file paths or URLs. (see [below for nested schema](#nestedatt--app_icon))
-- `app_installer` (Attributes) Metadata related to the installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
+- `app_installer` (Attributes) Metadata related to the PKG installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `developer` (String) The developer of the app.
@@ -151,11 +166,11 @@ Read-Only:
 
 Required:
 
-- `ignore_version_detection` (Boolean) Select 'true' for apps that are automatically updated by app developer or to only check for app bundleID before installation. Select 'false' to check for app bundleID and version number before installation.
 - `minimum_supported_operating_system` (Attributes) Specifies the minimum macOS version required for the application. Each field indicates whether the version is supported. (see [below for nested schema](#nestedatt--macos_pkg_app--minimum_supported_operating_system))
 
 Optional:
 
+- `ignore_version_detection` (Boolean) When TRUE, indicates that the app's version will NOT be used to detect if the app is installed on a device. When FALSE, indicates that the app's version will be used to detect if the app is installed on a device. Set this to true for apps that use a self update feature. The default value is FALSE.
 - `included_apps` (Attributes Set) Define the app bundle identifiers and version numbers to be used to detect the presence of the macOS app installation. This list is dynamically populated based on the PKG metadata, and users can also append additional entries. Maximum of 500 apps. +
 
 ### Notes: +
@@ -205,6 +220,7 @@ Optional:
 - `v12_0` (Boolean) Application supports macOS 12.0 or later. Defaults to `false`.
 - `v13_0` (Boolean) Application supports macOS 13.0 or later. Defaults to `false`.
 - `v14_0` (Boolean) Application supports macOS 14.0 or later. Defaults to `false`.
+- `v15_0` (Boolean) Application supports macOS 15.0 or later. Defaults to `false`.
 
 
 <a id="nestedatt--macos_pkg_app--included_apps"></a>
@@ -260,6 +276,17 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **macOS Specific**: This resource is specifically for managing PKG (Package) applications on macOS devices.
+- **Installer Package Format**: PKG files are macOS installer packages that can contain applications, system files, or configuration data.
+- **Installation Process**: PKG files are executed by the macOS Installer framework and can run pre/post-installation scripts.
+- **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
+- **Detection Rules**: Configure detection rules to determine if the package is successfully installed on target devices.
+- **System Privileges**: PKG installations typically require administrative privileges and run with elevated permissions.
+- **File Size Limits**: Be aware of file size limitations when uploading large PKG files to Intune.
+- **Included Apps**: PKG can contain multiple applications, and the system tracks which apps are installed by the package.
 
 ## Import
 

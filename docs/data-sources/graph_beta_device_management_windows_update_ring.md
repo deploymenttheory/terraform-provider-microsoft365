@@ -7,8 +7,19 @@ description: |-
 
 # microsoft365_graph_beta_device_management_windows_update_ring (Data Source)
 
-The Microsoft 365 Intune windows update catalog item data source provides information about a windows updates. Can be filtered by
-id, display_name , end_of_support_date and release_date_time.
+Retrieves Windows Update Rings from Microsoft Intune with explicit filtering options. Windows Update Rings allow you to define how and when Windows devices receive updates.
+
+## Microsoft Documentation
+
+- [windowsUpdateForBusinessConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-windowsupdateforbusinessconfiguration?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
 
 ## Example Usage
 

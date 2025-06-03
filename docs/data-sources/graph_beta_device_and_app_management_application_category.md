@@ -7,7 +7,19 @@ description: |-
 
 # microsoft365_graph_beta_device_and_app_management_application_category (Data Source)
 
-The Microsoft 365 Intune application category data source provides information about a specific mobile app category.
+Retrieves Application Categories from Microsoft Intune with explicit filtering options.
+
+## Microsoft Documentation
+
+- [mobileAppCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappcategory?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
 
 ## Example Usage
 

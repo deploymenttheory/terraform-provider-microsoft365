@@ -1,16 +1,25 @@
 ---
 page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "M365 Admin"
 description: |-
   Retrieves Browser Site Lists from Microsoft 365 Admin Centre with explicit filtering options.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site_list (Data Source)
 
-The Microsoft 365 Intune browser site data source provides information about browser sites configured in Internet Explorer Mode site lists. 
-Browser sites define URLs that should open in Internet Explorer compatibility mode within Microsoft Edge. 
-This data source allows filtering by all sites, a specific ID, or by web URL pattern.
+Retrieves Browser Site Lists from Microsoft 365 Admin Centre with explicit filtering options.
 
+## Microsoft Documentation
+
+- [browserSiteList resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersitelist?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `BrowserSiteLists.Read.All`, `BrowserSiteLists.ReadWrite.All`
 
 ## Example Usage
 

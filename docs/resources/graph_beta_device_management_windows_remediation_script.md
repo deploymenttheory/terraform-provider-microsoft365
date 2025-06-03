@@ -9,6 +9,25 @@ description: |-
 
 Manages a Device Health Script in Microsoft Intune. Device health scripts can detect and remediate issues on Windows devices.
 
+## Microsoft Documentation
+
+- [deviceHealthScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicehealthscript?view=graph-rest-beta)
+- [Create deviceHealthScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

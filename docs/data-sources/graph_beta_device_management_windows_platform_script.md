@@ -7,8 +7,19 @@ description: |-
 
 # microsoft365_graph_beta_device_management_windows_platform_script (Data Source)
 
-The Microsoft 365 Intune windows update catalog item data source provides information about a windows updates. Can be filtered by
-id, display_name , end_of_support_date and release_date_time.
+Retrieves information about a windows platform script.
+
+## Microsoft Documentation
+
+- [deviceManagementScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicemanagementscript?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.Read.All`, `DeviceManagementManagedDevices.ReadWrite.All`
 
 ## Example Usage
 

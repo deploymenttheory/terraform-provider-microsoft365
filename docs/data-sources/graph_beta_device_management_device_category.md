@@ -7,7 +7,25 @@ description: |-
 
 # microsoft365_graph_beta_device_management_device_category (Data Source)
 
-The Microsoft 365 Intune device category data source provides information about a specific device category.
+Retrieves Device Categories from Microsoft Intune with explicit filtering options.
+
+## Microsoft Documentation
+
+- [deviceCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicecategory?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.Read.All`, `DeviceManagementManagedDevices.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
 
 ## Example Usage
 

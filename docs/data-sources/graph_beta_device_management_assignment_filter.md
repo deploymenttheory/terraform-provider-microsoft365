@@ -7,7 +7,25 @@ description: |-
 
 # microsoft365_graph_beta_device_management_assignment_filter (Data Source)
 
-The Microsoft 365 Intune assignment filter data source provides information about a specific Intune assignment filter.
+Retrieves Assignment Filters from Microsoft Intune with explicit filtering options.
+
+## Microsoft Documentation
+
+- [deviceAndAppManagementAssignmentFilter resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
 
 ## Example Usage
 

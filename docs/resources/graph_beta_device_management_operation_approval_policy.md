@@ -9,6 +9,25 @@ description: |-
 
 Manages Operation Approval Policies in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [operationApprovalPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-operationapprovalpolicy?view=graph-rest-beta)
+- [Create operationApprovalPolicy](https://learn.microsoft.com/en-us/graph/api/intune-rbac-operationapprovalpolicy-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

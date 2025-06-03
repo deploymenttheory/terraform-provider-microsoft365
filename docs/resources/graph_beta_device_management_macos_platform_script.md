@@ -9,6 +9,25 @@ description: |-
 
 Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta API.
 
+## Microsoft Documentation
+
+- [deviceShellScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-deviceshellscript?view=graph-rest-beta)
+- [Create deviceShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-deviceshellscript-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
@@ -107,6 +126,20 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **macOS Shell Scripts**: This resource manages shell scripts for macOS devices in Microsoft Intune using the deviceShellScript API.
+- **Script Execution**: Scripts are executed on macOS devices using the Intune management agent (Microsoft Intune Agent.app).
+- **User vs Root Context**: Scripts can run as the current user or with root privileges depending on configuration.
+- **Assignment Required**: Scripts must be assigned to device or user groups to be deployed.
+- **Script Validation**: Intune provides execution status reporting and logs for troubleshooting.
+- **Return Codes**: Scripts should use appropriate exit codes to indicate success or failure.
+- **Security Context**: Scripts running with root privileges should be carefully reviewed for security implications.
+- **File Size Limits**: Script files must be less than 1 MB in size.
+- **Execution Frequency**: Scripts can be configured to run once or repeatedly based on schedule settings.
+- **Platform Support**: Supports macOS 12.0 and later versions with Intune management agent installed.
+- **Shebang Requirement**: Scripts must begin with a proper shebang (#!/bin/sh, #!/bin/bash, #!/usr/bin/env zsh).
 
 ## Import
 

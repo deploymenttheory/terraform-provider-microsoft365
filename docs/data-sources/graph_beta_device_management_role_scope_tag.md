@@ -7,7 +7,25 @@ description: |-
 
 # microsoft365_graph_beta_device_management_role_scope_tag (Data Source)
 
-The Microsoft 365 Intune role scope tag data source provides information about a specific scope tag.
+Retrieves Role Scope Tags from Microsoft Intune with explicit filtering options.
+
+## Microsoft Documentation
+
+- [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
 
 ## Example Usage
 
