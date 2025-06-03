@@ -9,6 +9,25 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [termsAndConditionsAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-companyterms-termsandconditionsassignment?view=graph-rest-beta)
+- [Create termsAndConditionsAssignment](https://learn.microsoft.com/en-us/graph/api/intune-companyterms-termsandconditions-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_terms_and_conditions_assignment/resource.tf" }}

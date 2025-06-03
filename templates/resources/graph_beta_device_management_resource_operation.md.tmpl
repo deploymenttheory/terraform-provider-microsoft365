@@ -9,6 +9,25 @@ description: |-
 
 {{ .Description | trimspace }}
 
+## Microsoft Documentation
+
+- [resourceOperation resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-resourceoperation?view=graph-rest-beta)
+- [Create resourceOperation](https://learn.microsoft.com/en-us/graph/api/intune-rbac-resourceoperation-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 {{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_resource_operation/resource.tf" }}
