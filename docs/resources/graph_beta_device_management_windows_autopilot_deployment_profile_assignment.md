@@ -9,6 +9,18 @@ description: |-
 
 Manages Windows Autopilot Deployment Profile Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [windowsAutopilotDeploymentProfileAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeploymentprofileassignment?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform

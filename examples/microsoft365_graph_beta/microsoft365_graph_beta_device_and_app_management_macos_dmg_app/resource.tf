@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "dock
 
   categories = [
     microsoft365_graph_beta_device_and_app_management_application_category.example.id, # custom app category
-    "Business", # builtin category
+    "Business",                                                                        # builtin category
     "Developer Tools",
   ]
 
@@ -23,14 +23,14 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "dock
   app_installer = {
     // either installer_file_path_source or installer_url_source must be provided
     installer_file_path_source = "/path/to/Docker Desktop 4.36.0.dmg"
-    installer_url_source = "https://example.com/Docker.dmg"
+    installer_url_source       = "https://example.com/Docker.dmg"
   }
   macos_dmg_app = {
     ignore_version_detection = true
 
     included_apps = [
       {
-        bundle_id = "com.docker.docker"
+        bundle_id      = "com.docker.docker"
         bundle_version = "4.36.0"
       }
     ]
@@ -47,7 +47,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "dock
     update = "5m"
     delete = "20s"
   }
-} 
+}
 
 resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf_connect" {
   display_name            = "Jamf Connect 2.42.0.dmg"
@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 
     included_apps = [
       {
-        bundle_id = "com.jamf.connect"
+        bundle_id      = "com.jamf.connect"
         bundle_version = "2.42.0"
       }
     ]

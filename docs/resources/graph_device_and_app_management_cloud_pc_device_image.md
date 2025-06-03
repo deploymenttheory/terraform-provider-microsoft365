@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_device_and_app_management_cloud_pc_device_image Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Cloud PC"
 description: |-
   
 ---
@@ -8,6 +8,19 @@ description: |-
 # microsoft365_graph_device_and_app_management_cloud_pc_device_image (Resource)
 
 
+
+## Microsoft Documentation
+
+- [cloudPcDeviceImage resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcdeviceimage?view=graph-rest-1.0)
+- [Create cloudPcDeviceImage](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-deviceimages?view=graph-rest-1.0)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `CloudPC.ReadWrite.All`
 
 ## Example Usage
 
@@ -108,6 +121,17 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Windows 365 Cloud PC**: This resource manages custom device images for Windows 365 Cloud PC provisioning.
+- **Custom Images**: Device images are custom Windows configurations that can be used as templates for new Cloud PCs.
+- **Image Source**: Images can be created from existing Azure VMs or uploaded as VHD files.
+- **Operating System Support**: Supports Windows 10 and Windows 11 Enterprise editions optimized for Cloud PC.
+- **Image Status**: Monitor image status through provisioning, ready, and failed states.
+- **Regional Availability**: Images may be replicated to multiple Azure regions for performance optimization.
+- **Size Limitations**: Device images have size and storage limitations based on subscription and service limits.
+- **Licensing Requirements**: Requires appropriate Windows 365 licensing and Azure subscriptions.
 
 ## Import
 

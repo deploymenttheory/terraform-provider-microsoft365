@@ -9,6 +9,26 @@ description: |-
 
 Manages Microsoft 365 app install options found within Microsoft 365 admin center, under Settings > Org settings > Services > Microsoft 365 installation options.
 
+## Microsoft Documentation
+
+- [m365AppsInstallationOptions resource type](https://learn.microsoft.com/en-us/graph/api/resources/m365appsinstallationoptions?view=graph-rest-1.0)
+- [Get m365AppsInstallationOptions](https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-get?view=graph-rest-1.0)
+- [Update m365AppsInstallationOptions](https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-update?view=graph-rest-1.0)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `OrgSettings.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
@@ -79,4 +99,23 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **M365 Apps Installation**: This resource manages organization-wide installation options for Microsoft 365 Apps (formerly Office 365).
+- **Update Channels**: Configure which update channel (Current, Monthly Enterprise, Semi-Annual Enterprise) devices receive updates from.
+- **Installation Source**: Control whether users can install apps from the Office CDN or enterprise deployment tools.
+- **User Install Permissions**: Manage whether users can install Office apps from the Office 365 portal.
+- **Tenant-Wide Settings**: These settings apply across the entire Microsoft 365 tenant.
+- **Deployment Control**: Helps IT administrators maintain control over Office application deployments and updates.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+#!/bin/bash
+# Singleton resource - no specific ID required
+terraform import microsoft365_graph_m365_admin_m365_apps_installation_options.example m365AppsInstallationOptions
+```
 

@@ -7,9 +7,19 @@ description: |-
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app (Data Source)
 
-The Microsoft 365 Intune mobile app data source provides information about mobile applications in Microsoft Intune. 
-It allows querying and filtering mobile apps based on various criteria. You can find details on how to construct OData
-queries [here](https://learn.microsoft.com/en-us/graph/filter-query-parameter?tabs=go).
+Retrieves macOS PKG Apps from Microsoft Intune with explicit filtering options.
+
+## Microsoft Documentation
+
+- [mobileApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileapp?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
 
 ## Example Usage
 

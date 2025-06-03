@@ -9,6 +9,25 @@ description: |-
 
 Manages Managed Device Cleanup Rules in Microsoft Intune. Device cleanup rules define when the admin wants devices to be automatically removed from Intune management based on inactivity periods and platform types.
 
+## Microsoft Documentation
+
+- [managedDeviceCleanupRule resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevicecleanuprule?view=graph-rest-beta)
+- [Create managedDeviceCleanupRule](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevicecleanuprule-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

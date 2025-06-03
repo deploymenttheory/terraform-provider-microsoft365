@@ -9,6 +9,25 @@ description: |-
 
 Manages Apple User Initiated Enrollment Profile Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [appleUserInitiatedEnrollmentProfileAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-appleuserinitiatedenrollmentprofileassignment?view=graph-rest-beta)
+- [Create appleUserInitiatedEnrollmentProfileAssignment](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-appleuserinitiatedenrollmentprofile-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

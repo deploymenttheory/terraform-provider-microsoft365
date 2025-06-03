@@ -23,7 +23,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
   app_installer = {
     // either installer_file_path_source or installer_url_source must be provided
     installer_file_path_source = "/path/to/Firefox_136.0.pkg"
-    installer_url_source = "https://example.com/Firefox_136.0.pkg"
+    installer_url_source       = "https://example.com/Firefox_136.0.pkg"
   }
 
 

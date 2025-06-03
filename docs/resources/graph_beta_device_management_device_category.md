@@ -9,6 +9,19 @@ description: |-
 
 Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories
 
+## Microsoft Documentation
+
+- [deviceCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicecategory?view=graph-rest-beta)
+- [Create deviceCategory](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicecategory-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -53,6 +66,17 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Device Organization**: This resource creates categories to organize and group managed devices in Microsoft Intune.
+- **Custom Categories**: Allows creation of custom device categories beyond the default categories.
+- **Assignment Rules**: Device categories can be used in assignment filters and conditional access policies.
+- **User Assignment**: During enrollment, users or administrators can assign devices to specific categories.
+- **Policy Targeting**: Categories help target policies and applications to specific groups of devices.
+- **Reporting**: Device categories enhance reporting and provide better device management insights.
+- **Enrollment Integration**: Categories can be automatically assigned during device enrollment workflows.
+- **Naming Conventions**: Use clear, descriptive names for categories to improve device management efficiency.
 
 ## Import
 

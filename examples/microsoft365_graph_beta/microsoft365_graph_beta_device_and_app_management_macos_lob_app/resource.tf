@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_lob_app" "exam
 
   categories = [
     microsoft365_graph_beta_device_and_app_management_application_category.example.id, # custom app category
-    "Business", # builtin category
+    "Business",                                                                        # builtin category
     "Productivity",
   ]
 
@@ -25,11 +25,11 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_lob_app" "exam
   }
 
   macos_lob_app = {
-    bundle_id                  = "com.example.app"
-    build_number              = "1.0.0"
-    version_number            = "1.0.0"
-    ignore_version_detection  = false
-    install_as_managed        = true
+    bundle_id                = "com.example.app"
+    build_number             = "1.0.0"
+    version_number           = "1.0.0"
+    ignore_version_detection = false
+    install_as_managed       = true
 
     minimum_supported_operating_system = {
       v14_0 = true

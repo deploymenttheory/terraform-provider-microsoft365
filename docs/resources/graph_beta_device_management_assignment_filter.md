@@ -9,6 +9,18 @@ description: |-
 
 Manages Assignment Filters in Microsoft Intune. Tenant administration -> Assignment filters
 
+## Microsoft Documentation
+
+- [deviceAndAppManagementAssignmentFilter resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -61,6 +73,23 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Assignment Filters**: This resource creates filters that can be used to refine policy and app assignments to specific devices or users.
+- **Filter Rules**: Use device properties like device model, OS version, or custom attributes to create targeted assignments.
+- **Include/Exclude**: Filters can be used to include or exclude devices from policy assignments based on the defined criteria.
+- **Platform Support**: Filters support multiple device platforms including Windows, iOS, macOS, and Android.
+- **Dynamic Targeting**: Provides dynamic targeting capabilities that automatically include/exclude devices as they meet filter criteria.
+- **Rule Syntax**: Filters use a specific rule syntax for defining conditions (e.g., device.model -eq "Surface Pro").
+- **Assignment Flexibility**: Enhances the flexibility of Intune policy assignments beyond just group-based targeting.
+
+## Common Filter Examples
+
+- **Device Model**: `device.model -eq "Surface Pro 7"`
+- **OS Version**: `device.osVersion -startsWith "10.0.19"`
+- **Enrollment Type**: `device.enrollmentProfileName -eq "Corporate Devices"`
+- **Device Category**: `device.deviceCategory -eq "Corporate"`
 
 ## Import
 

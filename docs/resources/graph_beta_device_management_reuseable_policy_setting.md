@@ -9,6 +9,25 @@ description: |-
 
 Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management.Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificatedirectly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settingsgroup are automatically passed to the policies that reference the group.
 
+## Microsoft Documentation
+
+- [deviceManagementReusablePolicySetting resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementreusablepolicysetting?view=graph-rest-beta)
+- [Create deviceManagementReusablePolicySetting](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementreusablepolicysetting-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

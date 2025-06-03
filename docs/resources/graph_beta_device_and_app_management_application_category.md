@@ -9,6 +9,25 @@ description: |-
 
 Manage Intune mobile app categories. Mobile app categories are used to organize apps in the Intune Company Portal.
 
+## Microsoft Documentation
+
+- [mobileAppCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappcategory?view=graph-rest-beta)
+- [Create mobileAppCategory](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementApps.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

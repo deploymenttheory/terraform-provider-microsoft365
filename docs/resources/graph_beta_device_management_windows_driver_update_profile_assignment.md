@@ -9,6 +9,25 @@ description: |-
 
 Manages Windows Driver Update Profile Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [windowsDriverUpdateProfileAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsdriverupdateprofileassignment?view=graph-rest-beta)
+- [Create windowsDriverUpdateProfileAssignment](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsdriverupdateprofile-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

@@ -9,6 +9,19 @@ description: |-
 
 Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
 
+## Microsoft Documentation
+
+- [deviceManagementScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementscript?view=graph-rest-beta)
+- [Create deviceManagementScript](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -98,6 +111,18 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **PowerShell Scripts**: This resource manages PowerShell scripts for Windows devices in Microsoft Intune.
+- **Script Execution**: Scripts are executed on Windows devices using the Intune Management Extension.
+- **User vs System Context**: Scripts can run in user context or system context depending on configuration.
+- **Assignment Required**: Scripts must be assigned to device or user groups to be deployed.
+- **Script Validation**: Intune validates script syntax and provides execution status reporting.
+- **Return Codes**: Scripts can return success/failure codes that are reported back to Intune.
+- **Security Context**: Scripts running in system context have elevated privileges and should be carefully reviewed.
+- **Base64 Encoding**: Script content is typically base64 encoded for transmission and storage.
+- **Execution Frequency**: Scripts can be configured to run once or repeatedly based on detection rules.
 
 ## Import
 

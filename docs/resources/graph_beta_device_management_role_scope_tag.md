@@ -9,6 +9,19 @@ description: |-
 
 Manages Role Scope Tags in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
+- [Create roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -80,6 +93,17 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Scope Management**: This resource creates scope tags to limit the scope of administrative permissions in Microsoft Intune.
+- **Multi-Tenant Support**: Scope tags enable delegation of management to different departments or geographic regions.
+- **Resource Isolation**: Objects tagged with scope tags are only visible to administrators with matching scope permissions.
+- **Assignment Integration**: Scope tags work with role assignments to define what resources administrators can manage.
+- **Default Scope**: All objects are created with the "Default" scope tag unless explicitly assigned different tags.
+- **Inheritance**: Some objects inherit scope tags from their parent objects (e.g., apps inherit from app categories).
+- **Permission Boundaries**: Administrators can only manage objects that have scope tags matching their assigned permissions.
+- **Organizational Structure**: Use scope tags to mirror your organizational structure and delegation requirements.
 
 ## Import
 

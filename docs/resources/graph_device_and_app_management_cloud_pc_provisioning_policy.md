@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Cloud PC"
 description: |-
   
 ---
@@ -8,6 +8,19 @@ description: |-
 # microsoft365_graph_device_and_app_management_cloud_pc_provisioning_policy (Resource)
 
 
+
+## Microsoft Documentation
+
+- [cloudPcProvisioningPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcprovisioningpolicy?view=graph-rest-1.0)
+- [Create cloudPcProvisioningPolicy](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-provisioningpolicies?view=graph-rest-1.0)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `CloudPC.ReadWrite.All`
 
 ## Example Usage
 
@@ -144,6 +157,17 @@ Optional:
 Optional:
 
 - `locale` (String) The Windows language or region tag to use for language pack configuration and localization of the Cloud PC. The default value is en-US, which corresponds to English (United States).
+
+## Important Notes
+
+- **Windows 365 Cloud PC**: This resource defines provisioning policies for creating and managing Windows 365 Cloud PCs.
+- **Resource Configuration**: Specifies compute resources, storage, and network settings for Cloud PCs.
+- **Image Assignment**: Links to device images that will be used to create new Cloud PCs.
+- **User Assignment**: Policies can be assigned to Azure AD user groups for automated Cloud PC provisioning.
+- **Regional Deployment**: Supports deployment across different Azure regions for optimal performance.
+- **Licensing Integration**: Integrates with Windows 365 licensing to ensure compliance and proper resource allocation.
+- **Automatic Provisioning**: Enables automatic Cloud PC creation when users are assigned to the policy.
+- **Grace Period**: Configurable grace period before reprovisioning failed Cloud PCs.
 
 ## Import
 

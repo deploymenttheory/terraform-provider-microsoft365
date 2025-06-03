@@ -9,6 +9,19 @@ description: |-
 
 The resource `role_definition` manages a Role Definition in Microsoft 365
 
+## Microsoft Documentation
+
+- [roleDefinition resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-roledefinition?view=graph-rest-beta)
+- [Create roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -80,6 +93,17 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Role-Based Access Control**: This resource defines custom roles for Microsoft Intune role-based access control (RBAC).
+- **Granular Permissions**: Allows creation of roles with specific permissions tailored to organizational needs.
+- **Built-in vs Custom**: Custom role definitions supplement built-in Intune roles with organization-specific requirements.
+- **Resource Actions**: Role definitions specify which actions can be performed on specific Intune resources.
+- **Assignment Support**: Custom roles can be assigned to users and groups through role assignments.
+- **Scope Management**: Works with scope tags to limit the scope of permissions within the organization.
+- **Security Principle**: Follow the principle of least privilege when creating custom role definitions.
+- **Permission Categories**: Permissions are organized by resource types like devices, apps, policies, and configuration.
 
 ## Import
 

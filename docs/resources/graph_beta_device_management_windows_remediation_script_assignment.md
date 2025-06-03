@@ -9,6 +9,25 @@ description: |-
 
 Manages Device Health Script Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [deviceHealthScriptAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicehealthscriptassignment?view=graph-rest-beta)
+- [Create deviceHealthScriptAssignment](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform

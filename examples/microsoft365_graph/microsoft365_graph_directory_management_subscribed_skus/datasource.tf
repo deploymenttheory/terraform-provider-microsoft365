@@ -55,9 +55,9 @@ output "enterprise_premium_sku" {
 output "user_assignable_skus" {
   value = [
     for sku in data.microsoft365_graph_directory_management_subscribed_skus.user_skus.subscribed_skus : {
-      sku_part_number  = sku.sku_part_number
-      consumed_units   = sku.consumed_units
-      enabled_units    = sku.prepaid_units.enabled
+      sku_part_number   = sku.sku_part_number
+      consumed_units    = sku.consumed_units
+      enabled_units     = sku.prepaid_units.enabled
       capability_status = sku.capability_status
     }
   ]
@@ -65,16 +65,16 @@ output "user_assignable_skus" {
 }
 
 output "specific_sku_service_plans" {
-  value = length(data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus) > 0 ? data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus[0].service_plans : []
+  value       = length(data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus) > 0 ? data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus[0].service_plans : []
   description = "Service plans for the specific SKU"
 }
 
 output "premium_skus_summary" {
   value = [
     for sku in data.microsoft365_graph_directory_management_subscribed_skus.premium_skus.subscribed_skus : {
-      name              = sku.sku_part_number
-      total_licenses    = sku.prepaid_units.enabled
-      used_licenses     = sku.consumed_units
+      name               = sku.sku_part_number
+      total_licenses     = sku.prepaid_units.enabled
+      used_licenses      = sku.consumed_units
       available_licenses = sku.prepaid_units.enabled - sku.consumed_units
     }
   ]

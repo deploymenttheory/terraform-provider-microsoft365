@@ -9,6 +9,25 @@ description: |-
 
 Manages Terms and Conditions Assignments in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [termsAndConditionsAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-companyterms-termsandconditionsassignment?view=graph-rest-beta)
+- [Create termsAndConditionsAssignment](https://learn.microsoft.com/en-us/graph/api/intune-companyterms-termsandconditions-post-assignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
@@ -16,7 +35,7 @@ Manages Terms and Conditions Assignments in Microsoft Intune.
 resource "microsoft365_graph_beta_device_management_terms_and_conditions_assignment" "all_users" {
   terms_and_conditions_id = microsoft365_graph_beta_device_management_terms_and_conditions.company_terms.id
 
-  target {
+  target = {
     target_type = "allLicensedUsers"
   }
 }
@@ -25,7 +44,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions_assignm
 resource "microsoft365_graph_beta_device_management_terms_and_conditions_assignment" "specific_group" {
   terms_and_conditions_id = microsoft365_graph_beta_device_management_terms_and_conditions.company_terms.id
 
-  target {
+  target = {
     target_type = "groupAssignment"
     group_id    = "12345678-1234-1234-1234-123456789012" # IT Department group
   }
@@ -35,7 +54,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions_assignm
 resource "microsoft365_graph_beta_device_management_terms_and_conditions_assignment" "sccm_collection" {
   terms_and_conditions_id = microsoft365_graph_beta_device_management_terms_and_conditions.company_terms.id
 
-  target {
+  target = {
     target_type   = "configurationManagerCollection"
     collection_id = "MEM00012345" # Custom SCCM collection
   }

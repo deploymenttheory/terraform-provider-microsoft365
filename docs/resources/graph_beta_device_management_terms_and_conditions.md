@@ -9,6 +9,18 @@ description: |-
 
 Manages Terms and Conditions in Microsoft Intune.
 
+## Microsoft Documentation
+
+- [termsAndConditions resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-companyterms-termsandconditions?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
 ## Example Usage
 
 ```terraform
@@ -95,6 +107,14 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Terms and Conditions**: This resource manages company terms and conditions that are presented to users during device enrollment.
+- **Version Management**: Each update to terms and conditions creates a new version that users must accept.
+- **User Acceptance Tracking**: The system tracks which users have accepted which versions of the terms and conditions.
+- **Enrollment Requirement**: Users may be required to accept terms and conditions before completing device enrollment.
+- **HTML Content Support**: The body text supports rich HTML formatting for comprehensive legal documentation.
 
 ## Import
 

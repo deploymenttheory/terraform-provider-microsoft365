@@ -7,7 +7,25 @@ description: |-
 
 # microsoft365_graph_beta_device_management_reuseable_policy_setting (Data Source)
 
-The Microsoft 365 Intune role scope tag data source provides information about a specific scope tag.
+Retrieves Reusable Policy Settings from Microsoft Intune with explicit filtering options. Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings group are automatically passed to the policies that reference the group.
+
+## Microsoft Documentation
+
+- [deviceManagementReusablePolicySetting resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementreusablepolicysetting?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.14.1-alpha | Experimental | Initial release |
 
 ## Example Usage
 
