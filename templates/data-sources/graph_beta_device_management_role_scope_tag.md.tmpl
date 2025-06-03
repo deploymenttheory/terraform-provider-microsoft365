@@ -7,7 +7,19 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-The Microsoft 365 Intune role scope tag data source provides information about a specific scope tag.
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
 
 ## Example Usage
 
