@@ -78,7 +78,7 @@ func (r *Win32LobAppResource) ImportState(ctx context.Context, req resource.Impo
 // Function to create the full device management win32 lob app schema
 func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Win32 LOB App in Microsoft Intune.",
+		MarkdownDescription: "Manages Win32 line-of-business applications using the `/deviceAppManagement/mobileApps` endpoint. Win32 LOB apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

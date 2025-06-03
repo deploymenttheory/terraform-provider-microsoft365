@@ -84,8 +84,7 @@ func (r *UserLicenseAssignmentResource) ImportState(ctx context.Context, req res
 // Schema returns the schema for the resource.
 func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages license assignments for Microsoft 365 users using the Microsoft Graph API. " +
-			"This resource allows you to assign or remove licenses from users to enable or disable their use of Microsoft cloud offerings.",
+		MarkdownDescription: "Manages Microsoft 365 license assignments for individual users using the `/users/{userId}/assignLicense` endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

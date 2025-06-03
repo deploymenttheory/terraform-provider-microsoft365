@@ -80,7 +80,7 @@ func (r *WindowsPlatformScriptResource) ImportState(ctx context.Context, req res
 
 func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.",
+		MarkdownDescription: "Manages Windows PowerShell scripts using the `/deviceManagement/deviceManagementScripts` endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

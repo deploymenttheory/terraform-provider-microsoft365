@@ -51,7 +51,7 @@ func (d *DeviceCategoryDataSource) Configure(ctx context.Context, req datasource
 // Schema defines the schema for the data source
 func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Device Categories from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves device categories from Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -47,7 +47,7 @@ func (d *AssignmentFilterDataSource) Metadata(_ context.Context, req datasource.
 // Schema defines the schema for the data source
 func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Assignment Filters from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves assignment filters from Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint. Assignment filters allow targeting of policies and apps based on device properties like OS version, manufacturer, or custom device attributes, enabling more granular deployment control beyond basic group membership.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,
