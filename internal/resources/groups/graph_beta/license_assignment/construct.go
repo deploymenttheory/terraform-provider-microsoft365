@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -74,8 +75,11 @@ func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLice
 		requestBody.SetRemoveLicenses([]uuid.UUID{})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Constructed group license assignment request with %d licenses to add and %d licenses to remove",
-		len(addLicenses), len(requestBody.GetRemoveLicenses())))
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 
 	return requestBody, nil
 }
