@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -33,7 +34,7 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -55,7 +56,7 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for create method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -73,37 +74,28 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 		}
 	}
 
-	respResource, err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-		return
-	}
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for device management script resources.
@@ -119,14 +111,14 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 // of the resource's current configuration on the server.
 func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsPlatformScriptResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -166,7 +158,7 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation for Device Management Script resources.
@@ -183,7 +175,7 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 // Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
 func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object WindowsPlatformScriptResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	// Get current state
 	var state WindowsPlatformScriptResourceModel
@@ -211,7 +203,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update - Delete", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
@@ -220,7 +212,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -237,13 +229,12 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 
 	object.ID = types.StringValue(*requestResource.GetId())
 
-	// create assignments
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for create method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -261,37 +252,28 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		}
 	}
 
-	respResource, err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Get(context.Background(), nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-		return
-	}
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments Fetch", r.ReadPermissions)
-		return
-	}
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for Device Management Script resources.
@@ -304,7 +286,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsPlatformScriptResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -328,7 +310,7 @@ func (r *WindowsPlatformScriptResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 }

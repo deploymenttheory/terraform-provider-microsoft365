@@ -32,11 +32,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	// SettingsCatalogTemplateType are not set by this resource type. But the field is required to satisfy schema.
 	data.SettingsCatalogTemplateType = types.StringValue("")
 
-	var roleScopeTagIds []attr.Value
-	for _, v := range state.SliceToTypeStringSlice(remoteResource.GetRoleScopeTagIds()) {
-		roleScopeTagIds = append(roleScopeTagIds, v)
-	}
-
 	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {

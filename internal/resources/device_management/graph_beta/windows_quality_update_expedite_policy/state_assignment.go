@@ -12,7 +12,7 @@ import (
 
 // MapRemoteAssignmentsToTerraform maps the Graph API assignments into the Terraform consolidated model
 func MapRemoteAssignmentsToTerraform(ctx context.Context, data *WindowsQualityUpdateExpeditePolicyResourceModel, assignments []graphmodels.WindowsQualityUpdateProfileAssignmentable) {
-	if assignments == nil || len(assignments) == 0 {
+	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments found, clearing assignments field")
 		data.Assignments = nil
 		return

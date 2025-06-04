@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
@@ -31,14 +31,11 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -55,65 +52,51 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	// if object.Assignment != nil {
-	// 	requestAssignment, err := constructAssignment(ctx, object.Assignment)
-	// 	if err != nil {
-	// 		resp.Diagnostics.AddError(
-	// 			"Error constructing assignment for Create Method",
-	// 			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
-	// 		)
-	// 		return
-	// 	}
+	if object.Assignment != nil {
+		requestAssignment, err := constructAssignment(ctx, object.Assignment)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignment for Create Method",
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
 
-	// 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		err = r.client.
+			DeviceManagement().
+			DeviceHealthScripts().
+			ByDeviceHealthScriptId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, requestAssignment, nil)
 
-	// 		err := r.client.
-	// 			DeviceManagement().
-	// 			DeviceHealthScripts().
-	// 			ByDeviceHealthScriptId(object.ID.ValueString()).
-	// 			Assign().
-	// 			Post(ctx, requestAssignment, nil)
-
-	// 		if err != nil {
-	// 			return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-	// 		}
-	// 		return nil
-	// 	})
-
-	// 	if err != nil {
-	// 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-	// 		return
-	// 	}
-	// }
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for macos platform scripts resources.
@@ -128,14 +111,14 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object DeviceHealthScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -165,7 +148,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation for macos platform scripts resources.
@@ -183,7 +166,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object DeviceHealthScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -201,14 +184,11 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -224,12 +204,13 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
+	// Assignment updating is commented out in original code
 	// if object.Assignment != nil {
 	// 	requestAssignment, err := constructAssignment(ctx, object.Assignment)
 	// 	if err != nil {
 	// 		resp.Diagnostics.AddError(
 	// 			"Error constructing assignment for update method",
-	// 			fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+	// 			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 	// 		)
 	// 		return
 	// 	}
@@ -242,35 +223,33 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	// 		Post(ctx, requestAssignment, nil)
 
 	// 	if err != nil {
-	// 		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+	// 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 	// 		return
 	// 	}
 	// }
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		resp.State = readResp.State
-		return nil
-	})
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for Device Management Script resources.
@@ -284,7 +263,7 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 func (r *DeviceHealthScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object DeviceHealthScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -308,7 +287,7 @@ func (r *DeviceHealthScriptResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 }

@@ -3,6 +3,7 @@ package graphBetaWindowsPlatformScript
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -65,12 +66,19 @@ type WindowsPlatformScriptResource struct {
 
 // Metadata returns the resource type name.
 func (r *WindowsPlatformScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	r.ProviderTypeName = req.ProviderTypeName
+	r.TypeName = ResourceName
+	resp.TypeName = r.FullTypeName()
+}
+
+// FullTypeName returns the full resource type name in the format "providername_resourcename".
+func (r *WindowsPlatformScriptResource) FullTypeName() string {
+	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
 func (r *WindowsPlatformScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.

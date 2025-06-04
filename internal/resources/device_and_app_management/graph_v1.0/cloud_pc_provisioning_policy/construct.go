@@ -14,17 +14,13 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
 
-	// Set basic properties
 	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
 	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
 	constructors.SetStringProperty(data.CloudPcNamingTemplate, requestBody.SetCloudPcNamingTemplate)
 	constructors.SetStringProperty(data.ImageId, requestBody.SetImageId)
-
-	// Set boolean properties
 	constructors.SetBoolProperty(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
 	constructors.SetBoolProperty(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
 
-	// Handle enums
 	if err := constructors.SetEnumProperty(data.ImageType,
 		models.ParseCloudPcProvisioningPolicyImageType,
 		requestBody.SetImageType); err != nil {
@@ -37,7 +33,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		return nil, fmt.Errorf("failed to set provisioning type: %v", err)
 	}
 
-	// Handle Microsoft Managed Desktop
 	if data.MicrosoftManagedDesktop != nil {
 		mmd := models.NewMicrosoftManagedDesktop()
 
@@ -51,7 +46,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		requestBody.SetMicrosoftManagedDesktop(mmd)
 	}
 
-	// Handle Domain Join Configurations
 	if len(data.DomainJoinConfigurations) > 0 {
 		var domainJoinConfigs []models.CloudPcDomainJoinConfigurationable
 		for _, config := range data.DomainJoinConfigurations {

@@ -67,10 +67,8 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 	compositeID := fmt.Sprintf("%s/%s", groupId, ownerId)
 	object.ID = types.StringValue(compositeID)
 
-	// Set initial state
 	object.OwnerType = types.StringValue("Unknown") // Will be updated in the read operation
 	object.OwnerDisplayName = types.StringValue("")
-	// OwnerObjectType should already be set from the plan
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -208,12 +206,10 @@ func (r *GroupOwnerAssignmentResource) Update(ctx context.Context, req resource.
 			return
 		}
 
-		// Update composite ID
 		compositeID := fmt.Sprintf("%s/%s", plan.GroupID.ValueString(), plan.OwnerID.ValueString())
 		plan.ID = types.StringValue(compositeID)
 	}
 
-	// Read to get current state
 	readResp := &resource.ReadResponse{State: resp.State}
 	r.Read(ctx, resource.ReadRequest{
 		State:        resp.State,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -65,12 +66,19 @@ type OperationApprovalPolicyResource struct {
 
 // Metadata returns the resource type name.
 func (r *OperationApprovalPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	r.ProviderTypeName = req.ProviderTypeName
+	r.TypeName = ResourceName
+	resp.TypeName = r.FullTypeName()
+}
+
+// FullTypeName returns the full type name of the resource for logging purposes.
+func (r *OperationApprovalPolicyResource) FullTypeName() string {
+	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
 func (r *OperationApprovalPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.

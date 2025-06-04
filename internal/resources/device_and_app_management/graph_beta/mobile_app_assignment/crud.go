@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Mobile App Assignment resources.
@@ -37,9 +36,6 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 		return
 	}
 	defer cancel()
-
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
 
 	requestBody, err := ConstructMobileAppAssignment(ctx, object)
 	if err != nil {
@@ -70,28 +66,22 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
@@ -197,9 +187,6 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := ConstructMobileAppAssignment(ctx, object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -223,25 +210,18 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -287,72 +267,4 @@ func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.D
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
-}
-
-// Helper function to determine if an assignment matches our resource
-func matchesAssignment(ctx context.Context, object MobileAppAssignmentResourceModel, assign interface{}) bool {
-	assignment, ok := assign.(graphmodels.MobileAppAssignmentable)
-	if !ok {
-		return false
-	}
-
-	// Check if intent matches
-	if assignment.GetIntent() != nil {
-		intentStr := assignment.GetIntent().String()
-		if !object.Intent.IsNull() && object.Intent.ValueString() != intentStr {
-			return false
-		}
-	}
-
-	// Check if target matches (simplified - you may need more complex logic)
-	target := assignment.GetTarget()
-	if target != nil {
-		// Check target type
-		odataType := target.GetOdataType()
-		if odataType != nil {
-			targetType := getTargetTypeFromOdataType(*odataType)
-			if !object.Target.TargetType.IsNull() && object.Target.TargetType.ValueString() != targetType {
-				return false
-			}
-		}
-
-		// Check group ID if applicable
-		if !object.Target.GroupId.IsNull() {
-			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
-				if groupTarget.GetGroupId() == nil || object.Target.GroupId.ValueString() != *groupTarget.GetGroupId() {
-					return false
-				}
-			}
-		}
-
-		// Check filter ID if applicable
-		if !object.Target.DeviceAndAppManagementAssignmentFilterId.IsNull() {
-			filterId := target.GetDeviceAndAppManagementAssignmentFilterId()
-			if filterId == nil || object.Target.DeviceAndAppManagementAssignmentFilterId.ValueString() != *filterId {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-// Helper to get target type from odata.type
-func getTargetTypeFromOdataType(odataType string) string {
-	switch odataType {
-	case "#microsoft.graph.allDevicesAssignmentTarget":
-		return "allDevices"
-	case "#microsoft.graph.allLicensedUsersAssignmentTarget":
-		return "allLicensedUsers"
-	case "#microsoft.graph.groupAssignmentTarget":
-		return "groupAssignment"
-	case "#microsoft.graph.exclusionGroupAssignmentTarget":
-		return "exclusionGroupAssignment"
-	case "#microsoft.graph.androidFotaDeploymentAssignmentTarget":
-		return "androidFotaDeployment"
-	case "#microsoft.graph.configurationManagerCollectionAssignmentTarget":
-		return "configurationManagerCollection"
-	default:
-		return ""
-	}
 }
