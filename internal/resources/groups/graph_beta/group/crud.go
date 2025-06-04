@@ -29,6 +29,9 @@ func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -54,7 +57,6 @@ func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	retryTimeout := 2 * time.Minute
 	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		readResp := &resource.ReadResponse{State: resp.State}
 		r.Read(ctx, resource.ReadRequest{
@@ -134,6 +136,9 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 	defer cancel()
 
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -158,6 +163,32 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	MapRemoteStateToTerraform(ctx, &object, updatedResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
 }
