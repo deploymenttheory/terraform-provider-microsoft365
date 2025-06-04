@@ -1,12 +1,12 @@
 # Example 1: Assign Office 365 E3 license to a user
 resource "microsoft365_graph_beta_users_user_license_assignment" "user_e3_license" {
-  user_id = "john.doe@example.com"  # Can be user ID or UPN
+  user_id = "john.doe@example.com" # Can be user ID or UPN
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = [
-        "efb87545-963c-4e0d-99df-69c6916d9eb0"  # Disable specific service plan
+        "efb87545-963c-4e0d-99df-69c6916d9eb0" # Disable specific service plan
       ]
     }
   ]
@@ -27,13 +27,13 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "user_multiple_
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id         = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = []
     },
     {
-      sku_id = "b05e124f-c7cc-45a0-a6aa-8cf78c946968"  # Enterprise Mobility + Security E5
+      sku_id = "b05e124f-c7cc-45a0-a6aa-8cf78c946968" # Enterprise Mobility + Security E5
       disabled_plans = [
-        "8a256a2b-b617-496d-b51b-e76466e88db0"  # Disable Microsoft Defender for Cloud Apps
+        "8a256a2b-b617-496d-b51b-e76466e88db0" # Disable Microsoft Defender for Cloud Apps
       ]
     }
   ]
@@ -55,8 +55,8 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "user_license_r
   add_licenses = []
 
   remove_licenses = [
-    "6fd2c87f-b296-42f0-b197-1e91e994b900",  # Remove Office 365 E3
-    "b05e124f-c7cc-45a0-a6aa-8cf78c946968"   # Remove Enterprise Mobility + Security E5
+    "6fd2c87f-b296-42f0-b197-1e91e994b900", # Remove Office 365 E3
+    "b05e124f-c7cc-45a0-a6aa-8cf78c946968"  # Remove Enterprise Mobility + Security E5
   ]
 
   timeouts = {
@@ -73,13 +73,13 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "user_license_r
 
   add_licenses = [
     {
-      sku_id = "c7df2760-2c81-4ef7-b578-5b5392b571df"  # Office 365 E5
+      sku_id         = "c7df2760-2c81-4ef7-b578-5b5392b571df" # Office 365 E5
       disabled_plans = []
     }
   ]
 
   remove_licenses = [
-    "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Remove Office 365 E3
+    "6fd2c87f-b296-42f0-b197-1e91e994b900" # Remove Office 365 E3
   ]
 
   timeouts = {
@@ -100,7 +100,7 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "dynamic_user_l
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id         = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = []
     }
   ]

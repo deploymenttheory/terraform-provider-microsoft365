@@ -17,6 +17,12 @@ The following API permissions are required in order to use this data source.
 
 - **Application**: `LicenseAssignment.Read.All`, `Directory.Read.All`, `Organization.Read.All`
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.15.0-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
