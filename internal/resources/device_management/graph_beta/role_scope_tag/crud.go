@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -45,7 +46,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -67,7 +68,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -98,29 +99,23 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for Role Scope Tags in Microsoft Intune.
@@ -136,14 +131,14 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 	var baseResource graphmodels.RoleScopeTagable
 	var assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -183,7 +178,7 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation for Role Scope Tags in Microsoft Intune.
@@ -197,7 +192,7 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object RoleScopeTagResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -217,7 +212,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -238,7 +233,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -264,30 +259,23 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for Role Scope Tags in Microsoft Intune.
@@ -300,7 +288,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object RoleScopeTagResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -324,7 +312,7 @@ func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 }

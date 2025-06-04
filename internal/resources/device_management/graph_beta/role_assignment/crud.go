@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -85,29 +86,30 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	resp.State = readResp.State
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for the RoleDefinitionAssignment resource.
 func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data RoleDefinitionAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -137,14 +139,14 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s", ResourceName))
 }
 
 // Update handles the Update operation for the RoleDefinitionAssignment resource.
 func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data RoleDefinitionAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,7 +170,6 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		builtInRoleName = data.BuiltInRoleName.ValueString()
 	}
 
-	// Construct the updated assignment
 	requestBody, err := constructResource(
 		ctx,
 		roleDefinitionID,
@@ -176,6 +177,7 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		builtInRoleName,
 		&data,
 	)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing assignment for update",
@@ -195,29 +197,30 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	readResp := &resource.ReadResponse{
-		State: resp.State,
-	}
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-	resp.Diagnostics.Append(readResp.Diagnostics...)
-	if resp.Diagnostics.HasError() {
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	resp.State = readResp.State
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for the RoleDefinitionAssignment resource.
 func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data RoleDefinitionAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -237,11 +240,11 @@ func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resou
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete Assignment", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

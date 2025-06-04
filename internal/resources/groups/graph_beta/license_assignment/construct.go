@@ -12,13 +12,12 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructGroupLicenseAssignmentRequest maps the Terraform configuration to a group license assignment request
-func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLicenseAssignmentResourceModel) (groups.ItemAssignLicensePostRequestBodyable, error) {
+// constructResource maps the Terraform configuration to a group license assignment request
+func constructResource(ctx context.Context, data *GroupLicenseAssignmentResourceModel) (groups.ItemAssignLicensePostRequestBodyable, error) {
 	tflog.Debug(ctx, "Constructing group license assignment request from Terraform configuration")
 
 	requestBody := groups.NewItemAssignLicensePostRequestBody()
 
-	// Process add_licenses
 	addLicenses := make([]graphmodels.AssignedLicenseable, 0)
 	for _, license := range data.AddLicenses {
 		assignedLicense := graphmodels.NewAssignedLicense()
@@ -55,7 +54,6 @@ func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLice
 	}
 	requestBody.SetAddLicenses(addLicenses)
 
-	// Process remove_licenses - convert strings to UUIDs
 	if !data.RemoveLicenses.IsNull() && !data.RemoveLicenses.IsUnknown() {
 		removeLicensesElements := data.RemoveLicenses.Elements()
 		removeLicenses := make([]uuid.UUID, 0, len(removeLicensesElements))

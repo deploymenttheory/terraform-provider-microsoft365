@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
@@ -32,9 +32,6 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 		return
 	}
 	defer cancel()
-
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
 
 	object.ID = object.UserId
 
@@ -65,37 +62,30 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read retrieves the current state of a user's license assignments.
 func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object UserLicenseAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -141,7 +131,7 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles updates to a user's license assignments.
@@ -160,9 +150,6 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 	defer cancel()
-
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
 
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
@@ -191,30 +178,23 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the deletion of a user license assignment (removes all managed licenses).
@@ -234,13 +214,11 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// Get current licenses to remove
 	currentLicenses := make([]string, 0)
 	for _, license := range object.AddLicenses {
 		currentLicenses = append(currentLicenses, license.SkuId.ValueString())
 	}
 
-	// Also check the remove_licenses set in case there are licenses to remove
 	removeLicensesSet := object.RemoveLicenses.Elements()
 	for _, licenseVal := range removeLicensesSet {
 		if strVal, ok := licenseVal.(types.String); ok {
@@ -249,11 +227,9 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 	}
 
 	if len(currentLicenses) > 0 {
-		// Create request to remove all licenses managed by this resource
 		requestBody := users.NewItemAssignLicensePostRequestBody()
 		requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{})
 
-		// Convert license IDs to UUIDs for removal
 		removeLicenseGUIDs := make([]uuid.UUID, 0, len(currentLicenses))
 		for _, licenseId := range currentLicenses {
 			licenseUUID, err := uuid.Parse(licenseId)
@@ -282,5 +258,5 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from user: %s", object.UserId.ValueString()))
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

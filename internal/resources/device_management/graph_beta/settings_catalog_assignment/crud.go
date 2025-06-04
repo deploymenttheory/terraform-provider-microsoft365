@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 // Create handles the Create operation for Device Management Configuration Policy Assignment resources.
@@ -37,9 +37,6 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Create(ctx conte
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -57,7 +54,7 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Create(ctx conte
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -68,28 +65,22 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Create(ctx conte
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
@@ -165,9 +156,6 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx conte
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -190,25 +178,18 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx conte
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}

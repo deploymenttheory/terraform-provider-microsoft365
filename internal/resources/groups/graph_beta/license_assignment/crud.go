@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/google/uuid"
@@ -32,11 +33,9 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Set the ID to the group ID for tracking
 	object.ID = object.GroupId
 
-	// Construct the license assignment request
-	requestBody, err := constructGroupLicenseAssignmentRequest(ctx, &object)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing group license assignment request",
@@ -45,7 +44,6 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// Call the assignLicense API
 	_, err = r.client.
 		Groups().
 		ByGroupId(object.GroupId.ValueString()).
@@ -59,28 +57,35 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned licenses to group: %s", object.GroupId.ValueString()))
 
-	// Read the updated group to get current license state
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, &resource.ReadResponse{
-		State:       resp.State,
-		Diagnostics: resp.Diagnostics,
-	})
-
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", r.TypeName))
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read retrieves the current state of a group's license assignments.
 func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -95,7 +100,6 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	// Get group details including assigned licenses
 	requestParameters := &groups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "displayName", "assignedLicenses"},
@@ -112,11 +116,10 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	// Map the remote resource state to Terraform
 	MapRemoteResourceStateToTerraform(ctx, &object, group)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles updates to a group's license assignments.
@@ -136,8 +139,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Construct the license assignment request
-	requestBody, err := constructGroupLicenseAssignmentRequest(ctx, &object)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing group license assignment request for update",
@@ -146,7 +148,6 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// Call the assignLicense API
 	_, err = r.client.
 		Groups().
 		ByGroupId(object.GroupId.ValueString()).
@@ -160,21 +161,28 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for group: %s", object.GroupId.ValueString()))
 
-	// Read the updated group to get current license state
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, &resource.ReadResponse{
-		State:       resp.State,
-		Diagnostics: resp.Diagnostics,
-	})
-
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", r.TypeName))
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the deletion of a group license assignment (removes all managed licenses).
@@ -194,13 +202,11 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Get current licenses to remove
 	currentLicenses := make([]string, 0)
 	for _, license := range object.AddLicenses {
 		currentLicenses = append(currentLicenses, license.SkuId.ValueString())
 	}
 
-	// Also check the remove_licenses set in case there are licenses to remove
 	removeLicensesSet := object.RemoveLicenses.Elements()
 	for _, licenseVal := range removeLicensesSet {
 		if strVal, ok := licenseVal.(types.String); ok {
@@ -209,11 +215,9 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 	}
 
 	if len(currentLicenses) > 0 {
-		// Create request to remove all licenses managed by this resource
 		requestBody := groups.NewItemAssignLicensePostRequestBody()
 		requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{})
 
-		// Convert license IDs to UUIDs for removal
 		removeLicenseGUIDs := make([]uuid.UUID, 0, len(currentLicenses))
 		for _, licenseId := range currentLicenses {
 			licenseUUID, err := uuid.Parse(licenseId)
@@ -242,5 +246,5 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from group: %s", object.GroupId.ValueString()))
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

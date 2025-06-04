@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -33,7 +34,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -51,20 +52,34 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 
 	object.ID = types.StringValue(*cloudPcUserSetting.GetId())
 
-	MapRemoteStateToTerraform(ctx, &object, cloudPcUserSetting)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation.
 func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcUserSettingResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
@@ -72,7 +87,7 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -99,14 +114,14 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation.
 func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object CloudPcUserSettingResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -123,7 +138,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -140,19 +155,30 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation.
 func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcUserSettingResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -178,5 +204,5 @@ func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.De
 	}
 	resp.State.RemoveResource(ctx)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

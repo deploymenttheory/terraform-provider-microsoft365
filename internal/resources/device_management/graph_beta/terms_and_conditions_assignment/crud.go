@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -37,9 +37,6 @@ func (r *TermsAndConditionsAssignmentResource) Create(ctx context.Context, req r
 		return
 	}
 	defer cancel()
-
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
 
 	requestBody, err := constructResource(ctx, object)
 	if err != nil {
@@ -69,28 +66,22 @@ func (r *TermsAndConditionsAssignmentResource) Create(ctx context.Context, req r
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
@@ -119,7 +110,6 @@ func (r *TermsAndConditionsAssignmentResource) Read(ctx context.Context, req res
 	}
 	defer cancel()
 
-	// Get all assignments and find the one with matching ID
 	assignments, err := r.client.
 		DeviceManagement().
 		TermsAndConditions().
@@ -132,7 +122,6 @@ func (r *TermsAndConditionsAssignmentResource) Read(ctx context.Context, req res
 		return
 	}
 
-	// Find the assignment with matching ID
 	var foundAssignment graphmodels.TermsAndConditionsAssignmentable
 	if assignments != nil && assignments.GetValue() != nil {
 		for _, assignment := range assignments.GetValue() {
@@ -183,9 +172,6 @@ func (r *TermsAndConditionsAssignmentResource) Update(ctx context.Context, req r
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -208,25 +194,18 @@ func (r *TermsAndConditionsAssignmentResource) Update(ctx context.Context, req r
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}

@@ -36,27 +36,23 @@ func mapRemoteTargetToTerraform(target graphmodels.DeviceAndAppManagementAssignm
 		return targetModel
 	}
 
-	// Map target type based on OData type
 	if odataType := target.GetOdataType(); odataType != nil {
 		targetModel.TargetType = types.StringValue(getTargetTypeFromOdataType(*odataType))
 	}
 
-	// Map common properties
 	targetModel.DeviceAndAppManagementAssignmentFilterId = state.StringPointerValue(target.GetDeviceAndAppManagementAssignmentFilterId())
 	targetModel.DeviceAndAppManagementAssignmentFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
 
 	// Map target-specific properties
 	switch typedTarget := target.(type) {
-	case graphmodels.ExclusionGroupAssignmentTargetable:
-		targetModel.GroupId = state.StringPointerValue(typedTarget.GetGroupId())
 	case graphmodels.GroupAssignmentTargetable:
 		groupId := typedTarget.GetGroupId()
 		if groupId != nil {
-			// Determine if this is a user or group assignment based on context
-			// For now, we'll map it to GroupId and let the user specify the correct target_type
 			targetModel.GroupId = state.StringPointerValue(groupId)
 			targetModel.EntraObjectId = state.StringPointerValue(groupId)
 		}
+	case graphmodels.ExclusionGroupAssignmentTargetable:
+		targetModel.GroupId = state.StringPointerValue(typedTarget.GetGroupId())
 	}
 
 	return targetModel

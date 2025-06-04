@@ -14,7 +14,7 @@ import (
 // MapRemoteAssignmentStateToTerraform maps the remote assignment state to Terraform state
 // following a similar structure to the constructAssignment function
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHealthScriptResourceModel, remoteAssignments []graphmodels.DeviceHealthScriptAssignmentable) {
-	if remoteAssignments == nil || len(remoteAssignments) == 0 {
+	if len(remoteAssignments) == 0 {
 		tflog.Debug(ctx, "No remote assignments found")
 		tfState.Assignment = nil
 		return
@@ -53,17 +53,17 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHea
 
 		// Handle different target types
 		switch t := target.(type) {
-		case graphmodels.AllDevicesAssignmentTargetable:
-			tflog.Debug(ctx, "Found AllDevicesAssignmentTarget")
-			assignment.AllDevices = types.BoolValue(true)
-			assignment.AllDevicesFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
-			assignment.AllDevicesFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
-
 		case graphmodels.AllLicensedUsersAssignmentTargetable:
 			tflog.Debug(ctx, "Found AllLicensedUsersAssignmentTarget")
 			assignment.AllUsers = types.BoolValue(true)
 			assignment.AllUsersFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
 			assignment.AllUsersFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
+
+		case graphmodels.AllDevicesAssignmentTargetable:
+			tflog.Debug(ctx, "Found AllDevicesAssignmentTarget")
+			assignment.AllDevices = types.BoolValue(true)
+			assignment.AllDevicesFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
+			assignment.AllDevicesFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
 
 		case graphmodels.GroupAssignmentTargetable:
 			tflog.Debug(ctx, "Found GroupAssignmentTarget")
@@ -119,56 +119,56 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHea
 		}
 	}
 
-	// // Set include groups in assignment if any
-	// if len(includeGroups) > 0 {
-	// 	includeGroupsSet, diags := types.SetValue(
-	// 		types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()},
-	// 		includeGroups,
-	// 	)
+	// Set include groups in assignment if any
+	if len(includeGroups) > 0 {
+		includeGroupsSet, diags := types.SetValue(
+			types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()},
+			includeGroups,
+		)
 
-	// 	if diags.HasError() {
-	// 		tflog.Error(ctx, "Failed to create include groups set", map[string]interface{}{
-	// 			"errors": diags.Errors(),
-	// 		})
-	// 		assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
-	// 	} else {
-	// 		assignment.IncludeGroups = includeGroupsSet
-	// 		tflog.Debug(ctx, "Set include groups", map[string]interface{}{
-	// 			"count": len(includeGroups),
-	// 		})
-	// 	}
-	// } else {
-	// 	assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
-	// }
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create include groups set", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+			assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
+		} else {
+			assignment.IncludeGroups = includeGroupsSet
+			tflog.Debug(ctx, "Set include groups", map[string]interface{}{
+				"count": len(includeGroups),
+			})
+		}
+	} else {
+		assignment.IncludeGroups = types.SetNull(types.ObjectType{AttrTypes: getIncludeGroupAttrTypes()})
+	}
 
-	// // Set exclude groups in assignment if any
-	// if len(excludeGroupIds) > 0 {
-	// 	excludeGroupsSet, diags := types.SetValue(types.StringType, excludeGroupIds)
+	// Set exclude groups in assignment if any
+	if len(excludeGroupIds) > 0 {
+		excludeGroupsSet, diags := types.SetValue(types.StringType, excludeGroupIds)
 
-	// 	if diags.HasError() {
-	// 		tflog.Error(ctx, "Failed to create exclude groups set", map[string]interface{}{
-	// 			"errors": diags.Errors(),
-	// 		})
-	// 		assignment.ExcludeGroupIds = types.SetNull(types.StringType)
-	// 	} else {
-	// 		assignment.ExcludeGroupIds = excludeGroupsSet
-	// 		tflog.Debug(ctx, "Set exclude groups", map[string]interface{}{
-	// 			"count": len(excludeGroupIds),
-	// 		})
-	// 	}
-	// } else {
-	// 	assignment.ExcludeGroupIds = types.SetNull(types.StringType)
-	// }
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create exclude groups set", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+			assignment.ExcludeGroupIds = types.SetNull(types.StringType)
+		} else {
+			assignment.ExcludeGroupIds = excludeGroupsSet
+			tflog.Debug(ctx, "Set exclude groups", map[string]interface{}{
+				"count": len(excludeGroupIds),
+			})
+		}
+	} else {
+		assignment.ExcludeGroupIds = types.SetNull(types.StringType)
+	}
 
-	// // Set the assignment in the state
-	// tfState.Assignment = []WindowsRemediationScriptAssignmentResourceModel{*assignment}
+	// Set the assignment in the state
+	tfState.Assignment = []WindowsRemediationScriptAssignmentResourceModel{*assignment}
 
-	// tflog.Debug(ctx, "Completed mapping of remote assignment state to Terraform state", map[string]interface{}{
-	// 	"includeGroupsCount": len(includeGroups),
-	// 	"excludeGroupsCount": len(excludeGroupIds),
-	// 	"allDevices":         assignment.AllDevices.ValueBool(),
-	// 	"allUsers":           assignment.AllUsers.ValueBool(),
-	// })
+	tflog.Debug(ctx, "Completed mapping of remote assignment state to Terraform state", map[string]interface{}{
+		"includeGroupsCount": len(includeGroups),
+		"excludeGroupsCount": len(excludeGroupIds),
+		"allDevices":         assignment.AllDevices.ValueBool(),
+		"allUsers":           assignment.AllUsers.ValueBool(),
+	})
 }
 
 // mapRunScheduleToTerraform maps a GraphAPI run schedule to Terraform types
