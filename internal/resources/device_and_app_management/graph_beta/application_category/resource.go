@@ -77,7 +77,7 @@ func (r *ApplicationCategoryResource) ImportState(ctx context.Context, req resou
 // Schema returns the schema for the resource.
 func (r *ApplicationCategoryResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manage Intune mobile app categories. Mobile app categories are used to organize apps in the Intune Company Portal.",
+		MarkdownDescription: "Manages application categories in Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. Application categories help organize mobile apps in the Company Portal, enabling users to browse and discover apps by category (Business, Productivity, etc.) and allowing administrators to logically group applications for easier management.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

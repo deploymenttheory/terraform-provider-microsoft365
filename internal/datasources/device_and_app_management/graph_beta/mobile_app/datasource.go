@@ -49,7 +49,7 @@ func (r *MobileAppDataSource) Metadata(ctx context.Context, req datasource.Metad
 // Schema defines the schema for the data source
 func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves macOS PKG Apps from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This data source enables querying all mobile app types including Win32 LOB apps, PKG/DMG apps, store apps, and web apps with advanced filtering capabilities for application discovery and configuration planning.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -83,7 +83,7 @@ func (r *MobileAppAssignmentResource) ImportState(ctx context.Context, req resou
 // Schema returns the schema for the resource.
 func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages Mobile App Assignments in Microsoft Intune.",
+		MarkdownDescription: "Manages mobile app assignments in Microsoft Intune using the `/deviceAppManagement/mobileApps/{mobileAppId}/assignments` endpoint. This resource controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the app assignment associated with the Intune application.",

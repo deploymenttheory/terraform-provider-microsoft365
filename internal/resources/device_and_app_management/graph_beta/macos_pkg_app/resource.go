@@ -85,7 +85,7 @@ func (r *MacOSPKGAppResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.",
+		MarkdownDescription: "Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint. PKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

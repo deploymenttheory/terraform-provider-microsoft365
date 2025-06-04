@@ -85,7 +85,7 @@ func (r *MacOSLobAppResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *MacOSLobAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Intune macOS Line of Business (LOB) app, using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.",
+		MarkdownDescription: "Manages macOS Line of Business (LOB) app packages in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. LOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

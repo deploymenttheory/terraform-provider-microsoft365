@@ -87,7 +87,7 @@ func (r *WindowsUpdateRingResource) ModifyPlan(ctx context.Context, req resource
 // Schema defines the schema for the resource.
 func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Update Ring in Microsoft Intune. This resource creates a Windows Update for Business Configuration to manage Windows Update settings for devices.",
+		MarkdownDescription: "Manages Windows Update for Business configuration policies using the `/deviceManagement/deviceConfigurations` endpoint. This resource controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -76,7 +76,7 @@ func (r *BrowserSiteResource) ImportState(ctx context.Context, req resource.Impo
 
 func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a browser site in Microsoft Intune.",
+		MarkdownDescription: "Manages browser sites for Internet Explorer mode in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This resource configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -167,3 +167,98 @@ func StringLengthAtMost(maxLength int) validator.String {
 		maxLength: maxLength,
 	}
 }
+
+// -----------------------------------------------------------------------------------
+
+// illegalCharactersValidator validates that a string does not contain forbidden characters
+type illegalCharactersValidator struct {
+	forbiddenChars []rune
+	description    string
+}
+
+// Description describes the validation in plain text formatting.
+func (v illegalCharactersValidator) Description(_ context.Context) string {
+	if v.description != "" {
+		return v.description
+	}
+	return fmt.Sprintf("string cannot contain the following characters: %s", string(v.forbiddenChars))
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v illegalCharactersValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v illegalCharactersValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	for _, char := range value {
+		// Check if character is in forbidden list
+		for _, forbidden := range v.forbiddenChars {
+			if char == forbidden {
+				resp.Diagnostics.AddAttributeError(
+					req.Path,
+					"Invalid Character",
+					fmt.Sprintf("String contains forbidden character: %c", char),
+				)
+				return
+			}
+		}
+	}
+}
+
+// IllegalCharactersInString returns a string validator which ensures that the string
+// does not contain any of the specified forbidden characters.
+func IllegalCharactersInString(forbiddenChars []rune, description string) validator.String {
+	return &illegalCharactersValidator{
+		forbiddenChars: forbiddenChars,
+		description:    description,
+	}
+}
+
+// asciiOnlyValidator validates that a string contains only ASCII characters (0-127)
+type asciiOnlyValidator struct{}
+
+// Description describes the validation in plain text formatting.
+func (v asciiOnlyValidator) Description(_ context.Context) string {
+	return "string can contain only ASCII characters (0-127)"
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v asciiOnlyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v asciiOnlyValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	for _, char := range value {
+		// Check if character is outside ASCII range 0-127
+		if char > 127 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid Character",
+				fmt.Sprintf("String contains non-ASCII character: %c", char),
+			)
+			return
+		}
+	}
+}
+
+// ASCIIOnly returns a string validator which ensures that the string
+// contains only ASCII characters (0-127).
+func ASCIIOnly() validator.String {
+	return &asciiOnlyValidator{}
+}

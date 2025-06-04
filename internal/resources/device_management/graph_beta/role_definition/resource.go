@@ -79,7 +79,7 @@ func (r *RoleDefinitionResource) ImportState(ctx context.Context, req resource.I
 
 func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The resource `role_definition` manages a Role Definition in Microsoft 365",
+		MarkdownDescription: "Manages custom role definitions in Microsoft Intune using the `/deviceManagement/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_group_license_assignment"
+	ResourceName  = "graph_beta_groups_license_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -82,8 +82,7 @@ func (r *GroupLicenseAssignmentResource) ImportState(ctx context.Context, req re
 // Schema returns the schema for the resource.
 func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages license assignments for Microsoft 365 groups using the Microsoft Graph API. " +
-			"Group-based licensing allows you to assign licenses to a group, and those licenses are automatically assigned to all users in the group.",
+		MarkdownDescription: "Manages group-based license assignments in Microsoft 365 using the `/groups/{groupId}/assignLicense` endpoint. This resource enables automatic license inheritance where all current and future group members receive the assigned licenses, providing centralized license management through Azure AD group membership.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

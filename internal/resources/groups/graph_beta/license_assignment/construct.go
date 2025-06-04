@@ -22,7 +22,6 @@ func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLice
 	for _, license := range data.AddLicenses {
 		assignedLicense := graphmodels.NewAssignedLicense()
 
-		// Set SKU ID - convert string to UUID
 		if !license.SkuId.IsNull() && !license.SkuId.IsUnknown() {
 			skuIdStr := license.SkuId.ValueString()
 			skuId, err := uuid.Parse(skuIdStr)
@@ -32,7 +31,6 @@ func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLice
 			assignedLicense.SetSkuId(&skuId)
 		}
 
-		// Set disabled plans if provided - convert strings to UUIDs
 		if !license.DisabledPlans.IsNull() && !license.DisabledPlans.IsUnknown() {
 			disabledPlansElements := license.DisabledPlans.Elements()
 			disabledPlans := make([]uuid.UUID, 0, len(disabledPlansElements))
@@ -73,7 +71,6 @@ func constructGroupLicenseAssignmentRequest(ctx context.Context, data *GroupLice
 
 		requestBody.SetRemoveLicenses(removeLicenses)
 	} else {
-		// Set empty array if no licenses to remove
 		requestBody.SetRemoveLicenses([]uuid.UUID{})
 	}
 

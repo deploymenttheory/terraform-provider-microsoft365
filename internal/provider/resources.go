@@ -53,7 +53,9 @@ import (
 	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/user/graph_beta/license_assignment"
 
 	// Graph Beta - Group resources
-	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/group/graph_beta/license_assignment"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/groups/graph_beta/group"
+	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/groups/graph_beta/group_member_assignment"
+	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/groups/graph_beta/license_assignment"
 
 	// Graph Beta - M365 Admin Centre
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/m365_admin/graph_beta/browser_site"
@@ -133,6 +135,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaUserLicenseAssignment.NewUserLicenseAssignmentResource,
 
 		// Graph Beta - Group resources
+		graphBetaGroup.NewGroupResource,
+		graphBetaGroupMemberAssignment.NewGroupMemberAssignmentResource,
 		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
 
 		// Graph Beta - M365 Admin Centre

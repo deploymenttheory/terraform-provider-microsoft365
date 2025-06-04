@@ -1,0 +1,88 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Group Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Add member](https://learn.microsoft.com/en-us/graph/api/group-post-members?view=graph-rest-beta)
+- [List members](https://learn.microsoft.com/en-us/graph/api/group-list-members?view=graph-rest-beta)
+- [Remove member](https://learn.microsoft.com/en-us/graph/api/group-delete-members?view=graph-rest-beta)
+- [Group membership overview](https://learn.microsoft.com/en-us/graph/api/resources/groups-overview?view=graph-rest-beta#group-membership)
+- [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `GroupMember.ReadWrite.All`, `Directory.ReadWrite.All`, `Device.ReadWrite.All`, `Application.ReadWrite.All`, `OrgContact.Read.All`, `RoleManagement.ReadWrite.Directory`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.15.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_group_member_assignment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Member Type Support**: The types of members that can be added depend on the target group type:
+  - **Security Groups**: Users, other Security groups, Devices, Service principals, and Organizational contacts
+  - **Microsoft 365 Groups**: Only Users are supported
+  - **Mail-enabled Security Groups**: Read-only, cannot add members
+  - **Distribution Groups**: Read-only, cannot add members
+
+- **Group-to-Group Membership**: When adding a Group as a member:
+  - Only Security groups can be added to Security groups
+  - Microsoft 365 groups cannot be members of any group type
+  - The resource automatically validates group type compatibility
+
+- **Object Type Validation**: The `member_object_type` field determines the correct Microsoft Graph API endpoint to use:
+  - `User`: Uses `/directoryObjects/{id}` endpoint
+  - `Group`: Uses `/groups/{id}` endpoint  
+  - `Device`: Uses `/devices/{id}` endpoint
+  - `ServicePrincipal`: Uses `/servicePrincipals/{id}` endpoint
+  - `OrganizationalContact`: Uses `/contacts/{id}` endpoint
+
+- **Permissions by Member Type**: Different permissions are required depending on the member type:
+  - **Users**: `GroupMember.ReadWrite.All`
+  - **Groups**: `GroupMember.ReadWrite.All`
+  - **Devices**: `GroupMember.ReadWrite.All` + `Device.ReadWrite.All`
+  - **Service Principals**: `GroupMember.ReadWrite.All` + `Application.ReadWrite.All`
+  - **Organizational Contacts**: `GroupMember.ReadWrite.All` + `OrgContact.Read.All`
+  - **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required
+
+- **API Behavior**: The resource uses the `/groups/{group-id}/members/$ref` endpoint with `@odata.id` references
+- **Validation**: Client-side validation prevents common API errors and provides clear error messages
+- **Composite ID**: The resource ID is automatically generated as `{group_id}/{member_id}`
+- **Idempotent**: The Microsoft Graph API handles duplicate member additions appropriately
+
+## Member Type Compatibility Matrix
+
+| Object Type | Security Group | Microsoft 365 Group | Mail-enabled Security | Distribution |
+|-------------|----------------|---------------------|----------------------|-------------|
+| User | ✅ Supported | ✅ Supported | ❌ Read-only | ❌ Read-only |
+| Security Group | ✅ Supported | ❌ Not allowed | ❌ Read-only | ❌ Read-only |
+| Microsoft 365 Group | ❌ Not allowed | ❌ Not allowed | ❌ Read-only | ❌ Read-only |
+| Device | ✅ Supported | ❌ Not allowed | ❌ Read-only | ❌ Read-only |
+| Service Principal | ✅ Supported | ❌ Not allowed | ❌ Read-only | ❌ Read-only |
+| Organizational Contact | ✅ Supported | ❌ Not allowed | ❌ Read-only | ❌ Read-only |
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_group_member_assignment/import.sh" }} 

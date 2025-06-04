@@ -78,7 +78,7 @@ func (r *ResourceOperationResource) ImportState(ctx context.Context, req resourc
 // Schema returns the schema for the resource.
 func (r *ResourceOperationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages Resource Operations in Microsoft Intune RBAC.",
+		MarkdownDescription: "Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/resourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Key of the Resource Operation. Read-only, automatically generated.",
