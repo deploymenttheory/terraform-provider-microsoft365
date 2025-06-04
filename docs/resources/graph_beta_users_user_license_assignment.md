@@ -1,11 +1,11 @@
 ---
-page_title: "microsoft365_graph_beta_user_license_assignment Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_users_user_license_assignment Resource - terraform-provider-microsoft365"
 subcategory: "User Management"
 description: |-
   Manages Microsoft 365 license assignments for individual users using the /users/{userId}/assignLicense endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.
 ---
 
-# microsoft365_graph_beta_user_license_assignment (Resource)
+# microsoft365_graph_beta_users_user_license_assignment (Resource)
 
 Manages Microsoft 365 license assignments for individual users using the `/users/{userId}/assignLicense` endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.
 
@@ -23,11 +23,17 @@ The following API permissions are required in order to use this resource.
 
 - **Application**: `User.ReadWrite.All`, `Directory.ReadWrite.All`
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.15.0-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
 # Example 1: Assign Office 365 E3 license to a user
-resource "microsoft365_graph_beta_user_license_assignment" "user_e3_license" {
+resource "microsoft365_graph_beta_users_user_license_assignment" "user_e3_license" {
   user_id = "john.doe@example.com" # Can be user ID or UPN
 
   add_licenses = [
@@ -50,7 +56,7 @@ resource "microsoft365_graph_beta_user_license_assignment" "user_e3_license" {
 }
 
 # Example 2: Assign multiple licenses to a user
-resource "microsoft365_graph_beta_user_license_assignment" "user_multiple_licenses" {
+resource "microsoft365_graph_beta_users_user_license_assignment" "user_multiple_licenses" {
   user_id = "jane.smith@example.com"
 
   add_licenses = [
@@ -77,7 +83,7 @@ resource "microsoft365_graph_beta_user_license_assignment" "user_multiple_licens
 }
 
 # Example 3: Remove specific licenses from a user
-resource "microsoft365_graph_beta_user_license_assignment" "user_license_removal" {
+resource "microsoft365_graph_beta_users_user_license_assignment" "user_license_removal" {
   user_id = "bob.johnson@example.com"
 
   add_licenses = []
@@ -96,7 +102,7 @@ resource "microsoft365_graph_beta_user_license_assignment" "user_license_removal
 }
 
 # Example 4: Replace existing licenses (remove old, add new)
-resource "microsoft365_graph_beta_user_license_assignment" "user_license_replacement" {
+resource "microsoft365_graph_beta_users_user_license_assignment" "user_license_replacement" {
   user_id = "alice.wilson@example.com"
 
   add_licenses = [
@@ -119,12 +125,12 @@ resource "microsoft365_graph_beta_user_license_assignment" "user_license_replace
 }
 
 # Example 5: Using a data source to get user ID dynamically
-data "microsoft365_graph_beta_user" "target_user" {
+data "microsoft365_graph_beta_users_user" "target_user" {
   user_principal_name = "dynamic.user@example.com"
 }
 
-resource "microsoft365_graph_beta_user_license_assignment" "dynamic_user_license" {
-  user_id = data.microsoft365_graph_beta_user.target_user.id
+resource "microsoft365_graph_beta_users_user_license_assignment" "dynamic_user_license" {
+  user_id = data.microsoft365_graph_beta_users_user.target_user.id
 
   add_licenses = [
     {

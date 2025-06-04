@@ -1,7 +1,7 @@
 # Example 1: Add a user as an owner to a security group
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "user_to_security_group" {
-  group_id          = "1132b215-826f-42a9-8cfe-1643d19d17fd"  # Security group UUID
-  owner_id          = "2243c326-937g-53f0-c9df-2e68f106b901"  # User UUID
+  group_id          = "1132b215-826f-42a9-8cfe-1643d19d17fd" # Security group UUID
+  owner_id          = "2243c326-937g-53f0-c9df-2e68f106b901" # User UUID
   owner_object_type = "User"
 
   timeouts = {
@@ -14,8 +14,8 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "user_to_securi
 
 # Example 2: Add a user as an owner to a Microsoft 365 group
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "user_to_m365_group" {
-  group_id          = "3354d437-048h-64g1-d0ef-3f79g217c012"  # Microsoft 365 group UUID
-  owner_id          = "4465e548-159i-75h2-e1fg-4g80h328d123"  # User UUID
+  group_id          = "3354d437-048h-64g1-d0ef-3f79g217c012" # Microsoft 365 group UUID
+  owner_id          = "4465e548-159i-75h2-e1fg-4g80h328d123" # User UUID
   owner_object_type = "User"
 
   timeouts = {
@@ -28,8 +28,8 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "user_to_m365_g
 
 # Example 3: Add a service principal as an owner to a security group
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "service_principal_to_security_group" {
-  group_id          = "5576f659-260j-86i3-f2gh-5i91i439e234"  # Security group UUID
-  owner_id          = "6687g760-371k-97j4-g3hi-6j02j540f345"  # Service principal UUID
+  group_id          = "5576f659-260j-86i3-f2gh-5i91i439e234" # Security group UUID
+  owner_id          = "6687g760-371k-97j4-g3hi-6j02j540f345" # Service principal UUID
   owner_object_type = "ServicePrincipal"
 
   timeouts = {
@@ -42,8 +42,8 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "service_princi
 
 # Example 4: Add a service principal as an owner to a Microsoft 365 group
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "service_principal_to_m365_group" {
-  group_id          = "7798h871-482l-08k5-h4ij-7k13k651g456"  # Microsoft 365 group UUID
-  owner_id          = "8809i982-593m-19l6-i5jk-8l24l762h567"  # Service principal UUID
+  group_id          = "7798h871-482l-08k5-h4ij-7k13k651g456" # Microsoft 365 group UUID
+  owner_id          = "8809i982-593m-19l6-i5jk-8l24l762h567" # Service principal UUID
   owner_object_type = "ServicePrincipal"
 
   timeouts = {
@@ -79,12 +79,12 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "dynamic_assign
 # Example 6: Multiple owner assignments to the same group
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "multiple_user_owners" {
   for_each = toset([
-    "3354d437-048h-64g1-d0ef-3f79g217c012",  # User 1
-    "4465e548-159i-75h2-e1fg-4g80h328d123",  # User 2
-    "5576f659-260j-86i3-f2gh-5i91i439e234"   # User 3
+    "3354d437-048h-64g1-d0ef-3f79g217c012", # User 1
+    "4465e548-159i-75h2-e1fg-4g80h328d123", # User 2
+    "5576f659-260j-86i3-f2gh-5i91i439e234"  # User 3
   ])
 
-  group_id          = "7798h871-482l-08k5-h4ij-7k13k651g456"  # Target security group
+  group_id          = "7798h871-482l-08k5-h4ij-7k13k651g456" # Target security group
   owner_id          = each.value
   owner_object_type = "User"
 
@@ -117,7 +117,7 @@ locals {
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "mixed_owner_types" {
   for_each = { for idx, owner in local.owners : "${owner.type}_${idx}" => owner }
 
-  group_id          = "2243m326-937q-53p0-m9no-2e68p106l901"  # Target group
+  group_id          = "2243m326-937q-53p0-m9no-2e68p106l901" # Target group
   owner_id          = each.value.id
   owner_object_type = each.value.type
 
@@ -143,8 +143,8 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "project_team_o
   depends_on = [microsoft365_graph_beta_groups_group.example_group]
 
   for_each = toset([
-    "1132b215-826f-42a9-8cfe-1643d19d17fd",  # Project Lead
-    "2243c326-937g-53f0-c9df-2e68f106b901",  # Team Manager
+    "1132b215-826f-42a9-8cfe-1643d19d17fd", # Project Lead
+    "2243c326-937g-53f0-c9df-2e68f106b901", # Team Manager
   ])
 
   group_id          = microsoft365_graph_beta_groups_group.example_group.id
@@ -165,7 +165,7 @@ data "azuread_service_principal" "managed_identity" {
 }
 
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "managed_identity_owner" {
-  group_id          = "3354d437-048h-64g1-d0ef-3f79g217c012"  # Target group
+  group_id          = "3354d437-048h-64g1-d0ef-3f79g217c012" # Target group
   owner_id          = data.azuread_service_principal.managed_identity.object_id
   owner_object_type = "ServicePrincipal"
 
@@ -187,7 +187,7 @@ resource "microsoft365_graph_beta_groups_group_owner_assignment" "conditional_ow
   count = contains(data.microsoft365_graph_beta_groups_group.conditional_group.group_types, "Unified") ? 0 : 1
 
   group_id          = data.microsoft365_graph_beta_groups_group.conditional_group.id
-  owner_id          = "4465e548-159i-75h2-e1fg-4g80h328d123"  # User UUID
+  owner_id          = "4465e548-159i-75h2-e1fg-4g80h328d123" # User UUID
   owner_object_type = "User"
 
   timeouts = {

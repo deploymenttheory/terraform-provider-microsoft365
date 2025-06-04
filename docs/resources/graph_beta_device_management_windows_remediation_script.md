@@ -213,6 +213,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 
 ### Optional
 
+- `assignment` (Block List) List of assignment configurations for the device health script (see [below for nested schema](#nestedblock--assignment))
 - `description` (String) Description of the device health script.
 - `detection_script_parameters` (Attributes List) List of ComplexType DetectionScriptParameters objects. (see [below for nested schema](#nestedatt--detection_script_parameters))
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
@@ -229,6 +230,51 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 - `is_global_script` (Boolean) Determines if this is Microsoft Proprietary Script. Proprietary scripts are read-only.
 - `last_modified_date_time` (String) The timestamp of when the device health script was modified. This property is read-only.
 - `version` (String) Version of the device health script.
+
+<a id="nestedblock--assignment"></a>
+### Nested Schema for `assignment`
+
+Optional:
+
+- `all_devices` (Boolean) Assign to all devices. Cannot be used with all_users or include_groups.
+- `all_devices_filter_id` (String) Filter ID for all devices assignment.
+- `all_devices_filter_type` (String) Filter type for all devices assignment. Can be 'include' or 'exclude'.
+- `all_users` (Boolean) Assign to all users. Cannot be used with all_devices or include_groups.
+- `all_users_filter_id` (String) Filter ID for all users assignment.
+- `all_users_filter_type` (String) Filter type for all users assignment. Can be 'include' or 'exclude'.
+- `exclude_group_ids` (Set of String) Group IDs to exclude from the assignment.
+- `include_groups` (Attributes Set) Groups to include in the assignment. Cannot be used with all_devices or all_users. (see [below for nested schema](#nestedatt--assignment--include_groups))
+
+<a id="nestedatt--assignment--include_groups"></a>
+### Nested Schema for `assignment.include_groups`
+
+Required:
+
+- `group_id` (String) Group ID to include.
+
+Optional:
+
+- `include_groups_filter_id` (String) Filter ID for include group assignment.
+- `include_groups_filter_type` (String) Filter type for include group assignment. Can be 'include' or 'exclude'.
+- `run_remediation_script` (Boolean) Whether to run the remediation script for this group assignment.
+- `run_schedule` (Attributes) Run schedule for this group assignment. (see [below for nested schema](#nestedatt--assignment--include_groups--run_schedule))
+
+<a id="nestedatt--assignment--include_groups--run_schedule"></a>
+### Nested Schema for `assignment.include_groups.run_schedule`
+
+Required:
+
+- `schedule_type` (String) Type of schedule. Can be 'daily', 'hourly', or 'once'.
+
+Optional:
+
+- `date` (String) Date for once schedule (e.g., '2025-05-01').
+- `interval` (Number) Repeat interval for the schedule.For 'daily' the interal represents days, for 'hourly' the interval represents hours.
+- `time` (String) Time of day for daily and once schedules (e.g., '14:30').
+- `use_utc` (Boolean) Whether to use UTC time.
+
+
+
 
 <a id="nestedatt--detection_script_parameters"></a>
 ### Nested Schema for `detection_script_parameters`
