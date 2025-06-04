@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_m365_admin_browser_site Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages a browser site in Microsoft Intune.
+  Manages browser sites for Internet Explorer mode in Microsoft Edge using the /admin/edge/internetExplorerMode/siteLists/{siteListId}/sites endpoint. This resource configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site (Resource)
 
-Manages a browser site in Microsoft Intune.
+Manages browser sites for Internet Explorer mode in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This resource configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
 
 ## Microsoft Documentation
 

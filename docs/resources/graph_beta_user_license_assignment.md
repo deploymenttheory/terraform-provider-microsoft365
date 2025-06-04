@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_user_license_assignment Resource - terraform-provider-microsoft365"
 subcategory: "User Management"
 description: |-
-  Manages license assignments for Microsoft 365 users using the Microsoft Graph API. This resource allows you to assign or remove licenses from users to enable or disable their use of Microsoft cloud offerings.
+  Manages Microsoft 365 license assignments for individual users using the /users/{userId}/assignLicense endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.
 ---
 
 # microsoft365_graph_beta_user_license_assignment (Resource)
 
-Manages license assignments for Microsoft 365 users using the Microsoft Graph API. This resource allows you to assign or remove licenses from users to enable or disable their use of Microsoft cloud offerings.
+Manages Microsoft 365 license assignments for individual users using the `/users/{userId}/assignLicense` endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.
 
 ## Microsoft Documentation
 

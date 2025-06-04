@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_role_scope_tag Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Retrieves Role Scope Tags from Microsoft Intune with explicit filtering options.
+  Retrieves role scope tags from Microsoft Intune using the /deviceManagement/roleScopeTags endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
 ---
 
 # microsoft365_graph_beta_device_management_role_scope_tag (Data Source)
 
-Retrieves Role Scope Tags from Microsoft Intune with explicit filtering options.
+Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
 
 ## Microsoft Documentation
 

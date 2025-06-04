@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_management Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages a Endpoint Privilege Management Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+  Manages Endpoint Privilege Management policies using the /deviceManagement/configurationPolicies endpoint. EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
 ---
 
 # microsoft365_graph_beta_device_management_endpoint_privilege_management (Resource)
 
-Manages a Endpoint Privilege Management Policy using Settings Catalog in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.
+Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
 
 ## Microsoft Documentation
 

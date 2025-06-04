@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_reuseable_policy_setting Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management.Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificatedirectly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settingsgroup are automatically passed to the policies that reference the group.
+  Manages reusable policy settings using the /deviceManagement/reusablePolicySettings endpoint. Reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
 ---
 
 # microsoft365_graph_beta_device_management_reuseable_policy_setting (Resource)
 
-Manages a Reuseable Settings Policy using Settings Catalog in Microsoft Intune for Endpoint Privilege Management.Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificatedirectly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settingsgroup are automatically passed to the policies that reference the group.
+Manages reusable policy settings using the `/deviceManagement/reusablePolicySettings` endpoint. Reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
 
 ## Microsoft Documentation
 
