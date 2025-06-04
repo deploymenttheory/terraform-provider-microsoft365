@@ -11,18 +11,16 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
-// constructLicenseAssignmentRequest maps the Terraform configuration to a license assignment request
-func constructLicenseAssignmentRequest(ctx context.Context, data *UserLicenseAssignmentResourceModel) (users.ItemAssignLicensePostRequestBodyable, error) {
+// constructResource maps the Terraform configuration to a license assignment request
+func constructResource(ctx context.Context, data *UserLicenseAssignmentResourceModel) (users.ItemAssignLicensePostRequestBodyable, error) {
 	tflog.Debug(ctx, "Constructing license assignment request from Terraform configuration")
 
 	requestBody := users.NewItemAssignLicensePostRequestBody()
 
-	// Process add_licenses
 	addLicenses := make([]graphmodels.AssignedLicenseable, 0)
 	for _, license := range data.AddLicenses {
 		assignedLicense := graphmodels.NewAssignedLicense()
 
-		// Set SKU ID - convert string to UUID
 		if !license.SkuId.IsNull() && !license.SkuId.IsUnknown() {
 			skuIdStr := license.SkuId.ValueString()
 			skuId, err := uuid.Parse(skuIdStr)
@@ -32,7 +30,6 @@ func constructLicenseAssignmentRequest(ctx context.Context, data *UserLicenseAss
 			assignedLicense.SetSkuId(&skuId)
 		}
 
-		// Set disabled plans if provided - convert strings to UUIDs
 		if !license.DisabledPlans.IsNull() && !license.DisabledPlans.IsUnknown() {
 			disabledPlansElements := license.DisabledPlans.Elements()
 			disabledPlans := make([]uuid.UUID, 0, len(disabledPlansElements))
@@ -56,7 +53,6 @@ func constructLicenseAssignmentRequest(ctx context.Context, data *UserLicenseAss
 	}
 	requestBody.SetAddLicenses(addLicenses)
 
-	// Process remove_licenses - convert strings to UUIDs
 	if !data.RemoveLicenses.IsNull() && !data.RemoveLicenses.IsUnknown() {
 		removeLicensesElements := data.RemoveLicenses.Elements()
 		removeLicenses := make([]uuid.UUID, 0, len(removeLicensesElements))
@@ -73,7 +69,6 @@ func constructLicenseAssignmentRequest(ctx context.Context, data *UserLicenseAss
 
 		requestBody.SetRemoveLicenses(removeLicenses)
 	} else {
-		// Set empty array if no licenses to remove
 		requestBody.SetRemoveLicenses([]uuid.UUID{})
 	}
 

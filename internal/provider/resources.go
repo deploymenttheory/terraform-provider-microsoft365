@@ -50,7 +50,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	// Graph Beta - User resources
-	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/user/graph_beta/license_assignment"
+	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/users/graph_beta/license_assignment"
 
 	// Graph Beta - Group resources
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/groups/graph_beta/group"
