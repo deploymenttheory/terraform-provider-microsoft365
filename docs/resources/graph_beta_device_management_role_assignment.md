@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_role_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  The resource graph_beta_device_management_role_definition_assignment manages a Role Assignment in Microsoft 365
+  Manages role assignments in Microsoft Intune using the /deviceManagement/roleAssignments endpoint. Role assignments bind role definitions to administrators and define the scope of resources they can manage, enabling delegation of administrative privileges across device management, policy configuration, and user licensing operations.
 ---
 
 # microsoft365_graph_beta_device_management_role_assignment (Resource)
 
-The resource `graph_beta_device_management_role_definition_assignment` manages a Role Assignment in Microsoft 365
+Manages role assignments in Microsoft Intune using the `/deviceManagement/roleAssignments` endpoint. Role assignments bind role definitions to administrators and define the scope of resources they can manage, enabling delegation of administrative privileges across device management, policy configuration, and user licensing operations.
 
 ## Microsoft Documentation
 

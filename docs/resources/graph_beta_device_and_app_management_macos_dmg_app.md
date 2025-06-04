@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_macos_dmg_app Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages an Intune macOS app (DMG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.
+  Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_dmg_app (Resource)
 
-Manages an Intune macOS app (DMG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.
+Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
 
 ## Microsoft Documentation
 

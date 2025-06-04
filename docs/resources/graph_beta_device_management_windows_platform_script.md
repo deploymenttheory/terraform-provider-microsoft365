@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_windows_platform_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
+  Manages Windows PowerShell scripts using the /deviceManagement/deviceManagementScripts endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.
 ---
 
 # microsoft365_graph_beta_device_management_windows_platform_script (Resource)
 
-Manages an Intune windows platform script using the 'deviceManagementScripts' Graph Beta API.
+Manages Windows PowerShell scripts using the `/deviceManagement/deviceManagementScripts` endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.
 
 ## Microsoft Documentation
 

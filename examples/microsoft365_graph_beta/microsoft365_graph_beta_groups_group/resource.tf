@@ -24,7 +24,7 @@ resource "microsoft365_graph_beta_group" "m365_group" {
   security_enabled = true
   group_types      = ["Unified"]
   visibility       = "Public"
-  
+
   preferred_language      = "en-US"
   preferred_data_location = "US"
   theme                   = "Blue"
@@ -40,15 +40,15 @@ resource "microsoft365_graph_beta_group" "m365_group" {
 
 # Dynamic Security Group Example
 resource "microsoft365_graph_beta_group" "dynamic_group" {
-  display_name                    = "Dynamic IT Department"
-  description                     = "All users in IT department (dynamic membership)"
-  mail_nickname                   = "dynamic-it"
-  mail_enabled                    = false
-  security_enabled                = true
-  group_types                     = ["DynamicMembership"]
-  visibility                      = "Private"
-  
-  membership_rule                 = "(user.department -eq \"IT\")"
+  display_name     = "Dynamic IT Department"
+  description      = "All users in IT department (dynamic membership)"
+  mail_nickname    = "dynamic-it"
+  mail_enabled     = false
+  security_enabled = true
+  group_types      = ["DynamicMembership"]
+  visibility       = "Private"
+
+  membership_rule                  = "(user.department -eq \"IT\")"
   membership_rule_processing_state = "On"
 
   timeouts = {
@@ -61,12 +61,12 @@ resource "microsoft365_graph_beta_group" "dynamic_group" {
 
 # Role Assignable Group Example
 resource "microsoft365_graph_beta_group" "role_assignable_group" {
-  display_name         = "Azure AD Administrators"
-  description          = "Group that can be assigned to Azure AD roles"
-  mail_nickname        = "aad-admins"
-  mail_enabled         = false
-  security_enabled     = true
-  visibility           = "Private"
+  display_name          = "Azure AD Administrators"
+  description           = "Group that can be assigned to Azure AD roles"
+  mail_nickname         = "aad-admins"
+  mail_enabled          = false
+  security_enabled      = true
+  visibility            = "Private"
   is_assignable_to_role = true
 
   timeouts = {

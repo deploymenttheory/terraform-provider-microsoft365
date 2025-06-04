@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_resource_operation Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages Resource Operations in Microsoft Intune RBAC.
+  Manages resource operations in Microsoft Intune RBAC using the /deviceManagement/resourceOperations endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 ---
 
 # microsoft365_graph_beta_device_management_resource_operation (Resource)
 
-Manages Resource Operations in Microsoft Intune RBAC.
+Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/resourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 
 ## Microsoft Documentation
 

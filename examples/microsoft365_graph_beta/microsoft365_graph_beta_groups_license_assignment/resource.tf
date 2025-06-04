@@ -1,12 +1,12 @@
 # Example 1: Assign Office 365 E3 license to a group
 resource "microsoft365_graph_beta_group_license_assignment" "group_e3_license" {
-  group_id = "1132b215-826f-42a9-8cfe-1643d19d17fd"  # Group UUID
+  group_id = "1132b215-826f-42a9-8cfe-1643d19d17fd" # Group UUID
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = [
-        "efb87545-963c-4e0d-99df-69c6916d9eb0"  # Disable specific service plan
+        "efb87545-963c-4e0d-99df-69c6916d9eb0" # Disable specific service plan
       ]
     }
   ]
@@ -27,14 +27,14 @@ resource "microsoft365_graph_beta_group_license_assignment" "group_multiple_lice
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id         = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = []
     },
     {
-      sku_id = "b05e124f-c7cc-45a0-a6aa-8cf78c946968"  # Enterprise Mobility + Security E5
+      sku_id = "b05e124f-c7cc-45a0-a6aa-8cf78c946968" # Enterprise Mobility + Security E5
       disabled_plans = [
-        "113feb6c-3fe4-4440-bddc-54d774bf0318",  # Disable Exchange Foundation
-        "14ab5db5-e6c4-4b20-b4bc-13e36fd2227f"   # Disable another service plan
+        "113feb6c-3fe4-4440-bddc-54d774bf0318", # Disable Exchange Foundation
+        "14ab5db5-e6c4-4b20-b4bc-13e36fd2227f"  # Disable another service plan
       ]
     }
   ]
@@ -56,8 +56,8 @@ resource "microsoft365_graph_beta_group_license_assignment" "group_license_remov
   add_licenses = []
 
   remove_licenses = [
-    "6fd2c87f-b296-42f0-b197-1e91e994b900",  # Remove Office 365 E3
-    "b05e124f-c7cc-45a0-a6aa-8cf78c946968"   # Remove Enterprise Mobility + Security E5
+    "6fd2c87f-b296-42f0-b197-1e91e994b900", # Remove Office 365 E3
+    "b05e124f-c7cc-45a0-a6aa-8cf78c946968"  # Remove Enterprise Mobility + Security E5
   ]
 
   timeouts = {
@@ -74,13 +74,13 @@ resource "microsoft365_graph_beta_group_license_assignment" "group_license_repla
 
   add_licenses = [
     {
-      sku_id = "c7df2760-2c81-4ef7-b578-5b5392b571df"  # Office 365 E5
+      sku_id         = "c7df2760-2c81-4ef7-b578-5b5392b571df" # Office 365 E5
       disabled_plans = []
     }
   ]
 
   remove_licenses = [
-    "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Remove Office 365 E3
+    "6fd2c87f-b296-42f0-b197-1e91e994b900" # Remove Office 365 E3
   ]
 
   timeouts = {
@@ -101,7 +101,7 @@ resource "microsoft365_graph_beta_group_license_assignment" "dynamic_group_licen
 
   add_licenses = [
     {
-      sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900"  # Office 365 E3
+      sku_id         = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Office 365 E3
       disabled_plans = []
     }
   ]

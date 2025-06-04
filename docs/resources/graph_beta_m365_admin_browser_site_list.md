@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages a browser site list in Microsoft 365 Admin Centre. Settings > Org settings > Microsoft Edge site lists.
+  Manages Internet Explorer mode site lists in Microsoft Edge using the /admin/edge/internetExplorerMode/siteLists endpoint. Site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site_list (Resource)
 
-Manages a browser site list in Microsoft 365 Admin Centre. Settings > Org settings > Microsoft Edge site lists.
+Manages Internet Explorer mode site lists in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists` endpoint. Site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
 
 ## Microsoft Documentation
 

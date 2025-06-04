@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_and_app_management_macos_pkg_app Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.
+  Manages macOS PKG app deployments using the /deviceAppManagement/mobileApps endpoint. PKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_pkg_app (Resource)
 
-Manages an Intune macOS app (PKG), using the mobileapps graph beta API. Apps are deployed using the Microsoft Intune management agent for macOS.
+Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint. PKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
 
 ## Microsoft Documentation
 

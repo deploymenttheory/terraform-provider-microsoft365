@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_device_category Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories
+  Manages device categories in Microsoft Intune using the /deviceManagement/deviceCategories endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
 ---
 
 # microsoft365_graph_beta_device_management_device_category (Resource)
 
-Manage Intune device categories to help organize devices and build dynamic device groups. By default, users are prompted to choose a category from the list when using the Company Portal on devices. You can disable end-user category selection using customization policy. Resource type can be found at Devices -> Manage Devices -> Device Categories
+Manages device categories in Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
 
 ## Microsoft Documentation
 

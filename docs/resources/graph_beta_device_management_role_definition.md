@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_role_definition Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  The resource role_definition manages a Role Definition in Microsoft 365
+  Manages custom role definitions in Microsoft Intune using the /deviceManagement/roleDefinitions endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
 ---
 
 # microsoft365_graph_beta_device_management_role_definition (Resource)
 
-The resource `role_definition` manages a Role Definition in Microsoft 365
+Manages custom role definitions in Microsoft Intune using the `/deviceManagement/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
 
 ## Microsoft Documentation
 

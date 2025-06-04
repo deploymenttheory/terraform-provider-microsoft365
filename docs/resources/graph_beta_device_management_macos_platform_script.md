@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_macos_platform_script Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta API.
+  Manages macOS shell scripts using the /deviceManagement/deviceShellScripts endpoint. macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
 ---
 
 # microsoft365_graph_beta_device_management_macos_platform_script (Resource)
 
-Manages an Intune macOS platform script using the 'deviceShellScript' Graph Beta API.
+Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` endpoint. macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
 
 ## Microsoft Documentation
 

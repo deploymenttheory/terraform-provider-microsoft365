@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_terms_and_conditions_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages Terms and Conditions Assignments in Microsoft Intune.
+  Manages terms and conditions policy assignments in Microsoft Intune using the /deviceManagement/termsAndConditions/{termsAndConditionsId}/assignments endpoint. This resource controls which users or groups must accept specific terms and conditions policies before device enrollment or resource access, enabling targeted compliance enforcement.
 ---
 
 # microsoft365_graph_beta_device_management_terms_and_conditions_assignment (Resource)
 
-Manages Terms and Conditions Assignments in Microsoft Intune.
+Manages terms and conditions policy assignments in Microsoft Intune using the `/deviceManagement/termsAndConditions/{termsAndConditionsId}/assignments` endpoint. This resource controls which users or groups must accept specific terms and conditions policies before device enrollment or resource access, enabling targeted compliance enforcement.
 
 ## Microsoft Documentation
 

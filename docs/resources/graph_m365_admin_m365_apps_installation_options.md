@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_m365_admin_m365_apps_installation_options Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages Microsoft 365 app install options found within Microsoft 365 admin center, under Settings > Org settings > Services > Microsoft 365 installation options.
+  Manages Microsoft 365 Apps installation options using the /admin/microsoft365Apps/installationOptions endpoint. Installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
 ---
 
 # microsoft365_graph_m365_admin_m365_apps_installation_options (Resource)
 
-Manages Microsoft 365 app install options found within Microsoft 365 admin center, under Settings > Org settings > Services > Microsoft 365 installation options.
+Manages Microsoft 365 Apps installation options using the `/admin/microsoft365Apps/installationOptions` endpoint. Installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
 
 ## Microsoft Documentation
 

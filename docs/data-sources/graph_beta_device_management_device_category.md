@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_device_category Data Source - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Retrieves Device Categories from Microsoft Intune with explicit filtering options.
+  Retrieves device categories from Microsoft Intune using the /deviceManagement/deviceCategories endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
 ---
 
 # microsoft365_graph_beta_device_management_device_category (Data Source)
 
-Retrieves Device Categories from Microsoft Intune with explicit filtering options.
+Retrieves device categories from Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
 
 ## Microsoft Documentation
 
