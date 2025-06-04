@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.1-alpha...v0.15.0-alpha) (2025-06-04)
+
+
+### Features
+
+* Add macOS LOB app publisher validation and update gitignore ([c9cd922](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c9cd922080ec768367bc79f1fc73632c9248d2f4))
+* added group license assignment, user license assignment resources and datasource license subscribed SKUs ([bede181](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bede1812ddd65df921206baf67602e02693e1f2a))
+* added group ownership assignment with examples ([18810ea](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/18810ea49955060d9bfb87947a2b25a4e560c3ba))
+* added group ownership assignment with examples / renamed user license assignment to follow resource naming pattern ([#497](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/497)) ([6e2fdf3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6e2fdf3e6411537f679f5201abf9db426f82fd5b))
+* added GroupMemberAssignment resource with examples ([21dde58](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/21dde582a0048b75e462dd881831d08706ef8069))
+* added GroupOwnerAssignmentResource ([4f9bfd6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f9bfd60e1013b7030ac31187b42fdd5224d78a7))
+* added GroupOwnerAssignmentResource ([#499](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/499)) ([9bc5dee](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9bc5dee1a016aa39f78acbee5b91236d4c95d267))
+* added groups with examples ([ffc38e3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ffc38e3db9b488cbfb86b062d40bc946c9ebe22a))
+* added groups, and group membership assignment, updates to doc descriptions ([#495](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/495)) ([0601507](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0601507bf998791c5f74ae433005a492d0ecf1b0))
+* added macos_dmg_app fixes and updated resource examples ([1da2c8d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1da2c8d26bd0963fdd48d72ff384cb0245a62be2))
+* added multiple new resources for license assignment and fixes for macos dmg app ([#491](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/491)) ([8d09b67](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8d09b67ec036a30817aecb7745d050adc96c880c))
+* added multiple onboarding resources ([602135e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/602135e85aeab9ad2f8923c437004be647357d58))
+* added windows autopilot and assignments thereof ([#488](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/488)) ([5ffe081](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ffe08175062fa490c4b7babc5e8ecf658cc3ba3))
+* half implementation of cloudPC as a datasource ([68e7a43](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/68e7a43dc062a7808d2265f7b76c7a354fff5d85))
+* initial implementation of mac_dmg_app ([35b6fe6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/35b6fe60dd97db4c75b442387d26c26680f61afd))
+* refactored retry mechanism for create update func calls to read and fixed resource name issue in tflog ([6f3842b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f3842b684eab3bcde146a90a9afd4b7b1c1cb34))
+* refactored retry mechanism for create update func calls to read and fixed resource name issue in tflog ([#498](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/498)) ([5257e5e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5257e5ef5653b0ed0ca2ba5fe4ff1c70c3a5cf29))
+
+
+### Bug Fixes
+
+* for examples ([244a04b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/244a04b7ef7521d33ffcf42e0af0015d4d2791c8))
+* improved markdown descriptions for documentation generation ([16bc1d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/16bc1d2d7324c2a5c0a224a274e73100648b4caa))
+* rearraging provider docs ([a0aab65](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a0aab656a60e99ef2554e053d01fdad5c4539016))
+* renamed user license assignment to follow resource naming pattern ([29f4c8b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/29f4c8b163dd7e1d95dfe045831fc64e125db76f))
+
 ## [0.14.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.0-alpha...v0.14.1-alpha) (2025-05-26)
 
 
