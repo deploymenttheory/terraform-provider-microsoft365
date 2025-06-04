@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
@@ -32,11 +33,12 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// Set the ID to the user ID for tracking
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
 	object.ID = object.UserId
 
-	// Construct the license assignment request
-	requestBody, err := constructLicenseAssignmentRequest(ctx, &object)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing license assignment request",
@@ -45,7 +47,6 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Call the assignLicense API
 	_, err = r.client.
 		Users().
 		ByUserId(object.UserId.ValueString()).
@@ -59,20 +60,34 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned licenses to user: %s", object.UserId.ValueString()))
 
-	// Read the updated user to get current license state
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, &resource.ReadResponse{
-		State:       resp.State,
-		Diagnostics: resp.Diagnostics,
-	})
-
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource creation",
+			fmt.Sprintf("Failed to verify resource creation: %s", err),
+		)
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", r.TypeName))
 }
 
@@ -95,7 +110,6 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 	}
 	defer cancel()
 
-	// Get user details including assigned licenses
 	requestParameters := &users.UserItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "userPrincipalName", "assignedLicenses"},
@@ -112,10 +126,8 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	// Map the remote resource state to Terraform
 	MapRemoteResourceStateToTerraform(ctx, &object, user)
 
-	// Get detailed license information
 	licenseDetails, err := r.client.
 		Users().
 		ByUserId(object.UserId.ValueString()).
@@ -149,8 +161,10 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// Construct the license assignment request
-	requestBody, err := constructLicenseAssignmentRequest(ctx, &object)
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
+
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing license assignment request for update",
@@ -159,7 +173,6 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	// Call the assignLicense API
 	_, err = r.client.
 		Users().
 		ByUserId(object.UserId.ValueString()).
@@ -173,20 +186,34 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for user: %s", object.UserId.ValueString()))
 
-	// Read the updated user to get current license state
-	r.Read(ctx, resource.ReadRequest{
-		State:        resp.State,
-		ProviderMeta: req.ProviderMeta,
-	}, &resource.ReadResponse{
-		State:       resp.State,
-		Diagnostics: resp.Diagnostics,
-	})
-
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+		readResp := &resource.ReadResponse{State: resp.State}
+		r.Read(ctx, resource.ReadRequest{
+			State:        resp.State,
+			ProviderMeta: req.ProviderMeta,
+		}, readResp)
+
+		if readResp.Diagnostics.HasError() {
+			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
+		}
+
+		resp.State = readResp.State
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for resource update",
+			fmt.Sprintf("Failed to verify resource update: %s", err),
+		)
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", r.TypeName))
 }
 

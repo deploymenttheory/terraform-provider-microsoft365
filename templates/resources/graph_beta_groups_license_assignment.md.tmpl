@@ -27,7 +27,7 @@ The following API permissions are required in order to use this resource.
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v0.14.1-alpha | Experimental | Initial release |
+| v0.15.0-alpha | Experimental | Initial release |
 
 ## Example Usage
 

@@ -1,0 +1,98 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Group Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Add owners](https://learn.microsoft.com/en-us/graph/api/group-post-owners?view=graph-rest-beta)
+- [List owners](https://learn.microsoft.com/en-us/graph/api/group-list-owners?view=graph-rest-beta)
+- [Remove owner](https://learn.microsoft.com/en-us/graph/api/group-delete-owners?view=graph-rest-beta)
+- [Groups overview](https://learn.microsoft.com/en-us/graph/api/resources/groups-overview?view=graph-rest-beta)
+- [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.15.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_group_owner_assignment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Owner Type Support**: The types of owners that can be added depend on the target group type:
+  - **Security Groups**: Users and Service principals
+  - **Microsoft 365 Groups**: Users and Service principals
+  - **Mail-enabled Security Groups**: Read-only, cannot add owners
+  - **Distribution Groups**: Read-only, cannot add owners
+
+- **Owner Permissions**: Group owners are allowed to modify the group object and can perform administrative tasks on the group.
+
+- **Last Owner Protection**: The last owner (user object) of a group cannot be removed. Microsoft Graph API will prevent this operation.
+
+- **Teams Integration**: If you update group owners for a group that has an associated Microsoft Teams team:
+  - It can take up to 2 hours for the owners to be synchronized with Microsoft Teams
+  - If you want the owner to be able to make changes in the team (e.g., creating a Planner plan), the owner also needs to be added as a group/team member
+
+- **Object Type Validation**: The `owner_object_type` field determines the correct Microsoft Graph API endpoint to use:
+  - `User`: Uses `/users/{id}` endpoint
+  - `ServicePrincipal`: Uses `/servicePrincipals/{id}` endpoint
+
+- **Permissions by Owner Type**: The same permissions are required for both owner types:
+  - **Users**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`
+  - **Service Principals**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`
+  - **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required
+
+- **Microsoft Entra Roles**: The following least privileged roles are supported for this operation:
+  - **Group owners** (can modify all types of group owners)
+  - **Groups Administrator** (can modify all types of group owners)
+  - **User Administrator** (can modify user owners only)
+  - **Directory Writers** (can modify user owners only)
+  - **Exchange Administrator** (Microsoft 365 groups only)
+  - **SharePoint Administrator** (Microsoft 365 groups only)
+  - **Teams Administrator** (Microsoft 365 groups only)
+  - **Yammer Administrator** (Microsoft 365 groups only)
+  - **Intune Administrator** (security groups only)
+
+- **API Behavior**: The resource uses the `/groups/{group-id}/owners/$ref` endpoint with `@odata.id` references
+- **Validation**: Client-side validation prevents common API errors and provides clear error messages
+- **Composite ID**: The resource ID is automatically generated as `{group_id}/{owner_id}`
+- **Idempotent**: The Microsoft Graph API handles duplicate owner additions appropriately
+
+## Owner Type Compatibility Matrix
+
+| Object Type | Security Group | Microsoft 365 Group | Mail-enabled Security | Distribution |
+|-------------|----------------|---------------------|----------------------|-------------|
+| User | ✅ Supported | ✅ Supported | ❌ Read-only | ❌ Read-only |
+| Service Principal | ✅ Supported | ✅ Supported | ❌ Read-only | ❌ Read-only |
+
+## Import
+
+Group owner assignments can be imported using the composite ID format: `{group_id}/{owner_id}`
+
+```bash
+terraform import microsoft365_graph_beta_groups_group_owner_assignment.example "12345678-1234-1234-1234-123456789012/87654321-4321-4321-4321-210987654321"
+```
+
+Where:
+- `12345678-1234-1234-1234-123456789012` is the group ID
+- `87654321-4321-4321-4321-210987654321` is the owner ID 
