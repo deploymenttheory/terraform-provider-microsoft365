@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Windows Autopilot Device Preparation](https://learn.microsoft.com/en-us/autopilot/device-preparation/overview)
+- [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.16.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_autopilot_device_preparation_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Device Security Group**: The specified device security group must be an assigned security device group with the "Intune Provisioning Client" service principal (AppId: f1346770-5b25-470b-88bd-d5744ab7952c) set as its owner. Devices will be automatically added to this group during the Windows Autopilot device preparation deployment process. The service principal may sometimes appear as "Intune Autopilot ConfidentialClient" in some tenants.
+- **Deployment Settings**: Configure how the device will be deployed, including join type and account permissions.
+- **OOBE Settings**: Control the out-of-box experience, including timeouts and error messages.
+- **Application and Script Allowlists**: Specify which applications and scripts can be installed/executed during setup.
+- **Assignments**: Policies can be assigned to specific user groups for targeted deployment.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_autopilot_device_preparation_policy/import.sh" }} 

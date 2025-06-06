@@ -1,0 +1,2 @@
+#!/bin/bash
+terraform import microsoft365_graph_beta_windows_autopilot_device_preparation_policy.example 00000000-0000-0000-0000-000000000000 

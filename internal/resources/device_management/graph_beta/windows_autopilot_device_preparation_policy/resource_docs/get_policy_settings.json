@@ -1,0 +1,129 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('ad557acf-1f4e-4509-80c3-b10918a812d4')/settings",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "4a23e1ca-9ca9-4cbb-a5b5-16c07fe77c6c",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_deploymentmode",
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "enrollment_autopilot_dpp_deploymentmode_0",
+          "children": []
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "01ec8adc-7b1b-4c9c-9b9e-4b704c9a7d4d",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_deploymenttype",
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "enrollment_autopilot_dpp_deploymenttype_0",
+          "children": []
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "f3c08fd4-96bb-49bc-a4aa-a93d0a6dc23c",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_jointype",
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "enrollment_autopilot_dpp_jointype_0",
+          "children": []
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "8ad15f87-6ea1-4d31-985a-df0ff501cd4d",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_accountype",
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "enrollment_autopilot_dpp_accountype_0",
+          "children": []
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "fc9d4f66-9af6-456e-8af9-7b20b4613a48",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_devicegroup",
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "value": "0c606c3b-0d73-4882-a49c-b6414c7c6dd3"
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "da5ab0f9-3df3-4946-950a-a4aaf81e5aa4",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_timeout",
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+          "value": 60
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "8ba0d93d-3bba-419a-a26a-1dd0adaa2e89",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_custonerror",
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+          "value": "Contact your organization's support person for help."
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "f5bc0fb8-65f0-4b1d-a034-a5dd79fd44b0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_allowskip",
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationBooleanSettingValue",
+          "value": false
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "6a91f8c0-ef2e-4c71-b30b-fccf07b01fd4",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_allowdiagnostics",
+        "simpleSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationBooleanSettingValue",
+          "value": false
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "id": "9da66daf-87ea-4964-80a2-7fe48db22b99",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationCollectionSettingInstance",
+        "settingDefinitionId": "enrollment_autopilot_dpp_allowedapps",
+        "collectionSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationCollectionSettingValue",
+          "children": []
+        }
+      }
+    }
+  ]
+} 

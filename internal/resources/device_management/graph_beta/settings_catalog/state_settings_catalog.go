@@ -132,7 +132,7 @@ func mapSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceM
 			}
 			settingInstance.SimpleSettingCollectionValue = mappedCollection
 		} else {
-			// FIXED: Always initialize as empty slice
+			// Always initialize as empty slice
 			settingInstance.SimpleSettingCollectionValue = make([]SimpleSettingCollectionStruct, 0)
 		}
 
@@ -145,7 +145,7 @@ func mapSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceM
 			}
 			settingInstance.ChoiceSettingCollectionValue = mappedCollection
 		} else {
-			// FIXED: Always initialize as empty slice
+			// Always initialize as empty slice
 			settingInstance.ChoiceSettingCollectionValue = make([]ChoiceSettingCollectionStruct, 0)
 		}
 
@@ -158,7 +158,7 @@ func mapSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceM
 			}
 			settingInstance.GroupSettingCollectionValue = mappedCollection
 		} else {
-			// FIXED: Always initialize as empty slice
+			// Always initialize as empty slice
 			settingInstance.GroupSettingCollectionValue = make([]GroupSettingCollectionStruct, 0)
 		}
 	}
@@ -228,7 +228,7 @@ func mapChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManageme
 		choiceValue.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 	}
 
-	// FIXED: Always initialize children, even if empty
+	// Always initialize children, even if empty
 	children := value.GetChildren()
 	if len(children) > 0 {
 		mappedChildren, err := mapChoiceSettingChildren(ctx, children)
@@ -296,7 +296,7 @@ func mapChoiceSettingCollection(ctx context.Context, values []graphmodels.Device
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
-		// FIXED: Always initialize children, even if empty
+		// Always initialize children, even if empty
 		children := value.GetChildren()
 		if len(children) > 0 {
 			mappedChildren, err := mapChoiceSettingCollectionChildren(ctx, children)
@@ -327,7 +327,7 @@ func mapGroupSettingCollection(ctx context.Context, values []graphmodels.DeviceM
 			groupItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
-		// FIXED: Always initialize children, even if empty
+		// Always initialize children, even if empty
 		children := value.GetChildren()
 		if len(children) > 0 {
 			mappedChildren, err := mapGroupSettingCollectionChildren(ctx, children)
@@ -386,7 +386,7 @@ func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.Device
 				}
 				childItem.SimpleSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.SimpleSettingCollectionValue = make([]SimpleSettingCollectionStruct, 0)
 			}
 
@@ -408,7 +408,7 @@ func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.Device
 				}
 				childItem.ChoiceSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.ChoiceSettingCollectionValue = make([]ChoiceSettingCollectionStruct, 0)
 			}
 
@@ -421,7 +421,7 @@ func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.Device
 				}
 				childItem.GroupSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.GroupSettingCollectionValue = make([]GroupSettingCollectionStruct, 0)
 			}
 		}
@@ -472,7 +472,7 @@ func mapChoiceSettingCollectionChildren(ctx context.Context, children []graphmod
 				}
 				childItem.SimpleSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.SimpleSettingCollectionValue = make([]SimpleSettingCollectionStruct, 0)
 			}
 		}
@@ -523,7 +523,7 @@ func mapGroupSettingCollectionChildren(ctx context.Context, children []graphmode
 				}
 				childItem.SimpleSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.SimpleSettingCollectionValue = make([]SimpleSettingCollectionStruct, 0)
 			}
 
@@ -545,7 +545,7 @@ func mapGroupSettingCollectionChildren(ctx context.Context, children []graphmode
 				}
 				childItem.ChoiceSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.ChoiceSettingCollectionValue = make([]ChoiceSettingCollectionStruct, 0)
 			}
 
@@ -558,7 +558,7 @@ func mapGroupSettingCollectionChildren(ctx context.Context, children []graphmode
 				}
 				childItem.GroupSettingCollectionValue = mappedCollection
 			} else {
-				// FIXED: Always initialize as empty slice
+				// Always initialize as empty slice
 				childItem.GroupSettingCollectionValue = make([]GroupSettingCollectionStruct, 0)
 			}
 		}
