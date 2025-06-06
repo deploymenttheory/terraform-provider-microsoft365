@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.15.0-alpha...v0.16.0-alpha) (2025-06-06)
+
+
+### Features
+
+* added graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment with examples ([5ae2eca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ae2eca5809e0083d525cd9695002aab18ed886e))
+* added graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment with examples ([#503](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/503)) ([e4cade6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e4cade6e0009400e6ec09ffe9b8935fe02b5cadf))
+* graph_beta_device_management_device_enrollment_notification_configuration with examples ([ff7fecb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ff7fecbdb1f77970dabf1994fc47269cd2cc58c1))
+* graph_beta_device_management_device_enrollment_notification_configuration with examples ([#501](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/501)) ([145625d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/145625d2510a28544419c69beab4eb777da6e3cc))
+
 ## [0.15.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.1-alpha...v0.15.0-alpha) (2025-06-04)
 
 
