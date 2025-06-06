@@ -1,0 +1,50 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies(id,name,description,platforms,lastModifiedDateTime,technologies,settingCount,roleScopeTagIds,isAssigned,templateReference,priorityMetaData)",
+  "@odata.count": 2,
+  "value": [
+    {
+      "id": "ad557acf-1f4e-4509-80c3-b10918a812d4",
+      "name": "WADP DEMO",
+      "description": "",
+      "platforms": "windows10",
+      "lastModifiedDateTime": "2024-06-04T12:56:48.3116932Z",
+      "technologies": "enrollment",
+      "settingCount": 10,
+      "roleScopeTagIds": [
+        "0"
+      ],
+      "isAssigned": true,
+      "templateReference": {
+        "templateId": "80d33118-b7b4-40d8-b15f-81be745e053f_1",
+        "templateFamily": "enrollmentConfiguration",
+        "templateDisplayName": "Device Preparation",
+        "templateDisplayVersion": "Version 1"
+      },
+      "priorityMetaData": {
+        "priority": 1
+      }
+    },
+    {
+      "id": "af92234e-18b0-43e8-b736-4930faa7622e",
+      "name": "WADP_DEMO_GRAPH",
+      "description": "",
+      "platforms": "windows10",
+      "lastModifiedDateTime": "2024-06-06T20:42:50Z",
+      "technologies": "enrollment",
+      "settingCount": 10,
+      "roleScopeTagIds": [
+        "0"
+      ],
+      "isAssigned": true,
+      "templateReference": {
+        "templateId": "80d33118-b7b4-40d8-b15f-81be745e053f_1",
+        "templateFamily": "enrollmentConfiguration",
+        "templateDisplayName": "Device Preparation",
+        "templateDisplayVersion": "Version 1"
+      },
+      "priorityMetaData": {
+        "priority": 2
+      }
+    }
+  ]
+} 

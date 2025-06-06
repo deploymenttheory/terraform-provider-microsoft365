@@ -1,0 +1,9 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+  "target": {
+    "@odata.type": "#microsoft.graph.deviceAndAppManagementAssignmentTarget",
+    "deviceAndAppManagementAssignmentFilterId": null,
+    "deviceAndAppManagementAssignmentFilterType": "none",
+    "groupId": "a1a7c4d7-9a1e-4c81-9d92-6f4eb3a7b9a5"
+  }
+} 

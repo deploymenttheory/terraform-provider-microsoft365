@@ -1,0 +1,22 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "ad557acf-1f4e-4509-80c3-b10918a812d4",
+  "name": "WADP DEMO",
+  "description": "",
+  "platforms": "windows10",
+  "technologies": "enrollment",
+  "settingCount": 10,
+  "roleScopeTagIds": ["0"],
+  "isAssigned": true,
+  "templateReference": {
+    "templateId": "80d33118-b7b4-40d8-b15f-81be745e053f_1",
+    "templateFamily": "enrollmentConfiguration",
+    "templateDisplayName": "Device Preparation",
+    "templateDisplayVersion": "Version 1"
+  },
+  "priorityMetaData": {
+    "priority": 1
+  },
+  "createdDateTime": "2024-06-04T12:56:48.3116932Z",
+  "lastModifiedDateTime": "2024-06-04T12:56:48.3116932Z"
+} 
