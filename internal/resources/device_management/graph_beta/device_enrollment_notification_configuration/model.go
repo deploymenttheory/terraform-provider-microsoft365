@@ -21,9 +21,10 @@ type DeviceEnrollmentNotificationConfigurationResourceModel struct {
 	TemplateTypes                     types.Set                          `tfsdk:"template_types"`
 	NotificationMessageTemplateId     types.String                       `tfsdk:"notification_message_template_id"`
 	NotificationTemplates             types.Set                          `tfsdk:"notification_templates"`
-	BrandingOptions                   types.String                       `tfsdk:"branding_options"`
+	BrandingOptions                   types.Set                          `tfsdk:"branding_options"`
 	PushLocalizedMessage              *LocalizedNotificationMessageModel `tfsdk:"push_localized_message"`
 	EmailLocalizedMessage             *LocalizedNotificationMessageModel `tfsdk:"email_localized_message"`
+	Assignments                       []AssignmentModel                  `tfsdk:"assignments"`
 	Timeouts                          timeouts.Value                     `tfsdk:"timeouts"`
 }
 
@@ -32,4 +33,15 @@ type LocalizedNotificationMessageModel struct {
 	Subject         types.String `tfsdk:"subject"`
 	MessageTemplate types.String `tfsdk:"message_template"`
 	IsDefault       types.Bool   `tfsdk:"is_default"`
+}
+
+type AssignmentModel struct {
+	Target *AssignmentTargetModel `tfsdk:"target"`
+}
+
+type AssignmentTargetModel struct {
+	TargetType                                 types.String `tfsdk:"target_type"`
+	DeviceAndAppManagementAssignmentFilterId   types.String `tfsdk:"device_and_app_management_assignment_filter_id"`
+	DeviceAndAppManagementAssignmentFilterType types.String `tfsdk:"device_and_app_management_assignment_filter_type"`
+	GroupId                                    types.String `tfsdk:"group_id"`
 }

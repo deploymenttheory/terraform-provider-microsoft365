@@ -109,10 +109,16 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the device enrollment configuration.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the device enrollment configuration.",
 				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"priority": schema.Int32Attribute{
 				MarkdownDescription: "Priority is used when a user exists in multiple groups that are assigned enrollment configuration. Users are subject only to the configuration with the lowest priority value.",
@@ -120,6 +126,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
+					int32planmodifier.RequiresReplace(),
 				},
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
@@ -130,17 +137,22 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				MarkdownDescription: "Last modified date time in UTC of the device enrollment configuration. This property is read-only.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"version": schema.Int32Attribute{
 				MarkdownDescription: "The version of the device enrollment configuration. This property is read-only.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int32{
 					int32planmodifier.UseStateForUnknown(),
+					int32planmodifier.RequiresReplace(),
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -152,6 +164,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
 					),
+					setplanmodifier.RequiresReplace(),
 				},
 			},
 			"device_enrollment_configuration_type": schema.StringAttribute{
@@ -159,6 +172,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"platform_type": schema.StringAttribute{
@@ -166,6 +180,9 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 				Computed:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("allPlatforms", "ios", "windows", "windowsPhone", "android", "androidForWork", "mac", "linux", "unknownFutureValue"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"template_types": schema.SetAttribute{
@@ -183,25 +200,34 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 				MarkdownDescription: "Notification Message Template Id.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"notification_templates": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "The list of notification data.",
 				Optional:            true,
 				Computed:            true,
-			},
-			"branding_options": schema.StringAttribute{
-				MarkdownDescription: "Branding Options for the Enrollment Notification. Possible values are: `none`, `includeCompanyLogo`, `includeCompanyName`, `includeContactInformation`, `includeCompanyPortalLink`, `includeDeviceDetails`, `unknownFutureValue`.",
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("none", "includeCompanyLogo", "includeCompanyName", "includeContactInformation", "includeCompanyPortalLink", "includeDeviceDetails", "unknownFutureValue"),
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"push_localized_message": schema.SingleNestedBlock{
+			"branding_options": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "Branding Options for the Email footer and header. Possible values are: `none`, `includeCompanyLogo`, `includeCompanyName`, `includeContactInformation`, `includeCompanyPortalLink`, `includeDeviceDetails`, `unknownFutureValue`.",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(stringvalidator.OneOf("none", "includeCompanyLogo", "includeCompanyName", "includeContactInformation", "includeCompanyPortalLink", "includeDeviceDetails", "unknownFutureValue")),
+				},
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
+			},
+			"push_localized_message": schema.SingleNestedAttribute{
 				MarkdownDescription: "Configuration for push notification localized message. Changes to this block will trigger replacement of the entire resource.",
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"locale": schema.StringAttribute{
 						MarkdownDescription: "The Locale for which this message is destined (e.g., 'en-us', 'es-es').",
@@ -237,8 +263,9 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 					objectplanmodifier.RequiresReplace(),
 				},
 			},
-			"email_localized_message": schema.SingleNestedBlock{
+			"email_localized_message": schema.SingleNestedAttribute{
 				MarkdownDescription: "Configuration for email notification localized message. Changes to this block will trigger replacement of the entire resource.",
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"locale": schema.StringAttribute{
 						MarkdownDescription: "The Locale for which this message is destined (e.g., 'en-us', 'es-es').",
@@ -255,10 +282,16 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 					"subject": schema.StringAttribute{
 						MarkdownDescription: "The Message Template Subject.",
 						Required:            true,
+						Validators: []validator.String{
+							validators.RequiredWhenSetContains("template_types", "email"),
+						},
 					},
 					"message_template": schema.StringAttribute{
 						MarkdownDescription: "The Message Template content.",
 						Required:            true,
+						Validators: []validator.String{
+							validators.RequiredWhenSetContains("template_types", "email"),
+						},
 					},
 					"is_default": schema.BoolAttribute{
 						MarkdownDescription: "Flag to indicate whether or not this is the default locale for language fallback.",
@@ -274,6 +307,50 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Schema(ctx context.C
 					objectplanmodifier.RequiresReplace(),
 				},
 			},
+			"assignments": schema.SetNestedAttribute{
+				MarkdownDescription: "The list of assignments for the device enrollment configuration. This will overwrite any existing assignments.",
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"target": schema.SingleNestedAttribute{
+							Required:            true,
+							MarkdownDescription: "The target for the assignment.",
+							Attributes: map[string]schema.Attribute{
+								"target_type": schema.StringAttribute{
+									Description: "The type of target for the assignment. Possible values are `group`, or `allLicensedUsers`.",
+									Required:    true,
+									Validators: []validator.String{
+										stringvalidator.OneOf("group", "allLicensedUsers"),
+									},
+								},
+								"group_id": schema.StringAttribute{
+									Description: "The ID of the group to be targeted. This is required when `target_type` is `group`.",
+									Optional:    true,
+									Validators: []validator.String{
+										validators.RequiredWhenEquals("target_type", types.StringValue("group")),
+									},
+								},
+								"device_and_app_management_assignment_filter_id": schema.StringAttribute{
+									Description: "The ID of the filter to be applied to the assignment. Filters are not supported for `allDevices` and `allLicensedUsers` assignment targets.",
+									Optional:    true,
+									Computed:    true,
+									Default:     stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
+								},
+								"device_and_app_management_assignment_filter_type": schema.StringAttribute{
+									Description: "The type of filter to be applied (`include` or `exclude`).",
+									Optional:    true,
+									Computed:    true,
+									Default:     stringdefault.StaticString("none"),
+									Validators: []validator.String{
+										stringvalidator.OneOf("include", "exclude", "none"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

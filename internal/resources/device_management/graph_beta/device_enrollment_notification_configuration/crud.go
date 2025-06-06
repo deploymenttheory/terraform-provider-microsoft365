@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation for Device Enrollment Notification Configuration resources.
@@ -108,6 +109,29 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Create(ctx context.C
 		}
 	}
 
+	object.ID = types.StringValue(*baseResource.GetId())
+
+	if len(object.Assignments) > 0 {
+		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating assignment request body", err.Error())
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			DeviceEnrollmentConfigurations().
+			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Assign", r.WritePermissions)
+			return
+		}
+		tflog.Debug(ctx, "Successfully assigned device enrollment configuration")
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -152,7 +176,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 	}
 	defer cancel()
 
-	resource, err := r.client.
+	baseResourceResp, err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
@@ -163,7 +187,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 		return
 	}
 
-	mapRemoteStateToTerraform(ctx, &object, resource)
+	mapRemoteStateToTerraform(ctx, &object, baseResourceResp)
 
 	// Read localized messages if template types are configured
 	if !object.TemplateTypes.IsNull() && !object.TemplateTypes.IsUnknown() {
@@ -181,20 +205,25 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 				continue
 			}
 
-			messages, err := r.client.
+			requestConfig := &devicemanagement.NotificationMessageTemplatesItemLocalizedNotificationMessagesRequestBuilderGetRequestConfiguration{
+				QueryParameters: &devicemanagement.NotificationMessageTemplatesItemLocalizedNotificationMessagesRequestBuilderGetQueryParameters{
+					Expand: []string{"localizedNotificationMessages"},
+				},
+			}
+
+			messageTemplateResp, err := r.client.
 				DeviceManagement().
 				NotificationMessageTemplates().
 				ByNotificationMessageTemplateId(templateGUID).
 				LocalizedNotificationMessages().
-				Get(ctx, nil)
+				Get(ctx, requestConfig)
 
 			if err != nil {
 				tflog.Warn(ctx, fmt.Sprintf("Failed to get localized messages for template %s: %s", templateGUID, err.Error()))
 				continue
 			}
 
-			if messagesCollection := messages.GetValue(); len(messagesCollection) > 0 {
-				// Get the first (and typically only) localized message
+			if messagesCollection := messageTemplateResp.GetValue(); len(messagesCollection) > 0 {
 				message := messagesCollection[0]
 				localizedModel := &LocalizedNotificationMessageModel{
 					Locale:          types.StringPointerValue(message.GetLocale()),
@@ -214,6 +243,29 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 			}
 		}
 	}
+
+	// Always fetch assignments to ensure state is up-to-date
+	tflog.Debug(ctx, "Fetching assignments for the enrollment notification configuration")
+	assignments, err := r.client.
+		DeviceManagement().
+		DeviceEnrollmentConfigurations().
+		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	// Log assignments before mapping
+	assignmentValues := assignments.GetValue()
+	tflog.Debug(ctx, fmt.Sprintf("Retrieved %d assignments from API", len(assignmentValues)))
+
+	// Map assignments to state regardless of current state
+	tflog.Debug(ctx, "About to call mapAssignmentsToState")
+	mapAssignmentsToState(ctx, assignmentValues, &object)
+	tflog.Debug(ctx, fmt.Sprintf("After mapping, object has %d assignments", len(object.Assignments)))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -258,6 +310,85 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	// Update push localized message if specified
+	if object.PushLocalizedMessage != nil {
+		templateGUID, err := r.resolveNotificationTemplateID(ctx, object.ID.ValueString(), "push")
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error resolving push template ID",
+				fmt.Sprintf("Could not resolve push template ID: %s", err.Error()),
+			)
+			return
+		}
+
+		requestBody := constructLocalizedMessage(ctx, object.PushLocalizedMessage)
+		if requestBody != nil {
+			_, err = r.client.
+				DeviceManagement().
+				NotificationMessageTemplates().
+				ByNotificationMessageTemplateId(templateGUID).
+				LocalizedNotificationMessages().
+				Post(ctx, requestBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, "Successfully updated push localized message")
+		}
+	}
+
+	// Update email localized message if specified
+	if object.EmailLocalizedMessage != nil {
+		templateGUID, err := r.resolveNotificationTemplateID(ctx, object.ID.ValueString(), "email")
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error resolving email template ID",
+				fmt.Sprintf("Could not resolve email template ID: %s", err.Error()),
+			)
+			return
+		}
+
+		requestBody := constructLocalizedMessage(ctx, object.EmailLocalizedMessage)
+		if requestBody != nil {
+			_, err = r.client.
+				DeviceManagement().
+				NotificationMessageTemplates().
+				ByNotificationMessageTemplateId(templateGUID).
+				LocalizedNotificationMessages().
+				Post(ctx, requestBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, "Successfully updated email localized message")
+		}
+	}
+
+	if object.Assignments != nil {
+		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating assignment request body", err.Error())
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			DeviceEnrollmentConfigurations().
+			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Assign", r.WritePermissions)
+			return
+		}
+		tflog.Debug(ctx, "Successfully updated assignments for device enrollment configuration")
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

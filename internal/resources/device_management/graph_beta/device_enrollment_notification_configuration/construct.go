@@ -3,13 +3,14 @@ package graphBetaDeviceEnrollmentNotificationConfiguration
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	msgraphbetamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform resource model to the Graph API request model
@@ -24,8 +25,27 @@ func constructResource(ctx context.Context, data *DeviceEnrollmentNotificationCo
 	platformType := models.WINDOWS_ENROLLMENTRESTRICTIONPLATFORMTYPE
 	requestBody.SetPlatformType(&platformType)
 
-	brandingOptions := models.EnrollmentNotificationBrandingOptions(models.NONE_ENROLLMENTNOTIFICATIONBRANDINGOPTIONS)
-	requestBody.SetBrandingOptions(&brandingOptions)
+	// Set branding options from the set
+	if !data.BrandingOptions.IsNull() && !data.BrandingOptions.IsUnknown() {
+		// Convert set to comma-separated string for the helper
+		elements := data.BrandingOptions.Elements()
+		var opts []string
+		for _, elem := range elements {
+			if strVal, ok := elem.(types.String); ok && !strVal.IsNull() && !strVal.IsUnknown() {
+				opts = append(opts, strVal.ValueString())
+			}
+		}
+		joined := strings.Join(opts, ",")
+		stringVal := types.StringValue(joined)
+		err := constructors.SetBitmaskEnumProperty(
+			stringVal,
+			models.ParseEnrollmentNotificationBrandingOptions,
+			requestBody.SetBrandingOptions,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set branding options: %s", err)
+		}
+	}
 
 	var notificationTemplates []string
 	if !data.TemplateTypes.IsNull() && !data.TemplateTypes.IsUnknown() {
@@ -63,12 +83,12 @@ func constructResource(ctx context.Context, data *DeviceEnrollmentNotificationCo
 }
 
 // constructLocalizedMessage constructs a localized message request body
-func constructLocalizedMessage(ctx context.Context, message *LocalizedNotificationMessageModel) *msgraphbetamodels.LocalizedNotificationMessage {
+func constructLocalizedMessage(ctx context.Context, message *LocalizedNotificationMessageModel) *models.LocalizedNotificationMessage {
 	if message == nil {
 		return nil
 	}
 
-	requestBody := msgraphbetamodels.NewLocalizedNotificationMessage()
+	requestBody := models.NewLocalizedNotificationMessage()
 
 	// Set default locale if not specified
 	locale := "en-us"
@@ -101,4 +121,59 @@ func constructLocalizedMessage(ctx context.Context, message *LocalizedNotificati
 	}
 
 	return requestBody
+}
+
+// constructAssignmentsRequestBody creates the request body for the assign action.
+func constructAssignmentsRequestBody(ctx context.Context, assignments []AssignmentModel) (devicemanagement.DeviceEnrollmentConfigurationsItemAssignPostRequestBodyable, error) {
+	requestBody := devicemanagement.NewDeviceEnrollmentConfigurationsItemAssignPostRequestBody()
+
+	assignmentList := make([]models.EnrollmentConfigurationAssignmentable, 0, len(assignments))
+
+	tflog.Debug(ctx, "Starting Device Enrollment Notification Configuration assignment construction")
+
+	for _, assignmentData := range assignments {
+		if assignmentData.Target == nil {
+			continue
+		}
+
+		assignment := models.NewEnrollmentConfigurationAssignment()
+		var target models.DeviceAndAppManagementAssignmentTargetable
+
+		targetType := assignmentData.Target.TargetType.ValueString()
+		switch targetType {
+		case "group":
+			groupTarget := models.NewGroupAssignmentTarget()
+			constructors.SetStringProperty(assignmentData.Target.GroupId, groupTarget.SetGroupId)
+			target = groupTarget
+		case "allDevices":
+			target = models.NewAllDevicesAssignmentTarget()
+		case "allLicensedUsers":
+			target = models.NewAllLicensedUsersAssignmentTarget()
+		default:
+			return nil, fmt.Errorf("unsupported target type: %s", targetType)
+		}
+
+		constructors.SetStringProperty(assignmentData.Target.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		err := constructors.SetEnumProperty(
+			assignmentData.Target.DeviceAndAppManagementAssignmentFilterType,
+			models.ParseDeviceAndAppManagementAssignmentFilterType,
+			target.SetDeviceAndAppManagementAssignmentFilterType,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		assignment.SetTarget(target)
+		assignmentList = append(assignmentList, assignment)
+	}
+
+	requestBody.SetEnrollmentConfigurationAssignments(assignmentList)
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	return requestBody, nil
 }
