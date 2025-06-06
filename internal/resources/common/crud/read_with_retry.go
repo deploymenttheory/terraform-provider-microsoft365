@@ -66,7 +66,19 @@ func (c *UpdateResponseContainer) SetState(state tfsdk.State) {
 }
 
 // extractResourceID attempts to extract the ID from the state for logging purposes
-func extractResourceID(ctx context.Context, state tfsdk.State) string {
+func extractResourceID(ctx context.Context, state tfsdk.State) (result string) {
+
+	defer func() {
+		if r := recover(); r != nil {
+
+			result = "unknown"
+		}
+	}()
+
+	if state.Raw.IsNull() || !state.Raw.IsKnown() {
+		return "unknown"
+	}
+
 	var idValue types.String
 	diags := state.GetAttribute(ctx, path.Root("id"), &idValue)
 	if diags.HasError() || idValue.IsNull() || idValue.IsUnknown() {

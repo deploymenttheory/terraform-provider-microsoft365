@@ -1,4 +1,4 @@
-package graphBetaDeviceEnrollmentConfiguration
+package graphBetaDeviceEnrollmentLimitConfiguration
 
 import (
 	"context"
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
-func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object DeviceEnrollmentConfigurationResourceModel
+// Create handles the Create operation for Device Enrollment Limit Configuration resources.
+func (r *DeviceEnrollmentLimitConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object DeviceEnrollmentLimitConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -30,7 +31,7 @@ func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, false)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -39,7 +40,7 @@ func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req 
 		return
 	}
 
-	createdResource, err := r.client.
+	baseResource, err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		Post(ctx, requestBody, nil)
@@ -49,34 +50,7 @@ func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req 
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
-
-	if object.Assignments != nil && len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for configuration ID: %s", object.ID.ValueString()))
-
-		assignRequestBody, err := constructAssignments(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignments",
-				fmt.Sprintf("Failed to construct assignments for configuration: %s", err.Error()),
-			)
-			return
-		}
-
-		err = r.client.
-			DeviceManagement().
-			DeviceEnrollmentConfigurations().
-			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, assignRequestBody, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for configuration ID: %s", object.ID.ValueString()))
-	}
+	object.ID = types.StringValue(*baseResource.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -102,13 +76,14 @@ func (r *DeviceEnrollmentConfigurationResource) Create(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-func (r *DeviceEnrollmentConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object DeviceEnrollmentConfigurationResourceModel
+// Read handles the Read operation for Device Enrollment Limit Configuration resources.
+func (r *DeviceEnrollmentLimitConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceEnrollmentLimitConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -121,7 +96,7 @@ func (r *DeviceEnrollmentConfigurationResource) Read(ctx context.Context, req re
 	}
 	defer cancel()
 
-	respResource, err := r.client.
+	resource, err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
@@ -132,21 +107,9 @@ func (r *DeviceEnrollmentConfigurationResource) Read(ctx context.Context, req re
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	assignmentsResp, err := r.client.
-		DeviceManagement().
-		DeviceEnrollmentConfigurations().
-		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
+	if deviceEnrollmentLimitConfiguration, ok := resource.(models.DeviceEnrollmentLimitConfigurationable); ok {
+		mapRemoteStateToTerraform(ctx, &object, deviceEnrollmentLimitConfiguration)
 	}
-
-	MapRemoteAssignmentsToTerraform(ctx, &object, assignmentsResp.GetValue())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -157,8 +120,8 @@ func (r *DeviceEnrollmentConfigurationResource) Read(ctx context.Context, req re
 }
 
 // Update handles the Update operation.
-func (r *DeviceEnrollmentConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceEnrollmentConfigurationResourceModel
+func (r *DeviceEnrollmentLimitConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object DeviceEnrollmentLimitConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
@@ -173,10 +136,10 @@ func (r *DeviceEnrollmentConfigurationResource) Update(ctx context.Context, req 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
@@ -191,33 +154,6 @@ func (r *DeviceEnrollmentConfigurationResource) Update(ctx context.Context, req 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
-	}
-
-	if object.Assignments != nil && len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for configuration ID: %s", object.ID.ValueString()))
-
-		assignRequestBody, err := constructAssignments(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignments",
-				fmt.Sprintf("Failed to construct assignments for configuration: %s", err.Error()),
-			)
-			return
-		}
-
-		err = r.client.
-			DeviceManagement().
-			DeviceEnrollmentConfigurations().
-			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, assignRequestBody, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for configuration ID: %s", object.ID.ValueString()))
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -239,9 +175,9 @@ func (r *DeviceEnrollmentConfigurationResource) Update(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-func (r *DeviceEnrollmentConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object DeviceEnrollmentConfigurationResourceModel
+// Delete handles the Delete operation for Device Enrollment Limit Configuration resources.
+func (r *DeviceEnrollmentLimitConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceEnrollmentLimitConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -266,8 +202,6 @@ func (r *DeviceEnrollmentConfigurationResource) Delete(ctx context.Context, req 
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

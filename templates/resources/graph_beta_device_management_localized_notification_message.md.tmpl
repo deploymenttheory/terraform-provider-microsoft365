@@ -1,0 +1,45 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [localizedNotificationMessage resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-notification-localizednotificationmessage?view=graph-rest-beta)
+- [List localizedNotificationMessages](https://learn.microsoft.com/en-us/graph/api/intune-notification-notificationmessagetemplate-list-localizednotificationmessages?view=graph-rest-beta)
+- [Get localizedNotificationMessage](https://learn.microsoft.com/en-us/graph/api/intune-notification-localizednotificationmessage-get?view=graph-rest-beta)
+- [Create localizedNotificationMessage](https://learn.microsoft.com/en-us/graph/api/intune-notification-notificationmessagetemplate-post-localizednotificationmessages?view=graph-rest-beta)
+- [Update localizedNotificationMessage](https://learn.microsoft.com/en-us/graph/api/intune-notification-localizednotificationmessage-update?view=graph-rest-beta)
+- [Delete localizedNotificationMessage](https://learn.microsoft.com/en-us/graph/api/intune-notification-localizednotificationmessage-delete?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All` or `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.16.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_localized_notification_message/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_localized_notification_message/import.sh" }} 

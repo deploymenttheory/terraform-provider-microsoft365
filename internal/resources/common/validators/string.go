@@ -262,3 +262,137 @@ func (v asciiOnlyValidator) ValidateString(ctx context.Context, req validator.St
 func ASCIIOnly() validator.String {
 	return &asciiOnlyValidator{}
 }
+
+// requiredWhenSetContainsValidator validates that a string field is required when a sibling set contains a specific value
+type requiredWhenSetContainsValidator struct {
+	setFieldName  string
+	requiredValue string
+}
+
+// Description describes the validation in plain text formatting.
+func (v requiredWhenSetContainsValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("field is required when %s contains \"%s\"", v.setFieldName, v.requiredValue)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v requiredWhenSetContainsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v requiredWhenSetContainsValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// If value is null or unknown, check if it should be required
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		// Get the sibling set field
+		var setField types.Set
+		diags := req.Config.GetAttribute(ctx, req.Path.ParentPath().AtName(v.setFieldName), &setField)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		if setField.IsNull() || setField.IsUnknown() {
+			return
+		}
+
+		// Check if the required value exists in the set
+		hasRequiredValue := false
+		elements := setField.Elements()
+		for _, element := range elements {
+			str, ok := element.(types.String)
+			if !ok {
+				continue
+			}
+			if !str.IsNull() && !str.IsUnknown() && str.ValueString() == v.requiredValue {
+				hasRequiredValue = true
+				break
+			}
+		}
+
+		if hasRequiredValue {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Missing Required Field",
+				fmt.Sprintf("field is required when %s contains \"%s\"", v.setFieldName, v.requiredValue),
+			)
+		}
+	}
+}
+
+// RequiredWhenSetContains returns a string validator which ensures that the field is required
+// when a sibling set field contains a specific value.
+func RequiredWhenSetContains(setFieldName, requiredValue string) validator.String {
+	return &requiredWhenSetContainsValidator{
+		setFieldName:  setFieldName,
+		requiredValue: requiredValue,
+	}
+}
+
+//---------------------------------------------------
+
+// Ensure the implementation satisfies the validator.String interface.
+var _ validator.String = requiredWhenEqualsValidator{}
+
+// requiredWhenEqualsValidator is the implementation of the validator.
+type requiredWhenEqualsValidator struct {
+	dependentField string
+	requiredValue  types.String
+}
+
+// Description returns a plain-text description of the validator's behavior.
+func (v requiredWhenEqualsValidator) Description(ctx context.Context) string {
+	return fmt.Sprintf("this attribute is required when %s is set to %s", v.dependentField, v.requiredValue.ValueString())
+}
+
+// MarkdownDescription returns a markdown-formatted description of the validator's behavior.
+func (v requiredWhenEqualsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v requiredWhenEqualsValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// If the attribute being validated is not configured, we don't need to check the dependency.
+	// Other validators like `stringvalidator.Required()` will handle if it's required on its own.
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	// Get the path to the dependent attribute.
+	// For example, if we are on "group_id", the parent path is "target", and we want to find "target_type".
+	dependentPath := req.Path.ParentPath().AtName(v.dependentField)
+
+	// Get the value of the dependent attribute from the configuration.
+	var dependentValue types.String
+	diags := req.Config.GetAttribute(ctx, dependentPath, &dependentValue)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	// If the dependent attribute isn't set to the required value, the validation passes.
+	if dependentValue.IsUnknown() || dependentValue.IsNull() || !dependentValue.Equal(v.requiredValue) {
+		return
+	}
+
+	// At this point, the dependent field has the required value, so this field must be set.
+	// Check if the current attribute value is null or an empty string.
+	if req.ConfigValue.IsNull() || req.ConfigValue.ValueString() == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Attribute Required",
+			fmt.Sprintf("Attribute %q is required because attribute %q is set to %q.", req.Path, dependentPath, v.requiredValue.ValueString()),
+		)
+	}
+}
+
+// RequiredWhenEquals is a factory function that returns a new requiredWhenEqualsValidator.
+// It validates that the attribute is not null or empty when another field in the same object
+// has a specific string value.
+func RequiredWhenEquals(dependentField string, requiredValue types.String) validator.String {
+	return requiredWhenEqualsValidator{
+		dependentField: dependentField,
+		requiredValue:  requiredValue,
+	}
+}
+
+//---------------------------------------------------
