@@ -14,7 +14,6 @@ import (
 func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
 	configurationPolicy := models.NewDeviceManagementConfigurationPolicy()
 
-	// Set the basic properties using constructors
 	constructors.SetStringProperty(planModel.Name, configurationPolicy.SetName)
 	constructors.SetStringProperty(planModel.Description, configurationPolicy.SetDescription)
 
@@ -25,7 +24,6 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 	templateReference := models.NewDeviceManagementConfigurationPolicyTemplateReference()
 	templateReference.SetTemplateId(&templateId)
 
-	// Parse the template family string into the proper enum type
 	parsedTemplateFamily, _ := models.ParseDeviceManagementConfigurationTemplateFamily(templateFamily)
 	if parsedFamily, ok := parsedTemplateFamily.(*models.DeviceManagementConfigurationTemplateFamily); ok && parsedFamily != nil {
 		templateReference.SetTemplateFamily(parsedFamily)
@@ -79,7 +77,7 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 func constructAutopilotDevicePreparationPolicySettings(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) ([]models.DeviceManagementConfigurationSettingable, error) {
 	var settings []models.DeviceManagementConfigurationSettingable
 
-	// Add deployment settings
+	// Add settings catalog template settings from the hcl plan
 	if planModel.DeploymentSettings != nil {
 		// Deployment Mode
 		if !planModel.DeploymentSettings.DeploymentMode.IsNull() && !planModel.DeploymentSettings.DeploymentMode.IsUnknown() {

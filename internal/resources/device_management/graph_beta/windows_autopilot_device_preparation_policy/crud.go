@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/errors"
@@ -56,7 +57,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
 		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-		requestBody, err := constructEnrollmentTimeDeviceMembershipResource(ctx, deviceSecurityGroupID)
+		// Validate that the security group has the required ownership
+		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+		if diagnostics.HasError() {
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
+
+		// Create the request body for setting enrollment time device membership target
+		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
@@ -65,19 +74,19 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 			return
 		}
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			SetEnrollmentTimeDeviceMembershipTarget().
-			Post(ctx, requestBody, nil)
+		config := graphcustom.PostRequestConfig{
+			APIVersion:  graphcustom.GraphAPIBeta,
+			Endpoint:    fmt.Sprintf("deviceManagement/configurationPolicies('%s')/assignJustInTimeConfiguration", object.ID.ValueString()),
+			RequestBody: requestBody,
+		}
+		err = graphcustom.PostRequestNoContent(ctx, r.client.GetAdapter(), config)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
-		tflog.Info(ctx, fmt.Sprintf("Successfully set device security group %s as enrollment time device membership target", deviceSecurityGroupID))
+		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as just-in-time configuration", deviceSecurityGroupID))
 	}
 
 	if object.Assignments != nil {
@@ -253,8 +262,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
 		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-		// Construct the enrollment time device membership resource
-		requestBody, err := constructEnrollmentTimeDeviceMembershipResource(ctx, deviceSecurityGroupID)
+		// Validate that the security group has the required ownership
+		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+		if diagnostics.HasError() {
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
+
+		// Create the request body for setting enrollment time device membership target
+		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
@@ -263,20 +279,20 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 			return
 		}
 
-		// Call the API to set the enrollment time device membership target
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			SetEnrollmentTimeDeviceMembershipTarget().
-			Post(ctx, requestBody, nil)
+		// Use a raw request to set the enrollment time device membership target
+		config := graphcustom.PostRequestConfig{
+			APIVersion:  graphcustom.GraphAPIBeta,
+			Endpoint:    fmt.Sprintf("deviceManagement/configurationPolicies('%s')/assignJustInTimeConfiguration", object.ID.ValueString()),
+			RequestBody: requestBody,
+		}
+		err = graphcustom.PostRequestNoContent(ctx, r.client.GetAdapter(), config)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 
-		tflog.Info(ctx, fmt.Sprintf("Successfully set device security group %s as enrollment time device membership target", deviceSecurityGroupID))
+		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as just-in-time configuration", deviceSecurityGroupID))
 	}
 
 	if object.Assignments != nil {
