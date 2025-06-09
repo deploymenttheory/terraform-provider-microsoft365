@@ -56,7 +56,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
 		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-		requestBody, err := constructEnrollmentTimeDeviceMembershipResource(ctx, deviceSecurityGroupID)
+		// Validate that the security group has the required ownership
+		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+		if diagnostics.HasError() {
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
+
+		// Create the request body for setting enrollment time device membership target
+		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
@@ -77,7 +85,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 			return
 		}
 
-		tflog.Info(ctx, fmt.Sprintf("Successfully set device security group %s as enrollment time device membership target", deviceSecurityGroupID))
+		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
 	}
 
 	if object.Assignments != nil {
@@ -253,8 +261,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
 		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-		// Construct the enrollment time device membership resource
-		requestBody, err := constructEnrollmentTimeDeviceMembershipResource(ctx, deviceSecurityGroupID)
+		// Validate that the security group has the required ownership
+		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+		if diagnostics.HasError() {
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
+
+		// Create the request body for setting enrollment time device membership target
+		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
@@ -263,7 +278,6 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 			return
 		}
 
-		// Call the API to set the enrollment time device membership target
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
@@ -276,7 +290,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 			return
 		}
 
-		tflog.Info(ctx, fmt.Sprintf("Successfully set device security group %s as enrollment time device membership target", deviceSecurityGroupID))
+		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
 	}
 
 	if object.Assignments != nil {

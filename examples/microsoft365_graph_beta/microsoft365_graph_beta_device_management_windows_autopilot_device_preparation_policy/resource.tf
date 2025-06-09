@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_windows_autopilot_device_preparation_policy" "example" {
+resource "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy" "example" {
   name                = "Windows Autopilot Device Preparation Policy"
   description         = "Example Windows Autopilot Device Preparation Policy"
   role_scope_tag_ids  = ["0"]
@@ -42,7 +42,7 @@ resource "microsoft365_graph_beta_windows_autopilot_device_preparation_policy" "
     "12345678-1234-1234-1234-123456789012",
   ]
 
-  assignments {
+  assignments = {
     include_group_ids = [
       "12345678-1234-1234-1234-123456789012", # Example group ID
     ]
