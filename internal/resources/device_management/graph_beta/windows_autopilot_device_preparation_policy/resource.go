@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_windows_autopilot_device_preparation_policy"
+	ResourceName  = "graph_beta_device_management_windows_autopilot_device_preparation_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
