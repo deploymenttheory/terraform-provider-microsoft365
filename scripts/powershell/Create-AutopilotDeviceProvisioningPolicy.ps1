@@ -518,6 +518,50 @@ function New-WADPConfigurationPolicy {
     }
 }
 
+# Function to assign device group using alternate method
+function Set-WADPDeviceGroupAssignment {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$GraphToken,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$PolicyId,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$DeviceSecurityGroupId
+    )
+    
+    try {
+        Write-Host "🔄 Attempting device group assignment with alternate method..." -ForegroundColor Yellow
+        
+        # This is a more generic assignment approach that might work when the enrollment time
+        # membership target method fails due to internal server errors
+        $assignmentBody = @{
+            assignments = @(
+                @{
+                    id = ""
+                    source = "direct"
+                    target = @{
+                        groupId = $DeviceSecurityGroupId
+                        "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                        deviceAndAppManagementAssignmentFilterType = "none"
+                    }
+                }
+            )
+        } | ConvertTo-Json -Depth 5
+        
+        $url = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$PolicyId')/assign"
+        Post-GraphData -GraphToken $GraphToken -Url $url -Body $assignmentBody | Out-Null
+        
+        Write-Host "✅ Device group assigned using alternate method" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        Write-Error "Failed to assign device group using alternate method: $_"
+        return $false
+    }
+}
+
 # Function to assign just-in-time configuration
 function Set-WADPJustInTimeConfiguration {
     param (
@@ -532,23 +576,70 @@ function Set-WADPJustInTimeConfiguration {
     )
     
     try {
-        Write-Host "🔄 Assigning just-in-time configuration..." -ForegroundColor Yellow
+        Write-Host "🔄 Assigning enrollment time device membership target..." -ForegroundColor Yellow
         
-        $jitBody = @{
-            justInTimeAssignments = @{
-                targetType = "entraSecurityGroup"
-                target = @($DeviceSecurityGroupId)
-            }
-        } | ConvertTo-Json -Depth 5
+        # Create a simple string-based body that matches the browser request exactly
+        $bodyJson = '{
+  "enrollmentTimeDeviceMembershipTargets": [
+    {
+      "targetType": "staticSecurityGroup",
+      "targetId": "' + $DeviceSecurityGroupId + '"
+    }
+  ]
+}'
         
-        $url = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$PolicyId')/assignJustInTimeConfiguration"
-        Post-GraphData -GraphToken $GraphToken -Url $url -Body $jitBody | Out-Null
+        # Show the exact request body for debugging
+        Write-Host "Request body: $bodyJson" -ForegroundColor Cyan
         
-        Write-Host "✅ Just-in-time configuration assigned successfully" -ForegroundColor Green
+        $url = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$PolicyId')/setEnrollmentTimeDeviceMembershipTarget"
+        Write-Host "Request URL: $url" -ForegroundColor Cyan
+        
+        # Add sleep to ensure any background processing has completed
+        Start-Sleep -Seconds 2
+        
+        # Add headers explicitly for more control
+        $authHeader = @{
+            'Authorization' = "Bearer $GraphToken"
+            'Content-Type' = 'application/json'
+            'Accept' = 'application/json'
+        }
+        
+        # Use Invoke-RestMethod directly for this call for better error handling
+        $response = Invoke-RestMethod -Uri $url -Method POST -Headers $authHeader -Body $bodyJson -ErrorAction Stop
+        Write-Host "✅ Enrollment time device membership target assigned successfully" -ForegroundColor Green
+        return $response
     }
     catch {
-        Write-Error "Failed to assign just-in-time configuration: $_"
-        throw
+        Write-Error "Failed to assign enrollment time device membership target: $_"
+        
+        # Enhanced error information
+        if ($_.Exception.Response) {
+            $statusCode = $_.Exception.Response.StatusCode.value__
+            Write-Host "Status code: $statusCode" -ForegroundColor Red
+            
+            try {
+                $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+                $reader.BaseStream.Position = 0
+                $reader.DiscardBufferedData()
+                $responseBody = $reader.ReadToEnd()
+                Write-Host "Error details: $responseBody" -ForegroundColor Red
+            }
+            catch {
+                Write-Host "Could not read error response: $_" -ForegroundColor Red
+            }
+        }
+        
+        # Try alternate approach if this continues to fail
+        Write-Host "⚠️ Trying fallback method for device group assignment..." -ForegroundColor Yellow
+        $success = Set-WADPDeviceGroupAssignment -GraphToken $GraphToken -PolicyId $PolicyId -DeviceSecurityGroupId $DeviceSecurityGroupId
+        
+        if ($success) {
+            Write-Host "✅ Device group assigned using alternate method" -ForegroundColor Green
+            return $null
+        } else {
+            Write-Host "⚠️ Both assignment methods failed. Policy created but device group assignment will need to be done manually." -ForegroundColor Yellow
+            return $null
+        }
     }
 }
 
@@ -699,21 +790,36 @@ function Invoke-WADPPolicyCreation {
         # Create the policy
         $policy = New-WADPConfigurationPolicy -GraphToken $graphToken -PolicySettings $policySettings
         
+        # Variable to track if we should proceed despite enrollment time assignment failures
+        $proceedWithAssignment = $true
+        
         # Assign just-in-time configuration
-        Set-WADPJustInTimeConfiguration -GraphToken $graphToken -PolicyId $policy.id -DeviceSecurityGroupId $DeviceSecurityGroupId
+        try {
+            $result = Set-WADPJustInTimeConfiguration -GraphToken $graphToken -PolicyId $policy.id -DeviceSecurityGroupId $DeviceSecurityGroupId
+            # If we get here, assignment worked
+        } 
+        catch {
+            Write-Host "⚠️ Enrollment time device membership target assignment failed, but continuing with policy assignment" -ForegroundColor Yellow
+            Write-Host "ℹ️ You may need to manually assign the device group in the Intune Portal" -ForegroundColor Yellow
+            $proceedWithAssignment = $true  # Still proceed with policy assignment
+        }
         
         # Assign policy to user group
-        Set-WADPPolicyAssignment -GraphToken $graphToken -PolicyId $policy.id -UserSecurityGroupId $UserSecurityGroupId
-        
-        # Verify creation
-        $policyDetails = Get-WADPPolicyDetails -GraphToken $graphToken -PolicyId $policy.id
-        
-        # Final success message
-        Write-Host "`n✨ Windows Autopilot Device Preparation Policy created successfully!" -ForegroundColor Green
-        Write-Host "🔗 Policy ID: $($policy.id)" -ForegroundColor Cyan
-        Write-Host "🔗 Intune Portal: https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesEnrollmentMenu/~/windowsEnrollment" -ForegroundColor Cyan
-        
-        return $policy
+        if ($proceedWithAssignment) {
+            Set-WADPPolicyAssignment -GraphToken $graphToken -PolicyId $policy.id -UserSecurityGroupId $UserSecurityGroupId
+            
+            # Verify creation
+            $policyDetails = Get-WADPPolicyDetails -GraphToken $graphToken -PolicyId $policy.id
+            
+            # Final success message
+            Write-Host "`n✨ Windows Autopilot Device Preparation Policy created successfully!" -ForegroundColor Green
+            Write-Host "🔗 Policy ID: $($policy.id)" -ForegroundColor Cyan
+            Write-Host "🔗 Intune Portal: https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesEnrollmentMenu/~/windowsEnrollment" -ForegroundColor Cyan
+            
+            return $policy
+        } else {
+            throw "Policy creation process could not be completed."
+        }
     }
     catch {
         Write-Host "`n❌ Policy creation failed: $_" -ForegroundColor Red
