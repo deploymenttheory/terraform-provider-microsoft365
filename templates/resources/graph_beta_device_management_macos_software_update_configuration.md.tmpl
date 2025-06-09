@@ -1,0 +1,52 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Intune"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [List macOSSoftwareUpdateConfigurations](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-list?view=graph-rest-beta)
+- [Get macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-get?view=graph-rest-beta)
+- [Create macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-create?view=graph-rest-beta)
+- [Update macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-update?view=graph-rest-beta)
+- [Delete macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-delete?view=graph-rest-beta)
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status        | Notes           |
+|---------|--------------|-----------------|
+| v0.16.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_macos_software_update_configuration/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **macOS Software Update Configuration**: This resource manages update policies for macOS devices in Microsoft Intune using the macOSSoftwareUpdateConfiguration API.
+- **Update Behaviors**: You can control the behavior for critical, configuration data, firmware, and all other updates.
+- **Custom Time Windows**: Supports specifying custom update time windows for fine-grained scheduling.
+- **Deferral and Priority**: Allows configuration of user deferral limits and update priority.
+- **Assignment Required**: Policies must be assigned to device or user groups to be deployed.
+- **Platform Support**: Supports macOS devices managed by Intune.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_macos_software_update_configuration/import.sh" }}

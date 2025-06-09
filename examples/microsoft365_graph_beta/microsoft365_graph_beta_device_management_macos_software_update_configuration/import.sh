@@ -1,0 +1,2 @@
+
+terraform import microsoft365_graph_beta_device_management_macos_software_update_configuration.example <id>

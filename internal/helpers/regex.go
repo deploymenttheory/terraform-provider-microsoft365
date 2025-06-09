@@ -3,13 +3,41 @@ package helpers
 import "time"
 
 const (
-	GuidRegex             = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+	// GuidRegex matches a standard GUID/UUID.
+	// Example: "123e4567-e89b-12d3-a456-426614174000"
+	GuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+
+	// GuidOrEmptyValueRegex matches a standard GUID/UUID or an empty string.
+	// Example: "123e4567-e89b-12d3-a456-426614174000" or ""
 	GuidOrEmptyValueRegex = "^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
-	UrlValidStringRegex   = "(?i)^[A-Za-z0-9-._~%/:/?=]+$"
-	ApiIdRegex            = "^[0-9a-zA-Z/._]*$"
-	StringRegex           = "^.*$"
-	VersionRegex          = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
-	TimeRegex             = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"
-	BooleanRegex          = "^(true|false)$"
-	TimeFormatRFC3339     = time.RFC3339
+
+	// UrlValidStringRegex matches a valid URL string (letters, numbers, and URL-safe characters).
+	// Example: "https://example.com/path?query=1"
+	UrlValidStringRegex = "(?i)^[A-Za-z0-9-._~%/:/?=]+$"
+
+	// ApiIdRegex matches API IDs consisting of alphanumeric characters, slashes, dots, or underscores.
+	// Example: "api/v1/resource_1"
+	ApiIdRegex = "^[0-9a-zA-Z/._]*$"
+
+	// StringRegex matches any string (including empty).
+	// Example: "any string here"
+	StringRegex = "^.*$"
+
+	// VersionRegex matches a version string in the format "X.Y.Z.W".
+	// Example: "1.0.0.0"
+	VersionRegex = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+
+	// TimeRegex matches a UTC timestamp in the format "YYYY-MM-DDTHH:MM:SSZ".
+	// Example: "2023-05-01T13:45:30Z"
+	TimeRegex = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"
+
+	// BooleanRegex matches the string "true" or "false".
+	// Example: "true"
+	BooleanRegex = "^(true|false)$"
+
+	// TimeHMSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
+	// Example: "14:30:59"
+	TimeHMSRegex = "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+
+	TimeFormatRFC3339 = time.RFC3339
 )
