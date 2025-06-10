@@ -37,24 +37,24 @@ jobs:
   Release:
     runs-on: windows-latest-l
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ inputs.git-ref || github.ref }}
           fetch-depth: 0
-      - uses: actions/setup-go@v5.5.0 
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version: ${{ inputs.setup-go-version }}
           go-version-file: ${{ inputs.setup-go-version-file }}
           cache: false  # Disable caching to skip the post-cleanup step. saves circa 15 minutes
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6.3.0
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
         with:
           gpg_private_key: ${{ secrets.gpg-private-key }}
           passphrase: ${{ secrets.gpg-private-key-passphrase }}
       - if: inputs.release-notes != true
         name: goreleaser release (without release notes)
-        uses: goreleaser/goreleaser-action@v6.3.0
+        uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
           args: release --clean ${{ inputs.goreleaser-release-args }}
         env:
@@ -63,13 +63,13 @@ jobs:
       - if: inputs.release-notes
         id: release-notes-download
         name: Release Notes Download
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: release-notes
           path: /tmp
       - if: inputs.release-notes
         name: goreleaser release (with release notes)
-        uses: goreleaser/goreleaser-action@v6.3.0
+        uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
           args: release --release-notes ${{ steps.release-notes-download.outputs.download-path }}/release-notes.txt --clean ${{ inputs.goreleaser-release-args }}
         env:
