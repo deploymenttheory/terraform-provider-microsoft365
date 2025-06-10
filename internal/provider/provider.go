@@ -159,8 +159,7 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"```powershell\n" +
 				"Get-MgApplication -Filter \"displayName eq 'Your App Name'\" | Select-Object AppId, DisplayName\n" +
 				"```\n\n" +
-				"```\n\n" +
-				"**Example usage:**\n" +
+				"Example usage:\n" +
 				"```hcl\n" +
 				"provider \"microsoft365\" {\n" +
 				"  client_id = \"my_client_id\"\n" +
@@ -200,7 +199,7 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"}\n" +
 				"New-MgApplicationPassword -ApplicationId <app-id> -PasswordCredential $credential\n" +
 				"```\n\n" +
-				"**Example usage:**\n" +
+				"Example usage:\n" +
 				"```hcl\n" +
 				"provider \"microsoft365\" {\n" +
 				"  client_secret = \"my_client_secret\"\n" +

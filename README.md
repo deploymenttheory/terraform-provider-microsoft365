@@ -6,29 +6,57 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 > This code is experimental and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, and no guarantees or support is provided. By using this code, you acknowledge and agree to these conditions. Consult the documentation or contact the maintainer if you have questions or concerns.
 
 
-> [!INFO]
+> [!TIP]
 > This is a community-driven project and is not officially supported by Microsoft.
 > If you need help, want to ask questions, or connect with other users and contributors, join our community Discord:
 > [Join our Discord for support and discussion](https://discord.gg/Uq8zG6g7WE)
 
 ## Overview
 
-The Community Terraform Provider for Microsoft 365 empowers DevOps teams and administrators to manage their Microsoft 365 environments using Infrastructure as Code (IaC) principles. This provider bridges the gap between Terraform's powerful resource management capabilities and the extensive features of Microsoft 365, allowing for automated, version-controlled, and repeatable deployments across various Microsoft cloud services.
-
-## Key Features
-
-- **Comprehensive Resource Management**: Manage resources across Microsoft Intune, Microsoft 365, Microsoft Teams, and Microsoft Defender.
-- **Multi-Cloud Support**: Compatible with various Microsoft cloud environments, including public, government, and national clouds.
-- **Flexible Authentication**: Supports multiple authentication methods, including client credentials, certificate-based, and interactive browser flows.
-- **Beta API Access**: Includes a beta client for accessing cutting-edge features and APIs still in development.
-- **Enhanced Security Options**: Offers proxy support and various security configurations to align with organizational policies.
+The Community Terraform Provider for Microsoft 365 empowers workplace teams and administrators to manage their Microsoft 365 environments using Infrastructure as Code (IaC) principles. This provider bridges the gap between Terraform's powerful resource management capabilities and the extensive features of Microsoft 365, allowing for automated, version-controlled, and repeatable deployments across various Microsoft cloud services.
 
 ## Use Cases
 
-- Automate the creation and management of user accounts, groups, and permissions.
-- Deploy and configure Microsoft Teams environments at scale.
-- Manage security policies and compliance settings across your Microsoft 365 tenant.
-- Provision and configure Intune policies for device management.
+- **Infrastructure as Code for Microsoft 365**  
+  Manage Microsoft 365 configuration (users, groups, policies, device management, and more) as code, enabling version control, peer review, and repeatable deployments—just as you would for cloud infrastructure in Azure or GCP.
+
+- **Automated, Auditable Change Management**  
+  Use Terraform's plan and apply in gitOps workflows to preview, approve, and track changes to your Microsoft 365 environment, ensuring all modifications are intentional, reviewed, and logged.
+
+- **Environment Replication and Drift Detection**
+  Reproduce Microsoft 365 tenant configurations across multiple environments (development, staging, production) or tenants, and detect configuration drift over time using Terraform’s state management.
+
+- **Disaster Recovery and Rapid Rebuilds**  
+  Store your Microsoft 365 configuration in code, allowing for rapid recovery or migration of tenant settings, policies, and assignments in the event of accidental changes or tenant loss.
+
+- **Collaboration and Delegation**
+  Empower teams to collaborate on Microsoft 365 configuration using pull requests, code reviews, and CI/CD pipelines, reducing bottlenecks and enabling safe delegation of administrative tasks.
+
+- **Bulk and Consistent Policy Enforcement**
+  Apply security, compliance, and device management policies at scale, ensuring consistency and reducing manual configuration errors across large organizations or multiple tenants.
+
+- **Self-Service via Terraform Modules**  
+  Build reusable Terraform modules for common Microsoft 365 workloads, enabling service-owning teams to provide self-service provisioning to other engineering teams while maintaining standards and reducing manual effort.
+
+- **Integration with Policy-as-Code (OPA/Conftest)**  
+  Integrate with Open Policy Agent (OPA) or Conftest to enforce organizational standards, compliance, and guardrails on Microsoft 365 resources before deployment, ensuring only approved configurations are applied in production.
+
+- **Guardrailed Deployments**  
+  Implement automated checks and guardrails in CI/CD pipelines to prevent misconfiguration and enforce best practices, reducing risk and improving governance for Microsoft 365 administration.
+
+## Getting Started
+
+Please refer to the [Getting Started](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs) guide in the terraform registry for more information on how to get started.
+
+## Provider Key Features
+
+- **Wide Resource Coverage**: Supports management of resources across Microsoft Intune, Microsoft 365, Microsoft Teams, Microsoft Defender, and related services. This includes device and app management, user and group management, and administrative resources.
+- **Multi-Cloud Compatibility**: Operates with Microsoft public cloud, US Government (GCC, GCC High, DoD), China, and other national cloud environments.
+- **Multiple Authentication Methods**: Provides support for client secret, client certificate, device code, interactive browser, managed identity, workload identity, OIDC (including GitHub Actions and Azure DevOps), and Azure Developer CLI authentication.
+- **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
+- **Proxy and Network Configuration**: Allows configuration of HTTP proxy settings, custom user agents, request timeouts, and retry/redirect/compression policies.
+
+
 
 ## Community Contributions
 
@@ -48,7 +76,8 @@ Please see the roadmap below on the intended provider resource suppport
 
 ## Disclaimer
 
-While every effort is made to maintain accuracy and reliability, users should thoroughly test configurations in non-production environments before deploying to production. Always refer to official Microsoft documentation for the most up-to-date information on Microsoft 365 services and features.
+> [!IMPORTANT]  
+> While every effort is made to maintain accuracy and reliability, users should thoroughly test configurations in non-production environments before deploying to production. Always refer to official Microsoft documentation for the most up-to-date information on Microsoft 365 services and features.
 
 ## Data Collection
 
