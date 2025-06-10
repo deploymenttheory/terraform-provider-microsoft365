@@ -48,9 +48,9 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 
 // processSetting processes an individual settings catalog setting and appends it to the settingsRequestPayload.
 //
-// This function is part of the constructor logic and is responsible for creating and configuring
-// instances of DeviceManagementConfigurationSetting based on the provided `setting`. It dynamically
-// determines the type of setting based on the `@odata.type` field and handles different setting types, including:
+// This function is part of the configuratioin policy / settings catalog 'json' resourceconstructor logic
+// and is responsible for creating and configuring. It dynamically determines the type of setting
+// based on the `@odata.type` field and handles different setting types, including:
 // - Simple Settings
 // - Choice Settings
 // - Simple Collection Settings
