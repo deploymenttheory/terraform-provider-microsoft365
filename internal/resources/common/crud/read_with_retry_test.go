@@ -101,7 +101,7 @@ func TestReadWithRetry_AllRetriesExhausted(t *testing.T) {
 	if callCount != 4 { // MaxRetries + 1
 		t.Errorf("Expected 4 calls, got: %d", callCount)
 	}
-	if !contains(err.Error(), "failed to read resource state after 4 attempts") {
+	if !(contains(err.Error(), "failed to read resource state for") && contains(err.Error(), "after 4 attempts")) {
 		t.Errorf("Error message doesn't contain expected text: %v", err)
 	}
 }

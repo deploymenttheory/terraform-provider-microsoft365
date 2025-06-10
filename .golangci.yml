@@ -116,7 +116,7 @@ linters:
           - lll
         source: "^//go:generate "
 
-   # exclude entire files from reporting (still analyzed)
+    # exclude entire files from reporting (still analyzed)
     paths:
       - ".*\\.gen\\.go$"          # Generated Go files
       - ".*_test\\.go$"           # Test files (already handled with more specific rules)
