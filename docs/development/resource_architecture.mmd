@@ -1,0 +1,51 @@
+flowchart TD
+    subgraph CRUD
+        Create[Create]
+        Read[Read]
+        Update[Update]
+        Delete[Delete]
+    end
+
+    subgraph Construction
+        constructResource[constructResource]
+        constructSettings[constructSettings/constructSettingsCatalogSettings]
+        constructAssignment[constructAssignment/ConstructConfigurationPolicyAssignment]
+    end
+
+    subgraph StateMapping
+        mapRemoteState[MapRemoteResourceStateToTerraform]
+        mapSettingsState[MapRemoteSettingsStateToTerraform/StateConfigurationPolicySettings]
+        mapAssignmentState[MapRemoteAssignmentStateToTerraform/StateAssignment]
+    end
+
+    subgraph Model
+        ResourceModel[ResourceModel]
+        AssignmentModel[AssignmentModel]
+        SettingsModel[SettingsModel]
+    end
+
+    %% CRUD to Construction
+    Create --> constructResource
+    Update --> constructResource
+    Create --> constructAssignment
+    Update --> constructAssignment
+
+    %% CRUD to State Mapping
+    Read --> mapRemoteState
+    Read --> mapSettingsState
+    Read --> mapAssignmentState
+
+    %% Construction to Model
+    constructResource --> ResourceModel
+    constructSettings --> SettingsModel
+    constructAssignment --> AssignmentModel
+
+    %% State Mapping to Model
+    mapRemoteState --> ResourceModel
+    mapSettingsState --> SettingsModel
+    mapAssignmentState --> AssignmentModel
+
+    %% CRUD relationships
+    Create --> Read
+    Update --> Read
+    Delete --> Read 
