@@ -1,13 +1,12 @@
-name: Go Unit Tests
+name: Unit Tests
 
 on:
   pull_request:
     branches: [ 'main' ]
     paths:
-      - 'internal/**'
+      - '**/*.go'
       - 'go.mod'
       - 'go.sum'
-      - '*.go'
 
 jobs:
   test:
