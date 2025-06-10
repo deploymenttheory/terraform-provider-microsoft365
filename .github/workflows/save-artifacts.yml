@@ -4,6 +4,9 @@ on:
   # This file is reused, and called from other workflows
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   save-artifacts:
     runs-on: ubuntu-latest
