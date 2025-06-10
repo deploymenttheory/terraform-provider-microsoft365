@@ -8,8 +8,8 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 
 > [!TIP]
 > This is a community-driven project and is not officially supported by Microsoft.
-> If you need help, want to ask questions, or connect with other users and contributors, join our community Discord:
-> [Join our Discord for support and discussion](https://discord.gg/Uq8zG6g7WE)
+> If you need help, want to ask questions, or connect with other users and contributors, join our community
+> [Discord](https://discord.gg/Uq8zG6g7WE)
 
 ## Overview
 
@@ -53,10 +53,9 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 - **Wide Resource Coverage**: Supports management of resources across Microsoft Intune, Microsoft 365, Microsoft Teams, Microsoft Defender, and related services. This includes device and app management, user and group management, and administrative resources.
 - **Multi-Cloud Compatibility**: Operates with Microsoft public cloud, US Government (GCC, GCC High, DoD), China, and other national cloud environments.
 - **Multiple Authentication Methods**: Provides support for client secret, client certificate, device code, interactive browser, managed identity, workload identity, OIDC (including GitHub Actions and Azure DevOps), and Azure Developer CLI authentication.
-- **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
 - **Proxy and Network Configuration**: Allows configuration of HTTP proxy settings, custom user agents, request timeouts, and retry/redirect/compression policies.
-
-
+- **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
+- **Microsoft Graph SDK Adoption**: The provider leverages the Microsoft Graph API through the Kiota-generated graphSDKs, allowing for a strongly typed development experience.
 
 ## Community Contributions
 
@@ -66,7 +65,7 @@ As a community-driven project, contributions, feedback, and issue reports are we
 
 The style guidelines and the design decisions for this provider can be found here
 
-[Development Guide](./docs/developmentguide/guide.md)
+[Development Guide](./docs/development/guide.md)
 
 ## Community Terraform Provider for Microsoft 365 Provider Roadmap
 

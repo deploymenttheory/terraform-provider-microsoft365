@@ -1,0 +1,45 @@
+flowchart TD
+    subgraph Resource
+        Create --> constructResource
+        Create --> ConstructConfigurationPolicyAssignment
+        Create --> Read
+        Read --> MapRemoteResourceStateToTerraform
+        Read --> StateConfigurationPolicySettings
+        Read --> StateAssignment
+        Update --> constructResource
+        Update --> ConstructConfigurationPolicyAssignment
+        Update --> Read
+        Delete --> RemoveResource
+    end
+    subgraph Construction
+        constructResource --> ConstructSettingsCatalogSettings
+        ConstructSettingsCatalogSettings --> processSetting
+        processSetting --> createBaseInstance
+        processSetting --> handleSimpleValue
+        processSetting --> handleChoiceSettingChildren
+        processSetting --> handleSimpleSettingCollection
+        processSetting --> handleChoiceCollectionValue
+        processSetting --> handleGroupSettingCollection
+    end
+    subgraph StateMapping
+        StateConfigurationPolicySettings --> mapSettingToModel
+        mapSettingToModel --> mapSettingInstanceToModel
+        mapSettingInstanceToModel --> mapSimpleSettingValue
+        mapSettingInstanceToModel --> mapChoiceSettingValue
+        mapSettingInstanceToModel --> mapSimpleSettingCollection
+        mapSettingInstanceToModel --> mapChoiceSettingCollection
+        mapSettingInstanceToModel --> mapGroupSettingCollection
+    end
+    subgraph Assignment
+        ConstructConfigurationPolicyAssignment --> constructAllDevicesAssignment
+        ConstructConfigurationPolicyAssignment --> constructAllUsersAssignment
+        ConstructConfigurationPolicyAssignment --> constructGroupIncludeAssignments
+        ConstructConfigurationPolicyAssignment --> constructGroupExcludeAssignments
+        StateAssignment --> MapExcludeGroupAssignments
+        StateAssignment --> GetAllDeviceAssignments
+        StateAssignment --> GetAllUserAssignments
+    end
+    Create --> Update
+    Update --> Delete
+    Read --> Update
+    Read --> Delete 
