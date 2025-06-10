@@ -133,10 +133,13 @@ This guide describes the recommended workflow and best practices for developing 
              ResourceTemplates().
              ByDeviceAndAppManagementResourceTemplateId(plan.ID.ValueString()).
              Patch(ctx, requestBody, nil)
+             
          if err != nil {
              errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
              return
          }
+
+         // Call Read with retry to get the updated resource state
          readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
          stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
          opts := crud.DefaultReadWithRetryOptions()
@@ -267,19 +270,22 @@ After building your resource, you must register it in `internal/provider/resourc
 
 ## Terraform Registry Resource Template
 
-A template for the Terraform Registry documentation is required for each resource. See `templates/resources/graph_beta_device_management_settings_catalog.md.tmpl` for an example. Your template should include:
+A template for the Terraform Registry documentation is required for each resource. tf registry docs are generated using tfplugindocs and will be populated when the Generate Docs pipeline workflow is run on pushes into main.
+
+The template should be added to the `templates/resources` directory. See `templates/resources/graph_beta_device_management_settings_catalog.md.tmpl` for an example. Your template should include:
 
 - Title, subcategory, and description
 - Microsoft documentation links
 - API permissions
 - Version history
 - Example usage (referencing an example `.tf` file)
-- Schema documentation
 - Import instructions
+
+The template should be named `graph_beta_<resource_name>.md.tmpl` for beta resources and `graph_<resource_name>.md.tmpl` for v1.0 resources.
 
 ## Example Usage and Import
 
-Below is an example of a resource usage and import for documentation:
+Below is an example of a resource usage and import for terraform registry documentation:
 
 ```hcl
 resource "microsoft365_graph_beta_device_management_settings_catalog" "example" {
@@ -305,5 +311,5 @@ resource "microsoft365_graph_beta_device_management_settings_catalog" "example" 
 To import an existing resource:
 
 ```sh
-terraform import microsoft365_graph_beta_device_management_settings_catalog.example <resource_id>
+terraform import microsoft365_graph_beta_your_resource.example <resource_id>
 ```
