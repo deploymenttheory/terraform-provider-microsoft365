@@ -133,7 +133,7 @@ This guide describes the recommended workflow and best practices for developing 
              ResourceTemplates().
              ByDeviceAndAppManagementResourceTemplateId(plan.ID.ValueString()).
              Patch(ctx, requestBody, nil)
-             
+
          if err != nil {
              errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
              return
@@ -236,16 +236,15 @@ For questions or to discuss development, join the [community Discord](https://di
 
 ## Typical Package Structure
 
-A typical resource package in this provider is organized as follows (using `settings_catalog` as an example):
+A typical resource package in this provider is organized as follows:
 
 - `resource.go`: Resource registration, schema definition, and provider integration logic.
 - `model.go`: Data model definitions for the resource and any nested objects.
 - `crud.go`: Implementation of the Create, Read, Update, and Delete operations. Only API calls and logic flow should be here; request construction and state mapping are delegated to helpers.
 - `construct_*.go`: Functions for building API request bodies from the Terraform model. Keeps CRUD logic clean and focused.
 - `state_*.go`: Functions for mapping API responses to the Terraform state model.
-- `settings_catalog_schema.go`: Detailed schema definitions for complex or nested attributes.
 - `modify_plan.go`: (Optional) Logic for plan modification or diff suppression.
-- `configuration_policy_assignment.go`: (Optional) Assignment-specific logic for the resource.
+- `*_assignment.go`: (Optional) Assignment-specific logic for the resource.
 - `model_*.go`: (Optional) Additional model definitions for complex nested objects.
 - `resource_docs/`: (Optional) Directory for resource-specific documentation.
 
@@ -258,7 +257,7 @@ describe the code. The code should be self explanatory. Use docstrings to explai
 
 ## Architecture Diagram
 
-See the [settings_catalog architecture diagram](./resource_architecture.mmd) for a visual overview of function relationships and flow in a complex resource package.
+See the [diagram](./resource_architecture.mmd) for a visual overview of function relationships and flow in a complex resource package.
 
 ## Integrating Your Resource
 
