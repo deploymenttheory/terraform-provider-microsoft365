@@ -1,0 +1,94 @@
+{
+  "conditions": {
+    "devices": null,
+    "applications": {
+      "includeAuthenticationContextClassReferences": [],
+      "excludeApplications": [],
+      "includeUserActions": [],
+      "includeApplications": [
+        "None"
+      ],
+      "applicationFilter": null
+    },
+    "times": null,
+    "clientApplications": null,
+    "deviceStates": null,
+    "clientAppTypes": [
+      "all"
+    ],
+    "users": {
+      "includeUsers": [],
+      "includeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all",
+          "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+        },
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+      },
+      "includeGroups": [
+        "48fe6d79-f045-448a-bd74-716db27f0783",
+        "106483b3-dcad-408b-95b7-9d3b9ad9c71b"
+      ],
+      "excludeGroups": [
+        "35d09841-af73-43e6-a59f-024fef1b6b95",
+        "410a28bd-9c9f-403f-b1b2-4a0bd04e98d9"
+      ],
+      "excludeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all",
+          "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+        },
+        "guestOrExternalUserTypes": "b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser"
+      },
+      "excludeRoles": [
+        "d2562ede-74db-457e-a7b6-544e236ebb61",
+        "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+        "cf1c38e5-3621-4004-a7cb-879624dced7c"
+      ],
+      "excludeUsers": [],
+      "includeRoles": [
+        "ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe",
+        "9c99539d-8186-4804-835f-fd51ef9e2dcd",
+        "5b784334-f94b-471a-a387-e7219fc49ca2",
+        "1d336d2c-4ae8-42ef-9711-b3604ce3fc2c",
+        "8424c6f0-a189-499e-bbd0-26c1753c96d4",
+        "ffd52fa5-98dc-465c-991d-fc073eb59f8f",
+        "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d",
+        "c430b396-e693-46cc-96f3-db01bf8bb62a",
+        "9c6df0f2-1e7c-4dc3-b195-66dfbd24aa8f",
+        "cf1c38e5-3621-4004-a7cb-879624dced7c",
+        "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+        "d2562ede-74db-457e-a7b6-544e236ebb61"
+      ]
+    },
+    "signInRiskLevels": [],
+    "locations": null,
+    "platforms": null,
+    "userRiskLevels": []
+  },
+  "createdDateTime": "2025-06-13T08:40:10.7268075Z",
+  "modifiedDateTime": null,
+  "partialEnablementStrategy": null,
+  "displayName": "test",
+  "sessionControls": {
+    "disableResilienceDefaults": null,
+    "continuousAccessEvaluation": null,
+    "cloudAppSecurity": null,
+    "applicationEnforcedRestrictions": null,
+    "persistentBrowser": null,
+    "secureSignInSession": null,
+    "signInFrequency": {
+      "type": "hours",
+      "value": 23,
+      "isEnabled": true,
+      "authenticationType": "primaryAndSecondaryAuthentication",
+      "frequencyInterval": "timeBased"
+    }
+  },
+  "id": "b4ded8ce-302f-4255-be46-c3ecf9908870",
+  "templateId": null,
+  "deletedDateTime": null,
+  "state": "disabled",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/policies/$entity",
+  "grantControls": null
+}

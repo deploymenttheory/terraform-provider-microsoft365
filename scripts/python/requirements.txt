@@ -1,3 +1,6 @@
 requests
 colorama
 azure-identity
+aiohttp
+msgraph-core 
+msgraph-beta

@@ -28,7 +28,7 @@ var standardErrorDescriptions = map[int]ErrorDescription{
 	},
 	409: {
 		Summary: "Conflict - 409",
-		Detail:  "The operation failed due to a conflicts with the current state of the target resource. this might be due to multiple clients modifying the same resource simultaneously,the requested resource may not be in the state that was expected, or the request itself may create a conflict if it is completed.",
+		Detail:  "The operation failed due to a conflict with the current state of the target resource. This might be due to multiple clients modifying the same resource simultaneously, the requested resource may not be in the state that was expected, or the request itself may create a conflict if it is completed.",
 	},
 	410: {
 		Summary: "Gone - 410",
@@ -62,17 +62,33 @@ var standardErrorDescriptions = map[int]ErrorDescription{
 		Summary: "Locked - 423",
 		Detail:  "The resource that is being accessed is locked.",
 	},
+	425: {
+		Summary: "Too Early - 425",
+		Detail:  "The server is unwilling to risk processing a request that might be replayed.",
+	},
+	428: {
+		Summary: "Precondition Required - 428",
+		Detail:  "The origin server requires the request to be conditional.",
+	},
 	429: {
 		Summary: "Too Many Requests - 429",
 		Detail:  "Request throttled by Microsoft Graph API rate limits. Please try again later.",
 	},
+	431: {
+		Summary: "Request Header Fields Too Large - 431",
+		Detail:  "The server is unwilling to process the request because its header fields are too large.",
+	},
 	500: {
 		Summary: "Internal Server Error - 500",
-		Detail:  "Microsoft Graph API encountered an internal error.. Please try again later.",
+		Detail:  "Microsoft Graph API encountered an internal error. Please try again later.",
 	},
 	501: {
 		Summary: "Not Implemented - 501",
 		Detail:  "The requested feature isn't implemented in the Microsoft Graph API.",
+	},
+	502: {
+		Summary: "Bad Gateway - 502",
+		Detail:  "The server received an invalid response from an upstream server while trying to fulfill the request.",
 	},
 	503: {
 		Summary: "Service Unavailable - 503",

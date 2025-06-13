@@ -195,7 +195,36 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 					stringvalidator.OneOf("low", "high", "unknownFutureValue"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": assignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
+		},
+	}
+}
+
+// assignmentsSchema returns the schema for the assignments block
+func assignmentsSchema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Required:            true,
+		MarkdownDescription: "Assignment configuration for the macOS software update configuration.",
+		Attributes: map[string]schema.Attribute{
+			"all_devices": schema.BoolAttribute{
+				MarkdownDescription: "Whether to assign the configuration to all devices.",
+				Required:            true,
+			},
+			"all_users": schema.BoolAttribute{
+				MarkdownDescription: "Whether to assign the configuration to all users.",
+				Required:            true,
+			},
+			"include_group_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of group IDs to include in the assignment.",
+				Optional:            true,
+			},
+			"exclude_group_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of group IDs to exclude from the assignment.",
+				Optional:            true,
+			},
 		},
 	}
 }

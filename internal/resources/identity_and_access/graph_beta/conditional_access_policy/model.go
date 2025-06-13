@@ -4,98 +4,65 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ConditionalAccessRootResourceModel represents the main resource model for ConditionalAccessRoot
-// This is a management container that sits above individual policies and templates
-type ConditionalAccessRootResourceModel struct {
-	Id                                   types.String                                        `tfsdk:"id"`
-	AuthenticationContextClassReferences []*AuthenticationContextClassReferenceResourceModel `tfsdk:"authentication_context_class_references"`
-	AuthenticationStrength               *AuthenticationStrengthRootResourceModel            `tfsdk:"authentication_strength"` // Current property
-
-}
-
-// AuthenticationContextClassReferenceResourceModel represents an authentication context class reference
-type AuthenticationContextClassReferenceResourceModel struct {
-	Id          types.String `tfsdk:"id"`
-	Description types.String `tfsdk:"description"`
-	DisplayName types.String `tfsdk:"display_name"`
-	IsAvailable types.Bool   `tfsdk:"is_available"`
-}
-
-// AuthenticationStrengthRootResourceModel represents the authentication strength configuration
-type AuthenticationStrengthRootResourceModel struct {
-	Id                         types.String                                   `tfsdk:"id"`
-	AuthenticationCombinations types.Set                                      `tfsdk:"authentication_combinations"` // Set of strings representing AuthenticationMethodModes
-	Combinations               types.Set                                      `tfsdk:"combinations"`                // Set of strings representing AuthenticationMethodModes
-	AuthenticationMethodModes  []*AuthenticationMethodModeDetailResourceModel `tfsdk:"authentication_method_modes"`
-	Policies                   []*AuthenticationStrengthPolicyResourceModel   `tfsdk:"policies"`
-}
-
-// AuthenticationMethodModeDetailResourceModel represents details of an authentication method mode
-type AuthenticationMethodModeDetailResourceModel struct {
-	Id                   types.String `tfsdk:"id"`
-	DisplayName          types.String `tfsdk:"display_name"`
-	AuthenticationMethod types.String `tfsdk:"authentication_method"` // String representation of BaseAuthenticationMethod enum
-}
-
-// AuthenticationStrengthPolicyResourceModel represents an authentication strength policy
-type AuthenticationStrengthPolicyResourceModel struct {
-	Id                        types.String `tfsdk:"id"`
-	DisplayName               types.String `tfsdk:"display_name"`
-	Description               types.String `tfsdk:"description"`
-	PolicyType                types.String `tfsdk:"policy_type"`                // builtIn, custom, unknownFutureValue
-	RequirementsSatisfied     types.String `tfsdk:"requirements_satisfied"`     // singleFactor, multiFactor, unknownFutureValue
-	AllowedCombinations       types.Set    `tfsdk:"allowed_combinations"`       // Set of strings representing AuthenticationMethodModes
-	CombinationConfigurations types.Set    `tfsdk:"combination_configurations"` // Set of combination configuration objects
-	CreatedDateTime           types.String `tfsdk:"created_date_time"`
-	ModifiedDateTime          types.String `tfsdk:"modified_date_time"`
-}
-
-// ConditionalAccessTemplateResourceModel represents a conditional access template
-type ConditionalAccessTemplateResourceModel struct {
-	Id          types.String                                `tfsdk:"id"`
-	Name        types.String                                `tfsdk:"name"`
-	Description types.String                                `tfsdk:"description"`
-	Scenarios   types.String                                `tfsdk:"scenarios"` // String representation of TemplateScenarios enum
-	Details     *ConditionalAccessPolicyDetailResourceModel `tfsdk:"details"`
-}
-
-// ConditionalAccessPolicyDetailResourceModel represents the details of a conditional access policy template
-type ConditionalAccessPolicyDetailResourceModel struct {
-	Id               types.String                                   `tfsdk:"id"`
-	DisplayName      types.String                                   `tfsdk:"display_name"`
-	Description      types.String                                   `tfsdk:"description"`
-	State            types.String                                   `tfsdk:"state"` // enabled, disabled, enabledForReportingButNotEnforced
-	Conditions       *ConditionalAccessConditionSetResourceModel    `tfsdk:"conditions"`
-	GrantControls    *ConditionalAccessGrantControlsResourceModel   `tfsdk:"grant_controls"`
-	SessionControls  *ConditionalAccessSessionControlsResourceModel `tfsdk:"session_controls"`
-	CreatedDateTime  types.String                                   `tfsdk:"created_date_time"`
-	ModifiedDateTime types.String                                   `tfsdk:"modified_date_time"`
+// ConditionalAccessPolicyResourceModel represents the main conditional access policy
+// This is the primary resource model, not ConditionalAccessRoot
+type ConditionalAccessPolicyResourceModel struct {
+	Id                        types.String                                   `tfsdk:"id"`
+	DisplayName               types.String                                   `tfsdk:"display_name"`
+	State                     types.String                                   `tfsdk:"state"`                       // ConditionalAccessPolicyState: enabled, disabled, enabledForReportingButNotEnforced
+	CreatedDateTime           types.String                                   `tfsdk:"created_date_time"`           // Read-only
+	ModifiedDateTime          types.String                                   `tfsdk:"modified_date_time"`          // Read-only
+	DeletedDateTime           types.String                                   `tfsdk:"deleted_date_time"`           // Read-only
+	TemplateId                types.String                                   `tfsdk:"template_id"`                 // Read-only
+	PartialEnablementStrategy types.String                                   `tfsdk:"partial_enablement_strategy"` // Read-only
+	Conditions                *ConditionalAccessConditionSetResourceModel    `tfsdk:"conditions"`
+	GrantControls             *ConditionalAccessGrantControlsResourceModel   `tfsdk:"grant_controls"`
+	SessionControls           *ConditionalAccessSessionControlsResourceModel `tfsdk:"session_controls"`
 }
 
 // ConditionalAccessConditionSetResourceModel represents conditions for conditional access
+// Updated with all properties from JSON data
 type ConditionalAccessConditionSetResourceModel struct {
-	ClientAppTypes             types.Set                                          `tfsdk:"client_app_types"`              // Set of ConditionalAccessClientApp enums
-	SignInRiskLevels           types.Set                                          `tfsdk:"sign_in_risk_levels"`           // Set of RiskLevel enums
-	UserRiskLevels             types.Set                                          `tfsdk:"user_risk_levels"`              // Set of RiskLevel enums
-	ServicePrincipalRiskLevels types.Set                                          `tfsdk:"service_principal_risk_levels"` // Set of RiskLevel enums
-	InsiderRiskLevels          types.Set                                          `tfsdk:"insider_risk_levels"`           // Set of ConditionalAccessInsiderRiskLevels enums
-	Applications               *ConditionalAccessApplicationsResourceModel        `tfsdk:"applications"`
-	AuthenticationFlows        *ConditionalAccessAuthenticationFlowsResourceModel `tfsdk:"authentication_flows"`
-	Users                      *ConditionalAccessUsersResourceModel               `tfsdk:"users"`
-	ClientApplications         *ConditionalAccessClientApplicationsResourceModel  `tfsdk:"client_applications"`
-	DeviceStates               *ConditionalAccessDeviceStatesResourceModel        `tfsdk:"device_states"` // Deprecated
-	Devices                    *ConditionalAccessDevicesResourceModel             `tfsdk:"devices"`
-	Locations                  *ConditionalAccessLocationsResourceModel           `tfsdk:"locations"`
-	Platforms                  *ConditionalAccessPlatformsResourceModel           `tfsdk:"platforms"`
+	Applications               *ConditionalAccessApplicationsResourceModel         `tfsdk:"applications"`
+	AuthenticationFlows        *ConditionalAccessAuthenticationFlowsResourceModel  `tfsdk:"authentication_flows"`
+	ClientApplications         *ConditionalAccessClientApplicationsResourceModel   `tfsdk:"client_applications"`
+	Clients                    *ConditionalAccessClientsResourceModel              `tfsdk:"clients"`          // New: different from clientApplications
+	ClientAppTypes             types.Set                                           `tfsdk:"client_app_types"` // Set of ConditionalAccessClientApp enums
+	Devices                    *ConditionalAccessDevicesResourceModel              `tfsdk:"devices"`
+	DeviceStates               *ConditionalAccessDeviceStatesResourceModel         `tfsdk:"device_states"`       // Deprecated
+	InsiderRiskLevels          types.String                                        `tfsdk:"insider_risk_levels"` // ConditionalAccessInsiderRiskLevels enum
+	Locations                  *ConditionalAccessLocationsResourceModel            `tfsdk:"locations"`
+	Platforms                  *ConditionalAccessPlatformsResourceModel            `tfsdk:"platforms"`
+	ServicePrincipalRiskLevels types.Set                                           `tfsdk:"service_principal_risk_levels"` // Set of RiskLevel enums
+	SignInRiskLevels           types.Set                                           `tfsdk:"sign_in_risk_levels"`           // Set of RiskLevel enums
+	SignInRiskDetections       *ConditionalAccessSignInRiskDetectionsResourceModel `tfsdk:"sign_in_risk_detections"`       // New in PATCH format
+	Times                      *ConditionalAccessTimesResourceModel                `tfsdk:"times"`                         // New: time-based conditions
+	UserRiskLevels             types.Set                                           `tfsdk:"user_risk_levels"`              // Set of RiskLevel enums
+	Users                      *ConditionalAccessUsersResourceModel                `tfsdk:"users"`
+	ODataType                  types.String                                        `tfsdk:"odata_type"`
 }
 
 // ConditionalAccessApplicationsResourceModel represents application conditions
+// Updated with globalSecureAccess
 type ConditionalAccessApplicationsResourceModel struct {
-	IncludeApplications                         types.Set                             `tfsdk:"include_applications"`
-	ExcludeApplications                         types.Set                             `tfsdk:"exclude_applications"`
-	IncludeUserActions                          types.Set                             `tfsdk:"include_user_actions"`
-	IncludeAuthenticationContextClassReferences types.Set                             `tfsdk:"include_authentication_context_class_references"`
-	ApplicationFilter                           *ConditionalAccessFilterResourceModel `tfsdk:"application_filter"`
+	ApplicationFilter                           *ConditionalAccessFilterResourceModel             `tfsdk:"application_filter"`
+	ExcludeApplications                         types.Set                                         `tfsdk:"exclude_applications"`
+	GlobalSecureAccess                          *ConditionalAccessGlobalSecureAccessResourceModel `tfsdk:"global_secure_access"` // New in PATCH format
+	IncludeApplications                         types.Set                                         `tfsdk:"include_applications"`
+	IncludeAuthenticationContextClassReferences types.Set                                         `tfsdk:"include_authentication_context_class_references"`
+	IncludeUserActions                          types.Set                                         `tfsdk:"include_user_actions"`
+	NetworkAccess                               *ConditionalAccessNetworkAccessResourceModel      `tfsdk:"network_access"` // Deprecated
+	ODataType                                   types.String                                      `tfsdk:"odata_type"`
+}
+
+// ConditionalAccessGlobalSecureAccessResourceModel represents global secure access
+type ConditionalAccessGlobalSecureAccessResourceModel struct {
+	ODataType types.String `tfsdk:"odata_type"`
+}
+
+// ConditionalAccessNetworkAccessResourceModel represents network access (deprecated)
+type ConditionalAccessNetworkAccessResourceModel struct {
+	ODataType types.String `tfsdk:"odata_type"`
 }
 
 // ConditionalAccessAuthenticationFlowsResourceModel represents authentication flow conditions
@@ -116,15 +83,18 @@ type ConditionalAccessUsersResourceModel struct {
 }
 
 // ConditionalAccessGuestsOrExternalUsersResourceModel represents guest/external user conditions
+// Updated: guestOrExternalUserTypes is a string, not a Set (comma-separated values)
 type ConditionalAccessGuestsOrExternalUsersResourceModel struct {
-	GuestOrExternalUserTypes types.Set                                      `tfsdk:"guest_or_external_user_types"` // Set of ConditionalAccessGuestOrExternalUserTypes enums
+	GuestOrExternalUserTypes types.String                                   `tfsdk:"guest_or_external_user_types"` // Comma-separated string like "InternalGuest,B2bCollaborationGuest"
 	ExternalTenants          *ConditionalAccessExternalTenantsResourceModel `tfsdk:"external_tenants"`
 }
 
 // ConditionalAccessExternalTenantsResourceModel represents external tenant conditions
+// Updated: Added ODataType for proper deserialization
 type ConditionalAccessExternalTenantsResourceModel struct {
 	MembershipKind types.String `tfsdk:"membership_kind"` // ConditionalAccessExternalTenantsMembershipKind enum
-	Members        types.Set    `tfsdk:"members"`         // Set of tenant IDs
+	Members        types.Set    `tfsdk:"members"`         // Set of tenant IDs (only for enumerated type)
+	ODataType      types.String `tfsdk:"odata_type"`      // @odata.type for discriminator (e.g., "#microsoft.graph.conditionalAccessAllExternalTenants")
 }
 
 // ConditionalAccessClientApplicationsResourceModel represents client application conditions
@@ -132,6 +102,24 @@ type ConditionalAccessClientApplicationsResourceModel struct {
 	IncludeServicePrincipals types.Set                             `tfsdk:"include_service_principals"`
 	ExcludeServicePrincipals types.Set                             `tfsdk:"exclude_service_principals"`
 	ServicePrincipalFilter   *ConditionalAccessFilterResourceModel `tfsdk:"service_principal_filter"`
+}
+
+// ConditionalAccessClientsResourceModel represents client conditions (new in PATCH format)
+type ConditionalAccessClientsResourceModel struct {
+	// Add properties as they become available in the SDK
+	ODataType types.String `tfsdk:"odata_type"`
+}
+
+// ConditionalAccessSignInRiskDetectionsResourceModel represents sign-in risk detection conditions (new in PATCH format)
+type ConditionalAccessSignInRiskDetectionsResourceModel struct {
+	// Add properties as they become available in the SDK
+	ODataType types.String `tfsdk:"odata_type"`
+}
+
+// ConditionalAccessTimesResourceModel represents time-based conditions
+type ConditionalAccessTimesResourceModel struct {
+	// Add properties as they become available in the SDK
+	ODataType types.String `tfsdk:"odata_type"`
 }
 
 // ConditionalAccessDeviceStatesResourceModel represents device state conditions (deprecated)
@@ -156,6 +144,7 @@ type ConditionalAccessLocationsResourceModel struct {
 }
 
 // ConditionalAccessPlatformsResourceModel represents platform conditions
+// Updated: confirmed includePlatforms and excludePlatforms from JSON
 type ConditionalAccessPlatformsResourceModel struct {
 	IncludePlatforms types.Set `tfsdk:"include_platforms"` // Set of ConditionalAccessDevicePlatform enums
 	ExcludePlatforms types.Set `tfsdk:"exclude_platforms"` // Set of ConditionalAccessDevicePlatform enums
@@ -176,12 +165,17 @@ type ConditionalAccessGrantControlsResourceModel struct {
 }
 
 // ConditionalAccessSessionControlsResourceModel represents session controls
+// Updated with all session control properties from JSON
 type ConditionalAccessSessionControlsResourceModel struct {
-	DisableResilienceDefaults       types.Bool                                                  `tfsdk:"disable_resilience_defaults"`
-	ApplicationEnforcedRestrictions *ApplicationEnforcedRestrictionsSessionControlResourceModel `tfsdk:"application_enforced_restrictions"`
-	CloudAppSecurity                *CloudAppSecuritySessionControlResourceModel                `tfsdk:"cloud_app_security"`
-	SignInFrequency                 *SignInFrequencySessionControlResourceModel                 `tfsdk:"sign_in_frequency"`
-	PersistentBrowser               *PersistentBrowserSessionControlResourceModel               `tfsdk:"persistent_browser"`
+	DisableResilienceDefaults          types.Bool                                                     `tfsdk:"disable_resilience_defaults"`
+	ApplicationEnforcedRestrictions    *ApplicationEnforcedRestrictionsSessionControlResourceModel    `tfsdk:"application_enforced_restrictions"`
+	CloudAppSecurity                   *CloudAppSecuritySessionControlResourceModel                   `tfsdk:"cloud_app_security"`
+	ContinuousAccessEvaluation         *ContinuousAccessEvaluationSessionControlResourceModel         `tfsdk:"continuous_access_evaluation"` // New in JSON
+	SignInFrequency                    *SignInFrequencySessionControlResourceModel                    `tfsdk:"sign_in_frequency"`
+	PersistentBrowser                  *PersistentBrowserSessionControlResourceModel                  `tfsdk:"persistent_browser"`
+	SecureSignInSession                *SecureSignInSessionControlResourceModel                       `tfsdk:"secure_sign_in_session"`                 // New in JSON
+	NetworkAccessSecurity              *NetworkAccessSecuritySessionControlResourceModel              `tfsdk:"network_access_security"`                // New in PATCH format
+	GlobalSecureAccessFilteringProfile *GlobalSecureAccessFilteringProfileSessionControlResourceModel `tfsdk:"global_secure_access_filtering_profile"` // New in PATCH format
 }
 
 // ApplicationEnforcedRestrictionsSessionControlResourceModel represents app enforced restrictions
@@ -195,7 +189,13 @@ type CloudAppSecuritySessionControlResourceModel struct {
 	CloudAppSecurityType types.String `tfsdk:"cloud_app_security_type"` // CloudAppSecuritySessionControlType enum
 }
 
+// ContinuousAccessEvaluationSessionControlResourceModel represents continuous access evaluation controls
+type ContinuousAccessEvaluationSessionControlResourceModel struct {
+	IsEnabled types.Bool `tfsdk:"is_enabled"`
+}
+
 // SignInFrequencySessionControlResourceModel represents sign-in frequency controls
+// Confirmed properties from JSON data
 type SignInFrequencySessionControlResourceModel struct {
 	IsEnabled          types.Bool   `tfsdk:"is_enabled"`
 	Type               types.String `tfsdk:"type"`                // SigninFrequencyType enum: days, hours
@@ -210,7 +210,81 @@ type PersistentBrowserSessionControlResourceModel struct {
 	Mode      types.String `tfsdk:"mode"` // PersistentBrowserSessionControlMode enum: always, never
 }
 
-// Additional models for the applied policy results (if needed)
+// SecureSignInSessionControlResourceModel represents secure sign-in session controls
+type SecureSignInSessionControlResourceModel struct {
+	IsEnabled types.Bool `tfsdk:"is_enabled"`
+}
+
+// NetworkAccessSecuritySessionControlResourceModel represents network access security controls (new in PATCH format)
+type NetworkAccessSecuritySessionControlResourceModel struct {
+	IsEnabled types.Bool `tfsdk:"is_enabled"`
+}
+
+// GlobalSecureAccessFilteringProfileSessionControlResourceModel represents global secure access filtering profile controls (new in PATCH format)
+type GlobalSecureAccessFilteringProfileSessionControlResourceModel struct {
+	IsEnabled types.Bool `tfsdk:"is_enabled"`
+}
+
+// Legacy models for ConditionalAccessRoot (if still needed for other resources)
+type ConditionalAccessRootResourceModel struct {
+	Id                                   types.String                                        `tfsdk:"id"`
+	AuthenticationContextClassReferences []*AuthenticationContextClassReferenceResourceModel `tfsdk:"authentication_context_class_references"`
+	AuthenticationStrength               *AuthenticationStrengthRootResourceModel            `tfsdk:"authentication_strength"`
+}
+
+// AuthenticationContextClassReferenceResourceModel represents an authentication context class reference
+type AuthenticationContextClassReferenceResourceModel struct {
+	Id          types.String `tfsdk:"id"`
+	Description types.String `tfsdk:"description"`
+	DisplayName types.String `tfsdk:"display_name"`
+	IsAvailable types.Bool   `tfsdk:"is_available"`
+}
+
+// AuthenticationStrengthRootResourceModel represents the authentication strength configuration
+type AuthenticationStrengthRootResourceModel struct {
+	Id                         types.String                                   `tfsdk:"id"`
+	AuthenticationCombinations types.Set                                      `tfsdk:"authentication_combinations"` // Set of strings representing AuthenticationMethodModes
+	AuthenticationMethodModes  []*AuthenticationMethodModeDetailResourceModel `tfsdk:"authentication_method_modes"`
+	Combinations               types.Set                                      `tfsdk:"combinations"` // Set of strings representing AuthenticationMethodModes
+	Policies                   []*AuthenticationStrengthPolicyResourceModel   `tfsdk:"policies"`
+}
+
+// AuthenticationMethodModeDetailResourceModel represents details of an authentication method mode
+type AuthenticationMethodModeDetailResourceModel struct {
+	Id                   types.String `tfsdk:"id"`
+	AuthenticationMethod types.String `tfsdk:"authentication_method"` // String representation of BaseAuthenticationMethod enum
+	DisplayName          types.String `tfsdk:"display_name"`
+}
+
+// AuthenticationStrengthPolicyResourceModel represents an authentication strength policy
+type AuthenticationStrengthPolicyResourceModel struct {
+	Id                        types.String                                           `tfsdk:"id"`
+	AllowedCombinations       types.Set                                              `tfsdk:"allowed_combinations"`       // Set of strings representing AuthenticationMethodModes
+	CombinationConfigurations []*AuthenticationCombinationConfigurationResourceModel `tfsdk:"combination_configurations"` // Collection of combination configuration objects
+	CreatedDateTime           types.String                                           `tfsdk:"created_date_time"`
+	Description               types.String                                           `tfsdk:"description"`
+	DisplayName               types.String                                           `tfsdk:"display_name"`
+	ModifiedDateTime          types.String                                           `tfsdk:"modified_date_time"`
+	PolicyType                types.String                                           `tfsdk:"policy_type"`            // AuthenticationStrengthPolicyType enum: builtIn, custom, unknownFutureValue
+	RequirementsSatisfied     types.String                                           `tfsdk:"requirements_satisfied"` // AuthenticationStrengthRequirements enum: none, mfa, unknownFutureValue
+}
+
+// AuthenticationCombinationConfigurationResourceModel represents a combination configuration
+type AuthenticationCombinationConfigurationResourceModel struct {
+	Id                    types.String `tfsdk:"id"`
+	AppliesToCombinations types.Set    `tfsdk:"applies_to_combinations"` // Set of strings representing AuthenticationMethodModes
+	ODataType             types.String `tfsdk:"odata_type"`              // @odata.type for discriminator
+}
+
+// ConditionalAccessPolicyDetailResourceModel represents the details of a conditional access policy template
+type ConditionalAccessPolicyDetailResourceModel struct {
+	Conditions      *ConditionalAccessConditionSetResourceModel    `tfsdk:"conditions"`
+	GrantControls   *ConditionalAccessGrantControlsResourceModel   `tfsdk:"grant_controls"`
+	SessionControls *ConditionalAccessSessionControlsResourceModel `tfsdk:"session_controls"`
+	ODataType       types.String                                   `tfsdk:"odata_type"`
+}
+
+// Applied policy models (if needed for other resources)
 type AppliedConditionalAccessPolicyResourceModel struct {
 	Id                          types.String                                   `tfsdk:"id"`
 	DisplayName                 types.String                                   `tfsdk:"display_name"`

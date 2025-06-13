@@ -1,0 +1,787 @@
+// Main entry point to construct the conditional access policy resource for the Terraform provider.
+// IMPORTANT: This constructor creates request bodies for PATCH/PUT operations (write format)
+// and requires msgraph-beta-sdk-go for proper object construction and @odata.type handling.
+// Updated to work with ConditionalAccessPolicyResourceModel (the primary resource type).
+package graphBetaConditionalAccessPolicy
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/constructors"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+// Main entry point to construct the conditional access policy resource for the Terraform provider.
+func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (graphmodels.ConditionalAccessPolicyable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	requestBody := graphmodels.NewAppliedConditionalAccessPolicy()
+
+	// Set basic writable properties (read-only properties excluded for PATCH requests)
+	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+
+	// Set state enum (writable)
+	if err := constructors.SetBitmaskEnumProperty(data.State,
+		graphmodels.ParseConditionalAccessPolicyState, requestBody.SetState); err != nil {
+		return nil, fmt.Errorf("failed to set policy state: %w", err)
+	}
+
+	// Note: Read-only properties like id, createdDateTime, modifiedDateTime, templateId, deletedDateTime
+	// are excluded from PATCH request bodies and should only be set during read operations
+
+	// Set Conditions
+	if data.Conditions != nil {
+		conditions, err := constructConditionalAccessConditionSet(ctx, data.Conditions)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct conditional access conditions: %w", err)
+		}
+		requestBody.SetConditions(conditions)
+	}
+
+	// Set Grant Controls
+	if data.GrantControls != nil {
+		grantControls, err := constructConditionalAccessGrantControls(ctx, data.GrantControls)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct grant controls: %w", err)
+		}
+		requestBody.SetGrantControls(grantControls)
+	}
+
+	// Set Session Controls
+	if data.SessionControls != nil {
+		sessionControls, err := constructConditionalAccessSessionControls(ctx, data.SessionControls)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct session controls: %w", err)
+		}
+		requestBody.SetSessionControls(sessionControls)
+	}
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+
+	return requestBody, nil
+}
+
+// constructConditionalAccessConditionSet constructs ConditionalAccessConditionSet from the model
+func constructConditionalAccessConditionSet(ctx context.Context, data *ConditionalAccessConditionSetResourceModel) (graphmodels.ConditionalAccessConditionSetable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	conditionSet := graphmodels.NewConditionalAccessConditionSet()
+
+	// Set Applications
+	if data.Applications != nil {
+		applications, err := constructConditionalAccessApplications(ctx, data.Applications)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct applications: %w", err)
+		}
+		conditionSet.SetApplications(applications)
+	}
+
+	// Set Users
+	if data.Users != nil {
+		users, err := constructConditionalAccessUsers(ctx, data.Users)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct users: %w", err)
+		}
+		conditionSet.SetUsers(users)
+	}
+
+	// Set Client App Types using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.ClientAppTypes,
+		func(ctx context.Context, values []string) []graphmodels.ConditionalAccessClientApp {
+			clientAppTypes := make([]graphmodels.ConditionalAccessClientApp, 0, len(values))
+			for _, value := range values {
+				if clientAppType, err := graphmodels.ParseConditionalAccessClientApp(value); err == nil {
+					if clientAppTypePtr, ok := clientAppType.(*graphmodels.ConditionalAccessClientApp); ok {
+						clientAppTypes = append(clientAppTypes, *clientAppTypePtr)
+					}
+				}
+			}
+			return clientAppTypes
+		}, conditionSet.SetClientAppTypes); err != nil {
+		return nil, fmt.Errorf("failed to set client app types: %w", err)
+	}
+
+	// Set Sign In Risk Levels using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.SignInRiskLevels,
+		func(ctx context.Context, values []string) []graphmodels.RiskLevel {
+			riskLevels := make([]graphmodels.RiskLevel, 0, len(values))
+			for _, value := range values {
+				if riskLevel, err := graphmodels.ParseRiskLevel(value); err == nil {
+					if riskLevelPtr, ok := riskLevel.(*graphmodels.RiskLevel); ok {
+						riskLevels = append(riskLevels, *riskLevelPtr)
+					}
+				}
+			}
+			return riskLevels
+		}, conditionSet.SetSignInRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set sign in risk levels: %w", err)
+	}
+
+	// Set User Risk Levels using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.UserRiskLevels,
+		func(ctx context.Context, values []string) []graphmodels.RiskLevel {
+			riskLevels := make([]graphmodels.RiskLevel, 0, len(values))
+			for _, value := range values {
+				if riskLevel, err := graphmodels.ParseRiskLevel(value); err == nil {
+					if riskLevelPtr, ok := riskLevel.(*graphmodels.RiskLevel); ok {
+						riskLevels = append(riskLevels, *riskLevelPtr)
+					}
+				}
+			}
+			return riskLevels
+		}, conditionSet.SetUserRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set user risk levels: %w", err)
+	}
+
+	// Set User Risk Levels using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.UserRiskLevels,
+		func(ctx context.Context, values []string) []graphmodels.RiskLevel {
+			riskLevels := make([]graphmodels.RiskLevel, 0, len(values))
+			for _, value := range values {
+				if riskLevel, err := graphmodels.ParseRiskLevel(value); err == nil {
+					if riskLevelPtr, ok := riskLevel.(*graphmodels.RiskLevel); ok {
+						riskLevels = append(riskLevels, *riskLevelPtr)
+					}
+				}
+			}
+			return riskLevels
+		}, conditionSet.SetUserRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set user risk levels: %w", err)
+	}
+
+	// Set Service Principal Risk Levels using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.ServicePrincipalRiskLevels,
+		func(ctx context.Context, values []string) []graphmodels.RiskLevel {
+			riskLevels := make([]graphmodels.RiskLevel, 0, len(values))
+			for _, value := range values {
+				if riskLevel, err := graphmodels.ParseRiskLevel(value); err == nil {
+					if riskLevelPtr, ok := riskLevel.(*graphmodels.RiskLevel); ok {
+						riskLevels = append(riskLevels, *riskLevelPtr)
+					}
+				}
+			}
+			return riskLevels
+		}, conditionSet.SetServicePrincipalRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set service principal risk levels: %w", err)
+	}
+
+	// Set Sign In Risk Detections (PATCH format includes this)
+	if data.SignInRiskDetections != nil {
+		signInRiskDetections, err := constructConditionalAccessSignInRiskDetections(ctx, data.SignInRiskDetections)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct sign in risk detections: %w", err)
+		}
+		conditionSet.SetSignInRiskDetections(signInRiskDetections)
+	}
+
+	// Set Insider Risk Levels (if available in SDK)
+	if data.InsiderRiskLevels != nil {
+		tflog.Debug(ctx, "InsiderRiskLevels property detected - implement when SDK support is available", map[string]interface{}{
+			"value": data.InsiderRiskLevels.ValueString(),
+		})
+		// Uncomment when SDK supports this property:
+		// if err := constructors.SetBitmaskEnumProperty(data.InsiderRiskLevels,
+		//     graphmodels.ParseConditionalAccessInsiderRiskLevels, conditionSet.SetInsiderRiskLevels); err != nil {
+		//     return nil, fmt.Errorf("failed to set insider risk levels: %w", err)
+		// }
+	}
+
+	// Set Authentication Flows
+	if data.AuthenticationFlows != nil {
+		authFlows, err := constructConditionalAccessAuthenticationFlows(ctx, data.AuthenticationFlows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct authentication flows: %w", err)
+		}
+		conditionSet.SetAuthenticationFlows(authFlows)
+	}
+
+	// Set Clients (new in PATCH format, different from clientApplications)
+	if data.Clients != nil {
+		clients, err := constructConditionalAccessClients(ctx, data.Clients)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct clients: %w", err)
+		}
+		conditionSet.SetClients(clients)
+	}
+
+	// Set Times
+	if data.Times != nil {
+		times, err := constructConditionalAccessTimes(ctx, data.Times)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct times: %w", err)
+		}
+		conditionSet.SetTimes(times)
+	}
+
+	// Set optional complex objects (these may be null in many policies)
+	if data.Devices != nil {
+		devices, err := constructConditionalAccessDevices(ctx, data.Devices)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct devices: %w", err)
+		}
+		conditionSet.SetDevices(devices)
+	}
+
+	if data.Locations != nil {
+		locations, err := constructConditionalAccessLocations(ctx, data.Locations)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct locations: %w", err)
+		}
+		conditionSet.SetLocations(locations)
+	}
+
+	if data.Platforms != nil {
+		platforms, err := constructConditionalAccessPlatforms(ctx, data.Platforms)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct platforms: %w", err)
+		}
+		conditionSet.SetPlatforms(platforms)
+	}
+
+	if data.ClientApplications != nil {
+		clientApps, err := constructConditionalAccessClientApplications(ctx, data.ClientApplications)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct client applications: %w", err)
+		}
+		conditionSet.SetClientApplications(clientApps)
+	}
+
+	if data.Times != nil {
+		times, err := constructConditionalAccessTimes(ctx, data.Times)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct times: %w", err)
+		}
+		conditionSet.SetTimes(times)
+	}
+
+	// Set deprecated DeviceStates if present
+	if data.DeviceStates != nil {
+		deviceStates, err := constructConditionalAccessDeviceStates(ctx, data.DeviceStates)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct device states: %w", err)
+		}
+		conditionSet.SetDeviceStates(deviceStates)
+	}
+
+	return conditionSet, nil
+}
+
+// constructConditionalAccessApplications constructs ConditionalAccessApplications from the model
+func constructConditionalAccessApplications(ctx context.Context, data *ConditionalAccessApplicationsResourceModel) (graphmodels.ConditionalAccessApplicationsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	applications := graphmodels.NewConditionalAccessApplications()
+
+	// Set Include Applications using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeApplications, applications.SetIncludeApplications); err != nil {
+		return nil, fmt.Errorf("failed to set include applications: %w", err)
+	}
+
+	// Set Exclude Applications using helper
+	if err := constructors.SetStringSet(ctx, data.ExcludeApplications, applications.SetExcludeApplications); err != nil {
+		return nil, fmt.Errorf("failed to set exclude applications: %w", err)
+	}
+
+	// Set Include User Actions using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeUserActions, applications.SetIncludeUserActions); err != nil {
+		return nil, fmt.Errorf("failed to set include user actions: %w", err)
+	}
+
+	// Set Include Authentication Context Class References using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeAuthenticationContextClassReferences, applications.SetIncludeAuthenticationContextClassReferences); err != nil {
+		return nil, fmt.Errorf("failed to set include authentication context class references: %w", err)
+	}
+
+	// Set Application Filter
+	if data.ApplicationFilter != nil {
+		applicationFilter, err := constructConditionalAccessFilter(ctx, data.ApplicationFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct application filter: %w", err)
+		}
+		applications.SetApplicationFilter(applicationFilter)
+	}
+
+	// Set Global Secure Access (new in PATCH format)
+	if data.GlobalSecureAccess != nil {
+		globalSecureAccess, err := constructConditionalAccessGlobalSecureAccess(ctx, data.GlobalSecureAccess)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct global secure access: %w", err)
+		}
+		applications.SetGlobalSecureAccess(globalSecureAccess)
+	}
+
+	return applications, nil
+}
+
+// constructConditionalAccessUsers constructs ConditionalAccessUsers from the model
+func constructConditionalAccessUsers(ctx context.Context, data *ConditionalAccessUsersResourceModel) (graphmodels.ConditionalAccessUsersable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	users := graphmodels.NewConditionalAccessUsers()
+
+	// Set Include/Exclude Users using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeUsers, users.SetIncludeUsers); err != nil {
+		return nil, fmt.Errorf("failed to set include users: %w", err)
+	}
+
+	if err := constructors.SetStringSet(ctx, data.ExcludeUsers, users.SetExcludeUsers); err != nil {
+		return nil, fmt.Errorf("failed to set exclude users: %w", err)
+	}
+
+	// Set Include/Exclude Groups using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeGroups, users.SetIncludeGroups); err != nil {
+		return nil, fmt.Errorf("failed to set include groups: %w", err)
+	}
+
+	if err := constructors.SetStringSet(ctx, data.ExcludeGroups, users.SetExcludeGroups); err != nil {
+		return nil, fmt.Errorf("failed to set exclude groups: %w", err)
+	}
+
+	// Set Include/Exclude Roles using helper
+	if err := constructors.SetStringSet(ctx, data.IncludeRoles, users.SetIncludeRoles); err != nil {
+		return nil, fmt.Errorf("failed to set include roles: %w", err)
+	}
+
+	if err := constructors.SetStringSet(ctx, data.ExcludeRoles, users.SetExcludeRoles); err != nil {
+		return nil, fmt.Errorf("failed to set exclude roles: %w", err)
+	}
+
+	// Set Include/Exclude Guests or External Users
+	if data.IncludeGuestsOrExternalUsers != nil {
+		includeGuests, err := constructConditionalAccessGuestsOrExternalUsers(ctx, data.IncludeGuestsOrExternalUsers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct include guests or external users: %w", err)
+		}
+		users.SetIncludeGuestsOrExternalUsers(includeGuests)
+	}
+
+	if data.ExcludeGuestsOrExternalUsers != nil {
+		excludeGuests, err := constructConditionalAccessGuestsOrExternalUsers(ctx, data.ExcludeGuestsOrExternalUsers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct exclude guests or external users: %w", err)
+		}
+		users.SetExcludeGuestsOrExternalUsers(excludeGuests)
+	}
+
+	return users, nil
+}
+
+// constructConditionalAccessGuestsOrExternalUsers constructs ConditionalAccessGuestsOrExternalUsers from the model
+func constructConditionalAccessGuestsOrExternalUsers(ctx context.Context, data *ConditionalAccessGuestsOrExternalUsersResourceModel) (graphmodels.ConditionalAccessGuestsOrExternalUsersable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	guestsOrExternalUsers := graphmodels.NewConditionalAccessGuestsOrExternalUsers()
+
+	// Set Guest or External User Types - now a single comma-separated string:
+	// PATCH: "InternalGuest,B2bCollaborationGuest,B2bCollaborationMember,B2bDirectConnectUser,OtherExternalUser,ServiceProvider"
+	// GET:   "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+	if err := constructors.SetBitmaskEnumProperty(data.GuestOrExternalUserTypes,
+		graphmodels.ParseConditionalAccessGuestOrExternalUserTypes, guestsOrExternalUsers.SetGuestOrExternalUserTypes); err != nil {
+		return nil, fmt.Errorf("failed to set guest or external user types: %w", err)
+	}
+
+	// Set External Tenants
+	if data.ExternalTenants != nil {
+		externalTenants, err := constructConditionalAccessExternalTenants(ctx, data.ExternalTenants)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct external tenants: %w", err)
+		}
+		guestsOrExternalUsers.SetExternalTenants(externalTenants)
+	}
+
+	return guestsOrExternalUsers, nil
+}
+
+// constructConditionalAccessExternalTenants constructs ConditionalAccessExternalTenants from the model
+func constructConditionalAccessExternalTenants(ctx context.Context, data *ConditionalAccessExternalTenantsResourceModel) (graphmodels.ConditionalAccessExternalTenantsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	// Based on @odata.type, create the appropriate derived type
+	odataType := data.ODataType.ValueString()
+
+	switch odataType {
+	case "#microsoft.graph.conditionalAccessAllExternalTenants":
+		allExternal := graphmodels.NewConditionalAccessAllExternalTenants()
+		if err := constructors.SetBitmaskEnumProperty(data.MembershipKind,
+			graphmodels.ParseConditionalAccessExternalTenantsMembershipKind, allExternal.SetMembershipKind); err != nil {
+			return nil, fmt.Errorf("failed to set membership kind: %w", err)
+		}
+		constructors.SetStringProperty(data.ODataType, allExternal.SetOdataType)
+		return allExternal, nil
+	case "#microsoft.graph.conditionalAccessEnumeratedExternalTenants":
+		enumerated := graphmodels.NewConditionalAccessEnumeratedExternalTenants()
+		if err := constructors.SetBitmaskEnumProperty(data.MembershipKind,
+			graphmodels.ParseConditionalAccessExternalTenantsMembershipKind, enumerated.SetMembershipKind); err != nil {
+			return nil, fmt.Errorf("failed to set membership kind: %w", err)
+		}
+		// Set members if present
+		if err := constructors.SetStringSet(ctx, data.Members, enumerated.SetMembers); err != nil {
+			return nil, fmt.Errorf("failed to set members: %w", err)
+		}
+		constructors.SetStringProperty(data.ODataType, enumerated.SetOdataType)
+		return enumerated, nil
+	default:
+		// Fallback to base type
+		externalTenants := graphmodels.NewConditionalAccessExternalTenants()
+		if err := constructors.SetBitmaskEnumProperty(data.MembershipKind,
+			graphmodels.ParseConditionalAccessExternalTenantsMembershipKind, externalTenants.SetMembershipKind); err != nil {
+			return nil, fmt.Errorf("failed to set membership kind: %w", err)
+		}
+		constructors.SetStringProperty(data.ODataType, externalTenants.SetOdataType)
+		return externalTenants, nil
+	}
+}
+
+// constructConditionalAccessSessionControls constructs ConditionalAccessSessionControls from the model
+func constructConditionalAccessSessionControls(ctx context.Context, data *ConditionalAccessSessionControlsResourceModel) (graphmodels.ConditionalAccessSessionControlsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	sessionControls := graphmodels.NewConditionalAccessSessionControls()
+
+	// Set basic boolean properties (beta endpoint shows these explicitly even when null)
+	constructors.SetBoolProperty(data.DisableResilienceDefaults, sessionControls.SetDisableResilienceDefaults)
+
+	// Set Sign In Frequency (most commonly configured session control)
+	if data.SignInFrequency != nil {
+		signInFreq, err := constructSignInFrequencySessionControl(ctx, data.SignInFrequency)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct sign in frequency: %w", err)
+		}
+		sessionControls.SetSignInFrequency(signInFreq)
+	}
+
+	// Set Application Enforced Restrictions
+	if data.ApplicationEnforcedRestrictions != nil {
+		appRestrictions, err := constructApplicationEnforcedRestrictionsSessionControl(ctx, data.ApplicationEnforcedRestrictions)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct application enforced restrictions: %w", err)
+		}
+		sessionControls.SetApplicationEnforcedRestrictions(appRestrictions)
+	}
+
+	// Set Cloud App Security
+	if data.CloudAppSecurity != nil {
+		cloudAppSec, err := constructCloudAppSecuritySessionControl(ctx, data.CloudAppSecurity)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct cloud app security: %w", err)
+		}
+		sessionControls.SetCloudAppSecurity(cloudAppSec)
+	}
+
+	// Set Persistent Browser
+	if data.PersistentBrowser != nil {
+		persistentBrowser, err := constructPersistentBrowserSessionControl(ctx, data.PersistentBrowser)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct persistent browser: %w", err)
+		}
+		sessionControls.SetPersistentBrowser(persistentBrowser)
+	}
+
+	// Set Continuous Access Evaluation
+	if data.ContinuousAccessEvaluation != nil {
+		cae, err := constructContinuousAccessEvaluationSessionControl(ctx, data.ContinuousAccessEvaluation)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct continuous access evaluation: %w", err)
+		}
+		sessionControls.SetContinuousAccessEvaluation(cae)
+	}
+
+	// Set Secure Sign In Session
+	if data.SecureSignInSession != nil {
+		secureSignIn, err := constructSecureSignInSessionControl(ctx, data.SecureSignInSession)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct secure sign in session: %w", err)
+		}
+		sessionControls.SetSecureSignInSession(secureSignIn)
+	}
+
+	// Set Network Access Security (new in PATCH format)
+	if data.NetworkAccessSecurity != nil {
+		networkAccessSecurity, err := constructNetworkAccessSecuritySessionControl(ctx, data.NetworkAccessSecurity)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct network access security: %w", err)
+		}
+		sessionControls.SetNetworkAccessSecurity(networkAccessSecurity)
+	}
+
+	// Set Global Secure Access Filtering Profile (new in PATCH format)
+	if data.GlobalSecureAccessFilteringProfile != nil {
+		globalSecureAccessProfile, err := constructGlobalSecureAccessFilteringProfileSessionControl(ctx, data.GlobalSecureAccessFilteringProfile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct global secure access filtering profile: %w", err)
+		}
+		sessionControls.SetGlobalSecureAccessFilteringProfile(globalSecureAccessProfile)
+	}
+
+	return sessionControls, nil
+}
+
+// constructSignInFrequencySessionControl constructs SignInFrequencySessionControl from the model
+func constructSignInFrequencySessionControl(ctx context.Context, data *SignInFrequencySessionControlResourceModel) (graphmodels.SignInFrequencySessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	signInFreq := graphmodels.NewSignInFrequencySessionControl()
+
+	// Set basic properties
+	constructors.SetBoolProperty(data.IsEnabled, signInFreq.SetIsEnabled)
+	constructors.SetInt32Property(data.Value, signInFreq.SetValue)
+
+	// Set enum properties
+	if err := constructors.SetBitmaskEnumProperty(data.Type,
+		graphmodels.ParseSigninFrequencyType, signInFreq.SetTypeEscaped); err != nil {
+		return nil, fmt.Errorf("failed to set sign in frequency type: %w", err)
+	}
+
+	if err := constructors.SetBitmaskEnumProperty(data.AuthenticationType,
+		graphmodels.ParseSigninFrequencyAuthenticationType, signInFreq.SetAuthenticationType); err != nil {
+		return nil, fmt.Errorf("failed to set authentication type: %w", err)
+	}
+
+	if err := constructors.SetBitmaskEnumProperty(data.FrequencyInterval,
+		graphmodels.ParseSigninFrequencyInterval, signInFreq.SetFrequencyInterval); err != nil {
+		return nil, fmt.Errorf("failed to set frequency interval: %w", err)
+	}
+
+	return signInFreq, nil
+}
+
+// Placeholder implementations for other complex nested objects that need full implementation
+func constructConditionalAccessGrantControls(ctx context.Context, data *ConditionalAccessGrantControlsResourceModel) (graphmodels.ConditionalAccessGrantControlsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+	tflog.Debug(ctx, "ConditionalAccessGrantControls construction - implement based on your data model")
+	return graphmodels.NewConditionalAccessGrantControls(), nil
+}
+
+func constructConditionalAccessFilter(ctx context.Context, data *ConditionalAccessFilterResourceModel) (graphmodels.ConditionalAccessFilterable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	filter := graphmodels.NewConditionalAccessFilter()
+	constructors.SetStringProperty(data.Rule, filter.SetRule)
+
+	if err := constructors.SetBitmaskEnumProperty(data.Mode,
+		graphmodels.ParseFilterMode, filter.SetMode); err != nil {
+		return nil, fmt.Errorf("failed to set filter mode: %w", err)
+	}
+
+	return filter, nil
+}
+
+// Additional placeholder functions that need implementation based on your specific model
+func constructConditionalAccessDevices(ctx context.Context, data *ConditionalAccessDevicesResourceModel) (graphmodels.ConditionalAccessDevicesable, error) {
+	tflog.Debug(ctx, "ConditionalAccessDevices construction - implement based on your data model")
+	return nil, nil
+}
+
+func constructConditionalAccessLocations(ctx context.Context, data *ConditionalAccessLocationsResourceModel) (graphmodels.ConditionalAccessLocationsable, error) {
+	tflog.Debug(ctx, "ConditionalAccessLocations construction - implement based on your data model")
+	return nil, nil
+}
+
+func constructConditionalAccessPlatforms(ctx context.Context, data *ConditionalAccessPlatformsResourceModel) (graphmodels.ConditionalAccessPlatformsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	platforms := graphmodels.NewConditionalAccessPlatforms()
+
+	// Set Include Platforms using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.IncludePlatforms,
+		func(ctx context.Context, values []string) []graphmodels.ConditionalAccessDevicePlatform {
+			platformTypes := make([]graphmodels.ConditionalAccessDevicePlatform, 0, len(values))
+			for _, value := range values {
+				if platform, err := graphmodels.ParseConditionalAccessDevicePlatform(value); err == nil {
+					if platformPtr, ok := platform.(*graphmodels.ConditionalAccessDevicePlatform); ok {
+						platformTypes = append(platformTypes, *platformPtr)
+					}
+				}
+			}
+			return platformTypes
+		}, platforms.SetIncludePlatforms); err != nil {
+		return nil, fmt.Errorf("failed to set include platforms: %w", err)
+	}
+
+	// Set Exclude Platforms using helper
+	if err := constructors.SetObjectsFromStringSet(ctx, data.ExcludePlatforms,
+		func(ctx context.Context, values []string) []graphmodels.ConditionalAccessDevicePlatform {
+			platformTypes := make([]graphmodels.ConditionalAccessDevicePlatform, 0, len(values))
+			for _, value := range values {
+				if platform, err := graphmodels.ParseConditionalAccessDevicePlatform(value); err == nil {
+					if platformPtr, ok := platform.(*graphmodels.ConditionalAccessDevicePlatform); ok {
+						platformTypes = append(platformTypes, *platformPtr)
+					}
+				}
+			}
+			return platformTypes
+		}, platforms.SetExcludePlatforms); err != nil {
+		return nil, fmt.Errorf("failed to set exclude platforms: %w", err)
+	}
+
+	return platforms, nil
+}
+
+func constructConditionalAccessClientApplications(ctx context.Context, data *ConditionalAccessClientApplicationsResourceModel) (graphmodels.ConditionalAccessClientApplicationsable, error) {
+	tflog.Debug(ctx, "ConditionalAccessClientApplications construction - implement based on your data model")
+	return nil, nil
+}
+
+func constructConditionalAccessTimes(ctx context.Context, data *ConditionalAccessTimesResourceModel) (graphmodels.ConditionalAccessTimesable, error) {
+	if data == nil {
+		return nil, nil
+	}
+	tflog.Debug(ctx, "ConditionalAccessTimes construction - implement based on your data model")
+	return nil, nil
+}
+
+func constructConditionalAccessDeviceStates(ctx context.Context, data *ConditionalAccessDeviceStatesResourceModel) (graphmodels.ConditionalAccessDeviceStatesable, error) {
+	tflog.Debug(ctx, "ConditionalAccessDeviceStates construction - implement based on your data model")
+	return nil, nil
+}
+
+func constructApplicationEnforcedRestrictionsSessionControl(ctx context.Context, data *ApplicationEnforcedRestrictionsSessionControlResourceModel) (graphmodels.ApplicationEnforcedRestrictionsSessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	appRestrictions := graphmodels.NewApplicationEnforcedRestrictionsSessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, appRestrictions.SetIsEnabled)
+
+	return appRestrictions, nil
+}
+
+func constructCloudAppSecuritySessionControl(ctx context.Context, data *CloudAppSecuritySessionControlResourceModel) (graphmodels.CloudAppSecuritySessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	cloudAppSec := graphmodels.NewCloudAppSecuritySessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, cloudAppSec.SetIsEnabled)
+
+	if err := constructors.SetBitmaskEnumProperty(data.CloudAppSecurityType,
+		graphmodels.ParseCloudAppSecuritySessionControlType, cloudAppSec.SetCloudAppSecurityType); err != nil {
+		return nil, fmt.Errorf("failed to set cloud app security type: %w", err)
+	}
+
+	return cloudAppSec, nil
+}
+
+func constructPersistentBrowserSessionControl(ctx context.Context, data *PersistentBrowserSessionControlResourceModel) (graphmodels.PersistentBrowserSessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	persistentBrowser := graphmodels.NewPersistentBrowserSessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, persistentBrowser.SetIsEnabled)
+
+	if err := constructors.SetBitmaskEnumProperty(data.Mode,
+		graphmodels.ParsePersistentBrowserSessionControlMode, persistentBrowser.SetMode); err != nil {
+		return nil, fmt.Errorf("failed to set persistent browser mode: %w", err)
+	}
+
+	return persistentBrowser, nil
+}
+
+func constructContinuousAccessEvaluationSessionControl(ctx context.Context, data *ContinuousAccessEvaluationSessionControlResourceModel) (graphmodels.ContinuousAccessEvaluationSessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	cae := graphmodels.NewContinuousAccessEvaluationSessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, cae.SetIsEnabled)
+
+	return cae, nil
+}
+
+func constructSecureSignInSessionControl(ctx context.Context, data *SecureSignInSessionControlResourceModel) (graphmodels.SecureSignInSessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	secureSignIn := graphmodels.NewSecureSignInSessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, secureSignIn.SetIsEnabled)
+
+	return secureSignIn, nil
+}
+
+// New constructors for PATCH-format specific properties
+func constructConditionalAccessSignInRiskDetections(ctx context.Context, data *ConditionalAccessSignInRiskDetectionsResourceModel) (graphmodels.ConditionalAccessSignInRiskDetectionsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	signInRiskDetections := graphmodels.NewConditionalAccessSignInRiskDetections()
+	constructors.SetStringProperty(data.ODataType, signInRiskDetections.SetOdataType)
+
+	return signInRiskDetections, nil
+}
+
+func constructConditionalAccessClients(ctx context.Context, data *ConditionalAccessClientsResourceModel) (graphmodels.ConditionalAccessClientsable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	clients := graphmodels.NewConditionalAccessClients()
+	constructors.SetStringProperty(data.ODataType, clients.SetOdataType)
+
+	return clients, nil
+}
+
+func constructConditionalAccessGlobalSecureAccess(ctx context.Context, data *ConditionalAccessGlobalSecureAccessResourceModel) (graphmodels.ConditionalAccessGlobalSecureAccessable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	globalSecureAccess := graphmodels.NewConditionalAccessGlobalSecureAccess()
+
+	// Set @odata.type using helper
+	constructors.SetStringProperty(data.ODataType, globalSecureAccess.SetOdataType)
+
+	return globalSecureAccess, nil
+}
+
+func constructNetworkAccessSecuritySessionControl(ctx context.Context, data *NetworkAccessSecuritySessionControlResourceModel) (graphmodels.NetworkAccessSecuritySessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	networkSecurity := graphmodels.NewNetworkAccessSecuritySessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, networkSecurity.SetIsEnabled)
+
+	return networkSecurity, nil
+}
+
+func constructGlobalSecureAccessFilteringProfileSessionControl(ctx context.Context, data *GlobalSecureAccessFilteringProfileSessionControlResourceModel) (graphmodels.GlobalSecureAccessFilteringProfileSessionControlable, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	globalFilteringProfile := graphmodels.NewGlobalSecureAccessFilteringProfileSessionControl()
+	constructors.SetBoolProperty(data.IsEnabled, globalFilteringProfile.SetIsEnabled)
+
+	return globalFilteringProfile, nil
+}
