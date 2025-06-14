@@ -3,17 +3,12 @@ package schema
 import (
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-)
-
-var (
-	// Regex compiler
-	guidRegex = regexp.MustCompile(helpers.GuidRegex)
 )
 
 func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
@@ -46,8 +41,8 @@ func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 					"This should be a valid GUID of an existing device group filter.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						guidRegex,
-						"must be a valid GUID",
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
 			},
@@ -76,8 +71,8 @@ func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 					"This should be a valid GUID of an existing filter.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						guidRegex,
-						"assignment filer for all_users must be a valid GUID",
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
 			},
@@ -93,8 +88,8 @@ func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 								"This should be a valid GUID of an existing group.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
-									guidRegex,
-									"assignment include group(s) must be a valid GUID",
+									regexp.MustCompile(constants.GuidRegex),
+									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 								),
 							},
 						},
@@ -115,8 +110,8 @@ func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 								"This should be a valid GUID of an existing filter.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
-									guidRegex,
-									"assignment group filter id must be a valid GUID",
+									regexp.MustCompile(constants.GuidRegex),
+									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 								),
 							},
 						},
@@ -131,8 +126,8 @@ func ConfigurationPolicyAssignmentsSchema() schema.SingleNestedAttribute {
 				Validators: []validator.List{
 					listvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
-							guidRegex,
-							"assignment exclude group id must be a valid GUID",
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
 				},

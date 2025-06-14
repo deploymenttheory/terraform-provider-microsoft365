@@ -5,12 +5,13 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
@@ -86,6 +87,9 @@ func (r *CloudPcDeviceImageResource) Schema(ctx context.Context, req resource.Sc
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The unique identifier (ID) of the image resource on the Cloud PC. Read-only.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Required: true,

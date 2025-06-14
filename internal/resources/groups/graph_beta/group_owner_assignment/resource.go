@@ -34,9 +34,6 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &GroupOwnerAssignmentResource{}
-
-	// Compiled regex for UUID validation
-	uuidRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 )
 
 func NewGroupOwnerAssignmentResource() resource.Resource {
@@ -125,14 +122,20 @@ func (r *GroupOwnerAssignmentResource) Schema(ctx context.Context, req resource.
 				Required:            true,
 				MarkdownDescription: "The unique identifier (UUID) for the group.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
 				},
 			},
 			"owner_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The unique identifier (UUID) for the owner to be added to the group. This can be a user or service principal.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
 				},
 			},
 			"owner_object_type": schema.StringAttribute{

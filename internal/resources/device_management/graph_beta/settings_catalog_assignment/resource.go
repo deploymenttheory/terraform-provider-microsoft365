@@ -100,6 +100,12 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Schema(ctx conte
 			"settings_catalog_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The ID of the settings catalog (configuration policy) to attach the assignment to.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
 			},
 			"source": schema.StringAttribute{
 				Optional:            true,
@@ -118,8 +124,8 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Schema(ctx conte
 				MarkdownDescription: "The identifier of the source of the assignment. This property is read-only.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-						"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
 			},
@@ -152,8 +158,8 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-								"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
 					},
@@ -162,8 +168,8 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[A-Za-z]{2,8}[0-9A-Za-z]{8}$`),
-								"Must be a valid SCCM collection ID format. Default collections start with 'SMS' followed by an alphanumeric ID. Custom collections start with your site code (e.g., 'MEM') followed by an alphanumeric ID.",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
 					},
@@ -172,8 +178,8 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-								"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
 					},

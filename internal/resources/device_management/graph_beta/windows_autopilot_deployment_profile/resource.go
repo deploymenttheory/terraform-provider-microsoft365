@@ -2,6 +2,7 @@ package graphBetaWindowsAutopilotDeploymentProfile
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
@@ -197,6 +198,12 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 			"management_service_app_id": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The Entra management service App ID which gets used during client device-based enrollment discovery.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
 			},
 			"hybrid_azure_ad_join_skip_connectivity_check": schema.BoolAttribute{
 				Optional:            true,

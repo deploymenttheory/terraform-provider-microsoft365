@@ -43,6 +43,9 @@ func ActivateMicrosoftGraphMocks() {
 	ActivateIdentityAndAccessMocks()
 	ActivateM365AdminMocks()
 
+	// Activate specific resource mocks
+	ActivateDeviceShellScriptMocks()
+
 	// Add more domain activations as needed
 }
 
@@ -60,4 +63,68 @@ func MockMicrosoftGraphRequestWithRegexp(method string, urlRegexp *regexp.Regexp
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(statusCode, responseBody), nil
 		})
+}
+
+// ProviderConfigMinimal returns a minimal valid provider config for unit tests.
+func ProviderConfigMinimal() string {
+	return `
+provider "microsoft365" {
+  cloud = "public"
+  tenant_id = "00000000-0000-0000-0000-000000000000"
+  auth_method = "client_secret"
+  entra_id_options = {
+    client_id = "fake-client-id"
+    client_secret = "fake-client-secret"
+  }
+  telemetry_optout = true
+  debug_mode = false
+}
+`
+}
+
+// ProviderConfigMaximal returns a maximal valid provider config for provider-level or edge-case tests.
+func ProviderConfigMaximal() string {
+	return `
+provider "microsoft365" {
+  cloud = "public"
+  tenant_id = "00000000-0000-0000-0000-000000000000"
+  auth_method = "client_secret"
+  entra_id_options = {
+    client_id = "fake-client-id"
+    client_secret = "fake-client-secret"
+    client_certificate = "fake-cert"
+    client_certificate_password = "fake-password"
+    send_certificate_chain = false
+    username = "fake-user"
+    disable_instance_discovery = false
+    additionally_allowed_tenants = ["*"]
+    redirect_url = "http://localhost"
+    federated_token_file_path = "/tmp/fake-token"
+    managed_identity_id = "fake-mi-id"
+    oidc_token_file_path = "/tmp/fake-oidc-token"
+    ado_service_connection_id = "fake-ado-id"
+  }
+  client_options = {
+    enable_headers_inspection = true
+    enable_retry = true
+    max_retries = 5
+    retry_delay_seconds = 2
+    enable_redirect = true
+    max_redirects = 3
+    enable_compression = true
+    custom_user_agent = "test-agent"
+    use_proxy = true
+    proxy_url = "http://localhost:8888"
+    proxy_username = "proxy-user"
+    proxy_password = "proxy-pass"
+    timeout_seconds = 60
+    enable_chaos = true
+    chaos_percentage = 50
+    chaos_status_code = 500
+    chaos_status_message = "Internal Server Error"
+  }
+  telemetry_optout = true
+  debug_mode = true
+}
+`
 }

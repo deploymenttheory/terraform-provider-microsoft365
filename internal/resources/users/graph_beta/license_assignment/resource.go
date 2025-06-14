@@ -127,7 +127,10 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 							Required:            true,
 							MarkdownDescription: "The unique identifier (GUID) for the license SKU.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.GuidRegex),
+									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+								),
 							},
 						},
 						"disabled_plans": schema.SetAttribute{

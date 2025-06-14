@@ -60,10 +60,14 @@ func (m *MockResponseHeaders) Set(key, value string) {
 
 // MockODataError implements the OData error interfaces
 type MockODataError struct {
-	statusCode      int
-	headers         *MockResponseHeaders
-	errorData       *MockMainError
-	responseHeaders abstractions.ResponseHeaders // Store the interface to return pointer to it
+	statusCode int
+	headers    *MockResponseHeaders
+	errorData  *MockMainError
+}
+
+// Ensure this is recognized as an ODataError
+func (m *MockODataError) GetErrorEscaped() odataerrors.MainErrorable {
+	return m.errorData
 }
 
 func (m *MockODataError) Error() string {
@@ -79,29 +83,29 @@ func (m *MockODataError) GetStatusCode() int {
 
 func (m *MockODataError) GetResponseHeaders() abstractions.ResponseHeaders {
 	if m.headers == nil {
-		return nil
+		// Create an empty ResponseHeaders
+		empty := abstractions.NewResponseHeaders()
+		return *empty
 	}
-	// Create a new ResponseHeaders and populate it
-	responseHeaders := abstractions.NewResponseHeaders()
+
+	// Convert our mock headers to the actual ResponseHeaders
+	respHeaders := abstractions.NewResponseHeaders()
 	for key, values := range m.headers.headers {
 		for _, value := range values {
-			responseHeaders.Add(key, value)
+			respHeaders.Add(key, value)
 		}
 	}
-	return responseHeaders
-}
-
-func (m *MockODataError) GetErrorEscaped() odataerrors.MainErrorable {
-	return m.errorData
+	return *respHeaders
 }
 
 // MockMainError implements odataerrors.MainErrorable
 type MockMainError struct {
-	code       *string
-	message    *string
-	target     *string
-	details    []odataerrors.ErrorDetailsable
-	innerError *MockInnerError
+	code         *string
+	message      *string
+	target       *string
+	details      []odataerrors.ErrorDetailsable
+	innerError   *MockInnerError
+	backingStore store.BackingStore
 }
 
 func (m *MockMainError) GetCode() *string {
@@ -121,6 +125,9 @@ func (m *MockMainError) GetDetails() []odataerrors.ErrorDetailsable {
 }
 
 func (m *MockMainError) GetInnerError() odataerrors.InnerErrorable {
+	if m.innerError == nil {
+		return nil
+	}
 	return m.innerError
 }
 
@@ -145,7 +152,34 @@ func (m *MockMainError) SetDetails(value []odataerrors.ErrorDetailsable) {
 }
 
 func (m *MockMainError) SetInnerError(value odataerrors.InnerErrorable) {
-	m.innerError = value
+	if value == nil {
+		m.innerError = nil
+		return
+	}
+
+	// We need to handle the case where the value is not a *MockInnerError
+	// This is a simplification for testing purposes
+	mockInner := &MockInnerError{
+		backingStore: store.BackingStoreFactoryInstance(),
+	}
+
+	if reqID := value.GetRequestId(); reqID != nil {
+		mockInner.requestId = reqID
+	}
+
+	if clientReqID := value.GetClientRequestId(); clientReqID != nil {
+		mockInner.clientRequestId = clientReqID
+	}
+
+	if date := value.GetDate(); date != nil {
+		mockInner.date = date
+	}
+
+	if odataType := value.GetOdataType(); odataType != nil {
+		mockInner.odataType = odataType
+	}
+
+	m.innerError = mockInner
 }
 
 func (m *MockMainError) SetMessage(value *string) {
@@ -160,7 +194,10 @@ func (m *MockMainError) SetTarget(value *string) {
 }
 
 func (m *MockMainError) GetBackingStore() store.BackingStore {
-	return nil
+	if m.backingStore == nil {
+		m.backingStore = store.BackingStoreFactoryInstance()
+	}
+	return m.backingStore
 }
 
 func (m *MockMainError) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
@@ -172,6 +209,7 @@ func (m *MockMainError) Serialize(writer serialization.SerializationWriter) erro
 }
 
 func (m *MockMainError) SetBackingStore(value store.BackingStore) {
+	m.backingStore = value
 }
 
 // MockInnerError implements odataerrors.InnerErrorable
@@ -180,6 +218,7 @@ type MockInnerError struct {
 	clientRequestId *string
 	date            *time.Time
 	odataType       *string
+	backingStore    store.BackingStore
 }
 
 func (m *MockInnerError) GetRequestId() *string {
@@ -222,11 +261,31 @@ func (m *MockInnerError) SetRequestId(value *string) {
 	m.requestId = value
 }
 
+func (m *MockInnerError) GetBackingStore() store.BackingStore {
+	if m.backingStore == nil {
+		m.backingStore = store.BackingStoreFactoryInstance()
+	}
+	return m.backingStore
+}
+
+func (m *MockInnerError) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
+	return make(map[string]func(serialization.ParseNode) error)
+}
+
+func (m *MockInnerError) Serialize(writer serialization.SerializationWriter) error {
+	return nil
+}
+
+func (m *MockInnerError) SetBackingStore(value store.BackingStore) {
+	m.backingStore = value
+}
+
 // MockErrorDetails implements odataerrors.ErrorDetailsable
 type MockErrorDetails struct {
-	code    *string
-	message *string
-	target  *string
+	code         *string
+	message      *string
+	target       *string
+	backingStore store.BackingStore
 }
 
 func (m *MockErrorDetails) GetCode() *string {
@@ -268,7 +327,10 @@ func (m *MockErrorDetails) SetTarget(value *string) {
 }
 
 func (m *MockErrorDetails) GetBackingStore() store.BackingStore {
-	return nil
+	if m.backingStore == nil {
+		m.backingStore = store.BackingStoreFactoryInstance()
+	}
+	return m.backingStore
 }
 
 func (m *MockErrorDetails) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
@@ -280,6 +342,7 @@ func (m *MockErrorDetails) Serialize(writer serialization.SerializationWriter) e
 }
 
 func (m *MockErrorDetails) SetBackingStore(value store.BackingStore) {
+	m.backingStore = value
 }
 
 // Helper function to create mock OData errors
@@ -304,14 +367,16 @@ func createMockODataError(statusCode int, code, message, target string, headers 
 		requestId:       getStringPtr(headers["request-id"]),
 		clientRequestId: getStringPtr(headers["client-request-id"]),
 		date:            parsedDate,
+		backingStore:    store.BackingStoreFactoryInstance(),
 	}
 
 	mainError := &MockMainError{
-		code:       &code,
-		message:    &message,
-		target:     &target,
-		details:    []odataerrors.ErrorDetailsable{},
-		innerError: innerError,
+		code:         &code,
+		message:      &message,
+		target:       &target,
+		details:      []odataerrors.ErrorDetailsable{},
+		innerError:   innerError,
+		backingStore: store.BackingStoreFactoryInstance(),
 	}
 
 	return &MockODataError{

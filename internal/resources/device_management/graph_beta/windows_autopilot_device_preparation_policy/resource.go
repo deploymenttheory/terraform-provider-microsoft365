@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -170,7 +169,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 				MarkdownDescription: "The ID of the assigned security device group that devices will be automatically added to during the Windows Autopilot Device Preparation flow. This group must have the 'Intune Provisioning Client' service principal (AppId: f1346770-5b25-470b-88bd-d5744ab7952c) set as its owner. In some tenants, this service principal may appear as 'Intune Autopilot ConfidentialClient'.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(helpers.GuidRegex),
+						regexp.MustCompile(constants.GuidRegex),
 						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
@@ -284,7 +283,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 							MarkdownDescription: "The ID of the application.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
-									regexp.MustCompile(helpers.GuidRegex),
+									regexp.MustCompile(constants.GuidRegex),
 									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 								),
 							},
@@ -315,7 +314,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 					listvalidator.SizeAtMost(10),
 					listvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
-							regexp.MustCompile(helpers.GuidRegex),
+							regexp.MustCompile(constants.GuidRegex),
 							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
@@ -332,7 +331,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Validators: []validator.List{
 							listvalidator.ValueStringsAre(
 								stringvalidator.RegexMatches(
-									regexp.MustCompile(helpers.GuidRegex),
+									regexp.MustCompile(constants.GuidRegex),
 									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 								),
 							),

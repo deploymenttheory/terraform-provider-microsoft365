@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Test macOS Script",
+  "description": "Test description for macOS platform script",
+  "runAsAccount": "system",
+  "fileName": "test-script.sh",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnSGVsbG8gV29ybGQn",
+  "createdDateTime": "2023-11-01T10:30:00.0000000Z",
+  "lastModifiedDateTime": "2023-11-01T10:30:00.0000000Z",
+  "roleScopeTagIds": [
+      "0"
+  ],
+  "blockExecutionNotifications": true,
+  "executionFrequency": "P1D",
+  "retryCount": 3
+}

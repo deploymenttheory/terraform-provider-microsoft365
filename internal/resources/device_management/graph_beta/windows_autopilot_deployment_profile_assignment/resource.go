@@ -104,8 +104,8 @@ func (r *WindowsAutopilotDeploymentProfileAssignmentResource) Schema(ctx context
 				Description: "The ID of the Windows Autopilot Deployment Profile to attach the assignment to.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-						"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
 				PlanModifiers: []planmodifier.String{
@@ -159,8 +159,8 @@ func (r *WindowsAutopilotDeploymentProfileAssignmentResource) Schema(ctx context
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-								"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
 					},
@@ -169,8 +169,8 @@ func (r *WindowsAutopilotDeploymentProfileAssignmentResource) Schema(ctx context
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-								"Must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
 					},

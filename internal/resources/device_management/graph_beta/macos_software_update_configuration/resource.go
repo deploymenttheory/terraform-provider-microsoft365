@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -164,14 +163,14 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 							MarkdownDescription: "Start time of the window in `HH:MM:SS` format.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(helpers.TimeHMSRegex), "must be in HH:MM:SS format"),
+								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeHMSRegex), "must be in HH:MM:SS format"),
 							},
 						},
 						"end_time": schema.StringAttribute{
 							MarkdownDescription: "End time of the window in `HH:MM:SS` format.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(helpers.TimeHMSRegex), "must be in HH:MM:SS format"),
+								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeHMSRegex), "must be in HH:MM:SS format"),
 							},
 						},
 					},

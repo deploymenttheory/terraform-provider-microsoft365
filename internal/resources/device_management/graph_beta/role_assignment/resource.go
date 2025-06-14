@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
@@ -26,11 +25,6 @@ const (
 	UpdateTimeout = 180
 	ReadTimeout   = 180
 	DeleteTimeout = 180
-)
-
-var (
-	// Regex compiler
-	guidRegex = regexp.MustCompile(helpers.GuidRegex)
 )
 
 var (
@@ -109,8 +103,8 @@ func (r *RoleDefinitionAssignmentResource) Schema(ctx context.Context, req resou
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						guidRegex,
-						"role_definition_id must be a valid GUID",
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
 			},
@@ -144,8 +138,8 @@ func (r *RoleDefinitionAssignmentResource) Schema(ctx context.Context, req resou
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
-							guidRegex,
-							"scope member id must be a valid GUID",
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
 				},
@@ -171,8 +165,8 @@ func (r *RoleDefinitionAssignmentResource) Schema(ctx context.Context, req resou
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
-							guidRegex,
-							"resource scope id must be a valid GUID",
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
 				},

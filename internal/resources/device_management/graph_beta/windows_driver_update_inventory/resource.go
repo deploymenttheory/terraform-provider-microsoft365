@@ -2,6 +2,7 @@ package graphBetaWindowsDriverUpdateInventory
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
@@ -138,6 +139,12 @@ func (r *WindowsDriverUpdateInventoryResource) Schema(ctx context.Context, req r
 			"windows_driver_update_profile_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The ID of the Windows Driver Update Profile this inventory belongs to.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

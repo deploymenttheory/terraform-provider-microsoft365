@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,7 +30,7 @@ func TimeToString(t *time.Time) types.String {
 	if t == nil {
 		return types.StringNull()
 	}
-	return types.StringValue(t.Format(helpers.TimeFormatRFC3339))
+	return types.StringValue(t.Format(constants.TimeFormatRFC3339))
 }
 
 // SliceToTypeStringSlice converts a slice of strings to a slice of types.String.

@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -105,7 +104,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Schema(ctx conte
 				Description: "The ID of the Apple User Initiated Enrollment Profile to attach the assignment to.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(helpers.GuidRegex),
+						regexp.MustCompile(constants.GuidRegex),
 						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
@@ -140,7 +139,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(helpers.GuidRegex),
+								regexp.MustCompile(constants.GuidRegex),
 								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
@@ -150,7 +149,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(helpers.GuidRegex),
+								regexp.MustCompile(constants.GuidRegex),
 								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},
@@ -160,7 +159,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Schema(ctx conte
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(helpers.GuidRegex),
+								regexp.MustCompile(constants.GuidRegex),
 								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						},

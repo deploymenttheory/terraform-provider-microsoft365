@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"regexp"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -38,8 +41,8 @@ func RoleAssignmentsSchema() schema.SetNestedAttribute {
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(
 							stringvalidator.RegexMatches(
-								guidRegex,
-								"scope member id must be a valid GUID",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						),
 					},
@@ -66,8 +69,8 @@ func RoleAssignmentsSchema() schema.SetNestedAttribute {
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(
 							stringvalidator.RegexMatches(
-								guidRegex,
-								"resource scope id must be a valid GUID",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						),
 					},

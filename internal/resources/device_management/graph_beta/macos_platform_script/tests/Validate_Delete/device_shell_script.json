@@ -1,0 +1,28 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts(assignments())/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Test macOS Script for Delete",
+  "description": "Test description for delete scenario",
+  "runAsAccount": "system",
+  "fileName": "delete-test-script.sh",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnVG8gYmUgZGVsZXRlZCc=",
+  "createdDateTime": "2023-11-01T10:30:00.0000000Z",
+  "lastModifiedDateTime": "2023-11-01T10:30:00.0000000Z",
+  "roleScopeTagIds": [
+      "0"
+  ],
+  "blockExecutionNotifications": false,
+  "executionFrequency": null,
+  "retryCount": 3,
+  "assignments": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts('00000000-0000-0000-0000-000000000001')/assignments",
+      "value": [
+          {
+              "id": "00000000-0000-0000-0000-000000000001_assignment1",
+              "target": {
+                  "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+              }
+          }
+      ]
+  }
+}
