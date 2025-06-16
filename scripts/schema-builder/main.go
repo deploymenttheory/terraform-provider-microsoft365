@@ -1074,7 +1074,7 @@ const schemaTemplate = `package resource
 		"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 		"github.com/hashicorp/terraform-plugin-framework/types"
 
-		// planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resources/common/plan_modifiers" // No longer needed for dependency
+		// planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers" // No longer needed for dependency
 	)
 
 	// {{.ResourceName}} represents the resource implementation.

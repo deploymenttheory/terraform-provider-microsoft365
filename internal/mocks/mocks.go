@@ -70,11 +70,11 @@ func ProviderConfigMinimal() string {
 	return `
 provider "microsoft365" {
   cloud = "public"
-  tenant_id = "00000000-0000-0000-0000-000000000000"
+  tenant_id = "5298c688-49cd-4aaa-9978-77aeb00e1000"
   auth_method = "client_secret"
   entra_id_options = {
-    client_id = "fake-client-id"
-    client_secret = "fake-client-secret"
+    client_id = "5298c688-49cd-4aaa-9978-77aeb00e1000"
+    client_secret = "5298c688-49cd-4aaa-9978-77aeb00e1000"
   }
   telemetry_optout = true
   debug_mode = false
