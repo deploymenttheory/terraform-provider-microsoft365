@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -63,7 +64,10 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"```\n\n" +
 					"Can also be set using the `M365_TENANT_ID` environment variable.",
 				Validators: []validator.String{
-					validateGUID("tenant_id"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
 				},
 			},
 			"auth_method": schema.StringAttribute{
@@ -167,7 +171,10 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"```\n\n" +
 				"Can be set using the `M365_CLIENT_ID` environment variable.",
 			Validators: []validator.String{
-				validateGUID("client_id"),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(constants.GuidRegex),
+					"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+				),
 			},
 		},
 		"client_secret": schema.StringAttribute{
@@ -526,7 +533,7 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 		},
 		"timeout_seconds": schema.Int64Attribute{
 			Optional:    true,
-			Description: "Override value for authentication request timeouts in seconds.",
+			Description: "Override value for the timeout of authentication requests in seconds.",
 		},
 		"enable_chaos": schema.BoolAttribute{
 			Optional:    true,

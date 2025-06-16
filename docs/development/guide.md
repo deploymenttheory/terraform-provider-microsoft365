@@ -178,7 +178,7 @@ This guide describes the recommended workflow and best practices for developing 
          resp.State.RemoveResource(ctx)
      }
      ```
-   - For more details and up-to-date patterns, see the [resource template implementation](../../internal/resources/_resource_template/).
+   - For more details and up-to-date patterns, see the [resource template implementation](../../internal/services/resources/_resource_template/).
 
 4. **Map Remote State to Terraform State**
    - Implement a function to map the API response to the Terraform state model.

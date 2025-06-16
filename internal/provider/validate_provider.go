@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -35,7 +35,7 @@ func (v guidValidator) ValidateString(ctx context.Context, req validator.StringR
 	}
 
 	// Proceed with GUID validation only if the string is non-empty
-	match, err := regexp.MatchString(helpers.GuidRegex, value)
+	match, err := regexp.MatchString(constants.GuidRegex, value)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf("Invalid %s format", v.attributeName),
@@ -109,7 +109,7 @@ func (v redirectURLValidator) ValidateString(ctx context.Context, req validator.
 		return
 	}
 
-	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, redirectURL)
+	match, _ := regexp.MatchString(constants.UrlValidStringRegex, redirectURL)
 	if !match {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
@@ -155,7 +155,7 @@ func (v proxyURLValidator) ValidateString(ctx context.Context, req validator.Str
 		return
 	}
 
-	match, _ := regexp.MatchString(helpers.UrlValidStringRegex, proxyURL)
+	match, _ := regexp.MatchString(constants.UrlValidStringRegex, proxyURL)
 	if !match {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,

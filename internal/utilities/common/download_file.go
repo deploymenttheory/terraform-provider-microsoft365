@@ -140,7 +140,7 @@ func DownloadFile(sourceURL string) (string, error) {
 	finalPath = strings.ReplaceAll(finalPath, " ", "_")
 
 	var renameErr error
-	for retries := 0; retries < 3; retries++ {
+	for range make([]struct{}, 3) {
 		renameErr = os.Rename(tmpPath, finalPath)
 		if renameErr == nil {
 			break
