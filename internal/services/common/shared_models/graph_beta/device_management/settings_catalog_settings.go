@@ -9,7 +9,7 @@ type DeviceConfigV2GraphServiceResourceModel struct {
 }
 
 // SettingDetail represents a single setting detail
-//type SettingDetail struct {
+// type SettingDetail struct {
 type Setting struct {
 	ID              string          `json:"id"`
 	SettingInstance SettingInstance `json:"settingInstance"`

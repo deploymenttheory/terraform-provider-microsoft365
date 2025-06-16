@@ -30,4 +30,4 @@ type GroupResourceModel struct {
 	RenewedDateTime               types.String   `tfsdk:"renewed_date_time"`
 	SecurityIdentifier            types.String   `tfsdk:"security_identifier"`
 	Timeouts                      timeouts.Value `tfsdk:"timeouts"`
-} 
+}
