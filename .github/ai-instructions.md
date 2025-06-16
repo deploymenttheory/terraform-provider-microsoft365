@@ -74,7 +74,7 @@ Each resource directory MUST contain:
 
 ### Example Files
 
-- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resouce_catgeory}_{resource_name}`. (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_license_assignment` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_cloud_pc_device_image`)
+- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resource_category}_{resource_name}`. (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_assignment_filter` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_mobile_app`)
 - **Resource Examples:**
   - Use a single `resource.tf` file per directory.
   - The example should align precisely with the resource schema.
@@ -92,12 +92,12 @@ Each resource directory MUST contain:
 
 ## Naming Conventions
 
-- **Resource and Data Source Names:** Follow the existing naming pattern of prefixing with `powerplatform_`. For example, an environment resource is named `powerplatform_environment`. Use lowercase with underscores for Terraform resource/data names.
+- **Resource and Data Source Names:** Follow the existing naming pattern of prefixing with `microsoft365_` followed by the API type (`graph_beta` or `graph_v1.0`) and the resource category. For example, a resource is named `microsoft365_graph_beta_device_management_assignment_filter`. Use lowercase with underscores for Terraform resource/data names.
 - **Attribute Naming:** Name resource attributes to match Microsoft365 terminology. Prefer the modern, user-friendly terms used in the current Microsoft365 API/UX/[Official Documentation](https://learn.microsoft.com/en-us/graph/) over deprecated names. Keep names concise but descriptive of their function in the resource.
 - **Model Field Naming Pattern**: For optional block attributes, use a pointer to a shared or local model struct (e.g., `Assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel`).
   - Name the Go field in PascalCase (e.g., `Assignments`).
   - Use a type of `<SubResourceName>ResourceModel` (e.g., `DeviceManagementScriptAssignmentResourceModel`).
-  - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"assignments"`).
+  - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"last_modified_date_time"`).
   - The sub-resource struct should be named `<SubResourceName>ResourceModel`.
 - **Test Function Naming:** Name test functions with a prefix indicating their type. **Acceptance test** functions should start with `TestAcc` and **unit test** functions with `TestUnit` (this allows filtering tests by type). Also, name test files' package with a `_test` suffix (e.g. `package environment_test`) to ensure tests access the provider only via its public interface.
 - **Data Transfer Objects:** Define all DTO structures in `dto.go` with a `Dto` suffix (e.g., `EnvironmentDto`).
@@ -110,7 +110,7 @@ Each resource directory MUST contain:
 - Write Go comments only on exported functions, types, and methods to explain their purpose, parameters, and return values when it adds clarity.
 - Focus comments on **why** something is done if it's not obvious from the code.
 - Avoid redundant comments that just restate the code or don't provide additional insight.
-- When defining resource or data source schema, **always use** the `MarkdownDescription` field for documentation. Do **not** use the deprecated `Description` field. Markdown descriptions will be used to auto-generate docs, so make them clear and user-friendly, and include links to topics in the [official Microsoft365 docs](https://learn.microsoft.com/en-us/power-platform/admin/) when helpful.
+- When defining resource or data source schema, **always use** the `MarkdownDescription` field for documentation. Do **not** use the deprecated `Description` field. Markdown descriptions will be used to auto-generate docs, so make them clear and user-friendly, and include links to topics in the [official Microsoft365 docs](https://learn.microsoft.com/en-us/graph/) when helpful.
 
 ## Code Organization and Implementation Guidelines
 
@@ -190,16 +190,22 @@ Each resource directory MUST contain:
 #### Resource Structure and Interfaces
 
 - Implement `resource.Resource` interface for all resources.
-- Implement `resource.ResourceWithImportState` for resources supporting import.
-- Implement `resource.ResourceWithValidateConfig` when custom validation is needed.
-- Structure resources in a consistent pattern by ordering methods: `Metadata`, `Schema`, `Configure`, `Create`, `Read`, `Update`, `Delete`, `ImportState`.
-- Embed `helpers.TypeInfo` in your resource struct to inherit standard functionality.
+- Implement `resource.ResourceWithImportState` for all resources.
+- Implement `resource.ResourceWithConfigure` to configure the resource with the provider client.
+- Implement `resource.ResourceWithModifyPlan` when plan modification is needed.
+- Structure resources in a consistent pattern by ordering methods: `Metadata`, `FullTypeName`, `Configure`, `ImportState`, `Schema`, `Create`, `Read`, `Update`, `Delete`, `ModifyPlan`.
+- Define constants for resource name and timeouts (e.g., `ResourceName`, `CreateTimeout`, `ReadTimeout`, `UpdateTimeout`, `DeleteTimeout`).
 - Add required client fields to your resource struct to access APIs.
+- Include `ReadPermissions` and `WritePermissions` fields in your resource struct to specify required permissions.
+- Include `ResourcePath` field to specify the API endpoint path.
+- Name factory functions as `New<ResourceName>Resource()` (e.g., `NewAssignmentFilterResource`).
+- Return a new instance of your resource struct from the factory function with required permissions and resource path set.
 
 #### Resource Schema Definition
 
-- Define complete schemas with proper attribute types (String, Int64, Bool, etc.).
+- Define complete schemas with proper attribute types (String, Int32, Bool, etc.).
 - Mark attributes explicitly as `Required`, `Optional`, or `Computed`.
+- Use `Int32` for attributes that are integers and are less than 2^31. Never use `Int64` for these attributes.
 - Use `Computed: true` for server-generated fields like IDs.
 - Use `Optional: true` with `Computed: true` for fields that can be specified or defaulted by the service.
 - Apply `RequiresReplace` plan modifier to immutable attributes that necessitate resource recreation when changed.
@@ -226,11 +232,13 @@ Each resource directory MUST contain:
 
 #### Data Source Structure and Interfaces
 
-- Implement the `datasource.DataSource` and `datasource.DataSourceWithConfigure` interfaces for all data sources.
+- Implement the `datasource.DataSource` interface for all data sources.
+- Implement the `datasource.DataSourceWithConfigure` interface to configure the data source with the provider client.
 - Order data source methods consistently: `Metadata`, `Schema`, `Configure`, `Read`.
 - Add required client fields to your data source struct to access APIs.
 - Include `ReadPermissions` field in your data source struct to specify required permissions.
-- Define constants for the datasource name and timeout values.
+- Include `ProviderTypeName` and `TypeName` fields in your data source struct for type name management.
+- Define constants for the datasource name and timeout values (e.g., `datasourceName`, `ReadTimeout`).
 - Name factory functions as `New<DataSourceName>DataSource()` (e.g., `NewMobileAppDataSource`).
 - Return a new instance of your datasource struct from the factory function with required permissions set.
 
@@ -287,7 +295,7 @@ Each resource directory MUST contain:
 
 #### Data Source Documentation and Examples
 
-- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory.
+- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_mobile_app`).
 - For data sources with filter parameters, include examples showing different filtering options:
   - Filtering by ID
   - Filtering by display name
