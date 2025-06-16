@@ -21,10 +21,29 @@ These instructions guide ai tools to follow our project's conventions and best p
 
 ### Resource Organization
 
-- Organize all resource implementations within the `internal/resources` directory, with each resource in its own subdirectory within their respective resource category directory. e.g. `internal/resources/resource_category_placeholder/graph_api_type`.
-- There are two types of api types: `graph_beta` and `graph_v1.0`.
+- Organize all resource implementations within the `internal/services/resources` directory, with each resource in its own subdirectory within their respective resource category directory `internal/services/resources/resource_category_placeholder/graph_api_type`. (e.g. `internal/services/resources/device_management/graph_beta/device_management_scripts`)
+- There are the following resource categories:
+  - `applications`
+  - `backup_storage`
+  - `device_and_app_management`
+  - `device_management`
+  - `education`
+  - `extensions`
+  - `external_data_connections`
+  - `files`
+  - `financials`
+  - `groups`
+  - `identity_and_access`
+  - `industry_data_etl`
+  - `m365_admin`
+  - `people_and_workplace_intelligence`
+  - `security`
+  - `sites_and_lists`
+  - `teamwork_and_communications`
+  - `users`
+- There are two types of `{graph_api_type}`: `graph_beta` and `graph_v1.0`.
 - Name resource directories using lowercase words with underscores (e.g., `cloud_pc_user_setting`, `group_member_assignment`).
-- Choose resource names that reflect the Microsoft365 domain they represent. Prefer the commonly used term for the resource e.g 'settings_catalog' over the api type e.g 'configuration_policy'.
+- Choose resource names that reflect the Microsoft365 domain they represent. Prefer the commonly used term for the resource e.g `settings_catalog` over the api type e.g `configuration_policy`.
 
 ### Resource Files
 
@@ -38,16 +57,24 @@ Each resource directory MUST contain:
 
 ### Data Source Organization
 
-- Organize all datasource implementations within the `internal/datasources` directory, with each datasource in its own subdirectory within their respective datasource category directory. e.g. `internal/datasource/datasource_category_placeholder/graph_api_type`.
+- Organize all datasource implementations within the `internal/services/datasources` directory, with each datasource in its own subdirectory within their respective datasource category directory. e.g. `internal/services/datasources/datasource_category_placeholder/graph_api_type`.
 - There are two types of api types: `graph_beta` and `graph_v1.0`.
 - Name datasource directories using lowercase words with underscores (e.g., `cloud_pc_user_setting`, `group_member_assignment`).
 - Each datasource SHALL align with the resource directory naming convention.
 
-- **Data Source Files**: Name as `datasource_<data_source_name>.go` (e.g., `datasource_tenant_settings.go`).
+### Data Source Files
+
+Each resource directory MUST contain:
+
+- **Models File**: Create a single `model.go` file containing all data models for the datasource. The main struct should be named `{DataSourceName}DataSourceModel` (e.g., `MobileAppDataSourceModel`).
+- **Data Source Files**: Name the main file as `datasource.go` containing the datasource struct definition, metadata, schema, and configuration.
+- **Read File**: Create a `read.go` file containing the Read method implementation for the datasource.
+- **State File**: Create a `state.go` file containing functions for mapping API responses to datasource models.
+- **Helper Files**: Create additional helper files (e.g., `helpers.go`) as needed for utility functions specific to the datasource.
 
 ### Example Files
 
-- Place each example in its own directory under `examples/<category>/`, named for the full resource or data source name (e.g., `microsoft365_graph_beta_device_management_settings_catalog_assignment`).
+- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resouce_catgeory}_{resource_name}`. (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_license_assignment` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_cloud_pc_device_image`)
 - **Resource Examples:**
   - Use a single `resource.tf` file per directory.
   - The example should align precisely with the resource schema.
@@ -96,7 +123,7 @@ Each resource directory MUST contain:
 - **Terraform Plugin Framework Validators:** Use the [Terraform Plugin Framework Validators](https://github.com/hashicorp/terraform-plugin-framework-validators) for implementing validation logic.
 - **Custom Terraform Plugin Framework Validators:** Use the [Custom Terraform Plugin Framework Validators](/internal/services/common/validators) for implementing custom validation logic. Prefer using the custom validators over the built-in validators only when hashicorp provided validators fall short.
 - **Terraform Plugin Framework Plan Modifiers:** Use the [Terraform Plugin Framework Plan Modifiers](https://developer.hashicorp.com/terraform/plugin/framework/plan-modifiers) for implementing plan modification logic.
-- **Terraform Plugin Framework Timeouts:** Use the implementation found in `internal/resources/common/crud/timeout.go` for implementing timeouts.
+- **Terraform Plugin Framework Timeouts:** Use the implementation found in `internal/services/common/crud/timeout.go` for implementing timeouts.
 - **Terraform Plugin Framework Helpers:** Use the [Terraform Plugin Framework Helpers](https://developer.hashicorp.com/terraform/plugin/framework/helpers) for implementing helper functions.
 
 ### Common Utilities
@@ -109,6 +136,7 @@ Each resource directory MUST contain:
 - **Constants:** Reference centralized constants from `internal/constants/constants.go` instead of hardcoding values for:
   - API endpoints and URL paths
   - Common string literals and configuration keys
+  - Regex patterns and expressions
   - Status codes and enum values used across the provider
 
 - **Error Handling:** Leverage the error handling utilities defined in `internal/resources/common/errors` for consistent error management across all resources and data sources:
@@ -200,9 +228,11 @@ Each resource directory MUST contain:
 
 - Implement the `datasource.DataSource` and `datasource.DataSourceWithConfigure` interfaces for all data sources.
 - Order data source methods consistently: `Metadata`, `Schema`, `Configure`, `Read`.
-- Embed `helpers.TypeInfo` in your data source struct to inherit standard functionality.
 - Add required client fields to your data source struct to access APIs.
-- Name factory functions as `New<DataSourceName>DataSource()` (e.g., `NewSolutionsDataSource`).
+- Include `ReadPermissions` field in your data source struct to specify required permissions.
+- Define constants for the datasource name and timeout values.
+- Name factory functions as `New<DataSourceName>DataSource()` (e.g., `NewMobileAppDataSource`).
+- Return a new instance of your datasource struct from the factory function with required permissions set.
 
 #### Data Source Schema Definition
 
@@ -219,19 +249,26 @@ Each resource directory MUST contain:
 #### Data Source Query Parameters
 
 - For data sources that filter results, define explicit filter attributes:
-  - Common patterns include `name`, `publisher_name`, `environment_id`, etc.
-  - Keep filter attributes simple and intuitive based on how the target API implements filtering.
+  - Common patterns include `filter_type` (e.g., "all", "id", "display_name", "odata") to specify how to filter.
+  - Include `filter_value` for the value to filter by.
+  - For OData filtering, include parameters like `odata_filter`, `odata_top`, `odata_skip`, `odata_select`, and `odata_orderby`.
+  - Add domain-specific filters (e.g., `app_type_filter`) when appropriate.
 - Support sensible combinations of filter parameters that match Microsoft365 API capabilities.
 - Document filter parameters with clear examples in the `MarkdownDescription`.
+- Use validators (e.g., `stringvalidator.OneOf()`) to restrict filter values to valid options.
 
 #### Data Source Read Implementation
 
 - Parse all input filter parameters from state at the beginning of the Read method.
-- Include context propagation: `ctx, exitContext := helpers.EnterRequestContext(ctx, d.TypeInfo, req)` with a matching `defer exitContext()`.
+- Include context propagation and handle timeouts: `ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)` with a matching `defer cancel()`.
 - Validate any required filter parameters and return appropriate diagnostic errors.
+- Implement different query strategies based on filter types:
+  - For ID-based filtering, fetch a single item directly using the ID.
+  - For OData filtering, pass OData parameters to the API.
+  - For other filter types (e.g., "all", "display_name"), fetch all items and filter locally.
 - Use the appropriate client method to retrieve data based on filter criteria.
 - For empty results, set an empty list rather than returning an error.
-- Transform API responses to data models using the appropriate conversion functions.
+- Transform API responses to data models using the appropriate state mapping functions.
 - Set all fields in the state model, even those that might be nil or empty.
 - Log API calls using `tflog.Debug` statements to assist troubleshooting.
 - For list-type data sources, return a consistent response structure even when results vary in size.
@@ -239,19 +276,28 @@ Each resource directory MUST contain:
 #### Testing Data Sources
 
 - Test all supported filter combinations in unit tests.
+- Create separate test cases for each filter type (e.g., "all", "id", "display_name", "odata").
+- Test domain-specific filters (e.g., `app_type_filter`) to ensure they correctly filter results.
 - Verify that filtered results return the expected subset of data.
 - Test edge cases like empty results, single results, and large result sets.
 - For collection data sources, test accessing nested attributes and verify attribute counts.
 - Ensure acceptance tests use non-destructive read-only operations.
 - For data sources that return lists, test accessing list items with collection syntax.
+- Create mock responses in JSON files for each test scenario, following the same directory structure as resources.
 
 #### Data Source Documentation and Examples
 
-- Include a representative example in the `/examples/data-sources/{data_source_name}/` directory.
-- For data sources with filter parameters, include examples showing different filtering options.
+- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory.
+- For data sources with filter parameters, include examples showing different filtering options:
+  - Filtering by ID
+  - Filtering by display name
+  - Using OData filters for advanced queries
+  - Using domain-specific filters
+- Include examples demonstrating how to access nested attributes in the output.
 - Showcase practical use-cases with supporting resources when applicable.
 - Describe the purpose of the data source clearly in the schema's `MarkdownDescription`.
-- Link to relevant Microsoft365 documentation that explains the underlying API or service.
+- Link to relevant Microsoft Graph API documentation that explains the underlying API or service.
+- Include references to the API endpoint used (e.g., `/deviceAppManagement/mobileApps`).
 
 ## Logging
 

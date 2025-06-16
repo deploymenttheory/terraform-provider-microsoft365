@@ -30,7 +30,7 @@ func TimeToString(t *time.Time) types.String {
 	if t == nil {
 		return types.StringNull()
 	}
-	return types.StringValue(t.Format(constants.TimeFormatRFC3339))
+	return types.StringValue(t.Format(constants.TimeFormatRFC3339Regex))
 }
 
 // SliceToTypeStringSlice converts a slice of strings to a slice of types.String.

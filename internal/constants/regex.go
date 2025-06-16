@@ -27,17 +27,19 @@ const (
 	// Example: "1.0.0.0"
 	VersionRegex = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
 
-	// TimeRegex matches a UTC timestamp in the format "YYYY-MM-DDTHH:MM:SSZ".
+	// TimeFormatUTCTimeStampRegex matches a UTC timestamp in the format "YYYY-MM-DDTHH:MM:SSZ".
 	// Example: "2023-05-01T13:45:30Z"
-	TimeRegex = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"
+	TimeFormatUTCTimeStampRegex = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"
 
 	// BooleanRegex matches the string "true" or "false".
 	// Example: "true"
 	BooleanRegex = "^(true|false)$"
 
-	// TimeHMSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
+	// TimeFormatHMSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
 	// Example: "14:30:59"
-	TimeHMSRegex = "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+	TimeFormatHMSRegex = "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
 
-	TimeFormatRFC3339 = time.RFC3339
+	// TimeFormatRFC3339Regex is the time format for RFC3339.
+	// Example: "2023-05-01T13:45:30Z"
+	TimeFormatRFC3339Regex = time.RFC3339
 )

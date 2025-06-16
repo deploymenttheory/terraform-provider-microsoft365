@@ -163,14 +163,14 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 							MarkdownDescription: "Start time of the window in `HH:MM:SS` format.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeHMSRegex), "must be in HH:MM:SS format"),
+								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeFormatHMSRegex), "must be in HH:MM:SS format"),
 							},
 						},
 						"end_time": schema.StringAttribute{
 							MarkdownDescription: "End time of the window in `HH:MM:SS` format.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeHMSRegex), "must be in HH:MM:SS format"),
+								stringvalidator.RegexMatches(regexp.MustCompile(constants.TimeFormatHMSRegex), "must be in HH:MM:SS format"),
 							},
 						},
 					},
