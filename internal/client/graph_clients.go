@@ -35,18 +35,33 @@ func (g *GraphClients) GetBetaClient() *msgraphbetasdk.GraphServiceClient {
 //
 // The beta client (BetaClient) is used for making API calls to the
 // beta Microsoft Graph endpoints, which allow developers to test and
-// experiment with new features before they are released to the general public.
-// However, it is important to note that the beta endpoint is not intended
-// for use in production environments. APIs and functionalities available
-// in the beta endpoint are subject to change, and features might be modified
-// or removed without notice, potentially causing disruptions or breaking
-// changes to applications. Additionally, the beta endpoint might not have
-// the same level of support, reliability, or performance as the v1.0 endpoint,
-// and can be unexpectedly unavailable or have slower response times.
+// experiment with newest features in the graph ecosystem.
 //
-// For these reasons, developers are strongly recommended to use the v1.0
-// endpoint when building production applications to ensure stability,
-// reliability, and a better user experience.
+// Microsoft claim,  that the beta endpoint is not intended
+// for use in production environments. However, much of the gui uses graph beta
+// e.g with intune, conditional access, etc within a production context. I.e
+// microsoft use the beta endpoints consistently like it's a production endpoint.
+// Despite the beta label. Conversations with microsoft product teams, have explained
+// that the reason for this is as follows:
+//
+// graph v1.0 has a very strict breaking change policy, allowing for one
+// breaking change per year. This is to ensure that the api is stable and reliable.
+// However, the beta endpoint is not subject to this policy, and allows for more
+// frequent breaking changes. This is to allow for new features to be added to the
+// graph api without having to wait for a year by microsoft development teams.
+//
+// Additionally, it's become the norm that for many api endpoints, they never get
+// a v1.0 endpoint, ever. Intune is a good example of this, where endpoints for
+// are still in 'beta', despite being in production for many years. Microsoft
+// have also stated off the record that in many cases they will support the beta
+// api like they do the v1.0 api.
+//
+// Conseqently, depsite the offical line that developers should use the v1.0
+// it's not that clear cut.
+//
+// For these reasons, this provider shall use what the gui uses for a given
+// piece of functionality. Typically mapped to whatever graph x-ray
+// (https://graphxray.merill.net/) observes during api calls.
 //
 // Fields:
 //
