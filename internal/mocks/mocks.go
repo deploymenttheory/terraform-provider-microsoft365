@@ -1,130 +1,100 @@
 package mocks
 
-import (
-	"net/http"
-	"path/filepath"
-	"regexp"
-	"runtime"
-	"strings"
+// import (
+// 	"context"
+// 	"net/http"
+// 	"path/filepath"
+// 	"regexp"
+// 	"runtime"
+// 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/jarcoal/httpmock"
-)
+// 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+// 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
+// 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+// 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+// 	"github.com/jarcoal/httpmock"
+// )
 
-// TestName extracts the name of the calling test function.
-func TestName() string {
-	pc, _, _, _ := runtime.Caller(1)
-	nameFull := runtime.FuncForPC(pc).Name()
-	nameEnd := filepath.Ext(nameFull)
-	name := strings.TrimPrefix(nameEnd, ".")
-	return name
-}
+// func TestName() string {
+// 	pc, _, _, _ := runtime.Caller(1)
+// 	nameFull := runtime.FuncForPC(pc).Name()
+// 	nameEnd := filepath.Ext(nameFull)
+// 	name := strings.TrimPrefix(nameEnd, ".")
+// 	return name
+// }
 
-// TestUnitTestProtoV6ProviderFactories provides a map of provider factories for unit tests.
-var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.New("test")()),
-}
+// func TestsEntraLicesingGroupName() string {
+// 	return "pptestusers"
+// }
 
-// TestAccProtoV6ProviderFactories provides a map of provider factories for acceptance tests.
-var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.New("test")()),
-}
+// var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+// 	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider(helpers.UnitTestContext(context.Background(), ""), true)()),
+// }
 
-// ActivateMicrosoftGraphMocks activates all Microsoft Graph API mocks by domain.
-func ActivateMicrosoftGraphMocks() {
-	// Activate authentication and common endpoint mocks
-	activateAuthenticationMocks()
+// var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+// 	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider(context.Background(), false)()),
+// }
 
-	// Activate domain-specific mocks
-	ActivateDeviceManagementMocks()
-	ActivateDeviceAndAppManagementMocks()
-	ActivateIdentityAndAccessMocks()
-	ActivateM365AdminMocks()
+// func ActivateEnvironmentHttpMocks() {
+// 	httpmock.RegisterResponder("GET", `=~^https://([\d-]+)\.crm4\.dynamics\.com/api/data/v9\.2/transactioncurrencies\z`,
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, `{
+// 				"value": [
+// 					{
+// 						"isocurrencycode": "PLN"
+// 					}]}`), nil
+// 		})
 
-	// Activate specific resource mocks
-	ActivateDeviceShellScriptMocks()
+// 	httpmock.RegisterResponder("GET", `=~^https://([\d-]+)\.crm4\.dynamics\.com/api/data/v9\.2/organizations\z`,
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, `{
+// 				"value": [
+// 					{
+// 						"_basecurrencyid_value": "xyz"
+// 					}]}`), nil
+// 		})
 
-	// Add more domain activations as needed
-}
+// 	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`^https://api\.bap\.microsoft\.com/providers/Microsoft\.BusinessAppPlatform/locations/(europe|unitedstates)/environmentLanguages\?api-version=2023-06-01$`),
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/languages/tests/datasource/Validate_Read/get_languages.json").String()), nil
+// 		})
 
-// MockMicrosoftGraphRequest is a helper function to register a custom mock for a specific endpoint
-func MockMicrosoftGraphRequest(method, urlPattern string, statusCode int, responseBody string) {
-	httpmock.RegisterResponder(method, urlPattern,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(statusCode, responseBody), nil
-		})
-}
+// 	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`^https://api\.bap\.microsoft\.com/providers/Microsoft\.BusinessAppPlatform/locations/(europe|unitedstates)/environmentCurrencies\?api-version=2023-06-01$`),
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/currencies/tests/datasource/Validate_Read/get_currencies.json").String()), nil
+// 		})
 
-// MockMicrosoftGraphRequestWithRegexp is a helper function to register a custom mock with a regexp pattern
-func MockMicrosoftGraphRequestWithRegexp(method string, urlRegexp *regexp.Regexp, statusCode int, responseBody string) {
-	httpmock.RegisterRegexpResponder(method, urlRegexp,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(statusCode, responseBody), nil
-		})
-}
+// 	httpmock.RegisterResponder("GET", "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/locations?api-version=2023-06-01",
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/locations/tests/datasource/Validate_Read/get_locations.json").String()), nil
+// 		})
 
-// ProviderConfigMinimal returns a minimal valid provider config for unit tests.
-func ProviderConfigMinimal() string {
-	return `
-provider "microsoft365" {
-  cloud = "public"
-  tenant_id = "5298c688-49cd-4aaa-9978-77aeb00e1000"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "5298c688-49cd-4aaa-9978-77aeb00e1000"
-    client_secret = "5298c688-49cd-4aaa-9978-77aeb00e1000"
-  }
-  telemetry_optout = true
-  debug_mode = false
-}
-`
-}
+// 	httpmock.RegisterResponder("POST", "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/validateEnvironmentDetails?api-version=2021-04-01",
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, ""), nil
+// 		})
 
-// ProviderConfigMaximal returns a maximal valid provider config for provider-level or edge-case tests.
-func ProviderConfigMaximal() string {
-	return `
-provider "microsoft365" {
-  cloud = "public"
-  tenant_id = "00000000-0000-0000-0000-000000000000"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "fake-client-id"
-    client_secret = "fake-client-secret"
-    client_certificate = "fake-cert"
-    client_certificate_password = "fake-password"
-    send_certificate_chain = false
-    username = "fake-user"
-    disable_instance_discovery = false
-    additionally_allowed_tenants = ["*"]
-    redirect_url = "http://localhost"
-    federated_token_file_path = "/tmp/fake-token"
-    managed_identity_id = "fake-mi-id"
-    oidc_token_file_path = "/tmp/fake-oidc-token"
-    ado_service_connection_id = "fake-ado-id"
-  }
-  client_options = {
-    enable_headers_inspection = true
-    enable_retry = true
-    max_retries = 5
-    retry_delay_seconds = 2
-    enable_redirect = true
-    max_redirects = 3
-    enable_compression = true
-    custom_user_agent = "test-agent"
-    use_proxy = true
-    proxy_url = "http://localhost:8888"
-    proxy_username = "proxy-user"
-    proxy_password = "proxy-pass"
-    timeout_seconds = 60
-    enable_chaos = true
-    chaos_percentage = 50
-    chaos_status_code = 500
-    chaos_status_message = "Internal Server Error"
-  }
-  telemetry_optout = true
-  debug_mode = true
-}
-`
-}
+// 	httpmock.RegisterResponder("GET", `=~^https://([a-z\d-]+)\.(crm[\d]*)\.dynamics\.com/api/data/v9\.2/WhoAmI\z`,
+// 		func(req *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, `{
+// 				"@odata.context": "https://org000001.crm.dynamics.com/api/data/v9.2/$metadata#Microsoft.Dynamics.CRM.WhoAmIResponse",
+// 				"BusinessUnitId": "00000000-0000-0000-0000-000000000002",
+// 				"UserId": "00000000-0000-0000-0000-000000000001",
+// 				"OrganizationId": "00000000-0000-0000-0000-000000000003"
+// 			}`), nil
+// 		})
+
+// 	httpmock.RegisterResponder("GET", `https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/tenant?api-version=2021-04-01`,
+// 		func(_ *http.Request) (*http.Response, error) {
+// 			return httpmock.NewStringResponse(http.StatusOK, `{
+// 				"tenantId": "00000000-0000-0000-0000-000000000001",
+// 				"state": "Enabled",
+// 				"location": "unitedstates",
+// 				"aadCountryGeo": "unitedstates",
+// 				"dataStorageGeo": "unitedstates",
+// 				"defaultEnvironmentGeo": "unitedstates",
+// 				"aadDataBoundary": "none",
+// 				"fedRAMPHighCertificationRequired": false
+// 			}`), nil
+// 		})
+// }

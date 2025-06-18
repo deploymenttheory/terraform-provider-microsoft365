@@ -613,7 +613,7 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 	}
 }
 
-// New returns a function that, when invoked, creates and returns a new instance
+// NewMicrosoft365Provider returns a function that, when invoked, creates and returns a new instance
 // of the Microsoft365 provider, which implements the terraform-plugin-framework's
 // provider.Provider interface. This function is designed to accept a version string,
 // which is used to track the version of the provider being created.
@@ -631,7 +631,7 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 // it ensures that the provider is correctly instantiated with all necessary clients and
 // configurations, making it ready to manage Microsoft365 resources through Terraform.
 
-func New(version string) func() provider.Provider {
+func NewMicrosoft365Provider(version string) func() provider.Provider {
 	return func() provider.Provider {
 		p := &M365Provider{
 			version: version,

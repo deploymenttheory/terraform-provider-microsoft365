@@ -40,7 +40,7 @@ func main() {
 		"debug":   opts.Debug,
 	})
 
-	err := providerserver.Serve(ctx, provider.New(version), opts)
+	err := providerserver.Serve(ctx, provider.NewMicrosoft365Provider(version), opts)
 
 	if err != nil {
 		tflog.Error(ctx, "Provider server error", map[string]interface{}{
