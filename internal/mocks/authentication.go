@@ -320,200 +320,44 @@ type DeviceCodeResponse struct {
 // GraphBetaTokenResponse represents the response from the Graph Beta token endpoint
 func (a *AuthenticationMocks) GraphBetaTokenResponse() []byte {
 	tokenResp := a.createTokenResponse([]string{"https://graph.microsoft.com/.default"})
-	data, _ := json.Marshal(tokenResp)
-	return data
+	respBytes, _ := json.Marshal(tokenResp)
+	return respBytes
 }
 
 // RegisterGraphEndpoints registers mock responses for Microsoft Graph endpoints
 func (a *AuthenticationMocks) RegisterGraphEndpoints() {
-	// Graph v1.0 endpoint
-	httpmock.RegisterResponder(
-		"GET",
-		"https://graph.microsoft.com/v1.0/me",
+	// Mock for fetching user details
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/users/testuser@example.com",
 		func(req *http.Request) (*http.Response, error) {
-			authHeader := req.Header.Get("Authorization")
-			if !strings.Contains(authHeader, "Bearer "+a.AccessToken) {
-				return httpmock.NewStringResponse(401, "Unauthorized"), nil
-			}
-
-			userResp := map[string]interface{}{
-				"id":                "12345678-1234-1234-1234-123456789012",
+			user := map[string]interface{}{
+				"id":                "mock-user-id",
 				"displayName":       "Test User",
-				"givenName":         "Test",
-				"surname":           "User",
 				"userPrincipalName": "testuser@example.com",
-				"mail":              "testuser@example.com",
 			}
-
-			return httpmock.NewJsonResponse(200, userResp)
+			return httpmock.NewJsonResponse(200, user)
 		},
 	)
 
-	// Graph Beta endpoint
-	httpmock.RegisterResponder(
-		"GET",
-		"https://graph.microsoft.com/beta/me",
+	// Mock for group details
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/groups/mock-group-id",
 		func(req *http.Request) (*http.Response, error) {
-			authHeader := req.Header.Get("Authorization")
-			if !strings.Contains(authHeader, "Bearer "+a.AccessToken) {
-				return httpmock.NewStringResponse(401, "Unauthorized"), nil
+			group := map[string]interface{}{
+				"id":          "mock-group-id",
+				"displayName": "Test Group",
 			}
+			return httpmock.NewJsonResponse(200, group)
+		},
+	)
 
-			userResp := map[string]interface{}{
-				"id":                "12345678-1234-1234-1234-123456789012",
-				"displayName":       "Test User",
-				"givenName":         "Test",
-				"surname":           "User",
+	// Mock for beta endpoints, for example
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/me",
+		func(req *http.Request) (*http.Response, error) {
+			me := map[string]interface{}{
+				"id":                "mock-user-id",
+				"displayName":       "Test User (Beta)",
 				"userPrincipalName": "testuser@example.com",
-				"mail":              "testuser@example.com",
-				"beta_field":        "This is a beta-only field",
 			}
-
-			return httpmock.NewJsonResponse(200, userResp)
-		},
-	)
-}
-
-// RegisterClientSecretCredentialMocks sets up httpmock responders for the ClientSecretCredential flow
-func RegisterClientSecretCredentialMocks(tenantID string) {
-	// Success
-	httpmock.RegisterResponder(
-		"POST",
-		fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID),
-		func(req *http.Request) (*http.Response, error) {
-			err := req.ParseForm()
-			if err != nil {
-				return httpmock.NewStringResponse(400, "Bad request"), nil
-			}
-			if req.FormValue("client_secret") == "bad_secret" {
-				// Error response for invalid secret
-				return httpmock.NewJsonResponse(401, map[string]interface{}{
-					"error": "invalid_client",
-					"error_description": "AADSTS70002: Error validating credentials. AADSTS50012: Invalid client secret is provided.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-					"error_codes": []int{70002, 50012},
-					"timestamp": "2025-06-17 10:30:00Z",
-					"trace_id": "12345678-1234-1234-1234-123456789012",
-					"correlation_id": "12345678-1234-1234-1234-123456789012",
-				})
-			}
-			// Success response
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
-				"token_type": "Bearer",
-				"expires_in": 3599,
-				"ext_expires_in": 3599,
-				"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-			})
-		},
-	)
-}
-
-// RegisterClientCertificateCredentialMocks sets up httpmock responders for the ClientCertificateCredential flow
-func RegisterClientCertificateCredentialMocks(tenantID string) {
-	httpmock.RegisterResponder(
-		"POST",
-		fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID),
-		func(req *http.Request) (*http.Response, error) {
-			err := req.ParseForm()
-			if err != nil {
-				return httpmock.NewStringResponse(400, "Bad request"), nil
-			}
-			if req.FormValue("client_assertion") == "bad_assertion" {
-				return httpmock.NewJsonResponse(401, map[string]interface{}{
-					"error": "invalid_client",
-					"error_description": "AADSTS70002: Error validating credentials. AADSTS50013: Invalid client certificate.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-					"error_codes": []int{70002, 50013},
-					"timestamp": "2025-06-17 10:30:00Z",
-					"trace_id": "12345678-1234-1234-1234-123456789012",
-					"correlation_id": "12345678-1234-1234-1234-123456789012",
-				})
-			}
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
-				"token_type": "Bearer",
-				"expires_in": 3599,
-				"ext_expires_in": 3599,
-				"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-			})
-		},
-	)
-}
-
-// RegisterDeviceCodeCredentialMocks sets up httpmock responders for the DeviceCodeCredential flow
-func RegisterDeviceCodeCredentialMocks(tenantID string) {
-	// Device code initiation
-	httpmock.RegisterResponder(
-		"POST",
-		fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/devicecode", tenantID),
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
-				"user_code": "FKDL7G9M8",
-				"device_code": "GMMhmHCXhWEzkobqIHGG_EnNYYsAkukHspeYUk9E8...",
-				"verification_uri": "https://microsoft.com/devicelogin",
-				"expires_in": 900,
-				"interval": 5,
-				"message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FKDL7G9M8 to authenticate.",
-			})
-		},
-	)
-	// Token polling (pending)
-	httpmock.RegisterResponder(
-		"POST",
-		fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID),
-		func(req *http.Request) (*http.Response, error) {
-			err := req.ParseForm()
-			if err != nil {
-				return httpmock.NewStringResponse(400, "Bad request"), nil
-			}
-			if req.FormValue("device_code") == "pending" {
-				return httpmock.NewJsonResponse(400, map[string]interface{}{
-					"error": "authorization_pending",
-					"error_description": "Authorization is still pending.",
-				})
-			}
-			// Success
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
-				"token_type": "Bearer",
-				"scope": "https://graph.microsoft.com/.default",
-				"expires_in": 3599,
-				"ext_expires_in": 3599,
-				"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-				"refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4...",
-				"id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiIyZDRkMTFhMi1mODE0LTQ2YTctOD..."
-			})
-		},
-	)
-}
-
-// RegisterManagedIdentityCredentialMocks sets up httpmock responders for the ManagedIdentityCredential flow
-func RegisterManagedIdentityCredentialMocks() {
-	// IMDS endpoint success
-	httpmock.RegisterResponder(
-		"GET",
-		"http://169.254.169.254/metadata/identity/oauth2/token",
-		func(req *http.Request) (*http.Response, error) {
-			resource := req.URL.Query().Get("resource")
-			clientID := req.URL.Query().Get("client_id")
-			if clientID == "bad_client" {
-				return httpmock.NewJsonResponse(400, map[string]interface{}{
-					"error": "imds_unavailable",
-					"error_description": "IMDS endpoint is not reachable. This typically indicates the application is not running in an Azure hosting environment.",
-					"error_type": "CredentialUnavailableError",
-				})
-			}
-			if clientID != "" {
-				return httpmock.NewJsonResponse(200, map[string]interface{}{
-					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-					"expires_in": "3599",
-					"token_type": "Bearer",
-					"resource": resource,
-					"client_id": clientID,
-				})
-			}
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
-				"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-				"expires_in": "3599",
-				"token_type": "Bearer",
-				"resource": resource,
-			})
+			return httpmock.NewJsonResponse(200, me)
 		},
 	)
 }
