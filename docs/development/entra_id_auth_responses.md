@@ -1,26 +1,23 @@
-# Azure SDK for Go azidentity - JSON Responses for Authentication Flows
+# Microsoft Entra ID JSON Responses for Authentication
 
-This document provides comprehensive JSON response examples for each authentication method supported by the Azure SDK for Go's azidentity package.
+This document provides JSON response examples for authentication methods used by this Terraform provider.
 
 ## Primary References
 
 **Official Azure SDK for Go Documentation:**
+
 - [Azure SDK for Go GitHub Repository](https://github.com/Azure/azure-sdk-for-go)
 - [azidentity Package Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity)
-- [Azure SDK for Go README](https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/azidentity/README.md)
 
 **Microsoft Identity Platform Documentation:**
+
 - [Microsoft Identity Platform Overview](https://learn.microsoft.com/en-us/entra/identity-platform/)
 - [OAuth 2.0 and OpenID Connect Protocols](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols)
-- [Azure Developer Authentication Guide](https://learn.microsoft.com/en-us/azure/developer/go/sdk/authentication/authentication-overview)
-
-**Community Resources:**
-- [Azure SDK Design Guidelines](https://azure.github.io/azure-sdk/golang_introduction.html)
-- [Ravikanth Chaganti's Authentication Guide](https://ravichaganti.com/blog/azure-sdk-for-go-authentication-methods-chained-credentials/)
 
 ## Common Data Structures
 
 ### AccessToken Response (Successful)
+
 ```json
 {
   "token_type": "Bearer",
@@ -34,6 +31,7 @@ This document provides comprehensive JSON response examples for each authenticat
 ```
 
 ### Error Response (Common Structure)
+
 ```json
 {
   "error": "invalid_client",
@@ -45,98 +43,89 @@ This document provides comprehensive JSON response examples for each authenticat
 }
 ```
 
-## 1. DefaultAzureCredential
+---
+
+## Supported Authentication Methods
+
+The provider supports the following authentication methods. The sections below provide details and example JSON responses for each.
+
+1.  [`azure_developer_cli`](#1-azure_developer_cli)
+2.  [`client_secret`](#2-client_secret)
+3.  [`client_certificate`](#3-client_certificate)
+4.  [`device_code`](#4-device_code)
+5.  [`interactive_browser`](#5-interactive_browser)
+6.  [`workload_identity`](#6-workload_identity)
+7.  [`managed_identity`](#7-managed_identity)
+8.  [`oidc`](#8-oidc)
+9.  [`oidc_github`](#9-oidc_github)
+10. [`oidc_azure_devops`](#10-oidc_azure_devops)
+
+
+---
+
+## 1. `azure_developer_cli`
+
+Authenticates as the user logged into the Azure Developer CLI (`azd`). The user must first run `azd auth login` to authenticate.
 
 **References:**
-- [Azure SDK for Go azidentity package](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity)
-- [DefaultAzureCredential Overview](https://learn.microsoft.com/en-us/azure/developer/go/sdk/authentication/authentication-overview)
-- [Azure SDK for Go Authentication](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication-managed-identity)
+- [AzureDeveloperCLICredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#AzureDeveloperCLICredential)
 
-DefaultAzureCredential attempts authentication in this order: Environment → Workload Identity → Managed Identity → Azure CLI → Azure Developer CLI
+### Step 1: `azd` Token Request
 
-### Step 1: Environment Credential Attempt (Failed)
+The provider invokes the Azure Developer CLI to obtain a token. This process is opaque to the provider.
+
+### Step 2: Successful Token Response
+
+If `azd` has a valid, cached token, it will be returned. The JSON response from Microsoft Entra ID has the standard `AccessToken` structure.
+
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
+}
+```
+
+### Error: Azure Developer CLI Not Available
+
+If `azd` is not installed or not in the system's PATH, the SDK will return an error.
+
 ```json
 {
   "error": "credential_unavailable",
-  "error_description": "Environment credential not available. Environment variables are not fully configured.",
+  "error_description": "Azure Developer CLI is not installed or not in the PATH. Please install it from https://aka.ms/azure-dev/install.",
   "error_type": "CredentialUnavailableError"
 }
 ```
 
-### Step 2: Workload Identity Credential Attempt (Failed)
+### Error: Not Logged In
+
+If the user is not logged into `azd`, the tool will fail to provide a token.
+
 ```json
 {
-  "error": "credential_unavailable", 
-  "error_description": "Workload identity credential not available. Required environment variables not found.",
-  "error_type": "CredentialUnavailableError"
+  "error": "authentication_failed",
+  "error_description": "Please run 'azd auth login' to setup account.",
+  "error_type": "AuthenticationFailedError"
 }
 ```
 
-### Step 3: Managed Identity Success
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "expires_in": "3599",
-  "token_type": "Bearer",
-  "resource": "https://management.azure.com/"
-}
-```
+---
 
-## 2. ManagedIdentityCredential
+## 2. `client_secret` (Client Credentials Flow)
 
 **References:**
-- [Managed Identity Documentation](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication-managed-identity)
-- [Azure Instance Metadata Service (IMDS)](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service)
-- [Azure SDK for Go Managed Identity](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#ManagedIdentityCredential)
 
-### Step 1: IMDS Probe Request
-**Request:** `GET http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/`
-
-**Headers:** `Metadata: true`
-
-### Step 2: Successful IMDS Response
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "expires_in": "3599",
-  "token_type": "Bearer",
-  "resource": "https://management.azure.com/"
-}
-```
-
-### Step 3: User-Assigned Managed Identity (with Client ID)
-**Request:** `GET http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/&client_id=12345678-1234-1234-1234-123456789012`
-
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "expires_in": "3599", 
-  "token_type": "Bearer",
-  "resource": "https://management.azure.com/",
-  "client_id": "12345678-1234-1234-1234-123456789012"
-}
-```
-
-### Error: IMDS Not Available
-```json
-{
-  "error": "imds_unavailable",
-  "error_description": "IMDS endpoint is not reachable. This typically indicates the application is not running in an Azure hosting environment.",
-  "error_type": "CredentialUnavailableError"
-}
-```
-
-## 3. ClientSecretCredential (Client Credentials Flow)
-
-**References:**
 - [OAuth 2.0 Client Credentials Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow)
-- [Microsoft Identity Platform OAuth 2.0](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols)
 - [ClientSecretCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#ClientSecretCredential)
 
 ### Step 1: Token Request to Microsoft Entra ID
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 
 **Body:**
+
 ```
 grant_type=client_credentials
 &client_id=12345678-1234-1234-1234-123456789012
@@ -145,6 +134,7 @@ grant_type=client_credentials
 ```
 
 ### Step 2: Successful Token Response
+
 ```json
 {
   "token_type": "Bearer",
@@ -155,6 +145,7 @@ grant_type=client_credentials
 ```
 
 ### Error: Invalid Client Secret
+
 ```json
 {
   "error": "invalid_client",
@@ -166,17 +157,21 @@ grant_type=client_credentials
 }
 ```
 
-## 4. ClientCertificateCredential
+---
+
+## 3. `client_certificate`
 
 **References:**
-- [OAuth 2.0 Client Credentials with Certificates](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow)
+
 - [Certificate Credentials](https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials)
 - [ClientCertificateCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#ClientCertificateCredential)
 
 ### Step 1: Certificate-based Token Request
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 
 **Body:**
+
 ```
 grant_type=client_credentials
 &client_id=12345678-1234-1234-1234-123456789012
@@ -186,6 +181,7 @@ grant_type=client_credentials
 ```
 
 ### Step 2: Successful Response
+
 ```json
 {
   "token_type": "Bearer",
@@ -196,6 +192,7 @@ grant_type=client_credentials
 ```
 
 ### Error: Invalid Certificate
+
 ```json
 {
   "error": "invalid_client",
@@ -207,213 +204,125 @@ grant_type=client_credentials
 }
 ```
 
-## 5. DeviceCodeCredential
+---
+
+## 4. `device_code`
 
 **References:**
+
 - [OAuth 2.0 Device Authorization Grant](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-device-code)
-- [Device Code Flow in MSAL.NET](https://learn.microsoft.com/en-us/entra/msal/dotnet/acquiring-tokens/desktop-mobile/device-code-flow)
 - [DeviceCodeCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DeviceCodeCredential)
-- [Device Code Flow Implementation](https://joonasw.net/view/device-code-flow)
-- [Authentication Flows in MSAL](https://learn.microsoft.com/en-us/entra/identity-platform/msal-authentication-flows)
 
 ### Step 1: Device Code Initiation Request
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/devicecode`
 
-**Body:**
-```
-client_id=12345678-1234-1234-1234-123456789012
-&scope=https://graph.microsoft.com/.default
-```
+**Body:** `client_id=12345678-1234-1234-1234-123456789012&scope=https://graph.microsoft.com/.default`
 
 ### Step 2: Device Code Response
+
 ```json
 {
-  "user_code": "FKDL7G9M8",
-  "device_code": "GMMhmHCXhWEzkobqIHGG_EnNYYsAkukHspeYUk9E8...",
+  "user_code": "A1B2C3D4E",
+  "device_code": "DAQABAAEAAAD...Zz0",
   "verification_uri": "https://microsoft.com/devicelogin",
   "expires_in": 900,
   "interval": 5,
-  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FKDL7G9M8 to authenticate."
+  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code A1B2C3D4E to authenticate."
 }
 ```
 
-### Step 3: Token Polling Request (Authorization Pending)
+### Step 3: Token Polling Request
+
+The provider will poll the token endpoint until the user authenticates.
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 
-**Body:**
-```
-grant_type=urn:ietf:params:oauth:grant-type:device_code
-&client_id=12345678-1234-1234-1234-123456789012
-&device_code=GMMhmHCXhWEzkobqIHGG_EnNYYsAkukHspeYUk9E8...
+**Body:** `grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id=...&device_code=...`
+
+### Step 4: Successful Token Response (After User Authentication)
+
+This response is returned once the user completes the device login flow in their browser.
+
+```json
+{
+  "token_type": "Bearer",
+  "scope": "https://graph.microsoft.com/.default",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
+  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4..."
+}
 ```
 
-### Step 4: Polling Response (Still Pending)
+### Error: Pending User Action
+
+While polling before the user has authenticated, the service returns this error.
+
 ```json
 {
   "error": "authorization_pending",
-  "error_description": "AADSTS70016: Pending end-user authorization.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-  "error_codes": [70016],
-  "timestamp": "2025-06-17 10:30:00Z",
-  "trace_id": "12345678-1234-1234-1234-123456789012",
-  "correlation_id": "12345678-1234-1234-1234-123456789012"
+  "error_description": "AADSTS70016: The request is pending and the device is not yet authorized. Please try again later.\r\n[...]"
 }
 ```
 
-### Step 5: Successful Authentication Response
-```json
-{
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "expires_in": 3599,
-  "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4...",
-  "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiIyZDRkMTFhMi1mODE0LTQ2YTctOD..."
-}
-```
+---
 
-### Error: Device Code Expired
-```json
-{
-  "error": "expired_token",
-  "error_description": "AADSTS70019: Verification code expired.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-  "error_codes": [70019],
-  "timestamp": "2025-06-17 10:30:00Z",
-  "trace_id": "12345678-1234-1234-1234-123456789012",
-  "correlation_id": "12345678-1234-1234-1234-123456789012"
-}
-```
-
-## 6. InteractiveBrowserCredential
+## 5. `interactive_browser`
 
 **References:**
-- [OAuth 2.0 Authorization Code Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
-- [Microsoft Graph Authorization](https://learn.microsoft.com/en-us/graph/auth-v2-user)
+
 - [InteractiveBrowserCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#InteractiveBrowserCredential)
-- [PKCE for OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc7636)
 
-### Step 1: Authorization Request (Browser Redirect)
-**URL:** `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize?client_id=12345678-1234-1234-1234-123456789012&response_type=code&redirect_uri=http://localhost:8080&scope=https://graph.microsoft.com/.default&state=state123&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256`
+This flow opens the default system browser for the user to authenticate. The JSON responses are handled by the SDK and are not directly exposed. The end result is either a successful token acquisition or an error.
 
-### Step 2: Authorization Code Response (Redirect to localhost)
-**URL:** `http://localhost:8080?code=M0ab92efe-b6fd-df08-87dc-2c6500a7f84d&state=state123&session_state=fe1540c3-a69a-469a-9fa3-8a2470936421`
+### Successful Authentication
 
-### Step 3: Token Exchange Request
+A successful authentication results in a standard `AccessToken` being available to the provider.
+
+### Error: Browser Unavailable or User Cancellation
+
+If a browser cannot be opened or the user cancels the authentication, an error is returned by the SDK.
+
+```json
+{
+  "error": "authentication_failed",
+  "error_description": "Failed to open browser: ... or user canceled authentication.",
+  "error_type": "AuthenticationFailedError"
+}
+```
+---
+
+## 6. `workload_identity`
+
+**References:**
+
+- [Microsoft Entra Workload ID](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+- [WorkloadIdentityCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#WorkloadIdentityCredential)
+
+This method uses a service account token from the environment (e.g., Kubernetes) to federate with Microsoft Entra ID.
+
+### Step 1: Read Federated Token
+
+The provider reads a federated token from a file path specified by environment variables (e.g., `AZURE_FEDERATED_TOKEN_FILE`).
+
+### Step 2: Token Request with Federated Token
+
+The federated token is used as a `client_assertion`.
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
-
-**Body:**
-```
-grant_type=authorization_code
-&client_id=12345678-1234-1234-1234-123456789012
-&code=M0ab92efe-b6fd-df08-87dc-2c6500a7f84d
-&redirect_uri=http://localhost:8080
-&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
-```
-
-### Step 4: Successful Token Response
-```json
-{
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "expires_in": 3599,
-  "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4...",
-  "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiIyZDRkMTFhMi1mODE0LTQ2YTctOD..."
-}
-```
-
-## 7. AzureCLICredential
-
-**References:**
-- [Azure CLI Authentication](https://learn.microsoft.com/en-us/azure/developer/go/sdk/authentication/authentication-overview)
-- [AzureCLICredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#AzureCLICredential)
-- [Azure SDK for Go Authentication Methods](https://ravichaganti.com/blog/azure-sdk-for-go-authentication-methods-chained-credentials/)
-
-### Step 1: Azure CLI Token Request (Shell Command)
-**Command:** `az account get-access-token --resource https://management.azure.com/ --output json`
-
-### Step 2: Azure CLI Success Response
-```json
-{
-  "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "expiresOn": "2025-06-17 14:30:00.000000",
-  "subscription": "12345678-1234-1234-1234-123456789012",
-  "tenant": "87654321-4321-4321-4321-210987654321",
-  "tokenType": "Bearer"
-}
-```
-
-### Error: CLI Not Logged In
-```json
-{
-  "error": "credential_unavailable",
-  "error_description": "Azure CLI not found or not logged in. Please run 'az login' first.",
-  "error_type": "CredentialUnavailableError"
-}
-```
-
-## 8. EnvironmentCredential
-
-**References:**
-- [Environment Variables Authentication](https://learn.microsoft.com/en-us/azure/developer/go/sdk/authentication/authentication-overview)
-- [EnvironmentCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#EnvironmentCredential)
-- [Azure SDK Environment Configuration](https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/azidentity/README.md)
-
-### Configuration via Environment Variables
-```bash
-AZURE_CLIENT_ID=12345678-1234-1234-1234-123456789012
-AZURE_CLIENT_SECRET=secretValue123
-AZURE_TENANT_ID=87654321-4321-4321-4321-210987654321
-```
-
-### Token Request
-**Request:** `POST https://login.microsoftonline.com/87654321-4321-4321-4321-210987654321/oauth2/v2.0/token`
 
 **Body:**
 ```
 grant_type=client_credentials
 &client_id=12345678-1234-1234-1234-123456789012
-&client_secret=secretValue123
-&scope=https://graph.microsoft.com/.default
-```
-
-### Successful Response
-```json
-{
-  "token_type": "Bearer",
-  "expires_in": 3599,
-  "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
-}
-```
-
-## 9. WorkloadIdentityCredential
-
-**References:**
-- [Workload Identity Federation](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication-managed-identity)
-- [Azure Workload Identity](https://azure.github.io/azure-workload-identity/docs/)
-- [WorkloadIdentityCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#WorkloadIdentityCredential)
-- [Token Exchange (RFC 8693)](https://datatracker.ietf.org/doc/html/rfc8693)
-
-### Step 1: Reading Service Account Token
-**File:** `/var/run/secrets/azure/tokens/azure-identity-token`
-
-### Step 2: Token Exchange Request
-**Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
-
-**Body:**
-```
-grant_type=urn:ietf:params:oauth:grant-type:token-exchange
-&client_id=12345678-1234-1234-1234-123456789012
-&subject_token_type=urn:ietf:params:oauth:token-type:jwt
-&subject_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6...
-&scope=https://graph.microsoft.com/.default
 &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-&client_assertion=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6...
+&client_assertion=eyJhbGciOiJSUzI1Ni...
+&scope=https://graph.microsoft.com/.default
 ```
 
-### Step 3: Successful Response
+### Step 3: Successful Token Response
+
 ```json
 {
   "token_type": "Bearer",
@@ -423,240 +332,134 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 }
 ```
 
-## 10. AzureDeveloperCLICredential
+### Error: Federated Token Invalid
 
-**References:**
-- [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/)
-- [AzureDeveloperCLICredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#AzureDeveloperCLICredential)
-- [Azure SDK Changelog](https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/azidentity/CHANGELOG.md)
-
-### Step 1: Azure Developer CLI Token Request
-**Command:** `azd auth token --output json --scope https://management.azure.com/.default`
-
-### Step 2: AZD Success Response
 ```json
 {
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "expiresOn": "2025-06-17T14:30:00.000Z"
+  "error": "invalid_request",
+  "error_description": "AADSTS70021: No matching federated identity record found for presented assertion.",
+  "error_codes": [70021]
 }
 ```
 
-### Error: AZD Not Available
+---
+
+## 7. `managed_identity`
+
+**References:**
+
+- [Managed Identity Documentation](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication-managed-identity)
+- [ManagedIdentityCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#ManagedIdentityCredential)
+
+### Step 1: IMDS Probe Request
+
+The provider requests a token from the Instance Metadata Service (IMDS) endpoint within an Azure host.
+
+**Request:** `GET http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://graph.microsoft.com/`
+
+**Headers:** `Metadata: true`
+
+### Step 2: Successful IMDS Response
+
 ```json
 {
-  "error": "credential_unavailable",
-  "error_description": "Azure Developer CLI not found or not logged in. Please run 'azd auth login' first.",
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
+  "expires_in": "86399",
+  "token_type": "Bearer",
+  "resource": "https://graph.microsoft.com/"
+}
+```
+
+### Error: IMDS Not Available
+
+```json
+{
+  "error": "imds_unavailable",
+  "error_description": "IMDS endpoint is not reachable. This typically indicates the application is not running in an Azure hosting environment with Managed Identity enabled.",
   "error_type": "CredentialUnavailableError"
 }
 ```
 
-## 11. UsernamePasswordCredential (ROPC Flow)
+---
 
-**References:**
-- [Resource Owner Password Credentials](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-ropc)
-- [ROPC Authentication Flows](https://learn.microsoft.com/en-us/entra/identity-platform/msal-authentication-flows)
-- [UsernamePasswordCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#UsernamePasswordCredential)
+## 8. `oidc` (Generic OIDC / Workload Identity Federation)
 
-### Step 1: Resource Owner Password Credentials Request
+This method uses an OIDC token from an external identity provider (IdP) to authenticate, following the [Workload Identity Federation](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) flow. The external token is exchanged for a Microsoft Entra ID access token.
+
+This is the underlying mechanism for provider-specific OIDC authentication like `oidc_github` and `oidc_azure_devops`.
+
+### Step 1: Obtain OIDC Token from External IdP
+
+The CI/CD environment or external workload is responsible for obtaining a JWT from the OIDC provider. This token is typically made available to the provider via an environment variable (e.g., `AZURE_FEDERATED_TOKEN_FILE`).
+
+### Step 2: Token Exchange Request
+
+The provider uses the obtained OIDC token as a `client_assertion` in a client credentials grant request to Microsoft Entra ID.
+
 **Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 
 **Body:**
 ```
-grant_type=password
-&client_id=12345678-1234-1234-1234-123456789012
-&username=user@example.com
-&password=userPassword123
+grant_type=client_credentials
+&client_id={client_id}
+&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&client_assertion={oidc_token_from_idp}
 &scope=https://graph.microsoft.com/.default
 ```
 
-### Step 2: Successful Response
+### Step 3: Successful Token Response
+
+If the `client_assertion` is valid and the federated credential is configured correctly in Microsoft Entra ID, a standard access token is returned.
+
 ```json
 {
   "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
   "expires_in": 3599,
   "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4...",
-  "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiIyZDRkMTFhMi1mODE0LTQ2YTctOD..."
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
 }
 ```
 
-### Error: MFA Required
+### Error: Invalid Federated Credential
+
+If the trust relationship is not configured correctly (e.g., mismatched issuer, subject, or audience), Entra ID will reject the assertion.
+
 ```json
 {
-  "error": "invalid_grant",
-  "error_description": "AADSTS50076: Due to a configuration change made by your administrator, or because you moved to a new location, you must use multi-factor authentication to access 'https://graph.microsoft.com'.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-  "error_codes": [50076],
-  "timestamp": "2025-06-17 10:30:00Z",
-  "trace_id": "12345678-1234-1234-1234-123456789012",
-  "correlation_id": "12345678-1234-1234-1234-123456789012"
+  "error": "invalid_request",
+  "error_description": "AADSTS70021: No matching federated identity record found for presented assertion.",
+  "error_codes": [70021]
 }
 ```
 
-## 12. OnBehalfOfCredential
+---
+
+## 9. `oidc_github` (GitHub OIDC Provider)
+
+This method authenticates using an OIDC token provided by a GitHub Actions workflow. A [federated identity credential](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azcli#github-actions-example) must be configured on the service principal in Microsoft Entra ID.
 
 **References:**
-- [OAuth 2.0 On-Behalf-Of Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow)
-- [OnBehalfOfCredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#OnBehalfOfCredential)
-- [Microsoft Identity Platform OBO](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow)
+- [Configuring a federated credential for a GitHub repo](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azcli#github-actions-example)
 
-### Step 1: On-Behalf-Of Token Request
-**Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
+### Federated Credential Configuration (in Entra ID)
+- **Issuer**: `https://token.actions.githubusercontent.com`
+- **Audience**: `api://AzureADTokenExchange`
+- **Subject**: Varies based on the trigger (e.g., `repo:my-org/my-repo:ref:refs/heads/main`)
 
-**Body:**
-```
-grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
-&client_id=12345678-1234-1234-1234-123456789012
-&client_secret=secretValue123
-&assertion=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6...
-&scope=https://graph.microsoft.com/.default
-&requested_token_use=on_behalf_of
-```
+The token exchange request and responses are the same as the [generic `oidc` flow](#8-oidc-generic-oidc--workload-identity-federation).
 
-### Step 2: Successful Response
-```json
-{
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "expires_in": 3599,
-  "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4..."
-}
-```
+---
 
-## 13. Token Refresh Flow
+## 10. `oidc_azure_devops` (Azure DevOps OIDC Provider)
+
+This method authenticates using an OIDC token from an Azure DevOps pipeline via a [Workload Identity federation service connection](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/configure-workload-identity?view=azure-devops).
 
 **References:**
-- [OAuth 2.0 Token Refresh](https://learn.microsoft.com/en-us/graph/auth-v2-user)
-- [Access Token Refresh](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
-- [Token Caching in azidentity](https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/azidentity/TOKEN_CACHING.md)
+- [Introduction to Azure DevOps Workload identity federation](https://devblogs.microsoft.com/devops/introduction-to-azure-devops-workload-identity-federation-oidc-with-terraform/)
 
-### Step 1: Refresh Token Request
-**Request:** `POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
+### Federated Credential Configuration (in Entra ID)
+- **Issuer**: `https://vstoken.dev.azure.com/{organization_id}`
+- **Audience**: `api://AzureADTokenExchange`
+- **Subject**: `sc://{organization_name}/{project_name}/{service_connection_name}`
 
-**Body:**
-```
-grant_type=refresh_token
-&client_id=12345678-1234-1234-1234-123456789012
-&client_secret=secretValue123
-&refresh_token=AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4...
-&scope=https://graph.microsoft.com/.default
-```
-
-### Step 2: Successful Refresh Response
-```json
-{
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "expires_in": 3599,
-  "ext_expires_in": 3599,
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q...",
-  "refresh_token": "AwABAAAAvPM1KaPlrEqdFSBzjqfTGAMxZGUTdM0t4B4..."
-}
-```
-
-### Error: Refresh Token Expired
-```json
-{
-  "error": "invalid_grant",
-  "error_description": "AADSTS70002: Error validating credentials. AADSTS54005: OAuth2 Authorization code was already redeemed, please retry with a new valid code or use an existing refresh token.\r\nTrace ID: 12345678-1234-1234-1234-123456789012\r\nCorrelation ID: 12345678-1234-1234-1234-123456789012\r\nTimestamp: 2025-06-17 10:30:00Z",
-  "error_codes": [70002, 54005],
-  "timestamp": "2025-06-17 10:30:00Z",
-  "trace_id": "12345678-1234-1234-1234-123456789012",
-  "correlation_id": "12345678-1234-1234-1234-123456789012"
-}
-```
-
-## 14. OIDC Discovery Document
-
-**References:**
-- [OpenID Connect Discovery](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc)
-- [Microsoft Identity Platform Endpoints](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols)
-- [OpenID Connect Specification](https://openid.net/specs/openid-connect-discovery-1_0.html)
-- [Azure AD Token Validation](https://www.voitanos.io/blog/validating-entra-id-generated-oauth-tokens/)
-
-### Discovery Endpoint Response
-**URL:** `https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration`
-
-```json
-{
-  "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
-  "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
-  "token_endpoint_auth_methods_supported": [
-    "client_secret_post",
-    "private_key_jwt",
-    "client_secret_basic"
-  ],
-  "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
-  "response_modes_supported": [
-    "query",
-    "fragment",
-    "form_post"
-  ],
-  "subject_types_supported": [
-    "pairwise"
-  ],
-  "id_token_signing_alg_values_supported": [
-    "RS256"
-  ],
-  "response_types_supported": [
-    "code",
-    "id_token",
-    "code id_token",
-    "token id_token",
-    "token"
-  ],
-  "scopes_supported": [
-    "openid",
-    "profile",
-    "email",
-    "offline_access"
-  ],
-  "issuer": "https://login.microsoftonline.com/{tenant}/v2.0",
-  "microsoft_multi_refresh_token": true,
-  "device_authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/devicecode",
-  "http_logout_supported": true,
-  "frontchannel_logout_supported": true,
-  "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
-  "claims_supported": [
-    "sub",
-    "iss",
-    "cloud_instance_name",
-    "cloud_instance_host_name",
-    "cloud_graph_host_name",
-    "msgraph_host",
-    "aud",
-    "exp",
-    "iat",
-    "auth_time",
-    "acr",
-    "amr",
-    "nonce",
-    "email",
-    "given_name",
-    "family_name",
-    "nickname"
-  ],
-  "check_session_iframe": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/checksession",
-  "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
-  "kerberos_endpoint": "https://login.microsoftonline.com/{tenant}/kerberos",
-  "tenant_region_scope": null,
-  "cloud_instance_name": "microsoftonline.com",
-  "cloud_graph_host_name": "graph.windows.net",
-  "msgraph_host": "graph.microsoft.com",
-  "rbac_url": "https://pas.windows.net"
-}
-```
-
-## Notes
-
-- All tokens (access_token, refresh_token, id_token) are JWT tokens when returned from Microsoft Entra ID
-- Timestamps are in UTC format
-- Error codes are specific to Microsoft Entra ID and can be used for programmatic error handling
-- The `ext_expires_in` field provides extended token lifetime for resilience during service outages
-- Scope values determine what resources and permissions the token can access
-- Trace IDs and Correlation IDs are useful for debugging and support requests
-
-These JSON responses represent the actual data structures you'll encounter when implementing authentication flows with the Azure SDK for Go's azidentity package.
+The token exchange request and responses are the same as the [generic `oidc` flow](#8-oidc-generic-oidc--workload-identity-federation).
