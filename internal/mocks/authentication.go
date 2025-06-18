@@ -317,47 +317,8 @@ type DeviceCodeResponse struct {
 	Message         string `json:"message"`
 }
 
-// GraphBetaTokenResponse represents the response from the Graph Beta token endpoint
 func (a *AuthenticationMocks) GraphBetaTokenResponse() []byte {
 	tokenResp := a.createTokenResponse([]string{"https://graph.microsoft.com/.default"})
 	respBytes, _ := json.Marshal(tokenResp)
 	return respBytes
-}
-
-// RegisterGraphEndpoints registers mock responses for Microsoft Graph endpoints
-func (a *AuthenticationMocks) RegisterGraphEndpoints() {
-	// Mock for fetching user details
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/users/testuser@example.com",
-		func(req *http.Request) (*http.Response, error) {
-			user := map[string]interface{}{
-				"id":                "mock-user-id",
-				"displayName":       "Test User",
-				"userPrincipalName": "testuser@example.com",
-			}
-			return httpmock.NewJsonResponse(200, user)
-		},
-	)
-
-	// Mock for group details
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/groups/mock-group-id",
-		func(req *http.Request) (*http.Response, error) {
-			group := map[string]interface{}{
-				"id":          "mock-group-id",
-				"displayName": "Test Group",
-			}
-			return httpmock.NewJsonResponse(200, group)
-		},
-	)
-
-	// Mock for beta endpoints, for example
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/me",
-		func(req *http.Request) (*http.Response, error) {
-			me := map[string]interface{}{
-				"id":                "mock-user-id",
-				"displayName":       "Test User (Beta)",
-				"userPrincipalName": "testuser@example.com",
-			}
-			return httpmock.NewJsonResponse(200, me)
-		},
-	)
 }

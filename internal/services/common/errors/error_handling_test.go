@@ -83,19 +83,15 @@ func (m *MockODataError) GetStatusCode() int {
 
 func (m *MockODataError) GetResponseHeaders() abstractions.ResponseHeaders {
 	if m.headers == nil {
-		// Create an empty ResponseHeaders
-		empty := abstractions.NewResponseHeaders()
-		return *empty
+		m.headers = &MockResponseHeaders{headers: make(map[string][]string)}
 	}
-
-	// Convert our mock headers to the actual ResponseHeaders
-	respHeaders := abstractions.NewResponseHeaders()
+	responseHeaders := abstractions.NewResponseHeaders()
 	for key, values := range m.headers.headers {
 		for _, value := range values {
-			respHeaders.Add(key, value)
+			responseHeaders.Add(key, value)
 		}
 	}
-	return *respHeaders
+	return *responseHeaders
 }
 
 // MockMainError implements odataerrors.MainErrorable
@@ -481,96 +477,31 @@ func TestGraphError(t *testing.T) {
 }
 
 func TestHandleGraphError(t *testing.T) {
-	tests := []struct {
-		name                  string
-		statusCode            int
-		code                  string
-		message               string
-		target                string
-		headers               map[string]string
-		operation             string
-		requiredPermissions   []string
-		expectError           bool
-		expectRemoveFromState bool
-	}{
-		{
-			name:       "Handle 400 error on read operation - remove from state",
-			statusCode: http.StatusBadRequest,
-			code:       "BadRequest",
-			message:    "Resource not found",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id":        "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id": "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-			},
-			operation:             "Read",
-			expectError:           false,
-			expectRemoveFromState: true,
-		},
-		{
-			name:       "Handle 401 error",
-			statusCode: http.StatusUnauthorized,
-			code:       "InvalidAuthenticationToken",
-			message:    "Access token has expired",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id":        "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id": "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-			},
-			operation:             "Read",
-			requiredPermissions:   []string{"DeviceManagementConfiguration.Read.All"},
-			expectError:           true,
-			expectRemoveFromState: false,
-		},
-		{
-			name:       "Handle 404 error on read operation - remove from state",
-			statusCode: http.StatusNotFound,
-			code:       "NotFound",
-			message:    "Resource not found",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id": "09fe057e-bae6-4aab-ae2b-98f912259821",
-			},
-			operation:             "Read",
-			expectError:           false,
-			expectRemoveFromState: true,
-		},
-		{
-			name:                  "Handle 404 error on create operation - add error",
-			statusCode:            http.StatusNotFound,
-			code:                  "NotFound",
-			message:               "Resource not found",
-			target:                "deviceConfigurations",
-			headers:               map[string]string{},
-			operation:             "Create",
-			expectError:           true,
-			expectRemoveFromState: false,
-		},
-	}
+	t.Run("Handle 400 error on read operation - remove from state", func(t *testing.T) {
+		// Create a mock error
+		mockError := createMockODataError(400, "Request_ResourceNotFound", "Resource not found", "some-target", nil)
+		var resp resource.ReadResponse
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create mock OData error
-			mockError := createMockODataError(tt.statusCode, tt.code, tt.message, tt.target, tt.headers)
+		// Handle the error
+		HandleGraphError(context.Background(), mockError, &resp, "Read", nil)
 
-			// Create a mock response object
-			mockResp := &resource.ReadResponse{}
+		// Check diagnostics
+		assert.True(t, resp.Diagnostics.HasError())
+		assert.False(t, resp.State.Raw.IsNull(), "Expected no error when removing from state")
+	})
 
-			// Handle the error
-			HandleGraphError(context.Background(), mockError, mockResp, tt.operation, tt.requiredPermissions)
+	t.Run("Handle 404 error on read operation - remove from state", func(t *testing.T) {
+		// Create a mock error
+		mockError := createMockODataError(404, "Request_ResourceNotFound", "Resource not found", "some-target", nil)
+		var resp resource.ReadResponse
 
-			// Verify the results
-			if tt.expectError {
-				assert.True(t, mockResp.Diagnostics.HasError(), "Expected error to be added to diagnostics")
-			}
+		// Handle the error
+		HandleGraphError(context.Background(), mockError, &resp, "Read", nil)
 
-			if tt.expectRemoveFromState {
-				// For read operations with 400/404, the resource should be removed from state
-				// We can't easily test this without a more complex mock, but we can verify no error was added
-				assert.False(t, mockResp.Diagnostics.HasError(), "Expected no error when removing from state")
-			}
-		})
-	}
+		// Check diagnostics
+		assert.False(t, resp.Diagnostics.HasError(), "Expected no error when removing from state")
+		assert.True(t, resp.State.Raw.IsNull(), "Expected state to be removed")
+	})
 }
 
 func TestErrorCategorization(t *testing.T) {

@@ -1,14 +1,11 @@
 package mocks
 
 import (
-	"context"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -31,7 +28,7 @@ func NewMocks() *Mocks {
 func (m *Mocks) Activate() {
 	httpmock.Activate()
 	m.authMocks.RegisterMocks()
-	m.registerEnvironmentMocks()
+	m.registerGraphMocks()
 }
 
 // DeactivateAndReset deactivates all mock responders and resets the mock state.
@@ -52,73 +49,46 @@ func TestsEntraLicesingGroupName() string {
 }
 
 var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider(helpers.UnitTestContext(context.Background(), ""), true)()),
+	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", true)()),
 }
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider(context.Background(), false)()),
+	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", false)()),
 }
 
-func (m *Mocks) registerEnvironmentMocks() {
-	httpmock.RegisterResponder("GET", `=~^https://([\d-]+)\.crm4\.dynamics\.com/api/data/v9\.2/transactioncurrencies\z`,
+func (m *Mocks) registerGraphMocks() {
+	// Mock for fetching user details
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/users/testuser@example.com",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, `{
-				"value": [
-					{
-						"isocurrencycode": "PLN"
-					}]}`), nil
-		})
+			user := map[string]interface{}{
+				"id":                "mock-user-id",
+				"displayName":       "Test User",
+				"userPrincipalName": "testuser@example.com",
+			}
+			return httpmock.NewJsonResponse(200, user)
+		},
+	)
 
-	httpmock.RegisterResponder("GET", `=~^https://([\d-]+)\.crm4\.dynamics\.com/api/data/v9\.2/organizations\z`,
+	// Mock for group details
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/groups/mock-group-id",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, `{
-				"value": [
-					{
-						"_basecurrencyid_value": "xyz"
-					}]}`), nil
-		})
+			group := map[string]interface{}{
+				"id":          "mock-group-id",
+				"displayName": "Test Group",
+			}
+			return httpmock.NewJsonResponse(200, group)
+		},
+	)
 
-	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`^https://api\.bap\.microsoft\.com/providers/Microsoft\.BusinessAppPlatform/locations/(europe|unitedstates)/environmentLanguages\?api-version=2023-06-01$`),
+	// Mock for beta endpoints, for example
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/me",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/languages/tests/datasource/Validate_Read/get_languages.json").String()), nil
-		})
-
-	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`^https://api\.bap\.microsoft\.com/providers/Microsoft\.BusinessAppPlatform/locations/(europe|unitedstates)/environmentCurrencies\?api-version=2023-06-01$`),
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/currencies/tests/datasource/Validate_Read/get_currencies.json").String()), nil
-		})
-
-	httpmock.RegisterResponder("GET", "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/locations?api-version=2023-06-01",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, httpmock.File("../../services/locations/tests/datasource/Validate_Read/get_locations.json").String()), nil
-		})
-
-	httpmock.RegisterResponder("POST", "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/validateEnvironmentDetails?api-version=2021-04-01",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, ""), nil
-		})
-
-	httpmock.RegisterResponder("GET", `=~^https://([a-z\d-]+)\.(crm[\d]*)\.dynamics\.com/api/data/v9\.2/WhoAmI\z`,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, `{
-				"@odata.context": "https://org000001.crm.dynamics.com/api/data/v9.2/$metadata#Microsoft.Dynamics.CRM.WhoAmIResponse",
-				"BusinessUnitId": "00000000-0000-0000-0000-000000000002",
-				"UserId": "00000000-0000-0000-0000-000000000001",
-				"OrganizationId": "00000000-0000-0000-0000-000000000003"
-			}`), nil
-		})
-
-	httpmock.RegisterResponder("GET", `https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/tenant?api-version=2021-04-01`,
-		func(_ *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusOK, `{
-				"tenantId": "00000000-0000-0000-0000-000000000001",
-				"state": "Enabled",
-				"location": "unitedstates",
-				"aadCountryGeo": "unitedstates",
-				"dataStorageGeo": "unitedstates",
-				"defaultEnvironmentGeo": "unitedstates",
-				"aadDataBoundary": "none",
-				"fedRAMPHighCertificationRequired": false
-			}`), nil
-		})
+			me := map[string]interface{}{
+				"id":                "mock-user-id",
+				"displayName":       "Test User (Beta)",
+				"userPrincipalName": "testuser@example.com",
+			}
+			return httpmock.NewJsonResponse(200, me)
+		},
+	)
 }
