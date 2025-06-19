@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -226,10 +227,10 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 			if messagesCollection := messageTemplateResp.GetValue(); len(messagesCollection) > 0 {
 				message := messagesCollection[0]
 				localizedModel := &LocalizedNotificationMessageModel{
-					Locale:          types.StringPointerValue(message.GetLocale()),
-					Subject:         types.StringPointerValue(message.GetSubject()),
-					MessageTemplate: types.StringPointerValue(message.GetMessageTemplate()),
-					IsDefault:       types.BoolPointerValue(message.GetIsDefault()),
+					Locale:          convert.GraphToFrameworkString(message.GetLocale()),
+					Subject:         convert.GraphToFrameworkString(message.GetSubject()),
+					MessageTemplate: convert.GraphToFrameworkString(message.GetMessageTemplate()),
+					IsDefault:       convert.GraphToFrameworkBool(message.GetIsDefault()),
 				}
 
 				// Assign to the appropriate field based on template type

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -94,7 +95,7 @@ func constructGroupIncludeAssignments(config *sharedmodels.DeviceManagementScrip
 		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
 			assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
 			target := graphsdkmodels.NewGroupAssignmentTarget()
-			constructors.SetStringProperty(groupId, target.SetGroupId)
+			convert.FrameworkToGraphString(groupId, target.SetGroupId)
 			assignment.SetTarget(target)
 			assignments = append(assignments, assignment)
 		}
@@ -109,7 +110,7 @@ func constructGroupExcludeAssignments(config *sharedmodels.DeviceManagementScrip
 		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
 			assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
 			target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
-			constructors.SetStringProperty(groupId, target.SetGroupId)
+			convert.FrameworkToGraphString(groupId, target.SetGroupId)
 			assignment.SetTarget(target)
 			assignments = append(assignments, assignment)
 		}

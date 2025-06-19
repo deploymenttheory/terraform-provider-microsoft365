@@ -23,12 +23,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		"resourceId": remoteResource.GetId(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.State = state.EnumPtrToTypeString(remoteResource.GetState())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.ModifiedDateTime = state.TimeToString(remoteResource.GetModifiedDateTime())
+	data.ID = convert.GraphToFrameworkString
+(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString
+(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString
+(remoteResource.GetDescription())
+	data.State = convert.GraphToFrameworkEnum(remoteResource.GetState())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.ModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetModifiedDateTime())
 
 	// Map Conditions
 	if conditions := remoteResource.GetConditions(); conditions != nil {
@@ -119,8 +122,9 @@ func mapConditionalAccessConditionSet(ctx context.Context, conditions graphmodel
 		// Map Application Filter
 		if appFilter := applications.GetApplicationFilter(); appFilter != nil {
 			conditionSet.Applications.ApplicationFilter = &ConditionalAccessFilterResourceModel{
-				Mode: state.EnumPtrToTypeString(appFilter.GetMode()),
-				Rule: types.StringPointerValue(appFilter.GetRule()),
+				Mode: convert.GraphToFrameworkEnum(appFilter.GetMode()),
+				Rule: convert.GraphToFrameworkString
+(appFilter.GetRule()),
 			}
 		}
 	}
@@ -172,8 +176,9 @@ func mapConditionalAccessConditionSet(ctx context.Context, conditions graphmodel
 		// Map Service Principal Filter
 		if spFilter := clientApps.GetServicePrincipalFilter(); spFilter != nil {
 			conditionSet.ClientApplications.ServicePrincipalFilter = &ConditionalAccessFilterResourceModel{
-				Mode: state.EnumPtrToTypeString(spFilter.GetMode()),
-				Rule: types.StringPointerValue(spFilter.GetRule()),
+				Mode: convert.GraphToFrameworkEnum(spFilter.GetMode()),
+				Rule: convert.GraphToFrameworkString
+(spFilter.GetRule()),
 			}
 		}
 	}
@@ -198,8 +203,9 @@ func mapConditionalAccessConditionSet(ctx context.Context, conditions graphmodel
 		// Map Device Filter
 		if deviceFilter := devices.GetDeviceFilter(); deviceFilter != nil {
 			conditionSet.Devices.DeviceFilter = &ConditionalAccessFilterResourceModel{
-				Mode: state.EnumPtrToTypeString(deviceFilter.GetMode()),
-				Rule: types.StringPointerValue(deviceFilter.GetRule()),
+				Mode: convert.GraphToFrameworkEnum(deviceFilter.GetMode()),
+				Rule: convert.GraphToFrameworkString
+(deviceFilter.GetRule()),
 			}
 
 		}
@@ -261,7 +267,7 @@ func mapGuestsOrExternalUsers(ctx context.Context, guestsOrExternal graphmodels.
 	// Map External Tenants
 	if externalTenants := guestsOrExternal.GetExternalTenants(); externalTenants != nil {
 		result.ExternalTenants = &ConditionalAccessExternalTenantsResourceModel{
-			MembershipKind: state.EnumPtrToTypeString(externalTenants.GetMembershipKind()),
+			MembershipKind: convert.GraphToFrameworkEnum(externalTenants.GetMembershipKind()),
 			Members:        state.StringSliceToSet(ctx, externalTenants.GetMembers()),
 		}
 	}
@@ -272,7 +278,8 @@ func mapGuestsOrExternalUsers(ctx context.Context, guestsOrExternal graphmodels.
 // mapConditionalAccessGrantControls maps the grant controls from API response to Terraform state
 func mapConditionalAccessGrantControls(ctx context.Context, grantControls graphmodels.ConditionalAccessGrantControlsable) *ConditionalAccessGrantControlsResourceModel {
 	grantControlsModel := &ConditionalAccessGrantControlsResourceModel{
-		Operator:                    types.StringPointerValue(grantControls.GetOperator()),
+		Operator:                    convert.GraphToFrameworkString
+(grantControls.GetOperator()),
 		CustomAuthenticationFactors: state.StringSliceToSet(ctx, grantControls.GetCustomAuthenticationFactors()),
 		TermsOfUse:                  state.StringSliceToSet(ctx, grantControls.GetTermsOfUse()),
 	}
@@ -294,40 +301,40 @@ func mapConditionalAccessGrantControls(ctx context.Context, grantControls graphm
 // mapConditionalAccessSessionControls maps the session controls from API response to Terraform state
 func mapConditionalAccessSessionControls(ctx context.Context, sessionControls graphmodels.ConditionalAccessSessionControlsable) *ConditionalAccessSessionControlsResourceModel {
 	sessionControlsModel := &ConditionalAccessSessionControlsResourceModel{
-		DisableResilienceDefaults: types.BoolPointerValue(sessionControls.GetDisableResilienceDefaults()),
+		DisableResilienceDefaults: convert.GraphToFrameworkBool(sessionControls.GetDisableResilienceDefaults()),
 	}
 
 	// Map Application Enforced Restrictions
 	if appRestrictions := sessionControls.GetApplicationEnforcedRestrictions(); appRestrictions != nil {
 		sessionControlsModel.ApplicationEnforcedRestrictions = &ApplicationEnforcedRestrictionsSessionControlResourceModel{
-			IsEnabled: types.BoolPointerValue(appRestrictions.GetIsEnabled()),
+			IsEnabled: convert.GraphToFrameworkBool(appRestrictions.GetIsEnabled()),
 		}
 	}
 
 	// Map Cloud App Security
 	if cloudAppSecurity := sessionControls.GetCloudAppSecurity(); cloudAppSecurity != nil {
 		sessionControlsModel.CloudAppSecurity = &CloudAppSecuritySessionControlResourceModel{
-			IsEnabled:            types.BoolPointerValue(cloudAppSecurity.GetIsEnabled()),
-			CloudAppSecurityType: state.EnumPtrToTypeString(cloudAppSecurity.GetCloudAppSecurityType()),
+			IsEnabled:            convert.GraphToFrameworkBool(cloudAppSecurity.GetIsEnabled()),
+			CloudAppSecurityType: convert.GraphToFrameworkEnum(cloudAppSecurity.GetCloudAppSecurityType()),
 		}
 	}
 
 	// Map Sign-in Frequency
 	if signInFreq := sessionControls.GetSignInFrequency(); signInFreq != nil {
 		sessionControlsModel.SignInFrequency = &SignInFrequencySessionControlResourceModel{
-			IsEnabled:          types.BoolPointerValue(signInFreq.GetIsEnabled()),
-			Type:               state.EnumPtrToTypeString(signInFreq.GetTypeEscaped()),
+			IsEnabled:          convert.GraphToFrameworkBool(signInFreq.GetIsEnabled()),
+			Type:               convert.GraphToFrameworkEnum(signInFreq.GetTypeEscaped()),
 			Value:              types.Int32PointerValue(signInFreq.GetValue()),
-			AuthenticationType: state.EnumPtrToTypeString(signInFreq.GetAuthenticationType()),
-			FrequencyInterval:  state.EnumPtrToTypeString(signInFreq.GetFrequencyInterval()),
+			AuthenticationType: convert.GraphToFrameworkEnum(signInFreq.GetAuthenticationType()),
+			FrequencyInterval:  convert.GraphToFrameworkEnum(signInFreq.GetFrequencyInterval()),
 		}
 	}
 
 	// Map Persistent Browser
 	if persistentBrowser := sessionControls.GetPersistentBrowser(); persistentBrowser != nil {
 		sessionControlsModel.PersistentBrowser = &PersistentBrowserSessionControlResourceModel{
-			IsEnabled: types.BoolPointerValue(persistentBrowser.GetIsEnabled()),
-			Mode:      state.EnumPtrToTypeString(persistentBrowser.GetMode()),
+			IsEnabled: convert.GraphToFrameworkBool(persistentBrowser.GetIsEnabled()),
+			Mode:      convert.GraphToFrameworkEnum(persistentBrowser.GetMode()),
 		}
 	}
 

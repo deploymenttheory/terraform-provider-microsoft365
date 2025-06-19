@@ -15,7 +15,7 @@ type CloudPcProvisioningPolicyResourceModel struct {
 	DisplayName              types.String                   `tfsdk:"display_name"`
 	DomainJoinConfigurations []DomainJoinConfigurationModel `tfsdk:"domain_join_configurations"`
 	EnableSingleSignOn       types.Bool                     `tfsdk:"enable_single_sign_on"`
-	GracePeriodInHours       types.Int64                    `tfsdk:"grace_period_in_hours"`
+	GracePeriodInHours       types.Int32                    `tfsdk:"grace_period_in_hours"`
 	ImageDisplayName         types.String                   `tfsdk:"image_display_name"`
 	ImageId                  types.String                   `tfsdk:"image_id"`
 	ImageType                types.String                   `tfsdk:"image_type"`

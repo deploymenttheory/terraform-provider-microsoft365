@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
@@ -21,17 +22,17 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 
 	baseApp := graphmodels.NewMacOSPkgApp()
 
-	constructors.SetStringProperty(data.Description, baseApp.SetDescription)
-	constructors.SetStringProperty(data.Publisher, baseApp.SetPublisher)
-	constructors.SetStringProperty(data.DisplayName, baseApp.SetDisplayName)
-	constructors.SetStringProperty(data.InformationUrl, baseApp.SetInformationUrl)
-	constructors.SetBoolProperty(data.IsFeatured, baseApp.SetIsFeatured)
-	constructors.SetStringProperty(data.Owner, baseApp.SetOwner)
-	constructors.SetStringProperty(data.Developer, baseApp.SetDeveloper)
-	constructors.SetStringProperty(data.Notes, baseApp.SetNotes)
-	constructors.SetStringProperty(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.Description, baseApp.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, baseApp.SetPublisher)
+	convert.FrameworkToGraphString(data.DisplayName, baseApp.SetDisplayName)
+	convert.FrameworkToGraphString(data.InformationUrl, baseApp.SetInformationUrl)
+	convert.FrameworkToGraphBool(data.IsFeatured, baseApp.SetIsFeatured)
+	convert.FrameworkToGraphString(data.Owner, baseApp.SetOwner)
+	convert.FrameworkToGraphString(data.Developer, baseApp.SetDeveloper)
+	convert.FrameworkToGraphString(data.Notes, baseApp.SetNotes)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -86,7 +87,7 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 
 	filename := filepath.Base(installerSourcePath)
 	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-	constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)
+	convert.FrameworkToGraphString(types.StringValue(filename), baseApp.SetFileName)
 
 	// Extract fields from all Info.plist files in the package using the resolved path
 	fields := []utility.Field{
@@ -114,18 +115,18 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 	primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
 
 	tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
-	constructors.SetStringProperty(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
-	constructors.SetStringProperty(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
+	convert.FrameworkToGraphString(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
+	convert.FrameworkToGraphString(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
 
 	// All entries are set as included apps (including primary)
 	var includedApps []graphmodels.MacOSIncludedAppable
 	for _, fields := range extractedFields {
 		includedApp := graphmodels.NewMacOSIncludedApp()
-		constructors.SetStringProperty(
+		convert.FrameworkToGraphString(
 			types.StringValue(fields.Values["CFBundleIdentifier"]),
 			includedApp.SetBundleId,
 		)
-		constructors.SetStringProperty(
+		convert.FrameworkToGraphString(
 			types.StringValue(fields.Values["CFBundleShortVersionString"]),
 			includedApp.SetBundleVersion,
 		)
@@ -135,35 +136,35 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 	baseApp.SetIncludedApps(includedApps)
 	tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from PKG metadata", len(includedApps)))
 
-	constructors.SetBoolProperty(data.MacOSPkgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+	convert.FrameworkToGraphBool(data.MacOSPkgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
 
 	if data.MacOSPkgApp.MinimumSupportedOperatingSystem != nil {
 		minOS := graphmodels.NewMacOSMinimumOperatingSystem()
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
-		constructors.SetBoolProperty(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
+		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
 		baseApp.SetMinimumSupportedOperatingSystem(minOS)
 	}
 
 	if data.MacOSPkgApp.PreInstallScript != nil {
 		preScript := graphmodels.NewMacOSAppScript()
-		constructors.SetStringProperty(data.MacOSPkgApp.PreInstallScript.ScriptContent, preScript.SetScriptContent)
+		convert.FrameworkToGraphString(data.MacOSPkgApp.PreInstallScript.ScriptContent, preScript.SetScriptContent)
 		baseApp.SetPreInstallScript(preScript)
 	}
 
 	if data.MacOSPkgApp.PostInstallScript != nil {
 		postScript := graphmodels.NewMacOSAppScript()
-		constructors.SetStringProperty(data.MacOSPkgApp.PostInstallScript.ScriptContent, postScript.SetScriptContent)
+		convert.FrameworkToGraphString(data.MacOSPkgApp.PostInstallScript.ScriptContent, postScript.SetScriptContent)
 		baseApp.SetPostInstallScript(postScript)
 	}
 

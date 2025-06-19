@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,16 +16,16 @@ func MapRemoteStateToTerraform(ctx context.Context, data TermsAndConditionsResou
 		return data
 	}
 
-	data.ID = state.StringPointerValue(termsAndConditions.GetId())
-	data.DisplayName = state.StringPointerValue(termsAndConditions.GetDisplayName())
-	data.Description = state.StringPointerValue(termsAndConditions.GetDescription())
-	data.Title = state.StringPointerValue(termsAndConditions.GetTitle())
-	data.BodyText = state.StringPointerValue(termsAndConditions.GetBodyText())
-	data.AcceptanceStatement = state.StringPointerValue(termsAndConditions.GetAcceptanceStatement())
-	data.Version = state.Int32PtrToTypeInt32(termsAndConditions.GetVersion())
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, termsAndConditions.GetRoleScopeTagIds())
-	data.CreatedDateTime = state.TimeToString(termsAndConditions.GetCreatedDateTime())
-	data.ModifiedDateTime = state.TimeToString(termsAndConditions.GetLastModifiedDateTime())
+	data.ID = convert.GraphToFrameworkString(termsAndConditions.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(termsAndConditions.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(termsAndConditions.GetDescription())
+	data.Title = convert.GraphToFrameworkString(termsAndConditions.GetTitle())
+	data.BodyText = convert.GraphToFrameworkString(termsAndConditions.GetBodyText())
+	data.AcceptanceStatement = convert.GraphToFrameworkString(termsAndConditions.GetAcceptanceStatement())
+	data.Version = convert.GraphToFrameworkInt32(termsAndConditions.GetVersion())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, termsAndConditions.GetRoleScopeTagIds())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(termsAndConditions.GetCreatedDateTime())
+	data.ModifiedDateTime = convert.GraphToFrameworkTime(termsAndConditions.GetLastModifiedDateTime())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 

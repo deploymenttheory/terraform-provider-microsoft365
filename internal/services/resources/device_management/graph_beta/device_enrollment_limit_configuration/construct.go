@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -13,12 +14,12 @@ import (
 func constructResource(ctx context.Context, data *DeviceEnrollmentLimitConfigurationResourceModel) (models.DeviceEnrollmentLimitConfigurationable, error) {
 	requestBody := models.NewDeviceEnrollmentLimitConfiguration()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetInt32Property(data.Priority, requestBody.SetPriority)
-	constructors.SetInt32Property(data.Limit, requestBody.SetLimit)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphInt32(data.Priority, requestBody.SetPriority)
+	convert.FrameworkToGraphInt32(data.Limit, requestBody.SetLimit)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

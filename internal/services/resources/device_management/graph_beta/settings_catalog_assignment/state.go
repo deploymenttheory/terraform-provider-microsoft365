@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,9 +17,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data DeviceManagementConfigu
 		return data
 	}
 
-	data.ID = state.StringPointerValue(assignment.GetId())
-	data.Source = state.EnumPtrToTypeString(assignment.GetSource())
-	data.SourceId = state.StringPointerValue(assignment.GetSourceId())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
+	data.Source = convert.GraphToFrameworkEnum(assignment.GetSource())
+	data.SourceId = convert.GraphToFrameworkString(assignment.GetSourceId())
 
 	if target := assignment.GetTarget(); target != nil {
 		data.Target = mapRemoteTargetToTerraform(target)
@@ -33,20 +33,20 @@ func MapRemoteStateToTerraform(ctx context.Context, data DeviceManagementConfigu
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
 func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetResourceModel {
 	target := AssignmentTargetResourceModel{
-		DeviceAndAppManagementAssignmentFilterId:   types.StringPointerValue(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
-		DeviceAndAppManagementAssignmentFilterType: state.EnumPtrToTypeString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
+		DeviceAndAppManagementAssignmentFilterId:   convert.GraphToFrameworkString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
+		DeviceAndAppManagementAssignmentFilterType: convert.GraphToFrameworkEnum(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
 	}
 
 	switch v := remoteTarget.(type) {
 	case *graphmodels.GroupAssignmentTarget:
 		target.TargetType = types.StringValue("groupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ExclusionGroupAssignmentTarget:
 		target.TargetType = types.StringValue("exclusionGroupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ConfigurationManagerCollectionAssignmentTarget:
 		target.TargetType = types.StringValue("configurationManagerCollection")
-		target.CollectionId = types.StringPointerValue(v.GetCollectionId())
+		target.CollectionId = convert.GraphToFrameworkString(v.GetCollectionId())
 	case *graphmodels.AllDevicesAssignmentTarget:
 		target.TargetType = types.StringValue("allDevices")
 	case *graphmodels.AllLicensedUsersAssignmentTarget:

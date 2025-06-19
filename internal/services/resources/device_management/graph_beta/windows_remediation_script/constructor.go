@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,26 +16,26 @@ func constructResource(ctx context.Context, data *DeviceHealthScriptResourceMode
 
 	requestBody := graphmodels.NewDeviceHealthScript()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
-	constructors.SetBoolProperty(data.RunAs32Bit, requestBody.SetRunAs32Bit)
-	constructors.SetBoolProperty(data.EnforceSignatureCheck, requestBody.SetEnforceSignatureCheck)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+	convert.FrameworkToGraphBool(data.RunAs32Bit, requestBody.SetRunAs32Bit)
+	convert.FrameworkToGraphBool(data.EnforceSignatureCheck, requestBody.SetEnforceSignatureCheck)
 
-	if err := constructors.SetEnumProperty(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.RunAsAccount, graphmodels.ParseRunAsAccountType, requestBody.SetRunAsAccount); err != nil {
 		return nil, fmt.Errorf("invalid run as account type: %s", err)
 	}
 
 	if data.DeviceHealthScriptType.ValueString() != "" {
-		if err := constructors.SetEnumProperty(data.DeviceHealthScriptType, graphmodels.ParseDeviceHealthScriptType, requestBody.SetDeviceHealthScriptType); err != nil {
+		if err := convert.FrameworkToGraphEnum(data.DeviceHealthScriptType, graphmodels.ParseDeviceHealthScriptType, requestBody.SetDeviceHealthScriptType); err != nil {
 			return nil, fmt.Errorf("invalid device health script type: %s", err)
 		}
 	}
 
-	constructors.SetBytesProperty(data.DetectionScriptContent, requestBody.SetDetectionScriptContent)
-	constructors.SetBytesProperty(data.RemediationScriptContent, requestBody.SetRemediationScriptContent)
+	convert.FrameworkToGraphBytes(data.DetectionScriptContent, requestBody.SetDetectionScriptContent)
+	convert.FrameworkToGraphBytes(data.RemediationScriptContent, requestBody.SetRemediationScriptContent)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -48,10 +49,10 @@ func constructResource(ctx context.Context, data *DeviceHealthScriptResourceMode
 		var graphDet []graphmodels.DeviceHealthScriptParameterable
 		for _, p := range detParams {
 			gp := graphmodels.NewDeviceHealthScriptParameter()
-			constructors.SetStringProperty(p.Name, gp.SetName)
-			constructors.SetStringProperty(p.Description, gp.SetDescription)
-			constructors.SetBoolProperty(p.IsRequired, gp.SetIsRequired)
-			constructors.SetBoolProperty(p.ApplyDefaultValueWhenNotAssigned, gp.SetApplyDefaultValueWhenNotAssigned)
+			convert.FrameworkToGraphString(p.Name, gp.SetName)
+			convert.FrameworkToGraphString(p.Description, gp.SetDescription)
+			convert.FrameworkToGraphBool(p.IsRequired, gp.SetIsRequired)
+			convert.FrameworkToGraphBool(p.ApplyDefaultValueWhenNotAssigned, gp.SetApplyDefaultValueWhenNotAssigned)
 			graphDet = append(graphDet, gp)
 		}
 		requestBody.SetDetectionScriptParameters(graphDet)

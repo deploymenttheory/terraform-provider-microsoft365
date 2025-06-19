@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,7 +16,7 @@ func constructResource(ctx context.Context, data DeviceHealthScriptAssignmentRes
 
 	assignment := graphmodels.NewDeviceHealthScriptAssignment()
 
-	constructors.SetBoolProperty(data.RunRemediationScript, assignment.SetRunRemediationScript)
+	convert.FrameworkToGraphBool(data.RunRemediationScript, assignment.SetRunRemediationScript)
 
 	// Set Target
 	target, err := constructAssignmentTarget(ctx, &data.Target)
@@ -59,26 +60,26 @@ func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResour
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "configurationManagerCollection":
 		configManagerTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
-		constructors.SetStringProperty(data.CollectionId, configManagerTarget.SetCollectionId)
+		convert.FrameworkToGraphString(data.CollectionId, configManagerTarget.SetCollectionId)
 		target = configManagerTarget
 	case "exclusionGroupAssignment":
 		exclusionGroupTarget := graphmodels.NewExclusionGroupAssignmentTarget()
-		constructors.SetStringProperty(data.GroupId, exclusionGroupTarget.SetGroupId)
+		convert.FrameworkToGraphString(data.GroupId, exclusionGroupTarget.SetGroupId)
 		target = exclusionGroupTarget
 	case "groupAssignment":
 		groupTarget := graphmodels.NewGroupAssignmentTarget()
-		constructors.SetStringProperty(data.GroupId, groupTarget.SetGroupId)
+		convert.FrameworkToGraphString(data.GroupId, groupTarget.SetGroupId)
 		target = groupTarget
 	default:
 		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()
 	}
 
 	// Set the filter properties using helpers
-	constructors.SetStringProperty(data.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+	convert.FrameworkToGraphString(data.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 	// Set filter type enum property
 	if !data.DeviceAndAppManagementAssignmentFilterType.IsNull() && !data.DeviceAndAppManagementAssignmentFilterType.IsUnknown() {
-		err := constructors.SetEnumProperty(
+		err := convert.FrameworkToGraphEnum(
 			data.DeviceAndAppManagementAssignmentFilterType,
 			graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 			func(val *graphmodels.DeviceAndAppManagementAssignmentFilterType) {
@@ -95,7 +96,6 @@ func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResour
 }
 
 // constructRunSchedule constructs the device health script run schedule
-// constructRunSchedule constructs the device health script run schedule
 func constructRunSchedule(ctx context.Context, data *RunScheduleResourceModel) (graphmodels.DeviceHealthScriptRunScheduleable, error) {
 	if data == nil {
 		return nil, nil
@@ -106,16 +106,16 @@ func constructRunSchedule(ctx context.Context, data *RunScheduleResourceModel) (
 	// Determine which schedule type is defined and construct the appropriate schedule
 	if data.Daily != nil {
 		dailySchedule := graphmodels.NewDeviceHealthScriptDailySchedule()
-		constructors.StringToTimeOnly(data.Daily.Time, dailySchedule.SetTime)
-		constructors.SetInt32Property(data.Daily.Interval, dailySchedule.SetInterval)
-		constructors.SetBoolProperty(data.Daily.UseUtc, dailySchedule.SetUseUtc)
+		convert.FrameworkToGraphTimeOnly(data.Daily.Time, dailySchedule.SetTime)
+		convert.FrameworkToGraphInt32(data.Daily.Interval, dailySchedule.SetInterval)
+		convert.FrameworkToGraphBool(data.Daily.UseUtc, dailySchedule.SetUseUtc)
 
 		return dailySchedule, nil
 	}
 
 	if data.Hourly != nil {
 		hourlySchedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
-		constructors.SetInt32Property(data.Hourly.Interval, hourlySchedule.SetInterval)
+		convert.FrameworkToGraphInt32(data.Hourly.Interval, hourlySchedule.SetInterval)
 
 		return hourlySchedule, nil
 	}
@@ -123,9 +123,9 @@ func constructRunSchedule(ctx context.Context, data *RunScheduleResourceModel) (
 	if data.Once != nil {
 		onceSchedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
 
-		constructors.SetBoolProperty(data.Once.UseUtc, onceSchedule.SetUseUtc)
-		constructors.StringToTimeOnly(data.Once.Time, onceSchedule.SetTime)
-		constructors.StringToDateOnly(data.Once.Date, onceSchedule.SetDate)
+		convert.FrameworkToGraphBool(data.Once.UseUtc, onceSchedule.SetUseUtc)
+		convert.FrameworkToGraphTimeOnly(data.Once.Time, onceSchedule.SetTime)
+		convert.FrameworkToGraphDateOnly(data.Once.Date, onceSchedule.SetDate)
 
 		return onceSchedule, nil
 	}

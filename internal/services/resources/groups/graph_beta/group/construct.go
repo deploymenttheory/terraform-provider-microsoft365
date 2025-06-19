@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,37 +17,24 @@ func constructResource(ctx context.Context, data *GroupResourceModel) (graphmode
 
 	requestBody := graphmodels.NewGroup()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.MailNickname, requestBody.SetMailNickname)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.MailNickname, requestBody.SetMailNickname)
+	convert.FrameworkToGraphBool(data.MailEnabled, requestBody.SetMailEnabled)
+	convert.FrameworkToGraphBool(data.SecurityEnabled, requestBody.SetSecurityEnabled)
 
-	if !data.MailEnabled.IsNull() && !data.MailEnabled.IsUnknown() {
-		mailEnabled := data.MailEnabled.ValueBool()
-		requestBody.SetMailEnabled(&mailEnabled)
-	}
-
-	if !data.SecurityEnabled.IsNull() && !data.SecurityEnabled.IsUnknown() {
-		securityEnabled := data.SecurityEnabled.ValueBool()
-		requestBody.SetSecurityEnabled(&securityEnabled)
-	}
-
-	if err := constructors.SetStringSet(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
 		return nil, fmt.Errorf("failed to set group types: %s", err)
 	}
 
-	constructors.SetStringProperty(data.Visibility, requestBody.SetVisibility)
-
-	if !data.IsAssignableToRole.IsNull() && !data.IsAssignableToRole.IsUnknown() {
-		isAssignableToRole := data.IsAssignableToRole.ValueBool()
-		requestBody.SetIsAssignableToRole(&isAssignableToRole)
-	}
-
-	constructors.SetStringProperty(data.MembershipRule, requestBody.SetMembershipRule)
-	constructors.SetStringProperty(data.MembershipRuleProcessingState, requestBody.SetMembershipRuleProcessingState)
-	constructors.SetStringProperty(data.PreferredDataLocation, requestBody.SetPreferredDataLocation)
-	constructors.SetStringProperty(data.PreferredLanguage, requestBody.SetPreferredLanguage)
-	constructors.SetStringProperty(data.Theme, requestBody.SetTheme)
-	constructors.SetStringProperty(data.Classification, requestBody.SetClassification)
+	convert.FrameworkToGraphString(data.Visibility, requestBody.SetVisibility)
+	convert.FrameworkToGraphBool(data.IsAssignableToRole, requestBody.SetIsAssignableToRole)
+	convert.FrameworkToGraphString(data.MembershipRule, requestBody.SetMembershipRule)
+	convert.FrameworkToGraphString(data.MembershipRuleProcessingState, requestBody.SetMembershipRuleProcessingState)
+	convert.FrameworkToGraphString(data.PreferredDataLocation, requestBody.SetPreferredDataLocation)
+	convert.FrameworkToGraphString(data.PreferredLanguage, requestBody.SetPreferredLanguage)
+	convert.FrameworkToGraphString(data.Theme, requestBody.SetTheme)
+	convert.FrameworkToGraphString(data.Classification, requestBody.SetClassification)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

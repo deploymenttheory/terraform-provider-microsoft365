@@ -3,7 +3,7 @@ package graphBetaWindowsDriverUpdateInventory
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -19,8 +19,8 @@ func MapRemoteStateToDataSource(ctx context.Context, data *WindowsDriverUpdateIn
 		"resourceId": remoteResource.GetId(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.Name = types.StringPointerValue(remoteResource.GetName())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
 
 	tflog.Debug(ctx, "Finished mapping remote Windows Driver Update Inventory to data source model")
 }

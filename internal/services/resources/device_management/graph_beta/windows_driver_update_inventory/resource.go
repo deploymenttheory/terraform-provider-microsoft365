@@ -114,7 +114,7 @@ func (r *WindowsDriverUpdateInventoryResource) Schema(ctx context.Context, req r
 				Optional:            true,
 				MarkdownDescription: "The class of the driver.",
 			},
-			"applicable_device_count": schema.Int64Attribute{
+			"applicable_device_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The number of devices for which this driver is applicable.",
 			},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,13 +16,13 @@ func constructResource(ctx context.Context, data ManagedDeviceCleanupRuleResourc
 
 	rule := graphmodels.NewManagedDeviceCleanupRule()
 
-	constructors.SetStringProperty(data.DisplayName, rule.SetDisplayName)
-	constructors.SetStringProperty(data.Description, rule.SetDescription)
-	constructors.SetInt32Property(data.DeviceInactivityBeforeRetirementInDays, rule.SetDeviceInactivityBeforeRetirementInDays)
+	convert.FrameworkToGraphString(data.DisplayName, rule.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, rule.SetDescription)
+	convert.FrameworkToGraphInt32(data.DeviceInactivityBeforeRetirementInDays, rule.SetDeviceInactivityBeforeRetirementInDays)
 
 	// Set the platform type enum property
 	if !data.DeviceCleanupRulePlatformType.IsNull() && !data.DeviceCleanupRulePlatformType.IsUnknown() {
-		err := constructors.SetEnumProperty(
+		err := convert.FrameworkToGraphEnum(
 			data.DeviceCleanupRulePlatformType,
 			graphmodels.ParseDeviceCleanupRulePlatformType,
 			func(val *graphmodels.DeviceCleanupRulePlatformType) {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 
 	// validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators/graph_beta/device_and_app_management"
@@ -280,13 +281,13 @@ func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data
 	settings := graphmodels.NewAndroidManagedStoreAppAssignmentSettings()
 
 	// Set Android Managed Store App Track IDs
-	err := constructors.SetStringList(ctx, data.AndroidManagedStoreAppTrackIds, settings.SetAndroidManagedStoreAppTrackIds)
+	err := convert.FrameworkToGraphStringList(ctx, data.AndroidManagedStoreAppTrackIds, settings.SetAndroidManagedStoreAppTrackIds)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Android Managed Store App Track IDs: %v", err)
 	}
 
 	// Set Auto Update Mode
-	err = constructors.SetEnumProperty[*graphmodels.AndroidManagedStoreAutoUpdateMode](
+	err = convert.FrameworkToGraphEnum[*graphmodels.AndroidManagedStoreAutoUpdateMode](
 		data.AutoUpdateMode,
 		graphmodels.ParseAndroidManagedStoreAutoUpdateMode,
 		settings.SetAutoUpdateMode,
@@ -305,10 +306,10 @@ func constructIosLobAppAssignmentSettings(data *sharedmodels.IosLobAppAssignment
 
 	settings := graphmodels.NewIosLobAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
-	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
-	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
-	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	convert.FrameworkToGraphString(data.VpnConfigurationId, settings.SetVpnConfigurationId)
 
 	return settings, nil
 }
@@ -320,10 +321,10 @@ func constructIosStoreAppAssignmentSettings(data *sharedmodels.IosStoreAppAssign
 
 	settings := graphmodels.NewIosStoreAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
-	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
-	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
-	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	convert.FrameworkToGraphString(data.VpnConfigurationId, settings.SetVpnConfigurationId)
 
 	return settings, nil
 }
@@ -335,12 +336,12 @@ func constructIosVppAppAssignmentSettings(data *sharedmodels.IosVppAppAssignment
 
 	settings := graphmodels.NewIosVppAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.IsRemovable, settings.SetIsRemovable)
-	constructors.SetBoolProperty(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
-	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
-	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
-	constructors.SetBoolProperty(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
-	constructors.SetStringProperty(data.VpnConfigurationId, settings.SetVpnConfigurationId)
+	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	convert.FrameworkToGraphBool(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
+	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	convert.FrameworkToGraphBool(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
+	convert.FrameworkToGraphString(data.VpnConfigurationId, settings.SetVpnConfigurationId)
 
 	return settings, nil
 }
@@ -352,10 +353,10 @@ func constructMacOsVppAppAssignmentSettings(data *sharedmodels.MacOsVppAppAssign
 
 	settings := graphmodels.NewMacOsVppAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
-	constructors.SetBoolProperty(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
-	constructors.SetBoolProperty(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
-	constructors.SetBoolProperty(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
+	convert.FrameworkToGraphBool(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
+	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
+	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
+	convert.FrameworkToGraphBool(data.UseDeviceLicensing, settings.SetUseDeviceLicensing)
 
 	return settings, nil
 }
@@ -367,7 +368,7 @@ func constructMicrosoftStoreForBusinessAppAssignmentSettings(data *sharedmodels.
 
 	settings := graphmodels.NewMicrosoftStoreForBusinessAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+	convert.FrameworkToGraphBool(data.UseDeviceContext, settings.SetUseDeviceContext)
 
 	return settings, nil
 }
@@ -383,7 +384,7 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 	if data.AutoUpdateSettings != nil {
 		autoUpdateSettings := graphmodels.NewWin32LobAppAutoUpdateSettings()
 
-		err := constructors.SetEnumProperty(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
+		err := convert.FrameworkToGraphEnum(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
 		if err != nil {
 			return nil, fmt.Errorf("error setting AutoUpdateSupersededAppsState: %v", err)
 		}
@@ -391,7 +392,7 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 		settings.SetAutoUpdateSettings(autoUpdateSettings)
 	}
 
-	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
+	err := convert.FrameworkToGraphEnum(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
 	if err != nil {
 		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
 	}
@@ -399,26 +400,26 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 	if data.InstallTimeSettings != nil {
 		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
 
-		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+		convert.FrameworkToGraphString(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
 			parsedDeadline, err := time.Parse(time.RFC3339, *value)
 			if err == nil {
 				installTimeSettings.SetDeadlineDateTime(&parsedDeadline)
 			}
 		})
 
-		constructors.SetStringProperty(data.InstallTimeSettings.StartDateTime, func(value *string) {
+		convert.FrameworkToGraphString(data.InstallTimeSettings.StartDateTime, func(value *string) {
 			parsedStart, err := time.Parse(time.RFC3339, *value)
 			if err == nil {
 				installTimeSettings.SetStartDateTime(&parsedStart)
 			}
 		})
 
-		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
+		convert.FrameworkToGraphBool(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
 
 		settings.SetInstallTimeSettings(installTimeSettings)
 	}
 
-	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
+	err = convert.FrameworkToGraphEnum(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Notifications: %v", err)
 	}
@@ -426,9 +427,9 @@ func constructWin32CatalogAppAssignmentSettings(data *sharedmodels.Win32CatalogA
 	if data.RestartSettings != nil {
 		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
 
-		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
 	}
@@ -446,7 +447,7 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 	if data.AutoUpdateSettings != nil {
 		autoUpdateSettings := graphmodels.NewWin32LobAppAutoUpdateSettings()
 
-		err := constructors.SetEnumProperty(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
+		err := convert.FrameworkToGraphEnum(data.AutoUpdateSettings.AutoUpdateSupersededAppsState, graphmodels.ParseWin32LobAutoUpdateSupersededAppsState, autoUpdateSettings.SetAutoUpdateSupersededAppsState)
 		if err != nil {
 			return nil, fmt.Errorf("error setting AutoUpdateSupersededAppsState: %v", err)
 		}
@@ -454,7 +455,7 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 		settings.SetAutoUpdateSettings(autoUpdateSettings)
 	}
 
-	err := constructors.SetEnumProperty(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
+	err := convert.FrameworkToGraphEnum(data.DeliveryOptimizationPriority, graphmodels.ParseWin32LobAppDeliveryOptimizationPriority, settings.SetDeliveryOptimizationPriority)
 	if err != nil {
 		return nil, fmt.Errorf("error setting DeliveryOptimizationPriority: %v", err)
 	}
@@ -462,26 +463,26 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 	if data.InstallTimeSettings != nil {
 		installTimeSettings := graphmodels.NewMobileAppInstallTimeSettings()
 
-		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+		convert.FrameworkToGraphString(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
 			parsedDeadline, err := time.Parse(time.RFC3339, *value)
 			if err == nil {
 				installTimeSettings.SetDeadlineDateTime(&parsedDeadline)
 			}
 		})
 
-		constructors.SetStringProperty(data.InstallTimeSettings.StartDateTime, func(value *string) {
+		convert.FrameworkToGraphString(data.InstallTimeSettings.StartDateTime, func(value *string) {
 			parsedStart, err := time.Parse(time.RFC3339, *value)
 			if err == nil {
 				installTimeSettings.SetStartDateTime(&parsedStart)
 			}
 		})
 
-		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
+		convert.FrameworkToGraphBool(data.InstallTimeSettings.UseLocalTime, installTimeSettings.SetUseLocalTime)
 
 		settings.SetInstallTimeSettings(installTimeSettings)
 	}
 
-	err = constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
+	err = convert.FrameworkToGraphEnum(data.Notifications, graphmodels.ParseWin32LobAppNotification, settings.SetNotifications)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Notifications: %v", err)
 	}
@@ -489,9 +490,9 @@ func constructWin32LobAppAssignmentSettings(data *sharedmodels.Win32LobAppAssign
 	if data.RestartSettings != nil {
 		restartSettings := graphmodels.NewWin32LobAppRestartSettings()
 
-		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.CountdownDisplayBeforeRestart, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.RestartNotificationSnoozeDuration, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
 	}
@@ -506,7 +507,7 @@ func constructWindowsAppXAssignmentSettings(data *sharedmodels.WindowsAppXAssign
 
 	settings := graphmodels.NewWindowsAppXAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+	convert.FrameworkToGraphBool(data.UseDeviceContext, settings.SetUseDeviceContext)
 
 	return settings, nil
 }
@@ -518,7 +519,7 @@ func constructWindowsUniversalAppXAssignmentSettings(data *sharedmodels.WindowsU
 
 	settings := graphmodels.NewWindowsUniversalAppXAppAssignmentSettings()
 
-	constructors.SetBoolProperty(data.UseDeviceContext, settings.SetUseDeviceContext)
+	convert.FrameworkToGraphBool(data.UseDeviceContext, settings.SetUseDeviceContext)
 
 	return settings, nil
 }
@@ -536,19 +537,19 @@ func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignment
 		//odataType := "microsoft.graph.winGetAppInstallTimeSettings"
 		//installSettings.SetOdataType(&odataType)
 
-		constructors.SetStringProperty(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
+		convert.FrameworkToGraphString(data.InstallTimeSettings.DeadlineDateTime, func(value *string) {
 			parsedDeadline, err := time.Parse(time.RFC3339, *value)
 			if err == nil {
 				installSettings.SetDeadlineDateTime(&parsedDeadline)
 			}
 		})
 
-		constructors.SetBoolProperty(data.InstallTimeSettings.UseLocalTime, installSettings.SetUseLocalTime)
+		convert.FrameworkToGraphBool(data.InstallTimeSettings.UseLocalTime, installSettings.SetUseLocalTime)
 
 		settings.SetInstallTimeSettings(installSettings)
 	}
 
-	err := constructors.SetEnumProperty(data.Notifications, graphmodels.ParseWinGetAppNotification, settings.SetNotifications)
+	err := convert.FrameworkToGraphEnum(data.Notifications, graphmodels.ParseWinGetAppNotification, settings.SetNotifications)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Notifications: %v", err)
 	}
@@ -560,9 +561,9 @@ func constructWinGetAppAssignmentSettings(data *sharedmodels.WinGetAppAssignment
 		//odataType := "microsoft.graph.winGetAppRestartSettings"
 		//restartSettings.SetOdataType(&odataType)
 
-		constructors.SetInt32Property(data.RestartSettings.CountdownDisplayBeforeRestartInMinutes, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
-		constructors.SetInt32Property(data.RestartSettings.RestartNotificationSnoozeDurationInMinutes, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.CountdownDisplayBeforeRestartInMinutes, restartSettings.SetCountdownDisplayBeforeRestartInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.GracePeriodInMinutes, restartSettings.SetGracePeriodInMinutes)
+		convert.FrameworkToGraphInt32(data.RestartSettings.RestartNotificationSnoozeDurationInMinutes, restartSettings.SetRestartNotificationSnoozeDurationInMinutes)
 
 		settings.SetRestartSettings(restartSettings)
 	}

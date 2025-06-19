@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -56,14 +56,14 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHea
 		case graphmodels.AllLicensedUsersAssignmentTargetable:
 			tflog.Debug(ctx, "Found AllLicensedUsersAssignmentTarget")
 			assignment.AllUsers = types.BoolValue(true)
-			assignment.AllUsersFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
-			assignment.AllUsersFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
+			assignment.AllUsersFilterId = convert.GraphToFrameworkString(t.GetDeviceAndAppManagementAssignmentFilterId())
+			assignment.AllUsersFilterType = convert.GraphToFrameworkEnum(t.GetDeviceAndAppManagementAssignmentFilterType())
 
 		case graphmodels.AllDevicesAssignmentTargetable:
 			tflog.Debug(ctx, "Found AllDevicesAssignmentTarget")
 			assignment.AllDevices = types.BoolValue(true)
-			assignment.AllDevicesFilterId = state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId())
-			assignment.AllDevicesFilterType = state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType())
+			assignment.AllDevicesFilterId = convert.GraphToFrameworkString(t.GetDeviceAndAppManagementAssignmentFilterId())
+			assignment.AllDevicesFilterType = convert.GraphToFrameworkEnum(t.GetDeviceAndAppManagementAssignmentFilterType())
 
 		case graphmodels.GroupAssignmentTargetable:
 			tflog.Debug(ctx, "Found GroupAssignmentTarget")
@@ -76,10 +76,10 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHea
 
 			// Create include group attributes map
 			attrs := map[string]attr.Value{
-				"group_id":                   state.StringPointerValue(groupId),
-				"include_groups_filter_type": state.EnumPtrToTypeString(t.GetDeviceAndAppManagementAssignmentFilterType()),
-				"include_groups_filter_id":   state.StringPointerValue(t.GetDeviceAndAppManagementAssignmentFilterId()),
-				"run_remediation_script":     state.BoolPointerValue(remoteAssignment.GetRunRemediationScript()),
+				"group_id":                   convert.GraphToFrameworkString(groupId),
+				"include_groups_filter_type": convert.GraphToFrameworkEnum(t.GetDeviceAndAppManagementAssignmentFilterType()),
+				"include_groups_filter_id":   convert.GraphToFrameworkString(t.GetDeviceAndAppManagementAssignmentFilterId()),
+				"run_remediation_script":     convert.GraphToFrameworkBool(remoteAssignment.GetRunRemediationScript()),
 				"run_schedule":               mapRunScheduleToTerraform(ctx, remoteAssignment.GetRunSchedule()),
 			}
 
@@ -107,7 +107,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, tfState *DeviceHea
 				continue
 			}
 
-			excludeGroupIds = append(excludeGroupIds, state.StringPointerValue(groupId))
+			excludeGroupIds = append(excludeGroupIds, convert.GraphToFrameworkString(groupId))
 			tflog.Debug(ctx, "Added exclude group", map[string]interface{}{
 				"groupId": *groupId,
 			})
@@ -194,20 +194,20 @@ func mapRunScheduleToTerraform(ctx context.Context, schedule graphmodels.DeviceH
 	switch s := schedule.(type) {
 	case *graphmodels.DeviceHealthScriptDailySchedule:
 		scheduleAttrs["schedule_type"] = types.StringValue("daily")
-		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
-		scheduleAttrs["time"] = state.TimeOnlyPtrToString(s.GetTime())
-		scheduleAttrs["use_utc"] = state.BoolPointerValue(s.GetUseUtc())
+		scheduleAttrs["interval"] = convert.GraphToFrameworkInt32(s.GetInterval())
+		scheduleAttrs["time"] = convert.GraphToFrameworkTimeOnly(s.GetTime())
+		scheduleAttrs["use_utc"] = convert.GraphToFrameworkBool(s.GetUseUtc())
 
 	case *graphmodels.DeviceHealthScriptHourlySchedule:
 		scheduleAttrs["schedule_type"] = types.StringValue("hourly")
-		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
+		scheduleAttrs["interval"] = convert.GraphToFrameworkInt32(s.GetInterval())
 
 	case *graphmodels.DeviceHealthScriptRunOnceSchedule:
 		scheduleAttrs["schedule_type"] = types.StringValue("once")
-		scheduleAttrs["interval"] = state.Int32PtrToTypeInt32(s.GetInterval())
-		scheduleAttrs["time"] = state.TimeOnlyPtrToString(s.GetTime())
-		scheduleAttrs["date"] = state.DateOnlyPtrToString(s.GetDate())
-		scheduleAttrs["use_utc"] = state.BoolPointerValue(s.GetUseUtc())
+		scheduleAttrs["interval"] = convert.GraphToFrameworkInt32(s.GetInterval())
+		scheduleAttrs["time"] = convert.GraphToFrameworkTimeOnly(s.GetTime())
+		scheduleAttrs["date"] = convert.GraphToFrameworkDateOnly(s.GetDate())
+		scheduleAttrs["use_utc"] = convert.GraphToFrameworkBool(s.GetUseUtc())
 
 	default:
 		tflog.Warn(ctx, "Unknown schedule type", map[string]interface{}{

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -23,11 +23,11 @@ func ConstructWindowsAutopilotDeploymentProfileAssignment(
 
 	assignment := graphmodels.NewWindowsAutopilotDeploymentProfileAssignment()
 
-	if err := constructors.SetEnumProperty(data.Source, graphmodels.ParseDeviceAndAppManagementAssignmentSource, assignment.SetSource); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.Source, graphmodels.ParseDeviceAndAppManagementAssignmentSource, assignment.SetSource); err != nil {
 		return nil, fmt.Errorf("error setting source: %v", err)
 	}
 
-	constructors.SetStringProperty(data.SourceId, assignment.SetSourceId)
+	convert.FrameworkToGraphString(data.SourceId, assignment.SetSourceId)
 
 	target, err := constructTarget(data.Target)
 	if err != nil {

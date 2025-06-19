@@ -1,16 +1,16 @@
 package graphBetaLinuxPlatformScript
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // MapRemoteStateToDataSource maps a Linux Platform Script to a model
 func MapRemoteStateToDataSource(data graphmodels.DeviceManagementConfigurationPolicyable) LinuxPlatformScriptModel {
 	model := LinuxPlatformScriptModel{
-		ID:          types.StringPointerValue(data.GetId()),
-		DisplayName: types.StringPointerValue(data.GetName()),
-		Description: types.StringPointerValue(data.GetDescription()),
+		ID:          convert.GraphToFrameworkString(data.GetId()),
+		DisplayName: convert.GraphToFrameworkString(data.GetName()),
+		Description: convert.GraphToFrameworkString(data.GetDescription()),
 	}
 
 	return model

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,19 +17,19 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		return
 	}
 
-	resourceID := state.StringPtrToString(remoteResource.GetId())
+	resourceID := convert.GraphToFrameworkString(remoteResource.GetId()).ValueString()
+
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
 		"resourceId": resourceID,
 	})
 
 	// Set basic properties
 	data.ID = types.StringValue(resourceID)
-	data.DisplayName = types.StringValue(state.StringPtrToString(remoteResource.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(remoteResource.GetDescription()))
-	data.IsBuiltIn = state.BoolPtrToTypeBool(remoteResource.GetIsBuiltIn())
-	data.IsBuiltInRoleDefinition = state.BoolPtrToTypeBool(remoteResource.GetIsBuiltInRoleDefinition())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.IsBuiltIn = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltIn())
+	data.IsBuiltInRoleDefinition = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltInRoleDefinition())
 
-	// Process rolePermissions
 	rolePermissions := remoteResource.GetRolePermissions()
 	if len(rolePermissions) > 0 {
 		mappedPermissions := make([]RolePermissionResourceModel, 0, len(rolePermissions))
@@ -37,10 +37,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		for _, rp := range rolePermissions {
 			permModel := RolePermissionResourceModel{}
 
-			// Collect all allowed resource actions
 			var allAllowedActions []string
 
-			// Add actions from resourceActions field
 			resourceActions := rp.GetResourceActions()
 			for _, ra := range resourceActions {
 				allowedActions := ra.GetAllowedResourceActions()
@@ -93,7 +91,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		data.RolePermissions = []RolePermissionResourceModel{}
 	}
 
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,9 +32,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *GroupLicenseAs
 	})
 
 	// Set basic group information
-	data.ID = state.StringPointerValue(remoteResource.GetId())
-	data.GroupId = state.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = state.StringPointerValue(remoteResource.GetDisplayName())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.GroupId = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 
 	// Map assigned licenses
 	assignedLicenses := remoteResource.GetAssignedLicenses()

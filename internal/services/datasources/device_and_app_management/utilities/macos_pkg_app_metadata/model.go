@@ -28,7 +28,7 @@ type MetadataDataSourceModel struct {
 	InstallLocation types.String `tfsdk:"install_location"`
 	AppPaths        types.List   `tfsdk:"app_paths"`
 	MinOSVersion    types.String `tfsdk:"min_os_version"`
-	SizeMB          types.Int64  `tfsdk:"size_mb"`
+	SizeMB          types.Int32  `tfsdk:"size_mb"`
 	SHA256Checksum  types.String `tfsdk:"sha256_checksum"`
 	MD5Checksum     types.String `tfsdk:"md5_checksum"`
 

@@ -5,8 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -22,16 +21,16 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 		"resourceId": remoteResource.GetId(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.Name = types.StringPointerValue(remoteResource.GetName())
-	data.Version = types.StringPointerValue(remoteResource.GetVersion())
-	data.Manufacturer = types.StringPointerValue(remoteResource.GetManufacturer())
-	data.DriverClass = types.StringPointerValue(remoteResource.GetDriverClass())
-	data.ApprovalStatus = state.EnumPtrToTypeString(remoteResource.GetApprovalStatus())
-	data.Category = state.EnumPtrToTypeString(remoteResource.GetCategory())
-	data.ReleaseDateTime = state.TimeToString(remoteResource.GetReleaseDateTime())
-	data.DeployDateTime = state.TimeToString(remoteResource.GetDeployDateTime())
-	data.ApplicableDeviceCount = state.Int32PtrToTypeInt32(remoteResource.GetApplicableDeviceCount())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
+	data.Version = convert.GraphToFrameworkString(remoteResource.GetVersion())
+	data.Manufacturer = convert.GraphToFrameworkString(remoteResource.GetManufacturer())
+	data.DriverClass = convert.GraphToFrameworkString(remoteResource.GetDriverClass())
+	data.ApprovalStatus = convert.GraphToFrameworkEnum(remoteResource.GetApprovalStatus())
+	data.Category = convert.GraphToFrameworkEnum(remoteResource.GetCategory())
+	data.ReleaseDateTime = convert.GraphToFrameworkTime(remoteResource.GetReleaseDateTime())
+	data.DeployDateTime = convert.GraphToFrameworkTime(remoteResource.GetDeployDateTime())
+	data.ApplicableDeviceCount = convert.GraphToFrameworkInt32(remoteResource.GetApplicableDeviceCount())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

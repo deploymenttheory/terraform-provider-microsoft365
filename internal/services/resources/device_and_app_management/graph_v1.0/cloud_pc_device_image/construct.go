@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
@@ -16,9 +17,9 @@ func constructResource(ctx context.Context, data *CloudPcDeviceImageResourceMode
 
 	requestBody := models.NewCloudPcDeviceImage()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.SourceImageResourceId, requestBody.SetSourceImageResourceId)
-	constructors.SetStringProperty(data.Version, requestBody.SetVersion)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.SourceImageResourceId, requestBody.SetSourceImageResourceId)
+	convert.FrameworkToGraphString(data.Version, requestBody.SetVersion)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

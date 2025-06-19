@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -14,9 +15,9 @@ func constructResource(ctx context.Context, data ResourceOperationResourceModel)
 
 	resourceOperation := graphmodels.NewResourceOperation()
 
-	constructors.SetStringProperty(data.ResourceName, resourceOperation.SetResourceName)
-	constructors.SetStringProperty(data.ActionName, resourceOperation.SetActionName)
-	constructors.SetStringProperty(data.Description, resourceOperation.SetDescription)
+	convert.FrameworkToGraphString(data.ResourceName, resourceOperation.SetResourceName)
+	convert.FrameworkToGraphString(data.ActionName, resourceOperation.SetActionName)
+	convert.FrameworkToGraphString(data.Description, resourceOperation.SetDescription)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed resource operation", resourceOperation); err != nil {
 		tflog.Error(ctx, "Failed to log resource operation", map[string]interface{}{

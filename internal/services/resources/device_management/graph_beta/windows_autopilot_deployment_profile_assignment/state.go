@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,11 +17,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data WindowsAutopilotDeploym
 		return data
 	}
 
-	data.ID = state.StringPointerValue(assignment.GetId())
-	data.Source = state.EnumPtrToTypeString(assignment.GetSource())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
+	data.Source = convert.GraphToFrameworkEnum(assignment.GetSource())
 
 	if !data.SourceId.IsNull() && !data.SourceId.IsUnknown() {
-		data.SourceId = state.StringPointerValue(assignment.GetSourceId())
+		data.SourceId = convert.GraphToFrameworkString(assignment.GetSourceId())
 	}
 
 	if target := assignment.GetTarget(); target != nil {
@@ -47,15 +47,15 @@ func mapRemoteTargetToTerraform(target graphmodels.DeviceAndAppManagementAssignm
 	}
 
 	// Map common properties
-	targetModel.DeviceAndAppManagementAssignmentFilterId = state.StringPointerValue(target.GetDeviceAndAppManagementAssignmentFilterId())
-	targetModel.DeviceAndAppManagementAssignmentFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
+	targetModel.DeviceAndAppManagementAssignmentFilterId = convert.GraphToFrameworkString(target.GetDeviceAndAppManagementAssignmentFilterId())
+	targetModel.DeviceAndAppManagementAssignmentFilterType = convert.GraphToFrameworkEnum(target.GetDeviceAndAppManagementAssignmentFilterType())
 
 	// Map group-specific properties
 	switch typedTarget := target.(type) {
 	case graphmodels.GroupAssignmentTargetable:
-		targetModel.GroupId = state.StringPointerValue(typedTarget.GetGroupId())
+		targetModel.GroupId = convert.GraphToFrameworkString(typedTarget.GetGroupId())
 	case graphmodels.ExclusionGroupAssignmentTargetable:
-		targetModel.GroupId = state.StringPointerValue(typedTarget.GetGroupId())
+		targetModel.GroupId = convert.GraphToFrameworkString(typedTarget.GetGroupId())
 	}
 
 	return targetModel

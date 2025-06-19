@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,7 +17,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data WindowsDriverUpdateProf
 		return data
 	}
 
-	data.ID = state.StringPointerValue(assignment.GetId())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
 
 	if target := assignment.GetTarget(); target != nil {
 		data.Target = mapRemoteTargetToTerraform(target)
@@ -35,13 +35,13 @@ func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementA
 	switch v := remoteTarget.(type) {
 	case *graphmodels.GroupAssignmentTarget:
 		target.TargetType = types.StringValue("groupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ExclusionGroupAssignmentTarget:
 		target.TargetType = types.StringValue("exclusionGroupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ConfigurationManagerCollectionAssignmentTarget:
 		target.TargetType = types.StringValue("configurationManagerCollection")
-		target.CollectionId = types.StringPointerValue(v.GetCollectionId())
+		target.CollectionId = convert.GraphToFrameworkString(v.GetCollectionId())
 	}
 
 	return target

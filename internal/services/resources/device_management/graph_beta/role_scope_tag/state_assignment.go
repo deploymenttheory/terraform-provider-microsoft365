@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -36,9 +37,7 @@ func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleSco
 				continue
 			}
 
-			if groupTarget.GetGroupId() != nil {
-				groupIDs = append(groupIDs, types.StringValue(*groupTarget.GetGroupId()))
-			}
+			groupIDs = append(groupIDs, convert.GraphToFrameworkString(groupTarget.GetGroupId()))
 		}
 	}
 

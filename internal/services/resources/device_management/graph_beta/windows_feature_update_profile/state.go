@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -19,17 +18,17 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{"resourceId": remoteResource.GetId()})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.FeatureUpdateVersion = types.StringPointerValue(remoteResource.GetFeatureUpdateVersion())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
-	data.DeployableContentDisplayName = types.StringPointerValue(remoteResource.GetDeployableContentDisplayName())
-	data.EndOfSupportDate = state.TimeToString(remoteResource.GetEndOfSupportDate())
-	data.InstallLatestWindows10OnWindows11IneligibleDevice = state.BoolPtrToTypeBool(remoteResource.GetInstallLatestWindows10OnWindows11IneligibleDevice())
-	data.InstallFeatureUpdatesOptional = state.BoolPtrToTypeBool(remoteResource.GetInstallFeatureUpdatesOptional())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.FeatureUpdateVersion = convert.GraphToFrameworkString(remoteResource.GetFeatureUpdateVersion())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.DeployableContentDisplayName = convert.GraphToFrameworkString(remoteResource.GetDeployableContentDisplayName())
+	data.EndOfSupportDate = convert.GraphToFrameworkTime(remoteResource.GetEndOfSupportDate())
+	data.InstallLatestWindows10OnWindows11IneligibleDevice = convert.GraphToFrameworkBool(remoteResource.GetInstallLatestWindows10OnWindows11IneligibleDevice())
+	data.InstallFeatureUpdatesOptional = convert.GraphToFrameworkBool(remoteResource.GetInstallFeatureUpdatesOptional())
 
 	// Handles scenarios when rollout_settings block is not included within request
 	// equivilent to the rollout option 'Make update available as soon as possible'
@@ -39,9 +38,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsFeature
 			rolloutSettings.GetOfferIntervalInDays() != nil {
 
 			data.RolloutSettings = &RolloutSettingsModel{
-				OfferStartDateTimeInUTC: state.TimeToString(rolloutSettings.GetOfferStartDateTimeInUTC()),
-				OfferEndDateTimeInUTC:   state.TimeToString(rolloutSettings.GetOfferEndDateTimeInUTC()),
-				OfferIntervalInDays:     state.Int32PtrToTypeInt32(rolloutSettings.GetOfferIntervalInDays()),
+				OfferStartDateTimeInUTC: convert.GraphToFrameworkTime(rolloutSettings.GetOfferStartDateTimeInUTC()),
+				OfferEndDateTimeInUTC:   convert.GraphToFrameworkTime(rolloutSettings.GetOfferEndDateTimeInUTC()),
+				OfferIntervalInDays:     convert.GraphToFrameworkInt32(rolloutSettings.GetOfferIntervalInDays()),
 			}
 		}
 	}

@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -18,54 +19,54 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{"resourceId": apiData.GetId()})
 
-	data.ID = state.StringPointerValue(apiData.GetId())
-	data.DisplayName = state.StringPointerValue(apiData.GetDisplayName())
-	data.Description = state.StringPointerValue(apiData.GetDescription())
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, apiData.GetRoleScopeTagIds())
-	data.MicrosoftUpdateServiceAllowed = state.BoolPointerValue(apiData.GetMicrosoftUpdateServiceAllowed())
-	data.DriversExcluded = state.BoolPointerValue(apiData.GetDriversExcluded())
-	data.QualityUpdatesDeferralPeriodInDays = state.Int32PtrToTypeInt32(apiData.GetQualityUpdatesDeferralPeriodInDays())
-	data.FeatureUpdatesDeferralPeriodInDays = state.Int32PtrToTypeInt32(apiData.GetFeatureUpdatesDeferralPeriodInDays())
-	data.AllowWindows11Upgrade = state.BoolPointerValue(apiData.GetAllowWindows11Upgrade())
-	data.QualityUpdatesPaused = state.BoolPointerValue(apiData.GetQualityUpdatesPaused())
-	data.FeatureUpdatesPaused = state.BoolPointerValue(apiData.GetFeatureUpdatesPaused())
-	data.SkipChecksBeforeRestart = state.BoolPointerValue(apiData.GetSkipChecksBeforeRestart())
-	data.BusinessReadyUpdatesOnly = state.EnumPtrToTypeString(apiData.GetBusinessReadyUpdatesOnly())
-	data.AutomaticUpdateMode = state.EnumPtrToTypeString(apiData.GetAutomaticUpdateMode())
-	data.UpdateNotificationLevel = state.EnumPtrToTypeString(apiData.GetUpdateNotificationLevel())
-	data.DeliveryOptimizationMode = state.EnumPtrToTypeString(apiData.GetDeliveryOptimizationMode())
-	data.PrereleaseFeatures = state.EnumPtrToTypeString(apiData.GetPrereleaseFeatures())
-	data.UpdateWeeks = state.EnumPtrToTypeString(apiData.GetUpdateWeeks())
+	data.ID = convert.GraphToFrameworkString(apiData.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(apiData.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(apiData.GetDescription())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, apiData.GetRoleScopeTagIds())
+	data.MicrosoftUpdateServiceAllowed = convert.GraphToFrameworkBool(apiData.GetMicrosoftUpdateServiceAllowed())
+	data.DriversExcluded = convert.GraphToFrameworkBool(apiData.GetDriversExcluded())
+	data.QualityUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(apiData.GetQualityUpdatesDeferralPeriodInDays())
+	data.FeatureUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(apiData.GetFeatureUpdatesDeferralPeriodInDays())
+	data.AllowWindows11Upgrade = convert.GraphToFrameworkBool(apiData.GetAllowWindows11Upgrade())
+	data.QualityUpdatesPaused = convert.GraphToFrameworkBool(apiData.GetQualityUpdatesPaused())
+	data.FeatureUpdatesPaused = convert.GraphToFrameworkBool(apiData.GetFeatureUpdatesPaused())
+	data.SkipChecksBeforeRestart = convert.GraphToFrameworkBool(apiData.GetSkipChecksBeforeRestart())
+	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(apiData.GetBusinessReadyUpdatesOnly())
+	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(apiData.GetAutomaticUpdateMode())
+	data.UpdateNotificationLevel = convert.GraphToFrameworkEnum(apiData.GetUpdateNotificationLevel())
+	data.DeliveryOptimizationMode = convert.GraphToFrameworkEnum(apiData.GetDeliveryOptimizationMode())
+	data.PrereleaseFeatures = convert.GraphToFrameworkEnum(apiData.GetPrereleaseFeatures())
+	data.UpdateWeeks = convert.GraphToFrameworkEnum(apiData.GetUpdateWeeks())
 
 	if installationSchedule := apiData.GetInstallationSchedule(); installationSchedule != nil {
 		if activeHoursInstall, ok := installationSchedule.(graphmodels.WindowsUpdateActiveHoursInstallable); ok {
 			if activeHoursInstall.GetActiveHoursStart() != nil {
-				data.ActiveHoursStart = state.StringValue(activeHoursInstall.GetActiveHoursStart().String())
+				data.ActiveHoursStart = types.StringValue(activeHoursInstall.GetActiveHoursStart().String())
 			}
 
 			if activeHoursInstall.GetActiveHoursEnd() != nil {
-				data.ActiveHoursEnd = state.StringValue(activeHoursInstall.GetActiveHoursEnd().String())
+				data.ActiveHoursEnd = types.StringValue(activeHoursInstall.GetActiveHoursEnd().String())
 			}
 		} else {
 			tflog.Warn(ctx, "Installation schedule is not of type WindowsUpdateActiveHoursInstallable")
 		}
 	}
 
-	data.UserPauseAccess = state.EnumPtrToTypeString(apiData.GetUserPauseAccess())
-	data.UserWindowsUpdateScanAccess = state.EnumPtrToTypeString(apiData.GetUserWindowsUpdateScanAccess())
-	data.FeatureUpdatesRollbackWindowInDays = state.Int32PtrToTypeInt32(apiData.GetFeatureUpdatesRollbackWindowInDays())
-	data.DeadlineForFeatureUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetDeadlineForFeatureUpdatesInDays())
-	data.DeadlineForQualityUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetDeadlineForQualityUpdatesInDays())
-	data.DeadlineGracePeriodInDays = state.Int32PtrToTypeInt32(apiData.GetDeadlineGracePeriodInDays())
-	data.PostponeRebootUntilAfterDeadline = state.BoolPointerValue(apiData.GetPostponeRebootUntilAfterDeadline())
-	data.EngagedRestartDeadlineInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartDeadlineInDays())
-	data.EngagedRestartSnoozeScheduleInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
-	data.AutoRestartNotificationDismissal = state.EnumPtrToTypeString(apiData.GetAutoRestartNotificationDismissal())
-	data.ScheduleRestartWarningInHours = state.Int32PtrToTypeInt32(apiData.GetScheduleRestartWarningInHours())
-	data.ScheduleImminentRestartWarningInMinutes = state.Int32PtrToTypeInt32(apiData.GetScheduleImminentRestartWarningInMinutes())
-	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = state.Int32PtrToTypeInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
+	data.UserPauseAccess = convert.GraphToFrameworkEnum(apiData.GetUserPauseAccess())
+	data.UserWindowsUpdateScanAccess = convert.GraphToFrameworkEnum(apiData.GetUserWindowsUpdateScanAccess())
+	data.FeatureUpdatesRollbackWindowInDays = convert.GraphToFrameworkInt32(apiData.GetFeatureUpdatesRollbackWindowInDays())
+	data.DeadlineForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineForFeatureUpdatesInDays())
+	data.DeadlineForQualityUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineForQualityUpdatesInDays())
+	data.DeadlineGracePeriodInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineGracePeriodInDays())
+	data.PostponeRebootUntilAfterDeadline = convert.GraphToFrameworkBool(apiData.GetPostponeRebootUntilAfterDeadline())
+	data.EngagedRestartDeadlineInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartDeadlineInDays())
+	data.EngagedRestartSnoozeScheduleInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
+	data.EngagedRestartTransitionScheduleInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
+	data.AutoRestartNotificationDismissal = convert.GraphToFrameworkEnum(apiData.GetAutoRestartNotificationDismissal())
+	data.ScheduleRestartWarningInHours = convert.GraphToFrameworkInt32(apiData.GetScheduleRestartWarningInHours())
+	data.ScheduleImminentRestartWarningInMinutes = convert.GraphToFrameworkInt32(apiData.GetScheduleImminentRestartWarningInMinutes())
+	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
+	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

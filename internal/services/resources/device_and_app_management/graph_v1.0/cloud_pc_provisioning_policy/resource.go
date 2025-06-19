@@ -139,7 +139,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Optional:    true,
 				Description: "True if the provisioned Cloud PC can be accessed by single sign-on. False indicates that the provisioned Cloud PC doesn't support this feature. The default value is false. Supports $filter, $select, and $orderby.",
 			},
-			"grace_period_in_hours": schema.Int64Attribute{
+			"grace_period_in_hours": schema.Int32Attribute{
 				Computed:    true,
 				Description: "The number of hours to wait before reprovisioning/deprovisioning happens. Read-only.",
 			},

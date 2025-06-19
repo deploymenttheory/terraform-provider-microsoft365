@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,7 +17,7 @@ func constructResource(ctx context.Context, data *ApplicationCategoryResourceMod
 
 	requestBody := graphmodels.NewMobileAppCategory()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

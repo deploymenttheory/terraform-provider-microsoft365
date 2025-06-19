@@ -137,7 +137,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 				Computed:            true,
 				MarkdownDescription: "Last modification date and time of the policy",
 			},
-			"settings_count": schema.Int64Attribute{
+			"settings_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of settings with the policy. This will change over time as the resource is updated.",
 			},

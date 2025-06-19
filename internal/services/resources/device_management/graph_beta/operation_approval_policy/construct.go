@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,16 +16,16 @@ func constructResource(ctx context.Context, data OperationApprovalPolicyResource
 
 	policy := graphmodels.NewOperationApprovalPolicy()
 
-	constructors.SetStringProperty(data.DisplayName, policy.SetDisplayName)
-	constructors.SetStringProperty(data.Description, policy.SetDescription)
+	convert.FrameworkToGraphString(data.DisplayName, policy.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, policy.SetDescription)
 
-	if err := constructors.SetEnumProperty(data.PolicyType,
+	if err := convert.FrameworkToGraphEnum(data.PolicyType,
 		func(s string) (any, error) { return graphmodels.ParseOperationApprovalPolicyType(s) },
 		policy.SetPolicyType); err != nil {
 		return nil, fmt.Errorf("error setting policy type: %v", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.PolicyPlatform,
+	if err := convert.FrameworkToGraphEnum(data.PolicyPlatform,
 		func(s string) (any, error) { return graphmodels.ParseOperationApprovalPolicyPlatform(s) },
 		policy.SetPolicyPlatform); err != nil {
 		return nil, fmt.Errorf("error setting policy platform: %v", err)
@@ -36,7 +37,7 @@ func constructResource(ctx context.Context, data OperationApprovalPolicyResource
 	}
 	policy.SetPolicySet(policySet)
 
-	if err := constructors.SetStringSet(ctx, data.ApproverGroupIds, policy.SetApproverGroupIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ApproverGroupIds, policy.SetApproverGroupIds); err != nil {
 		return nil, fmt.Errorf("error setting approver group IDs: %v", err)
 	}
 
@@ -57,13 +58,13 @@ func constructPolicySet(ctx context.Context, data *OperationApprovalPolicySetRes
 
 	policySet := graphmodels.NewOperationApprovalPolicySet()
 
-	if err := constructors.SetEnumProperty(data.PolicyType,
+	if err := convert.FrameworkToGraphEnum(data.PolicyType,
 		func(s string) (any, error) { return graphmodels.ParseOperationApprovalPolicyType(s) },
 		policySet.SetPolicyType); err != nil {
 		return nil, fmt.Errorf("error setting policy set policy type: %v", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.PolicyPlatform,
+	if err := convert.FrameworkToGraphEnum(data.PolicyPlatform,
 		func(s string) (any, error) { return graphmodels.ParseOperationApprovalPolicyPlatform(s) },
 		policySet.SetPolicyPlatform); err != nil {
 		return nil, fmt.Errorf("error setting policy set policy platform: %v", err)

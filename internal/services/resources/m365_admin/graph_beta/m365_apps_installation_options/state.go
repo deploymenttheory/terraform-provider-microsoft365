@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
@@ -19,13 +19,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data *M365AppsInstallationOp
 
 	updateChannel := remoteResource.GetUpdateChannel()
 	if updateChannel != nil {
-		data.UpdateChannel = state.EnumPtrToTypeString(updateChannel)
+		data.UpdateChannel = convert.GraphToFrameworkEnum(updateChannel)
 	}
 
 	if remoteWindows := remoteResource.GetAppsForWindows(); remoteWindows != nil {
 		data.AppsForWindows = &AppsInstallationOptionsForWindows{
-			IsMicrosoft365AppsEnabled: state.BoolPtrToTypeBool(remoteWindows.GetIsMicrosoft365AppsEnabled()),
-			IsSkypeForBusinessEnabled: state.BoolPtrToTypeBool(remoteWindows.GetIsSkypeForBusinessEnabled()),
+			IsMicrosoft365AppsEnabled: convert.GraphToFrameworkBool(remoteWindows.GetIsMicrosoft365AppsEnabled()),
+			IsSkypeForBusinessEnabled: convert.GraphToFrameworkBool(remoteWindows.GetIsSkypeForBusinessEnabled()),
 		}
 	} else {
 		data.AppsForWindows = nil
@@ -33,8 +33,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *M365AppsInstallationOp
 
 	if remoteMac := remoteResource.GetAppsForMac(); remoteMac != nil {
 		data.AppsForMac = &AppsInstallationOptionsForMac{
-			IsMicrosoft365AppsEnabled: state.BoolPtrToTypeBool(remoteMac.GetIsMicrosoft365AppsEnabled()),
-			IsSkypeForBusinessEnabled: state.BoolPtrToTypeBool(remoteMac.GetIsSkypeForBusinessEnabled()),
+			IsMicrosoft365AppsEnabled: convert.GraphToFrameworkBool(remoteMac.GetIsMicrosoft365AppsEnabled()),
+			IsSkypeForBusinessEnabled: convert.GraphToFrameworkBool(remoteMac.GetIsSkypeForBusinessEnabled()),
 		}
 	} else {
 		data.AppsForMac = nil

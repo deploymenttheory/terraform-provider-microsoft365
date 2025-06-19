@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -82,7 +82,7 @@ func processSetting(ctx context.Context, setting Setting, settingsRequestPayload
 		choiceInstance := instance.(graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable)
 		if setting.SettingInstance.ChoiceSettingValue != nil {
 			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-			constructors.SetStringProperty(setting.SettingInstance.ChoiceSettingValue.Value, choiceValue.SetValue)
+			convert.FrameworkToGraphString(setting.SettingInstance.ChoiceSettingValue.Value, choiceValue.SetValue)
 			setValueTemplateReference(choiceValue, setting.SettingInstance.ChoiceSettingValue.SettingValueTemplateReference)
 
 			if len(setting.SettingInstance.ChoiceSettingValue.Children) > 0 {
@@ -158,32 +158,32 @@ func createBaseInstance(ctx context.Context, odataType types.String, settingDefi
 	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
 		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
 		// Use constructor helpers to handle types.String -> *string conversion
-		constructors.SetStringProperty(odataType, instance.SetOdataType)
-		constructors.SetStringProperty(settingDefinitionId, instance.SetSettingDefinitionId)
+		convert.FrameworkToGraphString(odataType, instance.SetOdataType)
+		convert.FrameworkToGraphString(settingDefinitionId, instance.SetSettingDefinitionId)
 		return instance, "simple"
 
 	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
 		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
-		constructors.SetStringProperty(odataType, instance.SetOdataType)
-		constructors.SetStringProperty(settingDefinitionId, instance.SetSettingDefinitionId)
+		convert.FrameworkToGraphString(odataType, instance.SetOdataType)
+		convert.FrameworkToGraphString(settingDefinitionId, instance.SetSettingDefinitionId)
 		return instance, "choice"
 
 	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
 		instance := graphmodels.NewDeviceManagementConfigurationSimpleSettingCollectionInstance()
-		constructors.SetStringProperty(odataType, instance.SetOdataType)
-		constructors.SetStringProperty(settingDefinitionId, instance.SetSettingDefinitionId)
+		convert.FrameworkToGraphString(odataType, instance.SetOdataType)
+		convert.FrameworkToGraphString(settingDefinitionId, instance.SetSettingDefinitionId)
 		return instance, "simpleCollection"
 
 	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
 		instance := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
-		constructors.SetStringProperty(odataType, instance.SetOdataType)
-		constructors.SetStringProperty(settingDefinitionId, instance.SetSettingDefinitionId)
+		convert.FrameworkToGraphString(odataType, instance.SetOdataType)
+		convert.FrameworkToGraphString(settingDefinitionId, instance.SetSettingDefinitionId)
 		return instance, "choiceCollection"
 
 	case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
 		instance := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
-		constructors.SetStringProperty(odataType, instance.SetOdataType)
-		constructors.SetStringProperty(settingDefinitionId, instance.SetSettingDefinitionId)
+		convert.FrameworkToGraphString(odataType, instance.SetOdataType)
+		convert.FrameworkToGraphString(settingDefinitionId, instance.SetSettingDefinitionId)
 		return instance, "groupCollection"
 	}
 
@@ -222,14 +222,14 @@ func handleSimpleValue(ctx context.Context, valueStruct *SimpleSettingStruct) gr
 	switch odataTypeStr {
 	case "#microsoft.graph.deviceManagementConfigurationStringSettingValue":
 		stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-		constructors.SetStringProperty(valueStruct.ODataType, stringValue.SetOdataType)
-		constructors.SetStringProperty(valueStruct.Value, stringValue.SetValue)
+		convert.FrameworkToGraphString(valueStruct.ODataType, stringValue.SetOdataType)
+		convert.FrameworkToGraphString(valueStruct.Value, stringValue.SetValue)
 		result = stringValue
 
 	case "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue":
 		if intVal, err := strconv.Atoi(valueStruct.Value.ValueString()); err == nil {
 			intValue := graphmodels.NewDeviceManagementConfigurationIntegerSettingValue()
-			constructors.SetStringProperty(valueStruct.ODataType, intValue.SetOdataType)
+			convert.FrameworkToGraphString(valueStruct.ODataType, intValue.SetOdataType)
 			int32Value := int32(intVal)
 			intValue.SetValue(&int32Value)
 			result = intValue
@@ -243,8 +243,8 @@ func handleSimpleValue(ctx context.Context, valueStruct *SimpleSettingStruct) gr
 
 	case "#microsoft.graph.deviceManagementConfigurationSecretSettingValue":
 		secretValue := graphmodels.NewDeviceManagementConfigurationSecretSettingValue()
-		constructors.SetStringProperty(valueStruct.ODataType, secretValue.SetOdataType)
-		constructors.SetStringProperty(valueStruct.Value, secretValue.SetValue)
+		convert.FrameworkToGraphString(valueStruct.ODataType, secretValue.SetOdataType)
+		convert.FrameworkToGraphString(valueStruct.Value, secretValue.SetValue)
 
 		// Handle ValueState if it's not null/unknown/empty
 		if !valueStruct.ValueState.IsNull() && !valueStruct.ValueState.IsUnknown() && valueStruct.ValueState.ValueString() != "" {
@@ -272,8 +272,8 @@ func handleSimpleSettingCollection(collectionValues []SimpleSettingCollectionStr
 	var values []graphmodels.DeviceManagementConfigurationSimpleSettingValueable
 	for _, v := range collectionValues {
 		stringValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
-		constructors.SetStringProperty(v.ODataType, stringValue.SetOdataType)
-		constructors.SetStringProperty(v.Value, stringValue.SetValue)
+		convert.FrameworkToGraphString(v.ODataType, stringValue.SetOdataType)
+		convert.FrameworkToGraphString(v.Value, stringValue.SetValue)
 		setValueTemplateReference(stringValue, v.SettingValueTemplateReference)
 		values = append(values, stringValue)
 	}
@@ -359,7 +359,7 @@ func handleChoiceCollectionValue(ctx context.Context, collectionValues []ChoiceS
 
 	for _, choiceItem := range collectionValues {
 		choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-		constructors.SetStringProperty(choiceItem.Value, choiceValue.SetValue)
+		convert.FrameworkToGraphString(choiceItem.Value, choiceValue.SetValue)
 		setValueTemplateReference(choiceValue, choiceItem.SettingValueTemplateReference)
 
 		var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
@@ -426,7 +426,7 @@ func handleSettingInstance(ctx context.Context, instance SettingInstance) graphm
 		choiceInstance := baseInstance.(graphmodels.DeviceManagementConfigurationChoiceSettingInstanceable)
 		if instance.ChoiceSettingValue != nil {
 			choiceValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-			constructors.SetStringProperty(instance.ChoiceSettingValue.Value, choiceValue.SetValue)
+			convert.FrameworkToGraphString(instance.ChoiceSettingValue.Value, choiceValue.SetValue)
 			setValueTemplateReference(choiceValue, instance.ChoiceSettingValue.SettingValueTemplateReference)
 
 			if len(instance.ChoiceSettingValue.Children) > 0 {
@@ -488,7 +488,7 @@ func setInstanceTemplateReference(instance graphmodels.DeviceManagementConfigura
 	if ref != nil {
 		templateRef := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
 
-		constructors.SetStringProperty(ref.SettingInstanceTemplateId, templateRef.SetSettingInstanceTemplateId)
+		convert.FrameworkToGraphString(ref.SettingInstanceTemplateId, templateRef.SetSettingInstanceTemplateId)
 
 		instance.SetSettingInstanceTemplateReference(templateRef)
 	}
@@ -530,7 +530,7 @@ func setValueTemplateReference(value interface{}, ref *SettingValueTemplateRefer
 		templateRef := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
 
 		// Use constructor helper to handle types.String -> *string conversion
-		constructors.SetStringProperty(ref.SettingValueTemplateId, templateRef.SetSettingValueTemplateId)
+		convert.FrameworkToGraphString(ref.SettingValueTemplateId, templateRef.SetSettingValueTemplateId)
 
 		// UseTemplateDefault is already a bool, so we can pass it directly
 		templateRef.SetUseTemplateDefault(&ref.UseTemplateDefault)

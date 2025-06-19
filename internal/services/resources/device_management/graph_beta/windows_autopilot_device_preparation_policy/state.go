@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -19,17 +20,17 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(resource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(resource.GetId()),
 	})
 
-	stateModel.ID = state.StringPointerValue(resource.GetId())
-	stateModel.Name = state.StringPointerValue(resource.GetName())
-	stateModel.Description = state.StringPointerValue(resource.GetDescription())
-	stateModel.IsAssigned = state.BoolPointerValue(resource.GetIsAssigned())
-	stateModel.CreatedDateTime = state.TimeToString(resource.GetCreatedDateTime())
-	stateModel.LastModifiedDateTime = state.TimeToString(resource.GetLastModifiedDateTime())
-	stateModel.SettingsCount = state.Int32PtrToTypeInt64(resource.GetSettingCount())
-	stateModel.RoleScopeTagIds = state.StringSliceToSet(ctx, resource.GetRoleScopeTagIds())
+	stateModel.ID = convert.GraphToFrameworkString(resource.GetId())
+	stateModel.Name = convert.GraphToFrameworkString(resource.GetName())
+	stateModel.Description = convert.GraphToFrameworkString(resource.GetDescription())
+	stateModel.IsAssigned = convert.GraphToFrameworkBool(resource.GetIsAssigned())
+	stateModel.CreatedDateTime = convert.GraphToFrameworkTime(resource.GetCreatedDateTime())
+	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(resource.GetLastModifiedDateTime())
+	stateModel.SettingsCount = convert.GraphToFrameworkInt32(resource.GetSettingCount())
+	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
 
 	// Map platform and technologies
 	if platforms := resource.GetPlatforms(); platforms != nil {
@@ -42,7 +43,7 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 
 	if templateRef := resource.GetTemplateReference(); templateRef != nil {
 		if templateId := templateRef.GetTemplateId(); templateId != nil {
-			stateModel.TemplateId = state.StringPointerValue(templateRef.GetTemplateId())
+			stateModel.TemplateId = convert.GraphToFrameworkString(templateRef.GetTemplateId())
 		}
 
 		if templateFamily := templateRef.GetTemplateFamily(); templateFamily != nil {
@@ -161,7 +162,7 @@ func extractStringValue(ctx context.Context, settingInstance models.DeviceManage
 			// Try strongly typed conversion
 			if stringValue, ok := simpleValue.(models.DeviceManagementConfigurationStringSettingValueable); ok {
 				if stringVal := stringValue.GetValue(); stringVal != nil {
-					*target = types.StringValue(*stringVal)
+					*target = convert.GraphToFrameworkString(stringVal)
 					return
 				}
 			}
@@ -271,7 +272,7 @@ func extractChoiceValue(ctx context.Context, settingInstance models.DeviceManage
 		choiceValue := choiceInstance.GetChoiceSettingValue()
 		if choiceValue != nil {
 			if choiceVal := choiceValue.GetValue(); choiceVal != nil {
-				*target = types.StringValue(*choiceVal)
+				*target = convert.GraphToFrameworkString(choiceVal)
 				return
 			}
 		}
@@ -441,7 +442,7 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 			}
 
 			if len(values) > 0 {
-				*target = state.SliceToTypeStringSlice(values)
+				*target = convert.GraphToFrameworkStringSlice(values)
 				return
 			}
 		}
@@ -458,8 +459,8 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
 		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
 			if stringValue, ok := valueMap["value"].(string); ok {
-				values := splitCommaSeparatedString(stringValue)
-				*target = state.SliceToTypeStringSlice(values)
+				values := helpers.SplitCommaSeparatedString(stringValue)
+				*target = convert.GraphToFrameworkStringSlice(values)
 				return
 			}
 		}
@@ -478,21 +479,11 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 			}
 
 			if len(values) > 0 {
-				*target = state.SliceToTypeStringSlice(values)
+				*target = convert.GraphToFrameworkStringSlice(values)
 				return
 			}
 		}
 	}
 
 	tflog.Warn(ctx, "Failed to extract string collection")
-}
-
-// splitCommaSeparatedString splits a comma-separated string into a slice of strings
-func splitCommaSeparatedString(s string) []string {
-	if s == "" {
-		return []string{}
-	}
-
-	// Split the string by commas and return the result
-	return strings.Split(s, ",")
 }

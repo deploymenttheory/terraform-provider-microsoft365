@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -14,25 +15,23 @@ func constructResource(ctx context.Context, data *M365AppsInstallationOptionsRes
 
 	requestBody := graphmodels.NewM365AppsInstallationOptions()
 
-	if err := constructors.SetEnumProperty(data.UpdateChannel,
+	if err := convert.FrameworkToGraphEnum(data.UpdateChannel,
 		graphmodels.ParseAppsUpdateChannelType,
 		requestBody.SetUpdateChannel); err != nil {
 		return nil, fmt.Errorf("failed to set update channel: %v", err)
 	}
 
-	// Handle Windows apps
 	if data.AppsForWindows != nil {
 		appsForWindows := graphmodels.NewAppsInstallationOptionsForWindows()
-		constructors.SetBoolProperty(data.AppsForWindows.IsMicrosoft365AppsEnabled, appsForWindows.SetIsMicrosoft365AppsEnabled)
-		constructors.SetBoolProperty(data.AppsForWindows.IsSkypeForBusinessEnabled, appsForWindows.SetIsSkypeForBusinessEnabled)
+		convert.FrameworkToGraphBool(data.AppsForWindows.IsMicrosoft365AppsEnabled, appsForWindows.SetIsMicrosoft365AppsEnabled)
+		convert.FrameworkToGraphBool(data.AppsForWindows.IsSkypeForBusinessEnabled, appsForWindows.SetIsSkypeForBusinessEnabled)
 		requestBody.SetAppsForWindows(appsForWindows)
 	}
 
-	// Handle Mac apps
 	if data.AppsForMac != nil {
 		appsForMac := graphmodels.NewAppsInstallationOptionsForMac()
-		constructors.SetBoolProperty(data.AppsForMac.IsMicrosoft365AppsEnabled, appsForMac.SetIsMicrosoft365AppsEnabled)
-		constructors.SetBoolProperty(data.AppsForMac.IsSkypeForBusinessEnabled, appsForMac.SetIsSkypeForBusinessEnabled)
+		convert.FrameworkToGraphBool(data.AppsForMac.IsMicrosoft365AppsEnabled, appsForMac.SetIsMicrosoft365AppsEnabled)
+		convert.FrameworkToGraphBool(data.AppsForMac.IsSkypeForBusinessEnabled, appsForMac.SetIsSkypeForBusinessEnabled)
 		requestBody.SetAppsForMac(appsForMac)
 	}
 

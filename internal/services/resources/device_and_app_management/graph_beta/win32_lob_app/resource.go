@@ -153,7 +153,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				MarkdownDescription: "Notes for the app.",
 			},
-			"upload_state": schema.Int64Attribute{
+			"upload_state": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
@@ -176,15 +176,15 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"dependent_app_count": schema.Int64Attribute{
+			"dependent_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
-			"superseding_app_count": schema.Int64Attribute{
+			"superseding_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
-			"superseded_app_count": schema.Int64Attribute{
+			"superseded_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
@@ -273,19 +273,19 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 			},
-			"minimum_free_disk_space_in_mb": schema.Int64Attribute{
+			"minimum_free_disk_space_in_mb": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "The value for the minimum free disk space which is required to install this app.",
 			},
-			"minimum_memory_in_mb": schema.Int64Attribute{
+			"minimum_memory_in_mb": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "The value for the minimum physical memory which is required to install this app.",
 			},
-			"minimum_number_of_processors": schema.Int64Attribute{
+			"minimum_number_of_processors": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "The value for the minimum number of processors which is required to install this app.",
 			},
-			"minimum_cpu_speed_in_mhz": schema.Int64Attribute{
+			"minimum_cpu_speed_in_mhz": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "The value for the minimum CPU speed which is required to install this app.",
 			},
@@ -489,7 +489,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The return codes for post installation behavior.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"return_code": schema.Int64Attribute{
+						"return_code": schema.Int32Attribute{
 							Required:            true,
 							MarkdownDescription: "The return code.",
 						},

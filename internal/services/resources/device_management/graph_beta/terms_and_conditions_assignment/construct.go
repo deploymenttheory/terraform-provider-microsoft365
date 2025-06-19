@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -44,11 +45,11 @@ func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResour
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "groupAssignment":
 		groupTarget := graphmodels.NewGroupAssignmentTarget()
-		constructors.SetStringProperty(data.GroupId, groupTarget.SetGroupId)
+		convert.FrameworkToGraphString(data.GroupId, groupTarget.SetGroupId)
 		target = groupTarget
 	case "configurationManagerCollection":
 		configManagerTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
-		constructors.SetStringProperty(data.CollectionId, configManagerTarget.SetCollectionId)
+		convert.FrameworkToGraphString(data.CollectionId, configManagerTarget.SetCollectionId)
 		target = configManagerTarget
 	default:
 		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()

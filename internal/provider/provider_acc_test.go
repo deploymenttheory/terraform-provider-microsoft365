@@ -20,7 +20,7 @@ var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.Provider
 	"microsoft365": func() (tfprotov6.ProviderServer, error) {
 		ctx := context.Background()
 		tflog.Info(ctx, "Instantiating provider for unit tests")
-		provider := New("test")()
+		provider := NewMicrosoft365Provider("test")()
 		tflog.Debug(ctx, fmt.Sprintf("Unit Test Provider instantiated: %T", provider))
 
 		return providerserver.NewProtocol6WithError(provider)()
@@ -31,7 +31,7 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 	"microsoft365": func() (tfprotov6.ProviderServer, error) {
 		ctx := context.Background()
 		tflog.Info(ctx, "Instantiating provider for acceptance tests")
-		provider := New("test")()
+		provider := NewMicrosoft365Provider("test")()
 		tflog.Debug(ctx, fmt.Sprintf("Acceptance Test Provider instantiated: %T", provider))
 
 		return providerserver.NewProtocol6WithError(provider)()

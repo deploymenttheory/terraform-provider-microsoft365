@@ -31,6 +31,11 @@ import (
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring Microsoft365 Provider")
 
+	if p.testMode {
+		tflog.Warn(ctx, "Provider is in test mode. Skipping configuration.")
+		return
+	}
+
 	var config M365ProviderModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,7 +17,7 @@ func constructResource(ctx context.Context, data DeviceManagementConfigurationPo
 	assignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
 
 	// Set source
-	err := constructors.SetEnumProperty(
+	err := convert.FrameworkToGraphEnum(
 		data.Source,
 		graphmodels.ParseDeviceAndAppManagementAssignmentSource,
 		func(val *graphmodels.DeviceAndAppManagementAssignmentSource) {
@@ -27,7 +28,7 @@ func constructResource(ctx context.Context, data DeviceManagementConfigurationPo
 		return nil, fmt.Errorf("error setting assignment source: %v", err)
 	}
 
-	constructors.SetStringProperty(data.SourceId, assignment.SetSourceId)
+	convert.FrameworkToGraphString(data.SourceId, assignment.SetSourceId)
 
 	target, err := constructAssignmentTarget(ctx, &data.Target)
 	if err != nil {
@@ -59,25 +60,25 @@ func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResour
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "configurationManagerCollection":
 		configManagerTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
-		constructors.SetStringProperty(data.CollectionId, configManagerTarget.SetCollectionId)
+		convert.FrameworkToGraphString(data.CollectionId, configManagerTarget.SetCollectionId)
 		target = configManagerTarget
 	case "exclusionGroupAssignment":
 		exclusionGroupTarget := graphmodels.NewExclusionGroupAssignmentTarget()
-		constructors.SetStringProperty(data.GroupId, exclusionGroupTarget.SetGroupId)
+		convert.FrameworkToGraphString(data.GroupId, exclusionGroupTarget.SetGroupId)
 		target = exclusionGroupTarget
 	case "groupAssignment":
 		groupTarget := graphmodels.NewGroupAssignmentTarget()
-		constructors.SetStringProperty(data.GroupId, groupTarget.SetGroupId)
+		convert.FrameworkToGraphString(data.GroupId, groupTarget.SetGroupId)
 		target = groupTarget
 	default:
 		target = graphmodels.NewDeviceAndAppManagementAssignmentTarget()
 	}
 
 	// Set the filter properties using helpers
-	constructors.SetStringProperty(data.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+	convert.FrameworkToGraphString(data.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 	// Set filter type enum property
-	err := constructors.SetEnumProperty(
+	err := convert.FrameworkToGraphEnum(
 		data.DeviceAndAppManagementAssignmentFilterType,
 		graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 		func(val *graphmodels.DeviceAndAppManagementAssignmentFilterType) {

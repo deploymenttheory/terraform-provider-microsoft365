@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 
@@ -22,17 +23,17 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 
 	requestBody := graphmodels.NewMacOSDmgApp()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
-	constructors.SetStringProperty(data.Developer, requestBody.SetDeveloper)
-	constructors.SetStringProperty(data.Owner, requestBody.SetOwner)
-	constructors.SetStringProperty(data.Notes, requestBody.SetNotes)
-	constructors.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
-	constructors.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
-	constructors.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
+	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -83,7 +84,7 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 
 		filename := filepath.Base(installerSourcePath)
 		tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-		constructors.SetStringProperty(types.StringValue(filename), requestBody.SetFileName)
+		convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 	}
 
 	// Handle macOS DMG app specific properties
@@ -92,20 +93,20 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 
 		if data.MacOSDmgApp.MinimumSupportedOperatingSystem != nil {
 			minOS := graphmodels.NewMacOSMinimumOperatingSystem()
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
-			constructors.SetBoolProperty(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V150, minOS.SetV150)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
+			convert.FrameworkToGraphBool(data.MacOSDmgApp.MinimumSupportedOperatingSystem.V150, minOS.SetV150)
 
 			baseApp.SetMinimumSupportedOperatingSystem(minOS)
 			tflog.Debug(ctx, "Mapped minimum supported operating system")
@@ -136,14 +137,14 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 
 				if bundleId, exists := attrs["bundle_id"]; exists {
 					if bundleIdStr, ok := bundleId.(types.String); ok && !bundleIdStr.IsNull() {
-						constructors.SetStringProperty(bundleIdStr, includedApp.SetBundleId)
+						convert.FrameworkToGraphString(bundleIdStr, includedApp.SetBundleId)
 						currentBundleId = bundleIdStr.ValueString()
 					}
 				}
 
 				if bundleVersion, exists := attrs["bundle_version"]; exists {
 					if bundleVersionStr, ok := bundleVersion.(types.String); ok && !bundleVersionStr.IsNull() {
-						constructors.SetStringProperty(bundleVersionStr, includedApp.SetBundleVersion)
+						convert.FrameworkToGraphString(bundleVersionStr, includedApp.SetBundleVersion)
 						currentBundleVersion = bundleVersionStr.ValueString()
 					}
 				}
@@ -170,7 +171,7 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 		}
 
 		// Set ignore version detection
-		constructors.SetBoolProperty(data.MacOSDmgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+		convert.FrameworkToGraphBool(data.MacOSDmgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

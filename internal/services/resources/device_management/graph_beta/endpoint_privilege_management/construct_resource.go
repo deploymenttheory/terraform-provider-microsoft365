@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -38,14 +39,14 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	constructors.SetStringProperty(data.Name, requestBody.SetName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Name, requestBody.SetName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
 	if err := setTemplateContext(ctx, data, requestBody); err != nil {
 		return nil, err
 	}
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

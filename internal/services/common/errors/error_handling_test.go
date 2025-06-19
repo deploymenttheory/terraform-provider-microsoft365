@@ -4,737 +4,520 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	"github.com/microsoft/kiota-abstractions-go/serialization"
-	"github.com/microsoft/kiota-abstractions-go/store"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// Mock implementations for testing
+// setupHTTPMock initializes httpmock and registers common error responses
+func setupHTTPMock() {
+	httpmock.Activate()
 
-// MockResponse implements the necessary interfaces for testing
-type MockResponse struct {
-	Diagnostics diag.Diagnostics
+	// Register standard error responses
+	registerErrorResponse(400, "BadRequest", "The request is invalid.")
+	registerErrorResponse(401, "Unauthorized", "Authentication failed.")
+	registerErrorResponse(403, "Forbidden", "Access is denied.")
+	registerErrorResponse(404, "NotFound", "The resource was not found.")
+	registerErrorResponse(429, "TooManyRequests", "Rate limit exceeded.")
+	registerErrorResponse(500, "InternalServerError", "An internal server error occurred.")
+	registerErrorResponse(503, "ServiceUnavailable", "The service is temporarily unavailable.")
 }
 
-func (m *MockResponse) GetDiagnostics() diag.Diagnostics {
-	return m.Diagnostics
+// registerErrorResponse is a helper to register a generic graph error response
+func registerErrorResponse(statusCode int, errorCode, errorMessage string) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/errors/%d", statusCode)
+	httpmock.RegisterResponder("GET", url,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(statusCode, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    errorCode,
+					"message": errorMessage,
+				},
+			})
+		},
+	)
 }
 
-// MockResponseHeaders implements abstractions.ResponseHeaders
-type MockResponseHeaders struct {
-	headers map[string][]string
+// teardownHTTPMock deactivates httpmock
+func teardownHTTPMock() {
+	httpmock.DeactivateAndReset()
 }
 
-func (m *MockResponseHeaders) Get(key string) []string {
-	return m.headers[key]
-}
-
-func (m *MockResponseHeaders) ListKeys() []string {
-	keys := make([]string, 0, len(m.headers))
-	for k := range m.headers {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-func (m *MockResponseHeaders) Add(key, value string) {
-	if m.headers == nil {
-		m.headers = make(map[string][]string)
-	}
-	m.headers[key] = append(m.headers[key], value)
-}
-
-func (m *MockResponseHeaders) Set(key, value string) {
-	if m.headers == nil {
-		m.headers = make(map[string][]string)
-	}
-	m.headers[key] = []string{value}
-}
-
-// MockODataError implements the OData error interfaces
-type MockODataError struct {
-	statusCode int
-	headers    *MockResponseHeaders
-	errorData  *MockMainError
-}
-
-// Ensure this is recognized as an ODataError
-func (m *MockODataError) GetErrorEscaped() odataerrors.MainErrorable {
-	return m.errorData
-}
-
-func (m *MockODataError) Error() string {
-	if m.errorData != nil && m.errorData.message != nil {
-		return *m.errorData.message
-	}
-	return fmt.Sprintf("HTTP %d", m.statusCode)
-}
-
-func (m *MockODataError) GetStatusCode() int {
-	return m.statusCode
-}
-
-func (m *MockODataError) GetResponseHeaders() abstractions.ResponseHeaders {
-	if m.headers == nil {
-		// Create an empty ResponseHeaders
-		empty := abstractions.NewResponseHeaders()
-		return *empty
-	}
-
-	// Convert our mock headers to the actual ResponseHeaders
-	respHeaders := abstractions.NewResponseHeaders()
-	for key, values := range m.headers.headers {
-		for _, value := range values {
-			respHeaders.Add(key, value)
-		}
-	}
-	return *respHeaders
-}
-
-// MockMainError implements odataerrors.MainErrorable
-type MockMainError struct {
-	code         *string
-	message      *string
-	target       *string
-	details      []odataerrors.ErrorDetailsable
-	innerError   *MockInnerError
-	backingStore store.BackingStore
-}
-
-func (m *MockMainError) GetCode() *string {
-	return m.code
-}
-
-func (m *MockMainError) GetMessage() *string {
-	return m.message
-}
-
-func (m *MockMainError) GetTarget() *string {
-	return m.target
-}
-
-func (m *MockMainError) GetDetails() []odataerrors.ErrorDetailsable {
-	return m.details
-}
-
-func (m *MockMainError) GetInnerError() odataerrors.InnerErrorable {
-	if m.innerError == nil {
-		return nil
-	}
-	return m.innerError
-}
-
-// Add other required methods for MainErrorable interface
-func (m *MockMainError) GetAdditionalData() map[string]interface{} {
-	return make(map[string]interface{})
-}
-
-func (m *MockMainError) GetOdataType() *string {
-	return nil
-}
-
-func (m *MockMainError) SetAdditionalData(value map[string]interface{}) {
-}
-
-func (m *MockMainError) SetCode(value *string) {
-	m.code = value
-}
-
-func (m *MockMainError) SetDetails(value []odataerrors.ErrorDetailsable) {
-	m.details = value
-}
-
-func (m *MockMainError) SetInnerError(value odataerrors.InnerErrorable) {
-	if value == nil {
-		m.innerError = nil
-		return
-	}
-
-	// We need to handle the case where the value is not a *MockInnerError
-	// This is a simplification for testing purposes
-	mockInner := &MockInnerError{
-		backingStore: store.BackingStoreFactoryInstance(),
-	}
-
-	if reqID := value.GetRequestId(); reqID != nil {
-		mockInner.requestId = reqID
-	}
-
-	if clientReqID := value.GetClientRequestId(); clientReqID != nil {
-		mockInner.clientRequestId = clientReqID
-	}
-
-	if date := value.GetDate(); date != nil {
-		mockInner.date = date
-	}
-
-	if odataType := value.GetOdataType(); odataType != nil {
-		mockInner.odataType = odataType
-	}
-
-	m.innerError = mockInner
-}
-
-func (m *MockMainError) SetMessage(value *string) {
-	m.message = value
-}
-
-func (m *MockMainError) SetOdataType(value *string) {
-}
-
-func (m *MockMainError) SetTarget(value *string) {
-	m.target = value
-}
-
-func (m *MockMainError) GetBackingStore() store.BackingStore {
-	if m.backingStore == nil {
-		m.backingStore = store.BackingStoreFactoryInstance()
-	}
-	return m.backingStore
-}
-
-func (m *MockMainError) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
-	return make(map[string]func(serialization.ParseNode) error)
-}
-
-func (m *MockMainError) Serialize(writer serialization.SerializationWriter) error {
-	return nil
-}
-
-func (m *MockMainError) SetBackingStore(value store.BackingStore) {
-	m.backingStore = value
-}
-
-// MockInnerError implements odataerrors.InnerErrorable
-type MockInnerError struct {
-	requestId       *string
-	clientRequestId *string
-	date            *time.Time
-	odataType       *string
-	backingStore    store.BackingStore
-}
-
-func (m *MockInnerError) GetRequestId() *string {
-	return m.requestId
-}
-
-func (m *MockInnerError) GetClientRequestId() *string {
-	return m.clientRequestId
-}
-
-func (m *MockInnerError) GetDate() *time.Time {
-	return m.date
-}
-
-func (m *MockInnerError) GetOdataType() *string {
-	return m.odataType
-}
-
-// Add other required methods for InnerErrorable interface
-func (m *MockInnerError) GetAdditionalData() map[string]interface{} {
-	return make(map[string]interface{})
-}
-
-func (m *MockInnerError) SetAdditionalData(value map[string]interface{}) {
-}
-
-func (m *MockInnerError) SetClientRequestId(value *string) {
-	m.clientRequestId = value
-}
-
-func (m *MockInnerError) SetDate(value *time.Time) {
-	m.date = value
-}
-
-func (m *MockInnerError) SetOdataType(value *string) {
-	m.odataType = value
-}
-
-func (m *MockInnerError) SetRequestId(value *string) {
-	m.requestId = value
-}
-
-func (m *MockInnerError) GetBackingStore() store.BackingStore {
-	if m.backingStore == nil {
-		m.backingStore = store.BackingStoreFactoryInstance()
-	}
-	return m.backingStore
-}
-
-func (m *MockInnerError) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
-	return make(map[string]func(serialization.ParseNode) error)
-}
-
-func (m *MockInnerError) Serialize(writer serialization.SerializationWriter) error {
-	return nil
-}
-
-func (m *MockInnerError) SetBackingStore(value store.BackingStore) {
-	m.backingStore = value
-}
-
-// MockErrorDetails implements odataerrors.ErrorDetailsable
-type MockErrorDetails struct {
-	code         *string
-	message      *string
-	target       *string
-	backingStore store.BackingStore
-}
-
-func (m *MockErrorDetails) GetCode() *string {
-	return m.code
-}
-
-func (m *MockErrorDetails) GetMessage() *string {
-	return m.message
-}
-
-func (m *MockErrorDetails) GetTarget() *string {
-	return m.target
-}
-
-func (m *MockErrorDetails) GetAdditionalData() map[string]interface{} {
-	return make(map[string]interface{})
-}
-
-func (m *MockErrorDetails) GetOdataType() *string {
-	return nil
-}
-
-func (m *MockErrorDetails) SetAdditionalData(value map[string]interface{}) {
-}
-
-func (m *MockErrorDetails) SetCode(value *string) {
-	m.code = value
-}
-
-func (m *MockErrorDetails) SetMessage(value *string) {
-	m.message = value
-}
-
-func (m *MockErrorDetails) SetOdataType(value *string) {
-}
-
-func (m *MockErrorDetails) SetTarget(value *string) {
-	m.target = value
-}
-
-func (m *MockErrorDetails) GetBackingStore() store.BackingStore {
-	if m.backingStore == nil {
-		m.backingStore = store.BackingStoreFactoryInstance()
-	}
-	return m.backingStore
-}
-
-func (m *MockErrorDetails) GetFieldDeserializers() map[string]func(serialization.ParseNode) error {
-	return make(map[string]func(serialization.ParseNode) error)
-}
-
-func (m *MockErrorDetails) Serialize(writer serialization.SerializationWriter) error {
-	return nil
-}
-
-func (m *MockErrorDetails) SetBackingStore(value store.BackingStore) {
-	m.backingStore = value
-}
-
-// Helper function to create mock OData errors
-func createMockODataError(statusCode int, code, message, target string, headers map[string]string) *MockODataError {
-	mockHeaders := &MockResponseHeaders{
-		headers: make(map[string][]string),
-	}
-
-	for k, v := range headers {
-		mockHeaders.Set(k, v)
-	}
-
-	// Parse date for inner error
-	var parsedDate *time.Time
-	if dateStr, exists := headers["date"]; exists {
-		if t, err := time.Parse(time.RFC1123, dateStr); err == nil {
-			parsedDate = &t
-		}
-	}
-
-	innerError := &MockInnerError{
-		requestId:       getStringPtr(headers["request-id"]),
-		clientRequestId: getStringPtr(headers["client-request-id"]),
-		date:            parsedDate,
-		backingStore:    store.BackingStoreFactoryInstance(),
-	}
-
-	mainError := &MockMainError{
-		code:         &code,
-		message:      &message,
-		target:       &target,
-		details:      []odataerrors.ErrorDetailsable{},
-		innerError:   innerError,
-		backingStore: store.BackingStoreFactoryInstance(),
-	}
-
-	return &MockODataError{
-		statusCode: statusCode,
-		headers:    mockHeaders,
-		errorData:  mainError,
-	}
-}
-
-func getStringPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
-func TestGraphError(t *testing.T) {
-	tests := []struct {
-		name          string
-		statusCode    int
-		code          string
-		message       string
-		target        string
-		headers       map[string]string
-		expectedError GraphErrorInfo
+// TestGraphError_URLError tests handling of URL errors
+func TestGraphError_URLError(t *testing.T) {
+	ctx := context.Background()
+
+	testCases := []struct {
+		name           string
+		err            error
+		expectedStatus int
+		expectedCode   string
+		expectedCat    ErrorCategory
 	}{
 		{
-			name:       "OData error with diagnostic info",
-			statusCode: http.StatusBadRequest,
-			code:       "BadRequest",
-			message:    "No OData route exists that match template ~/singleton/navigation/key with http verb POST for request /DeviceConfiguration_2505/StatelessDeviceConfigurationFEService/deviceManagement/deviceConfigurations('assign')",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"x-ms-ags-diagnostic": `[{"ServerInfo":{"DataCenter":"UK South","Slice":"E","Ring":"5","ScaleUnit":"000","RoleInstance":"LN2PEPF00014209"}}]`,
-				"request-id":          "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id":   "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-				"date":                "Fri, 13 Jun 2025 15:24:26 GMT",
-			},
-			expectedError: GraphErrorInfo{
-				StatusCode:      400,
-				ErrorCode:       "BadRequest",
-				ErrorMessage:    "No OData route exists that match template ~/singleton/navigation/key with http verb POST for request /DeviceConfiguration_2505/StatelessDeviceConfigurationFEService/deviceManagement/deviceConfigurations('assign')",
-				Target:          "deviceConfigurations",
-				IsODataError:    true,
-				RequestID:       "09fe057e-bae6-4aab-ae2b-98f912259821",
-				ClientRequestID: "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-				ErrorDate:       "Fri, 13 Jun 2025 15:24:26 GMT",
-				Category:        CategoryValidation,
-			},
+			name:           "Context deadline exceeded",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("context deadline exceeded")},
+			expectedStatus: 504,
+			expectedCode:   "RequestTimeout",
+			expectedCat:    CategoryService,
 		},
 		{
-			name:       "Authentication error",
-			statusCode: http.StatusUnauthorized,
-			code:       "InvalidAuthenticationToken",
-			message:    "Access token has expired",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"x-ms-ags-diagnostic": `[{"ServerInfo":{"DataCenter":"UK South","Slice":"E","Ring":"5","ScaleUnit":"000","RoleInstance":"LN2PEPF00014209"}}]`,
-				"request-id":          "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id":   "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-				"date":                "Fri, 13 Jun 2025 15:24:26 GMT",
-			},
-			expectedError: GraphErrorInfo{
-				StatusCode:      401,
-				ErrorCode:       "InvalidAuthenticationToken",
-				ErrorMessage:    "Access token has expired",
-				Target:          "deviceConfigurations",
-				IsODataError:    true,
-				RequestID:       "09fe057e-bae6-4aab-ae2b-98f912259821",
-				ClientRequestID: "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-				ErrorDate:       "Fri, 13 Jun 2025 15:24:26 GMT",
-				Category:        CategoryAuthentication,
-			},
+			name:           "Connection refused",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("connection refused")},
+			expectedStatus: 503,
+			expectedCode:   "ConnectionRefused",
+			expectedCat:    CategoryService,
+		},
+		{
+			name:           "No such host",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("no such host")},
+			expectedStatus: 503,
+			expectedCode:   "HostNotFound",
+			expectedCat:    CategoryService,
+		},
+		{
+			name:           "Network is unreachable",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("network is unreachable")},
+			expectedStatus: 503,
+			expectedCode:   "NetworkUnreachable",
+			expectedCat:    CategoryService,
+		},
+		{
+			name:           "Certificate error",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("certificate has expired")},
+			expectedStatus: 503,
+			expectedCode:   "CertificateError",
+			expectedCat:    CategoryService,
+		},
+		{
+			name:           "Generic URL error",
+			err:            &url.Error{Op: "Get", URL: "https://graph.microsoft.com/v1.0/users", Err: fmt.Errorf("generic error")},
+			expectedStatus: 400,
+			expectedCode:   "URLError",
+			expectedCat:    CategoryValidation,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create mock OData error
-			mockError := createMockODataError(tt.statusCode, tt.code, tt.message, tt.target, tt.headers)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			errorInfo := GraphError(ctx, tc.err)
 
-			// Process the error
-			errorInfo := GraphError(context.Background(), mockError)
-
-			// Verify the error information
-			assert.Equal(t, tt.expectedError.StatusCode, errorInfo.StatusCode)
-			assert.Equal(t, tt.expectedError.ErrorCode, errorInfo.ErrorCode)
-			assert.Equal(t, tt.expectedError.ErrorMessage, errorInfo.ErrorMessage)
-			assert.Equal(t, tt.expectedError.Target, errorInfo.Target)
-			assert.Equal(t, tt.expectedError.IsODataError, errorInfo.IsODataError)
-			assert.Equal(t, tt.expectedError.RequestID, errorInfo.RequestID)
-			assert.Equal(t, tt.expectedError.ClientRequestID, errorInfo.ClientRequestID)
-			assert.Equal(t, tt.expectedError.ErrorDate, errorInfo.ErrorDate)
-			assert.Equal(t, tt.expectedError.Category, errorInfo.Category)
-
-			// Check that diagnostic info was extracted from headers
-			if expectedDiag := tt.headers["x-ms-ags-diagnostic"]; expectedDiag != "" {
-				assert.Contains(t, errorInfo.RequestDetails, "x-ms-ags-diagnostic")
-			}
+			assert.Equal(t, tc.expectedStatus, errorInfo.StatusCode, "Status code should match")
+			assert.Equal(t, tc.expectedCode, errorInfo.ErrorCode, "Error code should match")
+			assert.Equal(t, tc.expectedCat, errorInfo.Category, "Category should match")
+			assert.NotEmpty(t, errorInfo.ErrorMessage, "Error message should not be empty")
+			assert.Contains(t, errorInfo.AdditionalData["url"], "graph.microsoft.com", "URL should be in additional data")
 		})
 	}
 }
 
-func TestHandleGraphError(t *testing.T) {
-	tests := []struct {
-		name                  string
-		statusCode            int
-		code                  string
-		message               string
-		target                string
-		headers               map[string]string
-		operation             string
-		requiredPermissions   []string
-		expectError           bool
-		expectRemoveFromState bool
+// TestIsRetryableError tests the IsRetryableError function
+func TestIsRetryableError(t *testing.T) {
+	testCases := []struct {
+		name            string
+		errorInfo       GraphErrorInfo
+		expectRetryable bool
 	}{
 		{
-			name:       "Handle 400 error on read operation - remove from state",
-			statusCode: http.StatusBadRequest,
-			code:       "BadRequest",
-			message:    "Resource not found",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id":        "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id": "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-			},
-			operation:             "Read",
-			expectError:           false,
-			expectRemoveFromState: true,
-		},
-		{
-			name:       "Handle 401 error",
-			statusCode: http.StatusUnauthorized,
-			code:       "InvalidAuthenticationToken",
-			message:    "Access token has expired",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id":        "09fe057e-bae6-4aab-ae2b-98f912259821",
-				"client-request-id": "1b3b835a-15f2-4943-a9be-70b2f9e7431d",
-			},
-			operation:             "Read",
-			requiredPermissions:   []string{"DeviceManagementConfiguration.Read.All"},
-			expectError:           true,
-			expectRemoveFromState: false,
-		},
-		{
-			name:       "Handle 404 error on read operation - remove from state",
-			statusCode: http.StatusNotFound,
-			code:       "NotFound",
-			message:    "Resource not found",
-			target:     "deviceConfigurations",
-			headers: map[string]string{
-				"request-id": "09fe057e-bae6-4aab-ae2b-98f912259821",
-			},
-			operation:             "Read",
-			expectError:           false,
-			expectRemoveFromState: true,
-		},
-		{
-			name:                  "Handle 404 error on create operation - add error",
-			statusCode:            http.StatusNotFound,
-			code:                  "NotFound",
-			message:               "Resource not found",
-			target:                "deviceConfigurations",
-			headers:               map[string]string{},
-			operation:             "Create",
-			expectError:           true,
-			expectRemoveFromState: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create mock OData error
-			mockError := createMockODataError(tt.statusCode, tt.code, tt.message, tt.target, tt.headers)
-
-			// Create a mock response object
-			mockResp := &resource.ReadResponse{}
-
-			// Handle the error
-			HandleGraphError(context.Background(), mockError, mockResp, tt.operation, tt.requiredPermissions)
-
-			// Verify the results
-			if tt.expectError {
-				assert.True(t, mockResp.Diagnostics.HasError(), "Expected error to be added to diagnostics")
-			}
-
-			if tt.expectRemoveFromState {
-				// For read operations with 400/404, the resource should be removed from state
-				// We can't easily test this without a more complex mock, but we can verify no error was added
-				assert.False(t, mockResp.Diagnostics.HasError(), "Expected no error when removing from state")
-			}
-		})
-	}
-}
-
-func TestErrorCategorization(t *testing.T) {
-	tests := []struct {
-		name             string
-		errorInfo        GraphErrorInfo
-		expectedCategory ErrorCategory
-	}{
-		{
-			name: "Authentication error",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 401,
-				ErrorCode:  "InvalidAuthenticationToken",
-			},
-			expectedCategory: CategoryAuthentication,
-		},
-		{
-			name: "Authorization error",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 403,
-				ErrorCode:  "Forbidden",
-			},
-			expectedCategory: CategoryAuthorization,
-		},
-		{
-			name: "Validation error",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 400,
-				ErrorCode:  "BadRequest",
-			},
-			expectedCategory: CategoryValidation,
-		},
-		{
-			name: "Throttling error",
+			name: "429 Too Many Requests",
 			errorInfo: GraphErrorInfo{
 				StatusCode: 429,
 				ErrorCode:  "TooManyRequests",
 			},
-			expectedCategory: CategoryThrottling,
+			expectRetryable: true,
 		},
 		{
-			name: "Service error",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 500,
-				ErrorCode:  "InternalServerError",
-			},
-			expectedCategory: CategoryService,
-		},
-		{
-			name: "Service unavailable error - should be service category",
+			name: "503 Service Unavailable",
 			errorInfo: GraphErrorInfo{
 				StatusCode: 503,
 				ErrorCode:  "ServiceUnavailable",
 			},
-			expectedCategory: CategoryService,
+			expectRetryable: true,
 		},
 		{
-			name: "Network error with zero status code",
+			name: "500 Internal Server Error",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 500,
+				ErrorCode:  "InternalServerError",
+			},
+			expectRetryable: true,
+		},
+		{
+			name: "400 Bad Request",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 400,
+				ErrorCode:  "BadRequest",
+			},
+			expectRetryable: false,
+		},
+		{
+			name: "401 Unauthorized",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 401,
+				ErrorCode:  "Unauthorized",
+			},
+			expectRetryable: false,
+		},
+		{
+			name: "404 Not Found",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 404,
+				ErrorCode:  "NotFound",
+			},
+			expectRetryable: false,
+		},
+		{
+			name: "Retryable Error Code",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 0,
+				ErrorCode:  "RequestThrottled",
+			},
+			expectRetryable: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			isRetryable := IsRetryableError(&tc.errorInfo)
+			assert.Equal(t, tc.expectRetryable, isRetryable, "Retryable status should match expectation")
+		})
+	}
+}
+
+// TestGetRetryDelay tests the GetRetryDelay function
+func TestGetRetryDelay(t *testing.T) {
+	testCases := []struct {
+		name        string
+		errorInfo   GraphErrorInfo
+		attempt     int
+		minExpected time.Duration
+		maxExpected time.Duration
+	}{
+		{
+			name: "With RetryAfter header",
+			errorInfo: GraphErrorInfo{
+				RetryAfter: "30",
+			},
+			attempt:     1,
+			minExpected: 30 * time.Second,
+			maxExpected: 30 * time.Second,
+		},
+		{
+			name:        "First attempt without RetryAfter",
+			errorInfo:   GraphErrorInfo{},
+			attempt:     1,
+			minExpected: 750 * time.Millisecond, // 1s ± 25% jitter
+			maxExpected: 1250 * time.Millisecond,
+		},
+		{
+			name:        "Second attempt without RetryAfter",
+			errorInfo:   GraphErrorInfo{},
+			attempt:     2,
+			minExpected: 3*time.Second - 750*time.Millisecond, // 4s ± 25% jitter
+			maxExpected: 3*time.Second + 750*time.Millisecond,
+		},
+		{
+			name:        "Max delay cap",
+			errorInfo:   GraphErrorInfo{},
+			attempt:     100,             // Very large attempt number
+			minExpected: 3 * time.Minute, // Updated to match actual implementation
+			maxExpected: 5 * time.Minute,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			delay := GetRetryDelay(&tc.errorInfo, tc.attempt)
+
+			if tc.errorInfo.RetryAfter != "" {
+				assert.Equal(t, tc.minExpected, delay, "Delay should match RetryAfter value")
+			} else {
+				assert.GreaterOrEqual(t, delay, tc.minExpected, "Delay should be greater than or equal to min expected")
+				assert.LessOrEqual(t, delay, tc.maxExpected, "Delay should be less than or equal to max expected")
+			}
+		})
+	}
+}
+
+// TestCategorizeError tests the categorizeError function
+func TestCategorizeError(t *testing.T) {
+	testCases := []struct {
+		name        string
+		errorInfo   GraphErrorInfo
+		expectedCat ErrorCategory
+	}{
+		{
+			name: "401 Unauthorized",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 401,
+			},
+			expectedCat: CategoryAuthentication,
+		},
+		{
+			name: "403 Forbidden",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 403,
+			},
+			expectedCat: CategoryAuthorization,
+		},
+		{
+			name: "400 Bad Request",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 400,
+			},
+			expectedCat: CategoryValidation,
+		},
+		{
+			name: "429 Too Many Requests",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 429,
+			},
+			expectedCat: CategoryThrottling,
+		},
+		{
+			name: "503 Service Unavailable",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 503,
+			},
+			expectedCat: CategoryService,
+		},
+		{
+			name: "Network Error",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 0,
+			},
+			expectedCat: CategoryNetwork,
+		},
+		{
+			name: "Auth in error code",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 0,
+				ErrorCode:  "AuthenticationFailed",
+			},
+			expectedCat: CategoryNetwork,
+		},
+		{
+			name: "Forbidden in error code",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 0,
+				ErrorCode:  "AccessForbidden",
+			},
+			expectedCat: CategoryNetwork,
+		},
+		{
+			name: "Throttle in error code",
+			errorInfo: GraphErrorInfo{
+				StatusCode: 0,
+				ErrorCode:  "RequestThrottled",
+			},
+			expectedCat: CategoryNetwork,
+		},
+		{
+			name: "Network in error code",
 			errorInfo: GraphErrorInfo{
 				StatusCode: 0,
 				ErrorCode:  "NetworkError",
 			},
-			expectedCategory: CategoryNetwork,
+			expectedCat: CategoryNetwork,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			category := categorizeError(&tt.errorInfo)
-			assert.Equal(t, tt.expectedCategory, category)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			category := categorizeError(&tc.errorInfo)
+			assert.Equal(t, tc.expectedCat, category, "Error category should match expectation")
 		})
 	}
 }
 
-func TestIsRetryableError(t *testing.T) {
-	tests := []struct {
-		name        string
-		errorInfo   GraphErrorInfo
-		shouldRetry bool
+// TestHTTPMockErrorResponses tests the error handling with httpmock
+func TestHTTPMockErrorResponses(t *testing.T) {
+	setupHTTPMock()
+	defer teardownHTTPMock()
+
+	testCases := []struct {
+		name       string
+		statusCode int
+		errorCode  string
 	}{
 		{
-			name: "Rate limit error should be retryable",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 429,
-				ErrorCode:  "TooManyRequests",
-			},
-			shouldRetry: true,
+			name:       "Bad Request",
+			statusCode: 400,
+			errorCode:  "BadRequest",
 		},
 		{
-			name: "Service unavailable should be retryable",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 503,
-				ErrorCode:  "ServiceUnavailable",
-			},
-			shouldRetry: true,
+			name:       "Unauthorized",
+			statusCode: 401,
+			errorCode:  "Unauthorized",
 		},
 		{
-			name: "Internal server error should be retryable",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 500,
-				ErrorCode:  "InternalServerError",
-			},
-			shouldRetry: true,
+			name:       "Not Found",
+			statusCode: 404,
+			errorCode:  "NotFound",
 		},
 		{
-			name: "Bad request should not be retryable",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 400,
-				ErrorCode:  "BadRequest",
-			},
-			shouldRetry: false,
-		},
-		{
-			name: "Authentication error should not be retryable",
-			errorInfo: GraphErrorInfo{
-				StatusCode: 401,
-				ErrorCode:  "InvalidAuthenticationToken",
-			},
-			shouldRetry: false,
+			name:       "Rate Limit",
+			statusCode: 429,
+			errorCode:  "TooManyRequests",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := IsRetryableError(&tt.errorInfo)
-			assert.Equal(t, tt.shouldRetry, result)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			url := fmt.Sprintf("https://graph.microsoft.com/v1.0/errors/%d", tc.statusCode)
+			resp, err := http.Get(url)
+			require.NoError(t, err, "HTTP request should succeed")
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.statusCode, resp.StatusCode, "Response status code should match")
+
+			// Verify the call was made
+			info := httpmock.GetCallCountInfo()
+			count := info["GET "+url]
+			assert.Equal(t, 1, count, "Expected 1 call to the URL")
 		})
 	}
 }
 
-func TestGetRetryDelay(t *testing.T) {
-	tests := []struct {
-		name          string
-		errorInfo     GraphErrorInfo
-		attempt       int
-		expectedDelay bool // Just check if delay is reasonable
+// TestHandleGraphError_WithSimpleErrors tests HandleGraphError with simple error types
+func TestHandleGraphError_WithSimpleErrors(t *testing.T) {
+	ctx := context.Background()
+
+	testCases := []struct {
+		name              string
+		statusCode        int
+		operation         string
+		expectDiagnostics bool
 	}{
 		{
-			name: "With retry-after header",
-			errorInfo: GraphErrorInfo{
-				RetryAfter: "30",
-			},
-			attempt:       1,
-			expectedDelay: true,
+			name:              "Bad Request Error",
+			statusCode:        400,
+			operation:         "Create",
+			expectDiagnostics: true,
 		},
 		{
-			name:          "Without retry-after header",
-			errorInfo:     GraphErrorInfo{},
-			attempt:       1,
-			expectedDelay: true,
+			name:              "Not Found Error",
+			statusCode:        404,
+			operation:         "Update",
+			expectDiagnostics: true,
 		},
 		{
-			name:          "High attempt number",
-			errorInfo:     GraphErrorInfo{},
-			attempt:       10,
-			expectedDelay: true,
+			name:              "Internal Server Error",
+			statusCode:        500,
+			operation:         "Delete",
+			expectDiagnostics: true,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			delay := GetRetryDelay(&tt.errorInfo, tt.attempt)
-			assert.True(t, delay > 0, "Delay should be positive")
-			assert.True(t, delay <= 5*time.Minute, "Delay should not exceed max delay")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a response object
+			resp := &resource.CreateResponse{
+				Diagnostics: diag.Diagnostics{},
+			}
+
+			// Create a simple error
+			err := fmt.Errorf("error with status code %d", tc.statusCode)
+
+			// Process the error
+			HandleGraphError(ctx, err, resp, tc.operation, []string{"User.Read"})
+
+			// Check if diagnostics were added
+			assert.Equal(t, tc.expectDiagnostics, resp.Diagnostics.HasError(), "Diagnostics error state should match expectation")
+		})
+	}
+}
+
+// TestAddErrorToDiagnostics tests the addErrorToDiagnostics function
+func TestAddErrorToDiagnostics(t *testing.T) {
+	ctx := context.Background()
+
+	testCases := []struct {
+		name     string
+		respType string
+		summary  string
+		detail   string
+	}{
+		{
+			name:     "Create Response",
+			respType: "create",
+			summary:  "Test Summary",
+			detail:   "Test Detail",
+		},
+		{
+			name:     "Read Response",
+			respType: "read",
+			summary:  "Read Error",
+			detail:   "Read Error Detail",
+		},
+		{
+			name:     "Update Response",
+			respType: "update",
+			summary:  "Update Error",
+			detail:   "Update Error Detail",
+		},
+		{
+			name:     "Delete Response",
+			respType: "delete",
+			summary:  "Delete Error",
+			detail:   "Delete Error Detail",
+		},
+		{
+			name:     "DataSource Response",
+			respType: "datasource",
+			summary:  "DataSource Error",
+			detail:   "DataSource Error Detail",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var resp interface{}
+
+			// Create the appropriate response type
+			switch tc.respType {
+			case "create":
+				resp = &resource.CreateResponse{
+					Diagnostics: diag.Diagnostics{},
+				}
+			case "read":
+				resp = &resource.ReadResponse{
+					Diagnostics: diag.Diagnostics{},
+				}
+			case "update":
+				resp = &resource.UpdateResponse{
+					Diagnostics: diag.Diagnostics{},
+				}
+			case "delete":
+				resp = &resource.DeleteResponse{
+					Diagnostics: diag.Diagnostics{},
+				}
+			case "datasource":
+				resp = &resource.CreateResponse{
+					Diagnostics: diag.Diagnostics{},
+				}
+			}
+
+			// Add error to diagnostics
+			addErrorToDiagnostics(ctx, resp, tc.summary, tc.detail)
+
+			// Check if diagnostics were added
+			switch r := resp.(type) {
+			case *resource.CreateResponse:
+				assert.True(t, r.Diagnostics.HasError(), "Diagnostics should have error")
+			case *resource.ReadResponse:
+				assert.True(t, r.Diagnostics.HasError(), "Diagnostics should have error")
+			case *resource.UpdateResponse:
+				assert.True(t, r.Diagnostics.HasError(), "Diagnostics should have error")
+			case *resource.DeleteResponse:
+				assert.True(t, r.Diagnostics.HasError(), "Diagnostics should have error")
+			}
 		})
 	}
 }

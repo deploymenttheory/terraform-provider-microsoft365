@@ -19,7 +19,7 @@ type WindowsAutopilotDevicePreparationPolicyResourceModel struct {
 	CreatedDateTime      types.String `tfsdk:"created_date_time"`
 	LastModifiedDateTime types.String `tfsdk:"last_modified_date_time"`
 	IsAssigned           types.Bool   `tfsdk:"is_assigned"`
-	SettingsCount        types.Int64  `tfsdk:"settings_count"`
+	SettingsCount        types.Int32  `tfsdk:"settings_count"`
 	RoleScopeTagIds      types.Set    `tfsdk:"role_scope_tag_ids"`
 	// Platforms and technologies are computed and not user-configurable for this policy
 	Platforms    types.String `tfsdk:"platforms"`

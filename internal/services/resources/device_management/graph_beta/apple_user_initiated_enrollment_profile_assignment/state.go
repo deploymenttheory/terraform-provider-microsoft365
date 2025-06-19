@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,7 +17,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data AppleUserInitiatedEnrol
 		return data
 	}
 
-	data.ID = state.StringPointerValue(assignment.GetId())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
 
 	if target := assignment.GetTarget(); target != nil {
 		data.Target = mapRemoteTargetToTerraform(target)
@@ -40,19 +40,19 @@ func mapRemoteTargetToTerraform(target graphmodels.DeviceAndAppManagementAssignm
 		targetModel.TargetType = types.StringValue(getTargetTypeFromOdataType(*odataType))
 	}
 
-	targetModel.DeviceAndAppManagementAssignmentFilterId = state.StringPointerValue(target.GetDeviceAndAppManagementAssignmentFilterId())
-	targetModel.DeviceAndAppManagementAssignmentFilterType = state.EnumPtrToTypeString(target.GetDeviceAndAppManagementAssignmentFilterType())
+	targetModel.DeviceAndAppManagementAssignmentFilterId = convert.GraphToFrameworkString(target.GetDeviceAndAppManagementAssignmentFilterId())
+	targetModel.DeviceAndAppManagementAssignmentFilterType = convert.GraphToFrameworkEnum(target.GetDeviceAndAppManagementAssignmentFilterType())
 
 	// Map target-specific properties
 	switch typedTarget := target.(type) {
 	case graphmodels.GroupAssignmentTargetable:
 		groupId := typedTarget.GetGroupId()
 		if groupId != nil {
-			targetModel.GroupId = state.StringPointerValue(groupId)
-			targetModel.EntraObjectId = state.StringPointerValue(groupId)
+			targetModel.GroupId = convert.GraphToFrameworkString(groupId)
+			targetModel.EntraObjectId = convert.GraphToFrameworkString(groupId)
 		}
 	case graphmodels.ExclusionGroupAssignmentTargetable:
-		targetModel.GroupId = state.StringPointerValue(typedTarget.GetGroupId())
+		targetModel.GroupId = convert.GraphToFrameworkString(typedTarget.GetGroupId())
 	}
 
 	return targetModel

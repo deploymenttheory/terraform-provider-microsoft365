@@ -5,8 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -19,22 +18,23 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": remoteResource.GetId(),
+		"resourceName": remoteResource.GetDisplayName(),
+		"resourceId":   remoteResource.GetId(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.RunAsAccount = state.EnumPtrToTypeString(remoteResource.GetRunAsAccount())
-	data.FileName = types.StringPointerValue(remoteResource.GetFileName())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.RunAsAccount = convert.GraphToFrameworkEnum(remoteResource.GetRunAsAccount())
+	data.FileName = convert.GraphToFrameworkString(remoteResource.GetFileName())
 
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	data.BlockExecutionNotifications = types.BoolPointerValue(remoteResource.GetBlockExecutionNotifications())
-	data.ExecutionFrequency = state.ISO8601DurationToString(remoteResource.GetExecutionFrequency())
-	data.ScriptContent = state.DecodeBase64ToString(ctx, string(remoteResource.GetScriptContent()))
+	data.BlockExecutionNotifications = convert.GraphToFrameworkBool(remoteResource.GetBlockExecutionNotifications())
+	data.ExecutionFrequency = convert.GraphToFrameworkISODuration(remoteResource.GetExecutionFrequency())
+	data.ScriptContent = convert.GraphToFrameworkBytes(remoteResource.GetScriptContent())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

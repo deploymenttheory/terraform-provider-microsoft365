@@ -166,6 +166,16 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	switch typedErr := err.(type) {
 	case *url.Error:
 		extractURLError(ctx, typedErr, &errorInfo)
+	case *odataerrors.ODataError:
+		extractAPIError(ctx, typedErr, &errorInfo)
+	case interface {
+		GetStatusCode() int
+		GetErrorEscaped() odataerrors.MainErrorable
+	}:
+		// This is likely a MockODataError from a test
+		errorInfo.StatusCode = typedErr.GetStatusCode()
+		mainError := typedErr.GetErrorEscaped()
+		extractMainError(ctx, mainError, &errorInfo)
 	case abstractions.ApiErrorable:
 		extractAPIError(ctx, typedErr, &errorInfo)
 	default:

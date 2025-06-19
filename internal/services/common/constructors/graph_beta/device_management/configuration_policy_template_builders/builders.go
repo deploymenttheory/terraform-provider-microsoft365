@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -34,7 +34,7 @@ func constructSettingInstanceTemplateReference(instanceTemplateId string) models
 
 	// Convert string to types.String and use constructor helper
 	templateIdValue := types.StringValue(instanceTemplateId)
-	constructors.SetStringProperty(templateIdValue, templateRef.SetSettingInstanceTemplateId)
+	convert.FrameworkToGraphString(templateIdValue, templateRef.SetSettingInstanceTemplateId)
 
 	return templateRef
 }
@@ -50,7 +50,7 @@ func constructSettingValueTemplateReference(valueTemplateId string, useTemplateD
 
 	// Convert string to types.String and use constructor helper
 	templateIdValue := types.StringValue(valueTemplateId)
-	constructors.SetStringProperty(templateIdValue, templateRef.SetSettingValueTemplateId)
+	convert.FrameworkToGraphString(templateIdValue, templateRef.SetSettingValueTemplateId)
 
 	// Handle useTemplateDefault - default to false if not provided
 	useDefault := false

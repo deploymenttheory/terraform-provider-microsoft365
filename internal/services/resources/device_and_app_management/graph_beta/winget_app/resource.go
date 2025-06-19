@@ -226,7 +226,7 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:            true,
 				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
 			},
-			"upload_state": schema.Int64Attribute{
+			"upload_state": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
@@ -250,15 +250,15 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					),
 				},
 			},
-			"dependent_app_count": schema.Int64Attribute{
+			"dependent_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
-			"superseding_app_count": schema.Int64Attribute{
+			"superseding_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
-			"superseded_app_count": schema.Int64Attribute{
+			"superseded_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},

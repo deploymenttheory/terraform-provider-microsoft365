@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
 	sharedStater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,10 +22,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	}
 
 	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
-	//data.ID = types.StringPointerValue(remoteResource.GetId())
 	// Add debug logs to trace the ID
 	id := remoteResource.GetId()
 	tflog.Debug(ctx, "Remote resource ID value", map[string]interface{}{
@@ -40,28 +39,17 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 		})
 	}
 
-	// More explicit ID handling
-	if id := remoteResource.GetId(); id != nil {
-		data.ID = types.StringValue(*id)
-		tflog.Debug(ctx, "Set ID in state", map[string]interface{}{
-			"id": *id,
-		})
-	} else {
-		tflog.Error(ctx, "Remote resource ID is nil")
-	}
-
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.Version = types.Int32PointerValue(remoteResource.GetVersion())
-	data.ReferencingConfigurationPolicyCount = types.Int32PointerValue(remoteResource.GetReferencingConfigurationPolicyCount())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.Version = convert.GraphToFrameworkInt32(remoteResource.GetVersion())
+	data.ReferencingConfigurationPolicyCount = convert.GraphToFrameworkInt32(remoteResource.GetReferencingConfigurationPolicyCount())
 
 	elements := make([]attr.Value, 0)
 	for _, policy := range remoteResource.GetReferencingConfigurationPolicies() {
-		if id := policy.GetId(); id != nil {
-			elements = append(elements, types.StringValue(*id))
-		}
+		elements = append(elements, convert.GraphToFrameworkString(policy.GetId()))
 	}
 	data.ReferencingConfigurationPolicies = types.ListValueMust(types.StringType, elements)
 
@@ -91,5 +79,4 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
-
 }

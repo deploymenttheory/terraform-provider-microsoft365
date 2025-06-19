@@ -1,6 +1,6 @@
 # AI Custom Instructions – Terraform Provider Microsoft365
 
-These instructions guide ai tools to follow our project's conventions and best practices when suggesting code. They cover how to format code, name resources and attributes, structure implementations, and write tests in this repository. By following these guidelines, ai's suggestions should align with the project's style and help contributors produce high-quality, consistent code. Always consider existing patterns in the repository—when in doubt, review similar resources or tests for reference and keep the new code idiomatic to the project's practices.
+These instructions, guide ai tools to follow our project's conventions and best practices when suggesting code. They cover how to format code, name resources and attributes, structure implementations, sdk usage, data type conversion and how write tests in this repository. By following these guidelines, ai's suggestions should align with the project's style and help contributors produce high-quality, consistent code. Always consider existing patterns in the repository—when in doubt, review similar resources or tests for reference and keep the new code idiomatic to the project's practices.
 
 ## Development Setup & Workflow
 
@@ -21,10 +21,29 @@ These instructions guide ai tools to follow our project's conventions and best p
 
 ### Resource Organization
 
-- Organize all resource implementations within the `internal/resources` directory, with each resource in its own subdirectory within their respective resource category directory. e.g. `internal/resources/resource_category_placeholder/graph_api_type`.
-- There are two types of api types: `graph_beta` and `graph_v1.0`.
+- Organize all resource implementations within the `internal/services/resources` directory, with each resource in its own subdirectory within their respective resource category directory `internal/services/resources/resource_category_placeholder/graph_api_type`. (e.g. `internal/services/resources/device_management/graph_beta/device_management_scripts`)
+- There are the following resource categories:
+  - `applications`
+  - `backup_storage`
+  - `device_and_app_management`
+  - `device_management`
+  - `education`
+  - `extensions`
+  - `external_data_connections`
+  - `files`
+  - `financials`
+  - `groups`
+  - `identity_and_access`
+  - `industry_data_etl`
+  - `m365_admin`
+  - `people_and_workplace_intelligence`
+  - `security`
+  - `sites_and_lists`
+  - `teamwork_and_communications`
+  - `users`
+- There are two types of `{graph_api_type}`: `graph_beta` and `graph_v1.0`.
 - Name resource directories using lowercase words with underscores (e.g., `cloud_pc_user_setting`, `group_member_assignment`).
-- Choose resource names that reflect the Microsoft365 domain they represent. Prefer the commonly used term for the resource e.g 'settings_catalog' over the api type e.g 'configuration_policy'.
+- Choose resource names that reflect the Microsoft365 domain they represent. Prefer the commonly used term for the resource e.g `settings_catalog` over the api type e.g `configuration_policy`.
 
 ### Resource Files
 
@@ -38,16 +57,24 @@ Each resource directory MUST contain:
 
 ### Data Source Organization
 
-- Organize all datasource implementations within the `internal/datasources` directory, with each datasource in its own subdirectory within their respective datasource category directory. e.g. `internal/datasource/datasource_category_placeholder/graph_api_type`.
+- Organize all datasource implementations within the `internal/services/datasources` directory, with each datasource in its own subdirectory within their respective datasource category directory. e.g. `internal/services/datasources/datasource_category_placeholder/graph_api_type`.
 - There are two types of api types: `graph_beta` and `graph_v1.0`.
 - Name datasource directories using lowercase words with underscores (e.g., `cloud_pc_user_setting`, `group_member_assignment`).
 - Each datasource SHALL align with the resource directory naming convention.
 
-- **Data Source Files**: Name as `datasource_<data_source_name>.go` (e.g., `datasource_tenant_settings.go`).
+### Data Source Files
+
+Each resource directory MUST contain:
+
+- **Models File**: Create a single `model.go` file containing all data models for the datasource. The main struct should be named `{DataSourceName}DataSourceModel` (e.g., `MobileAppDataSourceModel`).
+- **Data Source Files**: Name the main file as `datasource.go` containing the datasource struct definition, metadata, schema, and configuration.
+- **Read File**: Create a `read.go` file containing the Read method implementation for the datasource.
+- **State File**: Create a `state.go` file containing functions for mapping API responses to datasource models.
+- **Helper Files**: Create additional helper files (e.g., `helpers.go`) as needed for utility functions specific to the datasource.
 
 ### Example Files
 
-- Place each example in its own directory under `examples/<category>/`, named for the full resource or data source name (e.g., `microsoft365_graph_beta_device_management_settings_catalog_assignment`).
+- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resource_category}_{resource_name}`. (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_assignment_filter` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_mobile_app`)
 - **Resource Examples:**
   - Use a single `resource.tf` file per directory.
   - The example should align precisely with the resource schema.
@@ -65,25 +92,40 @@ Each resource directory MUST contain:
 
 ## Naming Conventions
 
-- **Resource and Data Source Names:** Follow the existing naming pattern of prefixing with `powerplatform_`. For example, an environment resource is named `powerplatform_environment`. Use lowercase with underscores for Terraform resource/data names.
+- **Resource and Data Source Names:** Follow the existing naming pattern of prefixing with `microsoft365_` followed by the API type (`graph_beta` or `graph_v1.0`) and the resource category. For example, a resource is named `microsoft365_graph_beta_device_management_assignment_filter`. Use lowercase with underscores for Terraform resource/data names.
 - **Attribute Naming:** Name resource attributes to match Microsoft365 terminology. Prefer the modern, user-friendly terms used in the current Microsoft365 API/UX/[Official Documentation](https://learn.microsoft.com/en-us/graph/) over deprecated names. Keep names concise but descriptive of their function in the resource.
 - **Model Field Naming Pattern**: For optional block attributes, use a pointer to a shared or local model struct (e.g., `Assignments *sharedmodels.DeviceManagementScriptAssignmentResourceModel`).
   - Name the Go field in PascalCase (e.g., `Assignments`).
   - Use a type of `<SubResourceName>ResourceModel` (e.g., `DeviceManagementScriptAssignmentResourceModel`).
-  - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"assignments"`).
+  - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"last_modified_date_time"`).
   - The sub-resource struct should be named `<SubResourceName>ResourceModel`.
 - **Test Function Naming:** Name test functions with a prefix indicating their type. **Acceptance test** functions should start with `TestAcc` and **unit test** functions with `TestUnit` (this allows filtering tests by type). Also, name test files' package with a `_test` suffix (e.g. `package environment_test`) to ensure tests access the provider only via its public interface.
-- **Data Transfer Objects:** Define all DTO structures in `dto.go` with a `Dto` suffix (e.g., `EnvironmentDto`).
-- **Conversion Functions:** Implement conversion functions named exactly as `convertDtoToModel` and `convertModelToDto` in `models.go`.
-- **Client Factory:** When implementing a client factory, name it `New<Service>Client` (e.g., `NewSolutionClient`).
 - **Resource/Data Source Factory:** For each resource and data source, create a new function named `New<ResourceName>Resource` or `New<DataSourceName>DataSource` that returns the appropriate type.
+- **Client Factory:** When implementing a client factory, name it `New<Service>Client` (e.g., `NewSolutionClient`).
+
+## Data Type Conversion for resource construction and state mapping
+
+- Use the data type conversion utilities in the following packages:
+  - **Constructors (`internal/services/common/constructors/data_type_conversion.go`)**: Contains functions for converting Terraform types to Microsoft Graph SDK types when constructing API requests:
+    - `convert.FrameworkToGraphString`, `SetBoolProperty`, `convert.FrameworkToGraphBool`, etc.: Convert Terraform primitive types to pointers for Graph API setters
+    - `convert.FrameworkToGraphEnum`: Convert string values to enumeration types
+    - `SetStringList`, `SetStringSet`: Convert Terraform collections to string slices
+    - `SetBytesProperty`: Convert string values to byte slices
+    - `SetISODurationProperty`: Parse ISO 8601 duration strings
+    - `StringToTimeOnly`, `StringToDateOnly`: Convert string values to specialized time/date types
+    - `SetUUIDProperty`: Parse and convert string UUIDs
+  - **State (`internal/services/common/state/data_type_conversion.go`)**: Contains functions for converting Microsoft Graph SDK types to Terraform types when mapping API responses to state:
+    - `TimeToString`, `DateOnlyPtrToString`, `TimeOnlyPtrToString`: Convert time types to strings
+    - `BoolPtrToTypeBool`, `Int32PtrToTypeInt32`: Convert primitive pointers to Terraform types
+    - `EnumPtrToTypeString`: Convert enumeration values to strings
+    - `BytesToString`: Convert byte arrays to strings
 
 ## Comments and Documentation
 
 - Write Go comments only on exported functions, types, and methods to explain their purpose, parameters, and return values when it adds clarity.
 - Focus comments on **why** something is done if it's not obvious from the code.
 - Avoid redundant comments that just restate the code or don't provide additional insight.
-- When defining resource or data source schema, **always use** the `MarkdownDescription` field for documentation. Do **not** use the deprecated `Description` field. Markdown descriptions will be used to auto-generate docs, so make them clear and user-friendly, and include links to topics in the [official Microsoft365 docs](https://learn.microsoft.com/en-us/power-platform/admin/) when helpful.
+- When defining resource or data source schema, **always use** the `MarkdownDescription` field for documentation. Do **not** use the deprecated `Description` field. Markdown descriptions will be used to auto-generate docs, so make them clear and user-friendly, and include links to topics in the [official Microsoft365 docs](https://learn.microsoft.com/en-us/graph/) when helpful.
 
 ## Code Organization and Implementation Guidelines
 
@@ -96,7 +138,7 @@ Each resource directory MUST contain:
 - **Terraform Plugin Framework Validators:** Use the [Terraform Plugin Framework Validators](https://github.com/hashicorp/terraform-plugin-framework-validators) for implementing validation logic.
 - **Custom Terraform Plugin Framework Validators:** Use the [Custom Terraform Plugin Framework Validators](/internal/services/common/validators) for implementing custom validation logic. Prefer using the custom validators over the built-in validators only when hashicorp provided validators fall short.
 - **Terraform Plugin Framework Plan Modifiers:** Use the [Terraform Plugin Framework Plan Modifiers](https://developer.hashicorp.com/terraform/plugin/framework/plan-modifiers) for implementing plan modification logic.
-- **Terraform Plugin Framework Timeouts:** Use the implementation found in `internal/resources/common/crud/timeout.go` for implementing timeouts.
+- **Terraform Plugin Framework Timeouts:** Use the implementation found in `internal/services/common/crud/timeout.go` for implementing timeouts.
 - **Terraform Plugin Framework Helpers:** Use the [Terraform Plugin Framework Helpers](https://developer.hashicorp.com/terraform/plugin/framework/helpers) for implementing helper functions.
 
 ### Common Utilities
@@ -109,6 +151,7 @@ Each resource directory MUST contain:
 - **Constants:** Reference centralized constants from `internal/constants/constants.go` instead of hardcoding values for:
   - API endpoints and URL paths
   - Common string literals and configuration keys
+  - Regex patterns and expressions
   - Status codes and enum values used across the provider
 
 - **Error Handling:** Leverage the error handling utilities defined in `internal/resources/common/errors` for consistent error management across all resources and data sources:
@@ -162,16 +205,22 @@ Each resource directory MUST contain:
 #### Resource Structure and Interfaces
 
 - Implement `resource.Resource` interface for all resources.
-- Implement `resource.ResourceWithImportState` for resources supporting import.
-- Implement `resource.ResourceWithValidateConfig` when custom validation is needed.
-- Structure resources in a consistent pattern by ordering methods: `Metadata`, `Schema`, `Configure`, `Create`, `Read`, `Update`, `Delete`, `ImportState`.
-- Embed `helpers.TypeInfo` in your resource struct to inherit standard functionality.
+- Implement `resource.ResourceWithImportState` for all resources.
+- Implement `resource.ResourceWithConfigure` to configure the resource with the provider client.
+- Implement `resource.ResourceWithModifyPlan` when plan modification is needed.
+- Structure resources in a consistent pattern by ordering methods: `Metadata`, `FullTypeName`, `Configure`, `ImportState`, `Schema`, `Create`, `Read`, `Update`, `Delete`, `ModifyPlan`.
+- Define constants for resource name and timeouts (e.g., `ResourceName`, `CreateTimeout`, `ReadTimeout`, `UpdateTimeout`, `DeleteTimeout`).
 - Add required client fields to your resource struct to access APIs.
+- Include `ReadPermissions` and `WritePermissions` fields in your resource struct to specify required permissions.
+- Include `ResourcePath` field to specify the API endpoint path.
+- Name factory functions as `New<ResourceName>Resource()` (e.g., `NewAssignmentFilterResource`).
+- Return a new instance of your resource struct from the factory function with required permissions and resource path set.
 
 #### Resource Schema Definition
 
-- Define complete schemas with proper attribute types (String, Int64, Bool, etc.).
+- Define complete schemas with proper attribute types (String, Int32, Bool, etc.).
 - Mark attributes explicitly as `Required`, `Optional`, or `Computed`.
+- Use `Int32` for attributes that are integers and are less than 2^31. Never use `Int64` for these attributes.
 - Use `Computed: true` for server-generated fields like IDs.
 - Use `Optional: true` with `Computed: true` for fields that can be specified or defaulted by the service.
 - Apply `RequiresReplace` plan modifier to immutable attributes that necessitate resource recreation when changed.
@@ -198,11 +247,15 @@ Each resource directory MUST contain:
 
 #### Data Source Structure and Interfaces
 
-- Implement the `datasource.DataSource` and `datasource.DataSourceWithConfigure` interfaces for all data sources.
+- Implement the `datasource.DataSource` interface for all data sources.
+- Implement the `datasource.DataSourceWithConfigure` interface to configure the data source with the provider client.
 - Order data source methods consistently: `Metadata`, `Schema`, `Configure`, `Read`.
-- Embed `helpers.TypeInfo` in your data source struct to inherit standard functionality.
 - Add required client fields to your data source struct to access APIs.
-- Name factory functions as `New<DataSourceName>DataSource()` (e.g., `NewSolutionsDataSource`).
+- Include `ReadPermissions` field in your data source struct to specify required permissions.
+- Include `ProviderTypeName` and `TypeName` fields in your data source struct for type name management.
+- Define constants for the datasource name and timeout values (e.g., `datasourceName`, `ReadTimeout`).
+- Name factory functions as `New<DataSourceName>DataSource()` (e.g., `NewMobileAppDataSource`).
+- Return a new instance of your datasource struct from the factory function with required permissions set.
 
 #### Data Source Schema Definition
 
@@ -219,19 +272,26 @@ Each resource directory MUST contain:
 #### Data Source Query Parameters
 
 - For data sources that filter results, define explicit filter attributes:
-  - Common patterns include `name`, `publisher_name`, `environment_id`, etc.
-  - Keep filter attributes simple and intuitive based on how the target API implements filtering.
+  - Common patterns include `filter_type` (e.g., "all", "id", "display_name", "odata") to specify how to filter.
+  - Include `filter_value` for the value to filter by.
+  - For OData filtering, include parameters like `odata_filter`, `odata_top`, `odata_skip`, `odata_select`, and `odata_orderby`.
+  - Add domain-specific filters (e.g., `app_type_filter`) when appropriate.
 - Support sensible combinations of filter parameters that match Microsoft365 API capabilities.
 - Document filter parameters with clear examples in the `MarkdownDescription`.
+- Use validators (e.g., `stringvalidator.OneOf()`) to restrict filter values to valid options.
 
 #### Data Source Read Implementation
 
 - Parse all input filter parameters from state at the beginning of the Read method.
-- Include context propagation: `ctx, exitContext := helpers.EnterRequestContext(ctx, d.TypeInfo, req)` with a matching `defer exitContext()`.
+- Include context propagation and handle timeouts: `ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)` with a matching `defer cancel()`.
 - Validate any required filter parameters and return appropriate diagnostic errors.
+- Implement different query strategies based on filter types:
+  - For ID-based filtering, fetch a single item directly using the ID.
+  - For OData filtering, pass OData parameters to the API.
+  - For other filter types (e.g., "all", "display_name"), fetch all items and filter locally.
 - Use the appropriate client method to retrieve data based on filter criteria.
 - For empty results, set an empty list rather than returning an error.
-- Transform API responses to data models using the appropriate conversion functions.
+- Transform API responses to data models using the appropriate state mapping functions.
 - Set all fields in the state model, even those that might be nil or empty.
 - Log API calls using `tflog.Debug` statements to assist troubleshooting.
 - For list-type data sources, return a consistent response structure even when results vary in size.
@@ -239,19 +299,28 @@ Each resource directory MUST contain:
 #### Testing Data Sources
 
 - Test all supported filter combinations in unit tests.
+- Create separate test cases for each filter type (e.g., "all", "id", "display_name", "odata").
+- Test domain-specific filters (e.g., `app_type_filter`) to ensure they correctly filter results.
 - Verify that filtered results return the expected subset of data.
 - Test edge cases like empty results, single results, and large result sets.
 - For collection data sources, test accessing nested attributes and verify attribute counts.
 - Ensure acceptance tests use non-destructive read-only operations.
 - For data sources that return lists, test accessing list items with collection syntax.
+- Create mock responses in JSON files for each test scenario, following the same directory structure as resources.
 
 #### Data Source Documentation and Examples
 
-- Include a representative example in the `/examples/data-sources/{data_source_name}/` directory.
-- For data sources with filter parameters, include examples showing different filtering options.
+- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_mobile_app`).
+- For data sources with filter parameters, include examples showing different filtering options:
+  - Filtering by ID
+  - Filtering by display name
+  - Using OData filters for advanced queries
+  - Using domain-specific filters
+- Include examples demonstrating how to access nested attributes in the output.
 - Showcase practical use-cases with supporting resources when applicable.
 - Describe the purpose of the data source clearly in the schema's `MarkdownDescription`.
-- Link to relevant Microsoft365 documentation that explains the underlying API or service.
+- Link to relevant Microsoft Graph API documentation that explains the underlying API or service.
+- Include references to the API endpoint used (e.g., `/deviceAppManagement/mobileApps`).
 
 ## Logging
 

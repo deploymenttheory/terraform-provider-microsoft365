@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -61,7 +62,7 @@ func mapSettingToModel(ctx context.Context, apiSetting graphmodels.DeviceManagem
 
 	// Map setting ID (if available)
 	if id := apiSetting.GetId(); id != nil {
-		setting.ID = types.StringValue(*id)
+		setting.ID = convert.GraphToFrameworkString(id)
 	}
 
 	// Map the setting instance
@@ -90,12 +91,12 @@ func mapSettingInstanceToModel(ctx context.Context, instance graphmodels.DeviceM
 
 	// Map OData type
 	if odataType := instance.GetOdataType(); odataType != nil {
-		settingInstance.ODataType = types.StringValue(*odataType)
+		settingInstance.ODataType = convert.GraphToFrameworkString(odataType)
 	}
 
 	// Map setting definition ID
 	if settingDefId := instance.GetSettingDefinitionId(); settingDefId != nil {
-		settingInstance.SettingDefinitionId = types.StringValue(*settingDefId)
+		settingInstance.SettingDefinitionId = convert.GraphToFrameworkString(settingDefId)
 	}
 
 	// Map instance template reference
@@ -175,7 +176,7 @@ func mapSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManageme
 	simpleValue := &SimpleSettingStruct{}
 
 	if odataType := value.GetOdataType(); odataType != nil {
-		simpleValue.ODataType = types.StringValue(*odataType)
+		simpleValue.ODataType = convert.GraphToFrameworkString(odataType)
 	}
 
 	if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
@@ -191,7 +192,7 @@ func mapSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManageme
 
 	case graphmodels.DeviceManagementConfigurationSecretSettingValueable:
 		if secretVal := typedValue.GetValue(); secretVal != nil {
-			simpleValue.Value = types.StringValue(*secretVal)
+			simpleValue.Value = convert.GraphToFrameworkString(secretVal)
 		}
 
 		if valueState := typedValue.GetValueState(); valueState != nil {
@@ -200,7 +201,7 @@ func mapSimpleSettingValue(ctx context.Context, value graphmodels.DeviceManageme
 
 	case graphmodels.DeviceManagementConfigurationStringSettingValueable:
 		if stringVal := typedValue.GetValue(); stringVal != nil {
-			simpleValue.Value = types.StringValue(*stringVal)
+			simpleValue.Value = convert.GraphToFrameworkString(stringVal)
 		}
 
 	default:
@@ -220,7 +221,7 @@ func mapChoiceSettingValue(ctx context.Context, value graphmodels.DeviceManageme
 
 	// Map value
 	if val := value.GetValue(); val != nil {
-		choiceValue.Value = types.StringValue(*val)
+		choiceValue.Value = convert.GraphToFrameworkString(val)
 	}
 
 	// Map value template reference
@@ -249,28 +250,39 @@ func mapSimpleSettingCollection(ctx context.Context, values []graphmodels.Device
 	var result []SimpleSettingCollectionStruct
 
 	for _, value := range values {
-		collectionItem := SimpleSettingCollectionStruct{}
-
-		// Map OData type
-		if odataType := value.GetOdataType(); odataType != nil {
-			collectionItem.ODataType = types.StringValue(*odataType)
+		if value == nil {
+			continue
 		}
 
-		// Map value template reference
+		collectionItem := SimpleSettingCollectionStruct{}
+
+		if odataType := value.GetOdataType(); odataType != nil {
+			collectionItem.ODataType = convert.GraphToFrameworkString(odataType)
+		}
+
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
-		// Map value (assuming string type for collection items)
+		// Handle different value types
 		switch typedValue := value.(type) {
 		case graphmodels.DeviceManagementConfigurationStringSettingValueable:
 			if stringVal := typedValue.GetValue(); stringVal != nil {
-				collectionItem.Value = types.StringValue(*stringVal)
+				collectionItem.Value = convert.GraphToFrameworkString(stringVal)
 			}
+
 		case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
 			if intVal := typedValue.GetValue(); intVal != nil {
 				collectionItem.Value = types.StringValue(strconv.Itoa(int(*intVal)))
 			}
+
+		case graphmodels.DeviceManagementConfigurationChoiceSettingValueable:
+			if val := typedValue.GetValue(); val != nil {
+				collectionItem.Value = convert.GraphToFrameworkString(val)
+			}
+
+		default:
+			return nil, fmt.Errorf("unsupported simple setting collection value type: %T", typedValue)
 		}
 
 		result = append(result, collectionItem)
@@ -346,27 +358,30 @@ func mapGroupSettingCollection(ctx context.Context, values []graphmodels.DeviceM
 	return result, nil
 }
 
-// mapChoiceSettingChildren converts  choice setting children to our model
+// mapChoiceSettingChildren converts Graph  choice setting children to our model
 func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.DeviceManagementConfigurationSettingInstanceable) ([]ChoiceSettingChild, error) {
 	var result []ChoiceSettingChild
 
 	for _, child := range children {
+		if child == nil {
+			continue
+		}
+
 		childItem := ChoiceSettingChild{}
 
-		// Map basic properties
 		if odataType := child.GetOdataType(); odataType != nil {
-			childItem.ODataType = types.StringValue(*odataType)
-		}
-		if settingDefId := child.GetSettingDefinitionId(); settingDefId != nil {
-			childItem.SettingDefinitionId = types.StringValue(*settingDefId)
+			childItem.ODataType = convert.GraphToFrameworkString(odataType)
 		}
 
-		// Map instance template reference
+		if settingDefId := child.GetSettingDefinitionId(); settingDefId != nil {
+			childItem.SettingDefinitionId = convert.GraphToFrameworkString(settingDefId)
+		}
+
 		if instanceTemplateRef := child.GetSettingInstanceTemplateReference(); instanceTemplateRef != nil {
 			childItem.SettingInstanceTemplateReference = mapInstanceTemplateReference(instanceTemplateRef)
 		}
 
-		// Type-specific mapping
+		// Handle different child types
 		switch typedChild := child.(type) {
 		case graphmodels.DeviceManagementConfigurationSimpleSettingInstanceable:
 			if simpleValue := typedChild.GetSimpleSettingValue(); simpleValue != nil {
@@ -424,6 +439,9 @@ func mapChoiceSettingChildren(ctx context.Context, children []graphmodels.Device
 				// Always initialize as empty slice
 				childItem.GroupSettingCollectionValue = make([]GroupSettingCollectionStruct, 0)
 			}
+
+		default:
+			return nil, fmt.Errorf("unsupported choice setting child type: %T", typedChild)
 		}
 
 		result = append(result, childItem)
@@ -569,7 +587,7 @@ func mapGroupSettingCollectionChildren(ctx context.Context, children []graphmode
 	return result, nil
 }
 
-// mapInstanceTemplateReference converts  instance template reference to our model
+// mapInstanceTemplateReference converts a Graph  setting instance template reference to our model
 func mapInstanceTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingInstanceTemplateReferenceable) *SettingInstanceTemplateReference {
 	if ref == nil {
 		return nil
@@ -577,13 +595,12 @@ func mapInstanceTemplateReference(ref graphmodels.DeviceManagementConfigurationS
 
 	templateRef := &SettingInstanceTemplateReference{}
 	if templateId := ref.GetSettingInstanceTemplateId(); templateId != nil {
-		templateRef.SettingInstanceTemplateId = types.StringValue(*templateId)
+		templateRef.SettingInstanceTemplateId = convert.GraphToFrameworkString(templateId)
 	}
-
 	return templateRef
 }
 
-// mapValueTemplateReference converts  value template reference to our model
+// mapValueTemplateReference converts a Graph  setting value template reference to our model
 func mapValueTemplateReference(ref graphmodels.DeviceManagementConfigurationSettingValueTemplateReferenceable) *SettingValueTemplateReference {
 	if ref == nil {
 		return nil
@@ -591,11 +608,10 @@ func mapValueTemplateReference(ref graphmodels.DeviceManagementConfigurationSett
 
 	templateRef := &SettingValueTemplateReference{}
 	if templateId := ref.GetSettingValueTemplateId(); templateId != nil {
-		templateRef.SettingValueTemplateId = types.StringValue(*templateId)
+		templateRef.SettingValueTemplateId = convert.GraphToFrameworkString(templateId)
 	}
 	if useDefault := ref.GetUseTemplateDefault(); useDefault != nil {
 		templateRef.UseTemplateDefault = *useDefault
 	}
-
 	return templateRef
 }

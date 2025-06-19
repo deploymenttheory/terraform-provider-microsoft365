@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,12 +18,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupMemberAssignmentR
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"memberID": types.StringPointerValue(remoteResource.GetId()),
+		"memberID": convert.GraphToFrameworkString(remoteResource.GetId()),
 		"groupID":  data.GroupID.ValueString(),
 	})
 
 	// Set the member ID
-	data.MemberID = types.StringPointerValue(remoteResource.GetId())
+	data.MemberID = convert.GraphToFrameworkString(remoteResource.GetId())
 
 	// Create composite ID from group_id and member_id
 	compositeID := fmt.Sprintf("%s/%s", data.GroupID.ValueString(), data.MemberID.ValueString())
@@ -42,15 +43,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupMemberAssignmentR
 	// Set display name if available
 	// Try to get display name from different member types
 	if user, ok := remoteResource.(graphmodels.Userable); ok {
-		data.MemberDisplayName = types.StringPointerValue(user.GetDisplayName())
+		data.MemberDisplayName = convert.GraphToFrameworkString(user.GetDisplayName())
 	} else if group, ok := remoteResource.(graphmodels.Groupable); ok {
-		data.MemberDisplayName = types.StringPointerValue(group.GetDisplayName())
+		data.MemberDisplayName = convert.GraphToFrameworkString(group.GetDisplayName())
 	} else if servicePrincipal, ok := remoteResource.(graphmodels.ServicePrincipalable); ok {
-		data.MemberDisplayName = types.StringPointerValue(servicePrincipal.GetDisplayName())
+		data.MemberDisplayName = convert.GraphToFrameworkString(servicePrincipal.GetDisplayName())
 	} else if device, ok := remoteResource.(graphmodels.Deviceable); ok {
-		data.MemberDisplayName = types.StringPointerValue(device.GetDisplayName())
+		data.MemberDisplayName = convert.GraphToFrameworkString(device.GetDisplayName())
 	} else if orgContact, ok := remoteResource.(graphmodels.OrgContactable); ok {
-		data.MemberDisplayName = types.StringPointerValue(orgContact.GetDisplayName())
+		data.MemberDisplayName = convert.GraphToFrameworkString(orgContact.GetDisplayName())
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform state %s with id %s", ResourceName, data.ID.ValueString()))

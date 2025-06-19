@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
@@ -14,20 +15,20 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.CloudPcNamingTemplate, requestBody.SetCloudPcNamingTemplate)
-	constructors.SetStringProperty(data.ImageId, requestBody.SetImageId)
-	constructors.SetBoolProperty(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
-	constructors.SetBoolProperty(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.CloudPcNamingTemplate, requestBody.SetCloudPcNamingTemplate)
+	convert.FrameworkToGraphString(data.ImageId, requestBody.SetImageId)
+	convert.FrameworkToGraphBool(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
+	convert.FrameworkToGraphBool(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
 
-	if err := constructors.SetEnumProperty(data.ImageType,
+	if err := convert.FrameworkToGraphEnum(data.ImageType,
 		models.ParseCloudPcProvisioningPolicyImageType,
 		requestBody.SetImageType); err != nil {
 		return nil, fmt.Errorf("failed to set image type: %v", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.ProvisioningType,
+	if err := convert.FrameworkToGraphEnum(data.ProvisioningType,
 		models.ParseCloudPcProvisioningType,
 		requestBody.SetProvisioningType); err != nil {
 		return nil, fmt.Errorf("failed to set provisioning type: %v", err)
@@ -36,13 +37,13 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	if data.MicrosoftManagedDesktop != nil {
 		mmd := models.NewMicrosoftManagedDesktop()
 
-		if err := constructors.SetEnumProperty(data.MicrosoftManagedDesktop.ManagedType,
+		if err := convert.FrameworkToGraphEnum(data.MicrosoftManagedDesktop.ManagedType,
 			models.ParseMicrosoftManagedDesktopType,
 			mmd.SetManagedType); err != nil {
 			return nil, fmt.Errorf("failed to set Microsoft Managed Desktop type: %v", err)
 		}
 
-		constructors.SetStringProperty(data.MicrosoftManagedDesktop.Profile, mmd.SetProfile)
+		convert.FrameworkToGraphString(data.MicrosoftManagedDesktop.Profile, mmd.SetProfile)
 		requestBody.SetMicrosoftManagedDesktop(mmd)
 	}
 
@@ -51,14 +52,14 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		for _, config := range data.DomainJoinConfigurations {
 			domainJoinConfig := models.NewCloudPcDomainJoinConfiguration()
 
-			if err := constructors.SetEnumProperty(config.DomainJoinType,
+			if err := convert.FrameworkToGraphEnum(config.DomainJoinType,
 				models.ParseCloudPcDomainJoinType,
 				domainJoinConfig.SetDomainJoinType); err != nil {
 				return nil, fmt.Errorf("failed to set domain join type: %v", err)
 			}
 
-			constructors.SetStringProperty(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
-			constructors.SetStringProperty(config.RegionName, domainJoinConfig.SetRegionName)
+			convert.FrameworkToGraphString(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
+			convert.FrameworkToGraphString(config.RegionName, domainJoinConfig.SetRegionName)
 
 			domainJoinConfigs = append(domainJoinConfigs, domainJoinConfig)
 		}
@@ -68,7 +69,7 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	// Handle Windows Settings
 	if data.WindowsSetting != nil {
 		windowsSetting := models.NewCloudPcWindowsSetting()
-		constructors.SetStringProperty(data.WindowsSetting.Locale, windowsSetting.SetLocale)
+		convert.FrameworkToGraphString(data.WindowsSetting.Locale, windowsSetting.SetLocale)
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 
