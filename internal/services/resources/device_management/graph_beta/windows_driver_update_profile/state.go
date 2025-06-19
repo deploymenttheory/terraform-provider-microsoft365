@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -20,17 +20,16 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{"resourceId": remoteResource.GetId()})
 
-	// Scalar fields
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.ApprovalType = state.EnumPtrToTypeString(remoteResource.GetApprovalType())
-	data.DeviceReporting = state.Int32PtrToTypeInt32(remoteResource.GetDeviceReporting())
-	data.NewUpdates = state.Int32PtrToTypeInt32(remoteResource.GetNewUpdates())
-	data.DeploymentDeferralInDays = state.Int32PtrToTypeInt32(remoteResource.GetDeploymentDeferralInDays())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.ApprovalType = convert.GraphToFrameworkEnum(remoteResource.GetApprovalType())
+	data.DeviceReporting = convert.GraphToFrameworkInt32(remoteResource.GetDeviceReporting())
+	data.NewUpdates = convert.GraphToFrameworkInt32(remoteResource.GetNewUpdates())
+	data.DeploymentDeferralInDays = convert.GraphToFrameworkInt32(remoteResource.GetDeploymentDeferralInDays())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	// inventory_sync_status as an Object
 	inventorySyncStatusTypes := map[string]attr.Type{
@@ -40,10 +39,18 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 
 	if status := remoteResource.GetInventorySyncStatus(); status != nil {
 		inventorySyncStatusValues := map[string]attr.Value{
-			"last_successful_sync_date_time": state.TimeToString(status.GetLastSuccessfulSyncDateTime()),
-			"driver_inventory_sync_state":    state.EnumPtrToTypeString(status.GetDriverInventorySyncState()),
+			"last_successful_sync_date_time": convert.GraphToFrameworkTime(status.GetLastSuccessfulSyncDateTime()),
+			"driver_inventory_sync_state":    convert.GraphToFrameworkEnum(status.GetDriverInventorySyncState()),
 		}
-		data.InventorySyncStatus = state.ObjectValueMust(inventorySyncStatusTypes, inventorySyncStatusValues)
+		object, diags := types.ObjectValue(inventorySyncStatusTypes, inventorySyncStatusValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create object value", map[string]interface{}{
+				"error": diags.Errors()[0].Detail(),
+			})
+			data.InventorySyncStatus = types.ObjectNull(inventorySyncStatusTypes)
+		} else {
+			data.InventorySyncStatus = object
+		}
 	} else {
 		data.InventorySyncStatus = types.ObjectNull(inventorySyncStatusTypes)
 	}

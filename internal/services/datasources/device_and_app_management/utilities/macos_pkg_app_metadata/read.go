@@ -102,7 +102,7 @@ func (d *MacOSPKGAppMetadataDataSource) Read(ctx context.Context, req datasource
 		Name:                       types.StringValue(metadata.Name),
 		InstallLocation:            types.StringValue(metadata.InstallLocation),
 		MinOSVersion:               types.StringValue(metadata.MinOSVersion),
-		SizeMB:                     types.Int64Value(int64(bytesToMB(metadata.Size))),
+		SizeMB:                     types.Int32Value(int32(bytesToMB(metadata.Size))),
 		SHA256Checksum:             types.StringValue(hex.EncodeToString(sha256Checksum)),
 		MD5Checksum:                types.StringValue(hex.EncodeToString(md5Checksum)),
 	}

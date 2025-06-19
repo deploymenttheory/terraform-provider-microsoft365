@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -24,13 +24,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleScopeTagRe
 	}
 
 	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.IsBuiltIn = types.BoolPointerValue(remoteResource.GetIsBuiltIn())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.IsBuiltIn = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltIn())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,27 +29,27 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": remoteResource.GetId(),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	data.ID = state.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = state.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = state.StringPointerValue(remoteResource.GetDescription())
-	data.Publisher = state.StringPointerValue(remoteResource.GetPublisher())
-	data.InformationUrl = state.StringPointerValue(remoteResource.GetInformationUrl())
-	data.PrivacyInformationUrl = state.StringPointerValue(remoteResource.GetPrivacyInformationUrl())
-	data.Owner = state.StringPointerValue(remoteResource.GetOwner())
-	data.Developer = state.StringPointerValue(remoteResource.GetDeveloper())
-	data.Notes = state.StringPointerValue(remoteResource.GetNotes())
-	data.IsFeatured = state.BoolPointerValue(remoteResource.GetIsFeatured())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	//data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.PublishingState = state.EnumPtrToTypeString(remoteResource.GetPublishingState())
-	data.DependentAppCount = state.Int32PointerValue(remoteResource.GetDependentAppCount())
-	data.IsAssigned = state.BoolPointerValue(remoteResource.GetIsAssigned())
-	data.SupersededAppCount = state.Int32PointerValue(remoteResource.GetSupersededAppCount())
-	data.SupersedingAppCount = state.Int32PointerValue(remoteResource.GetSupersedingAppCount())
-	data.UploadState = state.Int32PointerValue(remoteResource.GetUploadState())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.Publisher = convert.GraphToFrameworkString(remoteResource.GetPublisher())
+	data.InformationUrl = convert.GraphToFrameworkString(remoteResource.GetInformationUrl())
+	data.PrivacyInformationUrl = convert.GraphToFrameworkString(remoteResource.GetPrivacyInformationUrl())
+	data.Owner = convert.GraphToFrameworkString(remoteResource.GetOwner())
+	data.Developer = convert.GraphToFrameworkString(remoteResource.GetDeveloper())
+	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())
+	data.IsFeatured = convert.GraphToFrameworkBool(remoteResource.GetIsFeatured())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	//data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.PublishingState = convert.GraphToFrameworkEnum(remoteResource.GetPublishingState())
+	data.DependentAppCount = convert.GraphToFrameworkInt32(remoteResource.GetDependentAppCount())
+	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
+	data.SupersededAppCount = convert.GraphToFrameworkInt32(remoteResource.GetSupersededAppCount())
+	data.SupersedingAppCount = convert.GraphToFrameworkInt32(remoteResource.GetSupersedingAppCount())
+	data.UploadState = convert.GraphToFrameworkInt32(remoteResource.GetUploadState())
 
 	if data.AppIcon != nil {
 		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
@@ -62,7 +62,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 		data.AppIcon = nil
 	}
 
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, remoteResource.GetCategories())
 
@@ -86,25 +86,24 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	if data.MacOSPkgApp == nil {
 		data.MacOSPkgApp = &MacOSPKGAppDetailsResourceModel{}
 	}
-	mapMacOSPKGAppStateToTerraform(ctx, data.MacOSPkgApp, remoteResource)
+	mapMacOSPKGAppStateToTerraform(data.MacOSPkgApp, remoteResource)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 
 }
 
 // mapMacOSPKGAppStateToTerraform handle fields specific to macOs pkgs
-func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPKGAppDetailsResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
+func mapMacOSPKGAppStateToTerraform(data *MacOSPKGAppDetailsResourceModel, remoteResource graphmodels.MacOSPkgAppable) {
 	if data == nil {
 		data = &MacOSPKGAppDetailsResourceModel{}
 	}
 
-	data.PrimaryBundleId = state.StringPointerValue(remoteResource.GetPrimaryBundleId())
-	data.PrimaryBundleVersion = state.StringPointerValue(remoteResource.GetPrimaryBundleVersion())
-	data.IgnoreVersionDetection = state.BoolPointerValue(remoteResource.GetIgnoreVersionDetection())
+	data.PrimaryBundleId = convert.GraphToFrameworkString(remoteResource.GetPrimaryBundleId())
+	data.PrimaryBundleVersion = convert.GraphToFrameworkString(remoteResource.GetPrimaryBundleVersion())
+	data.IgnoreVersionDetection = convert.GraphToFrameworkBool(remoteResource.GetIgnoreVersionDetection())
 
 	apps := remoteResource.GetIncludedApps()
-	data.IncludedApps = state.BuildObjectSetFromSlice(
-		ctx,
+	data.IncludedApps = buildObjectSetFromSlice(
 		map[string]attr.Type{
 			"bundle_id":      types.StringType,
 			"bundle_version": types.StringType,
@@ -112,8 +111,8 @@ func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPKGAppDetail
 		func(i int) map[string]attr.Value {
 			app := apps[i]
 			return map[string]attr.Value{
-				"bundle_id":      types.StringPointerValue(app.GetBundleId()),
-				"bundle_version": types.StringPointerValue(app.GetBundleVersion()),
+				"bundle_id":      convert.GraphToFrameworkString(app.GetBundleId()),
+				"bundle_version": convert.GraphToFrameworkString(app.GetBundleVersion()),
 			}
 		},
 		len(apps),
@@ -124,34 +123,49 @@ func mapMacOSPKGAppStateToTerraform(ctx context.Context, data *MacOSPKGAppDetail
 			data.MinimumSupportedOperatingSystem = &MacOSMinimumOperatingSystemResourceModel{}
 		}
 
-		data.MinimumSupportedOperatingSystem.V107 = state.BoolPointerValue(minOS.GetV107())
-		data.MinimumSupportedOperatingSystem.V108 = state.BoolPointerValue(minOS.GetV108())
-		data.MinimumSupportedOperatingSystem.V109 = state.BoolPointerValue(minOS.GetV109())
-		data.MinimumSupportedOperatingSystem.V1010 = state.BoolPointerValue(minOS.GetV1010())
-		data.MinimumSupportedOperatingSystem.V1011 = state.BoolPointerValue(minOS.GetV1011())
-		data.MinimumSupportedOperatingSystem.V1012 = state.BoolPointerValue(minOS.GetV1012())
-		data.MinimumSupportedOperatingSystem.V1013 = state.BoolPointerValue(minOS.GetV1013())
-		data.MinimumSupportedOperatingSystem.V1014 = state.BoolPointerValue(minOS.GetV1014())
-		data.MinimumSupportedOperatingSystem.V1015 = state.BoolPointerValue(minOS.GetV1015())
-		data.MinimumSupportedOperatingSystem.V110 = state.BoolPointerValue(minOS.GetV110())
-		data.MinimumSupportedOperatingSystem.V120 = state.BoolPointerValue(minOS.GetV120())
-		data.MinimumSupportedOperatingSystem.V130 = state.BoolPointerValue(minOS.GetV130())
-		data.MinimumSupportedOperatingSystem.V140 = state.BoolPointerValue(minOS.GetV140())
-		data.MinimumSupportedOperatingSystem.V150 = state.BoolPointerValue(minOS.GetV150())
+		data.MinimumSupportedOperatingSystem.V107 = convert.GraphToFrameworkBool(minOS.GetV107())
+		data.MinimumSupportedOperatingSystem.V108 = convert.GraphToFrameworkBool(minOS.GetV108())
+		data.MinimumSupportedOperatingSystem.V109 = convert.GraphToFrameworkBool(minOS.GetV109())
+		data.MinimumSupportedOperatingSystem.V1010 = convert.GraphToFrameworkBool(minOS.GetV1010())
+		data.MinimumSupportedOperatingSystem.V1011 = convert.GraphToFrameworkBool(minOS.GetV1011())
+		data.MinimumSupportedOperatingSystem.V1012 = convert.GraphToFrameworkBool(minOS.GetV1012())
+		data.MinimumSupportedOperatingSystem.V1013 = convert.GraphToFrameworkBool(minOS.GetV1013())
+		data.MinimumSupportedOperatingSystem.V1014 = convert.GraphToFrameworkBool(minOS.GetV1014())
+		data.MinimumSupportedOperatingSystem.V1015 = convert.GraphToFrameworkBool(minOS.GetV1015())
+		data.MinimumSupportedOperatingSystem.V110 = convert.GraphToFrameworkBool(minOS.GetV110())
+		data.MinimumSupportedOperatingSystem.V120 = convert.GraphToFrameworkBool(minOS.GetV120())
+		data.MinimumSupportedOperatingSystem.V130 = convert.GraphToFrameworkBool(minOS.GetV130())
+		data.MinimumSupportedOperatingSystem.V140 = convert.GraphToFrameworkBool(minOS.GetV140())
+		data.MinimumSupportedOperatingSystem.V150 = convert.GraphToFrameworkBool(minOS.GetV150())
 	}
 
 	if preScript := remoteResource.GetPreInstallScript(); preScript != nil {
 		if data.PreInstallScript == nil {
 			data.PreInstallScript = &MacOSAppScriptResourceModel{}
 		}
-		data.PreInstallScript.ScriptContent = state.StringPointerValue(preScript.GetScriptContent())
+		data.PreInstallScript.ScriptContent = convert.GraphToFrameworkString(preScript.GetScriptContent())
 	}
 
 	if postScript := remoteResource.GetPostInstallScript(); postScript != nil {
 		if data.PostInstallScript == nil {
 			data.PostInstallScript = &MacOSAppScriptResourceModel{}
 		}
-		data.PostInstallScript.ScriptContent = state.StringPointerValue(postScript.GetScriptContent())
+		data.PostInstallScript.ScriptContent = convert.GraphToFrameworkString(postScript.GetScriptContent())
+	}
+}
+
+// buildObjectSetFromSlice is a helper function to build a set of objects from a slice
+func buildObjectSetFromSlice(attrTypes map[string]attr.Type, valueFunc func(int) map[string]attr.Value, length int) types.Set {
+	if length == 0 {
+		return types.SetNull(types.ObjectType{AttrTypes: attrTypes})
 	}
 
+	values := make([]attr.Value, length)
+	for i := 0; i < length; i++ {
+		obj, _ := types.ObjectValue(attrTypes, valueFunc(i))
+		values[i] = obj
+	}
+
+	result, _ := types.SetValue(types.ObjectType{AttrTypes: attrTypes}, values)
+	return result
 }

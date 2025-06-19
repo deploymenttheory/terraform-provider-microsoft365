@@ -3,7 +3,7 @@ package graphBetaWindowsAutopilotDeploymentProfile
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -18,17 +18,17 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 
 	tflog.Debug(ctx, "Starting to map Windows Autopilot Deployment Profile from API to Terraform state")
 
-	data.ID = types.StringValue(*remoteResource.GetId())
-	data.DisplayName = state.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = state.StringPointerValue(remoteResource.GetDescription())
-	data.Language = state.StringPointerValue(remoteResource.GetLanguage())
-	data.Locale = state.StringPointerValue(remoteResource.GetLocale())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.HardwareHashExtractionEnabled = state.BoolPtrToTypeBool(remoteResource.GetHardwareHashExtractionEnabled())
-	data.DeviceNameTemplate = state.StringPointerValue(remoteResource.GetDeviceNameTemplate())
-	data.PreprovisioningAllowed = state.BoolPtrToTypeBool(remoteResource.GetPreprovisioningAllowed())
-	data.ManagementServiceAppId = state.StringPointerValue(remoteResource.GetManagementServiceAppId())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.Language = convert.GraphToFrameworkString(remoteResource.GetLanguage())
+	data.Locale = convert.GraphToFrameworkString(remoteResource.GetLocale())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.HardwareHashExtractionEnabled = convert.GraphToFrameworkBool(remoteResource.GetHardwareHashExtractionEnabled())
+	data.DeviceNameTemplate = convert.GraphToFrameworkString(remoteResource.GetDeviceNameTemplate())
+	data.PreprovisioningAllowed = convert.GraphToFrameworkBool(remoteResource.GetPreprovisioningAllowed())
+	data.ManagementServiceAppId = convert.GraphToFrameworkString(remoteResource.GetManagementServiceAppId())
 
 	// Determine device join type based on the actual profile type returned from API
 	if _, ok := remoteResource.(graphmodels.ActiveDirectoryWindowsAutopilotDeploymentProfileable); ok {
@@ -41,7 +41,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 
 	// Check if this is an ActiveDirectoryWindowsAutopilotDeploymentProfile and handle hybrid Azure AD join setting
 	if adResource, ok := remoteResource.(graphmodels.ActiveDirectoryWindowsAutopilotDeploymentProfileable); ok {
-		data.HybridAzureADJoinSkipConnectivityCheck = state.BoolPtrToTypeBool(adResource.GetHybridAzureADJoinSkipConnectivityCheck())
+		data.HybridAzureADJoinSkipConnectivityCheck = convert.GraphToFrameworkBool(adResource.GetHybridAzureADJoinSkipConnectivityCheck())
 	} else {
 		// For Azure AD profiles, this field is not applicable but we should preserve the configured value
 		// to avoid Terraform inconsistency errors. The field is not sent to the API for Azure AD profiles.
@@ -53,41 +53,41 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 	}
 
 	if deviceType := remoteResource.GetDeviceType(); deviceType != nil {
-		data.DeviceType = state.EnumPtrToTypeString(deviceType)
+		data.DeviceType = convert.GraphToFrameworkEnum(deviceType)
 	}
 
 	if roleScopeTagIds := remoteResource.GetRoleScopeTagIds(); roleScopeTagIds != nil {
-		data.RoleScopeTagIds = state.StringSliceToSet(ctx, roleScopeTagIds)
+		data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, roleScopeTagIds)
 	} else {
 		data.RoleScopeTagIds = types.SetNull(types.StringType)
 	}
 
 	if oobeSetting := remoteResource.GetOutOfBoxExperienceSetting(); oobeSetting != nil {
 		data.OutOfBoxExperienceSetting = &OutOfBoxExperienceSettingModel{
-			PrivacySettingsHidden:        state.BoolPtrToTypeBool(oobeSetting.GetPrivacySettingsHidden()),
-			EulaHidden:                   state.BoolPtrToTypeBool(oobeSetting.GetEulaHidden()),
-			KeyboardSelectionPageSkipped: state.BoolPtrToTypeBool(oobeSetting.GetKeyboardSelectionPageSkipped()),
-			EscapeLinkHidden:             state.BoolPtrToTypeBool(oobeSetting.GetEscapeLinkHidden()),
+			PrivacySettingsHidden:        convert.GraphToFrameworkBool(oobeSetting.GetPrivacySettingsHidden()),
+			EulaHidden:                   convert.GraphToFrameworkBool(oobeSetting.GetEulaHidden()),
+			KeyboardSelectionPageSkipped: convert.GraphToFrameworkBool(oobeSetting.GetKeyboardSelectionPageSkipped()),
+			EscapeLinkHidden:             convert.GraphToFrameworkBool(oobeSetting.GetEscapeLinkHidden()),
 		}
 
 		if userType := oobeSetting.GetUserType(); userType != nil {
-			data.OutOfBoxExperienceSetting.UserType = state.EnumPtrToTypeString(userType)
+			data.OutOfBoxExperienceSetting.UserType = convert.GraphToFrameworkEnum(userType)
 		}
 
 		if deviceUsageType := oobeSetting.GetDeviceUsageType(); deviceUsageType != nil {
-			data.OutOfBoxExperienceSetting.DeviceUsageType = state.EnumPtrToTypeString(deviceUsageType)
+			data.OutOfBoxExperienceSetting.DeviceUsageType = convert.GraphToFrameworkEnum(deviceUsageType)
 		}
 	}
 
 	if essSettings := remoteResource.GetEnrollmentStatusScreenSettings(); essSettings != nil {
 		data.EnrollmentStatusScreenSettings = &WindowsEnrollmentStatusScreenSettingsModel{
-			HideInstallationProgress:                         state.BoolPtrToTypeBool(essSettings.GetHideInstallationProgress()),
-			AllowDeviceUseBeforeProfileAndAppInstallComplete: state.BoolPtrToTypeBool(essSettings.GetAllowDeviceUseBeforeProfileAndAppInstallComplete()),
-			BlockDeviceSetupRetryByUser:                      state.BoolPtrToTypeBool(essSettings.GetBlockDeviceSetupRetryByUser()),
-			AllowLogCollectionOnInstallFailure:               state.BoolPtrToTypeBool(essSettings.GetAllowLogCollectionOnInstallFailure()),
-			CustomErrorMessage:                               state.StringPointerValue(essSettings.GetCustomErrorMessage()),
-			InstallProgressTimeoutInMinutes:                  state.Int32PtrToTypeInt32(essSettings.GetInstallProgressTimeoutInMinutes()),
-			AllowDeviceUseOnInstallFailure:                   state.BoolPtrToTypeBool(essSettings.GetAllowDeviceUseOnInstallFailure()),
+			HideInstallationProgress:                         convert.GraphToFrameworkBool(essSettings.GetHideInstallationProgress()),
+			AllowDeviceUseBeforeProfileAndAppInstallComplete: convert.GraphToFrameworkBool(essSettings.GetAllowDeviceUseBeforeProfileAndAppInstallComplete()),
+			BlockDeviceSetupRetryByUser:                      convert.GraphToFrameworkBool(essSettings.GetBlockDeviceSetupRetryByUser()),
+			AllowLogCollectionOnInstallFailure:               convert.GraphToFrameworkBool(essSettings.GetAllowLogCollectionOnInstallFailure()),
+			CustomErrorMessage:                               convert.GraphToFrameworkString(essSettings.GetCustomErrorMessage()),
+			InstallProgressTimeoutInMinutes:                  convert.GraphToFrameworkInt32(essSettings.GetInstallProgressTimeoutInMinutes()),
+			AllowDeviceUseOnInstallFailure:                   convert.GraphToFrameworkBool(essSettings.GetAllowDeviceUseOnInstallFailure()),
 		}
 	}
 

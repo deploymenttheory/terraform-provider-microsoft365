@@ -1,6 +1,6 @@
 # AI Custom Instructions – Terraform Provider Microsoft365
 
-These instructions guide ai tools to follow our project's conventions and best practices when suggesting code. They cover how to format code, name resources and attributes, structure implementations, and write tests in this repository. By following these guidelines, ai's suggestions should align with the project's style and help contributors produce high-quality, consistent code. Always consider existing patterns in the repository—when in doubt, review similar resources or tests for reference and keep the new code idiomatic to the project's practices.
+These instructions, guide ai tools to follow our project's conventions and best practices when suggesting code. They cover how to format code, name resources and attributes, structure implementations, sdk usage, data type conversion and how write tests in this repository. By following these guidelines, ai's suggestions should align with the project's style and help contributors produce high-quality, consistent code. Always consider existing patterns in the repository—when in doubt, review similar resources or tests for reference and keep the new code idiomatic to the project's practices.
 
 ## Development Setup & Workflow
 
@@ -100,10 +100,25 @@ Each resource directory MUST contain:
   - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"last_modified_date_time"`).
   - The sub-resource struct should be named `<SubResourceName>ResourceModel`.
 - **Test Function Naming:** Name test functions with a prefix indicating their type. **Acceptance test** functions should start with `TestAcc` and **unit test** functions with `TestUnit` (this allows filtering tests by type). Also, name test files' package with a `_test` suffix (e.g. `package environment_test`) to ensure tests access the provider only via its public interface.
-- **Data Transfer Objects:** Define all DTO structures in `dto.go` with a `Dto` suffix (e.g., `EnvironmentDto`).
-- **Conversion Functions:** Implement conversion functions named exactly as `convertDtoToModel` and `convertModelToDto` in `models.go`.
-- **Client Factory:** When implementing a client factory, name it `New<Service>Client` (e.g., `NewSolutionClient`).
 - **Resource/Data Source Factory:** For each resource and data source, create a new function named `New<ResourceName>Resource` or `New<DataSourceName>DataSource` that returns the appropriate type.
+- **Client Factory:** When implementing a client factory, name it `New<Service>Client` (e.g., `NewSolutionClient`).
+
+## Data Type Conversion for resource construction and state mapping
+
+- Use the data type conversion utilities in the following packages:
+  - **Constructors (`internal/services/common/constructors/data_type_conversion.go`)**: Contains functions for converting Terraform types to Microsoft Graph SDK types when constructing API requests:
+    - `convert.FrameworkToGraphString`, `SetBoolProperty`, `convert.FrameworkToGraphBool`, etc.: Convert Terraform primitive types to pointers for Graph API setters
+    - `convert.FrameworkToGraphEnum`: Convert string values to enumeration types
+    - `SetStringList`, `SetStringSet`: Convert Terraform collections to string slices
+    - `SetBytesProperty`: Convert string values to byte slices
+    - `SetISODurationProperty`: Parse ISO 8601 duration strings
+    - `StringToTimeOnly`, `StringToDateOnly`: Convert string values to specialized time/date types
+    - `SetUUIDProperty`: Parse and convert string UUIDs
+  - **State (`internal/services/common/state/data_type_conversion.go`)**: Contains functions for converting Microsoft Graph SDK types to Terraform types when mapping API responses to state:
+    - `TimeToString`, `DateOnlyPtrToString`, `TimeOnlyPtrToString`: Convert time types to strings
+    - `BoolPtrToTypeBool`, `Int32PtrToTypeInt32`: Convert primitive pointers to Terraform types
+    - `EnumPtrToTypeString`: Convert enumeration values to strings
+    - `BytesToString`: Convert byte arrays to strings
 
 ## Comments and Documentation
 

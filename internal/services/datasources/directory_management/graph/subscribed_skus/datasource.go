@@ -110,7 +110,7 @@ func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "The status of the SKU. Possible values: 'Enabled', 'Warning', 'Suspended', 'Deleted', 'LockedOut'.",
 						},
-						"consumed_units": schema.Int64Attribute{
+						"consumed_units": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "The number of licenses that have been assigned.",
 						},
@@ -126,19 +126,19 @@ func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "Information about the number and status of prepaid licenses.",
 							Attributes: map[string]schema.Attribute{
-								"enabled": schema.Int64Attribute{
+								"enabled": schema.Int32Attribute{
 									Computed:            true,
 									MarkdownDescription: "The number of units that are enabled.",
 								},
-								"locked_out": schema.Int64Attribute{
+								"locked_out": schema.Int32Attribute{
 									Computed:            true,
 									MarkdownDescription: "The number of units that are locked out.",
 								},
-								"suspended": schema.Int64Attribute{
+								"suspended": schema.Int32Attribute{
 									Computed:            true,
 									MarkdownDescription: "The number of units that are suspended.",
 								},
-								"warning": schema.Int64Attribute{
+								"warning": schema.Int32Attribute{
 									Computed:            true,
 									MarkdownDescription: "The number of units that are in warning state.",
 								},

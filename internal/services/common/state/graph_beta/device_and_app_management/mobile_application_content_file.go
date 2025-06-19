@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,8 +17,8 @@ func getFileObjectType() types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"name":                         types.StringType,
-			"size":                         types.Int64Type,
-			"size_encrypted":               types.Int64Type,
+			"size":                         types.Int32Type,
+			"size_encrypted":               types.Int32Type,
 			"upload_state":                 types.StringType,
 			"is_committed":                 types.BoolType,
 			"is_dependency":                types.BoolType,
@@ -74,23 +74,23 @@ func MapCommittedContentVersionStateToTerraform(
 		}
 
 		// Only include the file if it matches the installer file name or if no installer file name was provided
-		fileName := state.StringPointerValue(file.GetName()).ValueString()
+		fileName := convert.GraphToFrameworkString(file.GetName()).ValueString()
 		if installerFileName != "" && fileName != installerFileName && filepath.Base(fileName) != installerFileName {
 			tflog.Debug(ctx, fmt.Sprintf("Skipping file %s as it doesn't match installer name %s", fileName, installerFileName))
 			continue
 		}
 
 		fileValues := map[string]attr.Value{
-			"name":                         state.StringPointerValue(file.GetName()),
-			"size":                         state.Int64PointerValue(file.GetSize()),
-			"size_encrypted":               state.Int64PointerValue(file.GetSizeEncrypted()),
-			"upload_state":                 state.EnumPtrToTypeString(file.GetUploadState()),
-			"is_committed":                 state.BoolPointerValue(file.GetIsCommitted()),
-			"is_dependency":                state.BoolPointerValue(file.GetIsDependency()),
-			"is_framework_file":            state.BoolPointerValue(file.GetIsFrameworkFile()),
-			"azure_storage_uri":            state.StringPointerValue(file.GetAzureStorageUri()),
-			"azure_storage_uri_expiration": state.TimeToString(file.GetAzureStorageUriExpirationDateTime()),
-			"created_date_time":            state.TimeToString(file.GetCreatedDateTime()),
+			"name":                         convert.GraphToFrameworkString(file.GetName()),
+			"size":                         convert.GraphToFrameworkInt64(file.GetSize()),
+			"size_encrypted":               convert.GraphToFrameworkInt64(file.GetSizeEncrypted()),
+			"upload_state":                 convert.GraphToFrameworkEnum(file.GetUploadState()),
+			"is_committed":                 convert.GraphToFrameworkBool(file.GetIsCommitted()),
+			"is_dependency":                convert.GraphToFrameworkBool(file.GetIsDependency()),
+			"is_framework_file":            convert.GraphToFrameworkBool(file.GetIsFrameworkFile()),
+			"azure_storage_uri":            convert.GraphToFrameworkString(file.GetAzureStorageUri()),
+			"azure_storage_uri_expiration": convert.GraphToFrameworkTime(file.GetAzureStorageUriExpirationDateTime()),
+			"created_date_time":            convert.GraphToFrameworkTime(file.GetCreatedDateTime()),
 		}
 
 		fileObj, diags := types.ObjectValue(fileObjectType.AttrTypes, fileValues)

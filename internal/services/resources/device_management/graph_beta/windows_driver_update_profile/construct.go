@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,19 +16,19 @@ func constructResource(ctx context.Context, data *WindowsDriverUpdateProfileReso
 
 	requestBody := graphmodels.NewWindowsDriverUpdateProfile()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
 	// Immutable field once created. Excluded from update req construction.
 	if !forUpdate {
-		if err := constructors.SetEnumProperty(data.ApprovalType, graphmodels.ParseDriverUpdateProfileApprovalType, requestBody.SetApprovalType); err != nil {
+		if err := convert.FrameworkToGraphEnum(data.ApprovalType, graphmodels.ParseDriverUpdateProfileApprovalType, requestBody.SetApprovalType); err != nil {
 			return nil, fmt.Errorf("invalid approval type: %s", err)
 		}
 	}
 
-	constructors.SetInt32Property(data.DeploymentDeferralInDays, requestBody.SetDeploymentDeferralInDays)
+	convert.FrameworkToGraphInt32(data.DeploymentDeferralInDays, requestBody.SetDeploymentDeferralInDays)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

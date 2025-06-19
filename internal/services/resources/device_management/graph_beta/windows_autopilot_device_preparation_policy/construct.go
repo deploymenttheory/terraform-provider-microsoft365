@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphdevicemanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,8 +17,8 @@ import (
 func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
 	configurationPolicy := models.NewDeviceManagementConfigurationPolicy()
 
-	constructors.SetStringProperty(planModel.Name, configurationPolicy.SetName)
-	constructors.SetStringProperty(planModel.Description, configurationPolicy.SetDescription)
+	convert.FrameworkToGraphString(planModel.Name, configurationPolicy.SetName)
+	convert.FrameworkToGraphString(planModel.Description, configurationPolicy.SetDescription)
 
 	// Set the template ID for Windows Autopilot Device Preparation Policy
 	templateId := "80d33118-b7b4-40d8-b15f-81be745e053f_1"
@@ -45,7 +46,7 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 		configurationPolicy.SetTechnologies(tech)
 	}
 
-	if err := constructors.SetStringSet(ctx, planModel.RoleScopeTagIds, configurationPolicy.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, planModel.RoleScopeTagIds, configurationPolicy.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

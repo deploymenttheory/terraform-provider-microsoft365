@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/utilities"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	utils "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -56,9 +57,9 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel, isUpda
 			}
 		} else {
 			// Use the provided values from the model
-			constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-			constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
-			constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+			convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+			convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+			convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 
 			if !data.LargeIcon.IsNull() {
 				largeIcon := graphmodels.NewMimeContent()
@@ -98,15 +99,15 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel, isUpda
 		}
 	}
 
-	constructors.SetBoolProperty(data.IsFeatured, requestBody.SetIsFeatured)
-	constructors.SetStringProperty(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
-	constructors.SetStringProperty(data.InformationUrl, requestBody.SetInformationUrl)
-	constructors.SetStringProperty(data.Owner, requestBody.SetOwner)
-	constructors.SetStringProperty(data.Developer, requestBody.SetDeveloper)
-	constructors.SetStringProperty(data.Notes, requestBody.SetNotes)
-	constructors.SetStringProperty(data.ManifestHash, requestBody.SetManifestHash)
+	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
+	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.ManifestHash, requestBody.SetManifestHash)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

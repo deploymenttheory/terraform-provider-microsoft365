@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -18,25 +18,25 @@ func mapRemoteStateToTerraform(ctx context.Context, data *DeviceEnrollmentNotifi
 	}
 
 	if notificationConfig, ok := remoteResource.(models.DeviceEnrollmentNotificationConfigurationable); ok {
-		data.ID = state.StringPointerValue(notificationConfig.GetId())
-		data.DisplayName = state.StringPointerValue(notificationConfig.GetDisplayName())
-		data.Description = state.StringPointerValue(notificationConfig.GetDescription())
-		data.Priority = state.Int32PointerValue(notificationConfig.GetPriority())
-		data.CreatedDateTime = state.TimeToString(notificationConfig.GetCreatedDateTime())
-		data.LastModifiedDateTime = state.TimeToString(notificationConfig.GetLastModifiedDateTime())
-		data.Version = state.Int32PointerValue(notificationConfig.GetVersion())
+		data.ID = convert.GraphToFrameworkString(notificationConfig.GetId())
+		data.DisplayName = convert.GraphToFrameworkString(notificationConfig.GetDisplayName())
+		data.Description = convert.GraphToFrameworkString(notificationConfig.GetDescription())
+		data.Priority = convert.GraphToFrameworkInt32(notificationConfig.GetPriority())
+		data.CreatedDateTime = convert.GraphToFrameworkTime(notificationConfig.GetCreatedDateTime())
+		data.LastModifiedDateTime = convert.GraphToFrameworkTime(notificationConfig.GetLastModifiedDateTime())
+		data.Version = convert.GraphToFrameworkInt32(notificationConfig.GetVersion())
 
 		if configType := notificationConfig.GetDeviceEnrollmentConfigurationType(); configType != nil {
-			data.DeviceEnrollmentConfigurationType = state.EnumPtrToTypeString(configType)
+			data.DeviceEnrollmentConfigurationType = convert.GraphToFrameworkEnum(configType)
 		}
 
 		if platformType := notificationConfig.GetPlatformType(); platformType != nil {
-			data.PlatformType = state.EnumPtrToTypeString(platformType)
+			data.PlatformType = convert.GraphToFrameworkEnum(platformType)
 		}
 
 		if data.TemplateTypes.IsNull() || data.TemplateTypes.IsUnknown() {
 			if templateType := notificationConfig.GetTemplateType(); templateType != nil {
-				data.TemplateTypes = state.StringSliceToSet(ctx, []string{templateType.String()})
+				data.TemplateTypes = convert.GraphToFrameworkStringSet(ctx, []string{templateType.String()})
 			}
 		}
 
@@ -54,7 +54,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *DeviceEnrollmentNotifi
 				}
 				// Sort for stable diffs
 				sort.Strings(brandingStrings)
-				data.BrandingOptions = state.StringSliceToSet(ctx, brandingStrings)
+				data.BrandingOptions = convert.GraphToFrameworkStringSet(ctx, brandingStrings)
 			}
 		}
 
@@ -66,12 +66,12 @@ func mapRemoteStateToTerraform(ctx context.Context, data *DeviceEnrollmentNotifi
 
 		if data.NotificationTemplates.IsNull() || data.NotificationTemplates.IsUnknown() {
 			if notificationTemplates := notificationConfig.GetNotificationTemplates(); notificationTemplates != nil {
-				data.NotificationTemplates = state.StringSliceToSet(ctx, notificationTemplates)
+				data.NotificationTemplates = convert.GraphToFrameworkStringSet(ctx, notificationTemplates)
 			}
 		}
 
 		if roleScopeTagIds := notificationConfig.GetRoleScopeTagIds(); roleScopeTagIds != nil {
-			data.RoleScopeTagIds = state.StringSliceToSet(ctx, roleScopeTagIds)
+			data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, roleScopeTagIds)
 		}
 	}
 }
@@ -151,7 +151,7 @@ func mapAssignmentsToState(ctx context.Context, assignments []models.EnrollmentC
 
 		stateTarget := AssignmentTargetModel{
 			TargetType:                               types.StringValue("group"),
-			GroupId:                                  types.StringValue(*groupID),
+			GroupId:                                  convert.GraphToFrameworkString(groupID),
 			DeviceAndAppManagementAssignmentFilterId: types.StringValue(""),
 			DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 		}
@@ -161,7 +161,7 @@ func mapAssignmentsToState(ctx context.Context, assignments []models.EnrollmentC
 		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
 
 		if filterID != nil && *filterID != "" {
-			stateTarget.DeviceAndAppManagementAssignmentFilterId = types.StringValue(*filterID)
+			stateTarget.DeviceAndAppManagementAssignmentFilterId = convert.GraphToFrameworkString(filterID)
 			tflog.Debug(ctx, fmt.Sprintf("Group assignment %d has filter ID: %s", i, *filterID))
 		}
 
@@ -194,7 +194,7 @@ func mapAssignmentsToState(ctx context.Context, assignments []models.EnrollmentC
 		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
 
 		if filterID != nil && *filterID != "" {
-			stateTarget.DeviceAndAppManagementAssignmentFilterId = types.StringValue(*filterID)
+			stateTarget.DeviceAndAppManagementAssignmentFilterId = convert.GraphToFrameworkString(filterID)
 			tflog.Debug(ctx, fmt.Sprintf("AllDevices assignment %d has filter ID: %s", i, *filterID))
 		}
 
@@ -227,7 +227,7 @@ func mapAssignmentsToState(ctx context.Context, assignments []models.EnrollmentC
 		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
 
 		if filterID != nil && *filterID != "" {
-			stateTarget.DeviceAndAppManagementAssignmentFilterId = types.StringValue(*filterID)
+			stateTarget.DeviceAndAppManagementAssignmentFilterId = convert.GraphToFrameworkString(filterID)
 			tflog.Debug(ctx, fmt.Sprintf("AllLicensedUsers assignment %d has filter ID: %s", i, *filterID))
 		}
 

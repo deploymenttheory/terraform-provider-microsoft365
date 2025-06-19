@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
@@ -17,29 +16,29 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
 	// Set basic properties
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.CloudPcNamingTemplate = types.StringPointerValue(remoteResource.GetCloudPcNamingTemplate())
-	data.AlternateResourceUrl = types.StringPointerValue(remoteResource.GetAlternateResourceUrl())
-	data.CloudPcGroupDisplayName = types.StringPointerValue(remoteResource.GetCloudPcGroupDisplayName())
-	data.EnableSingleSignOn = types.BoolPointerValue(remoteResource.GetEnableSingleSignOn())
-	data.GracePeriodInHours = state.Int32PtrToTypeInt64(remoteResource.GetGracePeriodInHours())
-	data.ImageDisplayName = types.StringPointerValue(remoteResource.GetImageDisplayName())
-	data.ImageId = types.StringPointerValue(remoteResource.GetImageId())
-	data.ImageType = state.EnumPtrToTypeString(remoteResource.GetImageType())
-	data.LocalAdminEnabled = types.BoolPointerValue(remoteResource.GetLocalAdminEnabled())
-	data.ProvisioningType = state.EnumPtrToTypeString(remoteResource.GetProvisioningType())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.CloudPcNamingTemplate = convert.GraphToFrameworkString(remoteResource.GetCloudPcNamingTemplate())
+	data.AlternateResourceUrl = convert.GraphToFrameworkString(remoteResource.GetAlternateResourceUrl())
+	data.CloudPcGroupDisplayName = convert.GraphToFrameworkString(remoteResource.GetCloudPcGroupDisplayName())
+	data.EnableSingleSignOn = convert.GraphToFrameworkBool(remoteResource.GetEnableSingleSignOn())
+	data.GracePeriodInHours = convert.GraphToFrameworkInt32(remoteResource.GetGracePeriodInHours())
+	data.ImageDisplayName = convert.GraphToFrameworkString(remoteResource.GetImageDisplayName())
+	data.ImageId = convert.GraphToFrameworkString(remoteResource.GetImageId())
+	data.ImageType = convert.GraphToFrameworkEnum(remoteResource.GetImageType())
+	data.LocalAdminEnabled = convert.GraphToFrameworkBool(remoteResource.GetLocalAdminEnabled())
+	data.ProvisioningType = convert.GraphToFrameworkEnum(remoteResource.GetProvisioningType())
 
 	// Handle Microsoft Managed Desktop
 	if mmd := remoteResource.GetMicrosoftManagedDesktop(); mmd != nil {
 		data.MicrosoftManagedDesktop = &MicrosoftManagedDesktopModel{
-			ManagedType: state.EnumPtrToTypeString(mmd.GetManagedType()),
-			Profile:     types.StringPointerValue(mmd.GetProfile()),
+			ManagedType: convert.GraphToFrameworkEnum(mmd.GetManagedType()),
+			Profile:     convert.GraphToFrameworkString(mmd.GetProfile()),
 		}
 	} else {
 		data.MicrosoftManagedDesktop = nil
@@ -50,9 +49,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
 			data.DomainJoinConfigurations[i] = DomainJoinConfigurationModel{
-				DomainJoinType:         state.EnumPtrToTypeString(config.GetDomainJoinType()),
-				OnPremisesConnectionId: types.StringPointerValue(config.GetOnPremisesConnectionId()),
-				RegionName:             types.StringPointerValue(config.GetRegionName()),
+				DomainJoinType:         convert.GraphToFrameworkEnum(config.GetDomainJoinType()),
+				OnPremisesConnectionId: convert.GraphToFrameworkString(config.GetOnPremisesConnectionId()),
+				RegionName:             convert.GraphToFrameworkString(config.GetRegionName()),
 			}
 		}
 	} else {
@@ -62,7 +61,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	// Handle Windows Settings
 	if windowsSetting := remoteResource.GetWindowsSetting(); windowsSetting != nil {
 		data.WindowsSetting = &WindowsSettingModel{
-			Locale: types.StringPointerValue(windowsSetting.GetLocale()),
+			Locale: convert.GraphToFrameworkString(windowsSetting.GetLocale()),
 		}
 	} else {
 		data.WindowsSetting = nil

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,17 +21,17 @@ func constructResource(ctx context.Context, data *MacOSLobAppResourceModel, inst
 
 	baseApp := graphmodels.NewMacOSLobApp()
 
-	constructors.SetStringProperty(data.Description, baseApp.SetDescription)
-	constructors.SetStringProperty(data.Publisher, baseApp.SetPublisher)
-	constructors.SetStringProperty(data.DisplayName, baseApp.SetDisplayName)
-	constructors.SetStringProperty(data.InformationUrl, baseApp.SetInformationUrl)
-	constructors.SetBoolProperty(data.IsFeatured, baseApp.SetIsFeatured)
-	constructors.SetStringProperty(data.Owner, baseApp.SetOwner)
-	constructors.SetStringProperty(data.Developer, baseApp.SetDeveloper)
-	constructors.SetStringProperty(data.Notes, baseApp.SetNotes)
-	constructors.SetStringProperty(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.Description, baseApp.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, baseApp.SetPublisher)
+	convert.FrameworkToGraphString(data.DisplayName, baseApp.SetDisplayName)
+	convert.FrameworkToGraphString(data.InformationUrl, baseApp.SetInformationUrl)
+	convert.FrameworkToGraphBool(data.IsFeatured, baseApp.SetIsFeatured)
+	convert.FrameworkToGraphString(data.Owner, baseApp.SetOwner)
+	convert.FrameworkToGraphString(data.Developer, baseApp.SetDeveloper)
+	convert.FrameworkToGraphString(data.Notes, baseApp.SetNotes)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -81,25 +82,25 @@ func constructResource(ctx context.Context, data *MacOSLobAppResourceModel, inst
 
 		filename := filepath.Base(installerSourcePath)
 		tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-		constructors.SetStringProperty(types.StringValue(filename), baseApp.SetFileName)
+		convert.FrameworkToGraphString(types.StringValue(filename), baseApp.SetFileName)
 	}
 
 	// Set macOS LOB app specific properties
 	if data.MacOSLobApp != nil {
-		constructors.SetStringProperty(data.MacOSLobApp.BundleId, baseApp.SetBundleId)
-		constructors.SetStringProperty(data.MacOSLobApp.BuildNumber, baseApp.SetBuildNumber)
-		constructors.SetStringProperty(data.MacOSLobApp.VersionNumber, baseApp.SetVersionNumber)
-		constructors.SetBoolProperty(data.MacOSLobApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
-		constructors.SetBoolProperty(data.MacOSLobApp.InstallAsManaged, baseApp.SetInstallAsManaged)
+		convert.FrameworkToGraphString(data.MacOSLobApp.BundleId, baseApp.SetBundleId)
+		convert.FrameworkToGraphString(data.MacOSLobApp.BuildNumber, baseApp.SetBuildNumber)
+		convert.FrameworkToGraphString(data.MacOSLobApp.VersionNumber, baseApp.SetVersionNumber)
+		convert.FrameworkToGraphBool(data.MacOSLobApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+		convert.FrameworkToGraphBool(data.MacOSLobApp.InstallAsManaged, baseApp.SetInstallAsManaged)
 
 		// Set child apps if provided
 		if len(data.MacOSLobApp.ChildApps) > 0 {
 			var childApps []graphmodels.MacOSLobChildAppable
 			for _, childApp := range data.MacOSLobApp.ChildApps {
 				childAppModel := graphmodels.NewMacOSLobChildApp()
-				constructors.SetStringProperty(childApp.BundleId, childAppModel.SetBundleId)
-				constructors.SetStringProperty(childApp.BuildNumber, childAppModel.SetBuildNumber)
-				constructors.SetStringProperty(childApp.VersionNumber, childAppModel.SetVersionNumber)
+				convert.FrameworkToGraphString(childApp.BundleId, childAppModel.SetBundleId)
+				convert.FrameworkToGraphString(childApp.BuildNumber, childAppModel.SetBuildNumber)
+				convert.FrameworkToGraphString(childApp.VersionNumber, childAppModel.SetVersionNumber)
 				childApps = append(childApps, childAppModel)
 			}
 			baseApp.SetChildApps(childApps)
@@ -109,20 +110,20 @@ func constructResource(ctx context.Context, data *MacOSLobAppResourceModel, inst
 		// Set minimum supported operating system
 		if data.MacOSLobApp.MinimumSupportedOperatingSystem != nil {
 			minOS := graphmodels.NewMacOSMinimumOperatingSystem()
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
-			constructors.SetBoolProperty(data.MacOSLobApp.MinimumSupportedOperatingSystem.V150, minOS.SetV150)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V107, minOS.SetV107)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V108, minOS.SetV108)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V109, minOS.SetV109)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1010, minOS.SetV1010)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1011, minOS.SetV1011)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1012, minOS.SetV1012)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1013, minOS.SetV1013)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1014, minOS.SetV1014)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V1015, minOS.SetV1015)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V110, minOS.SetV110)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
+			convert.FrameworkToGraphBool(data.MacOSLobApp.MinimumSupportedOperatingSystem.V150, minOS.SetV150)
 			baseApp.SetMinimumSupportedOperatingSystem(minOS)
 		}
 	}

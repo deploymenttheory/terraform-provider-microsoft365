@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -16,21 +17,21 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 
 	requestBody := graphmodels.NewDeviceAndAppManagementAssignmentFilter()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
-	if err := constructors.SetEnumProperty(data.Platform, graphmodels.ParseDevicePlatformType, requestBody.SetPlatform); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.Platform, graphmodels.ParseDevicePlatformType, requestBody.SetPlatform); err != nil {
 		return nil, fmt.Errorf("invalid device platform type: %s", err)
 	}
 
-	constructors.SetStringProperty(data.Rule, requestBody.SetRule)
+	convert.FrameworkToGraphString(data.Rule, requestBody.SetRule)
 
-	if err := constructors.SetEnumProperty(data.AssignmentFilterManagementType, graphmodels.ParseAssignmentFilterManagementType, requestBody.SetAssignmentFilterManagementType); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.AssignmentFilterManagementType, graphmodels.ParseAssignmentFilterManagementType, requestBody.SetAssignmentFilterManagementType); err != nil {
 		return nil, fmt.Errorf("invalid assignment filter management type: %s", err)
 	}
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTags, requestBody.SetRoleScopeTags); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTags, requestBody.SetRoleScopeTags); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

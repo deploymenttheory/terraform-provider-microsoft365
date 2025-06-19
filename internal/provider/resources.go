@@ -52,7 +52,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	// Graph Beta - User resources
-	graphBetaUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/license_assignment"
+	graphBetaUsersUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/license_assignment"
+	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 
 	// Graph Beta - Group resources
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
@@ -137,7 +138,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 
 		// Graph Beta - User resources
-		graphBetaUserLicenseAssignment.NewUserLicenseAssignmentResource,
+		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
+		graphBetaUsersUser.NewUserResource,
 
 		// Graph Beta - Group resources
 		graphBetaGroup.NewGroupResource,
@@ -157,5 +159,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph v1.0 - M365 Admin Centre
 		graphDeviceM365AdminM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
 		// Add microsoft 365 provider resources here
+
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,9 +18,9 @@ import (
 func constructResource(ctx context.Context, data *DeviceEnrollmentNotificationConfigurationResourceModel) (models.DeviceEnrollmentNotificationConfigurationable, error) {
 	requestBody := models.NewDeviceEnrollmentNotificationConfiguration()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetInt32Property(data.Priority, requestBody.SetPriority)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphInt32(data.Priority, requestBody.SetPriority)
 
 	// Platform type is always Windows for enrollment notifications
 	platformType := models.WINDOWS_ENROLLMENTRESTRICTIONPLATFORMTYPE
@@ -37,7 +38,7 @@ func constructResource(ctx context.Context, data *DeviceEnrollmentNotificationCo
 		}
 		joined := strings.Join(opts, ",")
 		stringVal := types.StringValue(joined)
-		err := constructors.SetBitmaskEnumProperty(
+		err := convert.FrameworkToGraphBitmaskEnum(
 			stringVal,
 			models.ParseEnrollmentNotificationBrandingOptions,
 			requestBody.SetBrandingOptions,
@@ -67,7 +68,7 @@ func constructResource(ctx context.Context, data *DeviceEnrollmentNotificationCo
 		}
 	}
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -143,7 +144,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments []Assignme
 		switch targetType {
 		case "group":
 			groupTarget := models.NewGroupAssignmentTarget()
-			constructors.SetStringProperty(assignmentData.Target.GroupId, groupTarget.SetGroupId)
+			convert.FrameworkToGraphString(assignmentData.Target.GroupId, groupTarget.SetGroupId)
 			target = groupTarget
 		case "allDevices":
 			target = models.NewAllDevicesAssignmentTarget()
@@ -153,8 +154,8 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments []Assignme
 			return nil, fmt.Errorf("unsupported target type: %s", targetType)
 		}
 
-		constructors.SetStringProperty(assignmentData.Target.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
-		err := constructors.SetEnumProperty(
+		convert.FrameworkToGraphString(assignmentData.Target.DeviceAndAppManagementAssignmentFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		err := convert.FrameworkToGraphEnum(
 			assignmentData.Target.DeviceAndAppManagementAssignmentFilterType,
 			models.ParseDeviceAndAppManagementAssignmentFilterType,
 			target.SetDeviceAndAppManagementAssignmentFilterType,

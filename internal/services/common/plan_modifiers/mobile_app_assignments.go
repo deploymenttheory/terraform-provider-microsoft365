@@ -132,14 +132,14 @@ func (m *mobileAppAssignmentsModifier) PlanModifyList(ctx context.Context, req p
 						),
 						"restart_settings": types.ObjectValueMust(
 							map[string]attr.Type{
-								"countdown_display_before_restart_in_minutes":     types.Int64Type,
-								"grace_period_in_minutes":                         types.Int64Type,
-								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+								"countdown_display_before_restart_in_minutes":     types.Int32Type,
+								"grace_period_in_minutes":                         types.Int32Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int32Type,
 							},
 							map[string]attr.Value{
-								"countdown_display_before_restart_in_minutes":     types.Int64Null(),
-								"grace_period_in_minutes":                         types.Int64Null(),
-								"restart_notification_snooze_duration_in_minutes": types.Int64Null(),
+								"countdown_display_before_restart_in_minutes":     types.Int32Null(),
+								"grace_period_in_minutes":                         types.Int32Null(),
+								"restart_notification_snooze_duration_in_minutes": types.Int32Null(),
 							},
 						),
 					}
@@ -163,16 +163,16 @@ func (m *mobileAppAssignmentsModifier) PlanModifyList(ctx context.Context, req p
 					// Handle restart settings
 					if assignment.Settings.WinGet.RestartSettings != nil {
 						restartMap := map[string]attr.Value{
-							"countdown_display_before_restart_in_minutes":     types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt32())),
-							"grace_period_in_minutes":                         types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.GracePeriodInMinutes.ValueInt32())),
-							"restart_notification_snooze_duration_in_minutes": types.Int64Value(int64(assignment.Settings.WinGet.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt32())),
+							"countdown_display_before_restart_in_minutes":     types.Int32Value(assignment.Settings.WinGet.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt32()),
+							"grace_period_in_minutes":                         types.Int32Value(assignment.Settings.WinGet.RestartSettings.GracePeriodInMinutes.ValueInt32()),
+							"restart_notification_snooze_duration_in_minutes": types.Int32Value(assignment.Settings.WinGet.RestartSettings.RestartNotificationSnoozeDurationInMinutes.ValueInt32()),
 						}
 
 						winGetMap["restart_settings"] = types.ObjectValueMust(
 							map[string]attr.Type{
-								"countdown_display_before_restart_in_minutes":     types.Int64Type,
-								"grace_period_in_minutes":                         types.Int64Type,
-								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+								"countdown_display_before_restart_in_minutes":     types.Int32Type,
+								"grace_period_in_minutes":                         types.Int32Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int32Type,
 							},
 							restartMap,
 						)
@@ -187,9 +187,9 @@ func (m *mobileAppAssignmentsModifier) PlanModifyList(ctx context.Context, req p
 								"use_local_time":     types.BoolType,
 							}},
 							"restart_settings": types.ObjectType{AttrTypes: map[string]attr.Type{
-								"countdown_display_before_restart_in_minutes":     types.Int64Type,
-								"grace_period_in_minutes":                         types.Int64Type,
-								"restart_notification_snooze_duration_in_minutes": types.Int64Type,
+								"countdown_display_before_restart_in_minutes":     types.Int32Type,
+								"grace_period_in_minutes":                         types.Int32Type,
+								"restart_notification_snooze_duration_in_minutes": types.Int32Type,
 							}},
 						},
 						winGetMap,

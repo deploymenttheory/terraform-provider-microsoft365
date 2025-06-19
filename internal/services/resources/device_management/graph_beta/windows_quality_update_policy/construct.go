@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,11 +16,11 @@ func constructResource(ctx context.Context, data *WindowsQualityUpdatePolicyReso
 
 	requestBody := graphmodels.NewWindowsQualityUpdatePolicy()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetBoolProperty(data.HotpatchEnabled, requestBody.SetHotpatchEnabled)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphBool(data.HotpatchEnabled, requestBody.SetHotpatchEnabled)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 

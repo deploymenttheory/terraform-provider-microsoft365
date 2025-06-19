@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -19,23 +19,23 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.Name = types.StringPointerValue(remoteResource.GetName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.IsAssigned = types.BoolPointerValue(remoteResource.GetIsAssigned())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.SettingsCount = state.Int32PtrToTypeInt64(remoteResource.GetSettingCount())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.SettingsCount = convert.GraphToFrameworkInt32(remoteResource.GetSettingCount())
 	// SettingsCatalogTemplateType are not set by this resource type. But the field is required to satisfy schema.
 	data.SettingsCatalogTemplateType = types.StringValue("")
 
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
-		data.Platforms = state.EnumPtrToTypeString(platforms)
+		data.Platforms = convert.GraphToFrameworkEnum(platforms)
 	}
 
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {

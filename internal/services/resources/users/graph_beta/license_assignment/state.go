@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,9 +32,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *UserLicenseAss
 	})
 
 	// Set basic user information
-	data.ID = state.StringPointerValue(remoteResource.GetId())
-	data.UserId = state.StringPointerValue(remoteResource.GetId())
-	data.UserPrincipalName = state.StringPointerValue(remoteResource.GetUserPrincipalName())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.UserId = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.UserPrincipalName = convert.GraphToFrameworkString(remoteResource.GetUserPrincipalName())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping user license assignment resource with id %s", data.ID.ValueString()))
 }
@@ -67,7 +67,7 @@ func MapLicenseDetailsToTerraform(ctx context.Context, data *UserLicenseAssignme
 
 		licenseObj := map[string]attr.Value{
 			"sku_id":          uuidPointerToStringValue(license.GetSkuId()),
-			"sku_part_number": state.StringPointerValue(license.GetSkuPartNumber()),
+			"sku_part_number": convert.GraphToFrameworkString(license.GetSkuPartNumber()),
 			"service_plans":   mapServicePlansToTerraform(ctx, license.GetServicePlans()),
 		}
 
@@ -113,9 +113,9 @@ func mapServicePlansToTerraform(ctx context.Context, servicePlans []graphmodels.
 
 		planObj := map[string]attr.Value{
 			"service_plan_id":     uuidPointerToStringValue(plan.GetServicePlanId()),
-			"service_plan_name":   state.StringPointerValue(plan.GetServicePlanName()),
-			"provisioning_status": state.StringPointerValue(plan.GetProvisioningStatus()),
-			"applies_to":          state.StringPointerValue(plan.GetAppliesTo()),
+			"service_plan_name":   convert.GraphToFrameworkString(plan.GetServicePlanName()),
+			"provisioning_status": convert.GraphToFrameworkString(plan.GetProvisioningStatus()),
+			"applies_to":          convert.GraphToFrameworkString(plan.GetAppliesTo()),
 		}
 
 		objValue, diag := types.ObjectValue(getServicePlanObjectType(), planObj)

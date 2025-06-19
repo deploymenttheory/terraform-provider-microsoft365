@@ -20,7 +20,7 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 	requestBody := graphmodels.NewAppliedConditionalAccessPolicy()
 
 	// Set basic writable properties (read-only properties excluded for PATCH requests)
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 
 	// Set state enum (writable)
 	if err := constructors.SetBitmaskEnumProperty(data.State,
@@ -285,22 +285,22 @@ func constructConditionalAccessApplications(ctx context.Context, data *Condition
 	applications := graphmodels.NewConditionalAccessApplications()
 
 	// Set Include Applications using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeApplications, applications.SetIncludeApplications); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeApplications, applications.SetIncludeApplications); err != nil {
 		return nil, fmt.Errorf("failed to set include applications: %w", err)
 	}
 
 	// Set Exclude Applications using helper
-	if err := constructors.SetStringSet(ctx, data.ExcludeApplications, applications.SetExcludeApplications); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeApplications, applications.SetExcludeApplications); err != nil {
 		return nil, fmt.Errorf("failed to set exclude applications: %w", err)
 	}
 
 	// Set Include User Actions using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeUserActions, applications.SetIncludeUserActions); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeUserActions, applications.SetIncludeUserActions); err != nil {
 		return nil, fmt.Errorf("failed to set include user actions: %w", err)
 	}
 
 	// Set Include Authentication Context Class References using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeAuthenticationContextClassReferences, applications.SetIncludeAuthenticationContextClassReferences); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeAuthenticationContextClassReferences, applications.SetIncludeAuthenticationContextClassReferences); err != nil {
 		return nil, fmt.Errorf("failed to set include authentication context class references: %w", err)
 	}
 
@@ -334,29 +334,29 @@ func constructConditionalAccessUsers(ctx context.Context, data *ConditionalAcces
 	users := graphmodels.NewConditionalAccessUsers()
 
 	// Set Include/Exclude Users using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeUsers, users.SetIncludeUsers); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeUsers, users.SetIncludeUsers); err != nil {
 		return nil, fmt.Errorf("failed to set include users: %w", err)
 	}
 
-	if err := constructors.SetStringSet(ctx, data.ExcludeUsers, users.SetExcludeUsers); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeUsers, users.SetExcludeUsers); err != nil {
 		return nil, fmt.Errorf("failed to set exclude users: %w", err)
 	}
 
 	// Set Include/Exclude Groups using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeGroups, users.SetIncludeGroups); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeGroups, users.SetIncludeGroups); err != nil {
 		return nil, fmt.Errorf("failed to set include groups: %w", err)
 	}
 
-	if err := constructors.SetStringSet(ctx, data.ExcludeGroups, users.SetExcludeGroups); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeGroups, users.SetExcludeGroups); err != nil {
 		return nil, fmt.Errorf("failed to set exclude groups: %w", err)
 	}
 
 	// Set Include/Exclude Roles using helper
-	if err := constructors.SetStringSet(ctx, data.IncludeRoles, users.SetIncludeRoles); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeRoles, users.SetIncludeRoles); err != nil {
 		return nil, fmt.Errorf("failed to set include roles: %w", err)
 	}
 
-	if err := constructors.SetStringSet(ctx, data.ExcludeRoles, users.SetExcludeRoles); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeRoles, users.SetExcludeRoles); err != nil {
 		return nil, fmt.Errorf("failed to set exclude roles: %w", err)
 	}
 
@@ -424,7 +424,7 @@ func constructConditionalAccessExternalTenants(ctx context.Context, data *Condit
 			graphmodels.ParseConditionalAccessExternalTenantsMembershipKind, allExternal.SetMembershipKind); err != nil {
 			return nil, fmt.Errorf("failed to set membership kind: %w", err)
 		}
-		constructors.SetStringProperty(data.ODataType, allExternal.SetOdataType)
+		convert.FrameworkToGraphString(data.ODataType, allExternal.SetOdataType)
 		return allExternal, nil
 	case "#microsoft.graph.conditionalAccessEnumeratedExternalTenants":
 		enumerated := graphmodels.NewConditionalAccessEnumeratedExternalTenants()
@@ -433,10 +433,10 @@ func constructConditionalAccessExternalTenants(ctx context.Context, data *Condit
 			return nil, fmt.Errorf("failed to set membership kind: %w", err)
 		}
 		// Set members if present
-		if err := constructors.SetStringSet(ctx, data.Members, enumerated.SetMembers); err != nil {
+		if err := convert.FrameworkToGraphStringSet(ctx, data.Members, enumerated.SetMembers); err != nil {
 			return nil, fmt.Errorf("failed to set members: %w", err)
 		}
-		constructors.SetStringProperty(data.ODataType, enumerated.SetOdataType)
+		convert.FrameworkToGraphString(data.ODataType, enumerated.SetOdataType)
 		return enumerated, nil
 	default:
 		// Fallback to base type
@@ -445,7 +445,7 @@ func constructConditionalAccessExternalTenants(ctx context.Context, data *Condit
 			graphmodels.ParseConditionalAccessExternalTenantsMembershipKind, externalTenants.SetMembershipKind); err != nil {
 			return nil, fmt.Errorf("failed to set membership kind: %w", err)
 		}
-		constructors.SetStringProperty(data.ODataType, externalTenants.SetOdataType)
+		convert.FrameworkToGraphString(data.ODataType, externalTenants.SetOdataType)
 		return externalTenants, nil
 	}
 }
@@ -459,7 +459,7 @@ func constructConditionalAccessSessionControls(ctx context.Context, data *Condit
 	sessionControls := graphmodels.NewConditionalAccessSessionControls()
 
 	// Set basic boolean properties (beta endpoint shows these explicitly even when null)
-	constructors.SetBoolProperty(data.DisableResilienceDefaults, sessionControls.SetDisableResilienceDefaults)
+	convert.FrameworkToGraphBool(data.DisableResilienceDefaults, sessionControls.SetDisableResilienceDefaults)
 
 	// Set Sign In Frequency (most commonly configured session control)
 	if data.SignInFrequency != nil {
@@ -545,8 +545,8 @@ func constructSignInFrequencySessionControl(ctx context.Context, data *SignInFre
 	signInFreq := graphmodels.NewSignInFrequencySessionControl()
 
 	// Set basic properties
-	constructors.SetBoolProperty(data.IsEnabled, signInFreq.SetIsEnabled)
-	constructors.SetInt32Property(data.Value, signInFreq.SetValue)
+	convert.FrameworkToGraphBool(data.IsEnabled, signInFreq.SetIsEnabled)
+	convert.FrameworkToGraphInt32(data.Value, signInFreq.SetValue)
 
 	// Set enum properties
 	if err := constructors.SetBitmaskEnumProperty(data.Type,
@@ -582,7 +582,7 @@ func constructConditionalAccessFilter(ctx context.Context, data *ConditionalAcce
 	}
 
 	filter := graphmodels.NewConditionalAccessFilter()
-	constructors.SetStringProperty(data.Rule, filter.SetRule)
+	convert.FrameworkToGraphString(data.Rule, filter.SetRule)
 
 	if err := constructors.SetBitmaskEnumProperty(data.Mode,
 		graphmodels.ParseFilterMode, filter.SetMode); err != nil {
@@ -669,7 +669,7 @@ func constructApplicationEnforcedRestrictionsSessionControl(ctx context.Context,
 	}
 
 	appRestrictions := graphmodels.NewApplicationEnforcedRestrictionsSessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, appRestrictions.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, appRestrictions.SetIsEnabled)
 
 	return appRestrictions, nil
 }
@@ -680,7 +680,7 @@ func constructCloudAppSecuritySessionControl(ctx context.Context, data *CloudApp
 	}
 
 	cloudAppSec := graphmodels.NewCloudAppSecuritySessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, cloudAppSec.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, cloudAppSec.SetIsEnabled)
 
 	if err := constructors.SetBitmaskEnumProperty(data.CloudAppSecurityType,
 		graphmodels.ParseCloudAppSecuritySessionControlType, cloudAppSec.SetCloudAppSecurityType); err != nil {
@@ -696,7 +696,7 @@ func constructPersistentBrowserSessionControl(ctx context.Context, data *Persist
 	}
 
 	persistentBrowser := graphmodels.NewPersistentBrowserSessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, persistentBrowser.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, persistentBrowser.SetIsEnabled)
 
 	if err := constructors.SetBitmaskEnumProperty(data.Mode,
 		graphmodels.ParsePersistentBrowserSessionControlMode, persistentBrowser.SetMode); err != nil {
@@ -712,7 +712,7 @@ func constructContinuousAccessEvaluationSessionControl(ctx context.Context, data
 	}
 
 	cae := graphmodels.NewContinuousAccessEvaluationSessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, cae.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, cae.SetIsEnabled)
 
 	return cae, nil
 }
@@ -723,7 +723,7 @@ func constructSecureSignInSessionControl(ctx context.Context, data *SecureSignIn
 	}
 
 	secureSignIn := graphmodels.NewSecureSignInSessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, secureSignIn.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, secureSignIn.SetIsEnabled)
 
 	return secureSignIn, nil
 }
@@ -735,7 +735,7 @@ func constructConditionalAccessSignInRiskDetections(ctx context.Context, data *C
 	}
 
 	signInRiskDetections := graphmodels.NewConditionalAccessSignInRiskDetections()
-	constructors.SetStringProperty(data.ODataType, signInRiskDetections.SetOdataType)
+	convert.FrameworkToGraphString(data.ODataType, signInRiskDetections.SetOdataType)
 
 	return signInRiskDetections, nil
 }
@@ -746,7 +746,7 @@ func constructConditionalAccessClients(ctx context.Context, data *ConditionalAcc
 	}
 
 	clients := graphmodels.NewConditionalAccessClients()
-	constructors.SetStringProperty(data.ODataType, clients.SetOdataType)
+	convert.FrameworkToGraphString(data.ODataType, clients.SetOdataType)
 
 	return clients, nil
 }
@@ -759,7 +759,7 @@ func constructConditionalAccessGlobalSecureAccess(ctx context.Context, data *Con
 	globalSecureAccess := graphmodels.NewConditionalAccessGlobalSecureAccess()
 
 	// Set @odata.type using helper
-	constructors.SetStringProperty(data.ODataType, globalSecureAccess.SetOdataType)
+	convert.FrameworkToGraphString(data.ODataType, globalSecureAccess.SetOdataType)
 
 	return globalSecureAccess, nil
 }
@@ -770,7 +770,7 @@ func constructNetworkAccessSecuritySessionControl(ctx context.Context, data *Net
 	}
 
 	networkSecurity := graphmodels.NewNetworkAccessSecuritySessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, networkSecurity.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, networkSecurity.SetIsEnabled)
 
 	return networkSecurity, nil
 }
@@ -781,7 +781,7 @@ func constructGlobalSecureAccessFilteringProfileSessionControl(ctx context.Conte
 	}
 
 	globalFilteringProfile := graphmodels.NewGlobalSecureAccessFilteringProfileSessionControl()
-	constructors.SetBoolProperty(data.IsEnabled, globalFilteringProfile.SetIsEnabled)
+	convert.FrameworkToGraphBool(data.IsEnabled, globalFilteringProfile.SetIsEnabled)
 
 	return globalFilteringProfile, nil
 }

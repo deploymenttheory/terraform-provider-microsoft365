@@ -458,6 +458,7 @@ This method authenticates using an OIDC token from an Azure DevOps pipeline via 
 - [Introduction to Azure DevOps Workload identity federation](https://devblogs.microsoft.com/devops/introduction-to-azure-devops-workload-identity-federation-oidc-with-terraform/)
 
 ### Federated Credential Configuration (in Entra ID)
+
 - **Issuer**: `https://vstoken.dev.azure.com/{organization_id}`
 - **Audience**: `api://AzureADTokenExchange`
 - **Subject**: `sc://{organization_name}/{project_name}/{service_connection_name}`

@@ -3,7 +3,7 @@ package graphBetaBrowserSite
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,12 +17,12 @@ func MapRemoteStateToDataSource(ctx context.Context, data *BrowserSiteResourceMo
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to data source item", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.BrowserSiteListAssignmentID = browserSiteListId
-	data.WebUrl = types.StringPointerValue(remoteResource.GetWebUrl())
+	data.WebUrl = convert.GraphToFrameworkString(remoteResource.GetWebUrl())
 
 	tflog.Debug(ctx, "Finished mapping remote state to data source item", map[string]interface{}{
 		"resourceId": data.ID.ValueString(),

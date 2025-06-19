@@ -15,7 +15,7 @@ type SettingsCatalogProfileResourceModel struct {
 	Technologies                types.List                                      `tfsdk:"technologies"`
 	SettingsCatalogTemplateType types.String                                    `tfsdk:"settings_catalog_template_type"`
 	RoleScopeTagIds             types.Set                                       `tfsdk:"role_scope_tag_ids"`
-	SettingsCount               types.Int64                                     `tfsdk:"settings_count"`
+	SettingsCount               types.Int32                                     `tfsdk:"settings_count"`
 	IsAssigned                  types.Bool                                      `tfsdk:"is_assigned"`
 	LastModifiedDateTime        types.String                                    `tfsdk:"last_modified_date_time"`
 	CreatedDateTime             types.String                                    `tfsdk:"created_date_time"`

@@ -7,8 +7,8 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 // Based on the JSON structure from the Microsoft Graph API
 type MobileAppContentFileResourceModel struct {
 	Name                      types.String `tfsdk:"name"`
-	Size                      types.Int64  `tfsdk:"size"`
-	SizeEncrypted             types.Int64  `tfsdk:"size_encrypted"`
+	Size                      types.Int32  `tfsdk:"size"`
+	SizeEncrypted             types.Int32  `tfsdk:"size_encrypted"`
 	UploadState               types.String `tfsdk:"upload_state"`
 	IsCommitted               types.Bool   `tfsdk:"is_committed"`
 	IsDependency              types.Bool   `tfsdk:"is_dependency"`

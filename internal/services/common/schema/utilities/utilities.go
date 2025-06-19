@@ -23,7 +23,7 @@ func SchemaAttributesToAttrTypes(schemaAttributes map[string]schema.Attribute) (
 		case schema.Float64Attribute:
 			attrTypes[attrName] = types.Float64Type
 		case schema.Int64Attribute:
-			attrTypes[attrName] = types.Int64Type
+			attrTypes[attrName] = types.Int32Type
 		case schema.ListAttribute:
 			attrTypes[attrName] = types.ListType{ElemType: typedSchemaAttr.ElementType}
 		case schema.ListNestedAttribute:

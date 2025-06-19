@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -17,28 +18,28 @@ func constructResource(ctx context.Context, data *WindowsFeatureUpdateProfileRes
 
 	requestBody := graphmodels.NewWindowsFeatureUpdateProfile()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.FeatureUpdateVersion, requestBody.SetFeatureUpdateVersion)
-	constructors.SetBoolProperty(data.InstallFeatureUpdatesOptional, requestBody.SetInstallFeatureUpdatesOptional)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.FeatureUpdateVersion, requestBody.SetFeatureUpdateVersion)
+	convert.FrameworkToGraphBool(data.InstallFeatureUpdatesOptional, requestBody.SetInstallFeatureUpdatesOptional)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	if data.RolloutSettings != nil {
 		rolloutSettings := graphmodels.NewWindowsUpdateRolloutSettings()
 
-		constructors.StringToTime(data.RolloutSettings.OfferStartDateTimeInUTC, rolloutSettings.SetOfferStartDateTimeInUTC)
-		constructors.StringToTime(data.RolloutSettings.OfferEndDateTimeInUTC, rolloutSettings.SetOfferEndDateTimeInUTC)
-		constructors.SetInt32Property(data.RolloutSettings.OfferIntervalInDays, rolloutSettings.SetOfferIntervalInDays)
+		convert.FrameworkToGraphTime(data.RolloutSettings.OfferStartDateTimeInUTC, rolloutSettings.SetOfferStartDateTimeInUTC)
+		convert.FrameworkToGraphTime(data.RolloutSettings.OfferEndDateTimeInUTC, rolloutSettings.SetOfferEndDateTimeInUTC)
+		convert.FrameworkToGraphInt32(data.RolloutSettings.OfferIntervalInDays, rolloutSettings.SetOfferIntervalInDays)
 
 		requestBody.SetRolloutSettings(rolloutSettings)
 	}
 
 	// Immutable field once created. Excluded from update req construction.
 	if !forUpdate {
-		constructors.SetBoolProperty(data.InstallLatestWindows10OnWindows11IneligibleDevice, requestBody.SetInstallLatestWindows10OnWindows11IneligibleDevice)
+		convert.FrameworkToGraphBool(data.InstallLatestWindows10OnWindows11IneligibleDevice, requestBody.SetInstallLatestWindows10OnWindows11IneligibleDevice)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

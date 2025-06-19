@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,30 +16,27 @@ func constructResource(ctx context.Context, data *BrowserSiteResourceModel) (gra
 
 	requestBody := graphmodels.NewBrowserSite()
 
-	constructors.SetBoolProperty(data.AllowRedirect, requestBody.SetAllowRedirect)
-	constructors.SetStringProperty(data.Comment, requestBody.SetComment)
-	constructors.SetStringProperty(data.WebUrl, requestBody.SetWebUrl)
+	convert.FrameworkToGraphBool(data.AllowRedirect, requestBody.SetAllowRedirect)
+	convert.FrameworkToGraphString(data.Comment, requestBody.SetComment)
+	convert.FrameworkToGraphString(data.WebUrl, requestBody.SetWebUrl)
 
-	if err := constructors.SetEnumProperty(data.CompatibilityMode,
+	if err := convert.FrameworkToGraphEnum(data.CompatibilityMode,
 		graphmodels.ParseBrowserSiteCompatibilityMode,
 		requestBody.SetCompatibilityMode); err != nil {
 		return nil, fmt.Errorf("failed to set compatibility mode: %v", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.MergeType,
+	if err := convert.FrameworkToGraphEnum(data.MergeType,
 		graphmodels.ParseBrowserSiteMergeType,
 		requestBody.SetMergeType); err != nil {
 		return nil, fmt.Errorf("failed to set merge type: %v", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.TargetEnvironment,
+	if err := convert.FrameworkToGraphEnum(data.TargetEnvironment,
 		graphmodels.ParseBrowserSiteTargetEnvironment,
 		requestBody.SetTargetEnvironment); err != nil {
 		return nil, fmt.Errorf("failed to set target environment: %v", err)
 	}
-
-	// Note: We don't need to set history from the input data since it's computed
-	// The history field is populated by the API and we only read it
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{

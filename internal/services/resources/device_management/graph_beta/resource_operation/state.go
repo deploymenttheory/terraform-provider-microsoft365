@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,12 +16,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data ResourceOperationResour
 		return data
 	}
 
-	data.ID = state.StringPointerValue(resourceOperation.GetId())
-	data.Resource = state.StringPointerValue(resourceOperation.GetResource())
-	data.ResourceName = state.StringPointerValue(resourceOperation.GetResourceName())
-	data.ActionName = state.StringPointerValue(resourceOperation.GetActionName())
-	data.Description = state.StringPointerValue(resourceOperation.GetDescription())
-	data.EnabledForScopeValidation = state.BoolPointerValue(resourceOperation.GetEnabledForScopeValidation())
+	data.ID = convert.GraphToFrameworkString(resourceOperation.GetId())
+	data.Resource = convert.GraphToFrameworkString(resourceOperation.GetResource())
+	data.ResourceName = convert.GraphToFrameworkString(resourceOperation.GetResourceName())
+	data.ActionName = convert.GraphToFrameworkString(resourceOperation.GetActionName())
+	data.Description = convert.GraphToFrameworkString(resourceOperation.GetDescription())
+	data.EnabledForScopeValidation = convert.GraphToFrameworkBool(resourceOperation.GetEnabledForScopeValidation())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"sort"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -71,13 +71,13 @@ func MapIncludeGroupAssignments(assignments *sharedmodels.SettingsCatalogSetting
 	for _, assignment := range includeGroupAssignments {
 		if target, ok := assignment.GetTarget().(models.GroupAssignmentTargetable); ok {
 			includeGroup := sharedmodels.IncludeGroup{
-				GroupId: types.StringValue(state.StringPtrToString(target.GetGroupId())),
+				GroupId: convert.GraphToFrameworkString(target.GetGroupId()),
 			}
 
 			if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
 				includeGroup.IncludeGroupsFilterId = types.StringValue(*filterId)
 				if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-					includeGroup.IncludeGroupsFilterType = state.EnumPtrToTypeString(filterType)
+					includeGroup.IncludeGroupsFilterType = convert.GraphToFrameworkEnum(filterType)
 				}
 			} else {
 				includeGroup.IncludeGroupsFilterId = types.StringNull()

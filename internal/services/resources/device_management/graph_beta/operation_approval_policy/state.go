@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,9 +17,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data OperationApprovalPolicy
 		return data
 	}
 
-	data.ID = state.StringPointerValue(policy.GetId())
-	data.DisplayName = state.StringPointerValue(policy.GetDisplayName())
-	data.Description = state.StringPointerValue(policy.GetDescription())
+	data.ID = convert.GraphToFrameworkString(policy.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(policy.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(policy.GetDescription())
 
 	if lastModified := policy.GetLastModifiedDateTime(); lastModified != nil {
 		data.LastModifiedDateTime = types.StringValue(lastModified.Format("2006-01-02T15:04:05Z07:00"))
@@ -38,7 +38,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data OperationApprovalPolicy
 	}
 
 	if approverGroupIds := policy.GetApproverGroupIds(); approverGroupIds != nil {
-		data.ApproverGroupIds = state.StringSliceToSet(ctx, approverGroupIds)
+		data.ApproverGroupIds = convert.GraphToFrameworkStringSet(ctx, approverGroupIds)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))

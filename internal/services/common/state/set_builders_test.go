@@ -15,7 +15,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 	// Define test attribute types for objects
 	attrTypes := map[string]attr.Type{
 		"name":   types.StringType,
-		"age":    types.Int64Type,
+		"age":    types.Int32Type,
 		"active": types.BoolType,
 	}
 
@@ -37,7 +37,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 		extract := func(i int) map[string]attr.Value {
 			return map[string]attr.Value{
 				"name":   types.StringValue("John"),
-				"age":    types.Int64Value(30),
+				"age":    types.Int32Value(30),
 				"active": types.BoolValue(true),
 			}
 		}
@@ -54,14 +54,14 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 		obj := elements[0].(types.Object)
 		objAttrs := obj.Attributes()
 		assert.Equal(t, types.StringValue("John"), objAttrs["name"])
-		assert.Equal(t, types.Int64Value(30), objAttrs["age"])
+		assert.Equal(t, types.Int32Value(30), objAttrs["age"])
 		assert.Equal(t, types.BoolValue(true), objAttrs["active"])
 	})
 
 	t.Run("Multiple elements slice", func(t *testing.T) {
 		testData := []struct {
 			name   string
-			age    int64
+			age    int32
 			active bool
 		}{
 			{"Alice", 25, true},
@@ -72,7 +72,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 		extract := func(i int) map[string]attr.Value {
 			return map[string]attr.Value{
 				"name":   types.StringValue(testData[i].name),
-				"age":    types.Int64Value(testData[i].age),
+				"age":    types.Int32Value(int32(testData[i].age)),
 				"active": types.BoolValue(testData[i].active),
 			}
 		}
@@ -96,7 +96,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 
 			var expectedData *struct {
 				name   string
-				age    int64
+				age    int32
 				active bool
 			}
 
@@ -109,7 +109,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 
 			assert.NotNil(t, expectedData, "Should find matching test data for name: %s", name)
 			assert.Equal(t, types.StringValue(expectedData.name), objAttrs["name"])
-			assert.Equal(t, types.Int64Value(expectedData.age), objAttrs["age"])
+			assert.Equal(t, types.Int32Value(expectedData.age), objAttrs["age"])
 			assert.Equal(t, types.BoolValue(expectedData.active), objAttrs["active"])
 		}
 	})
@@ -118,7 +118,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 		// Extract function that returns invalid types
 		extract := func(i int) map[string]attr.Value {
 			return map[string]attr.Value{
-				"name":   types.Int64Value(123),        // Wrong type - should be string
+				"name":   types.Int32Value(123),        // Wrong type - should be string
 				"age":    types.StringValue("invalid"), // Wrong type - should be int64
 				"active": types.StringValue("true"),    // Wrong type - should be bool
 			}
@@ -153,7 +153,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 			if i == 1 {
 				// Return invalid attributes for second element
 				return map[string]attr.Value{
-					"name":   types.Int64Value(123), // Wrong type
+					"name":   types.Int32Value(123), // Wrong type
 					"age":    types.StringValue("invalid"),
 					"active": types.StringValue("true"),
 				}
@@ -161,7 +161,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 			// Return valid attributes for other elements
 			return map[string]attr.Value{
 				"name":   types.StringValue("Valid"),
-				"age":    types.Int64Value(25),
+				"age":    types.Int32Value(25),
 				"active": types.BoolValue(true),
 			}
 		}
@@ -196,7 +196,7 @@ func TestBuildObjectSetFromSlice(t *testing.T) {
 		extract := func(i int) map[string]attr.Value {
 			return map[string]attr.Value{
 				"name":   types.StringValue("Test"),
-				"age":    types.Int64Value(30),
+				"age":    types.Int32Value(30),
 				"active": types.BoolValue(true),
 			}
 		}

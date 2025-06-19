@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,20 +16,20 @@ func constructResource(ctx context.Context, data *WindowsQualityUpdateExpeditePo
 
 	requestBody := graphmodels.NewWindowsQualityUpdateProfile()
 
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.ReleaseDateDisplayName, requestBody.SetReleaseDateDisplayName)
-	constructors.SetStringProperty(data.DeployableContentDisplayName, requestBody.SetDeployableContentDisplayName)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.ReleaseDateDisplayName, requestBody.SetReleaseDateDisplayName)
+	convert.FrameworkToGraphString(data.DeployableContentDisplayName, requestBody.SetDeployableContentDisplayName)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	if data.ExpeditedUpdateSettings != nil {
 		expeditedSettings := graphmodels.NewExpeditedWindowsQualityUpdateSettings()
 
-		constructors.SetStringProperty(data.ExpeditedUpdateSettings.QualityUpdateRelease, expeditedSettings.SetQualityUpdateRelease)
-		constructors.SetInt32Property(data.ExpeditedUpdateSettings.DaysUntilForcedReboot, expeditedSettings.SetDaysUntilForcedReboot)
+		convert.FrameworkToGraphString(data.ExpeditedUpdateSettings.QualityUpdateRelease, expeditedSettings.SetQualityUpdateRelease)
+		convert.FrameworkToGraphInt32(data.ExpeditedUpdateSettings.DaysUntilForcedReboot, expeditedSettings.SetDaysUntilForcedReboot)
 
 		requestBody.SetExpeditedUpdateSettings(expeditedSettings)
 	}

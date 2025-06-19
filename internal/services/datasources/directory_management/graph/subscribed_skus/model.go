@@ -24,7 +24,7 @@ type SubscribedSkuModel struct {
 	AccountName      types.String `tfsdk:"account_name"`
 	AppliesTo        types.String `tfsdk:"applies_to"`
 	CapabilityStatus types.String `tfsdk:"capability_status"`
-	ConsumedUnits    types.Int64  `tfsdk:"consumed_units"`
+	ConsumedUnits    types.Int32  `tfsdk:"consumed_units"`
 	SkuId            types.String `tfsdk:"sku_id"`
 	SkuPartNumber    types.String `tfsdk:"sku_part_number"`
 	PrepaidUnits     types.Object `tfsdk:"prepaid_units"`
@@ -34,10 +34,10 @@ type SubscribedSkuModel struct {
 
 // LicenseUnitsDetailModel represents the prepaid units information
 type LicenseUnitsDetailModel struct {
-	Enabled   types.Int64 `tfsdk:"enabled"`
-	LockedOut types.Int64 `tfsdk:"locked_out"`
-	Suspended types.Int64 `tfsdk:"suspended"`
-	Warning   types.Int64 `tfsdk:"warning"`
+	Enabled   types.Int32 `tfsdk:"enabled"`
+	LockedOut types.Int32 `tfsdk:"locked_out"`
+	Suspended types.Int32 `tfsdk:"suspended"`
+	Warning   types.Int32 `tfsdk:"warning"`
 }
 
 // ServicePlanInfoModel represents individual service plans within a SKU

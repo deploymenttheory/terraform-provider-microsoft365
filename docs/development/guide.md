@@ -187,7 +187,8 @@ This guide describes the recommended workflow and best practices for developing 
      - Always map the remote state to the Terraform state model.
      - Always use the `tflog` package for debug and trace logging.
      - Always use the `types.StringValue` function to set the value of the Terraform state model.
-     - Always use the `state.StringPtrToString` function to convert the string pointer to a string.
+     - Always use the `convert.GraphToFrameworkString
+` function to convert the string pointer to a string.
      - Always use the `types.StringValue` function to set the value of the Terraform state model.
 
      ```go
@@ -196,7 +197,8 @@ This guide describes the recommended workflow and best practices for developing 
              tflog.Debug(ctx, "Remote resource is nil")
              return
          }
-         data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
+         data.ID = types.StringValue(convert.GraphToFrameworkString
+(remoteResource.GetId()))
          // Map other fields as needed
      }
      ```

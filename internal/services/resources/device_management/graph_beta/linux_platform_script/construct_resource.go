@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/utilities"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,8 +17,8 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
 
-	constructors.SetStringProperty(data.Name, requestBody.SetName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Name, requestBody.SetName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
 	// Set platform (always Linux for this resource)
 	platform := graphmodels.DeviceManagementConfigurationPlatforms(graphmodels.LINUX_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS)
@@ -27,7 +28,7 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 	technologies := graphmodels.DeviceManagementConfigurationTechnologies(graphmodels.LINUXMDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES)
 	requestBody.SetTechnologies(&technologies)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -57,7 +58,7 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 func constructSettingsCatalogSettings(data *LinuxPlatformScriptResourceModel) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
 	var settings []graphmodels.DeviceManagementConfigurationSettingable
 
-	encodedScript, err := utilities.Base64Encode(data.ScriptContent.ValueString())
+	encodedScript, err := helpers.StringToBase64(data.ScriptContent.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode script content: %v", err)
 	}

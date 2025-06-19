@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,41 +17,27 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		return
 	}
 
-	assignmentID := state.StringPtrToString(assignment.GetId())
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
-		"assignmentId": assignmentID,
+		"assignmentId": convert.GraphToFrameworkString(assignment.GetId()).ValueString(),
 	})
 
-	data.ID = types.StringValue(assignmentID)
-	data.DisplayName = types.StringValue(state.StringPtrToString(assignment.GetDisplayName()))
-	data.Description = types.StringValue(state.StringPtrToString(assignment.GetDescription()))
-	data.ScopeType = state.EnumPtrToTypeString(assignment.GetScopeType())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(assignment.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(assignment.GetDescription())
+	data.ScopeType = convert.GraphToFrameworkEnum(assignment.GetScopeType())
 
 	if members := assignment.GetScopeMembers(); len(members) > 0 {
-		scopeMembers, diags := types.SetValueFrom(ctx, types.StringType, members)
-		if !diags.HasError() {
-			data.ScopeMembers = scopeMembers
-		} else {
-			tflog.Error(ctx, "Error converting scope members to set", map[string]interface{}{
-				"error": diags.Errors()[0].Detail(),
-				"id":    assignmentID,
-			})
-		}
+		data.ScopeMembers = convert.GraphToFrameworkStringSet(ctx, members)
+	} else {
+		data.ScopeMembers = types.SetNull(types.StringType)
 	}
 
 	// Set resource scopes
 	if scopes := assignment.GetResourceScopes(); len(scopes) > 0 {
-		resourceScopes, diags := types.SetValueFrom(ctx, types.StringType, scopes)
-		if !diags.HasError() {
-			data.ResourceScopes = resourceScopes
-		} else {
-			tflog.Error(ctx, "Error converting resource scopes to set", map[string]interface{}{
-				"error": diags.Errors()[0].Detail(),
-				"id":    assignmentID,
-			})
-		}
+		data.ResourceScopes = convert.GraphToFrameworkStringSet(ctx, scopes)
+	} else {
+		data.ResourceScopes = types.SetNull(types.StringType)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
-
 }

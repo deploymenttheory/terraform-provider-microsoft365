@@ -3,35 +3,41 @@ package graphBetaMacOSSoftwareUpdateConfiguration
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // mapRemoteResourceStateToTerraform maps the Graph API model to the Terraform state model.
-func mapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSSoftwareUpdateConfigurationResourceModel, remote graphmodels.DeviceConfigurationable) {
-	if remote == nil {
+func mapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSSoftwareUpdateConfigurationResourceModel, remoteResource graphmodels.DeviceConfigurationable) {
+	if remoteResource == nil {
 		return
 	}
 
-	resource, ok := remote.(graphmodels.MacOSSoftwareUpdateConfigurationable)
+	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+		"resourceName": remoteResource.GetDisplayName(),
+		"resourceId":   remoteResource.GetId(),
+	})
+
+	resource, ok := remoteResource.(graphmodels.MacOSSoftwareUpdateConfigurationable)
 	if !ok {
 		return
 	}
 
-	data.ID = state.StringPointerValue(resource.GetId())
-	data.DisplayName = state.StringPointerValue(resource.GetDisplayName())
-	data.Description = state.StringPointerValue(resource.GetDescription())
-	data.RoleScopeTagIds = state.StringSliceToSet(ctx, resource.GetRoleScopeTagIds())
-	data.CriticalUpdateBehavior = state.EnumPtrToTypeString(resource.GetCriticalUpdateBehavior())
-	data.ConfigDataUpdateBehavior = state.EnumPtrToTypeString(resource.GetConfigDataUpdateBehavior())
-	data.FirmwareUpdateBehavior = state.EnumPtrToTypeString(resource.GetFirmwareUpdateBehavior())
-	data.AllOtherUpdateBehavior = state.EnumPtrToTypeString(resource.GetAllOtherUpdateBehavior())
-	data.UpdateScheduleType = state.EnumPtrToTypeString(resource.GetUpdateScheduleType())
-	data.Priority = state.EnumPtrToTypeString(resource.GetPriority())
-	data.UpdateTimeWindowUtcOffsetInMinutes = state.Int32PointerValue(resource.GetUpdateTimeWindowUtcOffsetInMinutes())
-	data.MaxUserDeferralsCount = state.Int32PointerValue(resource.GetMaxUserDeferralsCount())
+	data.ID = convert.GraphToFrameworkString(resource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(resource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(resource.GetDescription())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
+	data.CriticalUpdateBehavior = convert.GraphToFrameworkEnum(resource.GetCriticalUpdateBehavior())
+	data.ConfigDataUpdateBehavior = convert.GraphToFrameworkEnum(resource.GetConfigDataUpdateBehavior())
+	data.FirmwareUpdateBehavior = convert.GraphToFrameworkEnum(resource.GetFirmwareUpdateBehavior())
+	data.AllOtherUpdateBehavior = convert.GraphToFrameworkEnum(resource.GetAllOtherUpdateBehavior())
+	data.UpdateScheduleType = convert.GraphToFrameworkEnum(resource.GetUpdateScheduleType())
+	data.Priority = convert.GraphToFrameworkEnum(resource.GetPriority())
+	data.UpdateTimeWindowUtcOffsetInMinutes = convert.GraphToFrameworkInt32(resource.GetUpdateTimeWindowUtcOffsetInMinutes())
+	data.MaxUserDeferralsCount = convert.GraphToFrameworkInt32(resource.GetMaxUserDeferralsCount())
 
 	// Custom update time windows
 	objType := types.ObjectType{
@@ -43,18 +49,18 @@ func mapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSSoftwareU
 		},
 	}
 	var windows []attr.Value
-	if remoteWindows := resource.GetCustomUpdateTimeWindows(); remoteWindows != nil {
-		for _, win := range remoteWindows {
+	if remoteResourceWindows := resource.GetCustomUpdateTimeWindows(); remoteResourceWindows != nil {
+		for _, win := range remoteResourceWindows {
 			if win == nil {
 				continue
 			}
 			obj, _ := types.ObjectValue(
 				objType.AttrTypes,
 				map[string]attr.Value{
-					"start_day":  state.EnumPtrToTypeString(win.GetStartDay()),
-					"end_day":    state.EnumPtrToTypeString(win.GetEndDay()),
-					"start_time": state.TimeOnlyPtrToString(win.GetStartTime()),
-					"end_time":   state.TimeOnlyPtrToString(win.GetEndTime()),
+					"start_day":  convert.GraphToFrameworkEnum(win.GetStartDay()),
+					"end_day":    convert.GraphToFrameworkEnum(win.GetEndDay()),
+					"start_time": convert.GraphToFrameworkTimeOnly(win.GetStartTime()),
+					"end_time":   convert.GraphToFrameworkTimeOnly(win.GetEndTime()),
 				},
 			)
 			windows = append(windows, obj)

@@ -3,6 +3,7 @@ package graphVersionResourceTemplate
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,10 +18,11 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ResourceTemplateResour
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": state.StringPtrToString(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	data.ID = types.StringValue(state.StringPtrToString(remoteResource.GetId()))
+	data.ID = types.StringValue(convert.GraphToFrameworkString
+(remoteResource.GetId()))
 	// add more fields here as needed. use the helpers from the state package as needed.
 
 	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{

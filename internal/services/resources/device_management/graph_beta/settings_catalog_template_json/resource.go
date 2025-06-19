@@ -320,7 +320,7 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 				Computed:            true,
 				MarkdownDescription: "Last modification date and time of the settings catalog policy template",
 			},
-			"settings_count": schema.Int64Attribute{
+			"settings_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of settings catalog settings with the policy template. This will change over time as the resource is updated.",
 			},

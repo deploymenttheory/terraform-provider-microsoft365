@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -16,16 +17,16 @@ func constructResource(ctx context.Context, data *WindowsDriverUpdateInventoryRe
 
 	requestBody := graphmodels.NewWindowsDriverUpdateInventory()
 
-	constructors.SetStringProperty(data.Name, requestBody.SetName)
-	constructors.SetStringProperty(data.Version, requestBody.SetVersion)
-	constructors.SetStringProperty(data.Manufacturer, requestBody.SetManufacturer)
-	constructors.SetStringProperty(data.DriverClass, requestBody.SetDriverClass)
+	convert.FrameworkToGraphString(data.Name, requestBody.SetName)
+	convert.FrameworkToGraphString(data.Version, requestBody.SetVersion)
+	convert.FrameworkToGraphString(data.Manufacturer, requestBody.SetManufacturer)
+	convert.FrameworkToGraphString(data.DriverClass, requestBody.SetDriverClass)
 
-	if err := constructors.SetEnumProperty(data.ApprovalStatus, graphmodels.ParseDriverApprovalStatus, requestBody.SetApprovalStatus); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.ApprovalStatus, graphmodels.ParseDriverApprovalStatus, requestBody.SetApprovalStatus); err != nil {
 		return nil, fmt.Errorf("invalid approval status: %s", err)
 	}
 
-	if err := constructors.SetEnumProperty(data.Category, graphmodels.ParseDriverCategory, requestBody.SetCategory); err != nil {
+	if err := convert.FrameworkToGraphEnum(data.Category, graphmodels.ParseDriverCategory, requestBody.SetCategory); err != nil {
 		return nil, fmt.Errorf("invalid category: %s", err)
 	}
 

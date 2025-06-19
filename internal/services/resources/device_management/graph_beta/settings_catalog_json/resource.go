@@ -220,7 +220,7 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 				Computed:            true,
 				MarkdownDescription: "Last modification date and time of the settings catalog policy",
 			},
-			"settings_count": schema.Int64Attribute{
+			"settings_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
 			},

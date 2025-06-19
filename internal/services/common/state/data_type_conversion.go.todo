@@ -101,13 +101,13 @@ func EnumListPtrToTypeStringSlice[T fmt.Stringer](input []*T) []types.String {
 	return result
 }
 
-// Int32PtrToTypeInt64 converts a pointer to an int32 to a types.Int64.
-// This function is useful for converting nullable int32 values from the SDK to Terraform's types.Int64.
-func Int32PtrToTypeInt64(i *int32) types.Int64 {
+// Int32PtrToTypeInt64 converts a pointer to an int32 to a types.Int32.
+// This function is useful for converting nullable int32 values from the SDK to Terraform's types.Int32.
+func Int32PtrToTypeInt64(i *int32) types.Int32 {
 	if i == nil {
-		return types.Int64Null()
+		return types.Int32Null()
 	}
-	return types.Int64Value(int64(*i))
+	return types.Int32Value(int64(*i))
 }
 
 // Int32PtrToTypeInt32 converts a pointer to an int32 to a types.Int32.
@@ -155,13 +155,13 @@ func BoolPtrToBool(b *bool) bool {
 	return *b
 }
 
-// Int64PtrToTypeInt64 converts a *int64 to a types.Int64.
-// If the input is nil, it returns types.Int64Null().
-func Int64PtrToTypeInt64(i *int64) types.Int64 {
+// Int64PtrToTypeInt64 converts a *int64 to a types.Int32.
+// If the input is nil, it returns types.Int32Null().
+func Int64PtrToTypeInt64(i *int64) types.Int32 {
 	if i == nil {
-		return types.Int64Null()
+		return types.Int32Null()
 	}
-	return types.Int64Value(*i)
+	return types.Int32Value(*i)
 }
 
 // ISO8601DurationToString converts an ISODuration to a types.String value.
@@ -256,13 +256,13 @@ func BoolPointerValueWithDefault(value *bool, defaultValue bool) types.Bool {
 	return types.BoolValue(*value)
 }
 
-// Int64PointerValue safely converts a *int64 to types.Int64.
-// Returns types.Int64Null() if the pointer is nil.
-func Int64PointerValue(value *int64) types.Int64 {
+// Int64PointerValue safely converts a *int64 to types.Int32.
+// Returns types.Int32Null() if the pointer is nil.
+func Int64PointerValue(value *int64) types.Int32 {
 	if value == nil {
-		return types.Int64Null()
+		return types.Int32Null()
 	}
-	return types.Int64Value(*value)
+	return types.Int32Value(*value)
 }
 
 // Int32PointerValue safely converts a *int32 to types.Int32.
@@ -274,13 +274,13 @@ func Int32PointerValue(value *int32) types.Int32 {
 	return types.Int32Value(*value)
 }
 
-// Int32PointerToInt64Value safely converts a *int32 to types.Int64.
-// Returns types.Int64Null() if the pointer is nil.
-func Int32PointerToInt64Value(value *int32) types.Int64 {
+// Int32PointerToInt64Value safely converts a *int32 to types.Int32.
+// Returns types.Int32Null() if the pointer is nil.
+func Int32PointerToInt64Value(value *int32) types.Int32 {
 	if value == nil {
-		return types.Int64Null()
+		return types.Int32Null()
 	}
-	return types.Int64Value(int64(*value))
+	return types.Int32Value(int64(*value))
 }
 
 // IsNilOrEmpty checks if a string pointer is nil or points to an empty string.

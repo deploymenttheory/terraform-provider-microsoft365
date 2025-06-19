@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	graphBetaRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_definition"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,19 +18,19 @@ func constructResource(ctx context.Context, roleDefinitionID string, isBuiltInRo
 	requestBody := graphmodels.NewDeviceAndAppManagementRoleAssignment()
 
 	// Set basic properties
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
 	// Set scope members
 	if !data.ScopeMembers.IsNull() && !data.ScopeMembers.IsUnknown() {
-		if err := constructors.SetStringSet(ctx, data.ScopeMembers, requestBody.SetMembers); err != nil {
+		if err := convert.FrameworkToGraphStringSet(ctx, data.ScopeMembers, requestBody.SetMembers); err != nil {
 			return nil, fmt.Errorf("failed to set members: %v", err)
 		}
 	}
 
 	// Set resource scopes
 	if !data.ResourceScopes.IsNull() && !data.ResourceScopes.IsUnknown() {
-		if err := constructors.SetStringSet(ctx, data.ResourceScopes, requestBody.SetResourceScopes); err != nil {
+		if err := convert.FrameworkToGraphStringSet(ctx, data.ResourceScopes, requestBody.SetResourceScopes); err != nil {
 			return nil, fmt.Errorf("failed to set resource scopes: %v", err)
 		}
 	}

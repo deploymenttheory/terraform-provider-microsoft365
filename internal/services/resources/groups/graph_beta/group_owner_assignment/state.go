@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -29,7 +30,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupOwnerAssignmentRe
 			data.OwnerType = types.StringValue("User")
 			if userObj, ok := ownerObject.(graphmodels.Userable); ok {
 				if displayName := userObj.GetDisplayName(); displayName != nil {
-					data.OwnerDisplayName = types.StringValue(*displayName)
+					data.OwnerDisplayName = convert.GraphToFrameworkString(displayName)
 				} else {
 					data.OwnerDisplayName = types.StringValue("")
 				}
@@ -38,7 +39,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupOwnerAssignmentRe
 			data.OwnerType = types.StringValue("ServicePrincipal")
 			if spObj, ok := ownerObject.(graphmodels.ServicePrincipalable); ok {
 				if displayName := spObj.GetDisplayName(); displayName != nil {
-					data.OwnerDisplayName = types.StringValue(*displayName)
+					data.OwnerDisplayName = convert.GraphToFrameworkString(displayName)
 				} else {
 					data.OwnerDisplayName = types.StringValue("")
 				}

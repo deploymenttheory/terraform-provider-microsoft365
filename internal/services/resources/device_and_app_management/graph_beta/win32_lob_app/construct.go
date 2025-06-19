@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -15,16 +16,16 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	requestBody := graphmodels.NewWin32LobApp()
 
 	// Set string properties using the helper function
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetStringProperty(data.Description, requestBody.SetDescription)
-	constructors.SetStringProperty(data.Publisher, requestBody.SetPublisher)
-	constructors.SetStringProperty(data.FileName, requestBody.SetFileName)
-	constructors.SetStringProperty(data.InstallCommandLine, requestBody.SetInstallCommandLine)
-	constructors.SetStringProperty(data.UninstallCommandLine, requestBody.SetUninstallCommandLine)
-	constructors.SetStringProperty(data.SetupFilePath, requestBody.SetSetupFilePath)
-	constructors.SetStringProperty(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+	convert.FrameworkToGraphString(data.FileName, requestBody.SetFileName)
+	convert.FrameworkToGraphString(data.InstallCommandLine, requestBody.SetInstallCommandLine)
+	convert.FrameworkToGraphString(data.UninstallCommandLine, requestBody.SetUninstallCommandLine)
+	convert.FrameworkToGraphString(data.SetupFilePath, requestBody.SetSetupFilePath)
+	convert.FrameworkToGraphString(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
 
-	if err := constructors.SetStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -32,19 +33,19 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
 		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()
 
-		constructors.SetBoolProperty(minOS.V8_0, minSupportedOS.SetV80)
-		constructors.SetBoolProperty(minOS.V8_1, minSupportedOS.SetV81)
-		constructors.SetBoolProperty(minOS.V10_0, minSupportedOS.SetV100)
-		constructors.SetBoolProperty(minOS.V10_1607, minSupportedOS.SetV101607)
-		constructors.SetBoolProperty(minOS.V10_1703, minSupportedOS.SetV101703)
-		constructors.SetBoolProperty(minOS.V10_1709, minSupportedOS.SetV101709)
-		constructors.SetBoolProperty(minOS.V10_1803, minSupportedOS.SetV101803)
-		constructors.SetBoolProperty(minOS.V10_1809, minSupportedOS.SetV101809)
-		constructors.SetBoolProperty(minOS.V10_1903, minSupportedOS.SetV101903)
-		constructors.SetBoolProperty(minOS.V10_1909, minSupportedOS.SetV101909)
-		constructors.SetBoolProperty(minOS.V10_2004, minSupportedOS.SetV102004)
-		constructors.SetBoolProperty(minOS.V10_2H20, minSupportedOS.SetV102H20)
-		constructors.SetBoolProperty(minOS.V10_21H1, minSupportedOS.SetV1021H1)
+		convert.FrameworkToGraphBool(minOS.V8_0, minSupportedOS.SetV80)
+		convert.FrameworkToGraphBool(minOS.V8_1, minSupportedOS.SetV81)
+		convert.FrameworkToGraphBool(minOS.V10_0, minSupportedOS.SetV100)
+		convert.FrameworkToGraphBool(minOS.V10_1607, minSupportedOS.SetV101607)
+		convert.FrameworkToGraphBool(minOS.V10_1703, minSupportedOS.SetV101703)
+		convert.FrameworkToGraphBool(minOS.V10_1709, minSupportedOS.SetV101709)
+		convert.FrameworkToGraphBool(minOS.V10_1803, minSupportedOS.SetV101803)
+		convert.FrameworkToGraphBool(minOS.V10_1809, minSupportedOS.SetV101809)
+		convert.FrameworkToGraphBool(minOS.V10_1903, minSupportedOS.SetV101903)
+		convert.FrameworkToGraphBool(minOS.V10_1909, minSupportedOS.SetV101909)
+		convert.FrameworkToGraphBool(minOS.V10_2004, minSupportedOS.SetV102004)
+		convert.FrameworkToGraphBool(minOS.V10_2H20, minSupportedOS.SetV102H20)
+		convert.FrameworkToGraphBool(minOS.V10_21H1, minSupportedOS.SetV1021H1)
 
 		requestBody.SetMinimumSupportedOperatingSystem(minSupportedOS)
 	}
@@ -56,30 +57,30 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 			switch rule.RegistryDetectionType.ValueString() {
 			case "registry":
 				registryRule := graphmodels.NewWin32LobAppRegistryDetection()
-				constructors.SetBoolProperty(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
-				constructors.SetStringProperty(rule.KeyPath, registryRule.SetKeyPath)
-				constructors.SetStringProperty(rule.ValueName, registryRule.SetValueName)
+				convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
+				convert.FrameworkToGraphString(rule.KeyPath, registryRule.SetKeyPath)
+				convert.FrameworkToGraphString(rule.ValueName, registryRule.SetValueName)
 
-				err := constructors.SetEnumProperty(rule.RegistryDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
+				err := convert.FrameworkToGraphEnum(rule.RegistryDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, registryRule.SetOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
 
-				err = constructors.SetEnumProperty(rule.RegistryDetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
+				err = convert.FrameworkToGraphEnum(rule.RegistryDetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
 				}
 
-				constructors.SetStringProperty(rule.DetectionValue, registryRule.SetDetectionValue)
+				convert.FrameworkToGraphString(rule.DetectionValue, registryRule.SetDetectionValue)
 
 				detectionRules[i] = registryRule
 
 			case "msi_information":
 				msiRule := graphmodels.NewWin32LobAppProductCodeDetection()
-				constructors.SetStringProperty(rule.ProductCode, msiRule.SetProductCode)
-				constructors.SetStringProperty(rule.ProductVersion, msiRule.SetProductVersion)
+				convert.FrameworkToGraphString(rule.ProductCode, msiRule.SetProductCode)
+				convert.FrameworkToGraphString(rule.ProductVersion, msiRule.SetProductVersion)
 
-				err := constructors.SetEnumProperty(rule.ProductVersionOperator, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
+				err := convert.FrameworkToGraphEnum(rule.ProductVersionOperator, graphmodels.ParseWin32LobAppDetectionOperator, msiRule.SetProductVersionOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse MSI product version: %v", err)
 				}
@@ -88,17 +89,17 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 			case "file_system":
 				fileRule := graphmodels.NewWin32LobAppFileSystemDetection()
-				constructors.SetBoolProperty(rule.Check32BitOn64System, fileRule.SetCheck32BitOn64System)
-				constructors.SetStringProperty(rule.FilePath, fileRule.SetPath)
-				constructors.SetStringProperty(rule.FileFolderName, fileRule.SetFileOrFolderName)
-				constructors.SetStringProperty(rule.DetectionValue, fileRule.SetDetectionValue)
+				convert.FrameworkToGraphBool(rule.Check32BitOn64System, fileRule.SetCheck32BitOn64System)
+				convert.FrameworkToGraphString(rule.FilePath, fileRule.SetPath)
+				convert.FrameworkToGraphString(rule.FileFolderName, fileRule.SetFileOrFolderName)
+				convert.FrameworkToGraphString(rule.DetectionValue, fileRule.SetDetectionValue)
 
-				err := constructors.SetEnumProperty(rule.FileSystemDetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
+				err := convert.FrameworkToGraphEnum(rule.FileSystemDetectionType, graphmodels.ParseWin32LobAppFileSystemDetectionType, fileRule.SetDetectionType)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection type: %v", err)
 				}
 
-				err = constructors.SetEnumProperty(rule.FileSystemDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
+				err = convert.FrameworkToGraphEnum(rule.FileSystemDetectionOperator, graphmodels.ParseWin32LobAppDetectionOperator, fileRule.SetOperator)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse file system detection operator: %v", err)
 				}
@@ -106,9 +107,9 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 				detectionRules[i] = fileRule
 			case "powershell_script":
 				powershellRule := graphmodels.NewWin32LobAppPowerShellScriptDetection()
-				constructors.SetStringProperty(rule.ScriptContent, powershellRule.SetScriptContent)
-				constructors.SetBoolProperty(rule.EnforceSignatureCheck, powershellRule.SetEnforceSignatureCheck)
-				constructors.SetBoolProperty(rule.RunAs32Bit, powershellRule.SetRunAs32Bit)
+				convert.FrameworkToGraphString(rule.ScriptContent, powershellRule.SetScriptContent)
+				convert.FrameworkToGraphBool(rule.EnforceSignatureCheck, powershellRule.SetEnforceSignatureCheck)
+				convert.FrameworkToGraphBool(rule.RunAs32Bit, powershellRule.SetRunAs32Bit)
 
 				detectionRules[i] = powershellRule
 			}
@@ -122,21 +123,21 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		for i, rule := range data.RequirementRules {
 			registryRequirement := graphmodels.NewWin32LobAppRegistryRequirement()
 
-			constructors.SetStringProperty(rule.KeyPath, registryRequirement.SetKeyPath)
-			constructors.SetStringProperty(rule.ValueName, registryRequirement.SetValueName)
-			constructors.SetBoolProperty(rule.Check32BitOn64System, registryRequirement.SetCheck32BitOn64System)
+			convert.FrameworkToGraphString(rule.KeyPath, registryRequirement.SetKeyPath)
+			convert.FrameworkToGraphString(rule.ValueName, registryRequirement.SetValueName)
+			convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRequirement.SetCheck32BitOn64System)
 
-			err := constructors.SetEnumProperty(rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, registryRequirement.SetOperator)
+			err := convert.FrameworkToGraphEnum(rule.Operator, graphmodels.ParseWin32LobAppDetectionOperator, registryRequirement.SetOperator)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry requirement operator: %v", err)
 			}
 
-			err = constructors.SetEnumProperty(rule.DetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRequirement.SetDetectionType)
+			err = convert.FrameworkToGraphEnum(rule.DetectionType, graphmodels.ParseWin32LobAppRegistryDetectionType, registryRequirement.SetDetectionType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry detection type: %v", err)
 			}
 
-			constructors.SetStringProperty(rule.DetectionValue, registryRequirement.SetDetectionValue)
+			convert.FrameworkToGraphString(rule.DetectionValue, registryRequirement.SetDetectionValue)
 
 			requirementRules[i] = registryRequirement
 		}
@@ -149,21 +150,21 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		for i, rule := range data.Rules {
 			registryRule := graphmodels.NewWin32LobAppRegistryRule()
 
-			constructors.SetStringProperty(rule.KeyPath, registryRule.SetKeyPath)
-			constructors.SetStringProperty(rule.ValueName, registryRule.SetValueName)
-			constructors.SetBoolProperty(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
+			convert.FrameworkToGraphString(rule.KeyPath, registryRule.SetKeyPath)
+			convert.FrameworkToGraphString(rule.ValueName, registryRule.SetValueName)
+			convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
 
-			err := constructors.SetEnumProperty(rule.Operator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
+			err := convert.FrameworkToGraphEnum(rule.Operator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry rule operator: %v", err)
 			}
 
-			err = constructors.SetEnumProperty(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
+			err = convert.FrameworkToGraphEnum(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse registry rule operation type: %v", err)
 			}
 
-			constructors.SetStringProperty(rule.ComparisonValue, registryRule.SetComparisonValue)
+			convert.FrameworkToGraphString(rule.ComparisonValue, registryRule.SetComparisonValue)
 
 			rules[i] = registryRule
 		}
@@ -174,17 +175,17 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if installExperience := data.InstallExperience; installExperience != (Win32LobAppInstallExperienceResourceModel{}) {
 		installExp := graphmodels.NewWin32LobAppInstallExperience()
 
-		err := constructors.SetEnumProperty(installExperience.RunAsAccount, graphmodels.ParseRunAsAccountType, installExp.SetRunAsAccount)
+		err := convert.FrameworkToGraphEnum(installExperience.RunAsAccount, graphmodels.ParseRunAsAccountType, installExp.SetRunAsAccount)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse RunAsAccountType: %v", err)
 		}
 
-		err = constructors.SetEnumProperty(installExperience.DeviceRestartBehavior, graphmodels.ParseWin32LobAppRestartBehavior, installExp.SetDeviceRestartBehavior)
+		err = convert.FrameworkToGraphEnum(installExperience.DeviceRestartBehavior, graphmodels.ParseWin32LobAppRestartBehavior, installExp.SetDeviceRestartBehavior)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse DeviceRestartBehavior: %v", err)
 		}
 
-		constructors.SetInt32Property(installExperience.MaxRunTimeInMinutes, installExp.SetMaxRunTimeInMinutes)
+		convert.FrameworkToGraphInt32(installExperience.MaxRunTimeInMinutes, installExp.SetMaxRunTimeInMinutes)
 
 		requestBody.SetInstallExperience(installExp)
 	}
@@ -195,9 +196,9 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		for i, code := range data.ReturnCodes {
 			returnCode := graphmodels.NewWin32LobAppReturnCode()
 
-			constructors.SetInt32Property(code.ReturnCode, returnCode.SetReturnCode)
+			convert.FrameworkToGraphInt32(code.ReturnCode, returnCode.SetReturnCode)
 
-			err := constructors.SetEnumProperty(code.Type, graphmodels.ParseWin32LobAppReturnCodeType, returnCode.SetTypeEscaped)
+			err := convert.FrameworkToGraphEnum(code.Type, graphmodels.ParseWin32LobAppReturnCodeType, returnCode.SetTypeEscaped)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse return code type: %v", err)
 			}
@@ -211,12 +212,12 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if msiInfo := data.MsiInformation; msiInfo != (Win32LobAppMsiInformationResourceModel{}) {
 		msiInformation := graphmodels.NewWin32LobAppMsiInformation()
 
-		constructors.SetStringProperty(msiInfo.ProductCode, msiInformation.SetProductCode)
-		constructors.SetStringProperty(msiInfo.ProductVersion, msiInformation.SetProductVersion)
-		constructors.SetStringProperty(msiInfo.UpgradeCode, msiInformation.SetUpgradeCode)
-		constructors.SetBoolProperty(msiInfo.RequiresReboot, msiInformation.SetRequiresReboot)
+		convert.FrameworkToGraphString(msiInfo.ProductCode, msiInformation.SetProductCode)
+		convert.FrameworkToGraphString(msiInfo.ProductVersion, msiInformation.SetProductVersion)
+		convert.FrameworkToGraphString(msiInfo.UpgradeCode, msiInformation.SetUpgradeCode)
+		convert.FrameworkToGraphBool(msiInfo.RequiresReboot, msiInformation.SetRequiresReboot)
 
-		err := constructors.SetEnumProperty[*graphmodels.Win32LobAppMsiPackageType](msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
+		err := convert.FrameworkToGraphEnum[*graphmodels.Win32LobAppMsiPackageType](msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
 		}

@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -18,18 +17,18 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AssignmentFilterResour
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
-		"resourceId": types.StringPointerValue(remoteResource.GetId()),
+		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
-	data.ID = types.StringPointerValue(remoteResource.GetId())
-	data.DisplayName = types.StringPointerValue(remoteResource.GetDisplayName())
-	data.Description = types.StringPointerValue(remoteResource.GetDescription())
-	data.Platform = state.EnumPtrToTypeString(remoteResource.GetPlatform())
-	data.Rule = types.StringPointerValue(remoteResource.GetRule())
-	data.AssignmentFilterManagementType = state.EnumPtrToTypeString(remoteResource.GetAssignmentFilterManagementType())
-	data.CreatedDateTime = state.TimeToString(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = state.TimeToString(remoteResource.GetLastModifiedDateTime())
-	data.RoleScopeTags = state.StringSliceToSet(ctx, remoteResource.GetRoleScopeTags())
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.Platform = convert.GraphToFrameworkEnum(remoteResource.GetPlatform())
+	data.Rule = convert.GraphToFrameworkString(remoteResource.GetRule())
+	data.AssignmentFilterManagementType = convert.GraphToFrameworkEnum(remoteResource.GetAssignmentFilterManagementType())
+	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
+	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
+	data.RoleScopeTags = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTags())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

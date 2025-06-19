@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
@@ -15,9 +16,9 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 	requestBody := models.NewCloudPcUserSetting()
 
 	// Set basic properties
-	constructors.SetStringProperty(data.DisplayName, requestBody.SetDisplayName)
-	constructors.SetBoolProperty(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
-	constructors.SetBoolProperty(data.ResetEnabled, requestBody.SetResetEnabled)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphBool(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
+	convert.FrameworkToGraphBool(data.ResetEnabled, requestBody.SetResetEnabled)
 
 	// Handle restore point settings
 	if data.RestorePointSetting != nil {
@@ -46,13 +47,13 @@ func constructRestorePointSetting(data *CloudPcRestorePointSettingModel) (models
 
 	restorePointSetting := models.NewCloudPcRestorePointSetting()
 
-	if err := constructors.SetEnumProperty(data.FrequencyType,
+	if err := convert.FrameworkToGraphEnum(data.FrequencyType,
 		models.ParseCloudPcRestorePointFrequencyType,
 		restorePointSetting.SetFrequencyType); err != nil {
 		return nil, fmt.Errorf("failed to set frequency type: %v", err)
 	}
 
-	constructors.SetBoolProperty(data.UserRestoreEnabled, restorePointSetting.SetUserRestoreEnabled)
+	convert.FrameworkToGraphBool(data.UserRestoreEnabled, restorePointSetting.SetUserRestoreEnabled)
 
 	return restorePointSetting, nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,10 +17,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 		return data
 	}
 
-	data.ID = state.StringPointerValue(assignment.GetId())
-	data.Intent = state.EnumPtrToTypeString(assignment.GetIntent())
-	data.Source = state.EnumPtrToTypeString(assignment.GetSource())
-	data.SourceId = state.StringPointerValue(assignment.GetSourceId())
+	data.ID = convert.GraphToFrameworkString(assignment.GetId())
+	data.Intent = convert.GraphToFrameworkEnum(assignment.GetIntent())
+	data.Source = convert.GraphToFrameworkEnum(assignment.GetSource())
+	data.SourceId = convert.GraphToFrameworkString(assignment.GetSourceId())
 
 	if target := assignment.GetTarget(); target != nil {
 		data.Target = mapRemoteTargetToTerraform(target)
@@ -38,20 +38,20 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
 func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetResourceModel {
 	target := AssignmentTargetResourceModel{
-		DeviceAndAppManagementAssignmentFilterId:   types.StringPointerValue(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
-		DeviceAndAppManagementAssignmentFilterType: state.EnumPtrToTypeString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
+		DeviceAndAppManagementAssignmentFilterId:   convert.GraphToFrameworkString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
+		DeviceAndAppManagementAssignmentFilterType: convert.GraphToFrameworkEnum(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
 	}
 
 	switch v := remoteTarget.(type) {
 	case *graphmodels.GroupAssignmentTarget:
 		target.TargetType = types.StringValue("groupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ExclusionGroupAssignmentTarget:
 		target.TargetType = types.StringValue("exclusionGroupAssignment")
-		target.GroupId = types.StringPointerValue(v.GetGroupId())
+		target.GroupId = convert.GraphToFrameworkString(v.GetGroupId())
 	case *graphmodels.ConfigurationManagerCollectionAssignmentTarget:
 		target.TargetType = types.StringValue("configurationManagerCollection")
-		target.CollectionId = types.StringPointerValue(v.GetCollectionId())
+		target.CollectionId = convert.GraphToFrameworkString(v.GetCollectionId())
 	case *graphmodels.AllDevicesAssignmentTarget:
 		target.TargetType = types.StringValue("allDevices")
 	case *graphmodels.AllLicensedUsersAssignmentTarget:
@@ -128,8 +128,8 @@ func mapAndroidManagedStoreSettingsToTerraform(remoteSettings *graphmodels.Andro
 	}
 
 	return &AndroidManagedStoreAssignmentSettingsResourceModel{
-		AndroidManagedStoreAppTrackIds: state.StringListToTypeList(remoteSettings.GetAndroidManagedStoreAppTrackIds()),
-		AutoUpdateMode:                 state.EnumPtrToTypeString(remoteSettings.GetAutoUpdateMode()),
+		AndroidManagedStoreAppTrackIds: convert.GraphToFrameworkStringList(remoteSettings.GetAndroidManagedStoreAppTrackIds()),
+		AutoUpdateMode:                 convert.GraphToFrameworkEnum(remoteSettings.GetAutoUpdateMode()),
 	}
 }
 
@@ -140,10 +140,10 @@ func mapIosLobSettingsToTerraform(remoteSettings *graphmodels.IosLobAppAssignmen
 	}
 
 	return &IosLobAppAssignmentSettingsResourceModel{
-		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
-		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
-		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
-		VpnConfigurationId:       types.StringPointerValue(remoteSettings.GetVpnConfigurationId()),
+		IsRemovable:              convert.GraphToFrameworkBool(remoteSettings.GetIsRemovable()),
+		PreventManagedAppBackup:  convert.GraphToFrameworkBool(remoteSettings.GetPreventManagedAppBackup()),
+		UninstallOnDeviceRemoval: convert.GraphToFrameworkBool(remoteSettings.GetUninstallOnDeviceRemoval()),
+		VpnConfigurationId:       convert.GraphToFrameworkString(remoteSettings.GetVpnConfigurationId()),
 	}
 }
 
@@ -154,10 +154,10 @@ func mapIosStoreSettingsToTerraform(remoteSettings *graphmodels.IosStoreAppAssig
 	}
 
 	return &IosStoreAppAssignmentSettingsResourceModel{
-		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
-		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
-		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
-		VpnConfigurationId:       types.StringPointerValue(remoteSettings.GetVpnConfigurationId()),
+		IsRemovable:              convert.GraphToFrameworkBool(remoteSettings.GetIsRemovable()),
+		PreventManagedAppBackup:  convert.GraphToFrameworkBool(remoteSettings.GetPreventManagedAppBackup()),
+		UninstallOnDeviceRemoval: convert.GraphToFrameworkBool(remoteSettings.GetUninstallOnDeviceRemoval()),
+		VpnConfigurationId:       convert.GraphToFrameworkString(remoteSettings.GetVpnConfigurationId()),
 	}
 }
 
@@ -168,12 +168,12 @@ func mapIosVppSettingsToTerraform(remoteSettings *graphmodels.IosVppAppAssignmen
 	}
 
 	return &IosVppAppAssignmentSettingsResourceModel{
-		IsRemovable:              state.BoolPtrToTypeBool(remoteSettings.GetIsRemovable()),
-		PreventAutoAppUpdate:     state.BoolPtrToTypeBool(remoteSettings.GetPreventAutoAppUpdate()),
-		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
-		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
-		UseDeviceLicensing:       state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceLicensing()),
-		VpnConfigurationId:       types.StringPointerValue(remoteSettings.GetVpnConfigurationId()),
+		IsRemovable:              convert.GraphToFrameworkBool(remoteSettings.GetIsRemovable()),
+		PreventAutoAppUpdate:     convert.GraphToFrameworkBool(remoteSettings.GetPreventAutoAppUpdate()),
+		PreventManagedAppBackup:  convert.GraphToFrameworkBool(remoteSettings.GetPreventManagedAppBackup()),
+		UninstallOnDeviceRemoval: convert.GraphToFrameworkBool(remoteSettings.GetUninstallOnDeviceRemoval()),
+		UseDeviceLicensing:       convert.GraphToFrameworkBool(remoteSettings.GetUseDeviceLicensing()),
+		VpnConfigurationId:       convert.GraphToFrameworkString(remoteSettings.GetVpnConfigurationId()),
 	}
 }
 
@@ -184,7 +184,7 @@ func mapMacOsLobSettingsToTerraform(remoteSettings *graphmodels.MacOsLobAppAssig
 	}
 
 	return &MacOsLobAppAssignmentSettingsResourceModel{
-		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
+		UninstallOnDeviceRemoval: convert.GraphToFrameworkBool(remoteSettings.GetUninstallOnDeviceRemoval()),
 	}
 }
 
@@ -195,10 +195,10 @@ func mapMacOsVppSettingsToTerraform(remoteSettings *graphmodels.MacOsVppAppAssig
 	}
 
 	return &MacOsVppAppAssignmentSettingsResourceModel{
-		PreventAutoAppUpdate:     state.BoolPtrToTypeBool(remoteSettings.GetPreventAutoAppUpdate()),
-		PreventManagedAppBackup:  state.BoolPtrToTypeBool(remoteSettings.GetPreventManagedAppBackup()),
-		UninstallOnDeviceRemoval: state.BoolPtrToTypeBool(remoteSettings.GetUninstallOnDeviceRemoval()),
-		UseDeviceLicensing:       state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceLicensing()),
+		PreventAutoAppUpdate:     convert.GraphToFrameworkBool(remoteSettings.GetPreventAutoAppUpdate()),
+		PreventManagedAppBackup:  convert.GraphToFrameworkBool(remoteSettings.GetPreventManagedAppBackup()),
+		UninstallOnDeviceRemoval: convert.GraphToFrameworkBool(remoteSettings.GetUninstallOnDeviceRemoval()),
+		UseDeviceLicensing:       convert.GraphToFrameworkBool(remoteSettings.GetUseDeviceLicensing()),
 	}
 }
 
@@ -209,7 +209,7 @@ func mapMicrosoftStoreSettingsToTerraform(remoteSettings *graphmodels.MicrosoftS
 	}
 
 	return &MicrosoftStoreForBusinessAppAssignmentSettingsResourceModel{
-		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
+		UseDeviceContext: convert.GraphToFrameworkBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
@@ -220,23 +220,23 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 	}
 
 	settings := &Win32LobAppAssignmentSettingsResourceModel{
-		DeliveryOptimizationPriority: state.EnumPtrToTypeString(remoteSettings.GetDeliveryOptimizationPriority()),
-		Notifications:                state.EnumPtrToTypeString(remoteSettings.GetNotifications()),
+		DeliveryOptimizationPriority: convert.GraphToFrameworkEnum(remoteSettings.GetDeliveryOptimizationPriority()),
+		Notifications:                convert.GraphToFrameworkEnum(remoteSettings.GetNotifications()),
 	}
 
 	if installSettings := remoteSettings.GetInstallTimeSettings(); installSettings != nil {
 		settings.InstallTimeSettings = &MobileAppInstallTimeSettingsResourceModel{
-			DeadlineDateTime: state.TimeToString(installSettings.GetDeadlineDateTime()),
-			StartDateTime:    state.TimeToString(installSettings.GetStartDateTime()),
-			UseLocalTime:     state.BoolPtrToTypeBool(installSettings.GetUseLocalTime()),
+			DeadlineDateTime: convert.GraphToFrameworkTime(installSettings.GetDeadlineDateTime()),
+			StartDateTime:    convert.GraphToFrameworkTime(installSettings.GetStartDateTime()),
+			UseLocalTime:     convert.GraphToFrameworkBool(installSettings.GetUseLocalTime()),
 		}
 	}
 
 	if restartSettings := remoteSettings.GetRestartSettings(); restartSettings != nil {
 		settings.RestartSettings = &MobileAppAssignmentSettingsRestartResourceModel{
-			CountdownDisplayBeforeRestart:     state.Int32PtrToTypeInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
-			GracePeriodInMinutes:              state.Int32PtrToTypeInt32(restartSettings.GetGracePeriodInMinutes()),
-			RestartNotificationSnoozeDuration: state.Int32PtrToTypeInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
+			CountdownDisplayBeforeRestart:     convert.GraphToFrameworkInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
+			GracePeriodInMinutes:              convert.GraphToFrameworkInt32(restartSettings.GetGracePeriodInMinutes()),
+			RestartNotificationSnoozeDuration: convert.GraphToFrameworkInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
 		}
 	}
 
@@ -250,7 +250,7 @@ func mapWindowsAppXSettingsToTerraform(remoteSettings *graphmodels.WindowsAppXAp
 	}
 
 	return &WindowsAppXAssignmentSettingsResourceModel{
-		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
+		UseDeviceContext: convert.GraphToFrameworkBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
@@ -261,7 +261,7 @@ func mapWindowsUniversalAppXSettingsToTerraform(remoteSettings *graphmodels.Wind
 	}
 
 	return &WindowsUniversalAppXAssignmentSettingsResourceModel{
-		UseDeviceContext: state.BoolPtrToTypeBool(remoteSettings.GetUseDeviceContext()),
+		UseDeviceContext: convert.GraphToFrameworkBool(remoteSettings.GetUseDeviceContext()),
 	}
 }
 
@@ -272,21 +272,21 @@ func mapWinGetSettingsToTerraform(remoteSettings *graphmodels.WinGetAppAssignmen
 	}
 
 	winGetSettings := &WinGetAppAssignmentSettingsResourceModel{
-		Notifications: state.EnumPtrToTypeString(remoteSettings.GetNotifications()),
+		Notifications: convert.GraphToFrameworkEnum(remoteSettings.GetNotifications()),
 	}
 
 	if installSettings := remoteSettings.GetInstallTimeSettings(); installSettings != nil {
 		winGetSettings.InstallTimeSettings = &WinGetAppInstallTimeSettingsResourceModel{
-			UseLocalTime:     types.BoolPointerValue(installSettings.GetUseLocalTime()),
-			DeadlineDateTime: state.TimeToString(installSettings.GetDeadlineDateTime()),
+			UseLocalTime:     convert.GraphToFrameworkBool(installSettings.GetUseLocalTime()),
+			DeadlineDateTime: convert.GraphToFrameworkTime(installSettings.GetDeadlineDateTime()),
 		}
 	}
 
 	if restartSettings := remoteSettings.GetRestartSettings(); restartSettings != nil {
 		winGetSettings.RestartSettings = &WinGetAppRestartSettingsResourceModel{
-			CountdownDisplayBeforeRestartInMinutes:     state.Int32PtrToTypeInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
-			GracePeriodInMinutes:                       state.Int32PtrToTypeInt32(restartSettings.GetGracePeriodInMinutes()),
-			RestartNotificationSnoozeDurationInMinutes: state.Int32PtrToTypeInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
+			CountdownDisplayBeforeRestartInMinutes:     convert.GraphToFrameworkInt32(restartSettings.GetCountdownDisplayBeforeRestartInMinutes()),
+			GracePeriodInMinutes:                       convert.GraphToFrameworkInt32(restartSettings.GetGracePeriodInMinutes()),
+			RestartNotificationSnoozeDurationInMinutes: convert.GraphToFrameworkInt32(restartSettings.GetRestartNotificationSnoozeDurationInMinutes()),
 		}
 	}
 

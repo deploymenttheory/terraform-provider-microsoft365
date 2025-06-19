@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	validators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -79,10 +80,10 @@ func constructAllDevicesAssignment(ctx context.Context, config *sharedmodels.Set
 
 	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
 		config.AllDevicesFilterId.ValueString() != "" {
-		constructors.SetStringProperty(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		convert.FrameworkToGraphString(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
-			err := constructors.SetEnumProperty(config.AllDevicesFilterType,
+			err := convert.FrameworkToGraphEnum(config.AllDevicesFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -104,10 +105,10 @@ func constructAllUsersAssignment(ctx context.Context, config *sharedmodels.Setti
 
 	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
 		config.AllUsersFilterId.ValueString() != "" {
-		constructors.SetStringProperty(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		convert.FrameworkToGraphString(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
 		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
-			err := constructors.SetEnumProperty(config.AllUsersFilterType,
+			err := convert.FrameworkToGraphEnum(config.AllUsersFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -130,13 +131,13 @@ func constructGroupIncludeAssignments(ctx context.Context, config *sharedmodels.
 		assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 		target := graphsdkmodels.NewGroupAssignmentTarget()
 
-		constructors.SetStringProperty(groupFilter.GroupId, target.SetGroupId)
+		convert.FrameworkToGraphString(groupFilter.GroupId, target.SetGroupId)
 
 		if !groupFilter.IncludeGroupsFilterId.IsNull() && !groupFilter.IncludeGroupsFilterType.IsNull() {
-			constructors.SetStringProperty(groupFilter.IncludeGroupsFilterId,
+			convert.FrameworkToGraphString(groupFilter.IncludeGroupsFilterId,
 				target.SetDeviceAndAppManagementAssignmentFilterId)
 
-			err := constructors.SetEnumProperty(groupFilter.IncludeGroupsFilterType,
+			err := convert.FrameworkToGraphEnum(groupFilter.IncludeGroupsFilterType,
 				graphsdkmodels.ParseDeviceAndAppManagementAssignmentFilterType,
 				target.SetDeviceAndAppManagementAssignmentFilterType)
 			if err != nil {
@@ -170,7 +171,7 @@ func constructGroupExcludeAssignments(config *sharedmodels.SettingsCatalogSettin
 			if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
 				assignment := graphsdkmodels.NewDeviceManagementConfigurationPolicyAssignment()
 				target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
-				constructors.SetStringProperty(groupId, target.SetGroupId)
+				convert.FrameworkToGraphString(groupId, target.SetGroupId)
 
 				assignment.SetTarget(target)
 				assignments = append(assignments, assignment)
