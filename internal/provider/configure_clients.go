@@ -1,0 +1,150 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
+
+// Configure sets up the Microsoft365 provider with the given configuration.
+// It processes the provider schema, retrieves values from the configuration or
+// environment variables, sets up authentication, and initializes the Microsoft
+// Graph clients.
+//
+// The function supports various authentication methods, proxy settings, and
+// national cloud deployments. It performs the following main steps:
+//  1. Extracts and validates the configuration data.
+//  2. Sets up logging and context with relevant fields.
+//  3. Converts the provider model to client provider data.
+//  4. Configures the Microsoft Graph clients using the client package.
+//
+// If any errors occur during these steps, appropriate diagnostics are added
+// to the response.
+func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring Microsoft365 Provider")
+
+	if p.testMode {
+		tflog.Warn(ctx, "Provider is in test mode. Skipping configuration.")
+		return
+	}
+
+	var config M365ProviderModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Error getting provider configuration", map[string]interface{}{
+			"diagnostics": resp.Diagnostics.ErrorsCount(),
+		})
+		return
+	}
+
+	data, diags := setProviderConfiguration(ctx, config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Error populating provider data", map[string]interface{}{
+			"diagnostics": resp.Diagnostics.ErrorsCount(),
+		})
+		return
+	}
+
+	// Convert provider model to client provider data
+	clientData := convertToClientProviderData(ctx, &data)
+
+	// Configure and initialize the Microsoft Graph clients using the client package
+	graphClientInterface := client.NewGraphClients(ctx, clientData, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Error configuring and building Microsoft Graph clients", map[string]interface{}{
+			"diagnostics": resp.Diagnostics.ErrorsCount(),
+		})
+		return
+	}
+
+	// Assign using the interface type to ensure we're using the interface
+	p.clients = graphClientInterface
+
+	// Pass the interface to data sources and resources
+	resp.DataSourceData = graphClientInterface
+	resp.ResourceData = graphClientInterface
+
+	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
+		"graph_client_set":      p.clients.GetV1Client() != nil,
+		"graph_beta_client_set": p.clients.GetBetaClient() != nil,
+		"config":                fmt.Sprintf("%+v", config),
+	})
+}
+
+// convertToClientProviderData converts the provider model to client provider data
+func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *client.ProviderData {
+	var clientData client.ProviderData
+
+	// Set basic fields
+	clientData.Cloud = data.Cloud.ValueString()
+	clientData.TenantID = data.TenantID.ValueString()
+	clientData.AuthMethod = data.AuthMethod.ValueString()
+	clientData.TelemetryOptout = data.TelemetryOptout.ValueBool()
+	clientData.DebugMode = data.DebugMode.ValueBool()
+
+	// Set Entra ID options
+	var entraIDOptions EntraIDOptionsModel
+	data.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
+
+	clientData.EntraIDOptions = &client.EntraIDOptions{
+		ClientID:                   entraIDOptions.ClientID.ValueString(),
+		ClientSecret:               entraIDOptions.ClientSecret.ValueString(),
+		ClientCertificate:          entraIDOptions.ClientCertificate.ValueString(),
+		ClientCertificatePassword:  entraIDOptions.ClientCertificatePassword.ValueString(),
+		Username:                   entraIDOptions.Username.ValueString(),
+		RedirectUrl:                entraIDOptions.RedirectUrl.ValueString(),
+		FederatedTokenFilePath:     entraIDOptions.FederatedTokenFilePath.ValueString(),
+		ManagedIdentityClientID:    entraIDOptions.ManagedIdentityID.ValueString(),
+		ManagedIdentityResourceID:  "", // Not in the model
+		OIDCTokenFilePath:          entraIDOptions.OIDCTokenFilePath.ValueString(),
+		OIDCToken:                  "", // Not in the model
+		OIDCRequestToken:           "", // Not in the model
+		OIDCRequestURL:             "", // Not in the model
+		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
+		SendCertificateChain:       entraIDOptions.SendCertificateChain.ValueBool(),
+		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
+	}
+
+	// Set client options
+	var clientOptionsModel ClientOptionsModel
+	data.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
+
+	clientData.ClientOptions = &client.ClientOptions{
+		EnableRetry:             clientOptionsModel.EnableRetry.ValueBool(),
+		MaxRetries:              clientOptionsModel.MaxRetries.ValueInt64(),
+		RetryDelaySeconds:       clientOptionsModel.RetryDelaySeconds.ValueInt64(),
+		EnableRedirect:          clientOptionsModel.EnableRedirect.ValueBool(),
+		MaxRedirects:            clientOptionsModel.MaxRedirects.ValueInt64(),
+		EnableCompression:       clientOptionsModel.EnableCompression.ValueBool(),
+		CustomUserAgent:         clientOptionsModel.CustomUserAgent.ValueString(),
+		EnableHeadersInspection: clientOptionsModel.EnableHeadersInspection.ValueBool(),
+		TimeoutSeconds:          clientOptionsModel.TimeoutSeconds.ValueInt64(),
+		UseProxy:                clientOptionsModel.UseProxy.ValueBool(),
+		ProxyURL:                clientOptionsModel.ProxyURL.ValueString(),
+		ProxyUsername:           clientOptionsModel.ProxyUsername.ValueString(),
+		ProxyPassword:           clientOptionsModel.ProxyPassword.ValueString(),
+		EnableChaos:             clientOptionsModel.EnableChaos.ValueBool(),
+		ChaosPercentage:         clientOptionsModel.ChaosPercentage.ValueInt64(),
+		ChaosStatusCode:         clientOptionsModel.ChaosStatusCode.ValueInt64(),
+		ChaosStatusMessage:      clientOptionsModel.ChaosStatusMessage.ValueString(),
+	}
+
+	return &clientData
+}
+
+// Helper function to convert types.List to []string for AdditionallyAllowedTenants
+func getAdditionallyAllowedTenants(tenants types.List) []string {
+	var result []string
+	for _, tenant := range tenants.Elements() {
+		if strVal, ok := tenant.(types.String); ok {
+			result = append(result, strVal.ValueString())
+		}
+	}
+	return result
+}

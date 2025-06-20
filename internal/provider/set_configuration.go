@@ -11,15 +11,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// populateProviderData populates the M365ProviderModel with values from the configuration
+// setProviderConfiguration populates the M365ProviderModel with values from the configuration
 // or environment variables, using helper functions for default values.
-func populateProviderData(ctx context.Context, config M365ProviderModel) (M365ProviderModel, diag.Diagnostics) {
+func setProviderConfiguration(ctx context.Context, config M365ProviderModel) (M365ProviderModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	entraIDOptions, entraDiags := populateEntraIDOptions(ctx, config.EntraIDOptions)
+	entraIDOptions, entraDiags := setEntraIDOptions(ctx, config.EntraIDOptions)
 	diags.Append(entraDiags...)
 
-	clientOptions, clientDiags := populateClientOptions(ctx, config.ClientOptions)
+	clientOptions, clientDiags := setClientOptions(ctx, config.ClientOptions)
 	diags.Append(clientDiags...)
 
 	return M365ProviderModel{
@@ -33,7 +33,7 @@ func populateProviderData(ctx context.Context, config M365ProviderModel) (M365Pr
 	}, diags
 }
 
-func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
+func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var entraIDOptions EntraIDOptionsModel
 
@@ -76,7 +76,7 @@ func populateEntraIDOptions(ctx context.Context, config types.Object) (types.Obj
 	}), diags
 }
 
-func populateClientOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
+func setClientOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var clientOptions ClientOptionsModel
 

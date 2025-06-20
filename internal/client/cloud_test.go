@@ -1,4 +1,4 @@
-package provider
+package client
 
 import (
 	"testing"
@@ -82,7 +82,7 @@ func TestSetCloudConstants(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			authority, scope, serviceRoot, betaServiceRoot, err := setCloudConstants(tc.cloud)
+			authority, scope, serviceRoot, betaServiceRoot, err := SetCloudConstants(tc.cloud)
 
 			if tc.expectedError != "" {
 				assert.EqualError(t, err, tc.expectedError)
