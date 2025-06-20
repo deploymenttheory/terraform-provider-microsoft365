@@ -4,7 +4,8 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,11 +22,10 @@ const (
 
 var (
 	// Ensure the implementation satisfies the expected interfaces
-	_ datasource.DataSource              = &SubscribedSkusDataSource{}
-	_ datasource.DataSourceWithConfigure = &SubscribedSkusDataSource{}
+	_ datasource.DataSource = &SubscribedSkusDataSource{}
 
-	// Compiled regex for UUID validation
-	uuidRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+	// Allows the resource to be configured with the provider client
+	_ datasource.DataSourceWithConfigure = &SubscribedSkusDataSource{}
 )
 
 func NewSubscribedSkusDataSource() datasource.DataSource {
@@ -54,7 +54,7 @@ func (d *SubscribedSkusDataSource) Metadata(ctx context.Context, req datasource.
 
 // Configure sets the client for the data source.
 func (d *SubscribedSkusDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphStableClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphStableClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
 // Schema returns the schema for the data source.
@@ -71,7 +71,10 @@ func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.Sc
 				Optional:            true,
 				MarkdownDescription: "Filter results by a specific SKU ID (GUID). When specified, only the matching SKU will be returned.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
 				},
 			},
 			"sku_part_number": schema.StringAttribute{

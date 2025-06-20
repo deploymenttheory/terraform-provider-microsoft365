@@ -746,9 +746,6 @@ func GetRetryDelay(errorInfo *GraphErrorInfo, attempt int) time.Duration {
 	maxDelay := 5 * time.Minute
 
 	delay := time.Duration(attempt*attempt) * baseDelay
-	if delay > maxDelay {
-		delay = maxDelay
-	}
 
 	// Add jitter (±25%)
 	jitter := time.Duration(float64(delay) * 0.25)
@@ -762,6 +759,11 @@ func GetRetryDelay(errorInfo *GraphErrorInfo, attempt int) time.Duration {
 	// Ensure delay is not negative
 	if delay < 0 {
 		delay = baseDelay
+	}
+
+	// Apply maximum cap after jitter to ensure we never exceed maxDelay
+	if delay > maxDelay {
+		delay = maxDelay
 	}
 
 	return delay

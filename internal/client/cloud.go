@@ -1,4 +1,4 @@
-package provider
+package client
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 )
 
-// setCloudConstants returns the OAuth authority URL, Graph API scope, and Graph API service root based on the provided cloud type.
-func setCloudConstants(cloud string) (string, string, string, string, error) {
+// SetCloudConstants returns the OAuth authority URL, Graph API scope, and Graph API service root based on the provided cloud type.
+func SetCloudConstants(cloud string) (string, string, string, string, error) {
 	switch cloud {
 	case "public":
 		return constants.PUBLIC_OAUTH_AUTHORITY_URL,

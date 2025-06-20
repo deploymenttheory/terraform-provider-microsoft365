@@ -1,4 +1,4 @@
-package provider
+package client
 
 import (
 	"context"
@@ -13,8 +13,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -33,16 +31,16 @@ func (m *MockTokenCredential) GetToken(ctx context.Context, options policy.Token
 	return args.Get(0).(azcore.AccessToken), nil
 }
 
-// Helper function to create a basic provider config for testing
-func createTestConfig(authMethod string) *M365ProviderModel {
-	return &M365ProviderModel{
-		Cloud:           types.StringValue("public"),
-		TenantID:        types.StringValue("tenant-id"),
-		AuthMethod:      types.StringValue(authMethod),
-		EntraIDOptions:  types.ObjectNull(map[string]attr.Type{}),
-		ClientOptions:   types.ObjectNull(map[string]attr.Type{}),
-		TelemetryOptout: types.BoolValue(false),
-		DebugMode:       types.BoolValue(false),
+// Helper function to create a basic provider data for testing
+func createTestConfig(authMethod string) *ProviderData {
+	return &ProviderData{
+		Cloud:           "public",
+		TenantID:        "tenant-id",
+		AuthMethod:      authMethod,
+		EntraIDOptions:  &EntraIDOptions{},
+		ClientOptions:   &ClientOptions{},
+		TelemetryOptout: false,
+		DebugMode:       false,
 	}
 }
 
@@ -53,8 +51,6 @@ func TestGitHubOIDCStrategy_GetAssertion(t *testing.T) {
 		// Verify the request is properly formed
 		assert.Equal(t, "GET", r.Method, "OIDC token request should use GET method")
 		assert.Equal(t, "Bearer test-request-token", r.Header.Get("Authorization"), "Authorization header should be set")
-		assert.Equal(t, "application/json; api-version=2.0", r.Header.Get("Accept"), "Accept header should be set")
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"), "Content-Type header should be set")
 
 		// Check that the audience parameter was properly added to the URL
 		assert.Contains(t, r.URL.RawQuery, "audience=api", "URL should contain the audience parameter")
@@ -97,8 +93,6 @@ func TestGitHubOIDCStrategy_GetAssertion(t *testing.T) {
 		}
 
 		req.Header.Add("Authorization", "Bearer "+requestToken)
-		req.Header.Add("Accept", "application/json; api-version=2.0")
-		req.Header.Add("Content-Type", "application/json")
 
 		client := &http.Client{}
 		resp, err := client.Do(req)

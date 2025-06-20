@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPopulateProviderData_EmptyConfig(t *testing.T) {
+func TestSetProviderConfiguration_EmptyConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -28,8 +28,8 @@ func TestPopulateProviderData_EmptyConfig(t *testing.T) {
 	}
 
 	// Call the function
-	result, diags := populateProviderData(context.Background(), config)
-	require.False(t, diags.HasError(), "populateProviderData should not return errors with empty config")
+	result, diags := setProviderConfiguration(context.Background(), config)
+	require.False(t, diags.HasError(), "setProviderConfiguration should not return errors with empty config")
 
 	// Verify defaults
 	assert.Equal(t, "", result.Cloud.ValueString(), "Default cloud should be empty string")
@@ -39,7 +39,7 @@ func TestPopulateProviderData_EmptyConfig(t *testing.T) {
 	assert.False(t, result.DebugMode.ValueBool(), "Default debug mode should be false")
 }
 
-func TestPopulateProviderData_EnvVarsOverrideConfig(t *testing.T) {
+func TestSetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
 	// Clear environment and set test variables
 	os.Clearenv()
 	os.Setenv("M365_CLOUD", "dod")
@@ -60,8 +60,8 @@ func TestPopulateProviderData_EnvVarsOverrideConfig(t *testing.T) {
 	}
 
 	// Call the function
-	result, diags := populateProviderData(context.Background(), config)
-	require.False(t, diags.HasError(), "populateProviderData should not return errors")
+	result, diags := setProviderConfiguration(context.Background(), config)
+	require.False(t, diags.HasError(), "setProviderConfiguration should not return errors")
 
 	// Verify env vars take precedence
 	assert.Equal(t, "dod", result.Cloud.ValueString(), "Cloud should be from env var")
@@ -71,7 +71,7 @@ func TestPopulateProviderData_EnvVarsOverrideConfig(t *testing.T) {
 	assert.True(t, result.DebugMode.ValueBool(), "Debug mode should be from env var")
 }
 
-func TestPopulateProviderData_MixedEnvAndConfig(t *testing.T) {
+func TestSetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
 	// Clear environment and set only some variables
 	os.Clearenv()
 	os.Setenv("M365_CLOUD", "gcc")
@@ -92,8 +92,8 @@ func TestPopulateProviderData_MixedEnvAndConfig(t *testing.T) {
 	}
 
 	// Call the function
-	result, diags := populateProviderData(context.Background(), config)
-	require.False(t, diags.HasError(), "populateProviderData should not return errors")
+	result, diags := setProviderConfiguration(context.Background(), config)
+	require.False(t, diags.HasError(), "setProviderConfiguration should not return errors")
 
 	// Verify mixed results
 	assert.Equal(t, "gcc", result.Cloud.ValueString(), "Cloud should be from env var")
@@ -103,7 +103,7 @@ func TestPopulateProviderData_MixedEnvAndConfig(t *testing.T) {
 	assert.True(t, result.DebugMode.ValueBool(), "Debug mode should be from env var")
 }
 
-func TestPopulateEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
+func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -139,8 +139,8 @@ func TestPopulateEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	require.False(t, diags.HasError(), "Failed to create test config object")
 
 	// Call the function
-	result, diags := populateEntraIDOptions(context.Background(), configObj)
-	require.False(t, diags.HasError(), "populateEntraIDOptions should not return errors")
+	result, diags := setEntraIDOptions(context.Background(), configObj)
+	require.False(t, diags.HasError(), "setEntraIDOptions should not return errors")
 
 	// Create an EntraIDOptionsModel to hold the result
 	var resultModel EntraIDOptionsModel
@@ -172,7 +172,7 @@ func TestPopulateEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	assert.ElementsMatch(t, []string{"tenant1", "tenant2"}, allowedTenants, "Additionally allowed tenants should be from env var")
 }
 
-func TestPopulateClientOptions_DefaultsAndOverrides(t *testing.T) {
+func TestSetClientOptions_DefaultsAndOverrides(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -190,8 +190,8 @@ func TestPopulateClientOptions_DefaultsAndOverrides(t *testing.T) {
 	nullConfig := types.ObjectNull(clientSchema)
 
 	// Call the function with null config
-	nullResult, diags := populateClientOptions(context.Background(), nullConfig)
-	require.False(t, diags.HasError(), "populateClientOptions should not return errors with null config")
+	nullResult, diags := setClientOptions(context.Background(), nullConfig)
+	require.False(t, diags.HasError(), "setClientOptions should not return errors with null config")
 	assert.True(t, nullResult.IsNull(), "Result should be null with null config")
 
 	// Create a config with values
@@ -219,8 +219,8 @@ func TestPopulateClientOptions_DefaultsAndOverrides(t *testing.T) {
 	require.False(t, diags.HasError(), "Failed to create test config object")
 
 	// Call the function
-	result, diags := populateClientOptions(context.Background(), configObj)
-	require.False(t, diags.HasError(), "populateClientOptions should not return errors")
+	result, diags := setClientOptions(context.Background(), configObj)
+	require.False(t, diags.HasError(), "setClientOptions should not return errors")
 
 	// Create a ClientOptionsModel to hold the result
 	var resultModel ClientOptionsModel
@@ -249,7 +249,7 @@ func TestPopulateClientOptions_DefaultsAndOverrides(t *testing.T) {
 	assert.Equal(t, "Chaos error", resultModel.ChaosStatusMessage.ValueString(), "chaos_status_message should be from config")
 }
 
-func TestPopulateEntraIDOptions_EmptyConfig(t *testing.T) {
+func TestSetEntraIDOptions_EmptyConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -257,12 +257,12 @@ func TestPopulateEntraIDOptions_EmptyConfig(t *testing.T) {
 	nullConfig := types.ObjectNull(map[string]attr.Type{})
 
 	// Call the function with null config
-	result, diags := populateEntraIDOptions(context.Background(), nullConfig)
-	require.False(t, diags.HasError(), "populateEntraIDOptions should not return errors with null config")
+	result, diags := setEntraIDOptions(context.Background(), nullConfig)
+	require.False(t, diags.HasError(), "setEntraIDOptions should not return errors with null config")
 	assert.True(t, result.IsNull(), "Result should be null with null config")
 }
 
-func TestPopulateEntraIDOptions_BooleanEnvVars(t *testing.T) {
+func TestSetEntraIDOptions_BooleanEnvVars(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -298,8 +298,8 @@ func TestPopulateEntraIDOptions_BooleanEnvVars(t *testing.T) {
 	require.False(t, diags.HasError(), "Failed to create test config object")
 
 	// Call the function
-	result, diags := populateEntraIDOptions(context.Background(), configObj)
-	require.False(t, diags.HasError(), "populateEntraIDOptions should not return errors")
+	result, diags := setEntraIDOptions(context.Background(), configObj)
+	require.False(t, diags.HasError(), "setEntraIDOptions should not return errors")
 
 	// Create an EntraIDOptionsModel to hold the result
 	var resultModel EntraIDOptionsModel

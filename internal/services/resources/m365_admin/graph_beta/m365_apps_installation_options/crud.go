@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,14 +41,14 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	}
 
 	adapter := r.client.GetAdapter()
-	config := graphcustom.PatchRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
+	config := customrequest.PatchRequestConfig{
+		APIVersion:        customrequest.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
 		ResourceIDPattern: "", // No ID needed for this resource as a singleton
 		RequestBody:       requestBody,
 	}
 
-	err = graphcustom.PatchRequestByResourceId(ctx, adapter, config)
+	err = customrequest.PatchRequestByResourceId(ctx, adapter, config)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
@@ -147,14 +147,14 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	}
 
 	adapter := r.client.GetAdapter()
-	config := graphcustom.PatchRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
+	config := customrequest.PatchRequestConfig{
+		APIVersion:        customrequest.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
 		ResourceIDPattern: "", // No ID needed for this resource as a singleton
 		RequestBody:       requestBody,
 	}
 
-	err = graphcustom.PatchRequestByResourceId(ctx, adapter, config)
+	err = customrequest.PatchRequestByResourceId(ctx, adapter, config)
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return

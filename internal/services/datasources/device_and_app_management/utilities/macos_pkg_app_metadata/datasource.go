@@ -4,7 +4,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -40,6 +40,13 @@ type MacOSPKGAppMetadataDataSource struct {
 // Metadata returns the datasource type name.
 func (r *MacOSPKGAppMetadataDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+}
+
+// Configure configures the data source with the provider client
+func (d *MacOSPKGAppMetadataDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	// Even though we don't need the Graph client for local file operations,
+	// we'll set it up in case we need it for any future URL downloads through the Microsoft API
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
 // Schema defines the schema for the data source
@@ -142,11 +149,4 @@ func (d *MacOSPKGAppMetadataDataSource) Schema(ctx context.Context, _ datasource
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-// Configure configures the data source with the provider client
-func (d *MacOSPKGAppMetadataDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Even though we don't need the Graph client for local file operations,
-	// we'll set it up in case we need it for any future URL downloads through the Microsoft API
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

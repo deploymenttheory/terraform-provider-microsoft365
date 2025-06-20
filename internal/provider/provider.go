@@ -19,7 +19,7 @@ var _ provider.Provider = &M365Provider{}
 // M365Provider defines the provider implementation.
 type M365Provider struct {
 	version  string
-	clients  *client.GraphClients
+	clients  client.GraphClientInterface
 	testMode bool
 }
 
@@ -638,9 +638,10 @@ func NewMicrosoft365Provider(version string, testMode ...bool) func() provider.P
 		if len(testMode) > 0 {
 			isTestMode = testMode[0]
 		}
+		// Initialize with nil clients - will be set during Configure
 		p := &M365Provider{
 			version:  version,
-			clients:  &client.GraphClients{},
+			clients:  nil,
 			testMode: isTestMode,
 		}
 		return p

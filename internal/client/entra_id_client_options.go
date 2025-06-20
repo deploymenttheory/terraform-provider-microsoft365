@@ -1,4 +1,4 @@
-package provider
+package client
 
 import (
 	"context"
@@ -9,13 +9,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	khttp "github.com/microsoft/kiota-http-go"
 	"golang.org/x/exp/rand"
 )
 
-func configureEntraIDClientOptions(ctx context.Context, config *M365ProviderModel, authorityURL string) (policy.ClientOptions, error) {
+// ConfigureEntraIDClientOptions configures the Entra ID client options based on the provided configuration
+func ConfigureEntraIDClientOptions(ctx context.Context, config *ProviderData, authorityURL string) (policy.ClientOptions, error) {
 	tflog.Info(ctx, "Starting Entra ID client options configuration")
 	tflog.Info(ctx, "Authority URL: "+authorityURL)
 
@@ -37,11 +37,8 @@ func configureEntraIDClientOptions(ctx context.Context, config *M365ProviderMode
 		return clientOptions, err
 	}
 
-	var clientOptionsModel ClientOptionsModel
-	config.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
-
-	if clientOptionsModel.TimeoutSeconds.ValueInt64() > 0 {
-		httpClient.Timeout = time.Duration(clientOptionsModel.TimeoutSeconds.ValueInt64()) * time.Second
+	if config.ClientOptions.TimeoutSeconds > 0 {
+		httpClient.Timeout = time.Duration(config.ClientOptions.TimeoutSeconds) * time.Second
 		tflog.Debug(ctx, fmt.Sprintf("Auth client timeout set to %v", httpClient.Timeout))
 	}
 
@@ -61,12 +58,9 @@ func initializeAuthClientOptions(ctx context.Context, authorityURL string) polic
 	return options
 }
 
-func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *M365ProviderModel) {
-	var clientOptionsModel ClientOptionsModel
-	config.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
-
-	maxRetries := int32(clientOptionsModel.MaxRetries.ValueInt64())
-	baseDelay := time.Duration(clientOptionsModel.RetryDelaySeconds.ValueInt64()) * time.Second
+func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
+	maxRetries := int32(config.ClientOptions.MaxRetries)
+	baseDelay := time.Duration(config.ClientOptions.RetryDelaySeconds) * time.Second
 
 	clientOptions.Retry = policy.RetryOptions{
 		MaxRetries:    maxRetries,
@@ -110,62 +104,53 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Retry options set: MaxRetries=%d, BaseRetryDelay=%v",
-		clientOptions.Retry.MaxRetries, time.Duration(clientOptionsModel.RetryDelaySeconds.ValueInt64())*time.Second))
+		clientOptions.Retry.MaxRetries, time.Duration(config.ClientOptions.RetryDelaySeconds)*time.Second))
 }
 
-func configureTelemetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *M365ProviderModel) {
-	var clientOptionsModel ClientOptionsModel
-	config.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
-
+func configureTelemetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	clientOptions.Telemetry = policy.TelemetryOptions{
-		ApplicationID: clientOptionsModel.CustomUserAgent.ValueString(),
-		Disabled:      config.TelemetryOptout.ValueBool(),
+		ApplicationID: config.ClientOptions.CustomUserAgent,
+		Disabled:      config.TelemetryOptout,
 	}
 	tflog.Debug(ctx, fmt.Sprintf("Telemetry options set: ApplicationID=%s, Disabled=%t",
 		clientOptions.Telemetry.ApplicationID, clientOptions.Telemetry.Disabled))
 }
 
-func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptions, config *M365ProviderModel) {
-	var clientOptionsModel ClientOptionsModel
-	config.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
-
-	if clientOptionsModel.TimeoutSeconds.ValueInt64() > 0 {
-		clientOptions.Retry.TryTimeout = time.Duration(clientOptionsModel.TimeoutSeconds.ValueInt64()) * time.Second
+func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
+	if config.ClientOptions.TimeoutSeconds > 0 {
+		clientOptions.Retry.TryTimeout = time.Duration(config.ClientOptions.TimeoutSeconds) * time.Second
 		tflog.Debug(ctx, fmt.Sprintf("Auth timeout set to %v", clientOptions.Retry.TryTimeout))
 	} else {
 		tflog.Debug(ctx, "No custom auth timeout configured")
 	}
 }
 
-func configureAuthClientProxy(ctx context.Context, config *M365ProviderModel) (*http.Client, error) {
-	var clientOptionsModel ClientOptionsModel
-	config.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
-
-	if clientOptionsModel.UseProxy.ValueBool() && clientOptionsModel.ProxyURL.ValueString() != "" {
-		return configureProxyHTTPClient(ctx, &clientOptionsModel)
+func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.Client, error) {
+	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
+		return configureProxyHTTPClient(ctx, config.ClientOptions)
 	}
 
 	tflog.Info(ctx, "Using default HTTP client without proxy")
 	return khttp.GetDefaultClient(), nil
 }
 
-func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptionsModel) (*http.Client, error) {
-	tflog.Info(ctx, "Attempting to configure proxy with URL: "+clientOptions.ProxyURL.ValueString())
+func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
+	tflog.Info(ctx, "Attempting to configure proxy with URL: "+clientOptions.ProxyURL)
 
 	var httpClient *http.Client
 	var err error
 
-	if clientOptions.ProxyUsername.ValueString() != "" && clientOptions.ProxyPassword.ValueString() != "" {
+	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
 		tflog.Info(ctx, "Configuring authenticated proxy")
 		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
-			clientOptions.ProxyURL.ValueString(),
-			clientOptions.ProxyUsername.ValueString(),
-			clientOptions.ProxyPassword.ValueString(),
+			clientOptions.ProxyURL,
+			clientOptions.ProxyUsername,
+			clientOptions.ProxyPassword,
 		)
 	} else {
 		tflog.Info(ctx, "Configuring unauthenticated proxy")
 		httpClient, err = khttp.GetClientWithProxySettings(
-			clientOptions.ProxyURL.ValueString(),
+			clientOptions.ProxyURL,
 		)
 	}
 

@@ -1,4 +1,4 @@
-package graphcustom
+package customrequests
 
 import (
 	"testing"

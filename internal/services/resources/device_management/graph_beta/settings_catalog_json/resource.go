@@ -3,7 +3,7 @@ package graphBetaSettingsCatalogJson
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
@@ -71,7 +71,7 @@ func (r *SettingsCatalogJsonResource) Metadata(ctx context.Context, req resource
 
 // Configure sets the client for the resource.
 func (r *SettingsCatalogJsonResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = common.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
 }
 
 // ImportState imports the resource state.
