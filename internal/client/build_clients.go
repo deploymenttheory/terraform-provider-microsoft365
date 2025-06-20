@@ -109,7 +109,6 @@ func NewGraphClients(ctx context.Context, data *ProviderData, diags *diag.Diagno
 	graphV1Adapter.SetBaseUrl(graphServiceRoot)
 	graphBetaAdapter.SetBaseUrl(graphBetaServiceRoot)
 
-	// Create the clients using the concrete implementation
 	clients := &GraphClients{
 		V1Client:   msgraphsdk.NewGraphServiceClient(graphV1Adapter),
 		BetaClient: msgraphbetasdk.NewGraphServiceClient(graphBetaAdapter),

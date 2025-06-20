@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_management"
@@ -179,8 +179,8 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	settingsConfig := graphcustom.GetRequestConfig{
-		APIVersion:        graphcustom.GraphAPIBeta,
+	settingsConfig := customrequest.GetRequestConfig{
+		APIVersion:        customrequest.GraphAPIBeta,
 		Endpoint:          r.ResourcePath,
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
@@ -192,7 +192,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 
 	var settingsResponse []byte
 
-	settingsResponse, err = graphcustom.GetRequestByResourceId(
+	settingsResponse, err = customrequest.GetRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		settingsConfig,
@@ -268,14 +268,14 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	putRequest := graphcustom.PutRequestConfig{
-		APIVersion:  graphcustom.GraphAPIBeta,
+	putRequest := customrequest.PutRequestConfig{
+		APIVersion:  customrequest.GraphAPIBeta,
 		Endpoint:    r.ResourcePath,
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
-	err = graphcustom.PutRequestByResourceId(
+	err = customrequest.PutRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		putRequest)

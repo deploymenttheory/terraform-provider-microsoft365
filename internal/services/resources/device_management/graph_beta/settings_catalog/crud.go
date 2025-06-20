@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client/graphcustom"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -247,14 +247,14 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	putRequest := graphcustom.PutRequestConfig{
-		APIVersion:  graphcustom.GraphAPIBeta,
+	putRequest := customrequest.PutRequestConfig{
+		APIVersion:  customrequest.GraphAPIBeta,
 		Endpoint:    r.ResourcePath,
 		ResourceID:  object.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
-	err = graphcustom.PutRequestByResourceId(
+	err = customrequest.PutRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		putRequest)
