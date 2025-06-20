@@ -396,7 +396,7 @@ func (s *AzureDevOpsOIDCStrategy) GetCredential(ctx context.Context, config *Pro
 	federationToken := os.Getenv("AZURE_DEVOPS_FEDERATION_TOKEN")
 
 	if federationToken == "" {
-		return nil, fmt.Errorf("Azure DevOps OIDC authentication requires the AZURE_DEVOPS_FEDERATION_TOKEN environment variable to be set")
+		return nil, fmt.Errorf("azure DevOps OIDC authentication requires the AZURE_DEVOPS_FEDERATION_TOKEN environment variable to be set")
 	}
 
 	// Create the assertion callback

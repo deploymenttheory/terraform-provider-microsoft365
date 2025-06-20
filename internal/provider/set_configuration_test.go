@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestsetProviderConfiguration_EmptyConfig(t *testing.T) {
+func TestSetProviderConfiguration_EmptyConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -39,7 +39,7 @@ func TestsetProviderConfiguration_EmptyConfig(t *testing.T) {
 	assert.False(t, result.DebugMode.ValueBool(), "Default debug mode should be false")
 }
 
-func TestsetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
+func TestSetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
 	// Clear environment and set test variables
 	os.Clearenv()
 	os.Setenv("M365_CLOUD", "dod")
@@ -71,7 +71,7 @@ func TestsetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
 	assert.True(t, result.DebugMode.ValueBool(), "Debug mode should be from env var")
 }
 
-func TestsetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
+func TestSetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
 	// Clear environment and set only some variables
 	os.Clearenv()
 	os.Setenv("M365_CLOUD", "gcc")
@@ -103,7 +103,7 @@ func TestsetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
 	assert.True(t, result.DebugMode.ValueBool(), "Debug mode should be from env var")
 }
 
-func TestsetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
+func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -172,7 +172,7 @@ func TestsetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	assert.ElementsMatch(t, []string{"tenant1", "tenant2"}, allowedTenants, "Additionally allowed tenants should be from env var")
 }
 
-func TestsetClientOptions_DefaultsAndOverrides(t *testing.T) {
+func TestSetClientOptions_DefaultsAndOverrides(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -249,7 +249,7 @@ func TestsetClientOptions_DefaultsAndOverrides(t *testing.T) {
 	assert.Equal(t, "Chaos error", resultModel.ChaosStatusMessage.ValueString(), "chaos_status_message should be from config")
 }
 
-func TestsetEntraIDOptions_EmptyConfig(t *testing.T) {
+func TestSetEntraIDOptions_EmptyConfig(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
@@ -262,7 +262,7 @@ func TestsetEntraIDOptions_EmptyConfig(t *testing.T) {
 	assert.True(t, result.IsNull(), "Result should be null with null config")
 }
 
-func TestsetEntraIDOptions_BooleanEnvVars(t *testing.T) {
+func TestSetEntraIDOptions_BooleanEnvVars(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
