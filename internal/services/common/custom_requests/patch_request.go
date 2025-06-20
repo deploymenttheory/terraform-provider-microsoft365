@@ -72,16 +72,15 @@ func PatchRequestByResourceId(ctx context.Context, adapter abstractions.RequestA
 	requestInfo.Method = abstractions.PATCH
 
 	endpoint := config.Endpoint
-	if strings.HasPrefix(endpoint, "/") {
-		endpoint = endpoint[1:]
-	}
+	endpoint = strings.TrimPrefix(endpoint, "/")
 
 	var urlTemplate string
-	if config.ResourceIDPattern == "/{id}" {
+	switch config.ResourceIDPattern {
+	case "/{id}":
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s/%s", endpoint, config.ResourceID)
-	} else if config.ResourceIDPattern == "('id')" {
+	case "('id')":
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s('%s')", endpoint, config.ResourceID)
-	} else {
+	default:
 		idPart := strings.ReplaceAll(config.ResourceIDPattern, "id", config.ResourceID)
 		urlTemplate = fmt.Sprintf("{+baseurl}/%s%s", endpoint, idPart)
 	}

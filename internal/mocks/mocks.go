@@ -28,18 +28,16 @@ func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abs
 
 // Mocks provides a centralized way to manage mock HTTP responses for testing.
 type Mocks struct {
-	authMocks *AuthenticationMocks
+	AuthMocks *AuthenticationMocks
 	Clients   *client.MockGraphClients
 }
 
 // NewMocks creates a new instance of Mocks, initializing all mock types.
 func NewMocks() *Mocks {
-	// Create a new HTTP client that will be used with httpmock
-	httpClient := &http.Client{}
 
 	return &Mocks{
-		authMocks: NewAuthenticationMocks(),
-		Clients:   client.NewMockGraphClients(httpClient),
+		AuthMocks: NewAuthenticationMocks(),
+		Clients:   client.NewMockGraphClients(http.DefaultClient),
 	}
 }
 
@@ -53,7 +51,7 @@ func (m *Mocks) Activate() {
 	httpmock.Activate()
 	// Configure httpmock to use the same client that our mock clients use
 	httpmock.ActivateNonDefault(http.DefaultClient)
-	m.authMocks.RegisterMocks()
+	m.AuthMocks.RegisterMocks()
 	m.RegisterMacOSPlatformScriptMocks()
 }
 
@@ -71,7 +69,7 @@ func TestName() string {
 }
 
 var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", false)()),
+	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", true)()),
 }
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){

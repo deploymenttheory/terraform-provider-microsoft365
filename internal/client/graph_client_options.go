@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,6 +18,12 @@ import (
 
 // ConfigureGraphClientOptions configures the Graph client options based on the provided configuration
 func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*http.Client, error) {
+
+	// In unit test mode (TF_ACC not set), use http.DefaultClient so httpmock can intercept
+	if os.Getenv("TF_ACC") == "" {
+		tflog.Debug(ctx, "Unit test mode detected, using http.DefaultClient for httpmock interception")
+		return http.DefaultClient, nil
+	}
 	tflog.Info(ctx, "Configuring Graph client options")
 
 	defaultClientOptions := msgraphsdk.GetDefaultClientOptions()
