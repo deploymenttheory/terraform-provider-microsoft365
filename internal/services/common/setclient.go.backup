@@ -1,5 +1,3 @@
-// File: internal/resources/common/client_setup.go
-
 package common
 
 import (
@@ -17,34 +15,34 @@ import (
 
 // SetGraphStableClientForResource is a helper function to retrieve and validate the Graph Stable client for resources.
 func SetGraphStableClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *msgraphsdk.GraphServiceClient {
-	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients *client.GraphClients) *msgraphsdk.GraphServiceClient {
-		return clients.StableClient
+	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients client.GraphClientInterface) *msgraphsdk.GraphServiceClient {
+		return clients.GetV1Client()
 	})
 }
 
 // SetGraphStableClientForDataSource is a helper function to retrieve and validate the Graph Stable client for data sources.
 func SetGraphStableClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *msgraphsdk.GraphServiceClient {
-	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients *client.GraphClients) *msgraphsdk.GraphServiceClient {
-		return clients.StableClient
+	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients client.GraphClientInterface) *msgraphsdk.GraphServiceClient {
+		return clients.GetV1Client()
 	})
 }
 
 // SetGraphBetaClientForResource is a helper function to retrieve and validate the Graph Beta client for resources.
 func SetGraphBetaClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *msgraphbetasdk.GraphServiceClient {
-	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients *client.GraphClients) *msgraphbetasdk.GraphServiceClient {
-		return clients.BetaClient
+	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients client.GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
+		return clients.GetBetaClient()
 	})
 }
 
 // SetGraphBetaClientForDataSource is a helper function to retrieve and validate the Graph Beta client for data sources.
 func SetGraphBetaClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *msgraphbetasdk.GraphServiceClient {
-	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients *client.GraphClients) *msgraphbetasdk.GraphServiceClient {
-		return clients.BetaClient
+	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients client.GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
+		return clients.GetBetaClient()
 	})
 }
 
 // getClient is a helper function to retrieve and validate the appropriate Graph client from provider data.
-func getClient[T any, R any](ctx context.Context, providerData any, resp R, name string, getClientFunc func(*client.GraphClients) *T) *T {
+func getClient[T any, R any](ctx context.Context, providerData any, resp R, name string, getClientFunc func(client.GraphClientInterface) *T) *T {
 	tflog.Debug(ctx, fmt.Sprintf("Configuring %s", name))
 
 	if providerData == nil {
@@ -52,17 +50,17 @@ func getClient[T any, R any](ctx context.Context, providerData any, resp R, name
 		return nil
 	}
 
-	clients, ok := providerData.(*client.GraphClients)
+	clients, ok := providerData.(client.GraphClientInterface)
 	if !ok {
 		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]interface{}{
-			"expected": "*client.GraphClients",
+			"expected": "client.GraphClientInterface",
 			"actual":   fmt.Sprintf("%T", providerData),
 		})
 
 		if respWithDiagnostics, ok := any(resp).(interface{ AddError(string, string) }); ok {
 			respWithDiagnostics.AddError(
 				"Unexpected Provider Data Type",
-				fmt.Sprintf("Expected *client.GraphClients, got: %T. Please report this issue to the provider developers.", providerData),
+				fmt.Sprintf("Expected client.GraphClientInterface, got: %T. Please report this issue to the provider developers.", providerData),
 			)
 		}
 		return nil

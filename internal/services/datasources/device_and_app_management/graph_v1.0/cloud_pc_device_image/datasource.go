@@ -3,29 +3,52 @@ package graphCloudPcDeviceImage
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-var _ datasource.DataSource = &CloudPcDeviceImageDataSource{}
-var _ datasource.DataSourceWithConfigure = &CloudPcDeviceImageDataSource{}
+const (
+	DataSourceName = "graph_device_and_app_management_cloud_pc_device_image"
+	ReadTimeout    = 180
+)
+
+var (
+	// Basic resource interface (CRUD operations)
+	_ datasource.DataSource = &CloudPcDeviceImageDataSource{}
+
+	// Allows the resource to be configured with the provider client
+	_ datasource.DataSourceWithConfigure = &CloudPcDeviceImageDataSource{}
+)
 
 func NewCloudPcDeviceImageDataSource() datasource.DataSource {
-	return &CloudPcDeviceImageDataSource{}
+	return &CloudPcDeviceImageDataSource{
+		ReadPermissions: []string{
+			"CloudPC.Read.All",
+			"CloudPC.ReadWrite.All",
+		},
+	}
 }
 
 type CloudPcDeviceImageDataSource struct {
 	client           *msgraphsdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
+	ReadPermissions  []string
 }
 
+// Metadata sets the data source name
 func (d *CloudPcDeviceImageDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_graph_cloud_pc_device_image"
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
 }
 
+// Configure sets the client for the data source
+func (d *CloudPcDeviceImageDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = client.SetGraphStableClientForDataSource(ctx, req, resp, d.TypeName)
+}
+
+// Schema defines the schema for the data source
 func (d *CloudPcDeviceImageDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -75,8 +98,4 @@ func (d *CloudPcDeviceImageDataSource) Schema(ctx context.Context, _ datasource.
 			},
 		},
 	}
-}
-
-func (d *CloudPcDeviceImageDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphStableClientForDataSource(ctx, req, resp, "CloudPcDeviceImageDataSource")
 }

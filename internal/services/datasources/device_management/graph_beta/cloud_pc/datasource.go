@@ -3,7 +3,7 @@ package graphBetaCloudPC
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -43,6 +43,11 @@ type CloudPCDataSource struct {
 // Metadata returns the datasource type name.
 func (r *CloudPCDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+}
+
+// Configure configures the data source with the provider client
+func (d *CloudPCDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
 // Schema defines the schema for the data source
@@ -172,9 +177,4 @@ func (d *CloudPCDataSource) Schema(ctx context.Context, _ datasource.SchemaReque
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-// Configure configures the data source with the provider client
-func (d *CloudPCDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

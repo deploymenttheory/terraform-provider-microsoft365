@@ -3,7 +3,7 @@ package graphBetaDeviceManagementScript
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -44,6 +44,12 @@ func (r *WindowsPlatformScriptDataSource) Metadata(ctx context.Context, req data
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
 }
 
+// Configure sets the client for the data source
+func (d *WindowsPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+}
+
+// Schema defines the schema for the data source
 func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about a windows platform script.",
@@ -70,8 +76,4 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-func (d *WindowsPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

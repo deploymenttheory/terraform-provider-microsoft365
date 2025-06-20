@@ -3,7 +3,7 @@ package graphBetaReuseablePolicySettings
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -43,6 +43,11 @@ type ReuseablePolicySettingsDataSource struct {
 // Metadata returns the resource type name.
 func (r *ReuseablePolicySettingsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+}
+
+// Configure sets the client for the data source
+func (d *ReuseablePolicySettingsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
 
 // Schema defines the schema for the data source
@@ -87,8 +92,4 @@ func (d *ReuseablePolicySettingsDataSource) Schema(ctx context.Context, _ dataso
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-func (d *ReuseablePolicySettingsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }

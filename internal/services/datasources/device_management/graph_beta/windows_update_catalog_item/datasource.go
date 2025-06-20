@@ -3,7 +3,7 @@ package graphBetaWindowsUpdateCatalogItem
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -46,7 +46,7 @@ func (d *WindowsUpdateCatalogItemDataSource) Metadata(_ context.Context, req dat
 
 // Configure configures the data source with the provider client
 func (d *WindowsUpdateCatalogItemDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = common.SetGraphBetaClientForDataSource(ctx, req, resp, d.ProviderTypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.ProviderTypeName)
 }
 
 // Schema defines the schema for the data source

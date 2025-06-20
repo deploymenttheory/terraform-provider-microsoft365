@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"net/http"
+	"context"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -10,7 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/jarcoal/httpmock"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 )
+
+// MockAuthProvider implements the required authentication interface
+type MockAuthProvider struct{}
+
+// AuthenticateRequest adds a mock authorization header to requests
+func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abstractions.RequestInformation, additionalAuthenticationContext map[string]interface{}) error {
+	if request.Headers != nil {
+		request.Headers.Add("Authorization", "Bearer mock-token")
+	}
+	return nil
+}
 
 // Mocks provides a centralized way to manage mock HTTP responses for testing.
 type Mocks struct {
@@ -28,7 +40,7 @@ func NewMocks() *Mocks {
 func (m *Mocks) Activate() {
 	httpmock.Activate()
 	m.authMocks.RegisterMocks()
-	m.registerGraphMocks()
+	m.RegisterMacOSPlatformScriptMocks()
 }
 
 // DeactivateAndReset deactivates all mock responders and resets the mock state.
@@ -44,51 +56,10 @@ func TestName() string {
 	return name
 }
 
-func TestsEntraLicesingGroupName() string {
-	return "pptestusers"
-}
-
 var TestUnitTestProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", true)()),
-}
-
-var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", false)()),
 }
 
-func (m *Mocks) registerGraphMocks() {
-	// Mock for fetching user details
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/users/testuser@example.com",
-		func(req *http.Request) (*http.Response, error) {
-			user := map[string]interface{}{
-				"id":                "mock-user-id",
-				"displayName":       "Test User",
-				"userPrincipalName": "testuser@example.com",
-			}
-			return httpmock.NewJsonResponse(200, user)
-		},
-	)
-
-	// Mock for group details
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/v1.0/groups/mock-group-id",
-		func(req *http.Request) (*http.Response, error) {
-			group := map[string]interface{}{
-				"id":          "mock-group-id",
-				"displayName": "Test Group",
-			}
-			return httpmock.NewJsonResponse(200, group)
-		},
-	)
-
-	// Mock for beta endpoints, for example
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/me",
-		func(req *http.Request) (*http.Response, error) {
-			me := map[string]interface{}{
-				"id":                "mock-user-id",
-				"displayName":       "Test User (Beta)",
-				"userPrincipalName": "testuser@example.com",
-			}
-			return httpmock.NewJsonResponse(200, me)
-		},
-	)
+var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+	"microsoft365": providerserver.NewProtocol6WithError(provider.NewMicrosoft365Provider("test", true)()),
 }

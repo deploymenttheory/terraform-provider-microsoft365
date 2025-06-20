@@ -105,7 +105,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	stableAdapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+	graphV1Adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
 		authProvider,
 		nil,
 		nil,
@@ -119,7 +119,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	betaAdapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+	graphBetaAdapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
 		authProvider,
 		nil,
 		nil,
@@ -133,22 +133,26 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	stableAdapter.SetBaseUrl(graphServiceRoot)
-	betaAdapter.SetBaseUrl(graphBetaServiceRoot)
+	graphV1Adapter.SetBaseUrl(graphServiceRoot)
+	graphBetaAdapter.SetBaseUrl(graphBetaServiceRoot)
 
+	// Create the clients using the concrete implementation
 	clients := &client.GraphClients{
-		StableClient: msgraphsdk.NewGraphServiceClient(stableAdapter),
-		BetaClient:   msgraphbetasdk.NewGraphServiceClient(betaAdapter),
+		V1Client:   msgraphsdk.NewGraphServiceClient(graphV1Adapter),
+		BetaClient: msgraphbetasdk.NewGraphServiceClient(graphBetaAdapter),
 	}
 
-	p.clients = clients
+	// Assign using the interface type to ensure we're using the interface
+	var graphClientInterface client.GraphClientInterface = clients
+	p.clients = graphClientInterface
 
-	resp.DataSourceData = clients
-	resp.ResourceData = clients
+	// Pass the interface to data sources and resources
+	resp.DataSourceData = graphClientInterface
+	resp.ResourceData = graphClientInterface
 
 	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
-		"graph_client_set":      p.clients.StableClient != nil,
-		"graph_beta_client_set": p.clients.BetaClient != nil,
+		"graph_client_set":      p.clients.GetV1Client() != nil,
+		"graph_beta_client_set": p.clients.GetBetaClient() != nil,
 		"config":                fmt.Sprintf("%+v", config),
 	})
 }
