@@ -2,10 +2,12 @@ package mocks
 
 import (
 	"context"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -27,18 +29,30 @@ func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abs
 // Mocks provides a centralized way to manage mock HTTP responses for testing.
 type Mocks struct {
 	authMocks *AuthenticationMocks
+	Clients   *client.MockGraphClients
 }
 
 // NewMocks creates a new instance of Mocks, initializing all mock types.
 func NewMocks() *Mocks {
+	// Create a new HTTP client that will be used with httpmock
+	httpClient := &http.Client{}
+
 	return &Mocks{
 		authMocks: NewAuthenticationMocks(),
+		Clients:   client.NewMockGraphClients(httpClient),
 	}
+}
+
+// GetMockClients returns the mock clients for use in tests
+func (m *Mocks) GetMockClients() client.GraphClientInterface {
+	return m.Clients
 }
 
 // Activate activates all mock responders.
 func (m *Mocks) Activate() {
 	httpmock.Activate()
+	// Configure httpmock to use the same client that our mock clients use
+	httpmock.ActivateNonDefault(http.DefaultClient)
 	m.authMocks.RegisterMocks()
 	m.RegisterMacOSPlatformScriptMocks()
 }
