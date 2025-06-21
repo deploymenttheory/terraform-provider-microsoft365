@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.15.0-alpha...v0.16.0-alpha) (2025-06-21)
+
+
+### Features
+
+* added additional extraction points for graph metadata ([3893926](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3893926ae66dca2ed555653745049b530d0fbc32))
+* added ai instructions set ([af64371](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/af64371837294cfc9e11d78ed2bf2395c661fedd))
+* added configuration policy unit tests ([cc5a938](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cc5a93863fa5112832619bdf1f897e0ba6966b66))
+* added dev docs ([d31361f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d31361fa979172bed9709402f76d8fbc3616b32d))
+* added developer docs ([6b1717a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6b1717a81351b40460835e8f9da819d32a7cf7c2))
+* added developer docs for resource development ([#521](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/521)) ([2b5178c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2b5178c7cfd28ef3df52ae9fe9672a4d0623d999))
+* added graph metadata extraction script ([cef8591](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cef8591dc8904959fb4844c06aa72d1770f1fe6b))
+* added graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment with examples ([5ae2eca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ae2eca5809e0083d525cd9695002aab18ed886e))
+* added graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment with examples ([#503](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/503)) ([e4cade6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e4cade6e0009400e6ec09ffe9b8935fe02b5cadf))
+* added graph_beta_device_management_macos_software_update_configuration with examples ([33247a9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/33247a91e23b12381eaa41c2364448c26d5e502a))
+* added graph_beta_device_management_macos_software_update_configuration with examples ([#506](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/506)) ([d82a919](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d82a9197b67a1b1625a32f800d153dd738daf860))
+* added makefile for tf development ([36b7a0a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/36b7a0a57f687dbd96bd1c521c745078cbed2977))
+* added makefile, ai instruction set, refactored data type conversion helpers, scaffolding for unit and acc tests with mocking ([#528](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/528)) ([6788408](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6788408661ed58258ee10589b6415f7ddab18800))
+* added ps graph metadata extraction script ([#522](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/522)) ([a3ca194](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a3ca1944e6bbd89c00dca90a327a1188e4074aa1))
+* added unit tests for configuration policy settings go and json builders ([#511](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/511)) ([3293255](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/32932553d3ce83264e3c0d618f5ca0db5681bc09))
+* finalised device preparation policies until msft fix their api ([b9949b1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b9949b141afcd3822012fbaf850c417ed4b51b93))
+* graph_beta_device_management_device_enrollment_notification_configuration with examples ([ff7fecb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ff7fecbdb1f77970dabf1994fc47269cd2cc58c1))
+* graph_beta_device_management_device_enrollment_notification_configuration with examples ([#501](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/501)) ([145625d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/145625d2510a28544419c69beab4eb777da6e3cc))
+* implemented refactor state and constructor funcs ([307fb91](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/307fb91f0966100ac6517915ac263a6db1dc4b96))
+* moved all client initization to package client and refined client init logic with provider configure func ([45de96e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/45de96e0ef0052544f38055b483c138db8698d84))
+* moved all client related logic for building to the client package from the provider package ([9e2561c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9e2561cbcaa78b5458eae138ca025609a3416f87))
+* moved custom requests to it's own package within common out of the client package ([356f090](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/356f09017278074550b35a4b4f5e4a3aac175356))
+* refactored directory hirachy so that all client related logic is within the client package. moved all custom request logic to it's own package within custom from client package ([#529](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/529)) ([8754a07](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8754a071caed0fd816f7080b840e4f5003c07981))
+* repo structure to move datasoources and resources within a common services folder. moved common to services folder in folder hierarchy ([0799a5b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0799a5b52ca34d78f186c7c6068b7d0abf47313c))
+* repo structure to move datasources and resources within a common ./internal/services folder. Moved the common folder with shared assets to ./internal/services from /resources ([#524](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/524)) ([22520ec](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/22520ec6ed4492addcc0a0ac1d205a2fc1720da1))
+
+
+### Bug Fixes
+
+* added discord info to readme ([88c0a53](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/88c0a53746578ceb5479c71a5c9e61bb83485f7a))
+* added discord info to readme ([#519](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/519)) ([aded08c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aded08ca82a4a35e3ba2e111b96f9ed5e140571b))
+* added new regex for ISO8601Duration and comment fix ups ([1e11d71](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1e11d71d4890d1adaf6f3901c6ed2268264b597a))
+* changed all actions to use commit sha's ([cd48ede](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cd48ede424a0363694107d44fb6fe64823bce198))
+* determined that the api for AutopilotDevicePreparationPolicy is broken.sigh ([481dcdd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/481dcddaab9b8510b0740960919ff1c7725d98e4))
+* extended go lint timeout to 20minutes ([e5f9b3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e5f9b3bbf42b420ba1568a9042930c281d82523b))
+* finalised device preparation policies until msft fix their api ([#505](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/505)) ([089d398](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/089d398d18efd2a065d5dcdd4ed191bda458fab5))
+* for go lint failure handling ([e3e52be](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e3e52be832b1ca02cb214c3c0bbb7d6d5b8c57e9))
+* for GraphToFrameworkISODuration helpers to resolve unit tests ([e8338a7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e8338a764a864067ad78aef8ed9e14be86f4c592))
+* go unit test pipeline trigger ([e972c36](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e972c3658f3f1a4c74f29fa55657ccef63117d5b))
+* misc naming fix ups ([502ba24](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/502ba24503a3473bd3351a9ae31cb667ee5b409c))
+* numerous bug fixes and unit test additions ([44bb11a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/44bb11a80d63c5d3f2b1a7a726d32f39387591a7))
+* numerous fixes and scaffolding for mock tests ([f951cda](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f951cdaeec2b4e5401f447731cd383011963f9b7))
+* python test scripts ([591c402](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/591c40260095757c86431a7888715f3b3f4b50c3))
+* read with retry test ([3053bd5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3053bd530f85440aa1ac41911e6b94d4a5347ed7))
+* readme's and schema docs for tf registry ([afbab65](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/afbab654a7ad3e83868e0b7f52fb7d0849444a28))
+* readme's and schema docs for tf registry ([#520](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/520)) ([bc16e69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bc16e692736e681bf81d45f348156e3e18763c1f))
+* regex const naming patterns ([54b5af1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/54b5af124f7a2b97901be6c7b3144707f13de508))
+* unit tests ([5ffcd30](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ffcd30efd1beb34be608df2095a0eda5e632c9f))
+
 ## [0.15.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.14.1-alpha...v0.15.0-alpha) (2025-06-04)
 
 
