@@ -1,4 +1,4 @@
-package graphBetaResourceOperation
+package graphBetaRBACResourceOperation
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // ModifyPlan handles plan modification for resource operations
-func (r *ResourceOperationResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *RBACResourceOperationResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
 	}

@@ -8,7 +8,7 @@ description: |-
 
 The community Microsoft 365 provider allows managing environments and other resources within [Microsoft 365](https://www.microsoft.com/en-gb/microsoft-365/products-apps-services).
 
-!> This code is made available as a public preview. Features are being actively developed and may have restricted or limited functionality. Future updates may introduce breaking changes, but we follow [Semantic Versioning](https://semver.org/) to help mitigate this. The software may contain bugs, errors, or other issues that could cause service interruption or data loss. We recommend backing up your data and testing in non-production environments. Your feedback is valuable to us, so please share any issues or suggestions you encounter via GitHub issues.
+!> This code is made available as a experimental purposes only. Features are being actively developed and may have restricted or limited functionality. Future updates may introduce breaking changes, but we follow [Semantic Versioning](https://semver.org/) to help mitigate this. The software may contain bugs, errors, or other issues that could cause service interruption or data loss. We recommend backing up your data and testing in non-production environments. Your feedback is valuable to us, so please share any issues or suggestions you encounter via GitHub issues or join our community Discord [server](https://discord.gg/Uq8zG6g7WE).
 
 ## Requirements
 
@@ -564,7 +564,7 @@ provider "microsoft365" {
 
 Can be set using the `M365_PROXY_USERNAME` environment variable.
 - `retry_delay_seconds` (Number) Delay between retry attempts in seconds.
-- `timeout_seconds` (Number) Override value for authentication request timeouts in seconds.
+- `timeout_seconds` (Number) Override value for the timeout of authentication requests in seconds.
 - `use_proxy` (Boolean) Enables the use of a proxy server for all network requests made by the provider.
 
 **Key points:**
@@ -669,9 +669,7 @@ Using Microsoft Graph PowerShell:
 Get-MgApplication -Filter "displayName eq 'Your App Name'" | Select-Object AppId, DisplayName
 ```
 
-```
-
-**Example usage:**
+Example usage:
 ```hcl
 provider "microsoft365" {
   client_id = "my_client_id"
@@ -710,7 +708,7 @@ $credential = @{
 New-MgApplicationPassword -ApplicationId <app-id> -PasswordCredential $credential
 ```
 
-**Example usage:**
+Example usage:
 ```hcl
 provider "microsoft365" {
   client_secret = "my_client_secret"

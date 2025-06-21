@@ -1,4 +1,4 @@
-package graphBetaResourceOperation
+package graphBetaRBACResourceOperation
 
 import (
 	"context"
@@ -21,8 +21,8 @@ import (
 //   - Sets initial state with planned values
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
-func (r *ResourceOperationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object ResourceOperationResourceModel
+func (r *RBACResourceOperationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object RBACResourceOperationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -87,8 +87,8 @@ func (r *ResourceOperationResource) Create(ctx context.Context, req resource.Cre
 //   - Retrieves the current state from the read request
 //   - Gets the base resource details from the API
 //   - Maps the base resource details to Terraform state
-func (r *ResourceOperationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object ResourceOperationResourceModel
+func (r *RBACResourceOperationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object RBACResourceOperationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -135,8 +135,8 @@ func (r *ResourceOperationResource) Read(ctx context.Context, req resource.ReadR
 //   - Sends PATCH request to update the resource in the API
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
-func (r *ResourceOperationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object ResourceOperationResourceModel
+func (r *RBACResourceOperationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object RBACResourceOperationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
@@ -196,8 +196,8 @@ func (r *ResourceOperationResource) Update(ctx context.Context, req resource.Upd
 //   - Validates the state data and timeout configuration
 //   - Sends DELETE request to remove the resource from the API
 //   - Cleans up by removing the resource from Terraform state
-func (r *ResourceOperationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object ResourceOperationResourceModel
+func (r *RBACResourceOperationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object RBACResourceOperationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

@@ -1,4 +1,4 @@
-package graphBetaResourceOperation
+package graphBetaRBACResourceOperation
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_resource_operation"
+	ResourceName  = "graph_beta_device_management_rbac_resource_operation"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -26,20 +26,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &ResourceOperationResource{}
+	_ resource.Resource = &RBACResourceOperationResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &ResourceOperationResource{}
+	_ resource.ResourceWithConfigure = &RBACResourceOperationResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &ResourceOperationResource{}
+	_ resource.ResourceWithImportState = &RBACResourceOperationResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &ResourceOperationResource{}
+	_ resource.ResourceWithModifyPlan = &RBACResourceOperationResource{}
 )
 
-func NewResourceOperationResource() resource.Resource {
-	return &ResourceOperationResource{
+func NewRBACResourceOperationResource() resource.Resource {
+	return &RBACResourceOperationResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementRBAC.Read.All",
@@ -48,11 +48,11 @@ func NewResourceOperationResource() resource.Resource {
 			"DeviceManagementConfiguration.ReadWrite.All",
 			"DeviceManagementRBAC.ReadWrite.All",
 		},
-		ResourcePath: "deviceManagement/resourceOperations",
+		ResourcePath: "deviceManagement/RBACResourceOperations",
 	}
 }
 
-type ResourceOperationResource struct {
+type RBACResourceOperationResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -62,31 +62,31 @@ type ResourceOperationResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *ResourceOperationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *RBACResourceOperationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full type name of the resource for logging purposes.
-func (r *ResourceOperationResource) FullTypeName() string {
+func (r *RBACResourceOperationResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *ResourceOperationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RBACResourceOperationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *ResourceOperationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RBACResourceOperationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
-func (r *ResourceOperationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RBACResourceOperationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/resourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.",
+		MarkdownDescription: "Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/RBACResourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Key of the Resource Operation. Read-only, automatically generated.",
