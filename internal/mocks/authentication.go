@@ -24,14 +24,14 @@ type AuthenticationMocks struct {
 // NewAuthenticationMocks creates a new instance of AuthenticationMocks with default values
 func NewAuthenticationMocks() *AuthenticationMocks {
 	return &AuthenticationMocks{
-		TenantID:           "00000000-0000-0000-0000-000000000000",
+		TenantID:           "00000000-0000-0000-0000-000000000001",
 		ClientID:           "11111111-1111-1111-1111-111111111111",
 		TokenExpiryMinutes: 60,
 		AccessToken:        "mock_access_token",
 		RefreshToken:       "mock_refresh_token",
 		IDToken:            "mock_id_token",
 		InstanceDiscoveryResult: &InstanceDiscoveryResponse{
-			TenantDiscoveryEndpoint: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0/.well-known/openid-configuration",
+			TenantDiscoveryEndpoint: "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/v2.0/.well-known/openid-configuration",
 			ApiVersion:              "1.1",
 			Metadata: []MetadataEntry{
 				{
@@ -55,6 +55,49 @@ func (a *AuthenticationMocks) RegisterMocks() {
 	a.registerOpenIDConfiguration()
 	a.registerDeviceCodeFlow()
 	a.registerManagedIdentityFlow()
+
+	// Register OpenID configuration for any tenant ID to support unit tests
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://login\.microsoftonline\.com/[0-9a-fA-F-]+/v2\.0/\.well-known/openid-configuration`,
+		func(req *http.Request) (*http.Response, error) {
+			// Extract tenant ID from the URL
+			parts := strings.Split(req.URL.Path, "/")
+			var tenantID string
+			for i, part := range parts {
+				if i > 0 && parts[i-1] == "microsoftonline.com" {
+					tenantID = part
+					break
+				}
+			}
+
+			openIDConfig := OpenIDConfigurationResponse{
+				TokenEndpoint:                    fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID),
+				TokenEndpointAuthMethods:         []string{"client_secret_post", "private_key_jwt", "client_secret_basic"},
+				JwksURI:                          fmt.Sprintf("https://login.microsoftonline.com/%s/discovery/v2.0/keys", tenantID),
+				ResponseModesSupported:           []string{"query", "fragment", "form_post"},
+				SubjectTypesSupported:            []string{"pairwise"},
+				IDTokenSigningAlgValuesSupported: []string{"RS256"},
+				ResponseTypesSupported:           []string{"code", "id_token", "code id_token", "id_token token"},
+				ScopesSupported:                  []string{"openid", "profile", "email", "offline_access"},
+				Issuer:                           fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", tenantID),
+				RequestURIParameterSupported:     false,
+				UserInfoEndpoint:                 fmt.Sprintf("https://graph.microsoft.com/oidc/userinfo"),
+				AuthorizationEndpoint:            fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/authorize", tenantID),
+				DeviceAuthorizationEndpoint:      fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/devicecode", tenantID),
+				HTTPLogoutSupported:              true,
+				FrontchannelLogoutSupported:      true,
+				EndSessionEndpoint:               fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/logout", tenantID),
+				ClaimsSupported:                  []string{"sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"},
+				TenantRegionScope:                "NA",
+				CloudGraphHostName:               "graph.windows.net",
+				MsgraphHost:                      "graph.microsoft.com",
+				RbacURL:                          "https://pas.windows.net",
+			}
+
+			return httpmock.NewJsonResponse(200, openIDConfig)
+		},
+	)
 }
 
 // registerInstanceDiscovery registers the instance discovery endpoint mock

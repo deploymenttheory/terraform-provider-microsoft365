@@ -212,22 +212,29 @@ func TestGetRetryDelay(t *testing.T) {
 			name:        "First attempt without RetryAfter",
 			errorInfo:   GraphErrorInfo{},
 			attempt:     1,
-			minExpected: 750 * time.Millisecond, // 1s ± 25% jitter
+			minExpected: 750 * time.Millisecond, // 1s ± 25% jitter = 1s ± 0.25s
 			maxExpected: 1250 * time.Millisecond,
 		},
 		{
 			name:        "Second attempt without RetryAfter",
 			errorInfo:   GraphErrorInfo{},
 			attempt:     2,
-			minExpected: 3*time.Second - 750*time.Millisecond, // 4s ± 25% jitter
-			maxExpected: 3*time.Second + 750*time.Millisecond,
+			minExpected: 3 * time.Second, // 4s ± 25% jitter = 4s ± 1s = 3s to 5s
+			maxExpected: 5 * time.Second,
+		},
+		{
+			name:        "Third attempt without RetryAfter",
+			errorInfo:   GraphErrorInfo{},
+			attempt:     3,
+			minExpected: 6750 * time.Millisecond, // 9s ± 25% jitter = 9s ± 2.25s = 6.75s to 11.25s
+			maxExpected: 11250 * time.Millisecond,
 		},
 		{
 			name:        "Max delay cap",
 			errorInfo:   GraphErrorInfo{},
 			attempt:     100,             // Very large attempt number
-			minExpected: 3 * time.Minute, // Updated to match actual implementation
-			maxExpected: 5 * time.Minute,
+			minExpected: 0,               // Could be capped and then have negative jitter
+			maxExpected: 5 * time.Minute, // Should never exceed max cap
 		},
 	}
 

@@ -13,7 +13,7 @@ import (
 func (m *Mocks) RegisterMacOSPlatformScriptMocks() {
 	// Register authentication mocks
 	httpmock.RegisterResponder("POST",
-		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token",
+		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
 		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
 			"access_token": "mock-token",
 			"token_type":   "Bearer",
@@ -23,7 +23,7 @@ func (m *Mocks) RegisterMacOSPlatformScriptMocks() {
 	httpmock.RegisterResponder("GET",
 		"https://login.microsoftonline.com/common/discovery/instance",
 		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"tenant_discovery_endpoint": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0/.well-known/openid-configuration",
+			"tenant_discovery_endpoint": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/v2.0/.well-known/openid-configuration",
 		}))
 
 	// Basic CRUD operations for macOS Platform Scripts
@@ -31,36 +31,48 @@ func (m *Mocks) RegisterMacOSPlatformScriptMocks() {
 	// POST Create
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts",
 		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"id":           "00000000-0000-0000-0000-000000000001",
-			"displayName":  "Test macOS Script",
-			"runAsAccount": "system",
-			"fileName":     "test-script.sh",
+			"id":                          "00000000-0000-0000-0000-000000000001",
+			"displayName":                 "Test macOS Script",
+			"description":                 "Test description",
+			"runAsAccount":                "system",
+			"fileName":                    "test-script.sh",
+			"scriptContent":               "IyEvYmluL2Jhc2gKZWNobyAnSGVsbG8gV29ybGQn", // Base64 encoded
+			"createdDateTime":             "2023-11-01T10:30:00.0000000Z",
+			"lastModifiedDateTime":        "2023-11-01T10:30:00.0000000Z",
+			"roleScopeTagIds":             []string{"0"},
+			"blockExecutionNotifications": true,
+			"executionFrequency":          "P1D",
+			"retryCount":                  3,
 		}))
 
 	// POST Assign
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/00000000-0000-0000-0000-000000000001/assign",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"value": "Assignment completed successfully",
-		}))
+		httpmock.NewJsonResponderOrPanic(204, nil))
 
 	// GET Read
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/00000000-0000-0000-0000-000000000001",
 		func(req *http.Request) (*http.Response, error) {
 			response := map[string]interface{}{
-				"id":           "00000000-0000-0000-0000-000000000001",
-				"displayName":  "Test macOS Script",
-				"runAsAccount": "system",
-				"fileName":     "test-script.sh",
+				"id":                          "00000000-0000-0000-0000-000000000001",
+				"displayName":                 "Test macOS Script",
+				"description":                 "Test description",
+				"runAsAccount":                "system",
+				"fileName":                    "test-script.sh",
+				"scriptContent":               "IyEvYmluL2Jhc2gKZWNobyAnSGVsbG8gV29ybGQn", // Base64 encoded
+				"createdDateTime":             "2023-11-01T10:30:00.0000000Z",
+				"lastModifiedDateTime":        "2023-11-01T10:30:00.0000000Z",
+				"roleScopeTagIds":             []string{"0"},
+				"blockExecutionNotifications": true,
+				"executionFrequency":          "P1D",
+				"retryCount":                  3,
 			}
 
 			if req.URL.Query().Get("$expand") == "assignments" {
-				response["assignments"] = map[string]interface{}{
-					"value": []map[string]interface{}{
-						{
-							"id": "assignment1",
-							"target": map[string]interface{}{
-								"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
-							},
+				response["assignments"] = []map[string]interface{}{
+					{
+						"id": "00000000-0000-0000-0000-000000000002",
+						"target": map[string]interface{}{
+							"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
 						},
 					},
 				}
@@ -69,13 +81,35 @@ func (m *Mocks) RegisterMacOSPlatformScriptMocks() {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
+	// GET Assignments
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/00000000-0000-0000-0000-000000000001/assignments",
+		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts('00000000-0000-0000-0000-000000000001')/assignments",
+			"value": []map[string]interface{}{
+				{
+					"id": "00000000-0000-0000-0000-000000000002",
+					"target": map[string]interface{}{
+						"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
+					},
+				},
+			},
+		}))
+
 	// PATCH Update
 	httpmock.RegisterResponder("PATCH", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/00000000-0000-0000-0000-000000000001",
 		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"id":           "00000000-0000-0000-0000-000000000001",
-			"displayName":  "Updated macOS Script",
-			"runAsAccount": "user",
-			"fileName":     "updated-script.sh",
+			"id":                          "00000000-0000-0000-0000-000000000001",
+			"displayName":                 "Updated macOS Script",
+			"description":                 "Updated description",
+			"runAsAccount":                "user",
+			"fileName":                    "updated-script.sh",
+			"scriptContent":               "IyEvYmluL2Jhc2gKZWNobyAnSGVsbG8gVXBkYXRlZCBXb3JsZCc=", // Base64 encoded
+			"createdDateTime":             "2023-11-01T10:30:00.0000000Z",
+			"lastModifiedDateTime":        "2023-11-01T11:30:00.0000000Z",
+			"roleScopeTagIds":             []string{"0"},
+			"blockExecutionNotifications": false,
+			"executionFrequency":          "P7D",
+			"retryCount":                  5,
 		}))
 
 	// DELETE
