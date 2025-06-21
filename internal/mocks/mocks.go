@@ -53,6 +53,11 @@ func (m *Mocks) Activate() {
 	httpmock.ActivateNonDefault(http.DefaultClient)
 	m.AuthMocks.RegisterMocks()
 	m.RegisterMacOSPlatformScriptMocks()
+	m.RegisterMacOSPlatformScriptErrorMocks()
+	m.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	m.RegisterMacOSSoftwareUpdateConfigurationErrorMocks()
+	m.RegisterManagedDeviceCleanupRuleMocks()
+	m.RegisterManagedDeviceCleanupRuleErrorMocks()
 }
 
 // DeactivateAndReset deactivates all mock responders and resets the mock state.

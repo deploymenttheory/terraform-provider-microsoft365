@@ -12,6 +12,139 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
+// Common test configurations that can be used by both unit and acceptance tests
+const (
+	// Basic configuration with standard attributes
+	testConfigBasicTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
+  display_name    = "Test macOS Script"
+  description     = "Test description"
+  script_content  = "#!/bin/bash\necho 'Hello World'"
+  run_as_account  = "system"
+  file_name       = "test-script.sh"
+  block_execution_notifications = true
+  execution_frequency = "P1D"
+  retry_count     = 3
+
+  assignments = {
+    all_devices = false
+    all_users   = true
+  }
+}
+`
+
+	// Minimal configuration with only required attributes
+	testConfigMinimalTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "minimal" {
+  display_name   = "Minimal macOS Script"
+  script_content = "#!/bin/bash\necho 'Minimal Script'"
+  run_as_account = "system"
+  file_name      = "minimal-script.sh"
+
+  assignments = {
+    all_devices = false
+    all_users   = false
+  }
+}
+`
+
+	// Maximal configuration with all possible attributes
+	testConfigMaximalTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "maximal" {
+  display_name    = "Maximal macOS Script"
+  description     = "This is a comprehensive script with all fields populated"
+  script_content  = "#!/bin/bash\necho 'Maximal Script Configuration'"
+  run_as_account  = "user"
+  file_name       = "maximal-script.sh"
+  block_execution_notifications = true
+  execution_frequency = "P4W"
+  retry_count     = 10
+  role_scope_tag_ids = ["0", "1"]
+
+  assignments = {
+    all_devices = true
+    all_users   = false
+  }
+}
+`
+
+	// Update configuration for testing changes
+	testConfigUpdateTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
+  display_name    = "Updated macOS Script"
+  description     = "Updated description"
+  script_content  = "#!/bin/bash\necho 'Hello Updated World'"
+  run_as_account  = "user"
+  file_name       = "updated-script.sh"
+  block_execution_notifications = false
+  execution_frequency = "P1W"
+  retry_count     = 5
+
+  assignments = {
+    all_devices = true
+    all_users   = false
+  }
+}
+`
+
+	// Group assignments configuration
+	testConfigGroupAssignmentsTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "group_assigned" {
+  display_name    = "Group Assignment Script"
+  description     = "Script with group assignments"
+  script_content  = "#!/bin/bash\necho 'Group Assignment Script'"
+  run_as_account  = "system"
+  file_name       = "group-script.sh"
+
+  assignments = {
+    all_devices = false
+    all_users   = false
+    include_group_ids = ["11111111-1111-1111-1111-111111111111"]
+    exclude_group_ids = ["22222222-2222-2222-2222-222222222222"]
+  }
+}
+`
+
+	// Complex duration configuration
+	testConfigComplexDurationTemplate = `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "complex_duration" {
+  display_name    = "Complex Duration Script"
+  description     = "Testing complex ISO 8601 duration"
+  script_content  = "#!/bin/bash\necho 'Testing complex duration'"
+  run_as_account  = "system"
+  file_name       = "complex-duration-script.sh"
+  block_execution_notifications = true
+  execution_frequency = "P4W2D"
+  retry_count     = 3
+
+  assignments = {
+    all_devices = false
+    all_users   = true
+  }
+}
+`
+)
+
+// Unit test provider configuration
+const unitTestProviderConfig = `
+provider "microsoft365" {
+  tenant_id = "00000000-0000-0000-0000-000000000001"
+  auth_method = "client_secret"
+  entra_id_options = {
+    client_id = "11111111-1111-1111-1111-111111111111"
+    client_secret = "mock-secret-value"
+  }
+  cloud = "public"
+}
+`
+
+// Acceptance test provider configuration
+const accTestProviderConfig = `
+provider "microsoft365" {
+  # Configuration from environment variables
+}
+`
+
 func TestUnitMacOSPlatformScriptResource_Basic(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
@@ -254,17 +387,20 @@ func TestUnitMacOSPlatformScriptResource_Update(t *testing.T) {
 }
 
 // Acceptance Tests
-func TestAccMacOSPlatformScriptResource_basic(t *testing.T) {
+func TestAccMacOSPlatformScriptResource_Basic(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMacOSPlatformScriptConfigBasic(),
+				Config: testAccConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
@@ -273,7 +409,7 @@ func TestAccMacOSPlatformScriptResource_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMacOSPlatformScriptConfigUpdate(),
+				Config: testAccConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Updated macOS Script"),
@@ -291,17 +427,20 @@ func TestAccMacOSPlatformScriptResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccMacOSPlatformScriptResource_complexDuration(t *testing.T) {
+func TestAccMacOSPlatformScriptResource_ComplexDuration(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMacOSPlatformScriptConfigComplexDuration(),
+				Config: testAccConfigComplexDuration(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration", "display_name", "Complex Duration Script"),
@@ -349,215 +488,50 @@ func testAccCheckMacOSPlatformScriptDestroy(s *terraform.State) error {
 	return nil
 }
 
-// Test Configurations
-func testAccMacOSPlatformScriptConfigBasic() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Test macOS Script"
-  description     = "Test description for macOS platform script"
-  script_content  = "#!/bin/bash\necho 'Hello World'"
-  run_as_account  = "system"
-  file_name       = "test-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P1D"
-  retry_count     = 3
-
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
-}
-`
-}
-
-func testAccMacOSPlatformScriptConfigUpdate() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Updated macOS Script"
-  description     = "Updated description for macOS platform script"
-  script_content  = "#!/bin/bash\necho 'Hello Updated World'"
-  run_as_account  = "user"
-  file_name       = "updated-script.sh"
-  block_execution_notifications = false
-  execution_frequency = "P1W"
-  retry_count     = 5
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`
-}
-
-func testAccMacOSPlatformScriptConfigComplexDuration() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "complex_duration" {
-  display_name    = "Complex Duration Script"
-  description     = "Testing complex ISO 8601 duration"
-  script_content  = "#!/bin/bash\necho 'Testing complex duration'"
-  run_as_account  = "system"
-  file_name       = "complex-duration-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P4W2D"
-  retry_count     = 3
-
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
-}
-`
-}
+// Test configurations using shared templates
 
 // Unit test configurations
 func testConfigBasic() string {
-	return `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
-}
-
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Test macOS Script"
-  description     = "Test description"
-  script_content  = "#!/bin/bash\necho 'Hello World'"
-  run_as_account  = "system"
-  file_name       = "test-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P1D"
-  retry_count     = 3
-
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
-}
-`
-}
-
-func testConfigUpdate() string {
-	return `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
-}
-
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Updated macOS Script"
-  description     = "Updated description"
-  script_content  = "#!/bin/bash\necho 'Hello Updated World'"
-  run_as_account  = "user"
-  file_name       = "updated-script.sh"
-  block_execution_notifications = false
-  execution_frequency = "P1W"
-  retry_count     = 5
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`
+	return unitTestProviderConfig + testConfigBasicTemplate
 }
 
 func testConfigMinimal() string {
-	return `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
-}
-
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "minimal" {
-  display_name   = "Minimal macOS Script"
-  script_content = "#!/bin/bash\necho 'Minimal Script'"
-  run_as_account = "system"
-  file_name      = "minimal-script.sh"
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-  }
-}
-`
+	return unitTestProviderConfig + testConfigMinimalTemplate
 }
 
 func testConfigMaximal() string {
-	return `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
+	return unitTestProviderConfig + testConfigMaximalTemplate
 }
 
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "maximal" {
-  display_name    = "Maximal macOS Script"
-  description     = "This is a comprehensive script with all fields populated"
-  script_content  = "#!/bin/bash\necho 'Maximal Script Configuration'"
-  run_as_account  = "user"
-  file_name       = "maximal-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P4W"
-  retry_count     = 10
-  role_scope_tag_ids = ["0", "1"]
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`
+func testConfigUpdate() string {
+	return unitTestProviderConfig + testConfigUpdateTemplate
 }
 
 func testConfigGroupAssignments() string {
-	return `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
+	return unitTestProviderConfig + testConfigGroupAssignmentsTemplate
 }
 
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "group_assigned" {
-  display_name    = "Group Assignment Script"
-  description     = "Script with group assignments"
-  script_content  = "#!/bin/bash\necho 'Group Assignment Script'"
-  run_as_account  = "system"
-  file_name       = "group-script.sh"
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-    include_group_ids = ["11111111-1111-1111-1111-111111111111"]
-    exclude_group_ids = ["22222222-2222-2222-2222-222222222222"]
-  }
-}
-`
+// Acceptance test configurations
+func testAccConfigBasic() string {
+	return accTestProviderConfig + testConfigBasicTemplate
 }
 
-// setupTestEnvironment configures the test environment
+func testAccConfigMinimal() string {
+	return accTestProviderConfig + testConfigMinimalTemplate
+}
+
+func testAccConfigMaximal() string {
+	return accTestProviderConfig + testConfigMaximalTemplate
+}
+
+func testAccConfigUpdate() string {
+	return accTestProviderConfig + testConfigUpdateTemplate
+}
+
+func testAccConfigComplexDuration() string {
+	return accTestProviderConfig + testConfigComplexDurationTemplate
+}
+
 func setupTestEnvironment(t *testing.T) {
 	// Set mock authentication credentials with valid values
 	os.Setenv("M365_TENANT_ID", "00000000-0000-0000-0000-000000000001")
@@ -586,5 +560,20 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("resource ID not set")
 		}
 		return nil
+	}
+}
+
+func testAccPreCheck(t *testing.T) {
+	// Check required environment variables for acceptance tests
+	envVars := []string{
+		"MICROSOFT365_CLIENT_ID",
+		"MICROSOFT365_CLIENT_SECRET",
+		"MICROSOFT365_TENANT_ID",
+	}
+
+	for _, envVar := range envVars {
+		if os.Getenv(envVar) == "" {
+			t.Fatalf("%s environment variable must be set for acceptance tests", envVar)
+		}
 	}
 }
