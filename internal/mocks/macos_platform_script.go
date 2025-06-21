@@ -116,7 +116,7 @@ func (m *Mocks) RegisterMacOSPlatformScriptMocks() {
 				"lastModifiedDateTime":        "2023-11-01T10:30:00.0000000Z",
 				"roleScopeTagIds":             []string{"0", "1"},
 				"blockExecutionNotifications": true,
-				"executionFrequency":          "P4W2D", // Exactly match what's in the test config
+				"executionFrequency":          "P4W",
 				"retryCount":                  10,
 				"assignments": []map[string]interface{}{
 					{

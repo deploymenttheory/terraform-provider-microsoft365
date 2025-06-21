@@ -112,11 +112,65 @@ func GraphToFrameworkTimeOnly(value *serialization.TimeOnly) types.String {
 
 // GraphToFrameworkISODuration converts a Graph SDK ISODuration pointer to a Terraform Framework string.
 // Returns types.StringNull() if the input is nil.
+// This function preserves the original ISO 8601 duration format as much as possible
+// to avoid normalization issues (e.g., P7D becoming P1W) that can cause Terraform state inconsistencies.
 func GraphToFrameworkISODuration(value *serialization.ISODuration) types.String {
 	if value == nil {
 		return types.StringNull()
 	}
-	return types.StringValue(value.String())
+
+	// Reconstruct the ISO duration string manually to preserve the original format
+	// This avoids the normalization that happens in ISODuration.String()
+	var result string = "P"
+
+	if value.GetYears() > 0 {
+		result += fmt.Sprintf("%dY", value.GetYears())
+	}
+
+	if value.GetWeeks() > 0 {
+		result += fmt.Sprintf("%dW", value.GetWeeks())
+	}
+
+	if value.GetDays() > 0 {
+		result += fmt.Sprintf("%dD", value.GetDays())
+	}
+
+	// Add time component if needed
+	if value.GetHours() > 0 || value.GetMinutes() > 0 || value.GetSeconds() > 0 || value.GetMilliSeconds() > 0 {
+		result += "T"
+
+		if value.GetHours() > 0 {
+			result += fmt.Sprintf("%dH", value.GetHours())
+		}
+
+		if value.GetMinutes() > 0 {
+			result += fmt.Sprintf("%dM", value.GetMinutes())
+		}
+
+		if value.GetSeconds() > 0 {
+			result += fmt.Sprintf("%dS", value.GetSeconds())
+		}
+
+		// Milliseconds are typically not used in ISO 8601 durations in this context
+		// but we'll handle them for completeness
+		if value.GetMilliSeconds() > 0 {
+			// If seconds are already present, append milliseconds as decimal
+			if value.GetSeconds() > 0 {
+				// Remove the S from the end
+				result = result[:len(result)-1]
+				result += fmt.Sprintf(".%03dS", value.GetMilliSeconds())
+			} else {
+				result += fmt.Sprintf("0.%03dS", value.GetMilliSeconds())
+			}
+		}
+	}
+
+	// Handle empty duration (just "P")
+	if result == "P" {
+		result = "PT0S"
+	}
+
+	return types.StringValue(result)
 }
 
 // GraphToFrameworkUUID converts a Graph SDK UUID pointer to a Terraform Framework string.

@@ -187,7 +187,6 @@ func TestUnitMacOSPlatformScriptResource_FullLifecycle(t *testing.T) {
 					"assignments.include_group_ids",
 					"assignments.exclude_group_ids",
 					"retry_count",
-					"execution_frequency", // Skip due to API normalization
 				},
 			},
 		},
@@ -270,6 +269,7 @@ func TestAccMacOSPlatformScriptResource_basic(t *testing.T) {
 					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "system"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1D"),
 				),
 			},
 			{
@@ -278,10 +278,39 @@ func TestAccMacOSPlatformScriptResource_basic(t *testing.T) {
 					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Updated macOS Script"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "user"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1W"),
 				),
 			},
 			{
 				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+		CheckDestroy: testAccCheckMacOSPlatformScriptDestroy,
+	})
+}
+
+func TestAccMacOSPlatformScriptResource_complexDuration(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMacOSPlatformScriptConfigComplexDuration(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration", "display_name", "Complex Duration Script"),
+					// P4W2D would normally be normalized to P30D or similar
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration", "execution_frequency", "P4W2D"),
+				),
+			},
+			{
+				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.complex_duration",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -356,6 +385,26 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "test
   assignments = {
     all_devices = true
     all_users   = false
+  }
+}
+`
+}
+
+func testAccMacOSPlatformScriptConfigComplexDuration() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_platform_script" "complex_duration" {
+  display_name    = "Complex Duration Script"
+  description     = "Testing complex ISO 8601 duration"
+  script_content  = "#!/bin/bash\necho 'Testing complex duration'"
+  run_as_account  = "system"
+  file_name       = "complex-duration-script.sh"
+  block_execution_notifications = true
+  execution_frequency = "P4W2D"
+  retry_count     = 3
+
+  assignments = {
+    all_devices = false
+    all_users   = true
   }
 }
 `
@@ -467,7 +516,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "maxi
   run_as_account  = "user"
   file_name       = "maximal-script.sh"
   block_execution_notifications = true
-  execution_frequency = "P4W2D"
+  execution_frequency = "P4W"
   retry_count     = 10
   role_scope_tag_ids = ["0", "1"]
 
