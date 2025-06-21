@@ -18,9 +18,9 @@ var _ provider.Provider = &M365Provider{}
 
 // M365Provider defines the provider implementation.
 type M365Provider struct {
-	version  string
-	clients  client.GraphClientInterface
-	testMode bool
+	version      string
+	clients      client.GraphClientInterface
+	unitTestMode bool
 }
 
 func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -632,17 +632,17 @@ func ClientOptionsSchema() map[string]schema.Attribute {
 // holds the provider's configuration and resources. When Terraform invokes this function,
 // it ensures that the provider is correctly instantiated with all necessary clients and
 // configurations, making it ready to manage Microsoft365 resources through Terraform.
-func NewMicrosoft365Provider(version string, testMode ...bool) func() provider.Provider {
+func NewMicrosoft365Provider(version string, unitTestMode ...bool) func() provider.Provider {
 	return func() provider.Provider {
-		isTestMode := false
-		if len(testMode) > 0 {
-			isTestMode = testMode[0]
+		isUnitTestMode := false
+		if len(unitTestMode) > 0 {
+			isUnitTestMode = unitTestMode[0]
 		}
-		// Initialize with nil clients - will be set during Configure
+		// Initialize with nil clients - will be set during Configure clients step.
 		p := &M365Provider{
-			version:  version,
-			clients:  nil,
-			testMode: isTestMode,
+			version:      version,
+			clients:      nil,
+			unitTestMode: isUnitTestMode,
 		}
 		return p
 	}

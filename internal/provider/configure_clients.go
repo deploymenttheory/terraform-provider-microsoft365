@@ -29,11 +29,10 @@ import (
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring Microsoft365 Provider")
 
-	// In test mode, use mock clients instead of real sdk ones
+	// In unit test mode, use mock clients instead of real sdk ones
 	// and pass the mock clients to data sources and resources instead.
-	// This is for unit tests only.
-	if p.testMode {
-		tflog.Info(ctx, "Provider is in test mode. Using mock clients.")
+	if p.unitTestMode {
+		tflog.Info(ctx, "Provider is in unit test mode. Using mock clients.")
 
 		mockClients := client.NewMockGraphClients(http.DefaultClient)
 		p.clients = mockClients

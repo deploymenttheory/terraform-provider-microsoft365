@@ -42,4 +42,8 @@ const (
 	// TimeFormatRFC3339Regex is the time format for RFC3339.
 	// Example: "2023-05-01T13:45:30Z"
 	TimeFormatRFC3339Regex = time.RFC3339
+
+	// ISO8601DurationRegex matches an ISO 8601 duration format.
+	// Examples: "P1D" (1 day), "PT1H" (1 hour), "P1W" (1 week), "P1Y2M3DT4H5M6S" (1 year, 2 months, 3 days, 4 hours, 5 minutes, 6 seconds)
+	ISO8601DurationRegex = `^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$`
 )

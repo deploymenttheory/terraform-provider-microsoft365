@@ -156,8 +156,8 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$`),
-						"must be a valid ISO 8601 duration",
+						regexp.MustCompile(constants.ISO8601DurationRegex),
+						"must be a valid ISO 8601 duration. Examples: 'P1D' (1 day), 'PT1H' (1 hour), 'P1W' (1 week), 'P1Y2M3DT4H5M6S' (1 year, 2 months, 3 days, 4 hours, 5 minutes, 6 seconds)",
 					),
 				},
 			},
