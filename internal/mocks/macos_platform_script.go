@@ -1,5 +1,3 @@
-// Extension to your existing mocks package for macOS Platform Script support
-
 package mocks
 
 import (
