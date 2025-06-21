@@ -1,13 +1,13 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_resource_operation Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_rbac_resource_operation Resource - terraform-provider-microsoft365"
 subcategory: "Intune"
 description: |-
-  Manages resource operations in Microsoft Intune RBAC using the /deviceManagement/resourceOperations endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
+  Manages resource operations in Microsoft Intune RBAC using the /deviceManagement/RBACResourceOperations endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 ---
 
-# microsoft365_graph_beta_device_management_resource_operation (Resource)
+# microsoft365_graph_beta_device_management_rbac_resource_operation (Resource)
 
-Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/resourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
+Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/RBACResourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 
 ## Microsoft Documentation
 
@@ -32,42 +32,42 @@ The following API permissions are required in order to use this resource.
 
 ```terraform
 # Basic resource operation for device management
-resource "microsoft365_graph_beta_device_management_resource_operation" "device_read" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "device_read" {
   resource_name = "Device"
   action_name   = "Read"
   description   = "Allows reading device information"
 }
 
 # Resource operation for application management
-resource "microsoft365_graph_beta_device_management_resource_operation" "app_deploy" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "app_deploy" {
   resource_name = "MobileApplication"
   action_name   = "Deploy"
   description   = "Allows deploying mobile applications to devices"
 }
 
 # Resource operation for compliance policy management
-resource "microsoft365_graph_beta_device_management_resource_operation" "compliance_create" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "compliance_create" {
   resource_name = "CompliancePolicy"
   action_name   = "Create"
   description   = "Allows creating new compliance policies"
 }
 
 # Resource operation for script execution
-resource "microsoft365_graph_beta_device_management_resource_operation" "script_execute" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "script_execute" {
   resource_name = "DeviceManagementScript"
   action_name   = "Execute"
   description   = "Allows executing PowerShell scripts on managed devices"
 }
 
 # Resource operation for role assignment
-resource "microsoft365_graph_beta_device_management_resource_operation" "role_assign" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "role_assign" {
   resource_name = "RoleAssignment"
   action_name   = "Assign"
   description   = "Allows assigning roles to users and groups"
 }
 
 # Resource operation with custom timeouts
-resource "microsoft365_graph_beta_device_management_resource_operation" "policy_update" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "policy_update" {
   resource_name = "DeviceConfigurationPolicy"
   action_name   = "Update"
   description   = "Allows updating device configuration policies"
@@ -102,7 +102,7 @@ variable "resource_operations" {
   }
 }
 
-resource "microsoft365_graph_beta_device_management_resource_operation" "bulk_operations" {
+resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "bulk_operations" {
   for_each = var.resource_operations
 
   resource_name = each.value.resource_name

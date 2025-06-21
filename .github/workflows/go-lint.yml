@@ -5,13 +5,14 @@ on:
   pull_request:
     types: [opened, synchronize]
     paths:
-      - '.github/workflows/golint.yaml'
+      - '.github/workflows/go-lint.yml'
       - '.golangci.yml'
       - '**/*.go'
 
 permissions:
   contents: read
   pull-requests: read  # Needed for "only-new-issues"
+  issues: write  # Needed for commenting on PR
 
 jobs:
   golint:
@@ -42,13 +43,38 @@ jobs:
           skip-cache: false              # restore and save cache
           skip-save-cache: false         # allow saving any new cache
           cache-invalidation-interval: 7 # auto-invalidate (refresh) once per week
-
-  save-artifacts-on-fail:
-    if: ${{ failure() && needs.golint.result == 'failure' }}
-    needs: [golint]
-    uses: ./.github/workflows/save-artifacts.yml
-
-  comment-on-fail:
-    if: ${{ failure() && needs.golint.result == 'failure' }}
-    needs: [golint]
-    uses: ./.github/workflows/comment-failure.yml
+      
+      # Save artifacts on failure
+      - name: Save artifacts
+        if: failure()
+        run: |
+          mkdir -p wr_actions
+          echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
+          echo ${{ github.event.repository.name }} > wr_actions/ghrepo.txt
+          echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
+      
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: artifact
+          path: wr_actions
+      
+      # Comment on failure
+      - name: Get run url
+        if: failure()
+        run: |
+          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
+          
+      - name: Send build failure comment
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          result-encoding: string
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ github.event.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '<b>Build failure</b> \n\n This pull request contains a build failure which needs addressed [here](${{ env.gha_url}}) .'
+            })

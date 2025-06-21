@@ -45,6 +45,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   assignments = {
     include_group_ids = [
       "12345678-1234-1234-1234-123456789012", # Example group ID
+      "12345678-1234-1234-1234-123456789012",
     ]
   }
 } 

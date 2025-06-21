@@ -32,17 +32,17 @@ The following API permissions are required in order to use this resource.
 
 ```terraform
 resource "microsoft365_graph_beta_device_management_windows_remediation_script_assignment" "daily_example" {
-  device_health_remediation_id = "00000000-0000-0000-0000-000000000001"
+  device_health_script_id = "00000000-0000-0000-0000-000000000001"
 
-  target {
+  target = {
     target_type = "groupAssignment"
     group_id    = "00000000-0000-0000-0000-000000000002"
   }
 
   run_remediation_script = true
 
-  run_schedule {
-    daily {
+  run_schedule = {
+    daily = {
       # Number of days between runs. Default is 1, valid 1–30.
       interval = 2
 

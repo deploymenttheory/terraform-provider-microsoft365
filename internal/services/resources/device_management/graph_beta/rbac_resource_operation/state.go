@@ -1,4 +1,4 @@
-package graphBetaResourceOperation
+package graphBetaRBACResourceOperation
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 // MapRemoteStateToTerraform maps a remote resource operation to the Terraform resource model
-func MapRemoteStateToTerraform(ctx context.Context, data ResourceOperationResourceModel, resourceOperation graphmodels.ResourceOperationable) ResourceOperationResourceModel {
+func MapRemoteStateToTerraform(ctx context.Context, data RBACResourceOperationResourceModel, resourceOperation graphmodels.ResourceOperationable) RBACResourceOperationResourceModel {
 	if resourceOperation == nil {
 		tflog.Debug(ctx, "Remote resource operation is nil")
 		return data

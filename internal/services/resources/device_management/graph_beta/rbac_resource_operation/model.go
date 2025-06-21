@@ -1,12 +1,12 @@
-// resource REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-resourceoperation?view=graph-rest-beta
-package graphBetaResourceOperation
+// resource REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-RBACResourceOperation?view=graph-rest-beta
+package graphBetaRBACResourceOperation
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type ResourceOperationResourceModel struct {
+type RBACResourceOperationResourceModel struct {
 	ID                        types.String   `tfsdk:"id"`
 	Resource                  types.String   `tfsdk:"resource"`
 	ResourceName              types.String   `tfsdk:"resource_name"`

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -28,8 +29,16 @@ import (
 func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring Microsoft365 Provider")
 
-	if p.testMode {
-		tflog.Warn(ctx, "Provider is in test mode. Skipping configuration.")
+	// In unit test mode, use mock clients instead of real sdk ones
+	// and pass the mock clients to data sources and resources instead.
+	if p.unitTestMode {
+		tflog.Info(ctx, "Provider is in unit test mode. Using mock clients.")
+
+		mockClients := client.NewMockGraphClients(http.DefaultClient)
+		p.clients = mockClients
+
+		resp.DataSourceData = mockClients
+		resp.ResourceData = mockClients
 		return
 	}
 
