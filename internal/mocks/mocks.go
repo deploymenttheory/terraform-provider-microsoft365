@@ -44,13 +44,13 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 }
 
 // Mocks provides a centralized way to manage mock HTTP responses for testing.
-// This is kept for backward compatibility with existing tests.
 type Mocks struct {
 	AuthMocks *AuthenticationMocks
 	Clients   *client.MockGraphClients
 }
 
-// NewMocks creates a new instance of Mocks, initializing all mock types.
+// NewMocks creates a new instance of Mocks, initializing shared mock
+// and set up the mock client with the default http client.
 func NewMocks() *Mocks {
 	return &Mocks{
 		AuthMocks: NewAuthenticationMocks(),

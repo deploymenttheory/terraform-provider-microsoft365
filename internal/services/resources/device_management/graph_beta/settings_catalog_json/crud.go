@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -108,29 +109,22 @@ func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Create"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
-		}
-
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource creation",
-			fmt.Sprintf("Failed to verify resource creation: %s", err),
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s_%s", r.ProviderTypeName, r.TypeName))
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for Settings Catalog resources.
@@ -316,30 +310,23 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 		}
 	}
 
-	err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-		readResp := &resource.ReadResponse{State: resp.State}
-		r.Read(ctx, resource.ReadRequest{
-			State:        resp.State,
-			ProviderMeta: req.ProviderMeta,
-		}, readResp)
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Update Method: %s", readResp.Diagnostics.Errors()))
-		}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = "Update"
+	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
 
-		resp.State = readResp.State
-		return nil
-	})
-
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error waiting for resource update",
-			fmt.Sprintf("Failed to verify resource update: %s", err),
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for Settings Catalog resources.

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 // Create handles the Create operation.
@@ -28,6 +29,9 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 		return
 	}
 	defer cancel()
+
+	deadline, _ := ctx.Deadline()
+	retryTimeout := time.Until(deadline) - time.Second
 
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
@@ -48,6 +52,8 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 		return
 	}
 
+	object.ID = types.StringValue(*createdResource.GetId())
+
 	if object.Assignments != nil {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
@@ -58,20 +64,26 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 			return
 		}
 
-		_, err = r.client.
-			DeviceManagement().
-			DeviceConfigurations().
-			ByDeviceConfigurationId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+
+			_, err = r.client.
+				DeviceManagement().
+				DeviceConfigurations().
+				ByDeviceConfigurationId(object.ID.ValueString()).
+				Assign().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
+			}
+			return nil
+		})
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 	}
-
-	object.ID = types.StringValue(*createdResource.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
