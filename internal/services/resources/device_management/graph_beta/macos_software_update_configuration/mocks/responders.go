@@ -156,22 +156,32 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			return httpmock.NewJsonResponse(201, responseBody)
 		})
 
-	// POST Assign - using regexp to match any device configuration ID
-	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/[0-9a-f-]+/assign`),
+	// Handle the assign endpoint (both with and without ID, including malformed URLs)
+	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/.*/assign`),
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(204, ""), nil
+			var requestBody map[string]interface{}
+			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+				return httpmock.NewStringResponse(400, "Invalid request body"), nil
+			}
+
+			// Return a successful response with a proper body
+			responseBody := map[string]interface{}{
+				"id": "00000000-0000-0000-0000-000000000001_assignment",
+				"assignments": []map[string]interface{}{
+					{
+						"id": "00000000-0000-0000-0000-000000000001_adadadad-808e-44e2-905a-0b7873a8a531",
+						"target": map[string]interface{}{
+							"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+						},
+					},
+				},
+			}
+			return httpmock.NewJsonResponse(200, responseBody)
 		})
 
 	// Delete Assignment - DELETE
-	httpmock.RegisterResponder("DELETE", "=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/.*/assignments/.*$",
+	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/.*/assignments/.*`),
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(204, ""), nil
-		})
-
-	// Handle the assign endpoint (both with and without ID, including malformed URLs)
-	httpmock.RegisterResponder("POST", "=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/.*/assign$",
-		func(req *http.Request) (*http.Response, error) {
-			// Return a successful response to prevent the test from failing
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 }

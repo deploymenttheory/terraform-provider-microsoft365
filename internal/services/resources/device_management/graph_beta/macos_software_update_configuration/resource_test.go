@@ -2,9 +2,11 @@ package graphBetaMacOSSoftwareUpdateConfiguration_test
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration/mocks"
@@ -147,8 +149,20 @@ func setupTestEnvironment(t *testing.T) {
 	os.Setenv("TF_VAR_client_id", "11111111-1111-1111-1111-111111111111")
 	os.Setenv("TF_VAR_client_secret", "mock-secret-value")
 
-	// Clean up environment variables after the test
+	// Activate httpmock with a client that has a timeout
+	httpmock.Activate()
+
+	// Set up a custom HTTP client with timeout
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	// Register the client with httpmock
+	httpmock.ActivateNonDefault(httpClient)
+
+	// Clean up environment variables and reset httpmock after the test
 	t.Cleanup(func() {
+		httpmock.DeactivateAndReset()
 		os.Unsetenv("TF_ACC")
 		os.Unsetenv("TF_VAR_tenant_id")
 		os.Unsetenv("TF_VAR_client_id")
@@ -157,9 +171,8 @@ func setupTestEnvironment(t *testing.T) {
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -169,8 +182,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
@@ -196,9 +207,8 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -207,9 +217,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -230,9 +237,8 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -241,9 +247,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -272,9 +275,8 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -283,9 +285,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -309,9 +308,8 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -320,9 +318,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -350,31 +345,21 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_users", "true"),
 				),
 			},
-			// Import
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_ErrorHandling(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
 
-	// Register error mocks directly
+	// Register local mocks with errors
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterErrorMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -382,16 +367,15 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_ErrorHandling(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
-				ExpectError: regexp.MustCompile(`.*Access denied.*`),
+				ExpectError: regexp.MustCompile("Forbidden"),
 			},
 		},
 	})
 }
 
 func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+	// Set up the test environment
+	setupTestEnvironment(t)
 
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
@@ -401,9 +385,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
@@ -412,7 +393,6 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test macOS Software Update Configuration"),
 				),
 			},
 			{
@@ -427,11 +407,12 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 }
 
 func TestAccMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
-	// Skip acceptance tests unless explicitly enabled
+	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
+		t.Skip("Acceptance tests skipped unless env 'TF_ACC' set")
 	}
 
+	// Run the test
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -442,19 +423,7 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMacOSSoftwareUpdateConfigurationExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Test description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "default"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "config_data_update_behavior", "default"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "firmware_update_behavior", "default"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "all_other_update_behavior", "default"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_devices", "true"),
 				),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.test",
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})

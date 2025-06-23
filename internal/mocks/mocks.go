@@ -58,6 +58,7 @@ func NewMocks() *Mocks {
 	}
 }
 
+// TestName returns the name of the function that called it.
 func TestName() string {
 	pc, _, _, _ := runtime.Caller(1)
 	nameFull := runtime.FuncForPC(pc).Name()
