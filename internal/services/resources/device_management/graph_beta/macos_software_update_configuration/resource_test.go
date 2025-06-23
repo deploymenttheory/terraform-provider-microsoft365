@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -138,10 +139,31 @@ provider "microsoft365" {
 }
 `
 
+// Set up the test environment
+func setupTestEnvironment(t *testing.T) {
+	// Set environment variables for testing
+	os.Setenv("TF_ACC", "")
+	os.Setenv("TF_VAR_tenant_id", "00000000-0000-0000-0000-000000000001")
+	os.Setenv("TF_VAR_client_id", "11111111-1111-1111-1111-111111111111")
+	os.Setenv("TF_VAR_client_secret", "mock-secret-value")
+
+	// Clean up environment variables after the test
+	t.Cleanup(func() {
+		os.Unsetenv("TF_ACC")
+		os.Unsetenv("TF_VAR_tenant_id")
+		os.Unsetenv("TF_VAR_client_id")
+		os.Unsetenv("TF_VAR_client_secret")
+	})
+}
+
 func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
@@ -149,10 +171,9 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 
 	// Set up the test environment
 	setupTestEnvironment(t)
-
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -179,6 +200,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
@@ -188,7 +213,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -209,6 +234,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
@@ -218,7 +247,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -247,6 +276,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
@@ -256,7 +289,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignments(),
@@ -280,6 +313,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
@@ -289,7 +326,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create
 			{
@@ -328,6 +365,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_ErrorHandling(t *testing.T
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register error mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterErrorMocks()
@@ -337,7 +378,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_ErrorHandling(t *testing.T
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
@@ -352,6 +393,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Create a new Mocks instance and register mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
 	// Register local mocks directly
 	macOSMock := localMocks.GetMock()
 	macOSMock.RegisterMocks()
@@ -361,7 +406,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -389,7 +434,7 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: localMocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckMacOSSoftwareUpdateConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -477,23 +522,6 @@ func testAccConfigMaximal() string {
 
 func testAccConfigUpdate() string {
 	return accTestProviderConfig + testConfigUpdateTemplate
-}
-
-// Setup test environment
-func setupTestEnvironment(t *testing.T) {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "")
-	os.Setenv("TF_VAR_tenant_id", "00000000-0000-0000-0000-000000000001")
-	os.Setenv("TF_VAR_client_id", "11111111-1111-1111-1111-111111111111")
-	os.Setenv("TF_VAR_client_secret", "mock-secret-value")
-
-	// Clean up environment variables after the test
-	t.Cleanup(func() {
-		os.Unsetenv("TF_ACC")
-		os.Unsetenv("TF_VAR_tenant_id")
-		os.Unsetenv("TF_VAR_client_id")
-		os.Unsetenv("TF_VAR_client_secret")
-	})
 }
 
 // Helper function to check if the resource exists

@@ -201,12 +201,6 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
 		})
-
-	// POST Assign with error - using regexp to match any device configuration ID
-	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/[0-9a-f-]+/assign`),
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
-		})
 }
 
 // GetMock returns a new instance of MacOSSoftwareUpdateConfigurationMock

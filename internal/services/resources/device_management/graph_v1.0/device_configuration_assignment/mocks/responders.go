@@ -39,7 +39,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			fmt.Printf("DEBUG MOCK: POST Create for deviceConfig=%s\n", deviceConfigId)
 
 			// Handle error case
-			if deviceConfigId == "error-config" {
+			if deviceConfigId == "00000000-0000-0000-0000-000000000002" {
 				return httpmock.NewStringResponse(400, `{"error": {"code": "BadRequest", "message": "Bad Request"}}`), nil
 			}
 
@@ -83,7 +83,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			fmt.Printf("DEBUG MOCK: GET request for deviceConfig=%s, assignment=%s\n", deviceConfigId, assignmentId)
 
 			// Handle error cases
-			if deviceConfigId == "error-config" || assignmentId == "error-id" {
+			if deviceConfigId == "00000000-0000-0000-0000-000000000002" || assignmentId == "error-id" {
 				return httpmock.NewStringResponse(404, `{"error": {"code": "NotFound", "message": "Assignment not found"}}`), nil
 			}
 
@@ -95,7 +95,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 
 	// Special handler for update scenario - overrides the generic handler for this specific ID
 	httpmock.RegisterResponder("GET",
-		"https://graph.microsoft.com/v1.0/deviceManagement/deviceConfigurations/test-config-id/assignments/00000000-0000-0000-0000-000000000001",
+		"https://graph.microsoft.com/v1.0/deviceManagement/deviceConfigurations/00000000-0000-0000-0000-000000000001/assignments/00000000-0000-0000-0000-000000000001",
 		func(req *http.Request) (*http.Response, error) {
 			// Check if update has occurred
 			if updateOccurred {
@@ -140,7 +140,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			fmt.Printf("DEBUG MOCK: PATCH request for deviceConfig=%s, assignment=%s\n", deviceConfigId, assignmentId)
 
 			// Handle error cases
-			if deviceConfigId == "error-config" || assignmentId == "error-id" {
+			if deviceConfigId == "00000000-0000-0000-0000-000000000002" || assignmentId == "error-id" {
 				return httpmock.NewStringResponse(400, `{"error": {"code": "BadRequest", "message": "Bad Request"}}`), nil
 			}
 
@@ -151,7 +151,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			}
 
 			// Set the update flag to true if this is the update we're testing for
-			if deviceConfigId == "test-config-id" && assignmentId == "00000000-0000-0000-0000-000000000001" {
+			if deviceConfigId == "00000000-0000-0000-0000-000000000001" && assignmentId == "00000000-0000-0000-0000-000000000001" {
 				updateOccurred = true
 				fmt.Printf("DEBUG MOCK: Update flag set to true\n")
 			}
@@ -180,7 +180,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			fmt.Printf("DEBUG MOCK: DELETE request for deviceConfig=%s, assignment=%s\n", deviceConfigId, assignmentId)
 
 			// Handle error cases
-			if deviceConfigId == "error-config" || assignmentId == "error-id" {
+			if deviceConfigId == "00000000-0000-0000-0000-000000000002" || assignmentId == "error-id" {
 				return httpmock.NewStringResponse(400, `{"error": {"code": "BadRequest", "message": "Bad Request"}}`), nil
 			}
 
@@ -288,4 +288,9 @@ func init() {
 
 	// Note: In a real implementation, you would use the global registry from the mocks package
 	// For example: mocks.GlobalRegistry.Register("device_configuration_assignment", &DeviceConfigurationAssignmentMock{})
+}
+
+// GetMock returns a new instance of DeviceConfigurationAssignmentMock
+func GetMock() *DeviceConfigurationAssignmentMock {
+	return &DeviceConfigurationAssignmentMock{}
 }
