@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.17.0-alpha...v0.17.1-alpha) (2025-06-23)
+
+
+### Bug Fixes
+
+* added docs for device config assignment graph v1.0 ([ef66aab](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ef66aab7ae4c7720e18016d2380cf87bd6bad5d0))
+* added docs for device config assignment graph v1.0 ([#536](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/536)) ([788f7f1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/788f7f1d38fa728ab864987d2bb6c06460decb54))
+* increased timeout for goreleaser ([709cbb2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/709cbb29a33a7062d699c1e82427a3c5f9ea269a))
+* increased timeout for goreleaser to 90 minutes ([#538](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/538)) ([a528317](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a5283177fe997a903a4f072d159d118d32f8044a))
+
 ## [0.17.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.16.1-alpha...v0.17.0-alpha) (2025-06-23)
 
 
