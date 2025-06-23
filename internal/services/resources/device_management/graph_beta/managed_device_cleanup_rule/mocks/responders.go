@@ -5,26 +5,16 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/jarcoal/httpmock"
 )
 
-// RegisterManagedDeviceCleanupRuleMocks registers mock handlers for managed device cleanup rule operations
-func (m *Mocks) RegisterManagedDeviceCleanupRuleMocks() {
-	// Register authentication mocks
-	httpmock.RegisterResponder("POST",
-		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"access_token": "mock-token",
-			"token_type":   "Bearer",
-			"expires_in":   3600,
-		}))
+// ManagedDeviceCleanupRuleMock provides mock responses for managed device cleanup rule operations
+type ManagedDeviceCleanupRuleMock struct{}
 
-	httpmock.RegisterResponder("GET",
-		"https://login.microsoftonline.com/common/discovery/instance",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"tenant_discovery_endpoint": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/v2.0/.well-known/openid-configuration",
-		}))
-
+// RegisterMocks registers HTTP mock responses for managed device cleanup rule operations
+func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 	// GET Read - Basic/Default rule
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000001",
 		func(req *http.Request) (*http.Response, error) {
@@ -129,42 +119,26 @@ func (m *Mocks) RegisterManagedDeviceCleanupRuleMocks() {
 		})
 }
 
-// RegisterManagedDeviceCleanupRuleErrorMocks registers error mock handlers for managed device cleanup rule operations
-func (m *Mocks) RegisterManagedDeviceCleanupRuleErrorMocks() {
-	// Register authentication mocks
-	httpmock.RegisterResponder("POST",
-		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"access_token": "mock-token",
-			"token_type":   "Bearer",
-			"expires_in":   3600,
-		}))
-
-	httpmock.RegisterResponder("GET",
-		"https://login.microsoftonline.com/common/discovery/instance",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
-			"tenant_discovery_endpoint": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/v2.0/.well-known/openid-configuration",
-		}))
-
+// RegisterErrorMocks registers HTTP mock responses that return errors
+func (m *ManagedDeviceCleanupRuleMock) RegisterErrorMocks() {
 	// Register mocks that return errors
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000001",
-		httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`))
+		factories.ErrorResponse(403, "Forbidden", "Access denied"))
 
 	// POST Create with error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
-		httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`))
+		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+
+	// PATCH Update with error
+	httpmock.RegisterRegexpResponder("PATCH", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
+		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+
+	// DELETE with error
+	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
+		factories.ErrorResponse(403, "Forbidden", "Access denied"))
 }
 
-// ActivateWithManagedDeviceCleanupRules activates httpmock with managed device cleanup rule mocks
-func (m *Mocks) ActivateWithManagedDeviceCleanupRules() {
-	httpmock.Activate()
-	m.AuthMocks.RegisterMocks()
-	m.RegisterManagedDeviceCleanupRuleMocks()
-}
-
-// ActivateWithManagedDeviceCleanupRuleErrors activates httpmock with managed device cleanup rule error mocks
-func (m *Mocks) ActivateWithManagedDeviceCleanupRuleErrors() {
-	httpmock.Activate()
-	m.AuthMocks.RegisterMocks()
-	m.RegisterManagedDeviceCleanupRuleErrorMocks()
+func init() {
+	// Register with the global registry
+	mocks.GlobalRegistry.Register("managed_device_cleanup_rule", &ManagedDeviceCleanupRuleMock{})
 }

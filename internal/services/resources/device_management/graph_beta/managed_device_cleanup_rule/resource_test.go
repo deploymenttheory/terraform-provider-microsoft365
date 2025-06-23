@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/managed_device_cleanup_rule/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
@@ -82,7 +83,10 @@ func TestUnitManagedDeviceCleanupRuleResource_Basic(t *testing.T) {
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleMocks()
+
+	// Register local mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -113,7 +117,10 @@ func TestUnitManagedDeviceCleanupRuleResource_Minimal(t *testing.T) {
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleMocks()
+
+	// Register local mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -143,7 +150,10 @@ func TestUnitManagedDeviceCleanupRuleResource_Maximal(t *testing.T) {
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleMocks()
+
+	// Register local mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -174,7 +184,10 @@ func TestUnitManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleMocks()
+
+	// Register local mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -210,7 +223,10 @@ func TestUnitManagedDeviceCleanupRuleResource_ErrorHandling(t *testing.T) {
 	// Create a new Mocks instance and register error mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleErrorMocks()
+
+	// Register local error mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterErrorMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -235,7 +251,10 @@ func TestUnitManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 	// Create a new Mocks instance and register mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterManagedDeviceCleanupRuleMocks()
+
+	// Register local mocks directly
+	cleanupRuleMock := &localMocks.ManagedDeviceCleanupRuleMock{}
+	cleanupRuleMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -263,7 +282,7 @@ func TestUnitManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 func TestAccManagedDeviceCleanupRuleResource_Basic(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -276,7 +295,6 @@ func TestAccManagedDeviceCleanupRuleResource_Basic(t *testing.T) {
 				Config: testAccConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckManagedDeviceCleanupRuleExists("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "display_name", "Test Cleanup Rule"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "description", "Test description"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "device_cleanup_rule_platform_type", "windows"),
@@ -284,13 +302,14 @@ func TestAccManagedDeviceCleanupRuleResource_Basic(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
 	})
 }
 
 func TestAccManagedDeviceCleanupRuleResource_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -303,20 +322,20 @@ func TestAccManagedDeviceCleanupRuleResource_Minimal(t *testing.T) {
 				Config: testAccConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckManagedDeviceCleanupRuleExists("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.minimal"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.minimal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.minimal", "display_name", "Minimal Cleanup Rule"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.minimal", "device_cleanup_rule_platform_type", "all"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.minimal", "device_inactivity_before_retirement_in_days", "30"),
 				),
 			},
 		},
+		CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
 	})
 }
 
 func TestAccManagedDeviceCleanupRuleResource_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -329,7 +348,6 @@ func TestAccManagedDeviceCleanupRuleResource_Maximal(t *testing.T) {
 				Config: testAccConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckManagedDeviceCleanupRuleExists("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.maximal"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.maximal", "display_name", "Maximal Cleanup Rule"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.maximal", "description", "This is a comprehensive cleanup rule with all fields populated"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.maximal", "device_cleanup_rule_platform_type", "ios"),
@@ -337,13 +355,14 @@ func TestAccManagedDeviceCleanupRuleResource_Maximal(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
 	})
 }
 
 func TestAccManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -352,7 +371,6 @@ func TestAccManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 		},
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Initial configuration
 			{
 				Config: testAccConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
@@ -360,7 +378,6 @@ func TestAccManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "display_name", "Test Cleanup Rule"),
 				),
 			},
-			// Update configuration
 			{
 				Config: testAccConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
@@ -372,13 +389,14 @@ func TestAccManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
 	})
 }
 
 func TestAccManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -387,7 +405,6 @@ func TestAccManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 		},
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create with basic configuration
 			{
 				Config: testAccConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
@@ -395,13 +412,11 @@ func TestAccManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test", "display_name", "Test Cleanup Rule"),
 				),
 			},
-			// Import test
 			{
 				ResourceName:      "microsoft365_graph_beta_device_management_managed_device_cleanup_rule.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update configuration
 			{
 				Config: testAccConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
@@ -410,6 +425,7 @@ func TestAccManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 				),
 			},
 		},
+		CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
 	})
 }
 
@@ -426,6 +442,7 @@ func testAccCheckManagedDeviceCleanupRuleExists(resourceName string) resource.Te
 			return fmt.Errorf("resource ID not set")
 		}
 
+		// In a real test, you would check the API here
 		return nil
 	}
 }

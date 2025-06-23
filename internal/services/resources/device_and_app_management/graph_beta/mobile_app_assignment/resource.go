@@ -103,6 +103,9 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 			"mobile_app_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The ID of the mobile app to attach the assignment to.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"intent": schema.StringAttribute{
 				Required: true,

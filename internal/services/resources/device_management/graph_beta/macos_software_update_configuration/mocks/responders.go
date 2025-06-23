@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/jarcoal/httpmock"
@@ -13,8 +14,11 @@ const (
 	macOSSoftwareUpdateConfigurationID = "00000000-0000-0000-0000-000000000001"
 )
 
-// RegisterMacOSSoftwareUpdateConfigurationMocks registers HTTP mocks for macOS software update configuration operations
-func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationMocks() {
+// MacOSSoftwareUpdateConfigurationMock provides mock responses for macOS software update configuration operations
+type MacOSSoftwareUpdateConfigurationMock struct{}
+
+// RegisterMocks registers HTTP mock responses for macOS software update configuration operations
+func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Create - POST
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
@@ -152,15 +156,38 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationMocks() {
 			return httpmock.NewJsonResponse(201, responseBody)
 		})
 
+	// Handle the assign endpoint (both with and without ID, including malformed URLs)
+	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/.*/assign`),
+		func(req *http.Request) (*http.Response, error) {
+			var requestBody map[string]interface{}
+			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+				return httpmock.NewStringResponse(400, "Invalid request body"), nil
+			}
+
+			// Return a successful response with a proper body
+			responseBody := map[string]interface{}{
+				"id": "00000000-0000-0000-0000-000000000001_assignment",
+				"assignments": []map[string]interface{}{
+					{
+						"id": "00000000-0000-0000-0000-000000000001_adadadad-808e-44e2-905a-0b7873a8a531",
+						"target": map[string]interface{}{
+							"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+						},
+					},
+				},
+			}
+			return httpmock.NewJsonResponse(200, responseBody)
+		})
+
 	// Delete Assignment - DELETE
-	httpmock.RegisterResponder("DELETE", "=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/.*/assignments/.*$",
+	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/.*/assignments/.*`),
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 }
 
-// RegisterMacOSSoftwareUpdateConfigurationErrorMocks registers HTTP mocks that return errors for macOS software update configuration operations
-func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationErrorMocks() {
+// RegisterErrorMocks registers HTTP mock responses that return errors for macOS software update configuration operations
+func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 	// Create - POST with error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
@@ -184,4 +211,9 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationErrorMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
 		})
+}
+
+// GetMock returns a new instance of MacOSSoftwareUpdateConfigurationMock
+func GetMock() *MacOSSoftwareUpdateConfigurationMock {
+	return &MacOSSoftwareUpdateConfigurationMock{}
 }

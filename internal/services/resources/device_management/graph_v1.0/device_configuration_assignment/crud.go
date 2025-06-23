@@ -1,4 +1,4 @@
-package graphBetaMacOSSoftwareUpdateConfiguration
+package graphDeviceConfigurationAssignment
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 // Create handles the Create operation.
-func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object MacOSSoftwareUpdateConfigurationResourceModel
+func (r *DeviceConfigurationAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object DeviceConfigurationAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -30,9 +30,6 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -42,9 +39,13 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 		return
 	}
 
-	createdResource, err := r.client.
+	deviceConfigId := object.DeviceConfigurationId.ValueString()
+
+	assignment, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
+		ByDeviceConfigurationId(deviceConfigId).
+		Assignments().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -52,38 +53,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
-
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-
-			_, err = r.client.
-				DeviceManagement().
-				DeviceConfigurations().
-				ByDeviceConfigurationId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
-	}
+	object.ID = types.StringValue(*assignment.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -92,6 +62,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
 	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
@@ -109,39 +80,32 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 }
 
 // Read handles the Read operation.
-func (r *MacOSSoftwareUpdateConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object MacOSSoftwareUpdateConfigurationResourceModel
+func (r *DeviceConfigurationAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceConfigurationAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	resourceItem, err := r.client.
+	deviceConfigId := object.DeviceConfigurationId.ValueString()
+	assignment, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
-		Get(ctx, nil)
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
-
-	mapRemoteResourceStateToTerraform(ctx, &object, resourceItem)
-
-	assignmentsResp, err := r.client.
-		DeviceManagement().
-		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
+		ByDeviceConfigurationId(deviceConfigId).
 		Assignments().
+		ByDeviceConfigurationAssignmentId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -149,7 +113,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Read(ctx context.Context, req
 		return
 	}
 
-	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResp)
+	MapRemoteStateToTerraform(ctx, &object, assignment)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -160,18 +124,24 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Read(ctx context.Context, req
 }
 
 // Update handles the Update operation.
-func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object MacOSSoftwareUpdateConfigurationResourceModel
+func (r *DeviceConfigurationAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object DeviceConfigurationAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+
+	var currentState DeviceConfigurationAssignmentResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &currentState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	object.DeviceConfigurationId = currentState.DeviceConfigurationId
+	object.ID = currentState.ID
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -182,7 +152,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for update",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
@@ -191,7 +161,9 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
+		ByDeviceConfigurationId(object.DeviceConfigurationId.ValueString()).
+		Assignments().
+		ByDeviceConfigurationAssignmentId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -199,28 +171,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 		return
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		_, err = r.client.
-			DeviceManagement().
-			DeviceConfigurations().
-			ByDeviceConfigurationId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated assignment %s", object.ID.ValueString()))
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
@@ -242,10 +193,10 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 }
 
 // Delete handles the Delete operation.
-func (r *MacOSSoftwareUpdateConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object MacOSSoftwareUpdateConfigurationResourceModel
+func (r *DeviceConfigurationAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceConfigurationAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -261,13 +212,17 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Delete(ctx context.Context, r
 	err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
+		ByDeviceConfigurationId(object.DeviceConfigurationId.ValueString()).
+		Assignments().
+		ByDeviceConfigurationAssignmentId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
