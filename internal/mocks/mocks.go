@@ -58,6 +58,8 @@ func (m *Mocks) Activate() {
 	m.RegisterMacOSSoftwareUpdateConfigurationErrorMocks()
 	m.RegisterManagedDeviceCleanupRuleMocks()
 	m.RegisterManagedDeviceCleanupRuleErrorMocks()
+	m.RegisterDeviceConfigurationAssignmentMocks()
+	m.RegisterDeviceConfigurationAssignmentErrorMocks()
 }
 
 // DeactivateAndReset deactivates all mock responders and resets the mock state.

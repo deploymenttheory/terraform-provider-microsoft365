@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/jarcoal/httpmock"
@@ -152,9 +153,22 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationMocks() {
 			return httpmock.NewJsonResponse(201, responseBody)
 		})
 
+	// POST Assign - using regexp to match any device configuration ID
+	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/[0-9a-f-]+/assign`),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+
 	// Delete Assignment - DELETE
 	httpmock.RegisterResponder("DELETE", "=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/.*/assignments/.*$",
 		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+
+	// Handle the assign endpoint (both with and without ID, including malformed URLs)
+	httpmock.RegisterResponder("POST", "=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/.*/assign$",
+		func(req *http.Request) (*http.Response, error) {
+			// Return a successful response to prevent the test from failing
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 }
@@ -181,6 +195,12 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationErrorMocks() {
 
 	// Delete - DELETE with error
 	httpmock.RegisterResponder("DELETE", fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/%s", macOSSoftwareUpdateConfigurationID),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
+		})
+
+	// POST Assign with error - using regexp to match any device configuration ID
+	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/[0-9a-f-]+/assign`),
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
 		})

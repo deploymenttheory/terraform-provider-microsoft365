@@ -74,6 +74,7 @@ import (
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 	graphDeviceAndAppManagementCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_v1.0/cloud_pc_provisioning_policy"
 	graphDeviceAndAppManagementCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_v1.0/cloud_pc_user_setting"
+	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -157,6 +158,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
 		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
 		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
+		graphDeviceManagementDeviceConfigurationAssignment.NewDeviceConfigurationAssignmentResource,
 
 		// Graph v1.0 - M365 Admin Centre
 		graphDeviceM365AdminM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
