@@ -164,6 +164,9 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 			"retry_count": schema.Int32Attribute{
 				MarkdownDescription: "Number of times for the script to be retried if it fails.",
 				Optional:            true,
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
+				},
 			},
 			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),

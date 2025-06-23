@@ -29,13 +29,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 	data.RunAsAccount = convert.GraphToFrameworkEnum(remoteResource.GetRunAsAccount())
 	data.FileName = convert.GraphToFrameworkString(remoteResource.GetFileName())
-
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
-
 	data.BlockExecutionNotifications = convert.GraphToFrameworkBool(remoteResource.GetBlockExecutionNotifications())
 	data.ExecutionFrequency = convert.GraphToFrameworkISODuration(remoteResource.GetExecutionFrequency())
 	data.ScriptContent = convert.GraphToFrameworkBytes(remoteResource.GetScriptContent())
+	data.RetryCount = convert.GraphToFrameworkInt32(remoteResource.GetRetryCount())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
-
 }

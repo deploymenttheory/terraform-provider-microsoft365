@@ -14,8 +14,11 @@ const (
 	macOSSoftwareUpdateConfigurationID = "00000000-0000-0000-0000-000000000001"
 )
 
-// RegisterMacOSSoftwareUpdateConfigurationMocks registers HTTP mocks for macOS software update configuration operations
-func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationMocks() {
+// MacOSSoftwareUpdateConfigurationMock provides mock responses for macOS software update configuration operations
+type MacOSSoftwareUpdateConfigurationMock struct{}
+
+// RegisterMocks registers HTTP mock responses for macOS software update configuration operations
+func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Create - POST
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
@@ -173,8 +176,8 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationMocks() {
 		})
 }
 
-// RegisterMacOSSoftwareUpdateConfigurationErrorMocks registers HTTP mocks that return errors for macOS software update configuration operations
-func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationErrorMocks() {
+// RegisterErrorMocks registers HTTP mock responses that return errors for macOS software update configuration operations
+func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 	// Create - POST with error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
@@ -204,4 +207,9 @@ func (m *Mocks) RegisterMacOSSoftwareUpdateConfigurationErrorMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(403, `{"error":{"code":"Forbidden","message":"Access denied"}}`), nil
 		})
+}
+
+// GetMock returns a new instance of MacOSSoftwareUpdateConfigurationMock
+func GetMock() *MacOSSoftwareUpdateConfigurationMock {
+	return &MacOSSoftwareUpdateConfigurationMock{}
 }

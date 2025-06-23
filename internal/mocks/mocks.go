@@ -27,6 +27,7 @@ func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abs
 }
 
 // Mocks provides a centralized way to manage mock HTTP responses for testing.
+// This is kept for backward compatibility with existing tests.
 type Mocks struct {
 	AuthMocks *AuthenticationMocks
 	Clients   *client.MockGraphClients
@@ -34,7 +35,6 @@ type Mocks struct {
 
 // NewMocks creates a new instance of Mocks, initializing all mock types.
 func NewMocks() *Mocks {
-
 	return &Mocks{
 		AuthMocks: NewAuthenticationMocks(),
 		Clients:   client.NewMockGraphClients(http.DefaultClient),
@@ -44,22 +44,6 @@ func NewMocks() *Mocks {
 // GetMockClients returns the mock clients for use in tests
 func (m *Mocks) GetMockClients() client.GraphClientInterface {
 	return m.Clients
-}
-
-// Activate activates all mock responders.
-func (m *Mocks) Activate() {
-	httpmock.Activate()
-	// Configure httpmock to use the same client that our mock clients use
-	httpmock.ActivateNonDefault(http.DefaultClient)
-	m.AuthMocks.RegisterMocks()
-	m.RegisterMacOSPlatformScriptMocks()
-	m.RegisterMacOSPlatformScriptErrorMocks()
-	m.RegisterMacOSSoftwareUpdateConfigurationMocks()
-	m.RegisterMacOSSoftwareUpdateConfigurationErrorMocks()
-	m.RegisterManagedDeviceCleanupRuleMocks()
-	m.RegisterManagedDeviceCleanupRuleErrorMocks()
-	m.RegisterDeviceConfigurationAssignmentMocks()
-	m.RegisterDeviceConfigurationAssignmentErrorMocks()
 }
 
 // DeactivateAndReset deactivates all mock responders and resets the mock state.

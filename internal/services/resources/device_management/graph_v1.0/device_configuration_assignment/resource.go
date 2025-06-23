@@ -3,6 +3,7 @@ package graphDeviceConfigurationAssignment
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -118,6 +119,12 @@ func (r *DeviceConfigurationAssignmentResource) Schema(ctx context.Context, req 
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
 			},
 			"target_type": schema.StringAttribute{
 				Required: true,
@@ -147,6 +154,12 @@ func (r *DeviceConfigurationAssignmentResource) Schema(ctx context.Context, req 
 					"**Not used when:**\n" +
 					"- `target_type` is `allDevices` or `allLicensedUsers`",
 				Default: stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

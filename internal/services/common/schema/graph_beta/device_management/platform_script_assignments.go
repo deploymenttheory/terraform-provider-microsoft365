@@ -4,9 +4,11 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -23,6 +25,9 @@ func PlatformScriptAssignmentsSchema() schema.SingleNestedAttribute {
 					"Can be used in conjuction with `all_users`." +
 					"Can be used as an alternative to `include_groups`." +
 					"Can be used in conjuction with `all_users` and `exclude_group_ids`.",
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
 			},
 			"all_users": schema.BoolAttribute{
 				Optional: true,
@@ -31,6 +36,9 @@ func PlatformScriptAssignmentsSchema() schema.SingleNestedAttribute {
 					"Can be used in conjuction with `all_devices`." +
 					"Can be used as an alternative to `include_groups`." +
 					"Can be used in conjuction with `all_devices` and `exclude_group_ids`.",
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
 			},
 			"include_group_ids": schema.SetAttribute{
 				Optional:            true,

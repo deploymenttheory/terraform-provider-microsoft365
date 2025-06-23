@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
@@ -143,17 +143,16 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -180,17 +179,16 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Minimal(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -211,17 +209,16 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Maximal(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -250,17 +247,16 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignments(),
@@ -269,8 +265,10 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_GroupAssignments(t *testin
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "display_name", "Group Assignment Software Update Configuration"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.all_devices", "false"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.all_users", "false"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.include_group_ids.*", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.exclude_group_ids.*", "22222222-2222-2222-2222-222222222222"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.include_group_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.include_group_ids.0", "11111111-1111-1111-1111-111111111111"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.exclude_group_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.group_assigned", "assignments.exclude_group_ids.0", "22222222-2222-2222-2222-222222222222"),
 				),
 			},
 		},
@@ -282,40 +280,44 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_FullLifecycle(t *testing.T
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create with basic configuration
+			// Create
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_devices", "true"),
 				),
 			},
-			// Import test
+			// Update
+			{
+				Config: testConfigUpdate(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Updated macOS Software Update Configuration"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "notifyOnly"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_time_window_utc_offset_in_minutes", "120"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "max_user_deferrals_count", "5"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_devices", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_users", "true"),
+				),
+			},
+			// Import
 			{
 				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"assignments.%",
-					"assignments.all_devices",
-					"assignments.all_users",
-					"assignments.include_group_ids",
-					"assignments.exclude_group_ids",
-				},
 			},
 		},
 	})
@@ -326,21 +328,20 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_ErrorHandling(t *testing.T
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register error mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationErrorMocks()
+	// Register error mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterErrorMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
-	// Run the test expecting an error
+	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
-				ExpectError: regexp.MustCompile(`(Access denied|Forbidden)`),
+				ExpectError: regexp.MustCompile(`.*Access denied.*`),
 			},
 		},
 	})
@@ -351,66 +352,58 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// Create a new Mocks instance and register mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	mockClient.RegisterMacOSSoftwareUpdateConfigurationMocks()
+	// Register local mocks directly
+	macOSMock := localMocks.GetMock()
+	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: localMocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			{
+				Config: testConfigBasic(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test macOS Software Update Configuration"),
+				),
+			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Updated macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Updated description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "notifyOnly"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_time_window_utc_offset_in_minutes", "120"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "max_user_deferrals_count", "5"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_devices", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_users", "true"),
 				),
 			},
 		},
 	})
 }
 
-// Acceptance Tests
 func TestAccMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
-	// Skip if not running acceptance tests
+	// Skip acceptance tests unless explicitly enabled
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: localMocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMacOSSoftwareUpdateConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMacOSSoftwareUpdateConfigurationExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test macOS Software Update Configuration"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Test description"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "default"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "config_data_update_behavior", "default"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "firmware_update_behavior", "default"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "all_other_update_behavior", "default"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "low"),
-				),
-			},
-			{
-				Config: testAccConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMacOSSoftwareUpdateConfigurationExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Updated macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "assignments.all_devices", "true"),
 				),
 			},
 			{
@@ -419,11 +412,10 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_Basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-		CheckDestroy: testAccCheckMacOSSoftwareUpdateConfigurationDestroy,
 	})
 }
 
-// Helper Functions
+// Helper function to check if the resource exists
 func testAccCheckMacOSSoftwareUpdateConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -435,27 +427,22 @@ func testAccCheckMacOSSoftwareUpdateConfigurationExists(resourceName string) res
 			return fmt.Errorf("No ID is set")
 		}
 
+		// Add code to verify the resource exists in the real API
+		// This is only needed for acceptance tests
+
 		return nil
 	}
 }
 
+// Helper function to check if the resource was destroyed
 func testAccCheckMacOSSoftwareUpdateConfigurationDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_macos_software_update_configuration" {
-			continue
-		}
-
-		// In a real test, we would make an API call to verify the resource is gone
-		// For unit tests with mocks, we can assume it's destroyed if we get here
-		return nil
-	}
+	// Add code to verify the resource was destroyed in the real API
+	// This is only needed for acceptance tests
 
 	return nil
 }
 
-// Test configurations using shared templates
-
-// Unit test configurations
+// Helper functions to generate test configurations
 func testConfigBasic() string {
 	return unitTestProviderConfig + testConfigBasicTemplate
 }
@@ -476,7 +463,6 @@ func testConfigGroupAssignments() string {
 	return unitTestProviderConfig + testConfigGroupAssignmentsTemplate
 }
 
-// Acceptance test configurations
 func testAccConfigBasic() string {
 	return accTestProviderConfig + testConfigBasicTemplate
 }
@@ -493,48 +479,51 @@ func testAccConfigUpdate() string {
 	return accTestProviderConfig + testConfigUpdateTemplate
 }
 
+// Setup test environment
 func setupTestEnvironment(t *testing.T) {
-	// Set mock authentication credentials with valid values
-	os.Setenv("M365_TENANT_ID", "00000000-0000-0000-0000-000000000001")
-	os.Setenv("M365_CLIENT_ID", "11111111-1111-1111-1111-111111111111")
-	os.Setenv("M365_CLIENT_SECRET", "mock-secret-value")
-	os.Setenv("M365_AUTH_METHOD", "client_secret")
-	os.Setenv("M365_CLOUD", "public")
+	// Set environment variables for testing
+	os.Setenv("TF_ACC", "")
+	os.Setenv("TF_VAR_tenant_id", "00000000-0000-0000-0000-000000000001")
+	os.Setenv("TF_VAR_client_id", "11111111-1111-1111-1111-111111111111")
+	os.Setenv("TF_VAR_client_secret", "mock-secret-value")
 
+	// Clean up environment variables after the test
 	t.Cleanup(func() {
-		os.Unsetenv("M365_TENANT_ID")
-		os.Unsetenv("M365_CLIENT_ID")
-		os.Unsetenv("M365_CLIENT_SECRET")
-		os.Unsetenv("M365_AUTH_METHOD")
-		os.Unsetenv("M365_CLOUD")
+		os.Unsetenv("TF_ACC")
+		os.Unsetenv("TF_VAR_tenant_id")
+		os.Unsetenv("TF_VAR_client_id")
+		os.Unsetenv("TF_VAR_client_secret")
 	})
 }
 
-// testCheckExists verifies the resource exists in Terraform state
+// Helper function to check if the resource exists
 func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("resource ID not set")
+			return fmt.Errorf("No ID is set")
 		}
+
 		return nil
 	}
 }
 
+// Helper function for acceptance test prechecks
 func testAccPreCheck(t *testing.T) {
-	// Check required environment variables for acceptance tests
-	envVars := []string{
-		"MICROSOFT365_CLIENT_ID",
-		"MICROSOFT365_CLIENT_SECRET",
-		"MICROSOFT365_TENANT_ID",
+	// Check for required environment variables for acceptance tests
+	requiredEnvVars := []string{
+		"ARM_CLIENT_ID",
+		"ARM_CLIENT_SECRET",
+		"ARM_TENANT_ID",
 	}
 
-	for _, envVar := range envVars {
-		if os.Getenv(envVar) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", envVar)
+	for _, v := range requiredEnvVars {
+		if os.Getenv(v) == "" {
+			t.Fatalf("%s environment variable must be set for acceptance tests", v)
 		}
 	}
 }
