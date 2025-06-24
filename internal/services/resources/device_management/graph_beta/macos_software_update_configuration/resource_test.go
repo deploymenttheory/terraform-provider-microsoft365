@@ -275,7 +275,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal(t 
 			{
 				Config: testConfigMinimalWithResourceName("test"),
 				// We expect a non-empty plan because computed fields will show as changes
-				ExpectNonEmptyPlan: true,
+				ExpectNonEmptyPlan: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
 					// Verify it now has only minimal attributes
