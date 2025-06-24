@@ -37,16 +37,16 @@ The following API permissions are required in order to use this resource.
 
 ```terraform
 resource "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy" "example" {
-  name                = "Windows Autopilot Device Preparation Policy"
-  description         = "Example Windows Autopilot Device Preparation Policy"
-  role_scope_tag_ids  = ["0"]
+  name                  = "Windows Autopilot Device Preparation Policy"
+  description           = "Example Windows Autopilot Device Preparation Policy"
+  role_scope_tag_ids    = ["0"]
   device_security_group = "12345678-1234-1234-1234-123456789012" # ID of the assigned security device group that must have the 'Intune Provisioning Client' service principal (AppId: f1346770-5b25-470b-88bd-d5744ab7952c) as its owner
 
   deployment_settings = {
-    deployment_mode  = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
-    deployment_type  = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
-    join_type        = "enrollment_autopilot_dpp_jointype_0"       # Azure AD joined
-    account_type     = "enrollment_autopilot_dpp_accountype_0"     # Standard user
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
+    deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
+    join_type       = "enrollment_autopilot_dpp_jointype_0"       # Azure AD joined
+    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Standard user
   }
 
   oobe_settings = {

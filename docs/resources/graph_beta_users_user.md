@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_users_user Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 users using the /users endpoint. The user resource lets apps specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.
+  Manages Microsoft 365 users using the /users endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.
 ---
 
 # microsoft365_graph_beta_users_user (Resource)
 
-Manages Microsoft 365 users using the `/users` endpoint. The user resource lets apps specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.
+Manages Microsoft 365 users using the `/users` endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.
 
 ## Microsoft Documentation
 
@@ -35,12 +35,12 @@ The following API permissions are required in order to use this resource.
 ```terraform
 # Minimal example with only required properties
 resource "microsoft365_graph_beta_users_user" "minimal_example" {
-  display_name       = "John Doe"
-  account_enabled    = true
+  display_name        = "John Doe"
+  account_enabled     = true
   user_principal_name = "john.doe@contoso.com"
-  mail_nickname      = "johndoe"
-  password_profile   = {
-    password                       = "SecurePassword123!"
+  mail_nickname       = "johndoe"
+  password_profile = {
+    password                           = "SecurePassword123!"
     force_change_password_next_sign_in = true
   }
 }
@@ -48,68 +48,68 @@ resource "microsoft365_graph_beta_users_user" "minimal_example" {
 # Comprehensive example with most available properties
 resource "microsoft365_graph_beta_users_user" "full_example" {
   # Required properties
-  display_name       = "Jane Smith"
-  account_enabled    = true
+  display_name        = "Jane Smith"
+  account_enabled     = true
   user_principal_name = "jane.smith@contoso.com"
-  mail_nickname      = "janesmith"
-  
+  mail_nickname       = "janesmith"
+
   # Password configuration
-  password_profile   = {
-    password                              = "VerySecurePassword456!"
-    force_change_password_next_sign_in    = true
+  password_profile = {
+    password                                    = "VerySecurePassword456!"
+    force_change_password_next_sign_in          = true
     force_change_password_next_sign_in_with_mfa = false
   }
-  
+
   # Personal information
-  given_name         = "Jane"
-  surname            = "Smith"
-  about_me           = "Product manager with 10+ years of experience in tech"
-  job_title          = "Senior Product Manager"
-  preferred_name     = "Jane"
-  
+  given_name     = "Jane"
+  surname        = "Smith"
+  about_me       = "Product manager with 10+ years of experience in tech"
+  job_title      = "Senior Product Manager"
+  preferred_name = "Jane"
+
   # Organizational information
-  department         = "Product Management"
-  company_name       = "Contoso Ltd."
-  employee_id        = "E12345"
-  employee_type      = "Full-Time"
-  
+  department    = "Product Management"
+  company_name  = "Contoso Ltd."
+  employee_id   = "E12345"
+  employee_type = "Full-Time"
+
   # Contact information
-  usage_location     = "UK"
-  city               = "London"
-  country            = "United Kingdom"
-  office_location    = "London HQ, Floor 3"
-  mobile_phone       = "+44 7700 900123"
-  business_phones    = ["+44 20 7946 0958", "+44 20 7946 0959"]
-  fax_number         = "+44 20 7946 0957"
-  
+  usage_location  = "UK"
+  city            = "London"
+  country         = "United Kingdom"
+  office_location = "London HQ, Floor 3"
+  mobile_phone    = "+44 7700 900123"
+  business_phones = ["+44 20 7946 0958", "+44 20 7946 0959"]
+  fax_number      = "+44 20 7946 0957"
+
   # Address information
-  street_address     = "123 Oxford Street"
-  postal_code        = "W1D 1DF"
-  state              = "England"
-  
+  street_address = "123 Oxford Street"
+  postal_code    = "W1D 1DF"
+  state          = "England"
+
   # Language and location preferences
   preferred_language = "en-GB"
-  
+
   # Additional email addresses
-  other_mails        = ["jane.smith.personal@example.com"]
-  proxy_addresses    = ["SMTP:jane.smith@contoso.com", "smtp:jane.s@contoso.com"]
-  
+  other_mails     = ["jane.smith.personal@example.com"]
+  proxy_addresses = ["SMTP:jane.smith@contoso.com", "smtp:jane.s@contoso.com"]
+
   # IM addresses
-  im_addresses       = ["jane.smith@contoso.com"]
-  
+  im_addresses = ["jane.smith@contoso.com"]
+
   # Show in address list
   show_in_address_list = true
-  
+
   # Identity configuration
   identities = [
     {
-      sign_in_type      = "emailAddress"
-      issuer            = "contoso.onmicrosoft.com"
+      sign_in_type       = "emailAddress"
+      issuer             = "contoso.onmicrosoft.com"
       issuer_assigned_id = "jane.smith@contoso.com"
     },
     {
-      sign_in_type      = "userPrincipalName"
-      issuer            = "contoso.onmicrosoft.com"
+      sign_in_type       = "userPrincipalName"
+      issuer             = "contoso.onmicrosoft.com"
       issuer_assigned_id = "jane.smith@contoso.com"
     }
   ]
@@ -143,18 +143,30 @@ resource "microsoft365_graph_beta_users_user" "full_example" {
 - `fax_number` (String) The fax number of the user.
 - `given_name` (String) The given name (first name) of the user.
 - `identities` (Attributes Set) Identities that can be used to sign in to this user account. An identity can be provided by Microsoft (also known as a local account), by organizations, or by social identity providers such as Facebook, Google, and Microsoft, and tied to a user account. (see [below for nested schema](#nestedatt--identities))
+- `im_addresses` (Set of String) The instant message voice over IP (VOIP) session initiation protocol (SIP) addresses for the user.
 - `job_title` (String) The user's job title.
 - `mail` (String) The SMTP address for the user.
 - `mail_nickname` (String) The mail alias for the user.
 - `mobile_phone` (String) The primary cellular telephone number for the user.
 - `office_location` (String) The office location in the user's place of business.
+- `on_premises_distinguished_name` (String) Contains the on-premises Active Directory distinguished name or DN. The property is only populated for customers who are synchronizing their on-premises directory to Microsoft Entra ID via Microsoft Entra Connect.
+- `on_premises_domain_name` (String) Contains the on-premises domainFQDN, also called dnsDomainName synchronized from the on-premises directory.
 - `on_premises_immutable_id` (String) This property is used to associate an on-premises Active Directory user account to their Microsoft Entra ID user object. This property must be specified when creating a new user account in a federated domain if you are not using the userPrincipalName property.
+- `on_premises_last_sync_date_time` (String) Indicates the last time at which the object was synchronized with the on-premises directory; the property is only populated for customers who are synchronizing their on-premises directory to Microsoft Entra ID via Microsoft Entra Connect.
+- `on_premises_sam_account_name` (String) Contains the on-premises sAMAccountName synchronized from the on-premises directory.
+- `on_premises_security_identifier` (String) Contains the on-premises security identifier (SID) for the user that was synchronized from on-premises to the cloud.
+- `on_premises_sync_enabled` (Boolean) true if this object is synchronized from an on-premises directory; false if this object was originally synchronized from an on-premises directory but is no longer synchronized; null if this object has never been synchronized from an on-premises directory (default).
+- `on_premises_user_principal_name` (String) Contains the on-premises userPrincipalName synchronized from the on-premises directory.
 - `other_mails` (Set of String) Additional email addresses for the user.
 - `password_policies` (String) Specifies password policies for the user. This value is an enumeration with one possible value being 'DisableStrongPassword', which allows weaker passwords than the default policy to be specified. 'DisablePasswordExpiration' can also be specified. The two may be specified together; for example: 'DisablePasswordExpiration, DisableStrongPassword'.
 - `postal_code` (String) The postal code for the user's postal address. The postal code is specific to the user's country/region. In the United States of America, this attribute contains the ZIP code.
+- `preferred_data_location` (String) The preferred data location for the user.
 - `preferred_language` (String) The preferred language for the user. Should follow ISO 639-1 Code; for example 'en-US'.
+- `preferred_name` (String) The preferred name for the user.
 - `proxy_addresses` (Set of String) For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. Changes to the mail property will also update this collection to include the value as an SMTP address.
+- `security_identifier` (String) Security identifier (SID) of the user, used for Azure AD authentication.
 - `show_in_address_list` (Boolean) true if the Outlook global address list should contain this user, otherwise false.
+- `sign_in_sessions_valid_from_date_time` (String) Any refresh tokens or sessions tokens (session cookies) issued before this time are invalid, and applications will get an error when using an invalid refresh or sessions token to acquire a delegated access token (to access APIs such as Microsoft Graph).
 - `state` (String) The state or province in the user's address.
 - `street_address` (String) The street address of the user's place of business.
 - `surname` (String) The user's surname (family name or last name).
