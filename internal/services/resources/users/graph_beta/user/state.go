@@ -1,4 +1,4 @@
-package user
+package graphBetaUsersUser
 
 import (
 	"context"
@@ -69,26 +69,32 @@ func MapRemoteStateToTerraform(ctx context.Context, data *UserResourceModel, rem
 	data.UserPrincipalName = convert.GraphToFrameworkString(remoteResource.GetUserPrincipalName())
 	data.UserType = convert.GraphToFrameworkString(remoteResource.GetUserType())
 
-	businessPhones := remoteResource.GetBusinessPhones()
-	if businessPhones != nil {
-		data.BusinessPhones = convert.GraphToFrameworkStringSet(ctx, businessPhones)
+	// Handle collection fields - initialize with empty sets if null
+	data.BusinessPhones = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetBusinessPhones())
+	if data.BusinessPhones.IsNull() {
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.BusinessPhones = emptySet
 	}
 
-	imAddresses := remoteResource.GetImAddresses()
-	if imAddresses != nil {
-		data.ImAddresses = convert.GraphToFrameworkStringSet(ctx, imAddresses)
+	data.ImAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetImAddresses())
+	if data.ImAddresses.IsNull() {
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.ImAddresses = emptySet
 	}
 
-	otherMails := remoteResource.GetOtherMails()
-	if otherMails != nil {
-		data.OtherMails = convert.GraphToFrameworkStringSet(ctx, otherMails)
+	data.OtherMails = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetOtherMails())
+	if data.OtherMails.IsNull() {
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.OtherMails = emptySet
 	}
 
-	proxyAddresses := remoteResource.GetProxyAddresses()
-	if proxyAddresses != nil {
-		data.ProxyAddresses = convert.GraphToFrameworkStringSet(ctx, proxyAddresses)
+	data.ProxyAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetProxyAddresses())
+	if data.ProxyAddresses.IsNull() {
+		emptySet, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+		data.ProxyAddresses = emptySet
 	}
 
+	// Handle identities separately
 	identities := remoteResource.GetIdentities()
 	if identities != nil {
 		identityElements := []ObjectIdentity{}
@@ -111,9 +117,24 @@ func MapRemoteStateToTerraform(ctx context.Context, data *UserResourceModel, rem
 			tflog.Error(ctx, "Failed to convert identities to set", map[string]interface{}{
 				"errors": diags.Errors(),
 			})
+			// Initialize with empty set on error
+			emptySet, _ := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+				"sign_in_type":       types.StringType,
+				"issuer":             types.StringType,
+				"issuer_assigned_id": types.StringType,
+			}}, []ObjectIdentity{})
+			data.Identities = emptySet
 		} else {
 			data.Identities = identitySet
 		}
+	} else {
+		// Initialize with empty set if nil
+		emptySet, _ := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+			"sign_in_type":       types.StringType,
+			"issuer":             types.StringType,
+			"issuer_assigned_id": types.StringType,
+		}}, []ObjectIdentity{})
+		data.Identities = emptySet
 	}
 
 	passwordProfile := remoteResource.GetPasswordProfile()

@@ -1,4 +1,4 @@
-package user
+package graphBetaUsersUser
 
 import (
 	"context"
@@ -92,7 +92,6 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 		return nil, fmt.Errorf("error converting proxy addresses: %v", err)
 	}
 
-	// Set password profile if provided
 	if data.PasswordProfile != nil {
 		passwordProfile := graphmodels.NewPasswordProfile()
 
@@ -103,7 +102,6 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 		user.SetPasswordProfile(passwordProfile)
 	}
 
-	// Set identities if provided
 	if !data.Identities.IsNull() && !data.Identities.IsUnknown() {
 		var identities []graphmodels.ObjectIdentityable
 
