@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.17.1-alpha...v0.18.0-alpha) (2025-06-24)
+
+
+### Features
+
+* added numerous acc and unit tests ([#541](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/541)) ([5be07af](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5be07af61c225192c817139f90c36a0bfb71d986))
+* added unit and acc testing for users, m365_admin_install_options , license assignment ([a558b64](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a558b6458aa0c1f2a2192ddc2d60f064c777dbcc))
+* added unit and acc tests for resource user and resource license assignment ([76058c0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/76058c034b568a2cdc081aafc06e432c3cc9a647))
+
+
+### Bug Fixes
+
+* for true to false ([369f494](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/369f49448fb9ed595c7c4736c8728ad19c93174f))
+* for unit tests for microsoft365_graph_beta_device_management_macos_software_update_configuration ([ced892f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ced892f18331710ee05be492c1788c9d47788675))
+
 ## [0.17.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.17.0-alpha...v0.17.1-alpha) (2025-06-23)
 
 
