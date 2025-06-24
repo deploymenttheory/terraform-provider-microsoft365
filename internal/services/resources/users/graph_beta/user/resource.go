@@ -1,4 +1,4 @@
-package user
+package graphBetaUsersUser
 
 import (
 	"context"
@@ -88,7 +88,7 @@ func (r *UserResource) ImportState(ctx context.Context, req resource.ImportState
 // Schema defines the schema for the resource.
 func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 users using the `/users` endpoint. The user resource lets apps specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.",
+		MarkdownDescription: "Manages Microsoft 365 users using the `/users` endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "String (identifier)",
@@ -357,12 +357,68 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					},
 				},
 			},
+			"im_addresses": schema.SetAttribute{
+				MarkdownDescription: "The instant message voice over IP (VOIP) session initiation protocol (SIP) addresses for the user.",
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_distinguished_name": schema.StringAttribute{
+				MarkdownDescription: "Contains the on-premises Active Directory distinguished name or DN. The property is only populated for customers who are synchronizing their on-premises directory to Microsoft Entra ID via Microsoft Entra Connect.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_domain_name": schema.StringAttribute{
+				MarkdownDescription: "Contains the on-premises domainFQDN, also called dnsDomainName synchronized from the on-premises directory.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_last_sync_date_time": schema.StringAttribute{
+				MarkdownDescription: "Indicates the last time at which the object was synchronized with the on-premises directory; the property is only populated for customers who are synchronizing their on-premises directory to Microsoft Entra ID via Microsoft Entra Connect.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_sam_account_name": schema.StringAttribute{
+				MarkdownDescription: "Contains the on-premises sAMAccountName synchronized from the on-premises directory.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_security_identifier": schema.StringAttribute{
+				MarkdownDescription: "Contains the on-premises security identifier (SID) for the user that was synchronized from on-premises to the cloud.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_sync_enabled": schema.BoolAttribute{
+				MarkdownDescription: "true if this object is synchronized from an on-premises directory; false if this object was originally synchronized from an on-premises directory but is no longer synchronized; null if this object has never been synchronized from an on-premises directory (default).",
+				Optional:            true,
+				Computed:            true,
+			},
+			"on_premises_user_principal_name": schema.StringAttribute{
+				MarkdownDescription: "Contains the on-premises userPrincipalName synchronized from the on-premises directory.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"preferred_data_location": schema.StringAttribute{
+				MarkdownDescription: "The preferred data location for the user.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"preferred_name": schema.StringAttribute{
+				MarkdownDescription: "The preferred name for the user.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"security_identifier": schema.StringAttribute{
+				MarkdownDescription: "Security identifier (SID) of the user, used for Azure AD authentication.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"sign_in_sessions_valid_from_date_time": schema.StringAttribute{
+				MarkdownDescription: "Any refresh tokens or sessions tokens (session cookies) issued before this time are invalid, and applications will get an error when using an invalid refresh or sessions token to acquire a delegated access token (to access APIs such as Microsoft Graph).",
+				Optional:            true,
+				Computed:            true,
+			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
-}
-
-// ModifyPlan modifies the plan for the resource.
-func (r *UserResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	// No specific plan modifications needed for this resource
 }

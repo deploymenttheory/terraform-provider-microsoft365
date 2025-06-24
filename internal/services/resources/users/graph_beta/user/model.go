@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-au/graph/api/resources/user?view=graph-rest-beta
-package user
+package graphBetaUsersUser
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
