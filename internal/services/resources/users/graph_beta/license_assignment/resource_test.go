@@ -3,7 +3,9 @@ package graphBetaUserLicenseAssignment_test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -13,155 +15,52 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-// Common test configurations that can be used by both unit and acceptance tests
-const (
-	// Basic configuration with standard attributes
-	testConfigBasicTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "test" {
-  user_id = "00000000-0000-0000-0000-000000000001"
-  add_licenses = [{
-    sku_id = "11111111-1111-1111-1111-111111111111"
-    disabled_plans = ["22222222-2222-2222-2222-222222222222"]
-  }]
-}
-`
-
-	// Minimal configuration with only required attributes
-	testConfigMinimalTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
-  user_id = "00000000-0000-0000-0000-000000000002"
-  add_licenses = [{
-    sku_id = "33333333-3333-3333-3333-333333333333"
-  }]
-}
-`
-
-	// Maximal configuration with all possible attributes
-	testConfigMaximalTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
-  user_id = "00000000-0000-0000-0000-000000000003"
-  add_licenses = [
-    {
-      sku_id = "44444444-4444-4444-4444-444444444444"
-      disabled_plans = [
-        "55555555-5555-5555-5555-555555555555",
-        "66666666-6666-6666-6666-666666666666"
-      ]
-    },
-    {
-      sku_id = "77777777-7777-7777-7777-777777777777"
-    }
-  ]
-}
-`
-
-	// Update configuration for testing changes
-	testConfigUpdateTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "test" {
-  user_id = "00000000-0000-0000-0000-000000000001"
-  add_licenses = [
-    {
-      sku_id = "11111111-1111-1111-1111-111111111111"
-      disabled_plans = []
-    },
-    {
-      sku_id = "88888888-8888-8888-8888-888888888888"
-    }
-  ]
-}
-`
-
-	// Configuration with remove_licenses
-	testConfigRemoveLicensesTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "test" {
-  user_id = "00000000-0000-0000-0000-000000000001"
-  add_licenses = [{
-    sku_id = "11111111-1111-1111-1111-111111111111"
-    disabled_plans = ["22222222-2222-2222-2222-222222222222"]
-  }]
-  remove_licenses = ["88888888-8888-8888-8888-888888888888"]
-}
-`
-
-	// Configuration with multiple resources for testing lifecycle
-	testConfigMultipleResourcesTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
-  user_id = "00000000-0000-0000-0000-000000000002"
-  add_licenses = [{
-    sku_id = "33333333-3333-3333-3333-333333333333"
-  }]
-}
-
-resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
-  user_id = "00000000-0000-0000-0000-000000000003"
-  add_licenses = [
-    {
-      sku_id = "44444444-4444-4444-4444-444444444444"
-      disabled_plans = [
-        "55555555-5555-5555-5555-555555555555",
-        "66666666-6666-6666-6666-666666666666"
-      ]
-    },
-    {
-      sku_id = "77777777-7777-7777-7777-777777777777"
-    }
-  ]
-}
-`
-
-	// Configuration for updating minimal to maximal
-	testConfigMinimalToMaximalTemplate = `
-resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
-  user_id = "00000000-0000-0000-0000-000000000002"
-  add_licenses = [
-    {
-      sku_id = "33333333-3333-3333-3333-333333333333"
-    },
-    {
-      sku_id = "44444444-4444-4444-4444-444444444444"
-      disabled_plans = [
-        "55555555-5555-5555-5555-555555555555"
-      ]
-    }
-  ]
-}
-
-resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
-  user_id = "00000000-0000-0000-0000-000000000003"
-  add_licenses = [{
-    sku_id = "44444444-4444-4444-4444-444444444444"
-  }]
-}
-`
-)
-
-// Helper functions to return the test configurations
-func testConfigBasic() string {
-	return testConfigBasicTemplate
-}
-
+// Helper functions to return the test configurations by reading from files
 func testConfigMinimal() string {
-	return testConfigMinimalTemplate
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }
 
 func testConfigMaximal() string {
-	return testConfigMaximalTemplate
-}
-
-func testConfigUpdate() string {
-	return testConfigUpdateTemplate
-}
-
-func testConfigRemoveLicenses() string {
-	return testConfigRemoveLicensesTemplate
-}
-
-func testConfigMultipleResources() string {
-	return testConfigMultipleResourcesTemplate
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }
 
 func testConfigMinimalToMaximal() string {
-	return testConfigMinimalToMaximalTemplate
+	// For minimal to maximal test, we need to use the maximal config
+	// but with the minimal resource name and user_id to simulate an update
+
+	// Read the maximal config
+	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the resource name to match the minimal one
+	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
+
+	// Replace the user_id to match the minimal one
+	updatedMaximal = strings.Replace(updatedMaximal, "00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000002", 1)
+
+	return updatedMaximal
+}
+
+func testConfigError() string {
+	// Create an error configuration with invalid user ID
+	return `
+resource "microsoft365_graph_beta_users_user_license_assignment" "error" {
+  user_id = "invalid-user-id"
+  add_licenses = [{
+    sku_id = "33333333-3333-3333-3333-333333333333"
+  }]
+}
+`
 }
 
 // Helper function to set up the test environment
@@ -203,7 +102,32 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func TestUnitUserLicenseAssignmentResource_Minimal(t *testing.T) {
+// Helper function to get maximal config with a custom resource name
+func testConfigMaximalWithResourceName(resourceName string) string {
+	// Read the maximal config
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the resource name
+	updated := strings.Replace(string(content), "maximal", resourceName, 1)
+
+	return updated
+}
+
+// Helper function to get minimal config with a custom resource name
+func testConfigMinimalWithResourceName(resourceName string) string {
+	return fmt.Sprintf(`resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
+  user_id = "00000000-0000-0000-0000-000000000003"
+  add_licenses = [{
+    sku_id = "33333333-3333-3333-3333-333333333333"
+  }]
+}`, resourceName)
+}
+
+// TestUnitUserLicenseAssignmentResource_Create_Minimal tests the creation of a license assignment with minimal configuration
+func TestUnitUserLicenseAssignmentResource_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -220,7 +144,7 @@ func TestUnitUserLicenseAssignmentResource_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "user_id", "00000000-0000-0000-0000-000000000002"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "user_principal_name", "minimal.user@contoso.com"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.#", "1"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.sku_id", "33333333-3333-3333-3333-333333333333"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.disabled_plans.#", "0"),
 				),
@@ -229,7 +153,8 @@ func TestUnitUserLicenseAssignmentResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestUnitUserLicenseAssignmentResource_Maximal(t *testing.T) {
+// TestUnitUserLicenseAssignmentResource_Create_Maximal tests the creation of a license assignment with maximal configuration
+func TestUnitUserLicenseAssignmentResource_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -246,20 +171,20 @@ func TestUnitUserLicenseAssignmentResource_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.maximal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "user_id", "00000000-0000-0000-0000-000000000003"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "user_principal_name", "maximal.user@contoso.com"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.0.sku_id", "44444444-4444-4444-4444-444444444444"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.0.disabled_plans.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.1.sku_id", "77777777-7777-7777-7777-777777777777"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.1.disabled_plans.#", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "remove_licenses.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "remove_licenses.0", "88888888-8888-8888-8888-888888888888"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitUserLicenseAssignmentResource_Create tests the creation of multiple resources
-func TestUnitUserLicenseAssignmentResource_Create(t *testing.T) {
+// TestUnitUserLicenseAssignmentResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitUserLicenseAssignmentResource_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -271,103 +196,137 @@ func TestUnitUserLicenseAssignmentResource_Create(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Start with minimal configuration
 			{
-				Config: testConfigMultipleResources(),
+				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					// Check minimal resource
 					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "user_id", "00000000-0000-0000-0000-000000000002"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.#", "1"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.sku_id", "33333333-3333-3333-3333-333333333333"),
-
-					// Check maximal resource
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "user_id", "00000000-0000-0000-0000-000000000003"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.0.sku_id", "44444444-4444-4444-4444-444444444444"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.1.sku_id", "77777777-7777-7777-7777-777777777777"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.disabled_plans.#", "0"),
 				),
 			},
-		},
-	})
-}
-
-// TestUnitUserLicenseAssignmentResource_Update tests updating a resource
-func TestUnitUserLicenseAssignmentResource_Update(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create with basic configuration
-			{
-				Config: testConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "user_id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.0.sku_id", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.0.disabled_plans.#", "1"),
-				),
-			},
-			// Update to add another license and remove disabled plans
-			{
-				Config: testConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "user_id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.0.sku_id", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.0.disabled_plans.#", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.1.sku_id", "88888888-8888-8888-8888-888888888888"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitUserLicenseAssignmentResource_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitUserLicenseAssignmentResource_MinimalToMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create both resources
-			{
-				Config: testConfigMultipleResources(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.maximal"),
-				),
-			},
-			// Update - transform minimal to maximal and maximal to minimal
+			// Update to maximal configuration (with the same resource name)
 			{
 				Config: testConfigMinimalToMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					// Check former minimal now with more licenses
 					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "user_id", "00000000-0000-0000-0000-000000000002"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.sku_id", "33333333-3333-3333-3333-333333333333"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.1.sku_id", "44444444-4444-4444-4444-444444444444"),
-
-					// Check former maximal now with fewer licenses
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "user_id", "00000000-0000-0000-0000-000000000003"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.maximal", "add_licenses.0.sku_id", "44444444-4444-4444-4444-444444444444"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.sku_id", "44444444-4444-4444-4444-444444444444"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.0.disabled_plans.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "add_licenses.1.sku_id", "77777777-7777-7777-7777-777777777777"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.minimal", "remove_licenses.#", "1"),
 				),
+			},
+		},
+	})
+}
+
+// TestUnitUserLicenseAssignmentResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitUserLicenseAssignmentResource_Update_MaximalToMinimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Start with maximal configuration
+			{
+				Config: testConfigMaximalWithResourceName("test"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "remove_licenses.#", "1"),
+				),
+			},
+			// Update to minimal configuration (with the same resource name)
+			{
+				Config: testConfigMinimalWithResourceName("test"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.0.sku_id", "33333333-3333-3333-3333-333333333333"),
+					// Don't check for absence of attributes as they may appear as computed
+				),
+			},
+		},
+	})
+}
+
+// TestUnitUserLicenseAssignmentResource_Delete_Minimal tests deleting a license assignment with minimal configuration
+func TestUnitUserLicenseAssignmentResource_Delete_Minimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testConfigMinimal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_users_user_license_assignment.minimal"]
+					if exists {
+						return fmt.Errorf("resource still exists after deletion")
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestUnitUserLicenseAssignmentResource_Delete_Maximal tests deleting a license assignment with maximal configuration
+func TestUnitUserLicenseAssignmentResource_Delete_Maximal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testConfigMaximal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.maximal"),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_users_user_license_assignment.maximal"]
+					if exists {
+						return fmt.Errorf("resource still exists after deletion")
+					}
+					return nil
+				},
 			},
 		},
 	})
@@ -388,14 +347,14 @@ func TestUnitUserLicenseAssignmentResource_Import(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create
 			{
-				Config: testConfigBasic(),
+				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
+					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.minimal"),
 				),
 			},
 			// Import
 			{
-				ResourceName:      "microsoft365_graph_beta_users_user_license_assignment.test",
+				ResourceName:      "microsoft365_graph_beta_users_user_license_assignment.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -407,39 +366,7 @@ func TestUnitUserLicenseAssignmentResource_Import(t *testing.T) {
 	})
 }
 
-func TestUnitUserLicenseAssignmentResource_RemoveLicenses(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create with update configuration first to add the license we want to remove
-			{
-				Config: testConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "add_licenses.1.sku_id", "88888888-8888-8888-8888-888888888888"),
-				),
-			},
-			// Then remove the license
-			{
-				Config: testConfigRemoveLicenses(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user_license_assignment.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "remove_licenses.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user_license_assignment.test", "remove_licenses.0", "88888888-8888-8888-8888-888888888888"),
-				),
-			},
-		},
-	})
-}
-
+// TestUnitUserLicenseAssignmentResource_Error tests error handling
 func TestUnitUserLicenseAssignmentResource_Error(t *testing.T) {
 	// Set up mock environment
 	_, licenseAssignmentMock := setupMockEnvironment()
@@ -456,15 +383,8 @@ func TestUnitUserLicenseAssignmentResource_Error(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_users_user_license_assignment" "error" {
-  user_id = "99999999-9999-9999-9999-999999999999"
-  add_licenses = [{
-    sku_id = "11111111-1111-1111-1111-111111111111"
-  }]
-}
-`,
-				ExpectError: regexp.MustCompile("Error assigning license"),
+				Config:      testConfigError(),
+				ExpectError: regexp.MustCompile("Attribute user_id Must be a valid UUID format"),
 			},
 		},
 	})

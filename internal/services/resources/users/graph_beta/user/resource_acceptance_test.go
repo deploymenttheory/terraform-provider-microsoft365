@@ -3,6 +3,7 @@ package graphBetaUsersUser_test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// TestAccUserResource_Minimal tests the minimal configuration
-func TestAccUserResource_Minimal(t *testing.T) {
+// TestAccUserResource_Create_Minimal tests creating a user with minimal configuration
+func TestAccUserResource_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -42,21 +43,12 @@ func TestAccUserResource_Minimal(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "account_enabled", "true"),
 				),
 			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"password_profile", // Password is not returned by the API
-				},
-			},
 		},
 	})
 }
 
-// TestAccUserResource_Maximal tests the maximal configuration
-func TestAccUserResource_Maximal(t *testing.T) {
+// TestAccUserResource_Create_Maximal tests creating a user with maximal configuration
+func TestAccUserResource_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -91,21 +83,12 @@ func TestAccUserResource_Maximal(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "business_phones.#", "1"),
 				),
 			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"password_profile", // Password is not returned by the API
-				},
-			},
 		},
 	})
 }
 
-// TestAccUserResource_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccUserResource_MinimalToMaximal(t *testing.T) {
+// TestAccUserResource_Update_MinimalToMaximal tests updating from minimal to maximal config
+func TestAccUserResource_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -127,7 +110,7 @@ func TestAccUserResource_MinimalToMaximal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
-				Config: testAccConfigMinimalNamed(resourceName, userPrincipalName),
+				Config: testAccConfigMinimalNamed("test", userPrincipalName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Minimal User"),
@@ -136,7 +119,7 @@ func TestAccUserResource_MinimalToMaximal(t *testing.T) {
 			},
 			// Update to maximal configuration
 			{
-				Config: testAccConfigMaximalNamed(resourceName, userPrincipalName),
+				Config: testAccConfigMaximalNamed("test", userPrincipalName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Maximal User"),
@@ -152,8 +135,8 @@ func TestAccUserResource_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestAccUserResource_MaximalToMinimal tests updating from maximal to minimal config
-func TestAccUserResource_MaximalToMinimal(t *testing.T) {
+// TestAccUserResource_Update_MaximalToMinimal tests updating from maximal to minimal config
+func TestAccUserResource_Update_MaximalToMinimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -175,7 +158,7 @@ func TestAccUserResource_MaximalToMinimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
-				Config: testAccConfigMaximalNamed(resourceName, userPrincipalName),
+				Config: testAccConfigMaximalNamed("test", userPrincipalName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Maximal User"),
@@ -186,12 +169,141 @@ func TestAccUserResource_MaximalToMinimal(t *testing.T) {
 			},
 			// Update to minimal configuration
 			{
-				Config: testAccConfigMinimalNamed(resourceName, userPrincipalName),
+				Config: testAccConfigMinimalNamed("test", userPrincipalName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Minimal User"),
 					resource.TestCheckResourceAttr(resourceName, "user_principal_name", userPrincipalName),
 				),
+			},
+		},
+	})
+}
+
+// TestAccUserResource_Delete_Minimal tests deleting a user with minimal configuration
+func TestAccUserResource_Delete_Minimal(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+	}
+
+	// Get test domain from environment variable or skip
+	testDomain := os.Getenv("TEST_DOMAIN")
+	if testDomain == "" {
+		t.Skip("TEST_DOMAIN environment variable must be set for acceptance tests")
+	}
+
+	resourceName := "microsoft365_graph_beta_users_user.minimal"
+	userPrincipalName := fmt.Sprintf("tfacctest.delete.minimal@%s", testDomain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckUserDestroy,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testAccConfigMinimal(userPrincipalName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckUserExists(resourceName),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources[resourceName]
+					if exists {
+						return fmt.Errorf("resource %s still exists after deletion", resourceName)
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestAccUserResource_Delete_Maximal tests deleting a user with maximal configuration
+func TestAccUserResource_Delete_Maximal(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+	}
+
+	// Get test domain from environment variable or skip
+	testDomain := os.Getenv("TEST_DOMAIN")
+	if testDomain == "" {
+		t.Skip("TEST_DOMAIN environment variable must be set for acceptance tests")
+	}
+
+	resourceName := "microsoft365_graph_beta_users_user.maximal"
+	userPrincipalName := fmt.Sprintf("tfacctest.delete.maximal@%s", testDomain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckUserDestroy,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testAccConfigMaximal(userPrincipalName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckUserExists(resourceName),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources[resourceName]
+					if exists {
+						return fmt.Errorf("resource %s still exists after deletion", resourceName)
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestAccUserResource_Import tests importing a resource
+func TestAccUserResource_Import(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+	}
+
+	// Get test domain from environment variable or skip
+	testDomain := os.Getenv("TEST_DOMAIN")
+	if testDomain == "" {
+		t.Skip("TEST_DOMAIN environment variable must be set for acceptance tests")
+	}
+
+	resourceName := "microsoft365_graph_beta_users_user.minimal"
+	userPrincipalName := fmt.Sprintf("tfacctest.import@%s", testDomain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckUserDestroy,
+		Steps: []resource.TestStep{
+			// Create
+			{
+				Config: testAccConfigMinimal(userPrincipalName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckUserExists(resourceName),
+				),
+			},
+			// Import
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password_profile", // Password is not returned by the API
+				},
 			},
 		},
 	})
@@ -241,109 +353,58 @@ func testAccCheckUserDestroy(s *terraform.State) error {
 
 // Minimal configuration with default resource name
 func testAccConfigMinimal(userPrincipalName string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_users_user" "minimal" {
-  display_name        = "Minimal User"
-  user_principal_name = "%s"
-  password_profile = {
-    password = "SecureP@ssw0rd123!"
-  }
-}
-`, userPrincipalName)
+	// Read the template file
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the UPN with the test UPN
+	updated := strings.Replace(string(content), "minimal.user@contoso.com", userPrincipalName, 1)
+
+	return updated
 }
 
 // Minimal configuration with custom resource name
 func testAccConfigMinimalNamed(resourceName string, userPrincipalName string) string {
-	// Extract the resource name without the provider prefix
-	name := resourceName
-	if strings.Contains(resourceName, ".") {
-		if len(resourceName) > 0 && resourceName[0] != '"' {
-			parts := strings.Split(resourceName, ".")
-			if len(parts) > 1 {
-				name = parts[1]
-			}
-		}
+	// Read the template file
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
 	}
 
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_users_user" "%s" {
-  display_name        = "Minimal User"
-  user_principal_name = "%s"
-  password_profile = {
-    password = "SecureP@ssw0rd123!"
-  }
-}
-`, name, userPrincipalName)
+	// Replace the resource name and UPN
+	updated := strings.Replace(string(content), "minimal", resourceName, 1)
+	updated = strings.Replace(updated, "minimal.user@contoso.com", userPrincipalName, 1)
+
+	return updated
 }
 
 // Maximal configuration with default resource name
 func testAccConfigMaximal(userPrincipalName string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_users_user" "maximal" {
-  display_name        = "Maximal User"
-  user_principal_name = "%s"
-  account_enabled     = true
-  given_name          = "Maximal"
-  surname             = "User"
-  mail                = "%s"
-  mail_nickname       = "maxuser"
-  job_title           = "Senior Developer"
-  department          = "Engineering"
-  company_name        = "Contoso Ltd"
-  office_location     = "Building A"
-  city                = "Redmond"
-  state               = "WA"
-  country             = "US"
-  postal_code         = "98052"
-  usage_location      = "US"
-  business_phones     = ["+1 425-555-0100"]
-  mobile_phone        = "+1 425-555-0101"
-  password_profile = {
-    password                          = "SecureP@ssw0rd123!"
-    force_change_password_next_sign_in = true
-  }
-  identities = [
-    {
-      sign_in_type       = "emailAddress"
-      issuer             = "%s"
-      issuer_assigned_id = "%s"
-    }
-  ]
-  other_mails     = ["maximal.user.other@contoso.com"]
-  proxy_addresses = ["SMTP:%s"]
-}
-`, userPrincipalName, userPrincipalName, strings.Split(userPrincipalName, "@")[1], userPrincipalName, userPrincipalName)
+	// Read the template file
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the UPN with the test UPN
+	updated := strings.Replace(string(content), "maximal.user@contoso.com", userPrincipalName, 1)
+
+	return updated
 }
 
 // Maximal configuration with custom resource name
 func testAccConfigMaximalNamed(resourceName string, userPrincipalName string) string {
-	// Extract the resource name without the provider prefix
-	name := resourceName
-	if strings.Contains(resourceName, ".") {
-		if len(resourceName) > 0 && resourceName[0] != '"' {
-			parts := strings.Split(resourceName, ".")
-			if len(parts) > 1 {
-				name = parts[1]
-			}
-		}
+	// Read the template file
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
 	}
 
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_users_user" "%s" {
-  display_name        = "Maximal User"
-  user_principal_name = "%s"
-  account_enabled     = true
-  given_name          = "Maximal"
-  surname             = "User"
-  mail                = "%s"
-  mail_nickname       = "maxuser"
-  job_title           = "Senior Developer"
-  department          = "Engineering"
-  company_name        = "Contoso Ltd"
-  office_location     = "Building A"
-  password_profile = {
-    password = "SecureP@ssw0rd123!"
-  }
-}
-`, name, userPrincipalName, userPrincipalName)
+	// Replace the resource name and UPN
+	updated := strings.Replace(string(content), "maximal", resourceName, 1)
+	updated = strings.Replace(updated, "maximal.user@contoso.com", userPrincipalName, 1)
+
+	return updated
 }

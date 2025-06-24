@@ -1,6 +1,6 @@
-# Microsoft 365 User Resource Test Strategy
+# Microsoft 365 Apps Installation Options Resource Test Strategy
 
-This document outlines the testing strategy for the `microsoft365_graph_beta_users_user` resource, which manages Microsoft 365 users through the Microsoft Graph Beta API.
+This document outlines the testing strategy for the `microsoft365_graph_m365_admin_m365_apps_installation_options` resource, which manages Microsoft 365 Apps installation options through the Microsoft Graph Beta API.
 
 ## Testing Architecture
 
@@ -33,8 +33,6 @@ The test harness (Terraform's testing framework) supports multi-step tests where
 7. **Import**: Creates a resource with `resource_minimal.tf`, then imports it
 8. **Error Tests**: Modifies `resource_minimal.tf` to create an error condition
 
-For acceptance tests that need dynamic values (like user principal names with real domains), we use string replacement in the test code to modify these values at runtime.
-
 ## Unit Tests
 
 Unit tests use mock HTTP responses to test the resource's functionality without making actual API calls. The mocks are defined in `mocks/responders.go`.
@@ -43,19 +41,19 @@ Unit tests use mock HTTP responses to test the resource's functionality without 
 
 | Test | Description |
 |------|-------------|
-| `TestUnitUserResource_Create_Minimal` | Tests creating a user with minimal configuration |
-| `TestUnitUserResource_Create_Maximal` | Tests creating a user with maximal configuration |
-| `TestUnitUserResource_Update_MinimalToMaximal` | Tests updating from minimal to maximal configuration |
-| `TestUnitUserResource_Update_MaximalToMinimal` | Tests updating from maximal to minimal configuration |
-| `TestUnitUserResource_Delete_Minimal` | Tests deleting a user with minimal configuration |
-| `TestUnitUserResource_Delete_Maximal` | Tests deleting a user with maximal configuration |
-| `TestUnitUserResource_Import` | Tests resource import functionality |
-| `TestUnitUserResource_Error` | Tests error handling |
+| `TestUnitM365AppsInstallationOptionsResource_Create_Minimal` | Tests creating M365 Apps Installation Options with minimal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Create_Maximal` | Tests creating M365 Apps Installation Options with maximal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Update_MinimalToMaximal` | Tests updating from minimal to maximal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Update_MaximalToMinimal` | Tests updating from maximal to minimal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Delete_Minimal` | Tests deleting M365 Apps Installation Options with minimal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Delete_Maximal` | Tests deleting M365 Apps Installation Options with maximal configuration |
+| `TestUnitM365AppsInstallationOptionsResource_Import` | Tests resource import functionality |
+| `TestUnitM365AppsInstallationOptionsResource_Error` | Tests error handling |
 
 ### Running Unit Tests
 
 ```bash
-cd internal/services/resources/users/graph_beta/user
+cd internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options
 go test -v
 ```
 
@@ -67,20 +65,20 @@ Acceptance tests make actual API calls to verify the resource's functionality wi
 
 | Test | Description |
 |------|-------------|
-| `TestAccUserResource_Create_Minimal` | Tests creating a user with minimal configuration |
-| `TestAccUserResource_Create_Maximal` | Tests creating a user with maximal configuration |
-| `TestAccUserResource_Update_MinimalToMaximal` | Tests updating from minimal to maximal configuration |
-| `TestAccUserResource_Update_MaximalToMinimal` | Tests updating from maximal to minimal configuration |
-| `TestAccUserResource_Delete_Minimal` | Tests deleting a user with minimal configuration |
-| `TestAccUserResource_Delete_Maximal` | Tests deleting a user with maximal configuration |
-| `TestAccUserResource_Import` | Tests resource import functionality |
+| `TestAccM365AppsInstallationOptionsResource_Create_Minimal` | Tests creating M365 Apps Installation Options with minimal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Create_Maximal` | Tests creating M365 Apps Installation Options with maximal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Update_MinimalToMaximal` | Tests updating from minimal to maximal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal` | Tests updating from maximal to minimal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Delete_Minimal` | Tests deleting M365 Apps Installation Options with minimal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Delete_Maximal` | Tests deleting M365 Apps Installation Options with maximal configuration |
+| `TestAccM365AppsInstallationOptionsResource_Import` | Tests resource import functionality |
 
 ### Prerequisites
 
 To run the acceptance tests, you need:
 
 1. A Microsoft 365 tenant with appropriate permissions
-2. Valid test domain for creating users
+2. Valid Azure AD application credentials with the required permissions
 
 ### Environment Variables
 
@@ -90,7 +88,6 @@ To run the acceptance tests, you need:
 | `ARM_CLIENT_ID` | Azure AD application client ID |
 | `ARM_CLIENT_SECRET` | Azure AD application client secret |
 | `ARM_TENANT_ID` | Azure AD tenant ID |
-| `TEST_DOMAIN` | Domain for creating test users (e.g., `contoso.com`) |
 
 ### Running Acceptance Tests
 
@@ -100,10 +97,9 @@ export TF_ACC=1
 export ARM_CLIENT_ID="your-client-id"
 export ARM_CLIENT_SECRET="your-client-secret"
 export ARM_TENANT_ID="your-tenant-id"
-export TEST_DOMAIN="your-domain.com"
 
 # Run acceptance tests
-cd internal/services/resources/users/graph_beta/user
+cd internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options
 go test -v -timeout 30m
 ```
 
@@ -111,19 +107,26 @@ go test -v -timeout 30m
 
 ### String Replacement for Dynamic Values
 
-For acceptance tests that need dynamic values, we use string replacement to modify the base configuration files:
+For tests that need dynamic values, we use string formatting to modify the base configuration templates:
 
 ```go
-// Read the template file
-content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
-if err != nil {
-    return ""
+func testAccConfigMinimalNamed(resourceName string) string {
+	return fmt.Sprintf(`
+resource "microsoft365_graph_m365_admin_m365_apps_installation_options" "%s" {
+  update_channel = "current"
+  
+  apps_for_windows = {
+    is_microsoft_365_apps_enabled = true
+    is_skype_for_business_enabled = true
+  }
+  
+  apps_for_mac = {
+    is_microsoft_365_apps_enabled = true
+    is_skype_for_business_enabled = true
+  }
 }
-
-// Replace the UPN with the test UPN
-updated := strings.Replace(string(content), "minimal.user@contoso.com", userPrincipalName, 1)
-
-return updated
+`, resourceName)
+}
 ```
 
 ### Mock HTTP Responses
@@ -146,6 +149,6 @@ The mock responses are defined in `mocks/responders.go`.
 4. **Cleanup**: Acceptance tests clean up all created resources
 5. **Error Handling**: Tests include error cases to verify proper error handling
 6. **Consistent Naming**: Test functions follow a consistent naming pattern:
-   - `Test[Unit|Acc]UserResource_[Operation]_[Scenario]` 
-   - Examples: `TestUnitUserResource_Create_Minimal`, `TestAccUserResource_Update_MaximalToMinimal`
+   - `Test[Unit|Acc]M365AppsInstallationOptionsResource_[Operation]_[Scenario]` 
+   - Examples: `TestUnitM365AppsInstallationOptionsResource_Create_Minimal`, `TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal`
 7. **Helper Functions**: We use helper functions to generate test configurations dynamically 

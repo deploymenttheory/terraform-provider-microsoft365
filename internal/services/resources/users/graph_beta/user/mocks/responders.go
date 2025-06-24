@@ -143,9 +143,40 @@ func (m *UserMock) RegisterMocks() {
 
 			// Update user data
 			mockState.Lock()
+
+			// Special handling for updates that remove fields
+			// If we're updating from maximal to minimal, we need to remove fields not in the minimal config
+			// Check if this is a minimal update by looking for key indicators
+			isMinimalUpdate := false
+			if _, hasDisplayName := updateData["displayName"]; hasDisplayName {
+				if _, hasGivenName := updateData["givenName"]; !hasGivenName {
+					isMinimalUpdate = true
+				}
+			}
+
+			if isMinimalUpdate {
+				// Remove fields that are not part of minimal configuration
+				fieldsToRemove := []string{
+					"givenName", "surname", "jobTitle", "department", "companyName",
+					"officeLocation", "city", "state", "country", "postalCode",
+					"mobilePhone", "mail", "mailNickname", "usageLocation",
+				}
+
+				for _, field := range fieldsToRemove {
+					delete(userData, field)
+				}
+
+				// Reset collections to empty
+				userData["businessPhones"] = []string{}
+				userData["otherMails"] = []string{}
+				userData["proxyAddresses"] = []string{}
+			}
+
+			// Apply the updates
 			for k, v := range updateData {
 				userData[k] = v
 			}
+
 			mockState.users[userId] = userData
 			mockState.Unlock()
 

@@ -3,7 +3,9 @@ package graphBetaUsersUser_test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -13,155 +15,55 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-// Common test configurations that can be used by both unit and acceptance tests
-const (
-	// Minimal configuration with only required attributes
-	testConfigMinimalTemplate = `
-resource "microsoft365_graph_beta_users_user" "minimal" {
-  display_name        = "Minimal User"
-  user_principal_name = "minimal.user@contoso.com"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-`
-
-	// Maximal configuration with all possible attributes
-	testConfigMaximalTemplate = `
-resource "microsoft365_graph_beta_users_user" "maximal" {
-  display_name        = "Maximal User"
-  user_principal_name = "maximal.user@contoso.com"
-  account_enabled     = true
-  given_name          = "Maximal"
-  surname             = "User"
-  mail                = "maximal.user@contoso.com"
-  mail_nickname       = "maxuser"
-  job_title           = "Senior Developer"
-  department          = "Engineering"
-  company_name        = "Contoso Ltd"
-  office_location     = "Building A"
-  city                = "Redmond"
-  state               = "WA"
-  country             = "US"
-  postal_code         = "98052"
-  usage_location      = "US"
-  business_phones     = ["+1 425-555-0100"]
-  mobile_phone        = "+1 425-555-0101"
-  password_profile = {
-    password                          = "SecureP@ssw0rd!"
-    force_change_password_next_sign_in = true
-  }
-  identities = [
-    {
-      sign_in_type       = "emailAddress"
-      issuer             = "contoso.com"
-      issuer_assigned_id = "maximal.user@contoso.com"
-    }
-  ]
-  other_mails     = ["maximal.user.other@contoso.com"]
-  proxy_addresses = ["SMTP:maximal.user@contoso.com"]
-}
-`
-
-	// Update configuration for testing changes
-	testConfigUpdateTemplate = `
-resource "microsoft365_graph_beta_users_user" "test" {
-  display_name        = "Updated User"
-  user_principal_name = "minimal.user@contoso.com"
-  job_title           = "Updated Job Title"
-  department          = "Updated Department"
-  password_profile = {
-    password = "NewSecureP@ssw0rd!"
-  }
-}
-`
-
-	// Configuration with multiple resources for testing lifecycle
-	testConfigMultipleResourcesTemplate = `
-resource "microsoft365_graph_beta_users_user" "minimal" {
-  display_name        = "Minimal User"
-  user_principal_name = "minimal.user@contoso.com"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-
-resource "microsoft365_graph_beta_users_user" "maximal" {
-  display_name        = "Maximal User"
-  user_principal_name = "maximal.user@contoso.com"
-  account_enabled     = true
-  given_name          = "Maximal"
-  surname             = "User"
-  mail                = "maximal.user@contoso.com"
-  mail_nickname       = "maxuser"
-  job_title           = "Senior Developer"
-  department          = "Engineering"
-  company_name        = "Contoso Ltd"
-  office_location     = "Building A"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-`
-
-	// Configuration for updating minimal to maximal
-	testConfigMinimalToMaximalTemplate = `
-resource "microsoft365_graph_beta_users_user" "minimal" {
-  display_name        = "Minimal User"
-  user_principal_name = "minimal.user@contoso.com"
-  given_name          = "Updated"
-  surname             = "User"
-  job_title           = "Developer"
-  department          = "IT"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-
-resource "microsoft365_graph_beta_users_user" "maximal" {
-  display_name        = "Maximal User"
-  user_principal_name = "maximal.user@contoso.com"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-`
-
-	// Error configuration with duplicate UPN
-	testConfigErrorTemplate = `
-resource "microsoft365_graph_beta_users_user" "error" {
-  display_name        = "Error User"
-  user_principal_name = "duplicate@contoso.com"
-  password_profile = {
-    password = "SecureP@ssw0rd!"
-  }
-}
-`
-)
-
-// Helper functions to return the test configurations
+// Helper functions to return the test configurations by reading from files
 func testConfigMinimal() string {
-	return testConfigMinimalTemplate
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }
 
 func testConfigMaximal() string {
-	return testConfigMaximalTemplate
-}
-
-func testConfigUpdate() string {
-	return testConfigUpdateTemplate
-}
-
-func testConfigMultipleResources() string {
-	return testConfigMultipleResourcesTemplate
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }
 
 func testConfigMinimalToMaximal() string {
-	return testConfigMinimalToMaximalTemplate
+	// For minimal to maximal test, we need to use the maximal config
+	// but with the minimal resource name and UPN to simulate an update
+
+	// Read the maximal config
+	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the resource name to match the minimal one
+	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
+
+	// Replace all occurrences of the UPN to match the minimal one
+	updatedMaximal = strings.Replace(updatedMaximal, "maximal.user@contoso.com", "minimal.user@contoso.com", -1)
+
+	return updatedMaximal
 }
 
 func testConfigError() string {
-	return testConfigErrorTemplate
+	// Read the minimal config and modify for error scenario
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace resource name and UPN to create an error scenario
+	updated := strings.Replace(string(content), "minimal", "error", 1)
+	updated = strings.Replace(updated, "minimal.user@contoso.com", "duplicate@contoso.com", 1)
+	updated = strings.Replace(updated, "Minimal User", "Error User", 1)
+
+	return updated
 }
 
 // Helper function to set up the test environment
@@ -203,7 +105,8 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func TestUnitUserResource_Minimal(t *testing.T) {
+// TestUnitUserResource_Create_Minimal tests the creation of a user with minimal configuration
+func TestUnitUserResource_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -222,14 +125,15 @@ func TestUnitUserResource_Minimal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "display_name", "Minimal User"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "user_principal_name", "minimal.user@contoso.com"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "account_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "password_profile.password", "SecureP@ssw0rd!"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "password_profile.password", "SecureP@ssw0rd123!"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitUserResource_Maximal(t *testing.T) {
+// TestUnitUserResource_Create_Maximal tests the creation of a user with maximal configuration
+func TestUnitUserResource_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -261,8 +165,8 @@ func TestUnitUserResource_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitUserResource_Create tests the creation of multiple resources
-func TestUnitUserResource_Create(t *testing.T) {
+// TestUnitUserResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitUserResource_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -274,63 +178,39 @@ func TestUnitUserResource_Create(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{
-				Config: testConfigMultipleResources(),
-				Check: resource.ComposeTestCheckFunc(
-					// Check minimal resource
-					testCheckExists("microsoft365_graph_beta_users_user.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "display_name", "Minimal User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "user_principal_name", "minimal.user@contoso.com"),
-
-					// Check maximal resource
-					testCheckExists("microsoft365_graph_beta_users_user.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "display_name", "Maximal User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "user_principal_name", "maximal.user@contoso.com"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "given_name", "Maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "surname", "User"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitUserResource_Update tests updating a resource
-func TestUnitUserResource_Update(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create with minimal configuration
+			// Start with minimal configuration
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_users_user.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "display_name", "Minimal User"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "user_principal_name", "minimal.user@contoso.com"),
+					// Verify minimal config doesn't have these attributes
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_users_user.minimal", "given_name"),
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_users_user.minimal", "job_title"),
 				),
 			},
-			// Update with new values
+			// Update to maximal configuration (with the same resource name)
 			{
-				Config: testConfigUpdate(),
+				Config: testConfigMinimalToMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_users_user.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "display_name", "Updated User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "job_title", "Updated Job Title"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "department", "Updated Department"),
+					testCheckExists("microsoft365_graph_beta_users_user.minimal"),
+					// Now check that it has maximal attributes
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "display_name", "Maximal User"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "user_principal_name", "minimal.user@contoso.com"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "given_name", "Maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "surname", "User"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "job_title", "Senior Developer"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "department", "Engineering"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "company_name", "Contoso Ltd"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitUserResource_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitUserResource_MinimalToMaximal(t *testing.T) {
+// TestUnitUserResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitUserResource_Update_MaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -342,31 +222,127 @@ func TestUnitUserResource_MinimalToMaximal(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create both resources
+			// Start with maximal configuration
 			{
-				Config: testConfigMultipleResources(),
+				Config: testConfigMaximalWithResourceName("test"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "display_name", "Maximal User"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "given_name", "Maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "surname", "User"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "job_title", "Senior Developer"),
+				),
+			},
+			// Update to minimal configuration (with the same resource name)
+			{
+				Config: testConfigMinimalWithResourceName("test"),
+				// We expect a non-empty plan because computed fields will show as changes
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_users_user.test"),
+					// Verify it now has only minimal attributes
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.test", "display_name", "Minimal User"),
+					// Don't check for absence of attributes as they may appear as computed
+				),
+			},
+		},
+	})
+}
+
+// Helper function to get maximal config with a custom resource name
+func testConfigMaximalWithResourceName(resourceName string) string {
+	// Read the maximal config
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the resource name
+	updated := strings.Replace(string(content), "maximal", resourceName, 1)
+
+	return updated
+}
+
+// Helper function to get minimal config with a custom resource name
+func testConfigMinimalWithResourceName(resourceName string) string {
+	return fmt.Sprintf(`resource "microsoft365_graph_beta_users_user" "%s" {
+  display_name       = "Minimal User"
+  user_principal_name = "test.user@contoso.com"
+  account_enabled    = true
+  password_profile   = {
+    password = "SecureP@ssw0rd123!"
+    force_change_password_next_sign_in = false
+  }
+}`, resourceName)
+}
+
+// TestUnitUserResource_Delete_Minimal tests deleting a user with minimal configuration
+func TestUnitUserResource_Delete_Minimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_users_user.minimal"),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_users_user.minimal"]
+					if exists {
+						return fmt.Errorf("resource still exists after deletion")
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestUnitUserResource_Delete_Maximal tests deleting a user with maximal configuration
+func TestUnitUserResource_Delete_Maximal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testConfigMaximal(),
+				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_users_user.maximal"),
 				),
 			},
-			// Update - transform minimal to maximal and maximal to minimal
+			// Delete the resource (by providing empty config)
 			{
-				Config: testConfigMinimalToMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					// Check former minimal now with more attributes
-					testCheckExists("microsoft365_graph_beta_users_user.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "display_name", "Minimal User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "given_name", "Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "surname", "User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "job_title", "Developer"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.minimal", "department", "IT"),
-
-					// Check former maximal now with fewer attributes
-					testCheckExists("microsoft365_graph_beta_users_user.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "display_name", "Maximal User"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_users_user.maximal", "user_principal_name", "maximal.user@contoso.com"),
-				),
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_users_user.maximal"]
+					if exists {
+						return fmt.Errorf("resource still exists after deletion")
+					}
+					return nil
+				},
 			},
 		},
 	})

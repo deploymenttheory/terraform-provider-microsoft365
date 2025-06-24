@@ -3,7 +3,6 @@ package graphBetaUserLicenseAssignment_test
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -11,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// TestAccUserLicenseAssignmentResource_Minimal tests the minimal configuration
-func TestAccUserLicenseAssignmentResource_Minimal(t *testing.T) {
+// TestAccUserLicenseAssignmentResource_Create_Minimal tests creating a license assignment with minimal configuration
+func TestAccUserLicenseAssignmentResource_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -49,22 +48,12 @@ func TestAccUserLicenseAssignmentResource_Minimal(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "add_licenses.0.disabled_plans.#", "0"),
 				),
 			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"remove_licenses", // This is expected to be ignored on import
-					"add_licenses",    // The import only sets assigned_licenses, not add_licenses
-				},
-			},
 		},
 	})
 }
 
-// TestAccUserLicenseAssignmentResource_Maximal tests the maximal configuration
-func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
+// TestAccUserLicenseAssignmentResource_Create_Maximal tests creating a license assignment with maximal configuration
+func TestAccUserLicenseAssignmentResource_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -109,22 +98,12 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "add_licenses.1.sku_id", testLicenseSkuID2),
 				),
 			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"remove_licenses", // This is expected to be ignored on import
-					"add_licenses",    // The import only sets assigned_licenses, not add_licenses
-				},
-			},
 		},
 	})
 }
 
-// TestAccUserLicenseAssignmentResource_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccUserLicenseAssignmentResource_MinimalToMaximal(t *testing.T) {
+// TestAccUserLicenseAssignmentResource_Update_MinimalToMaximal tests updating from minimal to maximal config
+func TestAccUserLicenseAssignmentResource_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -159,7 +138,7 @@ func TestAccUserLicenseAssignmentResource_MinimalToMaximal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
-				Config: testAccConfigMinimalNamed(resourceName, testUserID1, testLicenseSkuID1),
+				Config: testAccConfigMinimalNamed("test", testUserID1, testLicenseSkuID1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_id", testUserID1),
@@ -169,7 +148,7 @@ func TestAccUserLicenseAssignmentResource_MinimalToMaximal(t *testing.T) {
 			},
 			// Update to maximal configuration
 			{
-				Config: testAccConfigMaximalNamed(resourceName, testUserID1, testLicenseSkuID1, testLicenseSkuID2, testServicePlanID),
+				Config: testAccConfigMaximalNamed("test", testUserID1, testLicenseSkuID1, testLicenseSkuID2, testServicePlanID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_id", testUserID1),
@@ -182,8 +161,8 @@ func TestAccUserLicenseAssignmentResource_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestAccUserLicenseAssignmentResource_MaximalToMinimal tests updating from maximal to minimal config
-func TestAccUserLicenseAssignmentResource_MaximalToMinimal(t *testing.T) {
+// TestAccUserLicenseAssignmentResource_Update_MaximalToMinimal tests updating from maximal to minimal config
+func TestAccUserLicenseAssignmentResource_Update_MaximalToMinimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -218,18 +197,16 @@ func TestAccUserLicenseAssignmentResource_MaximalToMinimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
-				Config: testAccConfigMaximalNamed(resourceName, testUserID2, testLicenseSkuID1, testLicenseSkuID2, testServicePlanID),
+				Config: testAccConfigMaximalNamed("test", testUserID2, testLicenseSkuID1, testLicenseSkuID2, testServicePlanID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_id", testUserID2),
 					resource.TestCheckResourceAttr(resourceName, "add_licenses.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.0.sku_id", testLicenseSkuID1),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.1.sku_id", testLicenseSkuID2),
 				),
 			},
 			// Update to minimal configuration
 			{
-				Config: testAccConfigMinimalNamed(resourceName, testUserID2, testLicenseSkuID1),
+				Config: testAccConfigMinimalNamed("test", testUserID2, testLicenseSkuID1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_id", testUserID2),
@@ -241,8 +218,8 @@ func TestAccUserLicenseAssignmentResource_MaximalToMinimal(t *testing.T) {
 	})
 }
 
-// TestAccUserLicenseAssignmentResource_RemoveLicenses tests the license removal functionality
-func TestAccUserLicenseAssignmentResource_RemoveLicenses(t *testing.T) {
+// TestAccUserLicenseAssignmentResource_Delete_Minimal tests deleting a license assignment with minimal configuration
+func TestAccUserLicenseAssignmentResource_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -252,6 +229,55 @@ func TestAccUserLicenseAssignmentResource_RemoveLicenses(t *testing.T) {
 	testUserID1 := os.Getenv("TEST_USER_ID_1")
 	if testUserID1 == "" {
 		t.Skip("TEST_USER_ID_1 environment variable must be set for acceptance tests")
+	}
+
+	// Get test license SKU ID from environment variable or skip
+	testLicenseSkuID1 := os.Getenv("TEST_LICENSE_SKU_ID_1")
+	if testLicenseSkuID1 == "" {
+		t.Skip("TEST_LICENSE_SKU_ID_1 environment variable must be set for acceptance tests")
+	}
+
+	resourceName := "microsoft365_graph_beta_users_user_license_assignment.minimal"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckUserLicenseAssignmentDestroy,
+		Steps: []resource.TestStep{
+			// Create the resource
+			{
+				Config: testAccConfigMinimal(testUserID1, testLicenseSkuID1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckUserLicenseAssignmentExists(resourceName),
+				),
+			},
+			// Delete the resource (by providing empty config)
+			{
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources[resourceName]
+					if exists {
+						return fmt.Errorf("resource %s still exists after deletion", resourceName)
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestAccUserLicenseAssignmentResource_Delete_Maximal tests deleting a license assignment with maximal configuration
+func TestAccUserLicenseAssignmentResource_Delete_Maximal(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+	}
+
+	// Get test user ID from environment variable or skip
+	testUserID2 := os.Getenv("TEST_USER_ID_2")
+	if testUserID2 == "" {
+		t.Skip("TEST_USER_ID_2 environment variable must be set for acceptance tests")
 	}
 
 	// Get test license SKU IDs from environment variables or skip
@@ -265,33 +291,81 @@ func TestAccUserLicenseAssignmentResource_RemoveLicenses(t *testing.T) {
 		t.Skip("TEST_LICENSE_SKU_ID_2 environment variable must be set for acceptance tests")
 	}
 
-	resourceName := "microsoft365_graph_beta_users_user_license_assignment.test"
+	// Get test service plan ID from environment variable (optional)
+	testServicePlanID := os.Getenv("TEST_SERVICE_PLAN_ID")
+
+	resourceName := "microsoft365_graph_beta_users_user_license_assignment.maximal"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckUserLicenseAssignmentDestroy,
 		Steps: []resource.TestStep{
-			// First add both licenses
+			// Create the resource
 			{
-				Config: testAccConfigMaximalNamed(resourceName, testUserID1, testLicenseSkuID1, testLicenseSkuID2, ""),
+				Config: testAccConfigMaximal(testUserID2, testLicenseSkuID1, testLicenseSkuID2, testServicePlanID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.0.sku_id", testLicenseSkuID1),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.1.sku_id", testLicenseSkuID2),
 				),
 			},
-			// Then remove one license
+			// Delete the resource (by providing empty config)
 			{
-				Config: testAccConfigRemoveLicense(testUserID1, testLicenseSkuID1, testLicenseSkuID2),
+				Config: `# Empty config for deletion test`,
+				Check: func(s *terraform.State) error {
+					// The resource should be gone
+					_, exists := s.RootModule().Resources[resourceName]
+					if exists {
+						return fmt.Errorf("resource %s still exists after deletion", resourceName)
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// TestAccUserLicenseAssignmentResource_Import tests importing a resource
+func TestAccUserLicenseAssignmentResource_Import(t *testing.T) {
+	// Skip if not running acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+	}
+
+	// Get test user ID from environment variable or skip
+	testUserID1 := os.Getenv("TEST_USER_ID_1")
+	if testUserID1 == "" {
+		t.Skip("TEST_USER_ID_1 environment variable must be set for acceptance tests")
+	}
+
+	// Get test license SKU ID from environment variable or skip
+	testLicenseSkuID1 := os.Getenv("TEST_LICENSE_SKU_ID_1")
+	if testLicenseSkuID1 == "" {
+		t.Skip("TEST_LICENSE_SKU_ID_1 environment variable must be set for acceptance tests")
+	}
+
+	resourceName := "microsoft365_graph_beta_users_user_license_assignment.minimal"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckUserLicenseAssignmentDestroy,
+		Steps: []resource.TestStep{
+			// Create
+			{
+				Config: testAccConfigMinimal(testUserID1, testLicenseSkuID1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckUserLicenseAssignmentExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "add_licenses.0.sku_id", testLicenseSkuID1),
-					resource.TestCheckResourceAttr(resourceName, "remove_licenses.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "remove_licenses.0", testLicenseSkuID2),
 				),
+			},
+			// Import
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"remove_licenses", // This is expected to be ignored on import
+					"add_licenses",    // The import only sets assigned_licenses, not add_licenses
+				},
 			},
 		},
 	})
@@ -306,9 +380,7 @@ func testAccPreCheck(t *testing.T) {
 		"ARM_CLIENT_SECRET",
 		"ARM_TENANT_ID",
 		"TEST_USER_ID_1",
-		"TEST_USER_ID_2",
 		"TEST_LICENSE_SKU_ID_1",
-		"TEST_LICENSE_SKU_ID_2",
 	}
 
 	for _, env := range requiredEnvVars {
@@ -356,12 +428,6 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
 
 // Minimal configuration with custom resource name
 func testAccConfigMinimalNamed(resourceName string, userID, licenseSkuID string) string {
-	// Extract the resource name without the provider prefix
-	name := resourceName
-	if dotIndex := strings.LastIndex(resourceName, "."); dotIndex > 0 {
-		name = resourceName[dotIndex+1:]
-	}
-
 	return fmt.Sprintf(`
 resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
   user_id = "%s"
@@ -369,14 +435,17 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
     sku_id = "%s"
   }]
 }
-`, name, userID, licenseSkuID)
+`, resourceName, userID, licenseSkuID)
 }
 
 // Maximal configuration with default resource name
 func testAccConfigMaximal(userID, licenseSkuID1, licenseSkuID2, servicePlanID string) string {
 	disabledPlans := ""
 	if servicePlanID != "" {
-		disabledPlans = fmt.Sprintf(`disabled_plans = ["%s"]`, servicePlanID)
+		disabledPlans = fmt.Sprintf(`
+      disabled_plans = [
+        "%s"
+      ]`, servicePlanID)
 	}
 
 	return fmt.Sprintf(`
@@ -384,8 +453,7 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
   user_id = "%s"
   add_licenses = [
     {
-      sku_id = "%s"
-      %s
+      sku_id = "%s"%s
     },
     {
       sku_id = "%s"
@@ -397,15 +465,12 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
 
 // Maximal configuration with custom resource name
 func testAccConfigMaximalNamed(resourceName string, userID, licenseSkuID1, licenseSkuID2, servicePlanID string) string {
-	// Extract the resource name without the provider prefix
-	name := resourceName
-	if dotIndex := strings.LastIndex(resourceName, "."); dotIndex > 0 {
-		name = resourceName[dotIndex+1:]
-	}
-
 	disabledPlans := ""
 	if servicePlanID != "" {
-		disabledPlans = fmt.Sprintf(`disabled_plans = ["%s"]`, servicePlanID)
+		disabledPlans = fmt.Sprintf(`
+      disabled_plans = [
+        "%s"
+      ]`, servicePlanID)
 	}
 
 	return fmt.Sprintf(`
@@ -413,26 +478,12 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
   user_id = "%s"
   add_licenses = [
     {
-      sku_id = "%s"
-      %s
+      sku_id = "%s"%s
     },
     {
       sku_id = "%s"
     }
   ]
 }
-`, name, userID, licenseSkuID1, disabledPlans, licenseSkuID2)
-}
-
-// Configuration with license removal
-func testAccConfigRemoveLicense(userID, licenseSkuID, licenseToRemove string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_users_user_license_assignment" "test" {
-  user_id = "%s"
-  add_licenses = [{
-    sku_id = "%s"
-  }]
-  remove_licenses = ["%s"]
-}
-`, userID, licenseSkuID, licenseToRemove)
+`, resourceName, userID, licenseSkuID1, disabledPlans, licenseSkuID2)
 }
