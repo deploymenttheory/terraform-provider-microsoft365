@@ -18,7 +18,7 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
   business_phones     = ["+1 425-555-0100"]
   mobile_phone        = "+1 425-555-0101"
   password_profile = {
-    password                          = "SecureP@ssw0rd123!"
+    password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
   identities = [
@@ -28,7 +28,7 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
       issuer_assigned_id = "maximal.user@contoso.com"
     }
   ]
-  other_mails     = ["maximal.user.other@contoso.com"]
-  proxy_addresses = ["SMTP:maximal.user@contoso.com"]
+  other_mails          = ["maximal.user.other@contoso.com"]
+  proxy_addresses      = ["SMTP:maximal.user@contoso.com"]
   show_in_address_list = true
 } 
