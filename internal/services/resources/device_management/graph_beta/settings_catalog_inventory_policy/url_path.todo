@@ -1,0 +1,2 @@
+POST https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies
+POST https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('1bee6ad4-1365-4975-9981-ff06bc1e5642')/assign
