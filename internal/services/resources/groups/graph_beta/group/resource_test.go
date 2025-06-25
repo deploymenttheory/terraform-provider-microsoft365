@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog_test
+package graphBetaGroup_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog/mocks"
+	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
@@ -55,9 +55,9 @@ func testConfigError() string {
 		return ""
 	}
 
-	// Replace resource name to create an error scenario
+	// Replace resource name and display name to create an error scenario
 	updated := strings.Replace(string(content), "minimal", "error", 1)
-	updated = strings.Replace(updated, "Minimal Settings Catalog", "Error Settings Catalog", 1)
+	updated = strings.Replace(updated, "Minimal Group", "Error Group", 1)
 
 	return updated
 }
@@ -70,7 +70,7 @@ func setupTestEnvironment(t *testing.T) {
 }
 
 // Helper function to set up the mock environment
-func setupMockEnvironment() (*mocks.Mocks, *localMocks.SettingsCatalogMock) {
+func setupMockEnvironment() (*mocks.Mocks, *localMocks.GroupMock) {
 	// Activate httpmock
 	httpmock.Activate()
 
@@ -79,10 +79,10 @@ func setupMockEnvironment() (*mocks.Mocks, *localMocks.SettingsCatalogMock) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	// Register local mocks directly
-	settingsCatalogMock := &localMocks.SettingsCatalogMock{}
-	settingsCatalogMock.RegisterMocks()
+	groupMock := &localMocks.GroupMock{}
+	groupMock.RegisterMocks()
 
-	return mockClient, settingsCatalogMock
+	return mockClient, groupMock
 }
 
 // Helper function to check if a resource exists
@@ -101,8 +101,8 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-// TestUnitSettingsCatalogResource_Create_Minimal tests the creation of a settings catalog with minimal configuration
-func TestUnitSettingsCatalogResource_Create_Minimal(t *testing.T) {
+// TestUnitGroupResource_Create_Minimal tests the creation of a group with minimal configuration
+func TestUnitGroupResource_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -117,18 +117,20 @@ func TestUnitSettingsCatalogResource_Create_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "name", "Minimal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "description", "Minimal settings catalog policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "platform", "windows10"),
+					testCheckExists("microsoft365_graph_beta_groups_group.minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "display_name", "Minimal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_nickname", "minimal.group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_enabled", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "security_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "visibility", "Private"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitSettingsCatalogResource_Create_Maximal tests the creation of a settings catalog with maximal configuration
-func TestUnitSettingsCatalogResource_Create_Maximal(t *testing.T) {
+// TestUnitGroupResource_Create_Maximal tests the creation of a group with maximal configuration
+func TestUnitGroupResource_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -143,21 +145,28 @@ func TestUnitSettingsCatalogResource_Create_Maximal(t *testing.T) {
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "name", "Maximal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "description", "Maximal settings catalog policy with all options"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "platform", "windows10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "technologies", "mdm"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "settings.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.maximal", "assignments.#", "1"),
+					testCheckExists("microsoft365_graph_beta_groups_group.maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "display_name", "Maximal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "description", "This is a maximal group configuration for testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "mail_nickname", "maximal.group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "mail_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "security_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "group_types.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "visibility", "Private"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "membership_rule", "user.department -eq \"Engineering\""),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "membership_rule_processing_state", "On"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "preferred_data_location", "NAM"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "preferred_language", "en-US"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "theme", "Blue"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.maximal", "classification", "High"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitSettingsCatalogResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitSettingsCatalogResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitGroupResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitGroupResource_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -173,34 +182,38 @@ func TestUnitSettingsCatalogResource_Update_MinimalToMaximal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "name", "Minimal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "description", "Minimal settings catalog policy"),
+					testCheckExists("microsoft365_graph_beta_groups_group.minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "display_name", "Minimal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_nickname", "minimal.group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_enabled", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "security_enabled", "true"),
 					// Verify minimal config doesn't have these attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "settings.#", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "assignments.#", "0"),
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_groups_group.minimal", "description"),
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_groups_group.minimal", "membership_rule"),
 				),
 			},
 			// Update to maximal configuration (with the same resource name)
 			{
 				Config: testConfigMinimalToMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.minimal"),
+					testCheckExists("microsoft365_graph_beta_groups_group.minimal"),
 					// Now check that it has maximal attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "name", "Maximal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "description", "Maximal settings catalog policy with all options"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "platform", "windows10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "technologies", "mdm"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "settings.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.minimal", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "display_name", "Maximal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "description", "This is a maximal group configuration for testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_nickname", "maximal.group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "mail_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "security_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "group_types.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "membership_rule", "user.department -eq \"Engineering\""),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.minimal", "membership_rule_processing_state", "On"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitSettingsCatalogResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitSettingsCatalogResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitGroupResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitGroupResource_Update_MaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -216,23 +229,24 @@ func TestUnitSettingsCatalogResource_Update_MaximalToMinimal(t *testing.T) {
 			{
 				Config: testConfigMaximalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "name", "Maximal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "settings.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "assignments.#", "1"),
+					testCheckExists("microsoft365_graph_beta_groups_group.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "display_name", "Maximal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "description", "This is a maximal group configuration for testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "group_types.#", "2"),
 				),
 			},
 			// Update to minimal configuration (with the same resource name)
 			{
 				Config: testConfigMinimalWithResourceName("test"),
 				// We expect a non-empty plan because computed fields will show as changes
-				ExpectNonEmptyPlan: true,
+				ExpectNonEmptyPlan: false,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.test"),
+					testCheckExists("microsoft365_graph_beta_groups_group.test"),
 					// Verify it now has only minimal attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "name", "Minimal Settings Catalog"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "settings.#", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog.test", "assignments.#", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "display_name", "Minimal Group"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "mail_enabled", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "security_enabled", "true"),
+					// Don't check for absence of attributes as they may appear as computed
 				),
 			},
 		},
@@ -255,15 +269,16 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 
 // Helper function to get minimal config with a custom resource name
 func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_management_settings_catalog" "%s" {
-  name        = "Minimal Settings Catalog"
-  description = "Minimal settings catalog policy"
-  platform    = "windows10"
+	return fmt.Sprintf(`resource "microsoft365_graph_beta_groups_group" "%s" {
+  display_name     = "Minimal Group"
+  mail_nickname    = "test.group"
+  mail_enabled     = false
+  security_enabled = true
 }`, resourceName)
 }
 
-// TestUnitSettingsCatalogResource_Delete_Minimal tests deleting a settings catalog with minimal configuration
-func TestUnitSettingsCatalogResource_Delete_Minimal(t *testing.T) {
+// TestUnitGroupResource_Delete_Minimal tests deleting a group with minimal configuration
+func TestUnitGroupResource_Delete_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -279,7 +294,7 @@ func TestUnitSettingsCatalogResource_Delete_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.minimal"),
+					testCheckExists("microsoft365_graph_beta_groups_group.minimal"),
 				),
 			},
 			// Delete the resource (by providing empty config)
@@ -287,7 +302,7 @@ func TestUnitSettingsCatalogResource_Delete_Minimal(t *testing.T) {
 				Config: `# Empty config for deletion test`,
 				Check: func(s *terraform.State) error {
 					// The resource should be gone
-					_, exists := s.RootModule().Resources["microsoft365_graph_beta_device_management_settings_catalog.minimal"]
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_groups_group.minimal"]
 					if exists {
 						return fmt.Errorf("resource still exists after deletion")
 					}
@@ -298,8 +313,8 @@ func TestUnitSettingsCatalogResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitSettingsCatalogResource_Delete_Maximal tests deleting a settings catalog with maximal configuration
-func TestUnitSettingsCatalogResource_Delete_Maximal(t *testing.T) {
+// TestUnitGroupResource_Delete_Maximal tests deleting a group with maximal configuration
+func TestUnitGroupResource_Delete_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -315,7 +330,7 @@ func TestUnitSettingsCatalogResource_Delete_Maximal(t *testing.T) {
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.maximal"),
+					testCheckExists("microsoft365_graph_beta_groups_group.maximal"),
 				),
 			},
 			// Delete the resource (by providing empty config)
@@ -323,7 +338,7 @@ func TestUnitSettingsCatalogResource_Delete_Maximal(t *testing.T) {
 				Config: `# Empty config for deletion test`,
 				Check: func(s *terraform.State) error {
 					// The resource should be gone
-					_, exists := s.RootModule().Resources["microsoft365_graph_beta_device_management_settings_catalog.maximal"]
+					_, exists := s.RootModule().Resources["microsoft365_graph_beta_groups_group.maximal"]
 					if exists {
 						return fmt.Errorf("resource still exists after deletion")
 					}
@@ -334,8 +349,8 @@ func TestUnitSettingsCatalogResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitSettingsCatalogResource_Import tests importing a resource
-func TestUnitSettingsCatalogResource_Import(t *testing.T) {
+// TestUnitGroupResource_Import tests importing a resource
+func TestUnitGroupResource_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -351,12 +366,12 @@ func TestUnitSettingsCatalogResource_Import(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_settings_catalog.minimal"),
+					testCheckExists("microsoft365_graph_beta_groups_group.minimal"),
 				),
 			},
 			// Import
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_settings_catalog.minimal",
+				ResourceName:      "microsoft365_graph_beta_groups_group.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -364,13 +379,13 @@ func TestUnitSettingsCatalogResource_Import(t *testing.T) {
 	})
 }
 
-func TestUnitSettingsCatalogResource_Error(t *testing.T) {
+func TestUnitGroupResource_Error(t *testing.T) {
 	// Set up mock environment
-	_, settingsCatalogMock := setupMockEnvironment()
+	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 
 	// Register error mocks
-	settingsCatalogMock.RegisterErrorMocks()
+	groupMock.RegisterErrorMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
@@ -381,7 +396,7 @@ func TestUnitSettingsCatalogResource_Error(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),
-				ExpectError: regexp.MustCompile("Settings catalog policy creation failed"),
+				ExpectError: regexp.MustCompile("Group with this displayName already exists"),
 			},
 		},
 	})
