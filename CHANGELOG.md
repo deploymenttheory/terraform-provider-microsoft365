@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.18.0-alpha...v0.18.1-alpha) (2025-06-25)
+
+
+### Bug Fixes
+
+* added group acceptance and unit tests ([6b0bc50](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6b0bc5029011509f60c167911672f34712ff28d9))
+* added unit and acc tests for groups and groups member assignment ([aef90f6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aef90f6cc2397a7f0ee066083ba7fbee638e14ab))
+* added unit and acc tests for groups and groups member assignment ([#545](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/545)) ([99759a4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/99759a48b342313f9d6e26a7d2eda40f769282e5))
+
 ## [0.18.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.17.1-alpha...v0.18.0-alpha) (2025-06-24)
 
 
