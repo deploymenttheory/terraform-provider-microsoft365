@@ -1,2 +1,10 @@
 POST https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies
 POST https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('1bee6ad4-1365-4975-9981-ff06bc1e5642')/assign
+
+PUT https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('67b1bf55-eaae-434b-8586-a3a5e2da5e70')
+
+GET https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('67b1bf55-eaae-434b-8586-a3a5e2da5e70')
+GET https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('67b1bf55-eaae-434b-8586-a3a5e2da5e70')/settings
+GET https://graph.microsoft.com/beta/deviceManagement/inventoryPolicies('67b1bf55-eaae-434b-8586-a3a5e2da5e70')/assignments
+
+currently get 403 when trying to perform get commands
