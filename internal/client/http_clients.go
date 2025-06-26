@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -55,29 +54,6 @@ func (c *AuthenticatedHTTPClient) Do(req *http.Request) (*http.Response, error) 
 
 	// Perform the request
 	return c.client.Do(req)
-}
-
-// Get performs a GET request
-func (c *AuthenticatedHTTPClient) Get(ctx context.Context, url string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	return c.Do(req)
-}
-
-// Post performs a POST request with JSON body
-func (c *AuthenticatedHTTPClient) Post(ctx context.Context, url, contentType string, body interface{}) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if contentType != "" {
-		req.Header.Set("Content-Type", contentType)
-	}
-
-	return c.Do(req)
 }
 
 // GetBaseURL returns the base URL for this client
