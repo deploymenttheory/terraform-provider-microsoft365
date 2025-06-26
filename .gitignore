@@ -42,3 +42,6 @@ coverage.html
 
 # Windows-specific 
 *.winfile eol=crlf
+
+# Python virtual environments
+scripts/python/venv/
