@@ -2,10 +2,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   display_name = "Block Legacy Authentication"
   state        = "enabled"
 
-
-  platforms   = ["all"]
-  risk_levels = ["none"]
-
   conditions = {
     applications = {
       include_applications = ["All"]
@@ -70,11 +66,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "require_mfa_for_admins" {
   display_name = "Require MFA for Admin Roles"
   state        = "enabled"
-
-
-  platforms   = ["all"]
-  risk_levels = ["none"]
-
   conditions = {
     applications = {
       include_applications = ["All"]
@@ -148,11 +139,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "compliant_device_policy" {
   display_name = "Require Compliant or Hybrid Joined Device"
   state        = "enabled"
-
-
-  platforms   = ["windows", "macOS", "iOS", "android"]
-  risk_levels = ["none"]
-
   conditions = {
     applications = {
       include_applications = ["Office365"]
@@ -234,11 +220,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "high_risk_sign_in_policy" {
   display_name = "High Risk Sign-in Policy"
   state        = "enabled"
-
-
-  platforms   = ["all"]
-  risk_levels = ["high"]
-
   conditions = {
     applications = {
       include_applications = ["All"]
