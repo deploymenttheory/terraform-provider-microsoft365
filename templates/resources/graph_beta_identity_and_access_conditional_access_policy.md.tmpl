@@ -1,0 +1,112 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [conditionalAccessPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-beta)
+- [Create conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-policies?view=graph-rest-beta)
+- [Update conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-update?view=graph-rest-beta)
+- [Delete conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-delete?view=graph-rest-beta)
+- [Conditional Access documentation](https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.19.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Policy States
+- **enabled**: The policy is active and will be enforced
+- **disabled**: The policy exists but is not enforced
+- **enabledForReportingButNotEnforced**: The policy will be evaluated and logged but not enforced (report-only mode)
+
+### Applications
+- Use `"All"` to target all cloud applications
+- Use `"Office365"` to target all Office 365 applications
+- Use specific application IDs for targeted policies
+- Application filters support complex OData expressions for fine-grained control
+
+### Users and Groups
+- Use `"All"` to target all users
+- Use `"GuestsOrExternalUsers"` to target external users
+- Specify user, group, or role object IDs for targeted policies
+- Emergency access accounts should always be excluded from blocking policies
+
+### Locations
+- Named locations must be created in Azure AD before referencing
+- Use `"All"` for all locations or `"AllTrusted"` for all trusted locations
+- IP-based and country-based locations are supported
+
+### Client App Types
+- `browser`: Web browsers
+- `mobileAppsAndDesktopClients`: Mobile apps and desktop clients
+- `exchangeActiveSync`: Exchange ActiveSync clients
+- `other`: Other clients including legacy authentication
+
+### Grant Controls
+- **Operator**: `AND` requires all controls, `OR` requires any control
+- **Built-in Controls**: `block`, `mfa`, `compliantDevice`, `domainJoinedDevice`, `approvedApplication`, `compliantApplication`, `passwordChange`
+- **Authentication Strength**: Reference to custom authentication strength policies
+
+### Session Controls
+- **Application Restrictions**: Control access to specific applications
+- **Cloud App Security**: Integration with Microsoft Defender for Cloud Apps
+- **Sign-in Frequency**: Control how often users must re-authenticate
+- **Persistent Browser**: Control browser session persistence
+- **Continuous Access Evaluation**: Real-time policy evaluation
+
+### Device Filters
+- Support complex OData expressions for device-based conditions
+- Common filters include device compliance, trust type, and device attributes
+- Use `include` mode to target devices matching the filter
+- Use `exclude` mode to exclude devices matching the filter
+
+### Risk-based Policies
+- **User Risk Levels**: `low`, `medium`, `high`, `hidden`, `none`, `unknownFutureValue`
+- **Sign-in Risk Levels**: `low`, `medium`, `high`, `hidden`, `none`, `unknownFutureValue`
+- Requires Azure AD Identity Protection licenses
+
+### Best Practices
+- Always exclude emergency access accounts from blocking policies
+- Test policies in report-only mode before enabling enforcement
+- Use specific targeting rather than broad "All" assignments when possible
+- Monitor policy impact through Azure AD sign-in logs
+- Implement a phased rollout for new policies
+- Document policy purpose and expected behavior
+
+### Common Policy Scenarios
+- **Block Legacy Authentication**: Target legacy client app types with block control
+- **Require MFA for Admins**: Target administrative roles with MFA requirement
+- **Device Compliance**: Require compliant or domain-joined devices for access
+- **Location-based Access**: Block or require additional controls based on location
+- **Risk-based Access**: Respond to user or sign-in risk with appropriate controls
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_identity_and_access_conditional_access_policy/import.sh" }} 

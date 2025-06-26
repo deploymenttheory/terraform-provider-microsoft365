@@ -49,6 +49,7 @@ import (
 	graphBetaDeviceManagementWindowsRemediationScriptAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script_assignment"
 
 	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -138,7 +139,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 
 		// Graph Beta - Identity and Access resources
-		//graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
