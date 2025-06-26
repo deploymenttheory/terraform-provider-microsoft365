@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_users_user_license_assignment Resource - terraform-provider-microsoft365"
-subcategory: "User Management"
+subcategory: "Users"
 description: |-
   Manages Microsoft 365 license assignments for individual users using the /users/{userId}/assignLicense endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.
 ---

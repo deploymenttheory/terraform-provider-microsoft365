@@ -73,50 +73,92 @@ import (
 
 // GraphClientInterface defines the interface for GraphClients
 type GraphClientInterface interface {
-	GetV1Client() *msgraphsdk.GraphServiceClient
-	GetBetaClient() *msgraphbetasdk.GraphServiceClient
+	GetKiotaGraphV1Client() *msgraphsdk.GraphServiceClient
+	GetKiotaGraphBetaClient() *msgraphbetasdk.GraphServiceClient
+	GetGraphV1Client() *AuthenticatedHTTPClient
+	GetGraphBetaClient() *AuthenticatedHTTPClient
 }
 
 type GraphClients struct {
-	V1Client   *msgraphsdk.GraphServiceClient
-	BetaClient *msgraphbetasdk.GraphServiceClient
+	KiotaGraphV1Client   *msgraphsdk.GraphServiceClient
+	KiotaGraphBetaClient *msgraphbetasdk.GraphServiceClient
+	GraphV1Client        *AuthenticatedHTTPClient
+	GraphBetaClient      *AuthenticatedHTTPClient
 }
 
 // GetStableClient returns the stable client
-func (g *GraphClients) GetV1Client() *msgraphsdk.GraphServiceClient {
-	return g.V1Client
+func (g *GraphClients) GetKiotaGraphV1Client() *msgraphsdk.GraphServiceClient {
+	return g.KiotaGraphV1Client
 }
 
-// GetBetaClient returns the beta client
-func (g *GraphClients) GetBetaClient() *msgraphbetasdk.GraphServiceClient {
-	return g.BetaClient
+// GetKiotaGraphBetaClient returns the beta client
+func (g *GraphClients) GetKiotaGraphBetaClient() *msgraphbetasdk.GraphServiceClient {
+	return g.KiotaGraphBetaClient
+}
+
+// GetGraphV1Client returns the V1 HTTP client for raw JSON calls
+func (g *GraphClients) GetGraphV1Client() *AuthenticatedHTTPClient {
+	return g.GraphV1Client
+}
+
+// GetGraphBetaClient returns the Beta HTTP client for raw JSON calls
+func (g *GraphClients) GetGraphBetaClient() *AuthenticatedHTTPClient {
+	return g.GraphBetaClient
 }
 
 // SetGraphStableClientForResource is a helper function to retrieve and validate the Graph V1.0 client for resources.
 func SetGraphStableClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *msgraphsdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients GraphClientInterface) *msgraphsdk.GraphServiceClient {
-		return clients.GetV1Client()
+		return clients.GetKiotaGraphV1Client()
 	})
 }
 
 // SetGraphStableClientForDataSource is a helper function to retrieve and validate the Graph V1.0 client for data sources.
 func SetGraphStableClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *msgraphsdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients GraphClientInterface) *msgraphsdk.GraphServiceClient {
-		return clients.GetV1Client()
+		return clients.GetKiotaGraphV1Client()
 	})
 }
 
 // SetGraphBetaClientForResource is a helper function to retrieve and validate the Graph Beta client for resources.
 func SetGraphBetaClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *msgraphbetasdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
-		return clients.GetBetaClient()
+		return clients.GetKiotaGraphBetaClient()
 	})
 }
 
 // SetGraphBetaClientForDataSource is a helper function to retrieve and validate the Graph Beta client for data sources.
 func SetGraphBetaClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *msgraphbetasdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
-		return clients.GetBetaClient()
+		return clients.GetKiotaGraphBetaClient()
+	})
+}
+
+// SetGraphV1HTTPClientForResource is a helper function to retrieve and validate the Graph V1.0 HTTP client for resources.
+func SetGraphV1HTTPClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *AuthenticatedHTTPClient {
+	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients GraphClientInterface) *AuthenticatedHTTPClient {
+		return clients.GetGraphV1Client()
+	})
+}
+
+// SetGraphV1HTTPClientForDataSource is a helper function to retrieve and validate the Graph V1.0 HTTP client for data sources.
+func SetGraphV1HTTPClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *AuthenticatedHTTPClient {
+	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients GraphClientInterface) *AuthenticatedHTTPClient {
+		return clients.GetGraphV1Client()
+	})
+}
+
+// SetGraphBetaHTTPClientForResource is a helper function to retrieve and validate the Graph Beta HTTP client for resources.
+func SetGraphBetaHTTPClientForResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse, resourceName string) *AuthenticatedHTTPClient {
+	return getClient(ctx, req.ProviderData, resp, resourceName, func(clients GraphClientInterface) *AuthenticatedHTTPClient {
+		return clients.GetGraphBetaClient()
+	})
+}
+
+// SetGraphBetaHTTPClientForDataSource is a helper function to retrieve and validate the Graph Beta HTTP client for data sources.
+func SetGraphBetaHTTPClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *AuthenticatedHTTPClient {
+	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients GraphClientInterface) *AuthenticatedHTTPClient {
+		return clients.GetGraphBetaClient()
 	})
 }
 
@@ -159,16 +201,28 @@ func getClient[T any, R any](ctx context.Context, providerData any, resp R, name
 
 // MockGraphClients is a mock implementation of GraphClientInterface for testing
 type MockGraphClients struct {
-	MockV1Client   *msgraphsdk.GraphServiceClient
-	MockBetaClient *msgraphbetasdk.GraphServiceClient
+	MockV1Client       *msgraphsdk.GraphServiceClient
+	MockBetaClient     *msgraphbetasdk.GraphServiceClient
+	MockV1HTTPClient   *AuthenticatedHTTPClient
+	MockBetaHTTPClient *AuthenticatedHTTPClient
 }
 
-// GetV1Client returns the mock V1 client
-func (m *MockGraphClients) GetV1Client() *msgraphsdk.GraphServiceClient {
+// GetKiotaGraphV1Client returns the mock V1 client
+func (m *MockGraphClients) GetKiotaGraphV1Client() *msgraphsdk.GraphServiceClient {
 	return m.MockV1Client
 }
 
-// GetBetaClient returns the mock Beta client
-func (m *MockGraphClients) GetBetaClient() *msgraphbetasdk.GraphServiceClient {
+// GetKiotaGraphBetaClient returns the mock Beta client
+func (m *MockGraphClients) GetKiotaGraphBetaClient() *msgraphbetasdk.GraphServiceClient {
 	return m.MockBetaClient
+}
+
+// GetGraphV1Client returns the mock V1 HTTP client
+func (m *MockGraphClients) GetGraphV1Client() *AuthenticatedHTTPClient {
+	return m.MockV1HTTPClient
+}
+
+// GetGraphBetaClient returns the mock Beta HTTP client
+func (m *MockGraphClients) GetGraphBetaClient() *AuthenticatedHTTPClient {
+	return m.MockBetaHTTPClient
 }

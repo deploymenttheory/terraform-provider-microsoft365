@@ -1,6 +1,6 @@
 ---
 page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
-subcategory: "Device Management"
+subcategory: "Intune"
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
@@ -22,6 +22,12 @@ The following API permissions are required in order to use this resource.
 
 - **Read**: `DeviceManagementConfiguration.Read.All`
 - **Write**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.17.0-alpha | Experimental | Initial release |
 
 ## Example Usage
 

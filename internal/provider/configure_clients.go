@@ -80,8 +80,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.ResourceData = graphClientInterface
 
 	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
-		"graph_client_set":      p.clients.GetV1Client() != nil,
-		"graph_beta_client_set": p.clients.GetBetaClient() != nil,
+		"graph_client_set":      p.clients.GetKiotaGraphV1Client() != nil,
+		"graph_beta_client_set": p.clients.GetKiotaGraphBetaClient() != nil,
 		"config":                fmt.Sprintf("%+v", config),
 	})
 }

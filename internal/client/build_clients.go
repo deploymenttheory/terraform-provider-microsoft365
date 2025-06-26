@@ -109,14 +109,22 @@ func NewGraphClients(ctx context.Context, data *ProviderData, diags *diag.Diagno
 	graphV1Adapter.SetBaseUrl(graphServiceRoot)
 	graphBetaAdapter.SetBaseUrl(graphBetaServiceRoot)
 
+	// Create HTTP clients for raw JSON calls
+	graphV1Client := NewAuthenticatedHTTPClient(httpClient, cred, apiScope, graphServiceRoot)
+	graphBetaClient := NewAuthenticatedHTTPClient(httpClient, cred, apiScope, graphBetaServiceRoot)
+
 	clients := &GraphClients{
-		V1Client:   msgraphsdk.NewGraphServiceClient(graphV1Adapter),
-		BetaClient: msgraphbetasdk.NewGraphServiceClient(graphBetaAdapter),
+		KiotaGraphV1Client:   msgraphsdk.NewGraphServiceClient(graphV1Adapter),
+		KiotaGraphBetaClient: msgraphbetasdk.NewGraphServiceClient(graphBetaAdapter),
+		GraphV1Client:        graphV1Client,
+		GraphBetaClient:      graphBetaClient,
 	}
 
 	tflog.Debug(ctx, "Graph clients configuration completed", map[string]interface{}{
-		"graph_client_set":      clients.GetV1Client() != nil,
-		"graph_beta_client_set": clients.GetBetaClient() != nil,
+		"graph_client_set":           clients.GetKiotaGraphV1Client() != nil,
+		"graph_beta_client_set":      clients.GetKiotaGraphBetaClient() != nil,
+		"graph_http_client_set":      clients.GetGraphV1Client() != nil,
+		"graph_beta_http_client_set": clients.GetGraphBetaClient() != nil,
 	})
 
 	return clients
