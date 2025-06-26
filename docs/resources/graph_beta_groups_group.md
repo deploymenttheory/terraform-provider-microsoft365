@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_groups_group Resource - terraform-provider-microsoft365"
-subcategory: "Identity and Access"
+subcategory: "Groups"
 description: |-
   Manages Azure AD/Entra groups using the /groups endpoint. This resource enables creation and management of security groups, Microsoft 365 groups, and distribution groups with support for dynamic membership, role assignment capabilities, and comprehensive group configuration options for organizational identity and access management.
 ---

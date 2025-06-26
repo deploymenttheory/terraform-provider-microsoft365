@@ -3,9 +3,9 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   state        = "enabled"
 
   conditions = {
-    client_app_types      = ["all"]
-    user_risk_levels      = ["high"]
-    sign_in_risk_levels   = ["high", "medium"]
+    client_app_types    = ["all"]
+    user_risk_levels    = ["high"]
+    sign_in_risk_levels = ["high", "medium"]
 
     applications = {
       include_applications = ["All"]
@@ -49,15 +49,15 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   }
 
   grant_controls = {
-    operator                        = "AND"
-    built_in_controls              = ["mfa", "compliantDevice"]
-    custom_authentication_factors  = []
-    terms_of_use                   = []
+    operator                      = "AND"
+    built_in_controls             = ["mfa", "compliantDevice"]
+    custom_authentication_factors = []
+    terms_of_use                  = []
     authentication_strength = {
-      id           = "00000000-0000-0000-0000-000000000004"
-      display_name = "Multifactor authentication"
-      description  = "Combinations of methods that satisfy strong authentication, such as a password + SMS"
-      policy_type  = "builtIn"
+      id                     = "00000000-0000-0000-0000-000000000004"
+      display_name           = "Multifactor authentication"
+      description            = "Combinations of methods that satisfy strong authentication, such as a password + SMS"
+      policy_type            = "builtIn"
       requirements_satisfied = "mfa"
       allowed_combinations = [
         "password,sms",
@@ -75,11 +75,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled = true
     }
     cloud_app_security = {
-      is_enabled             = true
+      is_enabled              = true
       cloud_app_security_type = "monitorOnly"
     }
     sign_in_frequency = {
-      is_enabled           = true
+      is_enabled          = true
       type                = "hours"
       value               = 4
       authentication_type = "primaryAndSecondaryAuthentication"
@@ -87,7 +87,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
     persistent_browser = {
       is_enabled = false
-      mode      = "never"
+      mode       = "never"
     }
     continuous_access_evaluation = {
       mode = "strict"
