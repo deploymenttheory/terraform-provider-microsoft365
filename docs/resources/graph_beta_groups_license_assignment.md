@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_groups_license_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Group Management"
+subcategory: "Groups"
 description: |-
   Manages group-based license assignments in Microsoft 365 using the /groups/{groupId}/assignLicense endpoint. This resource enables automatic license inheritance where all current and future group members receive the assigned licenses, providing centralized license management through Azure AD group membership.
 ---

@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_users_user Resource - terraform-provider-microsoft365"
-subcategory: "Identity and Access"
+subcategory: "Users"
 description: |-
   Manages Microsoft 365 users using the /users endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile.
 ---
