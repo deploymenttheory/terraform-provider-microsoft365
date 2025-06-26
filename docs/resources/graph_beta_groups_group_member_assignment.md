@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_groups_group_member_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Group Management"
+subcategory: "Groups"
 description: |-
   Manages Azure AD/Entra group member assignments using the /groups/{group-id}/members endpoint. This resource enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.
   Member Type Support by Group Type:

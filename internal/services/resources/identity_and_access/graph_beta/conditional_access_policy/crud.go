@@ -1,19 +1,18 @@
 package graphBetaConditionalAccessPolicy
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Conditional Access Policy resources.
@@ -53,47 +52,81 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	// Revert to custom request approach - SDK doesn't have Policies() method
-	postConfig := customrequest.PostRequestConfig{
-		APIVersion:  customrequest.GraphAPIBeta,
-		Endpoint:    r.ResourcePath,
-		RequestBody: requestBody,
-	}
-
-	createdResource, err := customrequest.PostRequest(
-		ctx,
-		r.client.GetAdapter(),
-		postConfig,
-		models.CreateConditionalAccessPolicyDetailFromDiscriminatorValue,
-		nil,
-	)
-
+	// Convert the request body to JSON bytes
+	jsonBytes, err := json.Marshal(requestBody)
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Error marshaling request body",
+			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	// TODO this model approach is failing as there appears to be no correct model in the sdk. so this all falls apart.
-	if createdResource != nil {
-		if castedResource, ok := createdResource.(*models.AppliedConditionalAccessPolicy); ok {
-			if castedResource.GetId() != nil {
-				object.ID = types.StringValue(*castedResource.GetId())
-				tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, *castedResource.GetId()))
-			} else {
-				resp.Diagnostics.AddError(
-					"Error extracting resource ID",
-					"Created resource ID is nil",
-				)
-				return
-			}
-		} else {
-			resp.Diagnostics.AddError(
-				"Error casting created resource",
-				"Could not cast created resource to ConditionalAccessPolicyDetail",
-			)
-			return
-		}
+	// Create the HTTP request
+	url := r.httpClient.GetBaseURL() + r.ResourcePath
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating HTTP request",
+			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
+
+	// Note: Content-Type is automatically set by the AuthenticatedHTTPClient
+	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
+
+	// Send the request
+	httpResp, err := r.httpClient.Do(httpReq)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error making HTTP request",
+			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+	defer httpResp.Body.Close()
+
+	// Log the response status for debugging
+	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
+
+	// Check for successful creation (201 Created)
+	if httpResp.StatusCode != http.StatusCreated {
+		// Try to read error response body for better error reporting
+		var errorBody map[string]interface{}
+		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
+		}
+
+		resp.Diagnostics.AddError(
+			"Error creating resource",
+			fmt.Sprintf("Error creating resource: %s: %s", ResourceName, httpResp.Status),
+		)
+		return
+	}
+
+	// Parse the response to get the resource ID
+	var createdResource map[string]interface{}
+	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
+		resp.Diagnostics.AddError(
+			"Error parsing response",
+			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	// Extract the ID from the response
+	id, ok := createdResource["id"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error extracting resource ID",
+			"Created resource ID is missing or not a string",
+		)
+		return
+	}
+
+	object.ID = types.StringValue(id)
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
 
 	if object.ID.IsNull() || object.ID.IsUnknown() {
 		resp.Diagnostics.AddError(
@@ -154,28 +187,71 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	getConfig := customrequest.GetRequestConfig{
-		APIVersion:        customrequest.GraphAPIBeta,
-		Endpoint:          r.ResourcePath,
-		ResourceIDPattern: "/{id}",
-		ResourceID:        object.ID.ValueString(),
-	}
-
-	var responseBytes json.RawMessage
-	responseBytes, err := customrequest.GetRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		getConfig,
-	)
-
+	// Create the HTTP request
+	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		resp.Diagnostics.AddError(
+			"Error creating HTTP request",
+			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	var baseResource map[string]interface{}
-	err = json.Unmarshal(responseBytes, &baseResource)
+	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
+
+	// Send the request
+	httpResp, err := r.httpClient.Do(httpReq)
 	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error making HTTP request",
+			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+	defer httpResp.Body.Close()
+
+	// Log the response status for debugging
+	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
+
+	// Check for successful read (200 OK)
+	if httpResp.StatusCode != http.StatusOK {
+		// Try to read error response body for better error reporting
+		var errorBody map[string]interface{}
+		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
+		}
+
+		// Handle 404 specifically for eventual consistency during retries
+		if httpResp.StatusCode == http.StatusNotFound {
+			// Check if context is about to expire - if so, remove from state
+			if deadline, hasDeadline := ctx.Deadline(); hasDeadline {
+				if time.Until(deadline) < 5*time.Second {
+					tflog.Warn(ctx, "Resource not found after retries exhausted, removing from state")
+					resp.State.RemoveResource(ctx)
+					return
+				}
+			}
+
+			// For 404 during retry attempts, return an error to trigger retry
+			resp.Diagnostics.AddError(
+				"Resource Not Found",
+				fmt.Sprintf("Resource not found (404), this may be due to eventual consistency: %s", httpResp.Status),
+			)
+			return
+		}
+
+		// For other HTTP errors, use the standard error handling
+		resp.Diagnostics.AddError(
+			"Error reading resource",
+			fmt.Sprintf("Error reading resource: %s: %s", ResourceName, httpResp.Status),
+		)
+		return
+	}
+
+	// Parse the response
+	var baseResource map[string]interface{}
+	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error unmarshaling response",
 			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
@@ -229,22 +305,56 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	patchConfig := customrequest.PatchRequestConfig{
-		APIVersion:        customrequest.GraphAPIBeta,
-		Endpoint:          r.ResourcePath,
-		ResourceIDPattern: "/{id}",
-		ResourceID:        object.ID.ValueString(),
-		RequestBody:       requestBody,
+	// Convert the request body to JSON bytes
+	jsonBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error marshaling request body",
+			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
 
-	err = customrequest.PatchRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		patchConfig,
-	)
-
+	// Create the HTTP request
+	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Error creating HTTP request",
+			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	// Note: Content-Type is automatically set by the AuthenticatedHTTPClient
+	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
+
+	// Send the request
+	httpResp, err := r.httpClient.Do(httpReq)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error making HTTP request",
+			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+	defer httpResp.Body.Close()
+
+	// Log the response status for debugging
+	tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", httpResp.StatusCode, httpResp.Status))
+
+	// Check for successful update (204 No Content or 200 OK)
+	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
+		// Try to read error response body for better error reporting
+		var errorBody map[string]interface{}
+		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
+		}
+
+		resp.Diagnostics.AddError(
+			"Error updating resource",
+			fmt.Sprintf("Error updating resource: %s: %s", ResourceName, httpResp.Status),
+		)
 		return
 	}
 
@@ -297,21 +407,45 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	deleteConfig := customrequest.DeleteRequestConfig{
-		APIVersion:        customrequest.GraphAPIBeta,
-		Endpoint:          r.ResourcePath,
-		ResourceIDPattern: "/{id}",
-		ResourceID:        object.ID.ValueString(),
+	// Create the HTTP request
+	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating HTTP request",
+			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
 
-	err := customrequest.DeleteRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		deleteConfig,
-	)
+	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
+	// Send the request
+	httpResp, err := r.httpClient.Do(httpReq)
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Error making HTTP request",
+			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+	defer httpResp.Body.Close()
+
+	// Log the response status for debugging
+	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
+
+	// Check for successful deletion (204 No Content or 404 Not Found)
+	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
+		// Try to read error response body for better error reporting
+		var errorBody map[string]interface{}
+		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
+		}
+
+		resp.Diagnostics.AddError(
+			"Error deleting resource",
+			fmt.Sprintf("Error deleting resource: %s: %s", ResourceName, httpResp.Status),
+		)
 		return
 	}
 

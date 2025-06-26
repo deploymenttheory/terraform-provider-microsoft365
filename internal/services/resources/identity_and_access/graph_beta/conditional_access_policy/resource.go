@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
@@ -55,7 +54,7 @@ func NewConditionalAccessPolicyResource() resource.Resource {
 }
 
 type ConditionalAccessPolicyResource struct {
-	client           *msgraphbetasdk.GraphServiceClient
+	httpClient       *client.AuthenticatedHTTPClient
 	ProviderTypeName string
 	TypeName         string
 	ReadPermissions  []string
@@ -77,7 +76,7 @@ func (r *ConditionalAccessPolicyResource) FullTypeName() string {
 
 // Configure sets the client for the resource.
 func (r *ConditionalAccessPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.

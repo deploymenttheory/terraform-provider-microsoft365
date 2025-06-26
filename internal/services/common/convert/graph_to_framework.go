@@ -233,6 +233,26 @@ func GraphToFrameworkStringSet(ctx context.Context, value []string) types.Set {
 	return set
 }
 
+// GraphToFrameworkStringSetPreserveEmpty converts a string slice to a Terraform Framework set,
+// preserving empty arrays as empty sets instead of null.
+// This is specifically needed for resources using HTTP clients (not Graph SDK) where we need
+// to distinguish between:
+// - Fields that were configured in Terraform as empty arrays [] → should become empty sets
+// - Fields that were not configured in Terraform at all → should remain null
+//
+// Use this helper when you need to maintain state consistency for optional set attributes
+// that can be explicitly set to empty in Terraform configuration.
+func GraphToFrameworkStringSetPreserveEmpty(ctx context.Context, value []string) types.Set {
+	set, diags := types.SetValueFrom(ctx, types.StringType, value)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]interface{}{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.SetNull(types.StringType)
+	}
+	return set
+}
+
 // GraphToFrameworkEnumSlice converts a Graph SDK enum slice to a slice of Terraform Framework strings.
 // Uses the String() method of the enum type to convert each value to a string.
 // Returns nil if the input is nil.
