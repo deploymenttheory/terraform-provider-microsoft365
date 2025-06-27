@@ -5,7 +5,6 @@ permissions:
 
 on:
   pull_request:
-    branches: [ 'main' ]
     paths:
       - '**/*.go'
       - 'go.mod'
@@ -15,6 +14,7 @@ jobs:
   test:
     name: '🧪 Run Go Unit Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1

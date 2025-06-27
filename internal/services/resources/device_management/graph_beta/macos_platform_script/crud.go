@@ -164,27 +164,24 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
 func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object MacOSPlatformScriptResourceModel
+	var plan MacOSPlatformScriptResourceModel
+	var state MacOSPlatformScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -196,7 +193,7 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 	_, err = r.client.
 		DeviceManagement().
 		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
+		ByDeviceShellScriptId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -204,8 +201,8 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for update method",
@@ -217,7 +214,7 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 		err = r.client.
 			DeviceManagement().
 			DeviceShellScripts().
-			ByDeviceShellScriptId(object.ID.ValueString()).
+			ByDeviceShellScriptId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -243,7 +240,7 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Device Management Script resources.
@@ -281,7 +278,9 @@ func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

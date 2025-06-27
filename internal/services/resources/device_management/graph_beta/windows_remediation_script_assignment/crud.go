@@ -147,22 +147,24 @@ func (r *DeviceHealthScriptAssignmentResource) Read(ctx context.Context, req res
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceHealthScriptAssignmentResourceModel
+	var plan DeviceHealthScriptAssignmentResourceModel
+	var state DeviceHealthScriptAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -174,9 +176,9 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 	_, err = r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.DeviceHealthScriptId.ValueString()).
+		ByDeviceHealthScriptId(plan.DeviceHealthScriptId.ValueString()).
 		Assignments().
-		ByDeviceHealthScriptAssignmentId(object.ID.ValueString()).
+		ByDeviceHealthScriptAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -184,7 +186,7 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -205,7 +207,7 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Device Health Script Assignment resources.
@@ -242,6 +244,8 @@ func (r *DeviceHealthScriptAssignmentResource) Delete(ctx context.Context, req r
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

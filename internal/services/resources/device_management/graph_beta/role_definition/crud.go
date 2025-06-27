@@ -163,17 +163,18 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 // Update handles the Update operation for role definitions and assignments,
 // tracking assignments strictly by ID
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var planObj, stateObj RoleDefinitionResourceModel
+	var plan RoleDefinitionResourceModel
+	var state RoleDefinitionResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update for: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &planObj)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateObj)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, planObj.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -182,9 +183,9 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	builder := r.client.
 		DeviceManagement().
 		RoleDefinitions().
-		ByRoleDefinitionId(planObj.ID.ValueString())
+		ByRoleDefinitionId(state.ID.ValueString())
 
-	requestBody, err := constructResource(ctx, r.client, &planObj, resp, r.ReadPermissions, true)
+	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
@@ -213,7 +214,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for the RoleDefinition resource.
@@ -244,7 +245,7 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	tflog.Debug(ctx, "Custom role definition deleted successfully")
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

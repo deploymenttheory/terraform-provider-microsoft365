@@ -223,22 +223,24 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object SettingsCatalogProfileResourceModel
+	var plan SettingsCatalogProfileResourceModel
+	var state SettingsCatalogProfileResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -250,7 +252,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	putRequest := customrequest.PutRequestConfig{
 		APIVersion:  customrequest.GraphAPIBeta,
 		Endpoint:    r.ResourcePath,
-		ResourceID:  object.ID.ValueString(),
+		ResourceID:  state.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
@@ -264,8 +266,8 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
+	if plan.Assignments != nil {
+		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, plan.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
@@ -274,7 +276,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 			return
 		}
 
-		ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+		ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 		if cancel == nil {
 			return
 		}
@@ -283,7 +285,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -309,7 +311,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Settings Catalog resources.
@@ -343,9 +345,11 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

@@ -120,22 +120,24 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 
 // Update handles the Update operation.
 func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object BrowserSiteListResourceModel
+	var plan BrowserSiteListResourceModel
+	var state BrowserSiteListResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -149,7 +151,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		Edge().
 		InternetExplorerMode().
 		SiteLists().
-		ByBrowserSiteListId(object.ID.ValueString()).
+		ByBrowserSiteListId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -157,7 +159,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -178,7 +180,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
@@ -210,6 +212,8 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

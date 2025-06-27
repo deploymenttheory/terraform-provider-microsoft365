@@ -177,22 +177,24 @@ func (r *WindowsDriverUpdateProfileResource) Read(ctx context.Context, req resou
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
 func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsDriverUpdateProfileResourceModel
+	var plan WindowsDriverUpdateProfileResourceModel
+	var state WindowsDriverUpdateProfileResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -204,7 +206,7 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 	_, err = r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
+		ByWindowsDriverUpdateProfileId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -212,10 +214,10 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 		return
 	}
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+	if len(plan.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", state.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &object)
+		assignRequestBody, err := constructAssignments(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments",
@@ -227,7 +229,7 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 		err = r.client.
 			DeviceManagement().
 			WindowsDriverUpdateProfiles().
-			ByWindowsDriverUpdateProfileId(object.ID.ValueString()).
+			ByWindowsDriverUpdateProfileId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
 
@@ -236,7 +238,7 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", state.ID.ValueString()))
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -255,7 +257,7 @@ func (r *WindowsDriverUpdateProfileResource) Update(ctx context.Context, req res
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for windows driver update profile resources.
@@ -293,7 +295,9 @@ func (r *WindowsDriverUpdateProfileResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

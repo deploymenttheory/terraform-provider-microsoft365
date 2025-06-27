@@ -281,22 +281,24 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 // The function ensures that the policy is updated with the new configuration
 // and the final state reflects the actual state of the resource on the server.
 func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object ConditionalAccessPolicyResourceModel
+	var plan ConditionalAccessPolicyResourceModel
+	var state ConditionalAccessPolicyResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)   // desired state
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // current state (for ID)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -316,7 +318,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	}
 
 	// Create the HTTP request
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + state.ID.ValueString()
 	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -358,7 +360,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -379,7 +381,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Conditional Access Policy resources.
@@ -448,6 +450,8 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 		)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

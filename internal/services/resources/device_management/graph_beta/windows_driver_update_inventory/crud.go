@@ -139,23 +139,25 @@ func (r *WindowsDriverUpdateInventoryResource) Read(ctx context.Context, req res
 
 // Update handles the Update operation.
 func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsDriverUpdateInventoryResourceModel
+	var plan WindowsDriverUpdateInventoryResourceModel
+	var state WindowsDriverUpdateInventoryResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
 	// Validate that Windows Driver Update Profile ID is provided
-	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
+	if state.WindowsDriverUpdateProfileID.IsNull() || state.WindowsDriverUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Missing Required Parameter",
 			"The windows_driver_update_profile_id field is required to update a driver inventory.",
@@ -163,7 +165,7 @@ func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req r
 		return
 	}
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -175,9 +177,9 @@ func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req r
 	_, err = r.client.
 		DeviceManagement().
 		WindowsDriverUpdateProfiles().
-		ByWindowsDriverUpdateProfileId(object.WindowsDriverUpdateProfileID.ValueString()).
+		ByWindowsDriverUpdateProfileId(state.WindowsDriverUpdateProfileID.ValueString()).
 		DriverInventories().
-		ByWindowsDriverUpdateInventoryId(object.ID.ValueString()).
+		ByWindowsDriverUpdateInventoryId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -201,7 +203,7 @@ func (r *WindowsDriverUpdateInventoryResource) Update(ctx context.Context, req r
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
@@ -243,7 +245,9 @@ func (r *WindowsDriverUpdateInventoryResource) Delete(ctx context.Context, req r
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

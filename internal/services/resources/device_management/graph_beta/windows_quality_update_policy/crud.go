@@ -173,35 +173,26 @@ func (r *WindowsQualityUpdatePolicyResource) Read(ctx context.Context, req resou
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for windows driver update profile resources.
-//
-// The function performs the following operations:
-//   - Patches the existing script resource with updated settings using PATCH
-//   - Updates assignments using POST if they are defined
-//   - Retrieves the updated resource with expanded assignments
-//   - Maps the remote state back to Terraform
-//
-// The Microsoft Graph Beta API supports direct updates of windows driver update profile resources
-// through PATCH operations for the base resource, while assignments are handled through
-// a separate POST operation to the assign endpoint. This allows for atomic updates
-// of both the script properties and its assignments.
+// Update handles the Update operation for Windows Quality Update Policy resources.
 func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsQualityUpdatePolicyResourceModel
+	var plan WindowsQualityUpdatePolicyResourceModel
+	var state WindowsQualityUpdatePolicyResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -213,7 +204,7 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 	_, err = r.client.
 		DeviceManagement().
 		WindowsQualityUpdatePolicies().
-		ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
+		ByWindowsQualityUpdatePolicyId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -221,10 +212,10 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		return
 	}
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+	if len(plan.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", state.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &object)
+		assignRequestBody, err := constructAssignments(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments",
@@ -236,19 +227,19 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		err = r.client.
 			DeviceManagement().
 			WindowsQualityUpdatePolicies().
-			ByWindowsQualityUpdatePolicyId(object.ID.ValueString()).
+			ByWindowsQualityUpdatePolicyId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", state.ID.ValueString()))
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -269,7 +260,7 @@ func (r *WindowsQualityUpdatePolicyResource) Update(ctx context.Context, req res
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for windows driver update profile resources.
@@ -307,7 +298,9 @@ func (r *WindowsQualityUpdatePolicyResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

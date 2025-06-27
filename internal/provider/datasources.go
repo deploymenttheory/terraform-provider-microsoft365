@@ -20,6 +20,9 @@ import (
 	graphBetaDeviceManagementWindowsUpdateCatalogItem "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_update_catalog_item"
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_update_ring"
 
+	// Graph Beta - Directory Management datasources
+	graphBetaDirectoryManagementDirectorySettingTemplates "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_beta/directory_setting_templates"
+
 	// Graph Beta - M365 Admin datasources
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site_list"
@@ -28,7 +31,7 @@ import (
 	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
 	// Graph v1.0 - Directory Management datasources
-	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph/subscribed_skus"
+	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
 
 	// Utilities
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/utilities/macos_pkg_app_metadata"
@@ -66,6 +69,8 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
 		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,
+		// Graph Beta - Directory Management datasources
+		graphBetaDirectoryManagementDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,

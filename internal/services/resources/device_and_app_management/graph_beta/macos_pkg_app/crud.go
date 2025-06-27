@@ -452,20 +452,20 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update handles the Update operation.
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object, state MacOSPKGAppResourceModel
+	var plan, state MacOSPKGAppResourceModel
 	var installerSourcePath string
 	var tempFileInfo helpers.TempFileInfo
 	var err error
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -476,7 +476,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		defer helpers.CleanupTempFile(ctx, tempFileInfo)
 	}
 
-	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
+	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, plan.AppInstaller)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error determining installer file path",
@@ -486,7 +486,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Step 1: Update the base mobile app resource
-	requestBody, err := constructResource(ctx, &object, installerSourcePath)
+	requestBody, err := constructResource(ctx, &plan, installerSourcePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -498,7 +498,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
+		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -507,17 +507,17 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Step 2: Updated Categories
-	if !object.Categories.Equal(state.Categories) {
+	if !plan.Categories.Equal(state.Categories) {
 		tflog.Debug(ctx, "Categories have changed — updating categories")
 
 		var categoryValues []string
-		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		diags := plan.Categories.ElementsAs(ctx, &categoryValues, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		err = construct.AssignMobileAppCategories(ctx, r.client, plan.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
@@ -546,8 +546,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	// the code more concise.
 	//
 
-	// Read updated resource state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -568,7 +567,7 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
@@ -599,7 +598,9 @@ func (r *MacOSPKGAppResource) Delete(ctx context.Context, req resource.DeleteReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

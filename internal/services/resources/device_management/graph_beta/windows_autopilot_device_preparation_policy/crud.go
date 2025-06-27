@@ -221,22 +221,24 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 
 // Update handles the Update operation for Windows Autopilot Device Preparation Policy.
 func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsAutopilotDevicePreparationPolicyResourceModel
+	var plan WindowsAutopilotDevicePreparationPolicyResourceModel
+	var state WindowsAutopilotDevicePreparationPolicyResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -245,11 +247,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		return
 	}
 
-	// Update baseResource with new information
 	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -258,17 +259,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 	}
 
 	// If device security group is specified, set it as the enrollment time device membership target (Just-In-Time configuration)
-	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
-		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
+	if !plan.DeviceSecurityGroup.IsNull() && !plan.DeviceSecurityGroup.IsUnknown() {
+		deviceSecurityGroupID := plan.DeviceSecurityGroup.ValueString()
 
-		// Validate that the security group has the required ownership
 		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
 		if diagnostics.HasError() {
 			resp.Diagnostics.Append(diagnostics...)
 			return
 		}
 
-		// Create the request body for setting enrollment time device membership target
 		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -281,7 +280,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 			SetEnrollmentTimeDeviceMembershipTarget().
 			Post(ctx, requestBody, nil)
 
@@ -293,8 +292,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignments)
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, plan.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
@@ -303,7 +302,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 			return
 		}
 
-		ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+		ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 		if cancel == nil {
 			return
 		}
@@ -312,7 +311,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		_, err = r.client.
 			DeviceManagement().
 			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -338,7 +337,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Windows Autopilot Device Preparation Policy.
@@ -368,6 +367,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Delete(ctx context.Con
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

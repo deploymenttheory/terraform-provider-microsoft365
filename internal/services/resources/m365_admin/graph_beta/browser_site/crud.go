@@ -131,16 +131,18 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update handles the Update operation.
 func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object BrowserSiteResourceModel
+	var plan BrowserSiteResourceModel
+	var state BrowserSiteResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if object.ID.IsNull() || object.ID.ValueString() == "" {
+	if state.ID.IsNull() || state.ID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Error updating browser site",
 			fmt.Sprintf("Resource ID is missing: %s", ResourceName),
@@ -148,7 +150,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	if object.BrowserSiteListAssignmentID.IsNull() || object.BrowserSiteListAssignmentID.ValueString() == "" {
+	if state.BrowserSiteListAssignmentID.IsNull() || state.BrowserSiteListAssignmentID.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Error updating browser site",
 			fmt.Sprintf("BrowserSiteListAssignmentID is missing: %s", ResourceName),
@@ -156,13 +158,13 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing browser site",
@@ -171,8 +173,8 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	browserSiteListId := object.BrowserSiteListAssignmentID.ValueString()
-	browserSiteId := object.ID.ValueString()
+	browserSiteListId := state.BrowserSiteListAssignmentID.ValueString()
+	browserSiteId := state.ID.ValueString()
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating browser site with ID: %s in list: %s", browserSiteId, browserSiteListId))
 
@@ -191,7 +193,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -212,7 +214,7 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
@@ -249,7 +251,9 @@ func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

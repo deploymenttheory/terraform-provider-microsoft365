@@ -125,31 +125,27 @@ func (r *DeviceConfigurationAssignmentResource) Read(ctx context.Context, req re
 
 // Update handles the Update operation.
 func (r *DeviceConfigurationAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceConfigurationAssignmentResourceModel
+	var plan DeviceConfigurationAssignmentResourceModel
+	var state DeviceConfigurationAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	var currentState DeviceConfigurationAssignmentResourceModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &currentState)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	plan.DeviceConfigurationId = state.DeviceConfigurationId
+	plan.ID = state.ID
 
-	object.DeviceConfigurationId = currentState.DeviceConfigurationId
-	object.ID = currentState.ID
-
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update",
@@ -161,9 +157,9 @@ func (r *DeviceConfigurationAssignmentResource) Update(ctx context.Context, req 
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(object.DeviceConfigurationId.ValueString()).
+		ByDeviceConfigurationId(state.DeviceConfigurationId.ValueString()).
 		Assignments().
-		ByDeviceConfigurationAssignmentId(object.ID.ValueString()).
+		ByDeviceConfigurationAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -171,7 +167,7 @@ func (r *DeviceConfigurationAssignmentResource) Update(ctx context.Context, req 
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated assignment %s", object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated assignment %s", state.ID.ValueString()))
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
@@ -189,7 +185,7 @@ func (r *DeviceConfigurationAssignmentResource) Update(ctx context.Context, req 
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
@@ -221,6 +217,8 @@ func (r *DeviceConfigurationAssignmentResource) Delete(ctx context.Context, req 
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

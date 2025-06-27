@@ -136,22 +136,24 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 
 // Update handles updates to a user's license assignments.
 func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object UserLicenseAssignmentResourceModel
+	var plan UserLicenseAssignmentResourceModel
+	var state UserLicenseAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing license assignment request for update",
@@ -162,7 +164,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 
 	_, err = r.client.
 		Users().
-		ByUserId(object.UserId.ValueString()).
+		ByUserId(state.UserId.ValueString()).
 		AssignLicense().
 		Post(ctx, requestBody, nil)
 
@@ -171,9 +173,9 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for user: %s", object.UserId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for user: %s", state.UserId.ValueString()))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -194,7 +196,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the deletion of a user license assignment (removes all managed licenses).
@@ -257,6 +259,10 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from user: %s", object.UserId.ValueString()))
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
+	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

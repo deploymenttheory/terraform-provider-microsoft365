@@ -141,22 +141,24 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Read(ctx context
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
+	var plan DeviceManagementConfigurationPolicyAssignmentResourceModel
+	var state DeviceManagementConfigurationPolicyAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -168,9 +170,9 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx conte
 	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(state.ConfigurationPolicyId.ValueString()).
 		Assignments().
-		ByDeviceManagementConfigurationPolicyAssignmentId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -194,7 +196,7 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx conte
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Device Management Configuration Policy Assignment resources.
@@ -231,6 +233,8 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Delete(ctx conte
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

@@ -148,22 +148,24 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Read(ctx context
 
 // Update handles the Update operation for Apple User Initiated Enrollment Profile Assignment resources.
 func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object AppleUserInitiatedEnrollmentProfileAssignmentResourceModel
+	var plan AppleUserInitiatedEnrollmentProfileAssignmentResourceModel
+	var state AppleUserInitiatedEnrollmentProfileAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := ConstructAppleUserInitiatedEnrollmentProfileAssignment(ctx, r.client, object, true)
+	requestBody, err := ConstructAppleUserInitiatedEnrollmentProfileAssignment(ctx, r.client, plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update",
@@ -176,9 +178,9 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Update(ctx conte
 	updatedResource, err := r.client.
 		DeviceManagement().
 		AppleUserInitiatedEnrollmentProfiles().
-		ByAppleUserInitiatedEnrollmentProfileId(object.AppleUserInitiatedEnrollmentProfileId.ValueString()).
+		ByAppleUserInitiatedEnrollmentProfileId(plan.AppleUserInitiatedEnrollmentProfileId.ValueString()).
 		Assignments().
-		ByAppleEnrollmentProfileAssignmentId(object.ID.ValueString()).
+		ByAppleEnrollmentProfileAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -186,9 +188,9 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Update(ctx conte
 		return
 	}
 
-	object.ID = types.StringValue(*updatedResource.GetId())
+	plan.ID = types.StringValue(*updatedResource.GetId())
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -209,7 +211,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Update(ctx conte
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Apple User Initiated Enrollment Profile Assignment resources.
@@ -241,6 +243,8 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Delete(ctx conte
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 
