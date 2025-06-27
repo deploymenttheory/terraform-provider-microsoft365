@@ -244,7 +244,7 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	tflog.Debug(ctx, "Custom role definition deleted successfully")
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

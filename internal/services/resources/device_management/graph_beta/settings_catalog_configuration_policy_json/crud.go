@@ -360,11 +360,13 @@ func (r *SettingsCatalogJsonResource) Delete(ctx context.Context, req resource.D
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
 	resp.State.RemoveResource(ctx)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

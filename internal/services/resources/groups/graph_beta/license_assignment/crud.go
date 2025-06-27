@@ -246,5 +246,9 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from group: %s", object.GroupId.ValueString()))
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
+	resp.State.RemoveResource(ctx)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

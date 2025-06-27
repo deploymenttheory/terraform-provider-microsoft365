@@ -196,8 +196,7 @@ func (r *M365AppsInstallationOptionsResource) Delete(ctx context.Context, req re
 		return
 	}
 
-	// Since there's no Delete API, we'll just remove the resource from Terraform object
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform object", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

@@ -337,9 +337,11 @@ func (r *LinuxPlatformScriptResource) Delete(ctx context.Context, req resource.D
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

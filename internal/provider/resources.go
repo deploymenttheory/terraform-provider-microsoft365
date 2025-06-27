@@ -59,9 +59,12 @@ import (
 
 	// Graph Beta - Group resources
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
+	graphBetaGroupLifecyclePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_policy"
 	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_member_assignment"
 	graphBetaGroupOwnerAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
+	graphBetaGroupSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_settings"
 	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
+	graphBetaTenantWideGroupSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/tenant_wide_group_settings"
 
 	// Graph Beta - M365 Admin Centre
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
@@ -147,9 +150,12 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Group resources
 		graphBetaGroup.NewGroupResource,
+		graphBetaGroupLifecyclePolicy.NewGroupLifecyclePolicyResource,
 		graphBetaGroupMemberAssignment.NewGroupMemberAssignmentResource,
 		graphBetaGroupOwnerAssignment.NewGroupOwnerAssignmentResource,
+		graphBetaGroupSettings.NewGroupSettingsResource,
 		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
+		graphBetaTenantWideGroupSettings.NewTenantWideGroupSettingsResource,
 
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,

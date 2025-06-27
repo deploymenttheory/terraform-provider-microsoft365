@@ -215,7 +215,9 @@ func (r *WindowsUpdateRingResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
