@@ -52,7 +52,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehens
       name  = "GroupCreationAllowedGroupId"
       value = "00000000-0000-0000-0000-000000000000" # Replace with actual security group ID
     },
-    
+
     # Naming policies
     {
       name  = "PrefixSuffixNamingRequirement"
@@ -66,7 +66,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehens
       name  = "EnableMSStandardBlockedWords"
       value = "true" # Enable Microsoft's list of blocked words
     },
-    
+
     # Classification settings
     {
       name  = "ClassificationList"
@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehens
       name  = "DefaultClassification"
       value = "Internal" # Default classification
     },
-    
+
     # Guest access settings
     {
       name  = "AllowGuestsToBeGroupOwner"
@@ -98,7 +98,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehens
       name  = "GuestUsageGuidelinesUrl"
       value = "https://contoso.com/guestpolicies" # Link to guest usage guidelines
     },
-    
+
     # Other settings
     {
       name  = "UsageGuidelinesUrl"
@@ -124,7 +124,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehens
 
 # Output the created settings ID
 output "unified_settings_id" {
-  value = microsoft365_graph_beta_groups_tenant_wide_group_settings.unified_settings.id
+  value       = microsoft365_graph_beta_groups_tenant_wide_group_settings.unified_settings.id
   description = "The ID of the created tenant-wide group settings"
 }
 
