@@ -2,6 +2,14 @@ package provider
 
 import (
 	"context"
+
+	// Graph Beta - Windows 365 datasources
+	graphBetaCloudPcCloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_audit_event"
+	graphBetaCloudPcCloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_frontline_service_plan"
+	graphBetaCloudPcCloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_gallery_image"
+	graphBetaCloudPcCloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_source_device_image"
+	graphBetaCloudPcCloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pcs"
+
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app"
@@ -26,9 +34,6 @@ import (
 	// Graph Beta - M365 Admin datasources
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site_list"
-
-	// Graph v1.0 - Intune datasources
-	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_v1.0/cloud_pc_device_image"
 
 	// Graph v1.0 - Directory Management datasources
 	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
@@ -74,8 +79,12 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
-		// Graph v1.0 - Intune Device and App Management datasources
-		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
+		// Graph Beta - Windows 365 datasources
+		graphBetaCloudPcCloudPcAuditEvent.NewCloudPcAuditEventDataSource,
+		graphBetaCloudPcCloudPcFrontlineServicePlan.NewCloudPcFrontlineServicePlanDataSource,
+		graphBetaCloudPcCloudPcGalleryImage.NewCloudPcGalleryImageDataSource,
+		graphBetaCloudPcCloudPcs.NewCloudPcsDataSource,
+		graphBetaCloudPcCloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
 		// Graph v1.0 - Directory Management datasources
 		graphDirectoryManagementSubscribedSkus.NewSubscribedSkusDataSource,
 
