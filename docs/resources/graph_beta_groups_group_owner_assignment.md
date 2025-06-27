@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_groups_group_owner_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Group Management"
+subcategory: "Groups"
 description: |-
   Manages Azure AD/Entra group owner assignments using the /groups/{group-id}/owners endpoint. This resource enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.
   Owner Type Support by Group Type:

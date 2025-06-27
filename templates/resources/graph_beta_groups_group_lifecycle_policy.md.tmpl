@@ -1,0 +1,50 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Groups"
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Group lifecycle policy resource type](https://learn.microsoft.com/en-us/graph/api/resources/grouplifecyclepolicy?view=graph-rest-beta)
+- [Create groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-post-grouplifecyclepolicies?view=graph-rest-beta)
+- [Update groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-update-grouplifecyclepolicy?view=graph-rest-beta)
+- [Delete groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-delete-grouplifecyclepolicy?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.18.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_group_lifecycle_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Lifecycle Policies**: Used to manage the lifecycle of Microsoft 365 groups, including expiration and renewal.
+- **Notification Recipients**: The `alternate_notification_emails` attribute allows specifying additional recipients for expiration notifications.
+- **Policy Scope**: Policies can be applied to all groups or a subset using `group_lifetime_in_days` and `managed_group_types`.
+- **Renewal**: Groups can be renewed via API or user action if they are about to expire.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_groups_group_lifecycle_policy/import.sh" }} 
