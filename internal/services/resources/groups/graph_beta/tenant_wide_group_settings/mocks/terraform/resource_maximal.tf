@@ -14,7 +14,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "test" {
       name  = "GroupCreationAllowedGroupId"
       value = "12345678-1234-1234-1234-123456789012" # Security group ID
     },
-    
+
     # Naming policies
     {
       name  = "PrefixSuffixNamingRequirement"
@@ -28,7 +28,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "test" {
       name  = "EnableMSStandardBlockedWords"
       value = "true" # Enable Microsoft's list of blocked words
     },
-    
+
     # Classification settings
     {
       name  = "ClassificationList"
@@ -42,7 +42,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "test" {
       name  = "DefaultClassification"
       value = "Internal" # Default classification
     },
-    
+
     # Guest access settings
     {
       name  = "AllowGuestsToBeGroupOwner"
@@ -60,7 +60,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "test" {
       name  = "GuestUsageGuidelinesUrl"
       value = "https://contoso.com/guestpolicies" # Link to guest usage guidelines
     },
-    
+
     # Other settings
     {
       name  = "UsageGuidelinesUrl"

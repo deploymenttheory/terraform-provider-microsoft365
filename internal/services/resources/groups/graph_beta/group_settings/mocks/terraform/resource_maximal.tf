@@ -2,7 +2,7 @@
 resource "microsoft365_graph_beta_groups_group_settings" "maximal" {
   # Test group ID
   group_id = "12345678-1234-1234-1234-123456789012"
-  
+
   # Group.Unified template ID (using the full-featured template)
   template_id = "62375ab9-6b52-47ed-826b-58e47e0e304b"
 
@@ -17,7 +17,7 @@ resource "microsoft365_graph_beta_groups_group_settings" "maximal" {
       name  = "DefaultClassification"
       value = "Confidential" # Default classification for this group
     },
-    
+
     # Guest access settings
     {
       name  = "AllowGuestsToBeGroupOwner"
@@ -31,7 +31,7 @@ resource "microsoft365_graph_beta_groups_group_settings" "maximal" {
       name  = "AllowToAddGuests"
       value = "true" # Allow adding guests to groups
     },
-    
+
     # Other settings
     {
       name  = "UsageGuidelinesUrl"

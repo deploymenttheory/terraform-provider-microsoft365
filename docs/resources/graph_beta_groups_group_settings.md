@@ -106,12 +106,12 @@ resource "microsoft365_graph_beta_groups_group_settings" "unified_settings" {
 
 # Output the created settings IDs
 output "guest_settings_id" {
-  value = microsoft365_graph_beta_groups_group_settings.guest_settings.id
+  value       = microsoft365_graph_beta_groups_group_settings.guest_settings.id
   description = "The ID of the created group-specific guest settings"
 }
 
 output "unified_settings_id" {
-  value = microsoft365_graph_beta_groups_group_settings.unified_settings.id
+  value       = microsoft365_graph_beta_groups_group_settings.unified_settings.id
   description = "The ID of the created group-specific unified settings"
 }
 
