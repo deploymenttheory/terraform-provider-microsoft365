@@ -177,7 +177,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	var plan WindowsPlatformScriptResourceModel
 	var state WindowsPlatformScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {

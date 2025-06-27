@@ -196,7 +196,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the deletion of a user license assignment (removes all managed licenses).

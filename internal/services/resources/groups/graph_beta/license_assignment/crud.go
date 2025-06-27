@@ -124,22 +124,27 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 
 // Update handles updates to a group's license assignments.
 func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object GroupLicenseAssignmentResourceModel
+	var plan GroupLicenseAssignmentResourceModel
+	var state GroupLicenseAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	plan.ID = state.ID
+	plan.GroupId = state.GroupId
+
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing group license assignment request for update",
@@ -150,7 +155,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 
 	_, err = r.client.
 		Groups().
-		ByGroupId(object.GroupId.ValueString()).
+		ByGroupId(state.GroupId.ValueString()).
 		AssignLicense().
 		Post(ctx, requestBody, nil)
 
@@ -159,9 +164,9 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for group: %s", object.GroupId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for group: %s", state.GroupId.ValueString()))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -182,7 +187,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the deletion of a group license assignment (removes all managed licenses).

@@ -139,7 +139,7 @@ func (r *ManagedDeviceCleanupRuleResource) Update(ctx context.Context, req resou
 	var plan ManagedDeviceCleanupRuleResourceModel
 	var state ManagedDeviceCleanupRuleResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -189,7 +189,7 @@ func (r *ManagedDeviceCleanupRuleResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Managed Device Cleanup Rule resources.

@@ -150,7 +150,7 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 	var plan DeviceHealthScriptAssignmentResourceModel
 	var state DeviceHealthScriptAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -207,7 +207,7 @@ func (r *DeviceHealthScriptAssignmentResource) Update(ctx context.Context, req r
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for Device Health Script Assignment resources.

@@ -130,23 +130,27 @@ func (r *GroupSettingsResource) Read(ctx context.Context, req resource.ReadReque
 
 // Update handles the Update operation.
 func (r *GroupSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object GroupSettingsResourceModel
+	var plan GroupSettingsResourceModel
+	var state GroupSettingsResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	plan.ID = state.ID
+	plan.GroupID = state.GroupID
+
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -155,8 +159,8 @@ func (r *GroupSettingsResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	groupId := object.GroupID.ValueString()
-	settingId := object.ID.ValueString()
+	groupId := state.GroupID.ValueString()
+	settingId := state.ID.ValueString()
 
 	updatedResource, err := r.client.
 		Groups().
@@ -170,9 +174,9 @@ func (r *GroupSettingsResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, updatedResource)
+	MapRemoteStateToTerraform(ctx, &plan, updatedResource)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -193,7 +197,7 @@ func (r *GroupSettingsResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.

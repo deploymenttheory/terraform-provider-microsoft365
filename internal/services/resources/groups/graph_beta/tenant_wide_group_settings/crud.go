@@ -133,23 +133,26 @@ func (r *TenantWideGroupSettingsResource) Read(ctx context.Context, req resource
 
 // Update handles the Update operation.
 func (r *TenantWideGroupSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object TenantWideGroupSettingsResourceModel
+	var plan TenantWideGroupSettingsResourceModel
+	var state TenantWideGroupSettingsResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	plan.ID = state.ID
+
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -158,7 +161,7 @@ func (r *TenantWideGroupSettingsResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	settingId := object.ID.ValueString()
+	settingId := state.ID.ValueString()
 
 	updatedResource, err := r.client.
 		Settings().
@@ -170,9 +173,9 @@ func (r *TenantWideGroupSettingsResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, updatedResource)
+	MapRemoteStateToTerraform(ctx, &plan, updatedResource)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -193,7 +196,7 @@ func (r *TenantWideGroupSettingsResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.

@@ -82,10 +82,8 @@ func (r *ResourceTemplateResource) Create(ctx context.Context, req resource.Crea
 // This ensures that the read logic is consistent across all operations.
 func (r *ResourceTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceTemplateResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -124,10 +122,12 @@ func (r *ResourceTemplateResource) Read(ctx context.Context, req resource.ReadRe
 // However, like the Create method, it is recommended to use ReadWithRetry to have consistent read logic.
 func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ResourceTemplateResourceModel
+	var state ResourceTemplateResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -150,7 +150,7 @@ func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.Upda
 	_, err = r.client.
 		DeviceManagement().
 		ResourceTemplates().
-		ByDeviceAndAppManagementResourceTemplateId(plan.ID.ValueString()).
+		ByDeviceAndAppManagementResourceTemplateId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -174,7 +174,7 @@ func (r *ResourceTemplateResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation. This method is called by the terraform destroy command.
