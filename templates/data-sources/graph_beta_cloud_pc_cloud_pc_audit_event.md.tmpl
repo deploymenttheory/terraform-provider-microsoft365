@@ -1,0 +1,34 @@
+---
+page_title: "microsoft365_graph_beta_cloud_pc_cloud_pc_audit_event Data Source - terraform-provider-microsoft365"
+subcategory: "Cloud PC"
+description: |-
+  Retrieves Cloud PC audit events from Microsoft Intune using the /deviceManagement/virtualEndpoint/auditEvents endpoint. Supports filtering by all, id, or display_name for advanced audit event discovery and analysis.
+---
+
+# microsoft365_graph_beta_cloud_pc_cloud_pc_audit_event (Data Source)
+
+Retrieves Cloud PC audit events from Microsoft Intune using the `/deviceManagement/virtualEndpoint/auditEvents` endpoint. Supports filtering by all, id, or display_name for advanced audit event discovery and analysis.
+
+## Microsoft Documentation
+
+- [cloudPcAuditEvent resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcauditevent?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.18.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_cloud_pc_cloud_pc_cloud_pc_audit_event/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
