@@ -33,19 +33,18 @@ func testConfigMaximal() string {
 }
 
 func testConfigMinimalToMaximal() string {
-	// For minimal to maximal test, we need to use the maximal config
-	// but with the minimal resource name to simulate an update
+	return `resource "microsoft365_graph_beta_groups_group_lifecycle_policy" "minimal" {
+  group_lifetime_in_days         = 365
+  managed_group_types            = "Selected"
+  alternate_notification_emails  = "admin@example.com;notifications@example.com"
+}`
+}
 
-	// Read the maximal config
-	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-
-	// Replace the resource name to match the minimal one
-	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
-
-	return updatedMaximal
+func testConfigMaximalToMinimal() string {
+	return `resource "microsoft365_graph_beta_groups_group_lifecycle_policy" "maximal" {
+  group_lifetime_in_days = 180
+  managed_group_types    = "All"
+}`
 }
 
 func testConfigError() string {
@@ -98,6 +97,8 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("resource not found: %s", resourceName)
 		}
+
+		fmt.Printf("[DEBUG] testCheckExists: resourceName=%s, ID=%s\n", resourceName, rs.Primary.ID)
 
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("resource ID not set")
@@ -222,7 +223,7 @@ func TestUnitGroupLifecyclePolicyResource_Update_MaximalToMinimal(t *testing.T) 
 			},
 			// Update to minimal configuration (with the same resource name)
 			{
-				Config: testConfigMinimalToMaximal(),
+				Config: testConfigMaximalToMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_groups_group_lifecycle_policy.maximal"),
 					// Now check that it has minimal attributes
@@ -260,14 +261,13 @@ func TestUnitGroupLifecyclePolicyResource_Delete_Minimal(t *testing.T) {
 			},
 			// Delete the resource (by providing empty config)
 			{
-				Config:       "",
-				RefreshState: true,
+				Config: `# Empty config for deletion test`,
 				Check: resource.ComposeTestCheckFunc(
 					// Verify the resource is gone
 					func(s *terraform.State) error {
-						_, ok := s.RootModule().Resources["microsoft365_graph_beta_groups_group_lifecycle_policy.minimal"]
-						if ok {
-							return fmt.Errorf("resource still exists after deletion")
+						if _, ok := s.RootModule().Resources["microsoft365_graph_beta_groups_group_lifecycle_policy.minimal"]; ok {
+							fmt.Printf("[DEBUG] State after deletion: %+v\n", s.RootModule().Resources)
+							return fmt.Errorf("resource 'microsoft365_graph_beta_groups_group_lifecycle_policy.minimal' still exists in state after deletion")
 						}
 						return nil
 					},
@@ -302,14 +302,13 @@ func TestUnitGroupLifecyclePolicyResource_Delete_Maximal(t *testing.T) {
 			},
 			// Delete the resource (by providing empty config)
 			{
-				Config:       "",
-				RefreshState: true,
+				Config: `# Empty config for deletion test`,
 				Check: resource.ComposeTestCheckFunc(
 					// Verify the resource is gone
 					func(s *terraform.State) error {
-						_, ok := s.RootModule().Resources["microsoft365_graph_beta_groups_group_lifecycle_policy.maximal"]
-						if ok {
-							return fmt.Errorf("resource still exists after deletion")
+						if _, ok := s.RootModule().Resources["microsoft365_graph_beta_groups_group_lifecycle_policy.maximal"]; ok {
+							fmt.Printf("[DEBUG] State after deletion: %+v\n", s.RootModule().Resources)
+							return fmt.Errorf("resource 'microsoft365_graph_beta_groups_group_lifecycle_policy.maximal' still exists in state after deletion")
 						}
 						return nil
 					},

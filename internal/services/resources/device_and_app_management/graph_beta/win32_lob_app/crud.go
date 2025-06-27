@@ -140,22 +140,24 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update handles the Update operation.
 func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object Win32LobAppResourceModel
+	var plan Win32LobAppResourceModel
+	var state Win32LobAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -167,7 +169,7 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 	updatedResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
+		ByMobileAppId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -185,9 +187,9 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, resourceAsWin32LobApp)
+	MapRemoteStateToTerraform(ctx, &plan, resourceAsWin32LobApp)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

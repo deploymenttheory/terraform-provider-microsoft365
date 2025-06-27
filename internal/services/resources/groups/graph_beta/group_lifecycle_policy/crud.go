@@ -112,22 +112,24 @@ func (r *GroupLifecyclePolicyResource) Read(ctx context.Context, req resource.Re
 
 // Update handles the Update operation.
 func (r *GroupLifecyclePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object GroupLifecyclePolicyResourceModel
+	var plan GroupLifecyclePolicyResourceModel
+	var state GroupLifecyclePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -136,7 +138,9 @@ func (r *GroupLifecyclePolicyResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	policyId := object.ID.ValueString()
+	policyId := state.ID.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Using resource ID for Update (PATCH): %s", policyId))
 
 	_, err = r.client.
 		GroupLifecyclePolicies().

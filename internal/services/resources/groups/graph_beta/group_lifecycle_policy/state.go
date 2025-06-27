@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -21,7 +22,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupLifecyclePolicyRe
 	})
 
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
-	data.AlternateNotificationEmails = convert.GraphToFrameworkString(remoteResource.GetAlternateNotificationEmails())
+	if remoteResource.GetAlternateNotificationEmails() != nil {
+		data.AlternateNotificationEmails = convert.GraphToFrameworkString(remoteResource.GetAlternateNotificationEmails())
+	} else {
+		data.AlternateNotificationEmails = types.StringNull()
+	}
 	data.GroupLifetimeInDays = convert.GraphToFrameworkInt32(remoteResource.GetGroupLifetimeInDays())
 	data.ManagedGroupTypes = convert.GraphToFrameworkString(remoteResource.GetManagedGroupTypes())
 

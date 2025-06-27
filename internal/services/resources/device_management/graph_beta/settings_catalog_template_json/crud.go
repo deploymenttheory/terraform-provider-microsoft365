@@ -236,25 +236,24 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object sharedmodels.SettingsCatalogProfileResourceModel
+	var plan sharedmodels.SettingsCatalogProfileResourceModel
+	var state sharedmodels.SettingsCatalogProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -266,7 +265,7 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 	putRequest := customrequest.PutRequestConfig{
 		APIVersion:  customrequest.GraphAPIBeta,
 		Endpoint:    r.ResourcePath,
-		ResourceID:  object.ID.ValueString(),
+		ResourceID:  state.ID.ValueString(),
 		RequestBody: requestBody,
 	}
 
@@ -278,37 +277,6 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
-	}
-
-	if object.Assignments != nil {
-		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-
-			_, err := r.client.
-				DeviceManagement().
-				ConfigurationPolicies().
-				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
-			}
-			return nil
-		})
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

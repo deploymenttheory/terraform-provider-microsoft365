@@ -126,13 +126,13 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return

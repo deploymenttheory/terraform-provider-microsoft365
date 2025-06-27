@@ -164,27 +164,28 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
 func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceHealthScriptResourceModel
+	var plan DeviceHealthScriptResourceModel
+	var state DeviceHealthScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -196,7 +197,7 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	_, err = r.client.
 		DeviceManagement().
 		DeviceHealthScripts().
-		ByDeviceHealthScriptId(object.ID.ValueString()).
+		ByDeviceHealthScriptId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -205,8 +206,8 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Assignment updating is commented out in original code
-	// if object.Assignment != nil {
-	// 	requestAssignment, err := constructAssignment(ctx, object.Assignment)
+	// if plan.Assignment != nil {
+	// 	requestAssignment, err := constructAssignment(ctx, plan.Assignment)
 	// 	if err != nil {
 	// 		resp.Diagnostics.AddError(
 	// 			"Error constructing assignment for update method",
@@ -218,7 +219,7 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	// 	err = r.client.
 	// 		DeviceManagement().
 	// 		DeviceHealthScripts().
-	// 		ByDeviceHealthScriptId(object.ID.ValueString()).
+	// 		ByDeviceHealthScriptId(state.ID.ValueString()).
 	// 		Assign().
 	// 		Post(ctx, requestAssignment, nil)
 
@@ -228,7 +229,7 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 	// 	}
 	// }
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

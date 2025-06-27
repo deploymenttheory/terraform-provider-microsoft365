@@ -124,10 +124,17 @@ func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 
-			// Update policy data
+			// Only update fields present in the PATCH body, and remove optional fields if omitted
 			mockState.Lock()
 			for key, value := range updateData {
 				policyData[key] = value
+			}
+			// Remove optional fields if not present in PATCH body
+			optionalFields := []string{"alternateNotificationEmails"}
+			for _, field := range optionalFields {
+				if _, present := updateData[field]; !present {
+					delete(policyData, field)
+				}
 			}
 			mockState.Unlock()
 

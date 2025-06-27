@@ -117,22 +117,24 @@ func (r *WindowsAutopilotDeploymentProfileResource) Read(ctx context.Context, re
 
 // Update handles the Update operation.
 func (r *WindowsAutopilotDeploymentProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsAutopilotDeploymentProfileResourceModel
+	var plan WindowsAutopilotDeploymentProfileResourceModel
+	var state WindowsAutopilotDeploymentProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -144,7 +146,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Update(ctx context.Context, 
 	_, err = r.client.
 		DeviceManagement().
 		WindowsAutopilotDeploymentProfiles().
-		ByWindowsAutopilotDeploymentProfileId(object.ID.ValueString()).
+		ByWindowsAutopilotDeploymentProfileId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {

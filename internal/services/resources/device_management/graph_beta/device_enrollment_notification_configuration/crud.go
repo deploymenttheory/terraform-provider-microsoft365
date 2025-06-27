@@ -278,22 +278,24 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Read(ctx context.Con
 
 // Update handles the Update operation.
 func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceEnrollmentNotificationConfigurationResourceModel
+	var plan DeviceEnrollmentNotificationConfigurationResourceModel
+	var state DeviceEnrollmentNotificationConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -305,7 +307,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 	_, err = r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
-		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+		ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -314,8 +316,8 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 	}
 
 	// Update push localized message if specified
-	if object.PushLocalizedMessage != nil {
-		templateGUID, err := r.resolveNotificationTemplateID(ctx, object.ID.ValueString(), "push")
+	if plan.PushLocalizedMessage != nil {
+		templateGUID, err := r.resolveNotificationTemplateID(ctx, state.ID.ValueString(), "push")
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error resolving push template ID",
@@ -324,7 +326,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 			return
 		}
 
-		requestBody := constructLocalizedMessage(ctx, object.PushLocalizedMessage)
+		requestBody := constructLocalizedMessage(ctx, plan.PushLocalizedMessage)
 		if requestBody != nil {
 			_, err = r.client.
 				DeviceManagement().
@@ -343,8 +345,8 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 	}
 
 	// Update email localized message if specified
-	if object.EmailLocalizedMessage != nil {
-		templateGUID, err := r.resolveNotificationTemplateID(ctx, object.ID.ValueString(), "email")
+	if plan.EmailLocalizedMessage != nil {
+		templateGUID, err := r.resolveNotificationTemplateID(ctx, state.ID.ValueString(), "email")
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error resolving email template ID",
@@ -353,7 +355,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 			return
 		}
 
-		requestBody := constructLocalizedMessage(ctx, object.EmailLocalizedMessage)
+		requestBody := constructLocalizedMessage(ctx, plan.EmailLocalizedMessage)
 		if requestBody != nil {
 			_, err = r.client.
 				DeviceManagement().
@@ -371,8 +373,8 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 		}
 	}
 
-	if object.Assignments != nil {
-		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
+	if plan.Assignments != nil {
+		assignBody, err := constructAssignmentsRequestBody(ctx, plan.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError("Error creating assignment request body", err.Error())
 			return
@@ -381,7 +383,7 @@ func (r *DeviceEnrollmentNotificationConfigurationResource) Update(ctx context.C
 		err = r.client.
 			DeviceManagement().
 			DeviceEnrollmentConfigurations().
-			ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+			ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, assignBody, nil)
 

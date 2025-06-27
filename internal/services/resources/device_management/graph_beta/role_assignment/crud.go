@@ -144,30 +144,31 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 
 // Update handles the Update operation for the RoleDefinitionAssignment resource.
 func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RoleDefinitionAssignmentResourceModel
+	var plan RoleDefinitionAssignmentResourceModel
+	var state RoleDefinitionAssignmentResourceModel
+	var roleDefinitionID string // Determine role definition ID
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	defer cancel()
 
-	// Determine role definition ID
-	var roleDefinitionID string
 	isBuiltInRole := false
 	builtInRoleName := ""
 
-	if !data.RoleDefinitionID.IsNull() && !data.RoleDefinitionID.IsUnknown() {
-		roleDefinitionID = data.RoleDefinitionID.ValueString()
-	} else if !data.BuiltInRoleName.IsNull() && !data.BuiltInRoleName.IsUnknown() {
+	if !plan.RoleDefinitionID.IsNull() && !plan.RoleDefinitionID.IsUnknown() {
+		roleDefinitionID = plan.RoleDefinitionID.ValueString()
+	} else if !plan.BuiltInRoleName.IsNull() && !plan.BuiltInRoleName.IsUnknown() {
 		isBuiltInRole = true
-		builtInRoleName = data.BuiltInRoleName.ValueString()
+		builtInRoleName = plan.BuiltInRoleName.ValueString()
 	}
 
 	requestBody, err := constructResource(
@@ -175,7 +176,7 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		roleDefinitionID,
 		isBuiltInRole,
 		builtInRoleName,
-		&data,
+		&plan,
 	)
 
 	if err != nil {
@@ -189,7 +190,7 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 	_, err = r.client.
 		DeviceManagement().
 		RoleAssignments().
-		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
+		ByDeviceAndAppManagementRoleAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -213,7 +214,7 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
 // Delete handles the Delete operation for the RoleDefinitionAssignment resource.

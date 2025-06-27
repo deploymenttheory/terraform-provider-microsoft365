@@ -177,22 +177,24 @@ func (r *WindowsFeatureUpdateProfileResource) Read(ctx context.Context, req reso
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
 func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsFeatureUpdateProfileResourceModel
+	var plan WindowsFeatureUpdateProfileResourceModel
+	var state WindowsFeatureUpdateProfileResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -204,7 +206,7 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 	_, err = r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
-		ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
+		ByWindowsFeatureUpdateProfileId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -212,10 +214,10 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		return
 	}
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+	if len(plan.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", state.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &object)
+		assignRequestBody, err := constructAssignments(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments",
@@ -227,7 +229,7 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 		err = r.client.
 			DeviceManagement().
 			WindowsFeatureUpdateProfiles().
-			ByWindowsFeatureUpdateProfileId(object.ID.ValueString()).
+			ByWindowsFeatureUpdateProfileId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
 
@@ -236,7 +238,7 @@ func (r *WindowsFeatureUpdateProfileResource) Update(ctx context.Context, req re
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", state.ID.ValueString()))
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

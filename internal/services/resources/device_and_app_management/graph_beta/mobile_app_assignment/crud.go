@@ -172,22 +172,24 @@ func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.Rea
 
 // Update handles the Update operation for Mobile App Assignment resources.
 func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object MobileAppAssignmentResourceModel
+	var plan MobileAppAssignmentResourceModel
+	var state MobileAppAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := ConstructMobileAppAssignment(ctx, object)
+	requestBody, err := ConstructMobileAppAssignment(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -200,13 +202,18 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(object.MobileAppId.ValueString()).
+		ByMobileAppId(plan.MobileAppId.ValueString()).
 		Assignments().
-		ByMobileAppAssignmentId(object.ID.ValueString()).
+		ByMobileAppAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

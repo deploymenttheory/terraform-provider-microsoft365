@@ -174,23 +174,22 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 // Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
 // Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
 func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsPlatformScriptResourceModel
+	var plan WindowsPlatformScriptResourceModel
+	var state WindowsPlatformScriptResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	// Get current state
-	var state WindowsPlatformScriptResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get planned changes
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -208,7 +207,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	}
 
 	// Then create new resource
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -227,10 +226,10 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	object.ID = types.StringValue(*requestResource.GetId())
+	plan.ID = types.StringValue(*requestResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for create method",
@@ -242,7 +241,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		err = r.client.
 			DeviceManagement().
 			DeviceManagementScripts().
-			ByDeviceManagementScriptId(object.ID.ValueString()).
+			ByDeviceManagementScriptId(plan.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -252,7 +251,7 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -141,22 +141,24 @@ func (r *WindowsFeatureUpdateProfileAssignmentResource) Read(ctx context.Context
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 func (r *WindowsFeatureUpdateProfileAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsFeatureUpdateProfileAssignmentResourceModel
+	var plan WindowsFeatureUpdateProfileAssignmentResourceModel
+	var state WindowsFeatureUpdateProfileAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -168,9 +170,9 @@ func (r *WindowsFeatureUpdateProfileAssignmentResource) Update(ctx context.Conte
 	_, err = r.client.
 		DeviceManagement().
 		WindowsFeatureUpdateProfiles().
-		ByWindowsFeatureUpdateProfileId(object.WindowsFeatureUpdateProfileId.ValueString()).
+		ByWindowsFeatureUpdateProfileId(plan.WindowsFeatureUpdateProfileId.ValueString()).
 		Assignments().
-		ByWindowsFeatureUpdateProfileAssignmentId(object.ID.ValueString()).
+		ByWindowsFeatureUpdateProfileAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {

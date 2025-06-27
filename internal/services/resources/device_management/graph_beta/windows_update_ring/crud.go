@@ -128,22 +128,24 @@ func (r *WindowsUpdateRingResource) Read(ctx context.Context, req resource.ReadR
 
 // Update handles the Update operation for Windows Update Ring resources.
 func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsUpdateRingResourceModel
+	var plan WindowsUpdateRingResourceModel
+	var state WindowsUpdateRingResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -155,7 +157,7 @@ func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.Upd
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
+		ByDeviceConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -163,7 +165,7 @@ func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

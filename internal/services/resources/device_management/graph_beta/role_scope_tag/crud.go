@@ -190,16 +190,18 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 // - Performs a Read operation to refresh the Terraform state
 // Note: Built-in role scope tags cannot be modified
 func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object RoleScopeTagResourceModel
+	var plan RoleScopeTagResourceModel
+	var state RoleScopeTagResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -208,7 +210,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	deadline, _ := ctx.Deadline()
 	retryTimeout := time.Until(deadline) - time.Second
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -220,7 +222,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	_, err = r.client.
 		DeviceManagement().
 		RoleScopeTags().
-		ByRoleScopeTagId(object.ID.ValueString()).
+		ByRoleScopeTagId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -228,8 +230,8 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Update Method",
@@ -243,7 +245,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 			_, err := r.client.
 				DeviceManagement().
 				RoleScopeTags().
-				ByRoleScopeTagId(object.ID.ValueString()).
+				ByRoleScopeTagId(state.ID.ValueString()).
 				Assign().
 				PostAsAssignPostResponse(ctx, requestAssignment, nil)
 

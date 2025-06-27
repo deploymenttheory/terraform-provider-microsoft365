@@ -137,22 +137,24 @@ func (r *TermsAndConditionsResource) Read(ctx context.Context, req resource.Read
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 func (r *TermsAndConditionsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object TermsAndConditionsResourceModel
+	var plan TermsAndConditionsResourceModel
+	var state TermsAndConditionsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -164,7 +166,7 @@ func (r *TermsAndConditionsResource) Update(ctx context.Context, req resource.Up
 	_, err = r.client.
 		DeviceManagement().
 		TermsAndConditions().
-		ByTermsAndConditionsId(object.ID.ValueString()).
+		ByTermsAndConditionsId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {

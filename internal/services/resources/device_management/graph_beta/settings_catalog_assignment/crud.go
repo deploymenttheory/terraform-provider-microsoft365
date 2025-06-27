@@ -141,22 +141,24 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Read(ctx context
 //   - Calls Read operation to fetch the latest state from the API with retry
 //   - Updates the final state with the fresh data from the API
 func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object DeviceManagementConfigurationPolicyAssignmentResourceModel
+	var plan DeviceManagementConfigurationPolicyAssignmentResourceModel
+	var state DeviceManagementConfigurationPolicyAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -168,9 +170,9 @@ func (r *DeviceManagementConfigurationPolicyAssignmentResource) Update(ctx conte
 	_, err = r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ConfigurationPolicyId.ValueString()).
+		ByDeviceManagementConfigurationPolicyId(state.ConfigurationPolicyId.ValueString()).
 		Assignments().
-		ByDeviceManagementConfigurationPolicyAssignmentId(object.ID.ValueString()).
+		ByDeviceManagementConfigurationPolicyAssignmentId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {

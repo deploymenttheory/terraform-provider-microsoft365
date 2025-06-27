@@ -177,22 +177,24 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 // a separate POST operation to the assign endpoint. This allows for atomic updates
 // of both the script properties and its assignments.
 func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object WindowsQualityUpdateExpeditePolicyResourceModel
+	var plan WindowsQualityUpdateExpeditePolicyResourceModel
+	var state WindowsQualityUpdateExpeditePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -204,7 +206,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 	_, err = r.client.
 		DeviceManagement().
 		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		ByWindowsQualityUpdateProfileId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -212,10 +214,10 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 		return
 	}
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+	if len(plan.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", state.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &object)
+		assignRequestBody, err := constructAssignments(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments",
@@ -227,19 +229,19 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 		err = r.client.
 			DeviceManagement().
 			WindowsQualityUpdateProfiles().
-			ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+			ByWindowsQualityUpdateProfileId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, assignRequestBody, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", state.ID.ValueString()))
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

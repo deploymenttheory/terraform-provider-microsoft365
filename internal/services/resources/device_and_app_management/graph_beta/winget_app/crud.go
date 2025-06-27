@@ -183,21 +183,17 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update handles the Update operation.
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object, state WinGetAppResourceModel
+	var plan, state WinGetAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -214,7 +210,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	// }
 
 	// Step 1: Update the base mobile app resource
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -226,7 +222,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	_, err = r.client.
 		DeviceAppManagement().
 		MobileApps().
-		ByMobileAppId(object.ID.ValueString()).
+		ByMobileAppId(plan.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -235,17 +231,17 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Step 2: Updated Categories
-	if !object.Categories.Equal(state.Categories) {
-		tflog.Debug(ctx, fmt.Sprintf("Updating categories for resource %s with ID: %s", ResourceName, object.ID.ValueString()))
+	if !plan.Categories.Equal(state.Categories) {
+		tflog.Debug(ctx, fmt.Sprintf("Updating categories for resource %s with ID: %s", ResourceName, plan.ID.ValueString()))
 
 		var categoryValues []string
-		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		diags := plan.Categories.ElementsAs(ctx, &categoryValues, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		err = construct.AssignMobileAppCategories(ctx, r.client, plan.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
@@ -268,7 +264,7 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
 // Delete handles the Delete operation.
