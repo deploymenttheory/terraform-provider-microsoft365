@@ -4,11 +4,12 @@ import (
 	"context"
 
 	// Graph Beta - Windows 365 datasources
-	graphBetaCloudPcCloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_audit_event"
-	graphBetaCloudPcCloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_frontline_service_plan"
-	graphBetaCloudPcCloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_gallery_image"
-	graphBetaCloudPcCloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pc_source_device_image"
-	graphBetaCloudPcCloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/cloud_pc/graph_beta/cloud_pcs"
+	graphBetaWindows365CloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_audit_event"
+	graphBetaWindows365CloudPcDeviceImages "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_images"
+	graphBetaWindows365CloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_frontline_service_plan"
+	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
+	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
+	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
 
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
@@ -80,11 +81,12 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
 		// Graph Beta - Windows 365 datasources
-		graphBetaCloudPcCloudPcAuditEvent.NewCloudPcAuditEventDataSource,
-		graphBetaCloudPcCloudPcFrontlineServicePlan.NewCloudPcFrontlineServicePlanDataSource,
-		graphBetaCloudPcCloudPcGalleryImage.NewCloudPcGalleryImageDataSource,
-		graphBetaCloudPcCloudPcs.NewCloudPcsDataSource,
-		graphBetaCloudPcCloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
+		graphBetaWindows365CloudPcAuditEvent.NewCloudPcAuditEventDataSource,
+		graphBetaWindows365CloudPcFrontlineServicePlan.NewCloudPcFrontlineServicePlanDataSource,
+		graphBetaWindows365CloudPcGalleryImage.NewCloudPcGalleryImageDataSource,
+		graphBetaWindows365CloudPcDeviceImages.NewCloudPcDeviceImagesDataSource,
+		graphBetaWindows365CloudPcs.NewCloudPcsDataSource,
+		graphBetaWindows365CloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
 		// Graph v1.0 - Directory Management datasources
 		graphDirectoryManagementSubscribedSkus.NewSubscribedSkusDataSource,
 
