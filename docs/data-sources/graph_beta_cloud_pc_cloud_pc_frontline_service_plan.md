@@ -71,9 +71,9 @@ output "frontline_service_plans_by_display_name" {
 # Example: Show usage statistics for all frontline service plans
 output "frontline_service_plan_usage" {
   value = [for plan in data.microsoft365_graph_beta_cloud_pc_cloud_pc_frontline_service_plan.all.items : {
-    display_name = plan.display_name
-    used_count   = plan.used_count
-    total_count  = plan.total_count
+    display_name  = plan.display_name
+    used_count    = plan.used_count
+    total_count   = plan.total_count
     usage_percent = plan.total_count > 0 ? (plan.used_count * 100 / plan.total_count) : 0
   }]
 }
