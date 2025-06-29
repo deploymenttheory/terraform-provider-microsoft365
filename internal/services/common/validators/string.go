@@ -396,3 +396,104 @@ func RequiredWhenEquals(dependentField string, requiredValue types.String) valid
 }
 
 //---------------------------------------------------
+
+// requiredWithODataValidator validates that OData parameters are only used with filter_type = "odata"
+// and that at least one OData parameter is provided when filter_type = "odata"
+type requiredWithODataValidator struct {
+	odataFieldNames []string
+}
+
+// Description describes the validation in plain text formatting.
+func (v requiredWithODataValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("OData parameters (%s) can only be used when filter_type is 'odata'", strings.Join(v.odataFieldNames, ", "))
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v requiredWithODataValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v requiredWithODataValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	// Check if this is the filter_type field and if it's set to "odata"
+	if req.Path.String() == "filter_type" && req.ConfigValue.ValueString() == "odata" {
+		// Check if at least one OData parameter is provided
+		atLeastOneODataParamProvided := false
+
+		for _, odataFieldName := range v.odataFieldNames {
+			var odataField basetypes.StringValue
+			diags := req.Config.GetAttribute(ctx, path.Root(odataFieldName), &odataField)
+			if diags.HasError() {
+				continue
+			}
+
+			if !odataField.IsNull() && !odataField.IsUnknown() && odataField.ValueString() != "" {
+				atLeastOneODataParamProvided = true
+				break
+			}
+
+			// Check for numeric and boolean OData fields
+			if odataFieldName == "odata_top" {
+				var numField basetypes.Int64Value
+				diags := req.Config.GetAttribute(ctx, path.Root(odataFieldName), &numField)
+				if !diags.HasError() && !numField.IsNull() && !numField.IsUnknown() && numField.ValueInt64() > 0 {
+					atLeastOneODataParamProvided = true
+					break
+				}
+			}
+
+			if odataFieldName == "odata_count" {
+				var boolField basetypes.BoolValue
+				diags := req.Config.GetAttribute(ctx, path.Root(odataFieldName), &boolField)
+				if !diags.HasError() && !boolField.IsNull() && !boolField.IsUnknown() && boolField.ValueBool() {
+					atLeastOneODataParamProvided = true
+					break
+				}
+			}
+		}
+
+		if !atLeastOneODataParamProvided {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Missing OData Parameters",
+				fmt.Sprintf("When filter_type is 'odata', at least one of these parameters must be provided: %s", strings.Join(v.odataFieldNames, ", ")),
+			)
+		}
+	}
+
+	// If this is not the filter_type field but an OData field, check if filter_type is "odata"
+	for _, odataFieldName := range v.odataFieldNames {
+		if req.Path.String() == odataFieldName {
+			var filterTypeField basetypes.StringValue
+			diags := req.Config.GetAttribute(ctx, path.Root("filter_type"), &filterTypeField)
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+
+			if !filterTypeField.IsNull() && !filterTypeField.IsUnknown() && filterTypeField.ValueString() != "odata" {
+				resp.Diagnostics.AddAttributeError(
+					req.Path,
+					"Invalid OData Parameter Usage",
+					fmt.Sprintf("OData parameter '%s' can only be used when filter_type is 'odata'", odataFieldName),
+				)
+			}
+		}
+	}
+}
+
+// ODataParameterValidator returns a string validator which ensures that OData parameters
+// are only used with filter_type = "odata" and that at least one OData parameter is provided
+// when filter_type = "odata".
+func ODataParameterValidator(odataFieldNames ...string) validator.String {
+	return &requiredWithODataValidator{
+		odataFieldNames: odataFieldNames,
+	}
+}
+
+//---------------------------------------------------

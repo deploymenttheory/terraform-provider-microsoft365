@@ -1,0 +1,34 @@
+---
+page_title: "microsoft365_graph_beta_windows_365_cloud_pc_source_device_image Data Source - terraform-provider-microsoft365"
+subcategory: "Windows 365"
+description: |-
+  Retrieves Cloud PC source device images available for upload and use on Cloud PCs using the /deviceManagement/virtualEndpoint/deviceImages/getSourceImages endpoint. Supports filtering by all, id, or display_name for image discovery and automation.
+---
+
+# microsoft365_graph_beta_windows_365_cloud_pc_source_device_image (Data Source)
+
+Retrieves Cloud PC source device images available for upload and use on Cloud PCs using the `/deviceManagement/virtualEndpoint/deviceImages/getSourceImages` endpoint. Supports filtering by all, id, or display_name for image discovery and automation.
+
+## Microsoft Documentation
+
+- [cloudPcDeviceImage: getSourceImages](https://learn.microsoft.com/en-us/graph/api/cloudpcdeviceimage-getsourceimages?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.18.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_windows_365_cloud_pc_source_device_image/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }} 

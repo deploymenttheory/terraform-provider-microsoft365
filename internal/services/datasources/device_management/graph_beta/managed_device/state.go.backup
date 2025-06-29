@@ -1,0 +1,165 @@
+package graphBetaManagedDevice
+
+import (
+	"terraform-provider-microsoft365/internal/services/common/convert"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+// MapRemoteStateToDataSource maps a Windows Managed Device Graph API object to the Terraform model
+func MapRemoteStateToDataSource(data graphmodels.ManagedDeviceable) ManagedDeviceItem {
+	return ManagedDeviceItem{
+		ID:                        convert.GraphToFrameworkString(data.GetId()),
+		UserID:                    convert.GraphToFrameworkString(data.GetUserId()),
+		DeviceName:                convert.GraphToFrameworkString(data.GetDeviceName()),
+		OperatingSystem:           convert.GraphToFrameworkString(data.GetOperatingSystem()),
+		OSVersion:                 convert.GraphToFrameworkString(data.GetOsVersion()),
+		ComplianceState:           convert.GraphToFrameworkEnum(data.GetComplianceState()),
+		ManagementState:           convert.GraphToFrameworkEnum(data.GetManagementState()),
+		LastSyncDateTime:          convert.GraphToFrameworkTime(data.GetLastSyncDateTime()),
+		EnrolledDateTime:          convert.GraphToFrameworkTime(data.GetEnrolledDateTime()),
+		SerialNumber:              convert.GraphToFrameworkString(data.GetSerialNumber()),
+		Model:                     convert.GraphToFrameworkString(data.GetModel()),
+		Manufacturer:              convert.GraphToFrameworkString(data.GetManufacturer()),
+		JailBroken:                convert.GraphToFrameworkString(data.GetJailBroken()),
+		EasActivated:              convert.GraphToFrameworkBool(data.GetEasActivated()),
+		EasDeviceId:               convert.GraphToFrameworkString(data.GetEasDeviceId()),
+		AzureADDeviceId:           convert.GraphToFrameworkString(data.GetAzureADDeviceId()),
+		DeviceType:                convert.GraphToFrameworkEnum(data.GetDeviceType()),
+		OwnerType:                 convert.GraphToFrameworkEnum(data.GetOwnerType()),
+		ManagedDeviceOwnerType:    convert.GraphToFrameworkEnum(data.GetManagedDeviceOwnerType()),
+		UserPrincipalName:         convert.GraphToFrameworkString(data.GetUserPrincipalName()),
+		PhoneNumber:               convert.GraphToFrameworkString(data.GetPhoneNumber()),
+		EmailAddress:              convert.GraphToFrameworkString(data.GetEmailAddress()),
+		DeviceCategoryDisplayName: convert.GraphToFrameworkString(data.GetDeviceCategoryDisplayName()),
+		IsSupervised:              convert.GraphToFrameworkBool(data.GetIsSupervised()),
+		IsEncrypted:               convert.GraphToFrameworkBool(data.GetIsEncrypted()),
+		WiFiMacAddress:            convert.GraphToFrameworkString(data.GetWiFiMacAddress()),
+		EthernetMacAddress:        convert.GraphToFrameworkString(data.GetEthernetMacAddress()),
+		PhysicalMemoryInBytes:     convert.GraphToFrameworkInt64(data.GetPhysicalMemoryInBytes()),
+		ProcessorArchitecture:     convert.GraphToFrameworkEnum(data.GetProcessorArchitecture()),
+		Notes:                     convert.GraphToFrameworkString(data.GetNotes()),
+		HardwareInformation:       mapHardwareInformation(data.GetHardwareInformation()),
+		DeviceActionResults:       mapDeviceActionResults(data.GetDeviceActionResults()),
+		UsersLoggedOn:             mapUsersLoggedOn(data.GetUsersLoggedOn()),
+		ConfigurationManagerClientEnabledFeatures: mapConfigurationManagerClientEnabledFeatures(data.GetConfigurationManagerClientEnabledFeatures()),
+		DeviceHealthAttestationState:              mapDeviceHealthAttestationState(data.GetDeviceHealthAttestationState()),
+		ConfigurationManagerClientHealthState:     mapConfigurationManagerClientHealthState(data.GetConfigurationManagerClientHealthState()),
+		ConfigurationManagerClientInformation:     mapConfigurationManagerClientInformation(data.GetConfigurationManagerClientInformation()),
+		ChromeOSDeviceInfo:                        mapChromeOSDeviceInfo(data.GetChromeOSDeviceInfo()),
+		DeviceIdentityAttestationDetail:           nil, // Not available in SDK
+	}
+}
+
+// Map hardware information
+func mapHardwareInformation(hw graphmodels.HardwareInformationable) *HardwareInformation {
+	if hw == nil {
+		return nil
+	}
+	return &HardwareInformation{
+		SerialNumber:           convert.GraphToFrameworkString(hw.GetSerialNumber()),
+		Manufacturer:           convert.GraphToFrameworkString(hw.GetManufacturer()),
+		Model:                  convert.GraphToFrameworkString(hw.GetModel()),
+		PhoneNumber:            convert.GraphToFrameworkString(hw.GetPhoneNumber()),
+		WifiMac:                convert.GraphToFrameworkString(hw.GetWifiMac()),
+		IsSupervised:           convert.GraphToFrameworkBool(hw.GetIsSupervised()),
+		IsEncrypted:            convert.GraphToFrameworkBool(hw.GetIsEncrypted()),
+		BatteryLevelPercentage: types.Float64Null(), // TODO: Map if available in SDK
+	}
+}
+
+func mapDeviceActionResults(results []graphmodels.DeviceActionResultable) []DeviceActionResult {
+	var out []DeviceActionResult
+	for _, r := range results {
+		if r == nil {
+			continue
+		}
+		out = append(out, DeviceActionResult{
+			ActionName:          convert.GraphToFrameworkString(r.GetActionName()),
+			ActionState:         convert.GraphToFrameworkString(r.GetActionState()),
+			StartDateTime:       convert.GraphToFrameworkTime(r.GetStartDateTime()),
+			LastUpdatedDateTime: convert.GraphToFrameworkTime(r.GetLastUpdatedDateTime()),
+		})
+	}
+	return out
+}
+
+func mapUsersLoggedOn(users []graphmodels.LoggedOnUserable) []LoggedOnUser {
+	var out []LoggedOnUser
+	for _, u := range users {
+		if u == nil {
+			continue
+		}
+		out = append(out, LoggedOnUser{
+			UserId:            convert.GraphToFrameworkString(u.GetUserId()),
+			LastLogOnDateTime: convert.GraphToFrameworkTime(u.GetLastLogOnDateTime()),
+		})
+	}
+	return out
+}
+
+func mapConfigurationManagerClientEnabledFeatures(features graphmodels.ConfigurationManagerClientEnabledFeaturesable) *ConfigurationManagerClientEnabledFeatures {
+	if features == nil {
+		return nil
+	}
+	return &ConfigurationManagerClientEnabledFeatures{
+		Inventory:                convert.GraphToFrameworkBool(features.GetInventory()),
+		ModernApps:               convert.GraphToFrameworkBool(features.GetModernApps()),
+		ResourceAccess:           convert.GraphToFrameworkBool(features.GetResourceAccess()),
+		DeviceConfiguration:      convert.GraphToFrameworkBool(features.GetDeviceConfiguration()),
+		CompliancePolicy:         convert.GraphToFrameworkBool(features.GetCompliancePolicy()),
+		WindowsUpdateForBusiness: convert.GraphToFrameworkBool(features.GetWindowsUpdateForBusiness()),
+		EndpointProtection:       convert.GraphToFrameworkBool(features.GetEndpointProtection()),
+		OfficeApps:               convert.GraphToFrameworkBool(features.GetOfficeApps()),
+	}
+}
+
+func mapDeviceHealthAttestationState(att graphmodels.DeviceHealthAttestationStateable) *DeviceHealthAttestationState {
+	if att == nil {
+		return nil
+	}
+	return &DeviceHealthAttestationState{
+		LastUpdateDateTime: convert.GraphToFrameworkTime(att.GetLastUpdateDateTime()),
+		BitLockerStatus:    convert.GraphToFrameworkString(att.GetBitLockerStatus()),
+		SecureBoot:         convert.GraphToFrameworkString(att.GetSecureBoot()),
+	}
+}
+
+func mapConfigurationManagerClientHealthState(health graphmodels.ConfigurationManagerClientHealthStateable) *ConfigurationManagerClientHealthState {
+	if health == nil {
+		return nil
+	}
+	return &ConfigurationManagerClientHealthState{
+		State:            convert.GraphToFrameworkString(health.GetState()),
+		ErrorCode:        convert.GraphToFrameworkInt64(health.GetErrorCode()),
+		LastSyncDateTime: convert.GraphToFrameworkTime(health.GetLastSyncDateTime()),
+	}
+}
+
+func mapConfigurationManagerClientInformation(info graphmodels.ConfigurationManagerClientInformationable) *ConfigurationManagerClientInformation {
+	if info == nil {
+		return nil
+	}
+	return &ConfigurationManagerClientInformation{
+		ClientIdentifier: convert.GraphToFrameworkString(info.GetClientIdentifier()),
+		IsBlocked:        convert.GraphToFrameworkBool(info.GetIsBlocked()),
+		ClientVersion:    convert.GraphToFrameworkString(info.GetClientVersion()),
+	}
+}
+
+func mapChromeOSDeviceInfo(chromeProps []graphmodels.ChromeOSDevicePropertyable) []ChromeOSDeviceProperty {
+	var out []ChromeOSDeviceProperty
+	for _, c := range chromeProps {
+		if c == nil {
+			continue
+		}
+		out = append(out, ChromeOSDeviceProperty{
+			Name:      convert.GraphToFrameworkString(c.GetName()),
+			Value:     convert.GraphToFrameworkString(c.GetValue()),
+			ValueType: convert.GraphToFrameworkString(c.GetValueType()),
+			Updatable: convert.GraphToFrameworkBool(c.GetUpdatable()),
+		})
+	}
+	return out
+}

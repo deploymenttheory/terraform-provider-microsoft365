@@ -1,0 +1,477 @@
+package graphBetaManagedDevice
+
+import (
+	"context"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+)
+
+const (
+	DataSourceName = "graph_beta_device_management_managed_device"
+	ReadTimeout    = 180
+)
+
+var (
+	_ datasource.DataSource              = &ManagedDeviceDataSource{}
+	_ datasource.DataSourceWithConfigure = &ManagedDeviceDataSource{}
+)
+
+func NewManagedDeviceDataSource() datasource.DataSource {
+	return &ManagedDeviceDataSource{
+		ReadPermissions: []string{
+			"DeviceManagementManagedDevices.Read.All",
+		},
+	}
+}
+
+type ManagedDeviceDataSource struct {
+	client           *msgraphbetasdk.GraphServiceClient
+	ProviderTypeName string
+	TypeName         string
+	ReadPermissions  []string
+}
+
+func (d *ManagedDeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+}
+
+func (d *ManagedDeviceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+}
+
+func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "Retrieves Windows Managed Devices from Microsoft Intune. Using the endpoint '/deviceManagement/managedDevices'. Supports filtering by all, id, or device_name.",
+		Attributes: map[string]schema.Attribute{
+			"filter_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`. Use 'all' to retrieve all devices, 'id' to retrieve a specific device by its unique identifier, or 'device_name' to filter by name.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "id", "device_name"),
+				},
+			},
+			"filter_value": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'. For 'id', provide the device ID. For 'device_name', provide the name to match.",
+			},
+			"items": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "The list of Windows Managed Devices that match the filter criteria.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Unique Identifier for the device. This property is read-only. Inherited from managedDevice",
+						},
+						"user_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Unique Identifier for the user associated with the device. This property is read-only. Inherited from managedDevice",
+						},
+						"device_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Name of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"hardware_information": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "The hardward details for the device. Includes information such as storage space, manufacturer, serial number, etc. By default most property of this type are set to null/0/false and enum defaults for associated types. To retrieve actual values GET call needs to be made, with device id and included in select parameter. Supports: $select. $Search is not supported. Read-only. This property is read-only. Inherited from managedDevice",
+							Attributes: map[string]schema.Attribute{
+								"serial_number": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Serial Number value.",
+								},
+								"total_storage_space": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Total Storage in Bytes. This property is read-only. Inherited from managedDevice",
+								},
+								"free_storage_space": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Free Storage in Bytes. Default value is 0. Read-only. This property is read-only. Inherited from managedDevice",
+								},
+								"imei": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "IMEI. This property is read-only. Inherited from managedDevice",
+								},
+								"meid": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "MEID. This property is read-only. Inherited from managedDevice",
+								},
+								"manufacturer": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Manufacturer value.",
+								},
+								"model": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Model value.",
+								},
+								"phone_number": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Phone Number value.",
+								},
+								"subscriber_carrier": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Subscriber Carrier. This property is read-only. Inherited from managedDevice",
+								},
+								"cellular_technology": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Cellular Technology value.",
+								},
+								"wifi_mac": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Wifi Mac value.",
+								},
+								"operating_system_language": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Operating System Language value.",
+								},
+								"is_supervised": schema.BoolAttribute{
+									Computed:            true,
+									MarkdownDescription: "Is Supervised value.",
+								},
+								"is_encrypted": schema.BoolAttribute{
+									Computed:            true,
+									MarkdownDescription: "Is Encrypted value.",
+								},
+								"battery_serial_number": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Battery Serial Number value.",
+								},
+								"battery_health_percentage": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Battery Health Percentage value.",
+								},
+								"battery_charge_cycles": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Battery Charge Cycles value.",
+								},
+								"is_shared_device": schema.BoolAttribute{
+									Computed:            true,
+									MarkdownDescription: "Is Shared Device value.",
+								},
+								"shared_device_cached_users": schema.ListNestedAttribute{
+									Computed:            true,
+									MarkdownDescription: "List of shared Apple device users.",
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"user_principal_name": schema.StringAttribute{
+												Computed:            true,
+												MarkdownDescription: "User Principal Name value.",
+											},
+											"data_to_sync": schema.BoolAttribute{
+												Computed:            true,
+												MarkdownDescription: "Data To Sync value.",
+											},
+											"data_quota": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Data Quota value.",
+											},
+											"data_used": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Data Used value.",
+											},
+										},
+									},
+								},
+								"tpm_specification_version": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Tpm Specification Version value.",
+								},
+								"operating_system_edition": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Operating System Edition value.",
+								},
+								"device_full_qualified_domain_name": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Full Qualified Domain Name value.",
+								},
+								"device_guard_virtualization_based_security_hardware_requirement_state": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Guard Virtualization Based Security Hardware Requirement State value.",
+								},
+								"device_guard_virtualization_based_security_state": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Guard Virtualization Based Security State value.",
+								},
+								"device_guard_local_system_authority_credential_guard_state": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Guard Local System Authority Credential Guard State value.",
+								},
+								"os_build_number": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Os Build Number value.",
+								},
+								"operating_system_product_type": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Operating System Product Type value.",
+								},
+								"ip_address_v4": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Ip Address V4 value.",
+								},
+								"subnet_address": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Subnet Address value.",
+								},
+								"esim_identifier": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Esim Identifier value.",
+								},
+								"system_management_bios_version": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "System Management BIOSVersion value.",
+								},
+								"tpm_manufacturer": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Tpm Manufacturer value.",
+								},
+								"tpm_version": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Tpm Version value.",
+								},
+								"wired_ipv4_addresses": schema.ListAttribute{
+									ElementType:         types.StringType,
+									Computed:            true,
+									MarkdownDescription: "Wired IPv4Addresses value.",
+								},
+								"battery_level_percentage": schema.Float64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Battery Level Percentage value.",
+								},
+								"resident_users_count": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Resident Users Count value.",
+								},
+								"product_name": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Product Name value.",
+								},
+								"device_licensing_status": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Licensing Status value.",
+								},
+								"device_licensing_last_error_code": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "Device Licensing Last Error Code value.",
+								},
+								"device_licensing_last_error_description": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Device Licensing Last Error Description value.",
+								},
+							},
+						},
+						"owner_type": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Ownership of the device. Possible values are, 'company' or 'personal'. Default is unknown. Supports $filter operator 'eq' and 'or'. Inherited from managedDevice. Possible values are: unknown, company, personal.",
+						},
+						"managed_device_owner_type": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Ownership of the device. Can be 'company' or 'personal' Inherited from managedDevice. Possible values are: unknown, company, personal.",
+						},
+						"device_action_results": schema.ListNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "List of ComplexType deviceActionResult objects. This property is read-only. Inherited from managedDevice",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"action_name": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Action Name value.",
+									},
+									"action_state": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Action State value.",
+									},
+									"start_date_time": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Start Date Time value.",
+									},
+									"last_updated_date_time": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Last Updated Date Time value.",
+									},
+								},
+							},
+						},
+						"management_state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Management state of the device. Examples: Managed, RetirePending, etc. Default is managed. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice. Possible values are: managed, retirePending, retireFailed, wipePending, wipeFailed, unhealthy, deletePending, retireIssued, wipeIssued, wipeCanceled, retireCanceled, discovered.",
+						},
+						"enrolled_date_time": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Enrollment time of the device. Supports $filter operator 'lt' and 'gt'. This property is read-only. Inherited from managedDevice",
+						},
+						"last_sync_date_time": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The date and time that the device last completed a successful sync with Intune. Supports $filter operator 'lt' and 'gt'. This property is read-only. Inherited from managedDevice",
+						},
+						"chassis_type": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Chassis type of the device. This property is read-only. Inherited from managedDevice. Possible values are: unknown, desktop, laptop, worksWorkstation, enterpriseServer, phone, tablet, mobileOther, mobileUnknown.",
+						},
+						"operating_system": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Operating system of the device. Windows, iOS, etc. This property is read-only. Inherited from managedDevice",
+						},
+						"device_type": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Platform of the device. Examples: Desktop, WindowsRT, etc. Default is unknown. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice. Possible values are: desktop, windowsRT, winMO6, nokia, windowsPhone, mac, winCE, winEmbedded, iPhone, iPad, iPod, android, iSocConsumer, unix, macMDM, holoLens, surfaceHub, androidForWork, androidEnterprise, windows10x, androidnGMS, chromeOS, linux, blackberry, palm, unknown, cloudPC.",
+						},
+						"compliance_state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Compliance state of the device. Examples: Compliant, Conflict, Error, etc. Default is unknown. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice. Possible values are: unknown, compliant, noncompliant, conflict, error, inGracePeriod, configManager.",
+						},
+						"jail_broken": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Whether the device is jail broken or rooted. Default is an empty string. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice",
+						},
+						"management_agent": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Management channel of the device. Examples: Intune, EAS, etc. Default is unknown. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice. Possible values are: eas, mdm, easMdm, intuneClient, easIntuneClient, configurationManagerClient, configurationManagerClientMdm, configurationManagerClientMdmEas, unknown, jamf, googleCloudDevicePolicyController, microsoft365ManagedMdm, msSense, intuneAosp, google, unknownFutureValue.",
+						},
+						"os_version": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Operating system version of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"eas_activated": schema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Whether the device is Exchange ActiveSync activated. This property is read-only. Inherited from managedDevice",
+						},
+						"eas_device_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Exchange ActiveSync Id of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"eas_activation_date_time": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Exchange ActivationSync activation time of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"aad_registered": schema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Whether the device is Azure Active Directory registered. This property is read-only. Inherited from managedDevice",
+						},
+						"azure_ad_registered": schema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Whether the device is Azure Active Directory registered. This property is read-only. Inherited from managedDevice",
+						},
+						"device_enrollment_type": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Enrollment type of the device. This property is read-only. Inherited from managedDevice. Possible values are: unknown, userEnrollment, deviceEnrollmentManager, appleBulkWithUser, appleBulkWithoutUser, windowsAzureADJoin, windowsBulkUserless, windowsAutoEnrollment, windowsBulkAzureDomainJoin, windowsCoManagement, windowsAzureADJoinUsingDeviceAuth, appleUserEnrollment, appleUserEnrollmentWithServiceAccount, azureAdJoinUsingAzureVmExtension, androidEnterpriseDedicatedDevice, androidEnterpriseFullyManaged, androidEnterpriseCorporateWorkProfile, appleACMEBasicBYOD, appleACMEDEPUDACompanyPortal, appleACMEDEPUDASetupAsstLegacy, appleACMEDEPUDAModernAuth.",
+						},
+						"lost_mode_state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Indicates if Lost mode is enabled or disabled. This property is read-only. Inherited from managedDevice. Possible values are: disabled, enabled.",
+						},
+						"activation_lock_bypass_code": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The code that allows the Activation Lock on managed device to be bypassed. Default, is Null (Non-Default property) for this property when returned as part of managedDevice entity in LIST call. To retrieve actual values GET call needs to be made, with device id and included in select parameter. Supports: $select. $Search is not supported. Read-only. This property is read-only. Inherited from managedDevice",
+						},
+						"email_address": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Email(s) for the user associated with the device. This property is read-only. Inherited from managedDevice",
+						},
+						"azure_active_directory_device_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The unique identifier for the Azure Active Directory device. Read only. This property is read-only. Inherited from managedDevice",
+						},
+						"azure_ad_device_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The unique identifier for the Azure Active Directory device. Read only. This property is read-only. Inherited from managedDevice",
+						},
+						"device_registration_state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Device registration state. This property is read-only. Inherited from managedDevice. Possible values are: notRegistered, registered, revoked, keyConflict, approvalPending, certificateReset, notRegisteredPendingEnrollment, unknown.",
+						},
+						"device_category_display_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Device category display name. Default is an empty string. Supports $filter operator 'eq' and 'or'. This property is read-only. Inherited from managedDevice",
+						},
+						"is_supervised": schema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Device supervised status. This property is read-only. Inherited from managedDevice",
+						},
+						"exchange_last_successful_sync_date_time": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Last time the device contacted Exchange. This property is read-only. Inherited from managedDevice",
+						},
+						"exchange_access_state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The Access State of the device in Exchange. This property is read-only. Inherited from managedDevice. Possible values are: none, unknown, allowed, blocked, quarantined.",
+						},
+						"exchange_access_state_reason": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The reason for the device's access state in Exchange. This property is read-only. Inherited from managedDevice. Possible values are: none, unknown, exchangeGlobalRule, exchangeIndividualRule, exchangeDeviceRule, exchangeUpgrade, exchangeMailboxPolicy, other, compliant, notCompliant, notEnrolled, unknownLocation, mfaRequired, azureADBlockDueToAccessPolicy, compromisedPassword, deviceNotKnownWithManagedApp.",
+						},
+						"remote_assistance_session_url": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Url that allows a Remote Assistance session to be established with the device. Default is an empty string. To retrieve actual values GET call needs to be made, with device id and included in select parameter. This property is read-only. Inherited from managedDevice",
+						},
+						"remote_assistance_session_error_details": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "An error string that identifies issues when creating Remote Assistance session objects. This property is read-only. Inherited from managedDevice",
+						},
+						"is_encrypted": schema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Device encryption status. This property is read-only. Inherited from managedDevice",
+						},
+						"user_principal_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Device user principal name. This property is read-only. Inherited from managedDevice",
+						},
+						"model": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Model of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"manufacturer": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Manufacturer of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"imei": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "IMEI. This property is read-only. Inherited from managedDevice",
+						},
+						"compliance_grace_period_expiration_date_time": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The DateTime when device compliance grace period expires. This property is read-only. Inherited from managedDevice",
+						},
+						"serial_number": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "SerialNumber. This property is read-only. Inherited from managedDevice",
+						},
+						"phone_number": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Phone number of the device. This property is read-only. Inherited from managedDevice",
+						},
+						"android_security_patch_level": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Android security patch level. This property is read-only. Inherited from managedDevice",
+						},
+						"user_display_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "User display name. This property is read-only. Inherited from managedDevice",
+						},
+						"configuration_manager_client_enabled_features": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "ConfigrMgr client enabled features. This property is read-only. Inherited from managedDevice",
+						},
+						"wi_fi_mac": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Wi-Fi MAC. This property is read-only. Inherited from managedDevice",
+						},
+						"device_health_attestation_state": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "The device health attestation state. This property is read-only. Inherited from managedDevice",
+						},
+						"subscriber_carrier": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			"timeouts": commonschema.Timeouts(ctx),
+		},
+	}
+}
