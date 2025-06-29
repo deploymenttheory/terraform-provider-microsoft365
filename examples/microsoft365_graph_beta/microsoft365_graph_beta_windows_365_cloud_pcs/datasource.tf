@@ -3,6 +3,37 @@ data "microsoft365_graph_beta_windows_365_cloud_pcs" "all" {
   filter_type = "all"
 }
 
+output "all_cloud_pcs_full" {
+  value = [
+    for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
+      id                       = pc.id
+      display_name             = pc.display_name
+      aad_device_id            = pc.aad_device_id
+      image_display_name       = pc.image_display_name
+      managed_device_id        = pc.managed_device_id
+      managed_device_name      = pc.managed_device_name
+      provisioning_policy_id   = pc.provisioning_policy_id
+      provisioning_policy_name = pc.provisioning_policy_name
+      on_premises_connection_name = pc.on_premises_connection_name
+      service_plan_id          = pc.service_plan_id
+      service_plan_name        = pc.service_plan_name
+      service_plan_type        = pc.service_plan_type
+      status                   = pc.status
+      user_principal_name      = pc.user_principal_name
+      last_modified_date_time  = pc.last_modified_date_time
+      status_detail_code       = pc.status_detail_code
+      status_detail_message    = pc.status_detail_message
+      grace_period_end_date_time = pc.grace_period_end_date_time
+      provisioning_type        = pc.provisioning_type
+      device_region_name       = pc.device_region_name
+      disk_encryption_state    = pc.disk_encryption_state
+      product_type             = pc.product_type
+      user_account_type        = pc.user_account_type
+      enable_single_sign_on    = pc.enable_single_sign_on
+    }
+  ]
+} 
+
 # Example: Retrieve a specific Cloud PC by ID
 data "microsoft365_graph_beta_windows_365_cloud_pcs" "by_id" {
   filter_type  = "id"

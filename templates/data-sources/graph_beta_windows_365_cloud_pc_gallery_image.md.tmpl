@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_windows_365_cloud_pc_gallery_image Data Source - terraform-provider-microsoft365"
-subcategory: "Cloud PC"
+subcategory: "Windows 365"
 description: |-
   Retrieves Cloud PC Gallery Images from Microsoft Intune using the /deviceManagement/virtualEndpoint/galleryImages endpoint. Supports filtering by all, id, or display_name for image discovery and selection.
 ---
