@@ -17,10 +17,10 @@ output "all_frontline_service_plans" {
 output "frontline_service_plan_usage" {
   value = {
     for plan in data.microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan.all.items : plan.display_name => {
-      total_licenses = plan.total_count
-      used_licenses  = plan.used_count
+      total_licenses     = plan.total_count
+      used_licenses      = plan.used_count
       available_licenses = plan.total_count - plan.used_count
-      usage_percentage = plan.total_count > 0 ? (plan.used_count * 100 / plan.total_count) : 0
+      usage_percentage   = plan.total_count > 0 ? (plan.used_count * 100 / plan.total_count) : 0
     }
   }
 }
@@ -49,9 +49,9 @@ output "frontline_service_plans_by_display_name" {
 # Example: Show usage statistics for all frontline service plans
 output "frontline_service_plan_usage" {
   value = [for plan in data.microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan.all.items : {
-    display_name = plan.display_name
-    used_count   = plan.used_count
-    total_count  = plan.total_count
+    display_name  = plan.display_name
+    used_count    = plan.used_count
+    total_count   = plan.total_count
     usage_percent = plan.total_count > 0 ? (plan.used_count * 100 / plan.total_count) : 0
   }]
 } 
