@@ -123,7 +123,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s (operation: %s)", ResourceName, object.ID.ValueString(), operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -131,12 +131,19 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
+	// Create request configuration with expand to include assignments
+	requestConfig := &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetQueryParameters{
+			Expand: []string{"assignments"},
+		},
+	}
+
 	provisioningPolicy, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -145,20 +152,12 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
-	assignments, err := r.client.
-		DeviceManagement().
-		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
+	// Extract assignments from the expanded response
+	if assignments := provisioningPolicy.GetAssignments(); assignments != nil {
+		object.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
+	} else {
+		object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
 	}
-
-	MapAssignmentsToTerraform(ctx, assignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

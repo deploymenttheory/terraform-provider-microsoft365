@@ -93,7 +93,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	// // Handle Assignments
 	// if assignments := remoteResource.GetAssignments(); assignments != nil {
 	// 	tflog.Debug(ctx, fmt.Sprintf("Found %d assignments for policy", len(assignments)))
-	// 	data.Assignments = MapAssignmentsToTerraform(ctx, assignments)
+	// 	data.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
 	// } else {
 	// 	tflog.Debug(ctx, "No assignments found for policy")
 	// 	data.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
