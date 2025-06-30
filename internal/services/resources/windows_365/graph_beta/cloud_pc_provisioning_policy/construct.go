@@ -7,11 +7,16 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel) (*models.CloudPcProvisioningPolicy, error) {
+func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResourceModel, client *msgraphbetasdk.GraphServiceClient) (*models.CloudPcProvisioningPolicy, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	if err := validateResource(ctx, client, data); err != nil {
+		return nil, err
+	}
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
 

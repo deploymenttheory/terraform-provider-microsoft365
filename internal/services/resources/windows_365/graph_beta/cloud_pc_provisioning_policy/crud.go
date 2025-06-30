@@ -16,22 +16,22 @@ import (
 
 // Create handles the Create operation.
 func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object CloudPcProvisioningPolicyResourceModel
+	var plan CloudPcProvisioningPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan, r.client)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -51,12 +51,12 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	object.ID = types.StringValue(*baseResource.GetId())
+	plan.ID = types.StringValue(*baseResource.GetId())
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Creating %d assignments for policy ID: %s", len(object.Assignments), object.ID.ValueString()))
+	if len(plan.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Creating %d assignments for policy ID: %s", len(plan.Assignments), plan.ID.ValueString()))
 
-		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
+		assignBody, err := constructAssignmentsRequestBody(ctx, plan.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments request body",
@@ -69,7 +69,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 			DeviceManagement().
 			VirtualEndpoint().
 			ProvisioningPolicies().
-			ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+			ByCloudPcProvisioningPolicyId(plan.ID.ValueString()).
 			Assign().
 			Post(ctx, assignBody, nil)
 
@@ -81,7 +81,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		tflog.Debug(ctx, "Successfully created assignments")
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -111,13 +111,19 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	operation := "Read"
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s (operation: %s)", ResourceName, object.ID.ValueString(), operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -125,39 +131,32 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	// Get the policy with expanded assignments
+	// Create request configuration with expand to include assignments
+	requestConfig := &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetQueryParameters{
+			Expand: []string{"assignments"},
+		},
+	}
+
 	provisioningPolicy, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
 		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
-	assignments, err := r.client.
-		DeviceManagement().
-		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-		return
-	}
-
-	if err != nil {
-		tflog.Warn(ctx, fmt.Sprintf("Error getting assignments for policy ID %s: %s", object.ID.ValueString(), err.Error()))
-	} else if assignments != nil {
-		tflog.Debug(ctx, fmt.Sprintf("Found %d assignments for policy", len(assignments.GetValue())))
-		object.Assignments = MapAssignmentsToTerraform(ctx, assignments.GetValue())
+	// Extract assignments from the expanded response
+	if assignments := provisioningPolicy.GetAssignments(); assignments != nil {
+		object.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
+	} else {
+		object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -189,7 +188,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, r.client)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

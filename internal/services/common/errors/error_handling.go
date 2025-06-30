@@ -106,6 +106,23 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
+	// case 400:
+	// 	if operation == "Read" {
+	// 		// Check if context has expired - only remove from state if timeout reached
+	// 		if deadline, hasDeadline := ctx.Deadline(); hasDeadline && time.Now().After(deadline) {
+	// 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response) and context expired, removing from state")
+	// 			removeResourceFromState(ctx, resp)
+	// 			return
+	// 		} else {
+	// 			tflog.Debug(ctx, "Resource appears to no longer exist (400 Response), but context not expired - will retry")
+	// 			addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+	// 				constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+	// 			return
+	// 		}
+	// 	}
+	// 	addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+	// 		constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
 	case 401, 403:
 		tflog.Warn(ctx, fmt.Sprintf("Permission error on %s operation, check required Graph permissions", operation))
 		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
@@ -116,6 +133,89 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
+	// case 404:
+	// 	if operation == "Read" {
+	// 		// Check if context has expired - only remove from state if timeout reached
+	// 		if deadline, hasDeadline := ctx.Deadline(); hasDeadline && time.Now().After(deadline) {
+	// 			tflog.Warn(ctx, "Resource not found (404 Response) and context expired, removing from state")
+	// 			removeResourceFromState(ctx, resp)
+	// 			return
+	// 		} else {
+	// 			tflog.Debug(ctx, "Resource not found (404 Response), but context not expired - will retry")
+	// 			addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+	// 				constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+	// 			return
+	// 		}
+	// 	}
+	// 	addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+	// 		constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
+	case 429:
+		if operation == "Read" {
+			tflog.Warn(ctx, "Rate limit exceeded on read operation")
+			handleRateLimitError(ctx, errorInfo, resp)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
+	case 503:
+		if operation == "Read" {
+			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
+			handleServiceUnavailableError(ctx, errorInfo, resp)
+			return
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
+	default:
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+	}
+}
+
+/*
+// Handle special cases first
+	switch errorInfo.StatusCode {
+	case 400:
+		if operation == "Read" {
+			// Check if context has expired - only remove from state if timeout reached
+			if deadline, hasDeadline := ctx.Deadline(); hasDeadline && time.Now().After(deadline) {
+				tflog.Warn(ctx, "Resource appears to no longer exist (400 Response) and context expired, removing from state")
+				removeResourceFromState(ctx, resp)
+				return
+			} else {
+				tflog.Debug(ctx, "Resource appears to no longer exist (400 Response), but context not expired - will retry")
+				addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+					constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+				return
+			}
+		}
+		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+
+	case 401, 403:
+		tflog.Warn(ctx, fmt.Sprintf("Permission error on %s operation, check required Graph permissions", operation))
+		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
+		return
+
+	case 404:
+		if operation == "Read" {
+			// Check if context has expired - only remove from state if timeout reached
+			if deadline, hasDeadline := ctx.Deadline(); hasDeadline && time.Now().After(deadline) {
+				tflog.Warn(ctx, "Resource not found (404 Response) and context expired, removing from state")
+				removeResourceFromState(ctx, resp)
+				return
+			} else {
+				tflog.Debug(ctx, "Resource not found (404 Response), but context not expired - will retry")
+				addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+					constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
+				return
+			}
 		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
@@ -142,7 +242,7 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 	}
-}
+*/
 
 // GraphError extracts and analyzes error information from Graph API errors
 func GraphError(ctx context.Context, err error) GraphErrorInfo {

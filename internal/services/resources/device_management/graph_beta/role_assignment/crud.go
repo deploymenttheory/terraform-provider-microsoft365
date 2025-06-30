@@ -110,6 +110,14 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 	var data RoleDefinitionAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+
+	operation := "Read"
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,7 +136,7 @@ func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resourc
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 

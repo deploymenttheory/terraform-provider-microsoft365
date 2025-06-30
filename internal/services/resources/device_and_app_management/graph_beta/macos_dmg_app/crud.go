@@ -340,6 +340,12 @@ func (r *MacOSDmgAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
+	operation := "Read"
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -367,7 +373,7 @@ func (r *MacOSDmgAppResource) Read(ctx context.Context, req resource.ReadRequest
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 

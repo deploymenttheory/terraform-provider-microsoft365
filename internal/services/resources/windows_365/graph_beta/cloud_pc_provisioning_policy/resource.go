@@ -97,6 +97,10 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					planmodifiers.UseStateForUnknownString(),
 				},
 			},
+			"display_name": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The display name for the provisioning policy.",
+			},
 			"alternate_resource_url": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The URL of the alternate resource that links to this provisioning policy. Read-only.",
@@ -113,10 +117,6 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			"description": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The provisioning policy description. Supports $filter, $select, and $orderBy.",
-			},
-			"display_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The display name for the provisioning policy.",
 			},
 			"provisioning_type": schema.StringAttribute{
 				Optional: true,

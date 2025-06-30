@@ -103,7 +103,7 @@ func (r *ResourceTemplateResource) Read(ctx context.Context, req resource.ReadRe
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 

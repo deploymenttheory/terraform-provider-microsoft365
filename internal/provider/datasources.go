@@ -17,6 +17,7 @@ import (
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/device_category"
 	graphBetaDeviceManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/linux_platform_script"
+	graphBetaDeviceManagementManagedDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device"
 	graphBetaDeviceManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/reuseable_policy_settings"
 	graphBetaDeviceManagementRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/role_scope_tag"
 	graphBetaDeviceManagementWindowsDriverUpdateInventory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_driver_update_inventory"
@@ -64,6 +65,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
 		graphBetaDeviceManagementLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
+		graphBetaDeviceManagementManagedDevice.NewManagedDeviceDataSource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
 		graphBetaDeviceManagementRoleScopeTag.NewRoleScopeTagDataSource,
 		graphBetaDeviceManagementWindowsDriverUpdateProfile.NewWindowsDriverUpdateProfileDataSource,
