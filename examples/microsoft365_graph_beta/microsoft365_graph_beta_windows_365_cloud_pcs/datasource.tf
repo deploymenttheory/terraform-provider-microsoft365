@@ -6,33 +6,33 @@ data "microsoft365_graph_beta_windows_365_cloud_pcs" "all" {
 output "all_cloud_pcs_full" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      id                       = pc.id
-      display_name             = pc.display_name
-      aad_device_id            = pc.aad_device_id
-      image_display_name       = pc.image_display_name
-      managed_device_id        = pc.managed_device_id
-      managed_device_name      = pc.managed_device_name
-      provisioning_policy_id   = pc.provisioning_policy_id
-      provisioning_policy_name = pc.provisioning_policy_name
+      id                          = pc.id
+      display_name                = pc.display_name
+      aad_device_id               = pc.aad_device_id
+      image_display_name          = pc.image_display_name
+      managed_device_id           = pc.managed_device_id
+      managed_device_name         = pc.managed_device_name
+      provisioning_policy_id      = pc.provisioning_policy_id
+      provisioning_policy_name    = pc.provisioning_policy_name
       on_premises_connection_name = pc.on_premises_connection_name
-      service_plan_id          = pc.service_plan_id
-      service_plan_name        = pc.service_plan_name
-      service_plan_type        = pc.service_plan_type
-      status                   = pc.status
-      user_principal_name      = pc.user_principal_name
-      last_modified_date_time  = pc.last_modified_date_time
-      status_detail_code       = pc.status_detail_code
-      status_detail_message    = pc.status_detail_message
-      grace_period_end_date_time = pc.grace_period_end_date_time
-      provisioning_type        = pc.provisioning_type
-      device_region_name       = pc.device_region_name
-      disk_encryption_state    = pc.disk_encryption_state
-      product_type             = pc.product_type
-      user_account_type        = pc.user_account_type
-      enable_single_sign_on    = pc.enable_single_sign_on
+      service_plan_id             = pc.service_plan_id
+      service_plan_name           = pc.service_plan_name
+      service_plan_type           = pc.service_plan_type
+      status                      = pc.status
+      user_principal_name         = pc.user_principal_name
+      last_modified_date_time     = pc.last_modified_date_time
+      status_detail_code          = pc.status_detail_code
+      status_detail_message       = pc.status_detail_message
+      grace_period_end_date_time  = pc.grace_period_end_date_time
+      provisioning_type           = pc.provisioning_type
+      device_region_name          = pc.device_region_name
+      disk_encryption_state       = pc.disk_encryption_state
+      product_type                = pc.product_type
+      user_account_type           = pc.user_account_type
+      enable_single_sign_on       = pc.enable_single_sign_on
     }
   ]
-} 
+}
 
 # Example: Retrieve a specific Cloud PC by ID
 data "microsoft365_graph_beta_windows_365_cloud_pcs" "by_id" {
@@ -72,9 +72,9 @@ data "microsoft365_graph_beta_windows_365_cloud_pcs" "by_odata_filter" {
 
 # Example: Using OData to select specific fields (reduces state file size)
 data "microsoft365_graph_beta_windows_365_cloud_pcs" "by_odata_select" {
-  filter_type   = "odata"
-  odata_filter  = "status eq 'provisioned'"
-  odata_select  = "id,displayName,status,userPrincipalName"
+  filter_type  = "odata"
+  odata_filter = "status eq 'provisioned'"
+  odata_select = "id,displayName,status,userPrincipalName"
 }
 
 # Example: Using OData to limit the number of results
@@ -93,19 +93,19 @@ data "microsoft365_graph_beta_windows_365_cloud_pcs" "by_odata_count" {
 
 # Example: Using OData with multiple parameters for optimized queries
 data "microsoft365_graph_beta_windows_365_cloud_pcs" "optimized_query" {
-  filter_type   = "odata"
-  odata_filter  = "status eq 'provisioned' and productType eq 'enterprise'"
-  odata_select  = "id,displayName,status,userPrincipalName,serviceplanName"
-  odata_top     = 10
+  filter_type  = "odata"
+  odata_filter = "status eq 'provisioned' and productType eq 'enterprise'"
+  odata_select = "id,displayName,status,userPrincipalName,serviceplanName"
+  odata_top    = 10
 }
 
 # Output: Basic information about all Cloud PCs
 output "all_cloud_pcs_basic_info" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      id               = pc.id
-      display_name     = pc.display_name
-      status           = pc.status
+      id                  = pc.id
+      display_name        = pc.display_name
+      status              = pc.status
       user_principal_name = pc.user_principal_name
     }
   ]
@@ -120,18 +120,18 @@ output "first_cloud_pc_details" {
 output "cloud_pc_configuration_details" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      id                        = pc.id
-      display_name              = pc.display_name
-      provisioning_policy_name  = pc.provisioning_policy_name
-      service_plan_name         = pc.service_plan_name
-      service_plan_type         = pc.service_plan_type
-      image_display_name        = pc.image_display_name
-      provisioning_type         = pc.provisioning_type
-      device_region_name        = pc.device_region_name
-      disk_encryption_state     = pc.disk_encryption_state
-      product_type              = pc.product_type
-      user_account_type         = pc.user_account_type
-      enable_single_sign_on     = pc.enable_single_sign_on
+      id                       = pc.id
+      display_name             = pc.display_name
+      provisioning_policy_name = pc.provisioning_policy_name
+      service_plan_name        = pc.service_plan_name
+      service_plan_type        = pc.service_plan_type
+      image_display_name       = pc.image_display_name
+      provisioning_type        = pc.provisioning_type
+      device_region_name       = pc.device_region_name
+      disk_encryption_state    = pc.disk_encryption_state
+      product_type             = pc.product_type
+      user_account_type        = pc.user_account_type
+      enable_single_sign_on    = pc.enable_single_sign_on
     }
   ]
 }
@@ -140,9 +140,9 @@ output "cloud_pc_configuration_details" {
 output "cloud_pc_device_ids" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      cloud_pc_id        = pc.id
-      aad_device_id      = pc.aad_device_id
-      managed_device_id  = pc.managed_device_id
+      cloud_pc_id         = pc.id
+      aad_device_id       = pc.aad_device_id
+      managed_device_id   = pc.managed_device_id
       managed_device_name = pc.managed_device_name
     }
   ]
@@ -152,12 +152,12 @@ output "cloud_pc_device_ids" {
 output "cloud_pc_status_info" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      id                      = pc.id
-      display_name            = pc.display_name
-      status                  = pc.status
-      status_detail_code      = pc.status_detail_code
-      status_detail_message   = pc.status_detail_message
-      last_modified_date_time = pc.last_modified_date_time
+      id                         = pc.id
+      display_name               = pc.display_name
+      status                     = pc.status
+      status_detail_code         = pc.status_detail_code
+      status_detail_message      = pc.status_detail_message
+      last_modified_date_time    = pc.last_modified_date_time
       grace_period_end_date_time = pc.grace_period_end_date_time
     }
   ]
@@ -191,9 +191,9 @@ output "cloud_pcs_needing_attention" {
 output "cloud_pcs_approaching_grace_period_end" {
   value = [
     for pc in data.microsoft365_graph_beta_windows_365_cloud_pcs.all.items : {
-      id                       = pc.id
-      display_name             = pc.display_name
-      user_principal_name      = pc.user_principal_name
+      id                         = pc.id
+      display_name               = pc.display_name
+      user_principal_name        = pc.user_principal_name
       grace_period_end_date_time = pc.grace_period_end_date_time
     } if pc.grace_period_end_date_time != ""
   ]
