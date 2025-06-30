@@ -44,8 +44,6 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments []CloudPcP
 
 		if !assignment.ServicePlanId.IsNull() && assignment.ServicePlanId.ValueString() != "" {
 			// Frontline (dedicated/shared)
-			odataType := "#microsoft.graph.cloudPcManagementServicePlanAssignmentTarget"
-			target.SetOdataType(&odataType)
 			additionalData["servicePlanId"] = assignment.ServicePlanId.ValueString()
 			if !assignment.AllotmentDisplayName.IsNull() && assignment.AllotmentDisplayName.ValueString() != "" {
 				additionalData["allotmentDisplayName"] = assignment.AllotmentDisplayName.ValueString()
