@@ -99,8 +99,9 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 	switch errorInfo.StatusCode {
 	case 400:
 		if operation == "Read" {
-			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
-			removeResourceFromState(ctx, resp)
+			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), will retry if context allows")
+			addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+				constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 			return
 		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
@@ -113,8 +114,9 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 
 	case 404:
 		if operation == "Read" {
-			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
-			removeResourceFromState(ctx, resp)
+			tflog.Warn(ctx, "Resource not found (404 Response), will retry if context allows")
+			addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
+				constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 			return
 		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,

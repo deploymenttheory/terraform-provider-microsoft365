@@ -10,10 +10,12 @@ import (
 )
 
 // MapAssignmentsToTerraform maps the assignments from the Graph API response to the Terraform model
-func MapAssignmentsToTerraform(ctx context.Context, assignments []models.CloudPcProvisioningPolicyAssignmentable) []CloudPcProvisioningPolicyAssignmentModel {
-	if assignments == nil {
+func MapAssignmentsToTerraform(ctx context.Context, assignmentsResponse models.CloudPcProvisioningPolicyAssignmentCollectionResponseable) []CloudPcProvisioningPolicyAssignmentModel {
+	if assignmentsResponse == nil {
 		return []CloudPcProvisioningPolicyAssignmentModel{}
 	}
+
+	assignments := assignmentsResponse.GetValue()
 
 	tflog.Debug(ctx, fmt.Sprintf("Mapping %d assignments from Graph API to Terraform model", len(assignments)))
 
