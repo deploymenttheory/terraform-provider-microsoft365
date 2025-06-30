@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -117,6 +118,24 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Required:            true,
 				MarkdownDescription: "The display name for the provisioning policy.",
 			},
+			"provisioning_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				MarkdownDescription: "Specifies the type of license used when provisioning Cloud PCs using this policy." +
+					"By default, the license type is dedicated if the provisioningType isn't specified when you create the cloudPcProvisioningPolicy." +
+					"Possible values are: dedicated, shared, sharedByUser, sharedByEntraGroup, unknownFutureValue." +
+					"Changes to this attribute will force recreation of the resource." +
+					"dedicated: (Enterprise) Each user will get their own Cloud PC without restrictions on when they can connect to it." +
+					"shared: (Frontline - Dedicated) Recommended for users who need part time access to their Cloud PCs or follow a set schedule, such as shifts. A single license lets you provision up to three Cloud PCs that can be used non-concurrently, each assigned to a single user. Provides one concurrent session." +
+					"sharedByEntraGroup: (Frontline - Shared) Recommended for users who use Cloud PC for a short period of time and do not require data to be preserved. A single license lets you provision one Cloud PC that can be shared non-concurrently among a group of users. Provides one concurrent session.",
+				Default: stringdefault.StaticString("dedicated"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("dedicated", "shared", "sharedByUser", "sharedByEntraGroup", "unknownFutureValue"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"domain_join_configurations": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Specifies a list ordered by priority on how Cloud PCs join Microsoft Entra ID (Azure AD).",
@@ -142,7 +161,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 								"The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure.Must be one of: automatic, japaneast, eastasia.",
 							Default: stringdefault.StaticString("automatic"),
 							Validators: []validator.String{
-								stringvalidator.OneOf("automatic", "japaneast", "eastasia", "koreacentral"),
+								stringvalidator.OneOf("automatic", "japaneast", "eastasia", "southeastasia", "koreacentral"),
 							},
 						},
 						"region_group": schema.StringAttribute{
@@ -296,15 +315,6 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					},
 				},
 			},
-			"provisioning_type": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Specifies the type of license used when provisioning Cloud PCs using this policy. By default, the license type is dedicated if the provisioningType isn't specified when you create the cloudPcProvisioningPolicy. Possible values are: dedicated, shared, sharedByUser, sharedByEntraGroup, unknownFutureValue. Supports $filter, $select, and $orderBy.",
-				Default:             stringdefault.StaticString("dedicated"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("dedicated", "shared", "sharedByUser", "sharedByEntraGroup", "unknownFutureValue"),
-				},
-			},
 			"windows_setting": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Indicates a specific Windows setting to configure during the creation of Cloud PCs for this provisioning policy.",
@@ -318,7 +328,73 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"apply_to_existing_cloud_pcs": schema.SingleNestedAttribute{
+				Optional: true,
+				MarkdownDescription: "If you change the network, image, region or single sign-on configuration in a provisioning policy," +
+					"no change will occur for previously provisioned Cloud PCs. Newly provisioned or reprovisioned Cloud PCs will honor the" +
+					"changes in your provisioning policy. To change the network or image of previously provisioned Cloud PCs to align with the changes," +
+					"you must reprovision those Cloud PCs. To change the region or single sign-on of previously provisioned Cloud PCs to align with the changes," +
+					"you must apply the changed configuration retrospectively using the apply_to_existing_cloud_pcs block.",
+				Attributes: map[string]schema.Attribute{
+					"microsoft_entra_single_sign_on_for_all_devices": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When true, Microsoft Entra single sign-on is applied to all existing Cloud PCs. Applied only during resource updates and not during resource creation. Default is false.",
+					},
+					"region_or_azure_network_connection_for_all_devices": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When true, region or Azure network connection settings are applied to all existing Cloud PCs. Applied only during resource updates and not during resource creation. Default is false.",
+					},
+					"region_or_azure_network_connection_for_select_devices": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "When true, region or Azure network connection settings are applied only to selected Cloud PCs. Applied only during resource updates and not during resource creation. Default is false.",
+					},
+				},
+			},
+			"assignments": AssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
+		},
+	}
+}
+
+// AssignmentsSchema returns the schema for the assignments attribute
+func AssignmentsSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: "Assignments of the Cloud PC provisioning policy to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported.",
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed:            true,
+					MarkdownDescription: "The unique identifier for the assignment. This is auto-generated and should not be specified.",
+					PlanModifiers: []planmodifier.String{
+						planmodifiers.UseStateForUnknownString(),
+					},
+				},
+				"group_id": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "The ID of the Microsoft 365 group or security group in Microsoft Entra ID to assign the policy to.",
+				},
+				"service_plan_id": schema.StringAttribute{
+					Optional: true,
+					MarkdownDescription: "The ID of the frontlineservice plan. Required when provisioning_type is 'shared', 'sharedByUser', or 'sharedByEntraGroup'." +
+						"This value can be obtained from the 'microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan' data source.",
+				},
+				"allotment_license_count": schema.Int64Attribute{
+					Optional: true,
+					MarkdownDescription: "The number of licenses to allot. Required when provisioning_type is 'shared', 'sharedByUser', or 'sharedByEntraGroup'." +
+						"The number must be between 0 and 900 and can't be more than the number of shared Cloud PC licenses available.",
+				},
+				"allotment_display_name": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "A display name for the allotment. Required when provisioning_type is 'shared', 'sharedByUser', or 'sharedByEntraGroup'.",
+				},
+			},
 		},
 	}
 }

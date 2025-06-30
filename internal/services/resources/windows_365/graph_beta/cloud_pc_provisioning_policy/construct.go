@@ -103,12 +103,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 				return nil, fmt.Errorf("failed to set domain join type: %v", err)
 			}
 
-			// if err := convert.FrameworkToGraphEnum(config.Type,
-			// 	models.ParseCloudPcDomainJoinType,
-			// 	domainJoinConfig.SetTypeEscaped); err != nil {
-			// 	return nil, fmt.Errorf("failed to set domain join type (escaped type): %v", err)
-			// }
-
 			convert.FrameworkToGraphString(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
 			convert.FrameworkToGraphString(config.RegionName, domainJoinConfig.SetRegionName)
 
