@@ -67,3 +67,4 @@ GET
   }
 ]
 
+https://mmdls.microsoft.com/device/v1/windows365/autopatchGroups

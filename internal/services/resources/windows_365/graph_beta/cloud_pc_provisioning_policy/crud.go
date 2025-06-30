@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -39,7 +40,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	provisioningPolicy, err := r.client.
+	baseResource, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
@@ -50,7 +51,35 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	object.ID = types.StringValue(*provisioningPolicy.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
+
+	if len(object.Assignments) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Creating %d assignments for policy ID: %s", len(object.Assignments), object.ID.ValueString()))
+
+		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments request body",
+				fmt.Sprintf("Could not construct assignments request body: %s", err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceManagement().
+			VirtualEndpoint().
+			ProvisioningPolicies().
+			ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+			Assign().
+			Post(ctx, assignBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, "Successfully created assignments")
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -96,6 +125,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
+	// Get the policy with expanded assignments
 	provisioningPolicy, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
@@ -110,6 +140,26 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
+	assignments, err := r.client.
+		DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
+
+	if err != nil {
+		tflog.Warn(ctx, fmt.Sprintf("Error getting assignments for policy ID %s: %s", object.ID.ValueString(), err.Error()))
+	} else if assignments != nil {
+		tflog.Debug(ctx, fmt.Sprintf("Found %d assignments for policy", len(assignments.GetValue())))
+		object.Assignments = MapAssignmentsToTerraform(ctx, assignments.GetValue())
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -123,13 +173,15 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	var plan CloudPcProvisioningPolicyResourceModel
 	var state CloudPcProvisioningPolicyResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -156,6 +208,114 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	// Handle assignments update
+	tflog.Debug(ctx, fmt.Sprintf("Updating assignments for policy ID: %s", state.ID.ValueString()))
+
+	// Construct assignments request body
+	assignBody, err := constructAssignmentsRequestBody(ctx, plan.Assignments)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignments request body",
+			fmt.Sprintf("Could not construct assignments request body: %s", err.Error()),
+		)
+		return
+	}
+
+	// Post assignments
+	err = r.client.
+		DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, assignBody, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+		return
+	}
+
+	tflog.Debug(ctx, "Successfully updated assignments")
+
+	if plan.ApplyToExistingCloudPcs != nil {
+		if !plan.ApplyToExistingCloudPcs.MicrosoftEntraSingleSignOnForAllDevices.IsNull() &&
+			plan.ApplyToExistingCloudPcs.MicrosoftEntraSingleSignOnForAllDevices.ValueBool() {
+
+			tflog.Debug(ctx, fmt.Sprintf("Applying Microsoft Entra Single Sign-On to all devices for policy ID: %s", state.ID.ValueString()))
+
+			applyBody := devicemanagement.NewVirtualEndpointProvisioningPoliciesItemApplyPostRequestBody()
+			applyBody.GetAdditionalData()["policySettings"] = "singleSignOn"
+
+			err = r.client.
+				DeviceManagement().
+				VirtualEndpoint().
+				ProvisioningPolicies().
+				ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+				Apply().
+				Post(ctx, applyBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "ApplySingleSignOn", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, "Successfully applied Microsoft Entra Single Sign-On to all devices")
+		}
+
+		if !plan.ApplyToExistingCloudPcs.RegionOrAzureNetworkConnectionForAllDevices.IsNull() &&
+			plan.ApplyToExistingCloudPcs.RegionOrAzureNetworkConnectionForAllDevices.ValueBool() {
+
+			tflog.Debug(ctx, fmt.Sprintf("Applying Region or Azure Network Connection to all devices for policy ID: %s", state.ID.ValueString()))
+
+			applyBody := devicemanagement.NewVirtualEndpointProvisioningPoliciesItemApplyPostRequestBody()
+			applyBody.GetAdditionalData()["policySettings"] = "region"
+
+			err = r.client.
+				DeviceManagement().
+				VirtualEndpoint().
+				ProvisioningPolicies().
+				ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+				Apply().
+				Post(ctx, applyBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "ApplyRegion", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, "Successfully applied Region or Azure Network Connection to all devices")
+		}
+
+		if !plan.ApplyToExistingCloudPcs.RegionOrAzureNetworkConnectionForSelectDevices.IsNull() &&
+			plan.ApplyToExistingCloudPcs.RegionOrAzureNetworkConnectionForSelectDevices.ValueBool() {
+
+			tflog.Debug(ctx, fmt.Sprintf("Applying Region or Azure Network Connection to selected devices for policy ID: %s", state.ID.ValueString()))
+
+			applyBody := devicemanagement.NewVirtualEndpointProvisioningPoliciesItemApplyPostRequestBody()
+			applyBody.GetAdditionalData()["policySettings"] = "region"
+
+			// Set reservePercentage to 0 to indicate applying to selected devices only
+			// This is based on the API behavior where 0 means "selected devices"
+			reservePercentage := int32(0)
+			applyBody.SetReservePercentage(&reservePercentage)
+
+			err = r.client.
+				DeviceManagement().
+				VirtualEndpoint().
+				ProvisioningPolicies().
+				ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+				Apply().
+				Post(ctx, applyBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "ApplyRegionToSelected", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, "Successfully applied Region or Azure Network Connection to selected devices")
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

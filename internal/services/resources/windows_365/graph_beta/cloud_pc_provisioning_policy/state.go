@@ -74,6 +74,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 				DomainJoinType:         convert.GraphToFrameworkEnum(config.GetDomainJoinType()),
 				OnPremisesConnectionId: convert.GraphToFrameworkString(config.GetOnPremisesConnectionId()),
 				RegionName:             convert.GraphToFrameworkString(config.GetRegionName()),
+				RegionGroup:            convert.GraphToFrameworkEnum(config.GetRegionGroup()),
 			}
 		}
 	} else {
@@ -89,6 +90,14 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.WindowsSetting = nil
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+	// Handle Assignments
+	if assignments := remoteResource.GetAssignments(); assignments != nil {
+		tflog.Debug(ctx, fmt.Sprintf("Found %d assignments for policy", len(assignments)))
+		data.Assignments = MapAssignmentsToTerraform(ctx, assignments)
+	} else {
+		tflog.Debug(ctx, "No assignments found for policy")
+		data.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
+	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
