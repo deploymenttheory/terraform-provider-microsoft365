@@ -50,7 +50,7 @@ func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.Schem
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number`, `user_id`, etc.",
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number` and `user_id`.",
 			},
 			"filter_value": schema.StringAttribute{
 				Optional:            true,
@@ -61,119 +61,216 @@ func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.Schem
 				MarkdownDescription: "The list of managed devices that match the filter criteria.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id":          schema.StringAttribute{Computed: true, MarkdownDescription: "The unique identifier for the managed device."},
-						"user_id":     schema.StringAttribute{Computed: true, MarkdownDescription: "The unique identifier for the user associated with the device."},
-						"device_name": schema.StringAttribute{Computed: true, MarkdownDescription: "The name of the device as displayed in Intune."},
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The unique identifier for the managed device.",
+						},
+						"user_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The unique identifier for the user associated with the device.",
+						},
+						"device_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The name of the device as displayed in Intune.",
+						},
 						"hardware_information": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Hardware information for the device.",
 							Attributes: map[string]schema.Attribute{
-								"serial_number":             schema.StringAttribute{Computed: true, MarkdownDescription: "Device serial number."},
-								"total_storage_space":       schema.Int64Attribute{Computed: true, MarkdownDescription: "Total storage space on the device in bytes."},
-								"free_storage_space":        schema.Int64Attribute{Computed: true, MarkdownDescription: "Free storage space on the device in bytes."},
-								"imei":                      schema.StringAttribute{Computed: true, MarkdownDescription: "International Mobile Equipment Identity (IMEI) of the device."},
-								"meid":                      schema.StringAttribute{Computed: true, MarkdownDescription: "Mobile Equipment Identifier (MEID) of the device."},
-								"manufacturer":              schema.StringAttribute{Computed: true, MarkdownDescription: "Device manufacturer."},
-								"model":                     schema.StringAttribute{Computed: true, MarkdownDescription: "Device model."},
-								"phone_number":              schema.StringAttribute{Computed: true, MarkdownDescription: "Phone number associated with the device."},
-								"subscriber_carrier":        schema.StringAttribute{Computed: true, MarkdownDescription: "Mobile carrier for the device's SIM card."},
-								"cellular_technology":       schema.StringAttribute{Computed: true, MarkdownDescription: "Cellular technology used by the device (e.g., LTE, 5G)."},
-								"wifi_mac":                  schema.StringAttribute{Computed: true, MarkdownDescription: "Wi-Fi MAC address of the device."},
-								"operating_system_language": schema.StringAttribute{Computed: true, MarkdownDescription: "Language of the device's operating system."},
-								"is_supervised":             schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device is supervised (Apple devices only)."},
-								"is_encrypted":              schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device storage is encrypted."},
-								"battery_serial_number":     schema.StringAttribute{Computed: true, MarkdownDescription: "Serial number of the device's battery."},
-								"battery_health_percentage": schema.Int64Attribute{Computed: true, MarkdownDescription: "Battery health as a percentage."},
-								"battery_charge_cycles":     schema.Int64Attribute{Computed: true, MarkdownDescription: "Number of battery charge cycles."},
-								"is_shared_device":          schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device is a shared device."},
+								"serial_number": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device serial number."},
+								"total_storage_space": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Total storage space on the device in bytes."},
+								"free_storage_space": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Free storage space on the device in bytes."},
+								"imei": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "International Mobile Equipment Identity (IMEI) of the device."},
+								"meid": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Mobile Equipment Identifier (MEID) of the device."},
+								"manufacturer": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device manufacturer."},
+								"model": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device model."},
+								"phone_number": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Phone number associated with the device."},
+								"subscriber_carrier": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Mobile carrier for the device's SIM card."},
+								"cellular_technology": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Cellular technology used by the device (e.g., LTE, 5G)."},
+								"wifi_mac": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Wi-Fi MAC address of the device."},
+								"operating_system_language": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Language of the device's operating system."},
+								"is_supervised": schema.BoolAttribute{
+									Computed: true, MarkdownDescription: "Whether the device is supervised (Apple devices only)."},
+								"is_encrypted": schema.BoolAttribute{
+									Computed: true, MarkdownDescription: "Whether the device storage is encrypted."},
+								"battery_serial_number": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Serial number of the device's battery."},
+								"battery_health_percentage": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Battery health as a percentage."},
+								"battery_charge_cycles": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Number of battery charge cycles."},
+								"is_shared_device": schema.BoolAttribute{
+									Computed: true, MarkdownDescription: "Whether the device is a shared device."},
 								"shared_device_cached_users": schema.ListNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "List of users cached on a shared device.",
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
-											"user_principal_name": schema.StringAttribute{Computed: true, MarkdownDescription: "User principal name of the cached user."},
-											"data_to_sync":        schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether there is data to sync for the user."},
-											"data_quota":          schema.Int64Attribute{Computed: true, MarkdownDescription: "Data quota for the user in MB."},
-											"data_used":           schema.Int64Attribute{Computed: true, MarkdownDescription: "Data used by the user in MB."},
+											"user_principal_name": schema.StringAttribute{
+												Computed: true, MarkdownDescription: "User principal name of the cached user."},
+											"data_to_sync": schema.BoolAttribute{
+												Computed: true, MarkdownDescription: "Whether there is data to sync for the user."},
+											"data_quota": schema.Int64Attribute{
+												Computed: true, MarkdownDescription: "Data quota for the user in MB."},
+											"data_used": schema.Int64Attribute{
+												Computed: true, MarkdownDescription: "Data used by the user in MB."},
 										},
 									},
 								},
-								"tpm_specification_version":                                             schema.StringAttribute{Computed: true, MarkdownDescription: "TPM specification version."},
-								"operating_system_edition":                                              schema.StringAttribute{Computed: true, MarkdownDescription: "Edition of the device's operating system."},
-								"device_full_qualified_domain_name":                                     schema.StringAttribute{Computed: true, MarkdownDescription: "Fully qualified domain name of the device."},
-								"device_guard_virtualization_based_security_hardware_requirement_state": schema.StringAttribute{Computed: true, MarkdownDescription: "Device Guard VBS hardware requirement state."},
-								"device_guard_virtualization_based_security_state":                      schema.StringAttribute{Computed: true, MarkdownDescription: "Device Guard VBS state."},
-								"device_guard_local_system_authority_credential_guard_state":            schema.StringAttribute{Computed: true, MarkdownDescription: "Device Guard LSA Credential Guard state."},
-								"os_build_number":                                                       schema.StringAttribute{Computed: true, MarkdownDescription: "Operating system build number."},
-								"operating_system_product_type":                                         schema.Int64Attribute{Computed: true, MarkdownDescription: "Product type of the operating system."},
-								"ip_address_v4":                                                         schema.StringAttribute{Computed: true, MarkdownDescription: "IPv4 address of the device."},
-								"subnet_address":                                                        schema.StringAttribute{Computed: true, MarkdownDescription: "Subnet address of the device."},
-								"esim_identifier":                                                       schema.StringAttribute{Computed: true, MarkdownDescription: "eSIM identifier for the device."},
-								"system_management_bios_version":                                        schema.StringAttribute{Computed: true, MarkdownDescription: "System Management BIOS version."},
-								"tpm_manufacturer":                                                      schema.StringAttribute{Computed: true, MarkdownDescription: "TPM manufacturer."},
-								"tpm_version":                                                           schema.StringAttribute{Computed: true, MarkdownDescription: "TPM version."},
-								"wired_ipv4_addresses":                                                  schema.ListAttribute{ElementType: types.StringType, Computed: true, MarkdownDescription: "List of wired IPv4 addresses for the device."},
-								"battery_level_percentage":                                              schema.Float64Attribute{Computed: true, MarkdownDescription: "Battery level as a percentage."},
-								"resident_users_count":                                                  schema.Int64Attribute{Computed: true, MarkdownDescription: "Number of resident users on the device."},
-								"product_name":                                                          schema.StringAttribute{Computed: true, MarkdownDescription: "Product name of the device."},
-								"device_licensing_status":                                               schema.StringAttribute{Computed: true, MarkdownDescription: "Device licensing status."},
-								"device_licensing_last_error_code":                                      schema.Int64Attribute{Computed: true, MarkdownDescription: "Last error code for device licensing."},
-								"device_licensing_last_error_description":                               schema.StringAttribute{Computed: true, MarkdownDescription: "Last error description for device licensing."},
+								"tpm_specification_version": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "TPM specification version."},
+								"operating_system_edition": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Edition of the device's operating system."},
+								"device_full_qualified_domain_name": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Fully qualified domain name of the device."},
+								"device_guard_virtualization_based_security_hardware_requirement_state": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device Guard VBS hardware requirement state."},
+								"device_guard_virtualization_based_security_state": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device Guard VBS state."},
+								"device_guard_local_system_authority_credential_guard_state": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device Guard LSA Credential Guard state."},
+								"os_build_number": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Operating system build number."},
+								"operating_system_product_type": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Product type of the operating system."},
+								"ip_address_v4": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "IPv4 address of the device."},
+								"subnet_address": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Subnet address of the device."},
+								"esim_identifier": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "eSIM identifier for the device."},
+								"system_management_bios_version": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "System Management BIOS version."},
+								"tpm_manufacturer": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "TPM manufacturer."},
+								"tpm_version": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "TPM version."},
+								"wired_ipv4_addresses": schema.ListAttribute{
+									ElementType: types.StringType, Computed: true, MarkdownDescription: "List of wired IPv4 addresses for the device."},
+								"battery_level_percentage": schema.Float64Attribute{
+									Computed: true, MarkdownDescription: "Battery level as a percentage."},
+								"resident_users_count": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Number of resident users on the device."},
+								"product_name": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Product name of the device."},
+								"device_licensing_status": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Device licensing status."},
+								"device_licensing_last_error_code": schema.Int64Attribute{
+									Computed: true, MarkdownDescription: "Last error code for device licensing."},
+								"device_licensing_last_error_description": schema.StringAttribute{
+									Computed: true, MarkdownDescription: "Last error description for device licensing."},
 							},
 						},
-						"owner_type":                schema.StringAttribute{Computed: true, MarkdownDescription: "Owner type of the device (e.g., company, personal)."},
-						"managed_device_owner_type": schema.StringAttribute{Computed: true, MarkdownDescription: "Managed device owner type (e.g., company, personal)."},
+						"owner_type": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Owner type of the device (e.g., company, personal)."},
+						"managed_device_owner_type": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Managed device owner type (e.g., company, personal)."},
 						"device_action_results": schema.ListNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "List of device action results for the device.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"action_name":            schema.StringAttribute{Computed: true, MarkdownDescription: "Name of the action performed on the device."},
-									"action_state":           schema.StringAttribute{Computed: true, MarkdownDescription: "State of the action (e.g., pending, completed)."},
-									"start_date_time":        schema.StringAttribute{Computed: true, MarkdownDescription: "Start time of the action."},
-									"last_updated_date_time": schema.StringAttribute{Computed: true, MarkdownDescription: "Last update time of the action."},
+									"action_name": schema.StringAttribute{
+										Computed: true, MarkdownDescription: "Name of the action performed on the device."},
+									"action_state": schema.StringAttribute{
+										Computed: true, MarkdownDescription: "State of the action (e.g., pending, completed)."},
+									"start_date_time": schema.StringAttribute{
+										Computed: true, MarkdownDescription: "Start time of the action."},
+									"last_updated_date_time": schema.StringAttribute{
+										Computed: true, MarkdownDescription: "Last update time of the action."},
 								},
 							},
 						},
-						"management_state":                             schema.StringAttribute{Computed: true, MarkdownDescription: "Management state of the device (e.g., retirePending, managed)."},
-						"enrolled_date_time":                           schema.StringAttribute{Computed: true, MarkdownDescription: "Date and time when the device was enrolled."},
-						"last_sync_date_time":                          schema.StringAttribute{Computed: true, MarkdownDescription: "Last time the device synced with Intune."},
-						"chassis_type":                                 schema.StringAttribute{Computed: true, MarkdownDescription: "Chassis type of the device (e.g., desktop, laptop)."},
-						"operating_system":                             schema.StringAttribute{Computed: true, MarkdownDescription: "Operating system of the device."},
-						"device_type":                                  schema.StringAttribute{Computed: true, MarkdownDescription: "Type of the device (e.g., windowsRT, windows)."},
-						"compliance_state":                             schema.StringAttribute{Computed: true, MarkdownDescription: "Compliance state of the device (e.g., compliant, noncompliant)."},
-						"jail_broken":                                  schema.StringAttribute{Computed: true, MarkdownDescription: "Indicates if the device is jailbroken (for iOS devices)."},
-						"management_agent":                             schema.StringAttribute{Computed: true, MarkdownDescription: "Management agent used for the device (e.g., mdm, eas)."},
-						"os_version":                                   schema.StringAttribute{Computed: true, MarkdownDescription: "Operating system version of the device."},
-						"eas_activated":                                schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether Exchange ActiveSync is activated on the device."},
-						"eas_device_id":                                schema.StringAttribute{Computed: true, MarkdownDescription: "Exchange ActiveSync device ID."},
-						"eas_activation_date_time":                     schema.StringAttribute{Computed: true, MarkdownDescription: "Date and time when Exchange ActiveSync was activated."},
-						"aad_registered":                               schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device is Azure AD registered."},
-						"azure_ad_registered":                          schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device is Azure AD registered (legacy field)."},
-						"device_enrollment_type":                       schema.StringAttribute{Computed: true, MarkdownDescription: "Type of device enrollment (e.g., userEnrollment, deviceEnrollmentManager)."},
-						"lost_mode_state":                              schema.StringAttribute{Computed: true, MarkdownDescription: "State of lost mode on the device (e.g., enabled, disabled)."},
-						"activation_lock_bypass_code":                  schema.StringAttribute{Computed: true, MarkdownDescription: "Activation lock bypass code for the device."},
-						"email_address":                                schema.StringAttribute{Computed: true, MarkdownDescription: "Email address associated with the device."},
-						"azure_active_directory_device_id":             schema.StringAttribute{Computed: true, MarkdownDescription: "Azure Active Directory device ID."},
-						"azure_ad_device_id":                           schema.StringAttribute{Computed: true, MarkdownDescription: "Azure AD device ID (legacy field)."},
-						"device_registration_state":                    schema.StringAttribute{Computed: true, MarkdownDescription: "Registration state of the device."},
-						"device_category_display_name":                 schema.StringAttribute{Computed: true, MarkdownDescription: "Display name of the device category."},
-						"is_supervised":                                schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device is supervised (Apple devices only)."},
-						"exchange_last_successful_sync_date_time":      schema.StringAttribute{Computed: true, MarkdownDescription: "Last successful Exchange sync date and time."},
-						"exchange_access_state":                        schema.StringAttribute{Computed: true, MarkdownDescription: "Exchange access state for the device."},
-						"exchange_access_state_reason":                 schema.StringAttribute{Computed: true, MarkdownDescription: "Reason for the Exchange access state."},
-						"remote_assistance_session_url":                schema.StringAttribute{Computed: true, MarkdownDescription: "URL for the remote assistance session."},
-						"remote_assistance_session_error_details":      schema.StringAttribute{Computed: true, MarkdownDescription: "Error details for the remote assistance session."},
-						"is_encrypted":                                 schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the device storage is encrypted."},
-						"user_principal_name":                          schema.StringAttribute{Computed: true, MarkdownDescription: "User principal name associated with the device."},
-						"model":                                        schema.StringAttribute{Computed: true, MarkdownDescription: "Device model."},
-						"manufacturer":                                 schema.StringAttribute{Computed: true, MarkdownDescription: "Device manufacturer."},
-						"imei":                                         schema.StringAttribute{Computed: true, MarkdownDescription: "International Mobile Equipment Identity (IMEI) of the device."},
-						"compliance_grace_period_expiration_date_time": schema.StringAttribute{Computed: true, MarkdownDescription: "Expiration date and time for the compliance grace period."},
-						"serial_number":                                schema.StringAttribute{Computed: true, MarkdownDescription: "Device serial number."},
-						"phone_number":                                 schema.StringAttribute{Computed: true, MarkdownDescription: "Phone number associated with the device."},
-						"android_security_patch_level":                 schema.StringAttribute{Computed: true, MarkdownDescription: "Android security patch level on the device."},
-						"user_display_name":                            schema.StringAttribute{Computed: true, MarkdownDescription: "Display name of the user associated with the device."},
+						"management_state": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Management state of the device (e.g., retirePending, managed)."},
+						"enrolled_date_time": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Date and time when the device was enrolled."},
+						"last_sync_date_time": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Last time the device synced with Intune."},
+						"chassis_type": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Chassis type of the device (e.g., desktop, laptop)."},
+						"operating_system": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Operating system of the device."},
+						"device_type": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Type of the device (e.g., windowsRT, windows)."},
+						"compliance_state": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Compliance state of the device (e.g., compliant, noncompliant)."},
+						"jail_broken": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Indicates if the device is jailbroken (for iOS devices)."},
+						"management_agent": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Management agent used for the device (e.g., mdm, eas)."},
+						"os_version": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Operating system version of the device."},
+						"eas_activated": schema.BoolAttribute{
+							Computed: true, MarkdownDescription: "Whether Exchange ActiveSync is activated on the device."},
+						"eas_device_id": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Exchange ActiveSync device ID."},
+						"eas_activation_date_time": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Date and time when Exchange ActiveSync was activated."},
+						"aad_registered": schema.BoolAttribute{
+							Computed: true, MarkdownDescription: "Whether the device is Azure AD registered."},
+						"azure_ad_registered": schema.BoolAttribute{
+							Computed: true, MarkdownDescription: "Whether the device is Azure AD registered (legacy field)."},
+						"device_enrollment_type": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Type of device enrollment (e.g., userEnrollment, deviceEnrollmentManager)."},
+						"lost_mode_state": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "State of lost mode on the device (e.g., enabled, disabled)."},
+						"activation_lock_bypass_code": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Activation lock bypass code for the device."},
+						"email_address": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Email address associated with the device."},
+						"azure_active_directory_device_id": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Azure Active Directory device ID."},
+						"azure_ad_device_id": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Azure AD device ID (legacy field)."},
+						"device_registration_state": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Registration state of the device."},
+						"device_category_display_name": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Display name of the device category."},
+						"is_supervised": schema.BoolAttribute{
+							Computed: true, MarkdownDescription: "Whether the device is supervised (Apple devices only)."},
+						"exchange_last_successful_sync_date_time": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Last successful Exchange sync date and time."},
+						"exchange_access_state": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Exchange access state for the device."},
+						"exchange_access_state_reason": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Reason for the Exchange access state."},
+						"remote_assistance_session_url": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "URL for the remote assistance session."},
+						"remote_assistance_session_error_details": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Error details for the remote assistance session."},
+						"is_encrypted": schema.BoolAttribute{
+							Computed: true, MarkdownDescription: "Whether the device storage is encrypted."},
+						"user_principal_name": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "User principal name associated with the device."},
+						"model": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Device model."},
+						"manufacturer": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Device manufacturer."},
+						"imei": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "International Mobile Equipment Identity (IMEI) of the device."},
+						"compliance_grace_period_expiration_date_time": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Expiration date and time for the compliance grace period."},
+						"serial_number": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Device serial number."},
+						"phone_number": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Phone number associated with the device."},
+						"android_security_patch_level": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Android security patch level on the device."},
+						"user_display_name": schema.StringAttribute{
+							Computed: true, MarkdownDescription: "Display name of the user associated with the device."},
 						"configuration_manager_client_enabled_features": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Configuration Manager client enabled features.",

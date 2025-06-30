@@ -1,0 +1,36 @@
+---
+page_title: "microsoft365_graph_beta_device_management_managed_device Data Source - terraform-provider-microsoft365"
+subcategory: "Device Management"
+description: |-
+  Retrieves managed devices from Microsoft Intune using the /deviceManagement/managedDevices endpoint. Supports filtering by all, id, device_name, serial_number, or user_id for comprehensive device management.
+---
+
+# microsoft365_graph_beta_device_management_managed_device (Data Source)
+
+Retrieves managed devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. Supports filtering by all, id, device_name, serial_number, or user_id for comprehensive device management.
+
+This data source allows you to list and filter managed devices in your tenant, providing details such as device name, operating system, compliance state, user, and more.
+
+## Microsoft Documentation
+
+- [List managedDevices](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-list?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.Read.All`, `DeviceManagementManagedDevices.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.18.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_managed_device/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }} 

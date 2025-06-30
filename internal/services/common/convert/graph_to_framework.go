@@ -303,3 +303,12 @@ func GraphToFrameworkStringSlice(value []string) []types.String {
 
 	return result
 }
+
+// GraphToFrameworkFloat64 converts a Graph SDK float64 pointer to a Terraform Framework float64.
+// Returns types.Float64Null() if the input is nil.
+func GraphToFrameworkFloat64(value *float64) types.Float64 {
+	if value == nil {
+		return types.Float64Null()
+	}
+	return types.Float64Value(*value)
+}
