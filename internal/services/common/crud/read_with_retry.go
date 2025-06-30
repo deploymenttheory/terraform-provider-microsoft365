@@ -161,7 +161,8 @@ func ReadWithRetry(
 
 		readResp := &resource.ReadResponse{State: stateContainer.GetState()}
 
-		readFunc(ctx, readReq, readResp)
+		ctxWithOp := context.WithValue(ctx, "retry_operation", opts.Operation)
+		readFunc(ctxWithOp, readReq, readResp)
 
 		if !readResp.Diagnostics.HasError() {
 			tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]interface{}{

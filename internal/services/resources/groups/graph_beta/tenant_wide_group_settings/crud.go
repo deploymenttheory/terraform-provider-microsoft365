@@ -93,7 +93,7 @@ func (r *TenantWideGroupSettingsResource) Create(ctx context.Context, req resour
 func (r *TenantWideGroupSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object TenantWideGroupSettingsResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
