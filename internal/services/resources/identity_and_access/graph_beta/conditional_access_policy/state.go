@@ -98,15 +98,12 @@ func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]inte
 		}
 	}
 
-	// Platforms - always create the object since it may be configured in Terraform
+	// Platforms - only set if present in API response
 	if platformsData, ok := conditionsData["platforms"].(map[string]interface{}); ok {
 		conditions.Platforms = mapPlatformsFromRemote(ctx, platformsData)
 	} else {
-		// Create empty platforms object to maintain consistency
-		conditions.Platforms = &ConditionalAccessPlatforms{
-			IncludePlatforms: convert.GraphToFrameworkStringSetPreserveEmpty(ctx, []string{}),
-			ExcludePlatforms: convert.GraphToFrameworkStringSetPreserveEmpty(ctx, []string{}),
-		}
+		// Set to nil if not present in API response
+		conditions.Platforms = nil
 	}
 
 	// Locations - only set if present in API response
@@ -116,18 +113,12 @@ func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]inte
 		conditions.Locations = nil
 	}
 
-	// Devices - always create the object since it may be configured in Terraform
+	// Devices - only set if present in API response
 	if devicesData, ok := conditionsData["devices"].(map[string]interface{}); ok {
 		conditions.Devices = mapDevicesFromRemote(ctx, devicesData)
 	} else {
-		// Create empty devices object to maintain consistency
-		conditions.Devices = &ConditionalAccessDevices{
-			IncludeDevices:      convert.GraphToFrameworkStringSetPreserveEmpty(ctx, []string{}),
-			ExcludeDevices:      convert.GraphToFrameworkStringSetPreserveEmpty(ctx, []string{}),
-			IncludeDeviceStates: types.SetNull(types.StringType),
-			ExcludeDeviceStates: types.SetNull(types.StringType),
-			DeviceFilter:        nil,
-		}
+		// Set to nil if not present in API response
+		conditions.Devices = nil
 	}
 
 	// Risk levels - use PreserveEmpty for fields configured as empty arrays in Terraform
@@ -287,7 +278,7 @@ func mapUsersFromRemote(ctx context.Context, usersData map[string]interface{}) *
 				stringSlice = append(stringSlice, str)
 			}
 		}
-		users.ExcludeGroups = convert.GraphToFrameworkStringSet(ctx, stringSlice)
+		users.ExcludeGroups = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, stringSlice)
 	} else {
 		users.ExcludeGroups = types.SetNull(types.StringType)
 	}

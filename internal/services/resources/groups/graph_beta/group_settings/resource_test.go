@@ -263,22 +263,25 @@ func TestUnitGroupSettingsResource_Update_MaximalToMinimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigMaximalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_groups_group_settings.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.maximal", "template_id", "62375ab9-6b52-47ed-826b-58e47e0e304b"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.maximal", "display_name", "Group.Unified"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.maximal", "values.#", "6"),
+					testCheckExists("microsoft365_graph_beta_groups_group_settings.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "template_id", "62375ab9-6b52-47ed-826b-58e47e0e304b"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "display_name", "Group.Unified"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "values.#", "6"),
 				),
 			},
 			// Update to minimal configuration
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigMinimalWithResourceName("test"),
+				// We expect a non-empty plan because computed fields will show as changes
+				ExpectNonEmptyPlan: false,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_groups_group_settings.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.minimal", "template_id", "08d542b9-071f-4e16-94b0-74abb372e3d9"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.minimal", "display_name", "Group.Unified.Guest"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.minimal", "values.#", "1"),
+					testCheckExists("microsoft365_graph_beta_groups_group_settings.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "template_id", "08d542b9-071f-4e16-94b0-74abb372e3d9"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "display_name", "Group.Unified.Guest"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group_settings.test", "values.#", "1"),
+					// Don't check for absence of attributes as they may appear as computed
 				),
 			},
 		},
