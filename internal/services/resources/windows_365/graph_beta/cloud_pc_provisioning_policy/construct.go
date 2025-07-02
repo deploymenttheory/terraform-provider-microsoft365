@@ -58,14 +58,12 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Set Autopatch if present
 	if data.Autopatch != nil {
 		autopatch := models.NewCloudPcProvisioningPolicyAutopatch()
 		convert.FrameworkToGraphString(data.Autopatch.AutopatchGroupId, autopatch.SetAutopatchGroupId)
 		requestBody.SetAutopatch(autopatch)
 	}
 
-	// Set AutopilotConfiguration if present (stub, add fields as needed)
 	if data.AutopilotConfiguration != nil {
 		autopilotConfig := models.NewCloudPcAutopilotConfiguration()
 		requestBody.SetAutopilotConfiguration(autopilotConfig)
@@ -83,7 +81,9 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		return nil, fmt.Errorf("failed to set provisioning type: %v", err)
 	}
 
-	if data.MicrosoftManagedDesktop != nil {
+	if data.MicrosoftManagedDesktop != nil &&
+		!data.MicrosoftManagedDesktop.ManagedType.IsUnknown() &&
+		!data.MicrosoftManagedDesktop.Profile.IsUnknown() {
 		mmd := models.NewMicrosoftManagedDesktop()
 
 		if err := convert.FrameworkToGraphEnum(data.MicrosoftManagedDesktop.ManagedType,
@@ -101,7 +101,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		for _, config := range data.DomainJoinConfigurations {
 			domainJoinConfig := models.NewCloudPcDomainJoinConfiguration()
 
-			// Set domainJoinType field
 			if err := convert.FrameworkToGraphEnum(config.DomainJoinType,
 				models.ParseCloudPcDomainJoinType,
 				domainJoinConfig.SetDomainJoinType); err != nil {

@@ -1,4 +1,4 @@
-package graphBetaCloudPcProvisioningPolicy
+package graphBetaCloudPcUserSetting
 
 import (
 	"context"
@@ -9,15 +9,26 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapAssignmentsToTerraform maps the assignments from the Graph API response to the Terraform model
+// used for a read operation.
+func MapAssignmentsToTerraform(ctx context.Context, assignmentsResponse models.CloudPcUserSettingAssignmentCollectionResponseable) []CloudPcUserSettingAssignmentModel {
+	if assignmentsResponse == nil {
+		return []CloudPcUserSettingAssignmentModel{}
+	}
+
+	assignments := assignmentsResponse.GetValue()
+	return MapAssignmentsSliceToTerraform(ctx, assignments)
+}
+
 // MapAssignmentsSliceToTerraform maps a slice of assignments directly to the Terraform model
-func MapAssignmentsSliceToTerraform(ctx context.Context, assignments []models.CloudPcProvisioningPolicyAssignmentable) []CloudPcProvisioningPolicyAssignmentModel {
+func MapAssignmentsSliceToTerraform(ctx context.Context, assignments []models.CloudPcUserSettingAssignmentable) []CloudPcUserSettingAssignmentModel {
 	if assignments == nil {
-		return []CloudPcProvisioningPolicyAssignmentModel{}
+		return []CloudPcUserSettingAssignmentModel{}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Mapping %d assignments from Graph API to Terraform model", len(assignments)))
 
-	result := make([]CloudPcProvisioningPolicyAssignmentModel, 0, len(assignments))
+	result := make([]CloudPcUserSettingAssignmentModel, 0, len(assignments))
 
 	for i, assignment := range assignments {
 		if assignment == nil {
@@ -28,7 +39,7 @@ func MapAssignmentsSliceToTerraform(ctx context.Context, assignments []models.Cl
 		id := safeGetStringPtr(assignment.GetId())
 		tflog.Debug(ctx, fmt.Sprintf("Processing assignment %d with ID: %s", i, id))
 
-		tfAssignment := CloudPcProvisioningPolicyAssignmentModel{}
+		tfAssignment := CloudPcUserSettingAssignmentModel{}
 
 		// Set ID
 		if id != "<nil>" {
@@ -72,36 +83,6 @@ func MapAssignmentsSliceToTerraform(ctx context.Context, assignments []models.Cl
 			tfAssignment.GroupId = types.StringValue(id)
 		}
 
-		// Extract servicePlanId (only present for frontline)
-		if v, ok := additionalData["servicePlanId"].(string); ok && v != "" && v != "null" {
-			tfAssignment.ServicePlanId = types.StringValue(v)
-		} else {
-			tfAssignment.ServicePlanId = types.StringNull()
-		}
-
-		// Extract allotmentDisplayName (only present for frontline)
-		if v, ok := additionalData["allotmentDisplayName"].(string); ok && v != "" && v != "null" {
-			tfAssignment.AllotmentDisplayName = types.StringValue(v)
-		} else {
-			tfAssignment.AllotmentDisplayName = types.StringNull()
-		}
-
-		// Extract allotmentLicensesCount (only present for frontline)
-		if v, ok := additionalData["allotmentLicensesCount"]; ok && v != nil && v != "null" {
-			switch val := v.(type) {
-			case int32:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(int64(val))
-			case int64:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(val)
-			case float64:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(int64(val))
-			default:
-				tfAssignment.AllotmentLicenseCount = types.Int64Null()
-			}
-		} else {
-			tfAssignment.AllotmentLicenseCount = types.Int64Null()
-		}
-
 		result = append(result, tfAssignment)
 		tflog.Debug(ctx, fmt.Sprintf("Successfully mapped assignment %d", i), map[string]interface{}{
 			"id":      tfAssignment.ID.ValueString(),
@@ -119,15 +100,4 @@ func safeGetStringPtr(ptr *string) string {
 		return "<nil>"
 	}
 	return *ptr
-}
-
-// MapAssignmentsToTerraform maps the assignments from the Graph API response to the Terraform model
-// used for a read operation.
-func MapAssignmentsToTerraform(ctx context.Context, assignmentsResponse models.CloudPcProvisioningPolicyAssignmentCollectionResponseable) []CloudPcProvisioningPolicyAssignmentModel {
-	if assignmentsResponse == nil {
-		return []CloudPcProvisioningPolicyAssignmentModel{}
-	}
-
-	assignments := assignmentsResponse.GetValue()
-	return MapAssignmentsSliceToTerraform(ctx, assignments)
 }

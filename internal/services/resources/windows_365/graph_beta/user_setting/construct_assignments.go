@@ -1,4 +1,4 @@
-package graphBetaCloudPcProvisioningPolicy
+package graphBetaCloudPcUserSetting
 
 import (
 	"context"
@@ -11,21 +11,21 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignmentsRequestBody creates the request body for assigning a Cloud PC provisioning policy to groups
-func constructAssignmentsRequestBody(ctx context.Context, assignments []CloudPcProvisioningPolicyAssignmentModel) (*devicemanagement.VirtualEndpointProvisioningPoliciesItemAssignPostRequestBody, error) {
+// constructAssignmentsRequestBody creates the request body for assigning a Cloud PC user setting to groups
+func constructAssignmentsRequestBody(ctx context.Context, assignments []CloudPcUserSettingAssignmentModel) (*devicemanagement.VirtualEndpointUserSettingsItemAssignPostRequestBody, error) {
 	tflog.Debug(ctx, "Constructing assignments request body")
 
-	requestBody := devicemanagement.NewVirtualEndpointProvisioningPoliciesItemAssignPostRequestBody()
+	requestBody := devicemanagement.NewVirtualEndpointUserSettingsItemAssignPostRequestBody()
 
 	// If no assignments are provided, return an empty assignments array
 	// This is used for removing all assignments
 	if len(assignments) == 0 {
-		requestBody.SetAssignments([]models.CloudPcProvisioningPolicyAssignmentable{})
+		requestBody.SetAssignments([]models.CloudPcUserSettingAssignmentable{})
 		tflog.Debug(ctx, "No assignments provided, setting empty assignments array")
 		return requestBody, nil
 	}
 
-	graphAssignments := []models.CloudPcProvisioningPolicyAssignmentable{}
+	graphAssignments := []models.CloudPcUserSettingAssignmentable{}
 
 	for i, assignment := range assignments {
 		if assignment.GroupId.IsNull() || assignment.GroupId.ValueString() == "" {
@@ -35,7 +35,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments []CloudPcP
 
 		tflog.Debug(ctx, fmt.Sprintf("Creating assignment %d for group ID: %s", i, assignment.GroupId.ValueString()))
 
-		graphAssignment := models.NewCloudPcProvisioningPolicyAssignment()
+		graphAssignment := models.NewCloudPcUserSettingAssignment()
 		if !assignment.ID.IsNull() && assignment.ID.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.ID, graphAssignment.SetId)
 		}
@@ -54,25 +54,6 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments []CloudPcP
 		additionalData["groupId"] = assignment.GroupId.ValueString()
 
 		tflog.Debug(ctx, fmt.Sprintf("Setting groupId in additionalData: %s", assignment.GroupId.ValueString()))
-
-		// Handle Frontline-specific fields
-		if !assignment.ServicePlanId.IsNull() && assignment.ServicePlanId.ValueString() != "" {
-			// Frontline (dedicated/shared)
-			tflog.Debug(ctx, fmt.Sprintf("Setting frontline-specific fields for assignment %d", i))
-			additionalData["servicePlanId"] = assignment.ServicePlanId.ValueString()
-
-			if !assignment.AllotmentDisplayName.IsNull() && assignment.AllotmentDisplayName.ValueString() != "" {
-				additionalData["allotmentDisplayName"] = assignment.AllotmentDisplayName.ValueString()
-			} else {
-				additionalData["allotmentDisplayName"] = "Default Allotment"
-			}
-
-			if !assignment.AllotmentLicenseCount.IsNull() {
-				additionalData["allotmentLicensesCount"] = int32(assignment.AllotmentLicenseCount.ValueInt64())
-			} else {
-				additionalData["allotmentLicensesCount"] = int32(1)
-			}
-		}
 
 		graphAssignment.SetTarget(target)
 		graphAssignments = append(graphAssignments, graphAssignment)

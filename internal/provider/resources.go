@@ -75,7 +75,9 @@ import (
 	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Windows 365 resources
+	graphBetaCloudPcOrganizationSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_organization_settings"
 	graphBetaWindows365CloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy"
+	graphBetaWindows365UserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/user_setting"
 
 	// Graph v1.0 - Intune resources
 	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
@@ -166,6 +168,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Windows 365 resources
 		graphBetaWindows365CloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
+		graphBetaWindows365UserSetting.NewCloudPcUserSettingResource,
+		graphBetaCloudPcOrganizationSettings.NewCloudPcOrganizationSettingsResource,
 
 		// Graph v1.0 - Intune resources
 		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,

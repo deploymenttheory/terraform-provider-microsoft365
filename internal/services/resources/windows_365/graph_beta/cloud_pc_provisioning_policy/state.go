@@ -19,7 +19,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	// Set basic properties
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -36,7 +35,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	data.ManagedBy = convert.GraphToFrameworkEnum(remoteResource.GetManagedBy())
 	data.ScopeIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetScopeIds())
 
-	// Handle Autopatch
 	if autopatch := remoteResource.GetAutopatch(); autopatch != nil {
 		data.Autopatch = &AutopatchModel{
 			AutopatchGroupId: convert.GraphToFrameworkString(autopatch.GetAutopatchGroupId()),
@@ -45,7 +43,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.Autopatch = nil
 	}
 
-	// Handle AutopilotConfiguration
 	if apc := remoteResource.GetAutopilotConfiguration(); apc != nil {
 		data.AutopilotConfiguration = &AutopilotConfigurationModel{
 			DevicePreparationProfileId:  convert.GraphToFrameworkString(apc.GetDevicePreparationProfileId()),
@@ -56,7 +53,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.AutopilotConfiguration = nil
 	}
 
-	// Handle Microsoft Managed Desktop
 	if mmd := remoteResource.GetMicrosoftManagedDesktop(); mmd != nil {
 		data.MicrosoftManagedDesktop = &MicrosoftManagedDesktopModel{
 			ManagedType: convert.GraphToFrameworkEnum(mmd.GetManagedType()),
@@ -66,7 +62,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.MicrosoftManagedDesktop = nil
 	}
 
-	// Handle Domain Join Configurations
 	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); domainJoinConfigs != nil {
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
@@ -81,7 +76,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.DomainJoinConfigurations = []DomainJoinConfigurationModel{}
 	}
 
-	// Handle Windows Settings
 	if windowsSetting := remoteResource.GetWindowsSetting(); windowsSetting != nil {
 		data.WindowsSetting = &WindowsSettingModel{
 			Locale: convert.GraphToFrameworkString(windowsSetting.GetLocale()),
@@ -89,15 +83,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	} else {
 		data.WindowsSetting = nil
 	}
-
-	// // Handle Assignments
-	// if assignments := remoteResource.GetAssignments(); assignments != nil {
-	// 	tflog.Debug(ctx, fmt.Sprintf("Found %d assignments for policy", len(assignments)))
-	// 	data.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
-	// } else {
-	// 	tflog.Debug(ctx, "No assignments found for policy")
-	// 	data.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
-	// }
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }

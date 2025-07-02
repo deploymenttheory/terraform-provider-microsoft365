@@ -1,0 +1,21 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/onPremisesConnections/$entity",
+  "id": "26428a9a-f82d-448c-9f4c-778db22fac80",
+  "managedBy": "windows365",
+  "displayName": "test",
+  "subscriptionId": "c33dbc35-f86d-4b7c-a81e-2a33eb3f7946",
+  "type": "azureADJoin",
+  "connectionType": "azureADJoin",
+  "subscriptionName": "terraform-test",
+  "adDomainName": "",
+  "adDomainUsername": "",
+  "organizationalUnit": "",
+  "resourceGroupId": "/subscriptions/c33dbc35-f86d-4b7c-a81e-2a33eb3f7946/resourceGroups/vmss-cpss-glbl-eng-bld-infrabuild-rsg",
+  "virtualNetworkLocation": "uksouth",
+  "virtualNetworkId": "/subscriptions/c33dbc35-f86d-4b7c-a81e-2a33eb3f7946/resourceGroups/vmss-cpss-glbl-eng-bld-infrabuild-rsg/providers/Microsoft.Network/virtualNetworks/vnet-uks-cpss-glbl-eng-bld-infrabuild",
+  "subnetId": "/subscriptions/c33dbc35-f86d-4b7c-a81e-2a33eb3f7946/resourceGroups/vmss-cpss-glbl-eng-bld-infrabuild-rsg/providers/Microsoft.Network/virtualNetworks/vnet-uks-cpss-glbl-eng-bld-infrabuild/subnets/subnet-uks-cpss-glbl-eng-bld-infrabuild",
+  "healthCheckStatus": "pending",
+  "scopeIds": [
+      "0"
+  ]
+}
