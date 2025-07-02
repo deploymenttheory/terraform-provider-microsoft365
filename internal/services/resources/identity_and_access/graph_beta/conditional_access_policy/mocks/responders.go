@@ -93,9 +93,23 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"state is required"}}`), nil
 			}
 
-			// Generate ID if not provided
+			// Generate ID if not provided - use predefined IDs for test policies
 			if policyData["id"] == nil {
-				policyData["id"] = uuid.New().String()
+				displayName, _ := policyData["displayName"].(string)
+
+				// Check if this matches a predefined test policy and use its ID
+				switch displayName {
+				case "Block Legacy Authentication - Minimal":
+					policyData["id"] = "minimal-policy-id-12345"
+				case "Comprehensive Security Policy - Maximal":
+					policyData["id"] = "maximal-policy-id-67890"
+				case "Comprehensive Security Policy - Updated from Minimal":
+					// This is used in the update test
+					policyData["id"] = "minimal-policy-id-12345"
+				default:
+					// Generate random ID for other policies
+					policyData["id"] = uuid.New().String()
+				}
 			}
 
 			// Set computed fields
@@ -440,8 +454,9 @@ func (m *ConditionalAccessPolicyMock) RegisterErrorMocks() {
 }
 
 // registerTestPolicies registers predefined test policies
+// registerTestPolicies registers predefined test policies
 func registerTestPolicies() {
-	// Register minimal test policy
+	// Register minimal test policy - only includes fields actually specified in HCL
 	minimalPolicy := map[string]interface{}{
 		"id":               "minimal-policy-id-12345",
 		"displayName":      "Block Legacy Authentication - Minimal",
@@ -449,34 +464,22 @@ func registerTestPolicies() {
 		"createdDateTime":  "2024-01-01T00:00:00Z",
 		"modifiedDateTime": "2024-01-01T00:00:00Z",
 		"conditions": map[string]interface{}{
-			"clientAppTypes":             []string{"exchangeActiveSync", "other"},
-			"userRiskLevels":             []string{},
-			"signInRiskLevels":           []string{},
-			"servicePrincipalRiskLevels": []string{},
+			"clientAppTypes":   []interface{}{"exchangeActiveSync", "other"},
+			"signInRiskLevels": []interface{}{},
 			"applications": map[string]interface{}{
-				"includeApplications":                         []string{"All"},
-				"excludeApplications":                         []string{},
-				"includeUserActions":                          []string{},
-				"includeAuthenticationContextClassReferences": []string{},
+				"includeApplications": []interface{}{"All"},
 			},
 			"users": map[string]interface{}{
-				"includeUsers":  []string{"All"},
-				"excludeUsers":  []string{},
-				"includeGroups": []string{},
-				"excludeGroups": []string{},
-				"includeRoles":  []string{},
-				"excludeRoles":  []string{},
+				"includeUsers": []interface{}{"All"},
 			},
 		},
 		"grantControls": map[string]interface{}{
-			"operator":                    "OR",
-			"builtInControls":             []string{"block"},
-			"customAuthenticationFactors": []string{},
-			"termsOfUse":                  []string{},
+			"operator":        "OR",
+			"builtInControls": []interface{}{"block"},
 		},
 	}
 
-	// Register maximal test policy
+	// Register maximal test policy - includes realistic values for all major features
 	maximalPolicy := map[string]interface{}{
 		"id":               "maximal-policy-id-67890",
 		"displayName":      "Comprehensive Security Policy - Maximal",
@@ -484,64 +487,73 @@ func registerTestPolicies() {
 		"createdDateTime":  "2024-01-01T00:00:00Z",
 		"modifiedDateTime": "2024-01-01T00:00:00Z",
 		"conditions": map[string]interface{}{
-			"clientAppTypes":             []string{"all"},
-			"userRiskLevels":             []string{"high"},
-			"signInRiskLevels":           []string{"high", "medium"},
-			"servicePrincipalRiskLevels": []string{},
+			"clientAppTypes":             []interface{}{"all"},
+			"userRiskLevels":             []interface{}{"high"},
+			"signInRiskLevels":           []interface{}{"high", "medium"},
+			"servicePrincipalRiskLevels": []interface{}{"high", "medium"},
 			"applications": map[string]interface{}{
-				"includeApplications":                         []string{"All"},
-				"excludeApplications":                         []string{"00000002-0000-0ff1-ce00-000000000000"},
-				"includeUserActions":                          []string{},
-				"includeAuthenticationContextClassReferences": []string{},
+				"includeApplications":                         []interface{}{"All"},
+				"excludeApplications":                         []interface{}{"00000002-0000-0ff1-ce00-000000000000"},
+				"includeUserActions":                          []interface{}{"urn:user:registersecurityinfo"},
+				"includeAuthenticationContextClassReferences": []interface{}{"c00000000-0000-0000-0000-000000000001"},
 				"applicationFilter": map[string]interface{}{
 					"mode": "exclude",
 					"rule": "device.deviceOwnership -eq \"Company\"",
 				},
 			},
 			"users": map[string]interface{}{
-				"includeUsers":  []string{"All"},
-				"excludeUsers":  []string{"GuestsOrExternalUsers"},
-				"includeGroups": []string{},
-				"excludeGroups": []string{},
-				"includeRoles":  []string{},
-				"excludeRoles":  []string{"62e90394-69f5-4237-9190-012177145e10"},
+				"includeUsers":  []interface{}{"All"},
+				"excludeUsers":  []interface{}{"GuestsOrExternalUsers"},
+				"includeGroups": []interface{}{"a1b2c3d4-e5f6-7890-abcd-ef1234567890"},
+				"excludeGroups": []interface{}{"f1e2d3c4-b5a6-9870-fedc-ba0987654321"},
+				"includeRoles":  []interface{}{"62e90394-69f5-4237-9190-012177145e10"},
+				"excludeRoles":  []interface{}{"e3973bdf-4987-49ae-837a-ba8e231c7286"},
+				"includeGuestsOrExternalUsers": map[string]interface{}{
+					"guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest",
+					"externalTenants": map[string]interface{}{
+						"membershipKind": "enumerated",
+						"members":        []interface{}{"12345678-1234-1234-1234-123456789012"},
+					},
+				},
 			},
 			"platforms": map[string]interface{}{
-				"includePlatforms": []string{"all"},
-				"excludePlatforms": []string{},
+				"includePlatforms": []interface{}{"all"},
+				"excludePlatforms": []interface{}{"iOS", "android"},
 			},
 			"locations": map[string]interface{}{
-				"includeLocations": []string{"All"},
-				"excludeLocations": []string{"AllTrusted"},
+				"includeLocations": []interface{}{"All"},
+				"excludeLocations": []interface{}{"AllTrusted", "11111111-1111-1111-1111-111111111111"},
 			},
 			"devices": map[string]interface{}{
-				"includeDevices":      []string{},
-				"excludeDevices":      []string{},
-				"includeDeviceStates": []string{},
-				"excludeDeviceStates": []string{},
+				"includeDevices":      []interface{}{"All"},
+				"excludeDevices":      []interface{}{"22222222-2222-2222-2222-222222222222"},
+				"includeDeviceStates": []interface{}{"domainJoined"},
+				"excludeDeviceStates": []interface{}{"compliant"},
 				"deviceFilter": map[string]interface{}{
 					"mode": "include",
-					"rule": "device.isCompliant -eq True",
+					"rule": "device.isCompliant -eq True -and device.deviceOwnership -eq \"Company\"",
 				},
 			},
 		},
 		"grantControls": map[string]interface{}{
 			"operator":                    "AND",
-			"builtInControls":             []string{"mfa", "compliantDevice"},
-			"customAuthenticationFactors": []string{},
-			"termsOfUse":                  []string{},
+			"builtInControls":             []interface{}{"mfa", "compliantDevice", "domainJoinedDevice"},
+			"customAuthenticationFactors": []interface{}{"33333333-3333-3333-3333-333333333333"},
+			"termsOfUse":                  []interface{}{"44444444-4444-4444-4444-444444444444"},
 			"authenticationStrength": map[string]interface{}{
 				"id":                    "00000000-0000-0000-0000-000000000004",
 				"displayName":           "Multifactor authentication",
 				"description":           "Combinations of methods that satisfy strong authentication, such as a password + SMS",
 				"policyType":            "builtIn",
 				"requirementsSatisfied": "mfa",
-				"allowedCombinations": []string{
+				"allowedCombinations": []interface{}{
 					"password,sms",
 					"password,voice",
 					"password,hardwareOath",
 					"password,softwareOath",
 					"password,microsoftAuthenticatorPush",
+					"windowsHelloForBusiness",
+					"fido2",
 				},
 			},
 		},
@@ -552,7 +564,7 @@ func registerTestPolicies() {
 			},
 			"cloudAppSecurity": map[string]interface{}{
 				"isEnabled":            true,
-				"cloudAppSecurityType": "monitorOnly",
+				"cloudAppSecurityType": "mcasConfigured",
 			},
 			"signInFrequency": map[string]interface{}{
 				"isEnabled":          true,
@@ -562,8 +574,8 @@ func registerTestPolicies() {
 				"frequencyInterval":  "timeBased",
 			},
 			"persistentBrowser": map[string]interface{}{
-				"isEnabled": false,
-				"mode":      "never",
+				"isEnabled": true,
+				"mode":      "always",
 			},
 			"continuousAccessEvaluation": map[string]interface{}{
 				"mode": "strict",
@@ -585,75 +597,75 @@ func ensurePolicyStructures(policyData map[string]interface{}) {
 	// Ensure conditions structure
 	if conditions, ok := policyData["conditions"].(map[string]interface{}); ok {
 		// Initialize empty arrays for risk levels if not present
-		commonMocks.EnsureField(conditions, "userRiskLevels", []string{})
-		commonMocks.EnsureField(conditions, "signInRiskLevels", []string{})
-		commonMocks.EnsureField(conditions, "servicePrincipalRiskLevels", []string{})
-		commonMocks.EnsureField(conditions, "clientAppTypes", []string{})
+		commonMocks.EnsureField(conditions, "userRiskLevels", []interface{}{})
+		commonMocks.EnsureField(conditions, "signInRiskLevels", []interface{}{})
+		commonMocks.EnsureField(conditions, "servicePrincipalRiskLevels", []interface{}{})
+		commonMocks.EnsureField(conditions, "clientAppTypes", []interface{}{})
 
 		// Ensure applications structure
 		if applications, ok := conditions["applications"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(applications, "includeApplications", []string{})
-			commonMocks.EnsureField(applications, "excludeApplications", []string{})
-			commonMocks.EnsureField(applications, "includeUserActions", []string{})
-			commonMocks.EnsureField(applications, "includeAuthenticationContextClassReferences", []string{})
+			commonMocks.EnsureField(applications, "includeApplications", []interface{}{})
+			commonMocks.EnsureField(applications, "excludeApplications", []interface{}{})
+			commonMocks.EnsureField(applications, "includeUserActions", []interface{}{})
+			commonMocks.EnsureField(applications, "includeAuthenticationContextClassReferences", []interface{}{})
 		} else {
 			conditions["applications"] = map[string]interface{}{
-				"includeApplications":                         []string{},
-				"excludeApplications":                         []string{},
-				"includeUserActions":                          []string{},
-				"includeAuthenticationContextClassReferences": []string{},
+				"includeApplications":                         []interface{}{},
+				"excludeApplications":                         []interface{}{},
+				"includeUserActions":                          []interface{}{},
+				"includeAuthenticationContextClassReferences": []interface{}{},
 			}
 		}
 
 		// Ensure users structure
 		if users, ok := conditions["users"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(users, "includeUsers", []string{})
-			commonMocks.EnsureField(users, "excludeUsers", []string{})
-			commonMocks.EnsureField(users, "includeGroups", []string{})
-			commonMocks.EnsureField(users, "excludeGroups", []string{})
-			commonMocks.EnsureField(users, "includeRoles", []string{})
-			commonMocks.EnsureField(users, "excludeRoles", []string{})
+			commonMocks.EnsureField(users, "includeUsers", []interface{}{})
+			commonMocks.EnsureField(users, "excludeUsers", []interface{}{})
+			commonMocks.EnsureField(users, "includeGroups", []interface{}{})
+			commonMocks.EnsureField(users, "excludeGroups", []interface{}{})
+			commonMocks.EnsureField(users, "includeRoles", []interface{}{})
+			commonMocks.EnsureField(users, "excludeRoles", []interface{}{})
 		} else {
 			conditions["users"] = map[string]interface{}{
-				"includeUsers":  []string{},
-				"excludeUsers":  []string{},
-				"includeGroups": []string{},
-				"excludeGroups": []string{},
-				"includeRoles":  []string{},
-				"excludeRoles":  []string{},
+				"includeUsers":  []interface{}{},
+				"excludeUsers":  []interface{}{},
+				"includeGroups": []interface{}{},
+				"excludeGroups": []interface{}{},
+				"includeRoles":  []interface{}{},
+				"excludeRoles":  []interface{}{},
 			}
 		}
 
 		// Only ensure platforms structure if it's already present in the request
 		if platforms, ok := conditions["platforms"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(platforms, "includePlatforms", []string{})
-			commonMocks.EnsureField(platforms, "excludePlatforms", []string{})
+			commonMocks.EnsureField(platforms, "includePlatforms", []interface{}{})
+			commonMocks.EnsureField(platforms, "excludePlatforms", []interface{}{})
 		}
 
 		// Only ensure locations structure if it's already present in the request
 		if locations, ok := conditions["locations"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(locations, "includeLocations", []string{})
-			commonMocks.EnsureField(locations, "excludeLocations", []string{})
+			commonMocks.EnsureField(locations, "includeLocations", []interface{}{})
+			commonMocks.EnsureField(locations, "excludeLocations", []interface{}{})
 		}
 
 		// Only ensure devices structure if it's already present in the request
 		if devices, ok := conditions["devices"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(devices, "includeDevices", []string{})
-			commonMocks.EnsureField(devices, "excludeDevices", []string{})
-			commonMocks.EnsureField(devices, "includeDeviceStates", []string{})
-			commonMocks.EnsureField(devices, "excludeDeviceStates", []string{})
+			commonMocks.EnsureField(devices, "includeDevices", []interface{}{})
+			commonMocks.EnsureField(devices, "excludeDevices", []interface{}{})
+			commonMocks.EnsureField(devices, "includeDeviceStates", []interface{}{})
+			commonMocks.EnsureField(devices, "excludeDeviceStates", []interface{}{})
 		}
 	}
 
 	// Ensure grant controls structure
 	if grantControls, ok := policyData["grantControls"].(map[string]interface{}); ok {
-		commonMocks.EnsureField(grantControls, "builtInControls", []string{})
-		commonMocks.EnsureField(grantControls, "customAuthenticationFactors", []string{})
-		commonMocks.EnsureField(grantControls, "termsOfUse", []string{})
+		commonMocks.EnsureField(grantControls, "builtInControls", []interface{}{})
+		commonMocks.EnsureField(grantControls, "customAuthenticationFactors", []interface{}{})
+		commonMocks.EnsureField(grantControls, "termsOfUse", []interface{}{})
 
 		// Ensure authentication strength if present
 		if authStrength, ok := grantControls["authenticationStrength"].(map[string]interface{}); ok {
-			commonMocks.EnsureField(authStrength, "allowedCombinations", []string{})
+			commonMocks.EnsureField(authStrength, "allowedCombinations", []interface{}{})
 		}
 	}
 
