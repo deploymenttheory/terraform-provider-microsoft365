@@ -125,6 +125,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 
 - `display_name` (String) The display name for the provisioning policy.
 - `image_id` (String) The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'.
+- `microsoft_managed_desktop` (Attributes) This block is currently not supported in terraform. The registration to the Autopatch service currently only suports the intune gui,with no publically available api to call. This will return a 403 error if this block is used. Raise a ticket with Microsoft to make the Autopatch service available via api.The specific settings for Microsoft Managed Desktop that enables Microsoft Managed Desktop customers to get device managed experience for Cloud PC. (see [below for nested schema](#nestedatt--microsoft_managed_desktop))
+- `windows_setting` (Attributes) Indicates a specific Windows setting to configure during the creation of Cloud PCs for this provisioning policy. (see [below for nested schema](#nestedatt--windows_setting))
 
 ### Optional
 
@@ -139,11 +141,9 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 - `image_type` (String) The type of operating system image (custom or gallery) that is used for provisioning on Cloud PCs. Possible values are: gallery, custom. The default value is gallery. Supports $filter, $select, and $orderBy.
 - `local_admin_enabled` (Boolean) When true, the local admin is enabled for Cloud PCs; false indicates that the local admin isn't enabled for Cloud PCs. The default value is false. Supports $filter, $select, and $orderBy.
 - `managed_by` (String) Specifies which service manages the Cloud PC provisioning policy. Possible values: windows365, devBox, unknownFutureValue, rpaBox. See Microsoft Graph documentation for details.
-- `microsoft_managed_desktop` (Attributes) This block is currently not supported in terraform. The registration to the Autopatch service currently only suports the intune gui,with no publically available api to call. This will return a 403 error if this block is used. Raise a ticket with Microsoft to make the Autopatch service available via api.The specific settings for Microsoft Managed Desktop that enables Microsoft Managed Desktop customers to get device managed experience for Cloud PC. (see [below for nested schema](#nestedatt--microsoft_managed_desktop))
 - `provisioning_type` (String) Specifies the type of license used when provisioning Cloud PCs using this policy.By default, the license type is dedicated if the provisioningType isn't specified when you create the cloudPcProvisioningPolicy.Possible values are: dedicated, shared, sharedByUser, sharedByEntraGroup, unknownFutureValue.Changes to this attribute will force recreation of the resource.dedicated: (Enterprise) Each user will get their own Cloud PC without restrictions on when they can connect to it.shared: (Frontline - Dedicated) Recommended for users who need part time access to their Cloud PCs or follow a set schedule, such as shifts. A single license lets you provision up to three Cloud PCs that can be used non-concurrently, each assigned to a single user. Provides one concurrent session.sharedByEntraGroup: (Frontline - Shared) Recommended for users who use Cloud PC for a short period of time and do not require data to be preserved. A single license lets you provision one Cloud PC that can be shared non-concurrently among a group of users. Provides one concurrent session.
 - `scope_ids` (Set of String) Set of scope tag IDs for this resource.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `windows_setting` (Attributes) Indicates a specific Windows setting to configure during the creation of Cloud PCs for this provisioning policy. (see [below for nested schema](#nestedatt--windows_setting))
 
 ### Read-Only
 
@@ -152,6 +152,23 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 - `grace_period_in_hours` (Number) The number of hours to wait before reprovisioning/deprovisioning happens. Read-only.
 - `id` (String) The unique identifier of the provisioning policy.
 - `image_display_name` (String) The display name of the operating system image that is used for provisioning. Supports $filter, $select, and $orderBy.
+
+<a id="nestedatt--microsoft_managed_desktop"></a>
+### Nested Schema for `microsoft_managed_desktop`
+
+Optional:
+
+- `managed_type` (String) Indicates the provisioning policy associated with Microsoft Managed Desktop settings.
+- `profile` (String) The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with.'4aa9b805-9494-4eed-a04b-ed51ec9e631e' is the default Autopatch Group ID. Via 'https://mmdls.microsoft.com/device/v1/windows365/autopatchGroups'
+
+
+<a id="nestedatt--windows_setting"></a>
+### Nested Schema for `windows_setting`
+
+Required:
+
+- `locale` (String) The Windows language or region tag to use for language pack configuration and localization of the Cloud PC. The default value is en-US, which corresponds to English (United States).
+
 
 <a id="nestedatt--apply_to_existing_cloud_pcs"></a>
 ### Nested Schema for `apply_to_existing_cloud_pcs`
@@ -213,15 +230,6 @@ Optional:
 - `region_name` (String) The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option.The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure.Must be one of: automatic, japaneast, eastasia.
 
 
-<a id="nestedatt--microsoft_managed_desktop"></a>
-### Nested Schema for `microsoft_managed_desktop`
-
-Optional:
-
-- `managed_type` (String) Indicates the provisioning policy associated with Microsoft Managed Desktop settings.
-- `profile` (String) The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with.'4aa9b805-9494-4eed-a04b-ed51ec9e631e' is the default Autopatch Group ID. Via 'https://mmdls.microsoft.com/device/v1/windows365/autopatchGroups'
-
-
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
@@ -231,14 +239,6 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-
-
-<a id="nestedatt--windows_setting"></a>
-### Nested Schema for `windows_setting`
-
-Optional:
-
-- `locale` (String) The Windows language or region tag to use for language pack configuration and localization of the Cloud PC. The default value is en-US, which corresponds to English (United States).
 
 ## Important Notes
 

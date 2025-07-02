@@ -1,4 +1,4 @@
-package graphCloudPcProvisioningPolicy
+package graphBetaAzureNetworkConnection
 
 import (
 	"context"
@@ -9,40 +9,36 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Create handles the Create operation.
-func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object CloudPcProvisioningPolicyResourceModel
+func (r *CloudPcOnPremisesConnectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan CloudPcOnPremisesConnectionResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing resource", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
-	provisioningPolicy, err := r.client.
+	created, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
-		ProvisioningPolicies().
+		OnPremisesConnections().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -50,9 +46,9 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	object.ID = types.StringValue(*provisioningPolicy.GetId())
+	MapRemoteStateToTerraform(ctx, &plan, created, plan.AdDomainPassword)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -77,10 +73,8 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 }
 
 // Read handles the Read operation.
-func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object CloudPcProvisioningPolicyResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+func (r *CloudPcOnPremisesConnectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object CloudPcOnPremisesConnectionResourceModel
 
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -88,48 +82,47 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 			operation = opStr
 		}
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s (operation: %s)", ResourceName, object.ID.ValueString(), operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
-	defer cancel()
 
-	provisioningPolicy, err := r.client.
+	defer cancel()
+	item, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+		OnPremisesConnections().
+		ByCloudPcOnPremisesConnectionId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
+	MapRemoteStateToTerraform(ctx, &object, item, object.AdDomainPassword)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation.
-func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan CloudPcProvisioningPolicyResourceModel
-	var state CloudPcProvisioningPolicyResourceModel
+func (r *CloudPcOnPremisesConnectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan CloudPcOnPremisesConnectionResourceModel
+	var state CloudPcOnPremisesConnectionResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -145,18 +138,15 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing resource for update method", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
 	_, err = r.client.
 		DeviceManagement().
 		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(state.ID.ValueString()).
+		OnPremisesConnections().
+		ByCloudPcOnPremisesConnectionId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -189,8 +179,8 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 }
 
 // Delete handles the Delete operation.
-func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object CloudPcProvisioningPolicyResourceModel
+func (r *CloudPcOnPremisesConnectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object CloudPcOnPremisesConnectionResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -208,8 +198,8 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 	err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+		OnPremisesConnections().
+		ByCloudPcOnPremisesConnectionId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

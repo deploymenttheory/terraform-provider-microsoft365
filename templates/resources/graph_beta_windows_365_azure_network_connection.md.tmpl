@@ -1,0 +1,48 @@
+---
+page_title: "microsoft365_graph_beta_windows_365_azure_network_connection Resource - Microsoft365 Provider"
+subcategory: "Windows 365"
+description: |-
+  Manages a Windows 365 Azure Network Connection (Cloud PC On-Premises Connection) in Microsoft 365 via the Microsoft Graph Beta API.
+---
+
+# microsoft365_graph_beta_windows_365_azure_network_connection (Resource)
+
+Manages a Windows 365 Azure Network Connection (Cloud PC On-Premises Connection) in Microsoft 365 via the Microsoft Graph Beta API.
+
+## Microsoft Documentation
+
+- [List onPremisesConnections (beta)](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-list-onpremisesconnections?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `CloudPC.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.19.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_windows_365_azure_network_connection/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+## Attributes Reference
+
+- `id` - The unique identifier for the Azure network connection.
+
+## Important Notes
+
+- **Azure Resource IDs**: All resource IDs (resource group, virtual network, subnet) must be provided in lowercase and match the Azure resource ID format.
+- **Sensitive Fields**: The `ad_domain_password` field is sensitive and will not be returned by the API after creation. It is preserved in state if set in configuration.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_windows_365_azure_network_connection/import.sh" }} 
