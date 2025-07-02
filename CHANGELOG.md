@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.18.2-alpha...v0.19.0-alpha) (2025-07-02)
+
+
+### Features
+
+* added graph_beta_windows_365_azure_network_connection, graph_beta_windows_365_cloud_pc_organization_settings, graph_beta_windows_365_cloud_pc_provisioning_policy and graph_beta_windows_365_user_setting with examples ([#567](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/567)) ([005dbf8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/005dbf8585f2bbe06f9b263751373f563693f8d2))
+* added windows 365 examples and bugies for move to graph beta ([5da3eaa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5da3eaa34501da056131aa27982b95d5c67e79af))
+
+
+### Bug Fixes
+
+* added managed devices 1st itteration ([2355602](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/235560283c5b4344b676d23cc35bfaec6a4231c8))
+* added numerous cloud pc datasources ([d1eef9d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d1eef9d883ea610b5c213bef5f65d6f118d00407))
+* added numerous cloud pc datasources ([#557](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/557)) ([3e576e1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3e576e1e0c39052d70702b31fb42e7b580192a0f))
+* added python venv to gitignore ([be5d039](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/be5d039574d85cf84432e8ea7a6e4a4d186040f4))
+* added windows_365 datasources and added odata support ([08b3b8f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/08b3b8f76c46f1bb82ac7bca9554d6a0942aaf43))
+* added windows_365 datasources and added odata support ([#559](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/559)) ([74c69e0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/74c69e0203b0aa2793b50562d112b59775a4c321))
+* example ([fd0bae5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fd0bae56cb1c529e158cebe7b981b608fe192aa3))
+* for assignments with cloud provisoning polciies and tester ps script ([bde2160](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bde2160635e9e6d3d0adcfa19a9ced1b394bfb2e))
+* for branch merge ([07f4a5e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/07f4a5e0b0a5d6aeda02c64b6518914887a75eb7))
+* for branch merge ([#560](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/560)) ([2481027](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2481027cda4a473df85e2102ad765fe829c66d37))
+* for cloud pc provisioning profiles graph beta ([da6a74a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/da6a74af856acf168f4bca4a583a21ef467ad595))
+* for conditional access policies ([8d7f5f0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8d7f5f01304079faf2c6b567378432caf10f3e8c))
+* for GroupSettings unit tests ([ffb8f71](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ffb8f719dedf3155f2d13242dda63dcb1dfaa580))
+* for plan and state definitions within update funcs ([1cfce7a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1cfce7a1a2d04f5eee804b14cbae506d3d8acb67))
+* for pr merge ([bb7b5a2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bb7b5a2e9de1026da924fc22c2d31125dca764e1))
+* for pr merge ([#568](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/568)) ([a4cf05a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a4cf05a3d8aaf1a1098e5c68895b6a7d0a2c81da))
+* for read with retry loop. correct ctx handling ([d2bf94b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d2bf94bc304006bc7b01333f1c59ca4c7f58e089))
+* graph beta additions for windows 365 ([de472bb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de472bbaeb29dbbaf63fd18732ba99076540d152))
+* implemented win365 provisoning policy fixes with frontline support and assignments. ([#561](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/561)) ([a0d66fe](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a0d66fe8c314d9b27d13598ba6c2bed493613059))
+* implemented win365 provisoning policy fixes with frontline support. ([fe1ff4f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fe1ff4f7b2d8b5c5041b1aabd8c205d7b08661c9))
+* more fixes for conditional access unit tests ([a916947](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a9169476781401a45e6a540e7348b0ec21e671d5))
+* numerous fixes for conditional access policies. uses a new non kiota based sdk http client ([f62c5cc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f62c5cc95be1e96192929098e70d910ad55e96f8))
+* numerous fixes for conditional access policies. uses a new non kiota based sdk http client ([#553](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/553)) ([ab62461](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ab624617b6f329c42cb17df17866970b9412f372))
+* numerous fixes for read with retry logic to now correctly handle operation type ([#562](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/562)) ([16275b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/16275b84a72254328a0813e19630fd03c87baf87))
+* partial fix for conditional access introduced with sdk v0.137.0 ([#550](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/550)) ([82452cc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/82452cc393627f84402e5e8181bc91584d1eb421))
+* re-up ([9fa33bf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9fa33bf3a68a935a28208942de6b319742a24430))
+* re-up ([#569](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/569)) ([e30b87c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e30b87cb931cddc4d4848515a49bd706452c913e))
+* set unit test timeout to 120 minutes ([e39a0af](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e39a0afa4d436c9b528a8fe31bd0039ea2e7f6d3))
+* state removal logic and logging consistency across all resources ([b77d94a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b77d94ac10c980e5daf860c3c40bdd14fdc4e9f9))
+* tflog logs for update func ([109e2cc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/109e2ccadaaf6617ecdf0c5d93f82ccb24f3c446))
+* tidy up ([a378df2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a378df2d4f1e4579ebe3ef2ae3cb47a42d5cea73))
+* unit tests for conditional access policies ([2fcabab](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2fcababe1f4cfa2924b0530f5ade95df5a2222ac))
+* unit tests only run now on changes to go files ([47ff1f5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/47ff1f54d7ddd1b799da8ae44679cb8e2b52896a))
+* updated docs for groups resources ([f733e4c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f733e4c3fe4ae71a0e99237d4a6e983e689a2c6d))
+
 ## [0.18.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.18.1-alpha...v0.18.2-alpha) (2025-06-25)
 
 
