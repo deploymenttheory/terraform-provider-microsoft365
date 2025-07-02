@@ -4,7 +4,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
   conditions = {
     client_app_types    = ["exchangeActiveSync", "other"]
-    sign_in_risk_levels = []  # Required field but can be empty
+    sign_in_risk_levels = [] # Required field but can be empty
 
     applications = {
       include_applications = ["All"]
