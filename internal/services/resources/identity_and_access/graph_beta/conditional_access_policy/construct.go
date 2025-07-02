@@ -166,7 +166,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeUsers, func(values []string) {
-			if len(values) > 0 {
+			// Always include excludeUsers if the field is configured (even if empty)
+			if !data.Users.ExcludeUsers.IsNull() {
 				users["excludeUsers"] = values
 			}
 		}); err != nil {
@@ -174,7 +175,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeGroups, func(values []string) {
-			if len(values) > 0 {
+			// Always include includeGroups if the field is configured (even if empty)
+			if !data.Users.IncludeGroups.IsNull() {
 				users["includeGroups"] = values
 			}
 		}); err != nil {
@@ -182,7 +184,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeGroups, func(values []string) {
-			if len(values) > 0 {
+			// Always include excludeGroups if the field is configured (even if empty)
+			if !data.Users.ExcludeGroups.IsNull() {
 				users["excludeGroups"] = values
 			}
 		}); err != nil {
@@ -190,7 +193,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeRoles, func(values []string) {
-			if len(values) > 0 {
+			// Always include includeRoles if the field is configured (even if empty)
+			if !data.Users.IncludeRoles.IsNull() {
 				users["includeRoles"] = values
 			}
 		}); err != nil {
@@ -215,7 +219,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		platforms := make(map[string]interface{})
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Platforms.IncludePlatforms, func(values []string) {
-			if len(values) > 0 {
+			// Always include includePlatforms if the field is configured (even if empty)
+			if !data.Platforms.IncludePlatforms.IsNull() {
 				platforms["includePlatforms"] = values
 			}
 		}); err != nil {
@@ -223,7 +228,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Platforms.ExcludePlatforms, func(values []string) {
-			if len(values) > 0 {
+			// Always include excludePlatforms if the field is configured (even if empty)
+			if !data.Platforms.ExcludePlatforms.IsNull() {
 				platforms["excludePlatforms"] = values
 			}
 		}); err != nil {
@@ -265,7 +271,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		devices := make(map[string]interface{})
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.IncludeDevices, func(values []string) {
-			if len(values) > 0 {
+			// Always include includeDevices if the field is configured (even if empty)
+			if !data.Devices.IncludeDevices.IsNull() {
 				devices["includeDevices"] = values
 			}
 		}); err != nil {
@@ -273,11 +280,47 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.ExcludeDevices, func(values []string) {
-			if len(values) > 0 {
+			// Always include excludeDevices if the field is configured (even if empty)
+			if !data.Devices.ExcludeDevices.IsNull() {
 				devices["excludeDevices"] = values
 			}
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude devices: %w", err)
+		}
+
+		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.IncludeDeviceStates, func(values []string) {
+			// Always include includeDeviceStates if the field is configured (even if empty)
+			if !data.Devices.IncludeDeviceStates.IsNull() {
+				devices["includeDeviceStates"] = values
+			}
+		}); err != nil {
+			return nil, fmt.Errorf("failed to convert include device states: %w", err)
+		}
+
+		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.ExcludeDeviceStates, func(values []string) {
+			// Always include excludeDeviceStates if the field is configured (even if empty)
+			if !data.Devices.ExcludeDeviceStates.IsNull() {
+				devices["excludeDeviceStates"] = values
+			}
+		}); err != nil {
+			return nil, fmt.Errorf("failed to convert exclude device states: %w", err)
+		}
+
+		if data.Devices.DeviceFilter != nil {
+			deviceFilter := make(map[string]interface{})
+			convert.FrameworkToGraphString(data.Devices.DeviceFilter.Mode, func(value *string) {
+				if value != nil {
+					deviceFilter["mode"] = *value
+				}
+			})
+			convert.FrameworkToGraphString(data.Devices.DeviceFilter.Rule, func(value *string) {
+				if value != nil {
+					deviceFilter["rule"] = *value
+				}
+			})
+			if len(deviceFilter) > 0 {
+				devices["deviceFilter"] = deviceFilter
+			}
 		}
 
 		if len(devices) > 0 {
@@ -287,7 +330,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 	// Risk levels
 	if err := convert.FrameworkToGraphStringSet(ctx, data.SignInRiskLevels, func(values []string) {
-		if len(values) > 0 {
+		// Always include signInRiskLevels if the field is configured (even if empty)
+		if !data.SignInRiskLevels.IsNull() {
 			conditions["signInRiskLevels"] = values
 		}
 	}); err != nil {
@@ -295,7 +339,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 	}
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.UserRiskLevels, func(values []string) {
-		if len(values) > 0 {
+		// Always include userRiskLevels if the field is configured (even if empty)
+		if !data.UserRiskLevels.IsNull() {
 			conditions["userRiskLevels"] = values
 		}
 	}); err != nil {
@@ -448,6 +493,19 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 				signInFrequency["value"] = *value
 			}
 		})
+
+		// Include authentication_type and frequency_interval if they are set
+		convert.FrameworkToGraphString(data.SignInFrequency.AuthenticationType, func(value *string) {
+			if value != nil {
+				signInFrequency["authenticationType"] = *value
+			}
+		})
+		convert.FrameworkToGraphString(data.SignInFrequency.FrequencyInterval, func(value *string) {
+			if value != nil {
+				signInFrequency["frequencyInterval"] = *value
+			}
+		})
+
 		if len(signInFrequency) > 0 {
 			sessionControls["signInFrequency"] = signInFrequency
 		}

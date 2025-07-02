@@ -4,20 +4,14 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
   conditions = {
     client_app_types    = ["exchangeActiveSync", "other"]
-    user_risk_levels    = []
-    sign_in_risk_levels = []
+    sign_in_risk_levels = []  # Required field but can be empty
 
     applications = {
       include_applications = ["All"]
-      exclude_applications = []
-      include_user_actions = []
     }
 
     users = {
-      include_users  = ["All"]
-      exclude_users  = []
-      include_groups = []
-      exclude_groups = []
+      include_users = ["All"]
     }
   }
 
@@ -25,4 +19,4 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     operator          = "OR"
     built_in_controls = ["block"]
   }
-} 
+}

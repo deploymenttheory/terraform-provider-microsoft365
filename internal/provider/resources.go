@@ -75,13 +75,13 @@ import (
 	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Windows 365 resources
+	graphBetaWindows365AzureNetworkConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection"
+	graphBetaWindows365CloudPcOrganizationSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_organization_settings"
 	graphBetaWindows365CloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy"
+	graphBetaWindows365UserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/user_setting"
 
 	// Graph v1.0 - Intune resources
 	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
-	graphDeviceAndAppManagementCloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_v1.0/cloud_pc_device_image"
-	graphDeviceAndAppManagementCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_v1.0/cloud_pc_provisioning_policy"
-	graphDeviceAndAppManagementCloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_v1.0/cloud_pc_user_setting"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -166,11 +166,11 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Windows 365 resources
 		graphBetaWindows365CloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
+		graphBetaWindows365UserSetting.NewCloudPcUserSettingResource,
+		graphBetaWindows365CloudPcOrganizationSettings.NewCloudPcOrganizationSettingsResource,
+		graphBetaWindows365AzureNetworkConnection.NewCloudPcOnPremisesConnectionResource,
 
 		// Graph v1.0 - Intune resources
-		graphDeviceAndAppManagementCloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
-		graphDeviceAndAppManagementCloudPcUserSetting.NewCloudPcUserSettingResource,
-		graphDeviceAndAppManagementCloudPcDeviceImage.NewCloudPcDeviceImageResource,
 		graphDeviceManagementDeviceConfigurationAssignment.NewDeviceConfigurationAssignmentResource,
 
 		// Graph v1.0 - M365 Admin Centre

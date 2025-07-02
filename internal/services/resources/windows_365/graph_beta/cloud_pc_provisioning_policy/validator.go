@@ -9,6 +9,7 @@ import (
 
 // validateResource checks that the display_name is unique among all Cloud PC provisioning policies.
 // Returns an error if a policy with the same display_name already exists.
+// For updates, it excludes the current resource from the uniqueness check.
 func validateResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *CloudPcProvisioningPolicyResourceModel) error {
 	if client == nil {
 		return fmt.Errorf("microsoft Graph client is not available for uniqueness validation")
@@ -17,6 +18,12 @@ func validateResource(ctx context.Context, client *msgraphbetasdk.GraphServiceCl
 		return nil
 	}
 	displayName := data.DisplayName.ValueString()
+
+	// Skip uniqueness check for updates - if the resource has an ID, it's an update
+	isUpdate := !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != ""
+	if isUpdate {
+		return nil
+	}
 
 	policies, err := client.
 		DeviceManagement().

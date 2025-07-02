@@ -2,7 +2,6 @@ package graphBetaCloudPcProvisioningPolicy
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -292,7 +291,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				},
 			},
 			"microsoft_managed_desktop": schema.SingleNestedAttribute{
-				Optional: true,
+				Required: true,
 				MarkdownDescription: "This block is currently not supported in terraform. The registration to the Autopatch service currently only suports the intune gui," +
 					"with no publically available api to call. This will return a 403 error if this block is used. Raise a ticket with Microsoft to make the Autopatch service available via api." +
 					"The specific settings for Microsoft Managed Desktop that enables Microsoft Managed Desktop customers to get device managed experience for Cloud PC.",
@@ -316,14 +315,56 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				},
 			},
 			"windows_setting": schema.SingleNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Indicates a specific Windows setting to configure during the creation of Cloud PCs for this provisioning policy.",
 				Attributes: map[string]schema.Attribute{
 					"locale": schema.StringAttribute{
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "The Windows language or region tag to use for language pack configuration and localization of the Cloud PC. The default value is en-US, which corresponds to English (United States).",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z]{2,3}-[A-Z]{2,3}$`), "Must be a valid BCP 47 language tag, e.g. 'en-GB', 'ja-JP'"),
+							stringvalidator.OneOf(
+								"ar-SA",      // Arabic (Saudi Arabia)
+								"bg-BG",      // Bulgarian (Bulgaria)
+								"zh-CN",      // Chinese (Simplified, China)
+								"zh-TW",      // Chinese (Traditional, Taiwan)
+								"hr-HR",      // Croatian (Croatia)
+								"cs-CZ",      // Czech (Czech Republic)
+								"da-DK",      // Danish (Denmark)
+								"nl-NL",      // Dutch (Netherlands)
+								"en-AU",      // English (Australia)
+								"en-IE",      // English (Ireland)
+								"en-NZ",      // English (New Zealand)
+								"en-GB",      // English (United Kingdom)
+								"en-US",      // English (United States)
+								"et-EE",      // Estonian (Estonia)
+								"fi-FI",      // Finnish (Finland)
+								"fr-CA",      // French (Canada)
+								"fr-FR",      // French (France)
+								"de-DE",      // German (Germany)
+								"el-GR",      // Greek (Greece)
+								"he-IL",      // Hebrew (Israel)
+								"hu-HU",      // Hungarian (Hungary)
+								"it-IT",      // Italian (Italy)
+								"ja-JP",      // Japanese (Japan)
+								"ko-KR",      // Korean (Korea)
+								"lv-LV",      // Latvian (Latvia)
+								"lt-LT",      // Lithuanian (Lithuania)
+								"nb-NO",      // Norwegian Bokmål (Norway)
+								"pl-PL",      // Polish (Poland)
+								"pt-BR",      // Portuguese (Brazil)
+								"pt-PT",      // Portuguese (Portugal)
+								"ro-RO",      // Romanian (Romania)
+								"ru-RU",      // Russian (Russia)
+								"sr-Cyrl-CS", // Serbian (Cyrillic, Serbia)
+								"sk-SK",      // Slovak (Slovakia)
+								"sl-SI",      // Slovenian (Slovenia)
+								"es-MX",      // Spanish (Mexico)
+								"es-ES",      // Spanish (Spain)
+								"sv-SE",      // Swedish (Sweden)
+								"th-TH",      // Thai (Thailand)
+								"tr-TR",      // Turkish (Turkey)
+								"uk-UA",      // Ukrainian (Ukraine)
+							),
 						},
 					},
 				},

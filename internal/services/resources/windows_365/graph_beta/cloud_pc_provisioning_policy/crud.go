@@ -109,8 +109,6 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcProvisioningPolicyResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
-
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
@@ -135,9 +133,11 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	requestConfig := &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetQueryParameters{
 			Expand: []string{"assignments"},
+			Select: []string{"*"},
 		},
 	}
 
+	tflog.Debug(ctx, "Fetching provisioning policy with expanded assignments")
 	provisioningPolicy, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
@@ -152,11 +152,36 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)
 
-	// Extract assignments from the expanded response
-	if assignments := provisioningPolicy.GetAssignments(); assignments != nil {
+	assignments := provisioningPolicy.GetAssignments()
+	if assignments != nil && len(assignments) > 0 {
+
 		object.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
 	} else {
-		object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
+		tflog.Debug(ctx, "No assignments found in API response")
+
+		if len(object.Assignments) > 0 {
+			tflog.Debug(ctx, "No assignments in expanded response but assignments exist in state, fetching assignments separately")
+
+			assignmentsResponse, err := r.client.
+				DeviceManagement().
+				VirtualEndpoint().
+				ProvisioningPolicies().
+				ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+				Assignments().
+				Get(ctx, nil)
+
+			if err != nil {
+				tflog.Debug(ctx, fmt.Sprintf("Error fetching assignments separately: %s", err.Error()))
+				object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
+			} else if assignmentsResponse != nil && len(assignmentsResponse.GetValue()) > 0 {
+				tflog.Debug(ctx, fmt.Sprintf("Found %d assignments in separate request", len(assignmentsResponse.GetValue())))
+				object.Assignments = MapAssignmentsSliceToTerraform(ctx, assignmentsResponse.GetValue())
+			} else {
+				object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
+			}
+		} else {
+			object.Assignments = []CloudPcProvisioningPolicyAssignmentModel{}
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -209,10 +234,8 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	// Handle assignments update
 	tflog.Debug(ctx, fmt.Sprintf("Updating assignments for policy ID: %s", state.ID.ValueString()))
 
-	// Construct assignments request body
 	assignBody, err := constructAssignmentsRequestBody(ctx, plan.Assignments)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -222,7 +245,6 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	// Post assignments
 	err = r.client.
 		DeviceManagement().
 		VirtualEndpoint().
