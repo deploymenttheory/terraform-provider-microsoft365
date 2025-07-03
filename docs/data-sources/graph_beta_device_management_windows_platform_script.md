@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_platform_script Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves information about a windows platform script.
 ---

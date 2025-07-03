@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_assignment_filter Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves assignment filters from Microsoft Intune using the /deviceManagement/assignmentFilters endpoint. Assignment filters allow targeting of policies and apps based on device properties like OS version, manufacturer, or custom device attributes, enabling more granular deployment control beyond basic group membership.
 ---

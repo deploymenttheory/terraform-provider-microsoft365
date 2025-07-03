@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Apple User Initiated Enrollment Profile Assignments in Microsoft Intune.
 ---

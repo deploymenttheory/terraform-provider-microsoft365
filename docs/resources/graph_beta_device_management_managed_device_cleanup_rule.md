@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_managed_device_cleanup_rule Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Managed Device Cleanup Rules in Microsoft Intune. Device cleanup rules define when the admin wants devices to be automatically removed from Intune management based on inactivity periods and platform types.
 ---

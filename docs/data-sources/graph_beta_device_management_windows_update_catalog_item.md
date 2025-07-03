@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_update_catalog_item Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves Windows Update Catalog Items from Microsoft Intune with explicit filtering options.
 ---

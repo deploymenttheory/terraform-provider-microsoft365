@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_update_ring Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves Windows Update Rings from Microsoft Intune with explicit filtering options. Windows Update Rings allow you to define how and when Windows devices receive updates.
 ---

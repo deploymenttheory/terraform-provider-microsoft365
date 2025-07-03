@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_feature_update_profile Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows feature update profiles using the /deviceManagement/windowsFeatureUpdateProfiles endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
 ---

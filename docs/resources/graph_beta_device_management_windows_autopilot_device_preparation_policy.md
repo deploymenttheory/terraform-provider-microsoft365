@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows Autopilot Device Preparation Policy using the /deviceManagement/configurationPolicies endpoint. Windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.
 ---

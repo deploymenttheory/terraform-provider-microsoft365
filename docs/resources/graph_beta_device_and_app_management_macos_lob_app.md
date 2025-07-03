@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_macos_lob_app Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device and App Management"
+
 description: |-
   Manages macOS Line of Business (LOB) app packages in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. LOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.
 ---

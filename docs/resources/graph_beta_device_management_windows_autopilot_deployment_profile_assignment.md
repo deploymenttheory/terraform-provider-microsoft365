@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows Autopilot Deployment Profile Assignments in Microsoft Intune.
 ---

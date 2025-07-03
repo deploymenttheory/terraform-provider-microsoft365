@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_reuseable_policy_setting Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages reusable policy settings using the /deviceManagement/reusablePolicySettings endpoint. Reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
 ---

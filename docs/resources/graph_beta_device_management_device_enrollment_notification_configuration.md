@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_device_enrollment_notification_configuration Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages device enrollment notification configurations using the /deviceManagement/deviceEnrollmentConfigurations endpoint. Enrollment notification configurations are used to send notifications during device enrollment processes.
 ---

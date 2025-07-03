@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_remediation_script Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves Windows Remediation Scripts from Microsoft Intune with explicit filtering options. Windows Remediation Scripts are PowerShell scripts that can be deployed to devices to help remediate issues.
 ---

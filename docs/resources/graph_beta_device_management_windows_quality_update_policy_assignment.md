@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_quality_update_policy_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows Quality Update Policy and Windows Quality Update expedite Policy Assignments in Microsoft Intune.
 ---

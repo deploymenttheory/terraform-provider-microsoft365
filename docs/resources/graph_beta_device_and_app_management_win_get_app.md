@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_win_get_app Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device and App Management"
+
 description: |-
   Manages WinGet applications from the Microsoft Store using the /deviceAppManagement/mobileApps endpoint. WinGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.
 ---

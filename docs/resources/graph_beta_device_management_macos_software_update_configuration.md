@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_macos_software_update_configuration Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages macOS software update configurations using the /deviceManagement/deviceConfigurations endpoint. See macOSSoftwareUpdateConfiguration resource type https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta for details.
 ---

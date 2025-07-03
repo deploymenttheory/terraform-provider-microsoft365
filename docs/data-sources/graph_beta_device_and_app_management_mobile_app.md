@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device and App Management"
+
 description: |-
   Retrieves mobile applications from Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. This data source enables querying all mobile app types including Win32 LOB apps, PKG/DMG apps, store apps, and web apps with advanced filtering capabilities for application discovery and configuration planning.
 ---

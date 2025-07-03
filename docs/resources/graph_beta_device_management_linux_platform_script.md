@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_linux_platform_script Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Linux platform scripts using the /deviceManagement/configurationPolicies endpoint. Linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.
 ---
