@@ -46,4 +46,8 @@ const (
 	// ISO8601DurationRegex matches an ISO 8601 duration format.
 	// Examples: "P1D" (1 day), "PT1H" (1 hour), "P1W" (1 week), "P1Y2M3DT4H5M6S" (1 year, 2 months, 3 days, 4 hours, 5 minutes, 6 seconds)
 	ISO8601DurationRegex = `^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$`
+
+	// AzureImageResourceIDRegex matches a valid Azure image resource ID for a custom image.
+	// Example: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Compute/images/myimage"
+	AzureImageResourceIDRegex = `^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Compute/images/[^/]+$`
 )
