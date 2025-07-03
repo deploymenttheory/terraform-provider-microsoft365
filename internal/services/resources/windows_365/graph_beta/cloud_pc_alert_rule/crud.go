@@ -1,4 +1,4 @@
-package graphBetaCloudPcDeviceImage
+package graphBetaCloudPcAlertRule
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan CloudPcDeviceImageResourceModel
+func (r *CloudPcAlertRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan CloudPcAlertRuleResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -33,16 +33,16 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for create method",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	deviceImage, err := r.client.
+	created, err := r.client.
 		DeviceManagement().
-		VirtualEndpoint().
-		DeviceImages().
+		Monitoring().
+		AlertRules().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	plan.ID = types.StringValue(*deviceImage.GetId())
+	plan.ID = types.StringValue(*created.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -77,10 +77,8 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 }
 
 // Read handles the Read operation.
-func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object CloudPcDeviceImageResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+func (r *CloudPcAlertRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object CloudPcAlertRuleResourceModel
 
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -94,7 +92,7 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s (operation: %s)", ResourceName, object.ID.ValueString(), operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -102,11 +100,11 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	deviceImage, err := r.client.
+	remote, err := r.client.
 		DeviceManagement().
-		VirtualEndpoint().
-		DeviceImages().
-		ByCloudPcDeviceImageId(object.ID.ValueString()).
+		Monitoring().
+		AlertRules().
+		ByAlertRuleId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -114,7 +112,7 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, deviceImage)
+	MapRemoteStateToTerraform(ctx, &object, remote)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -125,11 +123,11 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 }
 
 // Update handles the Update operation.
-func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan CloudPcDeviceImageResourceModel
-	var state CloudPcDeviceImageResourceModel
+func (r *CloudPcAlertRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan CloudPcAlertRuleResourceModel
+	var state CloudPcAlertRuleResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -152,11 +150,10 @@ func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		VirtualEndpoint().
-		DeviceImages().
-		ByCloudPcDeviceImageId(state.ID.ValueString()).
+	_, err = r.client.DeviceManagement().
+		Monitoring().
+		AlertRules().
+		ByAlertRuleId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -189,8 +186,8 @@ func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.Up
 }
 
 // Delete handles the Delete operation.
-func (r *CloudPcDeviceImageResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object CloudPcDeviceImageResourceModel
+func (r *CloudPcAlertRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object CloudPcAlertRuleResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -205,11 +202,10 @@ func (r *CloudPcDeviceImageResource) Delete(ctx context.Context, req resource.De
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		VirtualEndpoint().
-		DeviceImages().
-		ByCloudPcDeviceImageId(object.ID.ValueString()).
+	err := r.client.DeviceManagement().
+		Monitoring().
+		AlertRules().
+		ByAlertRuleId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

@@ -76,6 +76,7 @@ import (
 
 	// Graph Beta - Windows 365 resources
 	graphBetaWindows365AzureNetworkConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection"
+	graphBetaWindows365CloudPcAlertRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_alert_rule"
 	graphBetaWindows365CloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_device_image"
 	graphBetaWindows365CloudPcOrganizationSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_organization_settings"
 	graphBetaWindows365CloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy"
@@ -171,6 +172,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaWindows365CloudPcOrganizationSettings.NewCloudPcOrganizationSettingsResource,
 		graphBetaWindows365AzureNetworkConnection.NewCloudPcOnPremisesConnectionResource,
 		graphBetaWindows365CloudPcDeviceImage.NewCloudPcDeviceImageResource,
+		graphBetaWindows365CloudPcAlertRule.NewCloudPcAlertRuleResource,
 
 		// Graph v1.0 - Intune resources
 		graphDeviceManagementDeviceConfigurationAssignment.NewDeviceConfigurationAssignmentResource,
