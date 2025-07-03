@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.19.0-alpha...v0.20.0-alpha) (2025-07-03)
+
+
+### Features
+
+* added cloudpc alert rule ([3f04efd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3f04efdb66497d71c94f2a60bbe2d83fc35b7d13))
+
+
+### Bug Fixes
+
+* updated docs ([#576](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/576)) ([4340d62](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4340d62e2a1e26ee7faf478b1abd73773a1df0eb))
+
 ## [0.19.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.18.2-alpha...v0.19.0-alpha) (2025-07-02)
 
 
