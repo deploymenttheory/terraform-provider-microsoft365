@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.20.0-alpha...v0.21.0-alpha) (2025-07-04)
+
+
+### Features
+
+* initial implementation of microsoft_teams resources ([4ee45cf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4ee45cfc924e1f6de39d426b779e22090e6b049a))
+* initial implementation of microsoft_teams resources ([#584](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/584)) ([912c14a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/912c14a61fb0f346d1ac55ad0cbc1a6c1eef140b))
+
+
+### Bug Fixes
+
+* for macos platform script assignments ([32a67de](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/32a67ded912795e02aebd4c107ba821fa6c44088))
+* macos script assignments ([#581](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/581)) ([2635444](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2635444fd9ac8beb68aeac0c0f4eacd1152a9528))
+
 ## [0.20.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.19.0-alpha...v0.20.0-alpha) (2025-07-03)
 
 
