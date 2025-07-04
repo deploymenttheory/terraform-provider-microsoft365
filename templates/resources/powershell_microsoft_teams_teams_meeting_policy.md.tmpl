@@ -1,0 +1,54 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Microsoft Teams"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Get CsTeamsMeetingPolicy](https://learn.microsoft.com/en-us/powershell/module/teams/get-csteamsmeetingpolicy?view=teams-ps)
+- [Set CsTeamsMeetingPolicy](https://learn.microsoft.com/en-us/powershell/module/teams/set-csteamsmeetingpolicy?view=teams-ps)
+- [New CsTeamsMeetingPolicy](https://learn.microsoft.com/en-us/powershell/module/teams/new-csteamsmeetingpolicy?view=teams-ps)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Teams
+
+- **Application**: `TeamsAdministration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.21.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_powershell/microsoft365_powershell_microsoft_teams_teams_meeting_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Teams Calling Policy**: This resource manages the calling policy for Microsoft Teams.
+- **AI Interpreter**: Enables the user to use the AI Interpreter related features.
+- **Allow Call Forwarding to Phone**: Allows users to forward calls to a phone number.
+- **Allow Call Forwarding to User**: Allows users to forward calls to another user.
+- **Allow Call Groups**: Allows users to create call groups.
+- **Allow Call Redirect**: Allows users to redirect calls to another user.
+- **Allow Cloud Recording for Calls**: Allows users to record calls.
+- **Allow Delegation**: Allows users to delegate calls to another user.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_powershell/microsoft365_powershell_microsoft_teams_teams_meeting_policy/import.sh" }}
+
