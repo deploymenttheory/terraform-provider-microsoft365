@@ -1,4 +1,4 @@
-package graphBetaMacOSPlatformScript
+package graphBetaMacOSCustomAttributeScript
 
 import (
 	"context"
@@ -11,37 +11,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
-func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object MacOSPlatformScriptResourceModel
+func (r *DeviceCustomAttributeShellScriptResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan DeviceCustomAttributeShellScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for create method",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	createdResource, err := r.client.
+	created, err := r.client.
 		DeviceManagement().
-		DeviceShellScripts().
+		DeviceCustomAttributeShellScripts().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -49,10 +50,10 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	plan.ID = types.StringValue(*created.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
+	if plan.Assignments != nil {
+		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignment for Create Method",
@@ -63,8 +64,8 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 		err = r.client.
 			DeviceManagement().
-			DeviceShellScripts().
-			ByDeviceShellScriptId(object.ID.ValueString()).
+			DeviceCustomAttributeShellScripts().
+			ByDeviceCustomAttributeShellScriptId(plan.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -74,7 +75,7 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -98,19 +99,9 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for macos platform scripts resources.
-//
-//   - Retrieves the current state from the read request
-//   - Gets the resource details including assignments from the API using expand
-//   - Maps both resource and assignment details to Terraform state
-//
-// The function ensures all components are properly read and mapped into the
-// Terraform state in a single API call, providing a complete view of the
-// resource's current configuration on the server.
-func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object MacOSPlatformScriptResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+// Read handles the Read operation.
+func (r *DeviceCustomAttributeShellScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object DeviceCustomAttributeShellScriptResourceModel
 
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -118,12 +109,13 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 			operation = opStr
 		}
 	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s (operation: %s)", ResourceName, object.ID.ValueString(), operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -131,32 +123,22 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	}
 	defer cancel()
 
-	respResource, err := r.client.
+	remote, err := r.client.
 		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(ctx, nil)
+		DeviceCustomAttributeShellScripts().
+		ByDeviceCustomAttributeShellScriptId(object.ID.ValueString()).
+		Get(ctx, &devicemanagement.DeviceCustomAttributeShellScriptsDeviceCustomAttributeShellScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceCustomAttributeShellScriptsDeviceCustomAttributeShellScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
+	MapRemoteStateToTerraform(ctx, &object, remote)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -166,23 +148,12 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for macos platform scripts resources.
-//
-// The function performs the following operations:
-//   - Patches the existing script resource with updated settings using PATCH
-//   - Updates assignments using POST if they are defined
-//   - Retrieves the updated resource with expanded assignments
-//   - Maps the remote state back to Terraform
-//
-// The Microsoft Graph Beta API supports direct updates of device shell script resources
-// through PATCH operations for the base resource, while assignments are handled through
-// a separate POST operation to the assign endpoint. This allows for atomic updates
-// of both the script properties and its assignments.
-func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan MacOSPlatformScriptResourceModel
-	var state MacOSPlatformScriptResourceModel
+// Update handles the Update operation.
+func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan DeviceCustomAttributeShellScriptResourceModel
+	var state DeviceCustomAttributeShellScriptResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -199,16 +170,15 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for update method",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(state.ID.ValueString()).
+	_, err = r.client.DeviceManagement().
+		DeviceCustomAttributeShellScripts().
+		ByDeviceCustomAttributeShellScriptId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -228,8 +198,8 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 
 		err = r.client.
 			DeviceManagement().
-			DeviceShellScripts().
-			ByDeviceShellScriptId(state.ID.ValueString()).
+			DeviceCustomAttributeShellScripts().
+			ByDeviceCustomAttributeShellScriptId(state.ID.ValueString()).
 			Assign().
 			Post(ctx, requestAssignment, nil)
 
@@ -237,6 +207,11 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 			return
 		}
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -258,16 +233,9 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for Device Management Script resources.
-//
-//   - Retrieves the current state from the delete request
-//   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the resource from the API
-//   - Cleans up by removing the resource from Terraform state
-//
-// All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object MacOSPlatformScriptResourceModel
+// Delete handles the Delete operation.
+func (r *DeviceCustomAttributeShellScriptResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object DeviceCustomAttributeShellScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -282,10 +250,9 @@ func (r *MacOSPlatformScriptResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
+	err := r.client.DeviceManagement().
+		DeviceCustomAttributeShellScripts().
+		ByDeviceCustomAttributeShellScriptId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

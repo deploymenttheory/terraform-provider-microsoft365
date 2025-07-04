@@ -114,16 +114,10 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 			"created_date_time": schema.StringAttribute{
 				MarkdownDescription: "The date and time the macOS Platform Script was created. This property is read-only.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				MarkdownDescription: "The date and time the macOS Platform Script was last modified. This property is read-only.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"run_as_account": schema.StringAttribute{
 				MarkdownDescription: "Indicates the type of execution context. Possible values are: `system`, `user`.",

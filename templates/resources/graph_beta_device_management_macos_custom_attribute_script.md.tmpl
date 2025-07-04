@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deviceCustomAttributeShellScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicecustomattributeshellscript?view=graph-rest-beta)
+- [Create deviceCustomAttributeShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicecustomattributeshellscript-create?view=graph-rest-beta)
+- [Update deviceCustomAttributeShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicecustomattributeshellscript-update?view=graph-rest-beta)
+- [Delete deviceCustomAttributeShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicecustomattributeshellscript-delete?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.21.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_macos_custom_attribute_script/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_macos_custom_attribute_script/import.sh" }}
