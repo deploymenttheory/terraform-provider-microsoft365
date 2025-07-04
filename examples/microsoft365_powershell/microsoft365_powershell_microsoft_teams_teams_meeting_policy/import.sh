@@ -1,0 +1,3 @@
+#! /bin/sh
+
+terraform import microsoft365_powershell_microsoft_teams_teams_meeting_policy.example ExampleMeetingPolicy

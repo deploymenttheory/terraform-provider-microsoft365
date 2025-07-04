@@ -88,6 +88,10 @@ import (
 
 	// Graph v1.0 - Intune resources
 	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
+
+	// PowerShell - Microsoft Teams
+	powershellMicrosoftTeamsTeamsCallingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_calling_policy"
+	powershellMicrosoftTeamsTeamsMeetingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_meeting_policy"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -187,7 +191,11 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph v1.0 - M365 Admin Centre
 		graphDeviceM365AdminM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
-		// Add microsoft 365 provider resources here
 
+		// PowerShell - Microsoft Teams
+		powershellMicrosoftTeamsTeamsCallingPolicy.NewTeamsCallingPolicyResource,
+		powershellMicrosoftTeamsTeamsMeetingPolicy.NewTeamsMeetingPolicyResource,
+
+		// Add microsoft 365 provider resources here
 	}
 }
