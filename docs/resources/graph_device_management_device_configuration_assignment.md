@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_device_management_device_configuration_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages device configuration assignments using the /deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments endpoint. This resource controls assignments for device configurations.
 ---

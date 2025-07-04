@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_settings_catalog_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Device Management Configuration Policy Assignments in Microsoft Intune.
 ---

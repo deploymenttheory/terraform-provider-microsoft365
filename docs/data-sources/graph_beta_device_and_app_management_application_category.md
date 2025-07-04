@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_application_category Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device and App Management"
+
 description: |-
   Retrieves Application Categories from Microsoft Intune with explicit filtering options.
 ---

@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves Windows Quality Update Expedite Policies from Microsoft Intune with explicit filtering options. These policies control the expedited deployment of quality updates to Windows devices.
 ---

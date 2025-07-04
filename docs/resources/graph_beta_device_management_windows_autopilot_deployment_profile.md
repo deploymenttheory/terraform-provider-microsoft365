@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows Autopilot deployment profiles using the /deviceManagement/windowsAutopilotDeploymentProfiles endpoint. Autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.
 ---

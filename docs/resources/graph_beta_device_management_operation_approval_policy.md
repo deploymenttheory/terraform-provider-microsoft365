@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_operation_approval_policy Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Operation Approval Policies in Microsoft Intune.
 ---

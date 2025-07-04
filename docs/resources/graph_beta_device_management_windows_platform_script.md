@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_windows_platform_script Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages Windows PowerShell scripts using the /deviceManagement/deviceManagementScripts endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.
 ---

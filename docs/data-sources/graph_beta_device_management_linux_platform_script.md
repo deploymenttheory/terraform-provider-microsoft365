@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_linux_platform_script Data Source - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Retrieves Linux Platform Scripts from Microsoft Intune with explicit filtering options.
 ---

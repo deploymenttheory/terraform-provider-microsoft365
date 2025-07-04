@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_terms_and_conditions Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages terms and conditions policies in Microsoft Intune using the /deviceManagement/termsAndConditions endpoint. Terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.
 ---

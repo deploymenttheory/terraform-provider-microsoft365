@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_device_enrollment_limit_configuration Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Resource is currently broken as per this issue: https://github.com/microsoft/Microsoft365DSC/issues/5127. Manages device enrollment limit configurations using the /deviceManagement/deviceEnrollmentConfigurations endpoint. Device enrollment limit configurations restrict the number of devices a user can enroll in the organization.
 ---

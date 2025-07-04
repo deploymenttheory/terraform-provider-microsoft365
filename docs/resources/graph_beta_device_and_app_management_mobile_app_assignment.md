@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device and App Management"
+
 description: |-
   Manages mobile app assignments in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/assignments endpoint. This resource controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.
 ---

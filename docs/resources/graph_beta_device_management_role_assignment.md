@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_role_assignment Resource - terraform-provider-microsoft365"
-subcategory: "Intune"
+subcategory: "Device Management"
+
 description: |-
   Manages role assignments in Microsoft Intune using the /deviceManagement/roleAssignments endpoint. Role assignments bind role definitions to administrators and define the scope of resources they can manage, enabling delegation of administrative privileges across device management, policy configuration, and user licensing operations.
 ---
