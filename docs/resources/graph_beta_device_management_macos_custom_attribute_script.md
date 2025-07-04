@@ -42,6 +42,28 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
   script_content         = "#!/bin/bash\necho 'Hello World'"
   run_as_account         = "system"
   file_name              = "example-script.sh"
+
+  assignments = {
+    all_devices = false
+    all_users   = false
+
+    include_group_ids = [
+      "11111111-2222-3333-4444-555555555555",
+      "11111111-2222-3333-4444-555555555555"
+    ]
+
+    exclude_group_ids = [
+      "11111111-2222-3333-4444-555555555555",
+      "11111111-2222-3333-4444-555555555555"
+    ]
+  }
+
+  timeouts = {
+    create = "30m"
+    update = "30m"
+    read   = "30m"
+    delete = "30m"
+  }
 }
 ```
 
@@ -50,7 +72,6 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 
 ### Required
 
-- `custom_attribute_name` (String) The name of the custom attribute.
 - `custom_attribute_type` (String) The expected type of the custom attribute's value. Possible values: integer, string, dateTime.
 - `display_name` (String) Name of the device management script.
 - `file_name` (String) Script file name.
@@ -59,6 +80,8 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 
 ### Optional
 
+- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `custom_attribute_name` (String) The name of the custom attribute.
 - `description` (String) Optional description for the device management script.
 - `role_scope_tag_ids` (Set of String) List of Scope Tag IDs for this PowerShellScript instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -68,6 +91,17 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 - `created_date_time` (String) The date and time the script was created. Read-only.
 - `id` (String) The unique identifier for the custom attribute shell script.
 - `last_modified_date_time` (String) The date and time the script was last modified. Read-only.
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Optional:
+
+- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_users`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `exclude_group_ids`.
+- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_devices`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `exclude_group_ids`.
+- `exclude_group_ids` (Set of String) A set of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
+- `include_group_ids` (Set of String) A set of entra id group Id's to include in the assignment.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

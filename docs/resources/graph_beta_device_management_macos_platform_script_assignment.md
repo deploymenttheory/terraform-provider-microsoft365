@@ -64,7 +64,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script_assign
 
 ### Required
 
-- `device_management_script_id` (String) The ID of the device management script to assign.
+- `macos_platform_script_id` (String) The ID of the device management script to assign.
 - `target` (Attributes) The assignment target. See [deviceAndAppManagementAssignmentTarget](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-deviceandappmanagementassignmenttarget?view=graph-rest-beta). (see [below for nested schema](#nestedatt--target))
 
 ### Optional
@@ -94,10 +94,10 @@ Optional:
 
 Optional:
 
-- `create` (String) Timeout for create operations.
-- `delete` (String) Timeout for delete operations.
-- `read` (String) Timeout for read operations.
-- `update` (String) Timeout for update operations.
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 ## Import
 
