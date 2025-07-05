@@ -200,7 +200,7 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 
 	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update RoleDefinition", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
