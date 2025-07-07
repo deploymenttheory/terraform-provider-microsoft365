@@ -4,10 +4,12 @@ import (
 	"context"
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/application_category"
+	graphBetaDeviceAndAppManagementIOSStoreApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_store_app"
 	graphBetaDeviceAndAppManagementMacOSDmgApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_dmg_app"
 	graphBetaDeviceAndAppManagementMacOSLobApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_lob_app"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_pkg_app"
-	graphBetaDeviceAndAppManagementAppAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_assignment"
+	graphBetaDeviceAndAppManagementMacOSVppApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_vpp_app"
+	graphBetaDeviceAndAppManagementApplicationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_assignment"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph Beta - Device management
@@ -110,11 +112,14 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		// Graph Beta - Device & app management
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
-		graphBetaDeviceAndAppManagementAppAssignment.NewMobileAppAssignmentResource,
+		graphBetaDeviceAndAppManagementApplicationAssignment.NewMobileAppAssignmentResource,
+		graphBetaDeviceAndAppManagementIOSStoreApp.NewIOSStoreAppResource,
+		graphBetaDeviceAndAppManagementMacOSVppApp.NewMacOSVppAppResource,
 		graphBetaDeviceAndAppManagementMacOSDmgApp.NewMacOSDmgAppResource,
 		graphBetaDeviceAndAppManagementMacOSLobApp.NewMacOSLobAppResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
+
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceManagementAppleUserInitiatedEnrollmentProfileAssignment.NewAppleUserInitiatedEnrollmentProfileAssignmentResource,

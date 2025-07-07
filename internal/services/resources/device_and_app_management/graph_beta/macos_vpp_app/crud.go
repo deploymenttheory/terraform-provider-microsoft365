@@ -1,4 +1,4 @@
-package graphBetaRoleDefinition
+package graphBetaMacOSVppApp
 
 import (
 	"context"
@@ -6,17 +6,19 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation for the RoleDefinition resource.
-func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object RoleDefinitionResourceModel
+// Create handles the creation workflow for a macOS VPP app resource in Intune.
+func (r *MacOSVppAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object MacOSVppAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -31,30 +33,18 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	// Intune roles require unique display_names
-	isBuiltIn := object.IsBuiltInRoleDefinition.ValueBool() || object.IsBuiltIn.ValueBool()
-	if !isBuiltIn && !object.DisplayName.IsNull() && !object.DisplayName.IsUnknown() {
-		if err := checkRoleNameUniqueness(ctx, r.client, object.DisplayName.ValueString()); err != nil {
-			resp.Diagnostics.AddError(
-				"Role Name Not Unique",
-				err.Error(),
-			)
-			return
-		}
-	}
-
-	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing resource for Create method",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	createdResource, err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
+	baseResource, err := r.client.
+		DeviceAppManagement().
+		MobileApps().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -62,7 +52,23 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	object.ID = types.StringValue(*baseResource.GetId())
+	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
+
+	if !object.Categories.IsNull() {
+		var categoryValues []string
+		diags := object.Categories.ElementsAs(ctx, &categoryValues, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -88,9 +94,9 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the RoleDefinition resource.
-func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object RoleDefinitionResourceModel
+// Read retrieves the current state of a macOS VPP app resource from Intune.
+func (r *MacOSVppAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object MacOSVppAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -100,11 +106,12 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 			operation = opStr
 		}
 	}
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -112,69 +119,43 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	defer cancel()
 
-	resource, err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
-		Get(ctx, nil)
+	// 1. get base resource with expanded query to return categories
+	requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
+			Expand: []string{"categories"},
+		},
+	}
+
+	respBaseResource, err := r.client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
+		Get(ctx, requestParameters)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
-	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
-	assignmentsList, err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
-		RoleAssignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read Assignments List", r.ReadPermissions)
+	// This ensures type safety as the Graph API returns a base interface that needs
+	// to be converted to the specific app type
+	macOSVppApp, ok := respBaseResource.(graphmodels.MacOsVppAppable)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Resource type mismatch",
+			fmt.Sprintf("Expected resource of type MacOSPkgAppable but got %T", respBaseResource),
+		)
 		return
 	}
 
-	// 3️⃣ Pull each assignment's full details
-	detailedResponse := graphmodels.NewRoleAssignmentCollectionResponse()
-	var detailedAssignments []graphmodels.RoleAssignmentable
-
-	if assignmentsList != nil && assignmentsList.GetValue() != nil {
-		for _, listAssignment := range assignmentsList.GetValue() {
-			if listAssignment == nil || listAssignment.GetId() == nil {
-				continue
-			}
-			assignmentID := *listAssignment.GetId()
-
-			full, err := r.client.
-				DeviceManagement().
-				RoleAssignments().
-				ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
-				Get(ctx, nil)
-
-			if err != nil {
-				tflog.Warn(ctx, fmt.Sprintf("Failed to fetch details for assignment ID %s: %s", assignmentID, err))
-				continue
-			}
-
-			detailedAssignments = append(detailedAssignments, full)
-		}
-	}
-	detailedResponse.SetValue(detailedAssignments)
+	mapResourceToState(ctx, r.client, macOSVppApp, &object)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s", ResourceName))
 }
 
-// Update handles the Update operation for role definitions and assignments,
-// tracking assignments strictly by ID
-func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan RoleDefinitionResourceModel
-	var state RoleDefinitionResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update for: %s", ResourceName))
+// Update modifies an existing macOS VPP app resource in Intune.
+func (r *MacOSVppAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state MacOSVppAppResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -188,23 +169,42 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	builder := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(state.ID.ValueString())
-
-	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions, true)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Error constructing resource", err.Error())
+		resp.Diagnostics.AddError(
+			"Error constructing resource for Update method",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
+	_, err = r.client.
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
+	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, "Patched base RoleDefinition successfully")
+	if !plan.Categories.Equal(state.Categories) {
+		var categoryValues []string
+		if !plan.Categories.IsNull() {
+			diags := plan.Categories.ElementsAs(ctx, &categoryValues, false)
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+		}
+
+		err = construct.AssignMobileAppCategories(ctx, r.client, state.ID.ValueString(), categoryValues, r.ReadPermissions)
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
@@ -225,27 +225,27 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for the RoleDefinition resource.
-func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data RoleDefinitionResourceModel
+// Delete removes a macOS VPP app resource from Intune.
+func (r *MacOSVppAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object MacOSVppAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
 	err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(data.ID.ValueString()).
+		DeviceAppManagement().
+		MobileApps().
+		ByMobileAppId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {

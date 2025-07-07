@@ -144,7 +144,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 
 ### Optional
 
-- `app_icon` (Attributes) The source information for the app icon (PNG). Supports local file paths or URLs. (see [below for nested schema](#nestedatt--app_icon))
+- `app_icon` (Attributes) The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune. (see [below for nested schema](#nestedatt--app_icon))
 - `app_installer` (Attributes) Metadata related to the DMG installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
@@ -175,8 +175,8 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 
 Optional:
 
-- `icon_file_path_source` (String) The file path to the icon file (PNG) to be uploaded.
-- `icon_url_source` (String) The web location of the icon file (PNG), can be a http(s) URL.
+- `icon_file_path_source` (String) The file path to the icon file to be uploaded. Supports various image formats which will be automatically converted to PNG.
+- `icon_url_source` (String) The web location of the icon file, can be a http(s) URL. Supports various image formats which will be automatically converted to PNG.
 
 
 <a id="nestedatt--app_installer"></a>

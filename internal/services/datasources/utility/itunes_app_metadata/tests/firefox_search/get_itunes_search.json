@@ -1,0 +1,21 @@
+{
+  "resultCount": 1,
+  "results": [
+    {
+      "trackId": 989804926,
+      "trackName": "Firefox Fast & Private Browser",
+      "bundleId": "org.mozilla.ios.Firefox",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/4f/2b/9b/4f2b9bae-a30f-a098-249c-985a9d0d77ad/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/4f/2b/9b/4f2b9bae-a30f-a098-249c-985a9d0d77ad/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg",
+      "artworkUrl512": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/4f/2b/9b/4f2b9bae-a30f-a098-249c-985a9d0d77ad/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg",
+      "sellerName": "Mozilla Corporation",
+      "primaryGenreName": "Utilities",
+      "description": "Choose the browser that prioritizes people over profits.\n\nWhen you choose Firefox, you protect your data while supporting the non-profit Mozilla Foundation, whose mission is to build a better internet that's safe and accessible for everyone.",
+      "version": "140.2",
+      "price": 0.00,
+      "formattedPrice": "Free",
+      "releaseDate": "2015-11-12T05:17:25Z",
+      "averageUserRating": 4.5
+    }
+  ]
+} 

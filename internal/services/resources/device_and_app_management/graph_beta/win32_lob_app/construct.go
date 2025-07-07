@@ -15,7 +15,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 
 	requestBody := graphmodels.NewWin32LobApp()
 
-	// Set string properties using the helper function
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
@@ -29,7 +28,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Handle MinimumSupportedOperatingSystem
 	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
 		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()
 
@@ -50,7 +48,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetMinimumSupportedOperatingSystem(minSupportedOS)
 	}
 
-	// Handle DetectionRules
 	if len(data.DetectionRules) > 0 {
 		detectionRules := make([]graphmodels.Win32LobAppDetectionable, len(data.DetectionRules))
 		for i, rule := range data.DetectionRules {
@@ -117,7 +114,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetDetectionRules(detectionRules)
 	}
 
-	// Handle RequirementRules
 	if len(data.RequirementRules) > 0 {
 		requirementRules := make([]graphmodels.Win32LobAppRequirementable, len(data.RequirementRules))
 		for i, rule := range data.RequirementRules {
@@ -144,7 +140,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetRequirementRules(requirementRules)
 	}
 
-	// Handle Rules
 	if len(data.Rules) > 0 {
 		rules := make([]graphmodels.Win32LobAppRuleable, len(data.Rules))
 		for i, rule := range data.Rules {
@@ -171,7 +166,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetRules(rules)
 	}
 
-	// Handle Install Experience
 	if installExperience := data.InstallExperience; installExperience != (Win32LobAppInstallExperienceResourceModel{}) {
 		installExp := graphmodels.NewWin32LobAppInstallExperience()
 
@@ -190,7 +184,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetInstallExperience(installExp)
 	}
 
-	// Handle Return Codes
 	if len(data.ReturnCodes) > 0 {
 		returnCodes := make([]graphmodels.Win32LobAppReturnCodeable, len(data.ReturnCodes))
 		for i, code := range data.ReturnCodes {
@@ -208,7 +201,6 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		requestBody.SetReturnCodes(returnCodes)
 	}
 
-	// Handle MSI Information
 	if msiInfo := data.MsiInformation; msiInfo != (Win32LobAppMsiInformationResourceModel{}) {
 		msiInformation := graphmodels.NewWin32LobAppMsiInformation()
 
