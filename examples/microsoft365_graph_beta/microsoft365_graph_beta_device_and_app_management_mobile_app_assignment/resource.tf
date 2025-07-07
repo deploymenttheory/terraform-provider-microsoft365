@@ -271,10 +271,10 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
 
   settings = {
     ios_store = {
-      is_removable = true
-      prevent_managed_app_backup = false
+      is_removable                = true
+      prevent_managed_app_backup  = false
       uninstall_on_device_removal = true
-      vpn_configuration_id = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
+      vpn_configuration_id        = "80f8c0a5-f3ec-4936-bcbc-420dc0ca3665"
     }
   }
 
