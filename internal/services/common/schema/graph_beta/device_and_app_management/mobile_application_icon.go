@@ -13,32 +13,22 @@ import (
 func MobileAppIconSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:            true,
-		MarkdownDescription: "The source information for the app icon (PNG). Supports local file paths or URLs.",
+		MarkdownDescription: "The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune.",
 		PlanModifiers: []planmodifier.Object{
 			planmodifiers.UseStateForUnknownObject(),
 		},
 		Attributes: map[string]schema.Attribute{
 			"icon_file_path_source": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The file path to the icon file (PNG) to be uploaded.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`\.png$`),
-						"must end with .png file extension",
-					),
-				},
+				MarkdownDescription: "The file path to the icon file to be uploaded. Supports various image formats which will be automatically converted to PNG.",
 			},
 			"icon_url_source": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The web location of the icon file (PNG), can be a http(s) URL.",
+				MarkdownDescription: "The web location of the icon file, can be a http(s) URL. Supports various image formats which will be automatically converted to PNG.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
 						"Must be a valid URL.",
-					),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`\.png$`),
-						"must end with .png file extension",
 					),
 				},
 				PlanModifiers: []planmodifier.String{

@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_utility_macos_pkg_app_metadata Data Source - terraform-provider-microsoft365"
-subcategory: "Device and App Management"
+subcategory: "Utilities"
 
 description: |-
   Extracts metadata from a macOS PKG file specified by file path or URL.

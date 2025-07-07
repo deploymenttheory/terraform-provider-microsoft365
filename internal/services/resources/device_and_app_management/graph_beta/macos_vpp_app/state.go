@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -52,18 +55,18 @@ func mapResourceToState(ctx context.Context, client *msgraphbetasdk.GraphService
 	data.VppTokenAppleId = convert.GraphToFrameworkString(macOsVppApp.GetVppTokenAppleId())
 
 	if vppTokenAccountType := macOsVppApp.GetVppTokenAccountType(); vppTokenAccountType != nil {
-		data.VppTokenAccountType = convert.GraphToFrameworkString(vppTokenAccountType)
+		data.VppTokenAccountType = convert.GraphToFrameworkEnum(vppTokenAccountType)
 	}
 
-	// Map large icon
-	if largeIcon := macOsVppApp.GetLargeIcon(); largeIcon != nil {
-		if data.LargeIcon == nil {
-			data.LargeIcon = &sharedmodels.MimeContentResourceModel{}
+	if data.AppIcon != nil {
+		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
+	} else if largeIcon := macOsVppApp.GetLargeIcon(); largeIcon != nil {
+		data.AppIcon = &sharedmodels.MobileAppIconResourceModel{
+			IconFilePathSource: types.StringNull(),
+			IconURLSource:      types.StringNull(),
 		}
-		data.LargeIcon.Type = convert.GraphToFrameworkString(largeIcon.GetTypeEscaped())
-		if value := largeIcon.GetValue(); value != nil {
-			data.LargeIcon.Value = convert.GraphToFrameworkStringFromBytes(value)
-		}
+	} else {
+		data.AppIcon = nil
 	}
 
 	// Map licensing type
@@ -80,68 +83,229 @@ func mapResourceToState(ctx context.Context, client *msgraphbetasdk.GraphService
 	// Map categories
 	data.Categories = sharedstater.MapMobileAppCategoriesStateToTerraform(ctx, macOsVppApp.GetCategories())
 
-	// Map assignments
-	assignments, err := sharedstater.MapMobileAppAssignmentsStateToTerraform(ctx, client, data.ID.ValueString())
-	if err != nil {
-		return fmt.Errorf("error mapping mobile app assignments: %v", err)
-	}
-	data.Assignments = assignments
-
 	// Map relationships
 	if relationships := macOsVppApp.GetRelationships(); len(relationships) > 0 {
-		var mappedRelationships []MobileAppRelationshipResourceModel
+		relationshipElements := make([]attr.Value, 0, len(relationships))
 		for _, relationship := range relationships {
-			mappedRelationship := MobileAppRelationshipResourceModel{
-				ID:                         convert.GraphToFrameworkString(relationship.GetId()),
-				SourceDisplayName:          convert.GraphToFrameworkString(relationship.GetSourceDisplayName()),
-				SourceDisplayVersion:       convert.GraphToFrameworkString(relationship.GetSourceDisplayVersion()),
-				SourceId:                   convert.GraphToFrameworkString(relationship.GetSourceId()),
-				SourcePublisherDisplayName: convert.GraphToFrameworkString(relationship.GetSourcePublisherDisplayName()),
-				TargetDisplayName:          convert.GraphToFrameworkString(relationship.GetTargetDisplayName()),
-				TargetDisplayVersion:       convert.GraphToFrameworkString(relationship.GetTargetDisplayVersion()),
-				TargetId:                   convert.GraphToFrameworkString(relationship.GetTargetId()),
-				TargetPublisher:            convert.GraphToFrameworkString(relationship.GetTargetPublisher()),
-				TargetPublisherDisplayName: convert.GraphToFrameworkString(relationship.GetTargetPublisherDisplayName()),
-				TargetType:                 convert.GraphToFrameworkEnum(relationship.GetTargetType()),
+			relationshipAttrs := map[string]attr.Value{
+				"id":                            convert.GraphToFrameworkString(relationship.GetId()),
+				"source_display_name":           convert.GraphToFrameworkString(relationship.GetSourceDisplayName()),
+				"source_display_version":        convert.GraphToFrameworkString(relationship.GetSourceDisplayVersion()),
+				"source_id":                     convert.GraphToFrameworkString(relationship.GetSourceId()),
+				"source_publisher_display_name": convert.GraphToFrameworkString(relationship.GetSourcePublisherDisplayName()),
+				"target_display_name":           convert.GraphToFrameworkString(relationship.GetTargetDisplayName()),
+				"target_display_version":        convert.GraphToFrameworkString(relationship.GetTargetDisplayVersion()),
+				"target_id":                     convert.GraphToFrameworkString(relationship.GetTargetId()),
+				"target_publisher":              convert.GraphToFrameworkString(relationship.GetTargetPublisher()),
+				"target_publisher_display_name": convert.GraphToFrameworkString(relationship.GetTargetPublisherDisplayName()),
+				"target_type":                   convert.GraphToFrameworkEnum(relationship.GetTargetType()),
 			}
-			mappedRelationships = append(mappedRelationships, mappedRelationship)
+
+			element, diags := types.ObjectValue(
+				map[string]attr.Type{
+					"id":                            types.StringType,
+					"source_display_name":           types.StringType,
+					"source_display_version":        types.StringType,
+					"source_id":                     types.StringType,
+					"source_publisher_display_name": types.StringType,
+					"target_display_name":           types.StringType,
+					"target_display_version":        types.StringType,
+					"target_id":                     types.StringType,
+					"target_publisher":              types.StringType,
+					"target_publisher_display_name": types.StringType,
+					"target_type":                   types.StringType,
+				},
+				relationshipAttrs,
+			)
+
+			if diags.HasError() {
+				return fmt.Errorf("error creating relationship object: %v", diags)
+			}
+
+			relationshipElements = append(relationshipElements, element)
 		}
-		data.Relationships = mappedRelationships
+
+		relationshipsList, diags := types.ListValue(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":                            types.StringType,
+					"source_display_name":           types.StringType,
+					"source_display_version":        types.StringType,
+					"source_id":                     types.StringType,
+					"source_publisher_display_name": types.StringType,
+					"target_display_name":           types.StringType,
+					"target_display_version":        types.StringType,
+					"target_id":                     types.StringType,
+					"target_publisher":              types.StringType,
+					"target_publisher_display_name": types.StringType,
+					"target_type":                   types.StringType,
+				},
+			},
+			relationshipElements,
+		)
+
+		if diags.HasError() {
+			return fmt.Errorf("error creating relationships list: %v", diags)
+		}
+
+		data.Relationships = relationshipsList
+	} else {
+		// Initialize as empty list if no relationships
+		data.Relationships = basetypes.NewListNull(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"id":                            types.StringType,
+					"source_display_name":           types.StringType,
+					"source_display_version":        types.StringType,
+					"source_id":                     types.StringType,
+					"source_publisher_display_name": types.StringType,
+					"target_display_name":           types.StringType,
+					"target_display_version":        types.StringType,
+					"target_id":                     types.StringType,
+					"target_publisher":              types.StringType,
+					"target_publisher_display_name": types.StringType,
+					"target_type":                   types.StringType,
+				},
+			},
+		)
 	}
 
 	// Map assigned licenses
 	if assignedLicenses := macOsVppApp.GetAssignedLicenses(); len(assignedLicenses) > 0 {
-		var mappedLicenses []MacOSVppAppAssignedLicenseResourceModel
+		licenseElements := make([]attr.Value, 0, len(assignedLicenses))
 		for _, license := range assignedLicenses {
-			mappedLicense := MacOSVppAppAssignedLicenseResourceModel{
-				UserId:           convert.GraphToFrameworkString(license.GetUserId()),
-				DeviceId:         convert.GraphToFrameworkString(license.GetDeviceId()),
-				LicenseType:      convert.GraphToFrameworkEnum(license.GetLicenseType()),
-				UserEmailAddress: convert.GraphToFrameworkString(license.GetUserEmailAddress()),
+			licenseAttrs := map[string]attr.Value{
+				"user_id":             convert.GraphToFrameworkString(license.GetUserId()),
+				"user_email_address":  convert.GraphToFrameworkString(license.GetUserEmailAddress()),
+				"user_name":           convert.GraphToFrameworkString(license.GetUserName()),
+				"user_principal_name": convert.GraphToFrameworkString(license.GetUserPrincipalName()),
 			}
-			mappedLicenses = append(mappedLicenses, mappedLicense)
+
+			element, diags := types.ObjectValue(
+				map[string]attr.Type{
+					"user_id":             types.StringType,
+					"user_email_address":  types.StringType,
+					"user_name":           types.StringType,
+					"user_principal_name": types.StringType,
+				},
+				licenseAttrs,
+			)
+
+			if diags.HasError() {
+				return fmt.Errorf("error creating assigned license object: %v", diags)
+			}
+
+			licenseElements = append(licenseElements, element)
 		}
-		data.AssignedLicenses = mappedLicenses
+
+		licensesList, diags := types.ListValue(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_id":             types.StringType,
+					"user_email_address":  types.StringType,
+					"user_name":           types.StringType,
+					"user_principal_name": types.StringType,
+				},
+			},
+			licenseElements,
+		)
+
+		if diags.HasError() {
+			return fmt.Errorf("error creating assigned licenses list: %v", diags)
+		}
+
+		data.AssignedLicenses = licensesList
+	} else {
+		// Initialize as empty list if no assigned licenses
+		data.AssignedLicenses = basetypes.NewListNull(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_id":             types.StringType,
+					"user_email_address":  types.StringType,
+					"user_name":           types.StringType,
+					"user_principal_name": types.StringType,
+				},
+			},
+		)
 	}
 
 	// Map revoke license action results
 	if revokeLicenseResults := macOsVppApp.GetRevokeLicenseActionResults(); len(revokeLicenseResults) > 0 {
-		var mappedResults []MacOSVppAppRevokeLicensesActionResultResourceModel
+		resultElements := make([]attr.Value, 0, len(revokeLicenseResults))
 		for _, result := range revokeLicenseResults {
-			mappedResult := MacOSVppAppRevokeLicensesActionResultResourceModel{
-				UserId:              convert.GraphToFrameworkString(result.GetUserId()),
-				ManagedDeviceId:     convert.GraphToFrameworkString(result.GetManagedDeviceId()),
-				TotalLicensesCount:  convert.GraphToFrameworkInt32(result.GetTotalLicensesCount()),
-				FailedLicensesCount: convert.GraphToFrameworkInt32(result.GetFailedLicensesCount()),
-				ActionFailureReason: convert.GraphToFrameworkString(result.GetActionFailureReason()),
-				ActionName:          convert.GraphToFrameworkString(result.GetActionName()),
-				ActionState:         convert.GraphToFrameworkString(result.GetActionState()),
-				StartDateTime:       convert.GraphToFrameworkTime(result.GetStartDateTime()),
-				LastUpdatedDateTime: convert.GraphToFrameworkTime(result.GetLastUpdatedDateTime()),
+			resultAttrs := map[string]attr.Value{
+				"user_id":                convert.GraphToFrameworkString(result.GetUserId()),
+				"managed_device_id":      convert.GraphToFrameworkString(result.GetManagedDeviceId()),
+				"total_licenses_count":   convert.GraphToFrameworkInt32(result.GetTotalLicensesCount()),
+				"failed_licenses_count":  convert.GraphToFrameworkInt32(result.GetFailedLicensesCount()),
+				"action_failure_reason":  convert.GraphToFrameworkEnum(result.GetActionFailureReason()),
+				"action_name":            convert.GraphToFrameworkString(result.GetActionName()),
+				"action_state":           convert.GraphToFrameworkEnum(result.GetActionState()),
+				"start_date_time":        convert.GraphToFrameworkTime(result.GetStartDateTime()),
+				"last_updated_date_time": convert.GraphToFrameworkTime(result.GetLastUpdatedDateTime()),
 			}
-			mappedResults = append(mappedResults, mappedResult)
+
+			element, diags := types.ObjectValue(
+				map[string]attr.Type{
+					"user_id":                types.StringType,
+					"managed_device_id":      types.StringType,
+					"total_licenses_count":   types.Int32Type,
+					"failed_licenses_count":  types.Int32Type,
+					"action_failure_reason":  types.StringType,
+					"action_name":            types.StringType,
+					"action_state":           types.StringType,
+					"start_date_time":        types.StringType,
+					"last_updated_date_time": types.StringType,
+				},
+				resultAttrs,
+			)
+
+			if diags.HasError() {
+				return fmt.Errorf("error creating revoke license result object: %v", diags)
+			}
+
+			resultElements = append(resultElements, element)
 		}
-		data.RevokeLicenseActionResults = mappedResults
+
+		resultsList, diags := types.ListValue(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_id":                types.StringType,
+					"managed_device_id":      types.StringType,
+					"total_licenses_count":   types.Int32Type,
+					"failed_licenses_count":  types.Int32Type,
+					"action_failure_reason":  types.StringType,
+					"action_name":            types.StringType,
+					"action_state":           types.StringType,
+					"start_date_time":        types.StringType,
+					"last_updated_date_time": types.StringType,
+				},
+			},
+			resultElements,
+		)
+
+		if diags.HasError() {
+			return fmt.Errorf("error creating revoke license results list: %v", diags)
+		}
+
+		data.RevokeLicenseActionResults = resultsList
+	} else {
+		// Initialize as empty list if no revoke license results
+		data.RevokeLicenseActionResults = basetypes.NewListNull(
+			types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_id":                types.StringType,
+					"managed_device_id":      types.StringType,
+					"total_licenses_count":   types.Int32Type,
+					"failed_licenses_count":  types.Int32Type,
+					"action_failure_reason":  types.StringType,
+					"action_name":            types.StringType,
+					"action_state":           types.StringType,
+					"start_date_time":        types.StringType,
+					"last_updated_date_time": types.StringType,
+				},
+			},
+		)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s to state", ResourceName, data.ID.ValueString()))

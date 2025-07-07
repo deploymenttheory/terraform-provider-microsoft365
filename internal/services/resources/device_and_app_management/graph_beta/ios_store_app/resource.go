@@ -1,4 +1,4 @@
-package graphBetaMacOSVppApp
+package graphBetaIOSStoreApp
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_macos_vpp_app"
+	ResourceName  = "graph_beta_device_and_app_management_ios_store_app"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -31,20 +31,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &MacOSVppAppResource{}
+	_ resource.Resource = &IOSStoreAppResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &MacOSVppAppResource{}
+	_ resource.ResourceWithConfigure = &IOSStoreAppResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &MacOSVppAppResource{}
+	_ resource.ResourceWithImportState = &IOSStoreAppResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &MacOSVppAppResource{}
+	_ resource.ResourceWithModifyPlan = &IOSStoreAppResource{}
 )
 
-func NewMacOSVppAppResource() resource.Resource {
-	return &MacOSVppAppResource{
+func NewIOSStoreAppResource() resource.Resource {
+	return &IOSStoreAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
@@ -57,7 +57,7 @@ func NewMacOSVppAppResource() resource.Resource {
 	}
 }
 
-type MacOSVppAppResource struct {
+type IOSStoreAppResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -67,38 +67,38 @@ type MacOSVppAppResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *MacOSVppAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *IOSStoreAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *MacOSVppAppResource) FullTypeName() string {
+func (r *IOSStoreAppResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *MacOSVppAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *IOSStoreAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *MacOSVppAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *IOSStoreAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
-func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *IOSStoreAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages macOS Volume-Purchased Program (VPP) apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. VPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.",
+		MarkdownDescription: "Manages iOS Store apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. iOS Store apps are applications from the Apple App Store that can be managed through Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier of the macOS VPP app.",
+				MarkdownDescription: "The unique identifier of the iOS Store app.",
 			},
 			"is_featured": schema.BoolAttribute{
 				Optional:            true,
@@ -137,6 +137,160 @@ func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The publisher of the app.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 1024),
+				},
+			},
+			"app_store_url": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The Apple AppStoreUrl.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https://apps.apple.com/.*$`),
+						"must be a valid Apple App Store URL",
+					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
+				},
+			},
+			"applicable_device_type": schema.SingleNestedAttribute{
+				Required:            true,
+				MarkdownDescription: "The iOS architecture for which this app can run on.",
+				Attributes: map[string]schema.Attribute{
+					"ipad": schema.BoolAttribute{
+						Required:            true,
+						MarkdownDescription: "Whether the app should run on iPads.",
+					},
+					"iphone_and_ipod": schema.BoolAttribute{
+						Required:            true,
+						MarkdownDescription: "Whether the app should run on iPhones and iPods.",
+					},
+				},
+			},
+			"minimum_supported_operating_system": schema.SingleNestedAttribute{
+				Required:            true,
+				MarkdownDescription: "The value for the minimum supported operating system.",
+				Attributes: map[string]schema.Attribute{
+					"v8_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 8.0 or later is required to install the app. " +
+							"If 'False', iOS Version 8.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v9_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 9.0 or later is required to install the app. " +
+							"If 'False', iOS Version 9.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v10_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 10.0 or later is required to install the app. " +
+							"If 'False', iOS Version 10.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v11_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 11.0 or later is required to install the app. " +
+							"If 'False', iOS Version 11.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v12_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 12.0 or later is required to install the app. " +
+							"If 'False', iOS Version 12.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v13_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 13.0 or later is required to install the app. " +
+							"If 'False', iOS Version 13.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v14_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 14.0 or later is required to install the app. " +
+							"If 'False', iOS Version 14.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v15_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 15.0 or later is required to install the app. " +
+							"If 'False', iOS Version 15.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v16_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 16.0 or later is required to install the app. " +
+							"If 'False', iOS Version 16.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v17_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 17.0 or later is required to install the app. " +
+							"If 'False', iOS Version 17.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
+					"v18_0": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Indicates the minimum iOS version support required for the managed device." +
+							"When 'True', iOS with OS Version 18.0 or later is required to install the app. " +
+							"If 'False', iOS Version 18.0 is not the minimum version. Default value is False." +
+							"Exactly one of the minimum operating system boolean values will be TRUE.",
+						PlanModifiers: []planmodifier.Bool{
+							planmodifiers.BoolDefaultValue(false),
+						},
+					},
 				},
 			},
 			"categories": schema.SetAttribute{
@@ -271,154 +425,6 @@ func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaReq
 					planmodifiers.UseStateForUnknownInt32(),
 				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
-			},
-			"used_license_count": schema.Int32Attribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Int32{
-					planmodifiers.UseStateForUnknownInt32(),
-				},
-				MarkdownDescription: "The number of VPP licenses in use.",
-			},
-			"total_license_count": schema.Int32Attribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Int32{
-					planmodifiers.UseStateForUnknownInt32(),
-				},
-				MarkdownDescription: "The total number of VPP licenses.",
-			},
-			"release_date_time": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-				MarkdownDescription: "The VPP application release date and time.",
-			},
-			"app_store_url": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-				MarkdownDescription: "The store URL.",
-			},
-			"licensing_type": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "The supported License Type.",
-				Attributes: map[string]schema.Attribute{
-					"support_user_licensing": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Whether user licensing is supported.",
-					},
-					"support_device_licensing": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Whether device licensing is supported.",
-					},
-					"supports_user_licensing": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Whether user licensing is supported (alternative property name).",
-					},
-					"supports_device_licensing": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Whether device licensing is supported (alternative property name).",
-					},
-				},
-			},
-			"vpp_token_organization_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The organization associated with the Apple Volume Purchase Program Token.",
-			},
-			"vpp_token_account_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The type of volume purchase program which the given Apple Volume Purchase Program Token is associated with. Possible values are: business, education.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("business", "education"),
-				},
-			},
-			"vpp_token_apple_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The Apple Id associated with the given Apple Volume Purchase Program Token.",
-			},
-			"bundle_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The Identity Name.",
-			},
-			"vpp_token_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Identifier of the VPP token associated with this app.",
-			},
-			"vpp_token_display_name": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-				MarkdownDescription: "Display name of the VPP token associated with this app.",
-			},
-			"assigned_licenses": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "The licenses assigned to this app.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"user_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The user identifier.",
-						},
-						"user_email_address": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The email address of the user.",
-						},
-						"user_name": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The name of the user.",
-						},
-						"user_principal_name": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The principal name of the user.",
-						},
-					},
-				},
-			},
-			"revoke_license_action_results": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "Results of revoke license actions on this app.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"user_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The user identifier.",
-						},
-						"managed_device_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The managed device identifier.",
-						},
-						"total_licenses_count": schema.Int32Attribute{
-							Computed:            true,
-							MarkdownDescription: "The total number of licenses.",
-						},
-						"failed_licenses_count": schema.Int32Attribute{
-							Computed:            true,
-							MarkdownDescription: "The number of failed licenses.",
-						},
-						"action_failure_reason": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The reason for action failure.",
-						},
-						"action_name": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The name of the action.",
-						},
-						"action_state": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The state of the action.",
-						},
-						"start_date_time": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The start date and time of the action.",
-						},
-						"last_updated_date_time": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The last updated date and time of the action.",
-						},
-					},
-				},
 			},
 			"app_icon": commonschemagraphbeta.MobileAppIconSchema(),
 			"timeouts": commonschema.Timeouts(ctx),

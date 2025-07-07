@@ -1,4 +1,4 @@
-package graphBetaMacOSVppApp
+package graphBetaIOSStoreApp
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (graphmodels.MobileAppable, error) {
+func constructResource(ctx context.Context, data *IOSStoreAppResourceModel) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	baseApp := graphmodels.NewMacOsVppApp()
+	baseApp := graphmodels.NewIosStoreApp()
 
 	convert.FrameworkToGraphString(data.Description, baseApp.SetDescription)
 	convert.FrameworkToGraphString(data.Publisher, baseApp.SetPublisher)
@@ -27,14 +27,7 @@ func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (gra
 	convert.FrameworkToGraphString(data.Developer, baseApp.SetDeveloper)
 	convert.FrameworkToGraphString(data.Notes, baseApp.SetNotes)
 	convert.FrameworkToGraphString(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
-	convert.FrameworkToGraphString(data.BundleId, baseApp.SetBundleId)
-	convert.FrameworkToGraphString(data.VppTokenId, baseApp.SetVppTokenId)
-	convert.FrameworkToGraphString(data.VppTokenAppleId, baseApp.SetVppTokenAppleId)
-	convert.FrameworkToGraphString(data.VppTokenOrganizationName, baseApp.SetVppTokenOrganizationName)
-
-	if err := convert.FrameworkToGraphEnum(data.VppTokenAccountType, graphmodels.ParseVppTokenAccountType, baseApp.SetVppTokenAccountType); err != nil {
-		return nil, fmt.Errorf("failed to set VPP token account type: %s", err)
-	}
+	convert.FrameworkToGraphString(data.AppStoreUrl, baseApp.SetAppStoreUrl)
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
@@ -56,13 +49,29 @@ func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (gra
 		baseApp.SetLargeIcon(largeIcon)
 	}
 
-	if data.LicensingType != nil {
-		licensingType := graphmodels.NewVppLicensingType()
-		convert.FrameworkToGraphBool(data.LicensingType.SupportUserLicensing, licensingType.SetSupportUserLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportDeviceLicensing, licensingType.SetSupportDeviceLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportsUserLicensing, licensingType.SetSupportsUserLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportsDeviceLicensing, licensingType.SetSupportsDeviceLicensing)
-		baseApp.SetLicensingType(licensingType)
+	// Set applicable device type
+	if data.ApplicableDeviceType != nil {
+		deviceType := graphmodels.NewIosDeviceType()
+		convert.FrameworkToGraphBool(data.ApplicableDeviceType.IPad, deviceType.SetIPad)
+		convert.FrameworkToGraphBool(data.ApplicableDeviceType.IPhoneAndIPod, deviceType.SetIPhoneAndIPod)
+		baseApp.SetApplicableDeviceType(deviceType)
+	}
+
+	// Set minimum supported operating system
+	if data.MinimumSupportedOperatingSystem != nil {
+		minOS := graphmodels.NewIosMinimumOperatingSystem()
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V8_0, minOS.SetV80)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V9_0, minOS.SetV90)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V10_0, minOS.SetV100)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V11_0, minOS.SetV110)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V12_0, minOS.SetV120)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V13_0, minOS.SetV130)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V14_0, minOS.SetV140)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V15_0, minOS.SetV150)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V16_0, minOS.SetV160)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V17_0, minOS.SetV170)
+		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V18_0, minOS.SetV180)
+		baseApp.SetMinimumSupportedOperatingSystem(minOS)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), baseApp); err != nil {

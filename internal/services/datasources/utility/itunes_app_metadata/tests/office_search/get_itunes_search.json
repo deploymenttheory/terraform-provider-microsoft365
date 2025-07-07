@@ -1,0 +1,41 @@
+{
+  "resultCount": 56,
+  "results": [
+    {
+      "isGameCenterEnabled": false,
+      "advisories": [],
+      "features": ["iosUniversal"],
+      "kind": "software",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b6/fb/fb/b6fbfb76-88c3-62fa-f3e2-c2c67f509b69/AppIcon-0-0-1x_U007epad-0-1-0-0-sRGB-0-85-220.png/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b6/fb/fb/b6fbfb76-88c3-62fa-f3e2-c2c67f509b69/AppIcon-0-0-1x_U007epad-0-1-0-0-sRGB-0-85-220.png/100x100bb.jpg",
+      "artworkUrl512": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b6/fb/fb/b6fbfb76-88c3-62fa-f3e2-c2c67f509b69/AppIcon-0-0-1x_U007epad-0-1-0-0-sRGB-0-85-220.png/512x512bb.jpg",
+      "artistId": 298856275,
+      "artistName": "Microsoft Corporation",
+      "genres": ["Productivity", "Business"],
+      "price": 0.00,
+      "isVppDeviceBasedLicensingEnabled": true,
+      "sellerName": "Microsoft Corporation",
+      "bundleId": "com.microsoft.officemobile",
+      "currentVersionReleaseDate": "2025-07-04T12:57:07Z",
+      "primaryGenreName": "Productivity",
+      "primaryGenreId": 6007,
+      "genreIds": ["6007", "6000"],
+      "releaseDate": "2013-06-18T15:45:39Z",
+      "releaseNotes": "• Bug fixes",
+      "version": "2.98.4",
+      "wrapperType": "software",
+      "currency": "GBP",
+      "description": "The Microsoft 365 Copilot app is your everyday productivity app for work and life that helps you find and edit files, scan documents, and create content on the go with access to Microsoft 365 Copilot Chat*.",
+      "averageUserRating": 4.66331,
+      "contentAdvisoryRating": "4+",
+      "trackCensoredName": "Microsoft 365 Copilot",
+      "trackViewUrl": "https://apps.apple.com/gb/app/microsoft-365-copilot/id541164041?uo=4",
+      "minimumOsVersion": "17.0",
+      "averageUserRatingForCurrentVersion": 4.66331,
+      "trackName": "Microsoft 365 Copilot",
+      "trackId": 541164041,
+      "formattedPrice": "Free",
+      "userRatingCount": 271326
+    }
+  ]
+} 

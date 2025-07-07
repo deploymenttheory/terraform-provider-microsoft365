@@ -42,6 +42,7 @@ import (
 
 	// Utilities
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/utilities/macos_pkg_app_metadata"
+	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -94,6 +95,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 
 		// Utilities
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
+		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
 
 		// Add microsoft 365 provider datasources here
 	}

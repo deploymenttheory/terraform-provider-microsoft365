@@ -11,42 +11,42 @@ import (
 
 // MacOSVppAppResourceModel represents the root Terraform resource model for macOS VPP applications
 type MacOSVppAppResourceModel struct {
-	ID                       types.String                              `tfsdk:"id"`
-	DisplayName              types.String                              `tfsdk:"display_name"`
-	Description              types.String                              `tfsdk:"description"`
-	Publisher                types.String                              `tfsdk:"publisher"`
-	LargeIcon                *sharedmodels.MobileAppIconResourceModel  `tfsdk:"large_icon"`
-	CreatedDateTime          types.String                              `tfsdk:"created_date_time"`
-	LastModifiedDateTime     types.String                              `tfsdk:"last_modified_date_time"`
-	IsFeatured               types.Bool                                `tfsdk:"is_featured"`
-	PrivacyInformationUrl    types.String                              `tfsdk:"privacy_information_url"`
-	InformationUrl           types.String                              `tfsdk:"information_url"`
-	Owner                    types.String                              `tfsdk:"owner"`
-	Developer                types.String                              `tfsdk:"developer"`
-	Notes                    types.String                              `tfsdk:"notes"`
-	UploadState              types.Int32                               `tfsdk:"upload_state"`
-	PublishingState          types.String                              `tfsdk:"publishing_state"`
-	IsAssigned               types.Bool                                `tfsdk:"is_assigned"`
-	RoleScopeTagIds          types.Set                                 `tfsdk:"role_scope_tag_ids"`
-	DependentAppCount        types.Int32                               `tfsdk:"dependent_app_count"`
-	SupersedingAppCount      types.Int32                               `tfsdk:"superseding_app_count"`
-	SupersededAppCount       types.Int32                               `tfsdk:"superseded_app_count"`
-	UsedLicenseCount         types.Int32                               `tfsdk:"used_license_count"`
-	TotalLicenseCount        types.Int32                               `tfsdk:"total_license_count"`
-	ReleaseDateTime          types.String                              `tfsdk:"release_date_time"`
-	AppStoreUrl              types.String                              `tfsdk:"app_store_url"`
-	LicensingType            *VppLicensingTypeResourceModel            `tfsdk:"licensing_type"`
-	VppTokenOrganizationName types.String                              `tfsdk:"vpp_token_organization_name"`
-	VppTokenAccountType      types.String                              `tfsdk:"vpp_token_account_type"`
-	VppTokenAppleId          types.String                              `tfsdk:"vpp_token_apple_id"`
-	BundleId                 types.String                              `tfsdk:"bundle_id"`
-	VppTokenId               types.String                              `tfsdk:"vpp_token_id"`
-	VppTokenDisplayName      types.String                              `tfsdk:"vpp_token_display_name"`
-	Categories               types.Set                                 `tfsdk:"categories"`
-	Assignments              types.Set                                 `tfsdk:"assignments"`
-	Relationships            []MobileAppRelationshipResourceModel      `tfsdk:"relationships"`
-	AssignedLicenses         []MacOSVppAppAssignedLicenseResourceModel `tfsdk:"assigned_licenses"`
-	Timeouts                 timeouts.Value                            `tfsdk:"timeouts"`
+	ID                         types.String                             `tfsdk:"id"`
+	DisplayName                types.String                             `tfsdk:"display_name"`
+	Description                types.String                             `tfsdk:"description"`
+	Publisher                  types.String                             `tfsdk:"publisher"`
+	AppIcon                    *sharedmodels.MobileAppIconResourceModel `tfsdk:"app_icon"`
+	CreatedDateTime            types.String                             `tfsdk:"created_date_time"`
+	LastModifiedDateTime       types.String                             `tfsdk:"last_modified_date_time"`
+	IsFeatured                 types.Bool                               `tfsdk:"is_featured"`
+	PrivacyInformationUrl      types.String                             `tfsdk:"privacy_information_url"`
+	InformationUrl             types.String                             `tfsdk:"information_url"`
+	Owner                      types.String                             `tfsdk:"owner"`
+	Developer                  types.String                             `tfsdk:"developer"`
+	Notes                      types.String                             `tfsdk:"notes"`
+	UploadState                types.Int32                              `tfsdk:"upload_state"`
+	PublishingState            types.String                             `tfsdk:"publishing_state"`
+	IsAssigned                 types.Bool                               `tfsdk:"is_assigned"`
+	RoleScopeTagIds            types.Set                                `tfsdk:"role_scope_tag_ids"`
+	DependentAppCount          types.Int32                              `tfsdk:"dependent_app_count"`
+	SupersedingAppCount        types.Int32                              `tfsdk:"superseding_app_count"`
+	SupersededAppCount         types.Int32                              `tfsdk:"superseded_app_count"`
+	UsedLicenseCount           types.Int32                              `tfsdk:"used_license_count"`
+	TotalLicenseCount          types.Int32                              `tfsdk:"total_license_count"`
+	ReleaseDateTime            types.String                             `tfsdk:"release_date_time"`
+	AppStoreUrl                types.String                             `tfsdk:"app_store_url"`
+	LicensingType              *VppLicensingTypeResourceModel           `tfsdk:"licensing_type"`
+	VppTokenOrganizationName   types.String                             `tfsdk:"vpp_token_organization_name"`
+	VppTokenAccountType        types.String                             `tfsdk:"vpp_token_account_type"`
+	VppTokenAppleId            types.String                             `tfsdk:"vpp_token_apple_id"`
+	BundleId                   types.String                             `tfsdk:"bundle_id"`
+	VppTokenId                 types.String                             `tfsdk:"vpp_token_id"`
+	VppTokenDisplayName        types.String                             `tfsdk:"vpp_token_display_name"`
+	Categories                 types.Set                                `tfsdk:"categories"`
+	Relationships              types.List                               `tfsdk:"relationships"`
+	AssignedLicenses           types.List                               `tfsdk:"assigned_licenses"`
+	RevokeLicenseActionResults types.List                               `tfsdk:"revoke_license_action_results"`
+	Timeouts                   timeouts.Value                           `tfsdk:"timeouts"`
 }
 
 // VppLicensingTypeResourceModel represents the Terraform resource model for VPP licensing type
@@ -74,10 +74,10 @@ type MobileAppRelationshipResourceModel struct {
 
 // MacOSVppAppAssignedLicenseResourceModel represents the Terraform resource model for assigned licenses
 type MacOSVppAppAssignedLicenseResourceModel struct {
-	UserId           types.String `tfsdk:"user_id"`
-	DeviceId         types.String `tfsdk:"device_id"`
-	LicenseType      types.String `tfsdk:"license_type"`
-	UserEmailAddress types.String `tfsdk:"user_email_address"`
+	UserId            types.String `tfsdk:"user_id"`
+	UserEmailAddress  types.String `tfsdk:"user_email_address"`
+	UserName          types.String `tfsdk:"user_name"`
+	UserPrincipalName types.String `tfsdk:"user_principal_name"`
 }
 
 // MacOSVppAppRevokeLicensesActionResultResourceModel represents the result of a revoke license action
