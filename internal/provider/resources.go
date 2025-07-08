@@ -4,12 +4,14 @@ import (
 	"context"
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/application_category"
+	graphBetaDeviceAndAppManagementIOSiPadOSWebClip "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_ipados_web_clip"
 	graphBetaDeviceAndAppManagementIOSStoreApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_store_app"
 	graphBetaDeviceAndAppManagementMacOSDmgApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_dmg_app"
 	graphBetaDeviceAndAppManagementMacOSLobApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_lob_app"
 	graphBetaDeviceAndAppManagementMacOSPKGApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_pkg_app"
 	graphBetaDeviceAndAppManagementMacOSVppApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_vpp_app"
 	graphBetaDeviceAndAppManagementApplicationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_assignment"
+	graphBetaDeviceAndAppManagementWindowsWebApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_web_app"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
 
 	// Graph Beta - Device management
@@ -114,11 +116,13 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceAndAppManagementApplicationAssignment.NewMobileAppAssignmentResource,
 		graphBetaDeviceAndAppManagementIOSStoreApp.NewIOSStoreAppResource,
+		graphBetaDeviceAndAppManagementIOSiPadOSWebClip.NewIOSiPadOSWebClipResource,
 		graphBetaDeviceAndAppManagementMacOSVppApp.NewMacOSVppAppResource,
 		graphBetaDeviceAndAppManagementMacOSDmgApp.NewMacOSDmgAppResource,
 		graphBetaDeviceAndAppManagementMacOSLobApp.NewMacOSLobAppResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
+		graphBetaDeviceAndAppManagementWindowsWebApp.NewWindowsWebAppResource,
 
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,

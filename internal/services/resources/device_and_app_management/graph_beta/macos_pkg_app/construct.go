@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	sharedConstructors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
-	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_pkg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -20,59 +20,36 @@ import (
 func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, installerSourcePath string) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	baseApp := graphmodels.NewMacOSPkgApp()
+	requestBody := graphmodels.NewMacOSPkgApp()
 
-	convert.FrameworkToGraphString(data.Description, baseApp.SetDescription)
-	convert.FrameworkToGraphString(data.Publisher, baseApp.SetPublisher)
-	convert.FrameworkToGraphString(data.DisplayName, baseApp.SetDisplayName)
-	convert.FrameworkToGraphString(data.InformationUrl, baseApp.SetInformationUrl)
-	convert.FrameworkToGraphBool(data.IsFeatured, baseApp.SetIsFeatured)
-	convert.FrameworkToGraphString(data.Owner, baseApp.SetOwner)
-	convert.FrameworkToGraphString(data.Developer, baseApp.SetDeveloper)
-	convert.FrameworkToGraphString(data.Notes, baseApp.SetNotes)
-	convert.FrameworkToGraphString(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
+	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
+	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
 	// Handle app icon (either from file path or web source)
 	if data.AppIcon != nil {
-		largeIcon := graphmodels.NewMimeContent()
-		iconType := "image/png"
-		largeIcon.SetTypeEscaped(&iconType)
-
-		if !data.AppIcon.IconFilePathSource.IsNull() && data.AppIcon.IconFilePathSource.ValueString() != "" {
-			iconPath := data.AppIcon.IconFilePathSource.ValueString()
-			iconBytes, err := os.ReadFile(iconPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
-			}
-			largeIcon.SetValue(iconBytes)
-			baseApp.SetLargeIcon(largeIcon)
-		} else if !data.AppIcon.IconURLSource.IsNull() && data.AppIcon.IconURLSource.ValueString() != "" {
-			webSource := data.AppIcon.IconURLSource.ValueString()
-
-			downloadedPath, err := download.DownloadFile(webSource)
-			if err != nil {
-				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
-			}
-
-			iconTempFile := helpers.TempFileInfo{
-				FilePath:      downloadedPath,
-				ShouldCleanup: true,
-			}
-			// Clean up the icon file when done with this function
-			defer helpers.CleanupTempFile(ctx, iconTempFile)
-
-			iconBytes, err := os.ReadFile(downloadedPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read downloaded PNG icon file from %s: %v", downloadedPath, err)
-			}
-
-			largeIcon.SetValue(iconBytes)
-			baseApp.SetLargeIcon(largeIcon)
+		largeIcon, tempFiles, err := sharedConstructors.ConstructMobileAppIcon(ctx, data.AppIcon)
+		if err != nil {
+			return nil, err
 		}
+
+		defer func() {
+			for _, tempFile := range tempFiles {
+				helpers.CleanupTempFile(ctx, tempFile)
+			}
+		}()
+
+		requestBody.SetLargeIcon(largeIcon)
 	}
 
 	// For creating resources, we need the installer file to extract metadata
@@ -87,7 +64,7 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 
 	filename := filepath.Base(installerSourcePath)
 	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-	convert.FrameworkToGraphString(types.StringValue(filename), baseApp.SetFileName)
+	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 
 	// Extract fields from all Info.plist files in the package using the resolved path
 	fields := []utility.Field{
@@ -115,8 +92,8 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 	primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
 
 	tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
-	convert.FrameworkToGraphString(types.StringValue(primaryBundleId), baseApp.SetPrimaryBundleId)
-	convert.FrameworkToGraphString(types.StringValue(primaryBundleVersion), baseApp.SetPrimaryBundleVersion)
+	convert.FrameworkToGraphString(types.StringValue(primaryBundleId), requestBody.SetPrimaryBundleId)
+	convert.FrameworkToGraphString(types.StringValue(primaryBundleVersion), requestBody.SetPrimaryBundleVersion)
 
 	// All entries are set as included apps (including primary)
 	var includedApps []graphmodels.MacOSIncludedAppable
@@ -133,10 +110,10 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		includedApps = append(includedApps, includedApp)
 	}
 
-	baseApp.SetIncludedApps(includedApps)
+	requestBody.SetIncludedApps(includedApps)
 	tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from PKG metadata", len(includedApps)))
 
-	convert.FrameworkToGraphBool(data.MacOSPkgApp.IgnoreVersionDetection, baseApp.SetIgnoreVersionDetection)
+	convert.FrameworkToGraphBool(data.MacOSPkgApp.IgnoreVersionDetection, requestBody.SetIgnoreVersionDetection)
 
 	if data.MacOSPkgApp.MinimumSupportedOperatingSystem != nil {
 		minOS := graphmodels.NewMacOSMinimumOperatingSystem()
@@ -153,22 +130,22 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V120, minOS.SetV120)
 		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V130, minOS.SetV130)
 		convert.FrameworkToGraphBool(data.MacOSPkgApp.MinimumSupportedOperatingSystem.V140, minOS.SetV140)
-		baseApp.SetMinimumSupportedOperatingSystem(minOS)
+		requestBody.SetMinimumSupportedOperatingSystem(minOS)
 	}
 
 	if data.MacOSPkgApp.PreInstallScript != nil {
 		preScript := graphmodels.NewMacOSAppScript()
 		convert.FrameworkToGraphString(data.MacOSPkgApp.PreInstallScript.ScriptContent, preScript.SetScriptContent)
-		baseApp.SetPreInstallScript(preScript)
+		requestBody.SetPreInstallScript(preScript)
 	}
 
 	if data.MacOSPkgApp.PostInstallScript != nil {
 		postScript := graphmodels.NewMacOSAppScript()
 		convert.FrameworkToGraphString(data.MacOSPkgApp.PostInstallScript.ScriptContent, postScript.SetScriptContent)
-		baseApp.SetPostInstallScript(postScript)
+		requestBody.SetPostInstallScript(postScript)
 	}
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), baseApp); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -176,5 +153,5 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
-	return baseApp, nil
+	return requestBody, nil
 }

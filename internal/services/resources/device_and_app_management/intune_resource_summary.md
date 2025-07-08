@@ -33,3 +33,48 @@
 - **WithUrl**
 
 ---
+[]validator.String{
+			// 		stringvalidator.OneOf(
+			// 			"AndroidForWorkApp",
+			// 			"AndroidLobApp",
+			// 			"AndroidManagedStoreApp",
+			// 			"AndroidManagedStoreWebApp",
+			// 			"AndroidStoreApp",
+			// 			"IosiPadOSWebClip", - done
+			// 			"IosLobApp",
+			// 			"IosStoreApp",
+			// 			"IosVppApp",
+			// 			"MacOSDmgApp", - done
+			// 			"MacOSLobApp", - done
+			// 			"MacOSMicrosoftDefenderApp",
+			// 			"MacOSMicrosoftEdgeApp",
+			// 			"MacOSOfficeSuiteApp",
+			// 			"MacOSPkgApp",- done
+			// 			"MacOsVppApp",
+			// 			"MacOSWebClip",
+			// 			"ManagedAndroidLobApp",
+			// 			"ManagedAndroidStoreApp",
+			// 			"ManagedApp",
+			// 			"ManagedIOSLobApp",
+			// 			"ManagedIOSStoreApp",
+			// 			"ManagedMobileLobApp",
+			// 			"MicrosoftStoreForBusinessApp",
+			// 			"MobileLobApp",
+			// 			"OfficeSuiteApp",
+			// 			"WebApp",
+			// 			"Win32CatalogApp",
+			// 			"Win32LobApp", - done
+			// 			"WindowsAppX",
+			// 			"WindowsMicrosoftEdgeApp",
+			// 			"WindowsMobileMSI",
+			// 			"WindowsPhone81AppX",
+			// 			"WindowsPhone81AppXBundle",
+			// 			"WindowsPhone81StoreApp",
+			// 			"WindowsPhoneXAP",
+			// 			"WindowsStoreApp",
+			// 			"WindowsUniversalAppX",
+			// 			"WindowsWebApp",
+			// 		),
+			// 	},
+			// },
+      ---

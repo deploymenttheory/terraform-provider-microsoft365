@@ -96,11 +96,11 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "exam
 - `app_icon` (Attributes) The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune. (see [below for nested schema](#nestedatt--app_icon))
 - `categories` (Set of String) The list of categories for this app. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs.
 - `developer` (String) The developer of the app.
-- `information_url` (String) The more information URL.
+- `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
-- `privacy_information_url` (String) The privacy statement URL.
+- `privacy_information_url` (String) The privacy statement Url.
 - `relationships` (Attributes List) The set of direct relationships for this app. (see [below for nested schema](#nestedatt--relationships))
 - `role_scope_tag_ids` (Set of String) List of scope tag ids for this mobile app.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

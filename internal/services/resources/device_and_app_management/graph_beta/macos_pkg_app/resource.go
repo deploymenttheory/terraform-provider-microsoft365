@@ -102,61 +102,6 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				MarkdownDescription: "The unique identifier of the macOS PKG.",
 			},
-			// "application_type": schema.StringAttribute{
-			// 	Required: true,
-			// 	MarkdownDescription: "The type of Intune application to deploy. Possible values are:" +
-			// 		"`AndroidForWorkApp`, `AndroidLobApp`, `AndroidManagedStoreApp`, `AndroidManagedStoreWebApp`," +
-			// 		"`AndroidStoreApp`, `IosiPadOSWebClip`, `IosLobApp`, `IosStoreApp`, `IosVppApp`, `MacOSDmgApp`," +
-			// 		"`MacOSLobApp`, `MacOSMicrosoftDefenderApp`, `MacOSMicrosoftEdgeApp`, `MacOSOfficeSuiteApp`," +
-			// 		"`MacOSPkgApp`, `MacOsVppApp`, `MacOSWebClip`, `ManagedAndroidLobApp`, `ManagedAndroidStoreApp`," +
-			// 		"`ManagedApp`, `ManagedIOSLobApp`, `ManagedIOSStoreApp`, `ManagedMobileLobApp`, `MicrosoftStoreForBusinessApp`," +
-			// 		"`MobileLobApp`, `OfficeSuiteApp`, `WebApp`, `Win32CatalogApp`, `Win32LobApp`, `WindowsAppX`," +
-			// 		"`WindowsMicrosoftEdgeApp`, `WindowsMobileMSI`, `WindowsPhone81AppX`, `WindowsPhone81AppXBundle`," +
-			// 		"`WindowsPhone81StoreApp`, `WindowsPhoneXAP`, `WindowsStoreApp`, `WindowsUniversalAppX`, `WindowsWebApp`, `MacOSPKGAppResource`",
-			// 	Validators: []validator.String{
-			// 		stringvalidator.OneOf(
-			// 			"AndroidForWorkApp",
-			// 			"AndroidLobApp",
-			// 			"AndroidManagedStoreApp",
-			// 			"AndroidManagedStoreWebApp",
-			// 			"AndroidStoreApp",
-			// 			"IosiPadOSWebClip",
-			// 			"IosLobApp",
-			// 			"IosStoreApp",
-			// 			"IosVppApp",
-			// 			"MacOSDmgApp",
-			// 			"MacOSLobApp",
-			// 			"MacOSMicrosoftDefenderApp",
-			// 			"MacOSMicrosoftEdgeApp",
-			// 			"MacOSOfficeSuiteApp",
-			// 			"MacOSPkgApp",
-			// 			"MacOsVppApp",
-			// 			"MacOSWebClip",
-			// 			"ManagedAndroidLobApp",
-			// 			"ManagedAndroidStoreApp",
-			// 			"ManagedApp",
-			// 			"ManagedIOSLobApp",
-			// 			"ManagedIOSStoreApp",
-			// 			"ManagedMobileLobApp",
-			// 			"MicrosoftStoreForBusinessApp",
-			// 			"MobileLobApp",
-			// 			"OfficeSuiteApp",
-			// 			"WebApp",
-			// 			"Win32CatalogApp",
-			// 			"Win32LobApp",
-			// 			"WindowsAppX",
-			// 			"WindowsMicrosoftEdgeApp",
-			// 			"WindowsMobileMSI",
-			// 			"WindowsPhone81AppX",
-			// 			"WindowsPhone81AppXBundle",
-			// 			"WindowsPhone81StoreApp",
-			// 			"WindowsPhoneXAP",
-			// 			"WindowsStoreApp",
-			// 			"WindowsUniversalAppX",
-			// 			"WindowsWebApp",
-			// 		),
-			// 	},
-			// },
 			"is_featured": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin.",
@@ -164,10 +109,22 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The privacy statement Url.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+						"must be a valid URL starting with http:// or https://",
+					),
+				},
 			},
 			"information_url": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The more information Url.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+						"must be a valid URL starting with http:// or https://",
+					),
+				},
 			},
 			"owner": schema.StringAttribute{
 				Optional:            true,

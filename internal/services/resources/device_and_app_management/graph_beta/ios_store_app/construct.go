@@ -16,20 +16,20 @@ import (
 func constructResource(ctx context.Context, data *IOSStoreAppResourceModel) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	baseApp := graphmodels.NewIosStoreApp()
+	requestBody := graphmodels.NewIosStoreApp()
 
-	convert.FrameworkToGraphString(data.Description, baseApp.SetDescription)
-	convert.FrameworkToGraphString(data.Publisher, baseApp.SetPublisher)
-	convert.FrameworkToGraphString(data.DisplayName, baseApp.SetDisplayName)
-	convert.FrameworkToGraphString(data.InformationUrl, baseApp.SetInformationUrl)
-	convert.FrameworkToGraphBool(data.IsFeatured, baseApp.SetIsFeatured)
-	convert.FrameworkToGraphString(data.Owner, baseApp.SetOwner)
-	convert.FrameworkToGraphString(data.Developer, baseApp.SetDeveloper)
-	convert.FrameworkToGraphString(data.Notes, baseApp.SetNotes)
-	convert.FrameworkToGraphString(data.PrivacyInformationUrl, baseApp.SetPrivacyInformationUrl)
-	convert.FrameworkToGraphString(data.AppStoreUrl, baseApp.SetAppStoreUrl)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
+	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
+	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.AppStoreUrl, requestBody.SetAppStoreUrl)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, baseApp.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
@@ -46,18 +46,16 @@ func constructResource(ctx context.Context, data *IOSStoreAppResourceModel) (gra
 			}
 		}()
 
-		baseApp.SetLargeIcon(largeIcon)
+		requestBody.SetLargeIcon(largeIcon)
 	}
 
-	// Set applicable device type
 	if data.ApplicableDeviceType != nil {
 		deviceType := graphmodels.NewIosDeviceType()
 		convert.FrameworkToGraphBool(data.ApplicableDeviceType.IPad, deviceType.SetIPad)
 		convert.FrameworkToGraphBool(data.ApplicableDeviceType.IPhoneAndIPod, deviceType.SetIPhoneAndIPod)
-		baseApp.SetApplicableDeviceType(deviceType)
+		requestBody.SetApplicableDeviceType(deviceType)
 	}
 
-	// Set minimum supported operating system
 	if data.MinimumSupportedOperatingSystem != nil {
 		minOS := graphmodels.NewIosMinimumOperatingSystem()
 		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V8_0, minOS.SetV80)
@@ -71,10 +69,10 @@ func constructResource(ctx context.Context, data *IOSStoreAppResourceModel) (gra
 		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V16_0, minOS.SetV160)
 		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V17_0, minOS.SetV170)
 		convert.FrameworkToGraphBool(data.MinimumSupportedOperatingSystem.V18_0, minOS.SetV180)
-		baseApp.SetMinimumSupportedOperatingSystem(minOS)
+		requestBody.SetMinimumSupportedOperatingSystem(minOS)
 	}
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), baseApp); err != nil {
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -82,5 +80,5 @@ func constructResource(ctx context.Context, data *IOSStoreAppResourceModel) (gra
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
-	return baseApp, nil
+	return requestBody, nil
 }

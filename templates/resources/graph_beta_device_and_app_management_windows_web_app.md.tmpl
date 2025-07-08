@@ -1,0 +1,43 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device and App Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [windowsWebClip resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-windowswebapp?view=graph-rest-beta)
+- [Create windowsWebClip](https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-create?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read**: `DeviceManagementApps.Read.All`
+- **Write**: `DeviceManagementApps.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.21.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_windows_web_app/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_windows_web_app/import.sh" }} 

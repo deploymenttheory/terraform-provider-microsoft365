@@ -15,6 +15,10 @@ const (
 	// Example: "https://example.com/path?query=1"
 	UrlValidStringRegex = "(?i)^[A-Za-z0-9-._~%/:/?=]+$"
 
+	// HttpOrHttpsUrlRegex matches a URL that starts with either http:// or https://
+	// Example: "https://example.com" or "http://example.org"
+	HttpOrHttpsUrlRegex = "^https?://.*$"
+
 	// ApiIdRegex matches API IDs consisting of alphanumeric characters, slashes, dots, or underscores.
 	// Example: "api/v1/resource_1"
 	ApiIdRegex = "^[0-9a-zA-Z/._]*$"
