@@ -1,0 +1,12 @@
+package graphBetaWindowsWebApp
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+)
+
+// planModifiers returns the plan modifiers for the provider
+func (r *WindowsWebAppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// No custom plan modifications needed at this time
+}

@@ -40,7 +40,7 @@
 			// 			"AndroidManagedStoreApp",
 			// 			"AndroidManagedStoreWebApp",
 			// 			"AndroidStoreApp",
-			// 			"IosiPadOSWebClip",
+			// 			"IosiPadOSWebClip", - done
 			// 			"IosLobApp",
 			// 			"IosStoreApp",
 			// 			"IosVppApp",

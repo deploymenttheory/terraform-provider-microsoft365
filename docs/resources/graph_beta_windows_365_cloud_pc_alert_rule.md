@@ -53,9 +53,9 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "example" {
   ]
 
   threshold = {
-    aggregation  = "count" # Use a valid aggregation type from the API
-    operator     = "greaterOrEqual" # Use a valid operator from the API
-    target       = 10
+    aggregation = "count"          # Use a valid aggregation type from the API
+    operator    = "greaterOrEqual" # Use a valid operator from the API
+    target      = 10
   }
 
   conditions = [

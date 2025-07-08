@@ -43,16 +43,16 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "exam
   description   = data.microsoft365_utility_itunes_app_metadata.edge.results[0].description
   publisher     = data.microsoft365_utility_itunes_app_metadata.edge.results[0].seller_name
   app_store_url = data.microsoft365_utility_itunes_app_metadata.edge.results[0].artist_view_url
-  
-  applicable_device_type ={
+
+  applicable_device_type = {
     ipad            = true
     iphone_and_ipod = true
   }
-  
-  minimum_supported_operating_system ={
+
+  minimum_supported_operating_system = {
     v14_0 = true
   }
-  
+
   # Optional fields
   information_url         = "https://example.com/app-info"
   privacy_information_url = "https://example.com/privacy"
@@ -61,15 +61,15 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "exam
   notes                   = "Managed by Terraform - Version: ${data.microsoft365_utility_itunes_app_metadata.edge.results[0].version}"
   is_featured             = false
   role_scope_tag_ids      = ["0"]
-  
+
   # App icon (optional)
-  app_icon ={
+  app_icon = {
     icon_url_source = data.microsoft365_utility_itunes_app_metadata.edge.results[0].artwork_url_512
   }
-  
+
   # Categories (optional)
   categories = ["Productivity", "Business"]
-  
+
   timeouts = {
     create = "30m"
     read   = "10m"
@@ -96,11 +96,11 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "exam
 - `app_icon` (Attributes) The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune. (see [below for nested schema](#nestedatt--app_icon))
 - `categories` (Set of String) The list of categories for this app. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs.
 - `developer` (String) The developer of the app.
-- `information_url` (String) The more information URL.
+- `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
-- `privacy_information_url` (String) The privacy statement URL.
+- `privacy_information_url` (String) The privacy statement Url.
 - `relationships` (Attributes List) The set of direct relationships for this app. (see [below for nested schema](#nestedatt--relationships))
 - `role_scope_tag_ids` (Set of String) List of scope tag ids for this mobile app.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

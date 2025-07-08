@@ -149,12 +149,12 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 - `categories` (Set of String) Set of category names to associate with this application. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `developer` (String) The developer of the app.
-- `information_url` (String) The more information URL.
+- `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
 - `macos_dmg_app` (Attributes) The path to the DMG file to be uploaded. Resource supports both local file sources and URL based sources. (see [below for nested schema](#nestedatt--macos_dmg_app))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
-- `privacy_information_url` (String) The privacy statement URL.
+- `privacy_information_url` (String) The privacy statement Url.
 - `relationships` (Attributes List) List of relationships associated with this application. (see [below for nested schema](#nestedatt--relationships))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

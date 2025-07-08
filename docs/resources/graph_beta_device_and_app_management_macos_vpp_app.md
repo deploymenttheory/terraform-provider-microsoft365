@@ -34,33 +34,33 @@ The following API permissions are required in order to use this resource.
 
 ```terraform
 resource "microsoft365_graph_beta_device_and_app_management_macos_vpp_app" "example" {
-  display_name              = "Example MacOS VPP App"
-  description               = "Example MacOS VPP application managed by Terraform"
-  publisher                 = "Example Publisher"
-  bundle_id                 = "com.example.macosvppapp"
-  vpp_token_id              = "00000000-0000-0000-0000-000000000000" # Replace with actual VPP token ID
+  display_name                = "Example MacOS VPP App"
+  description                 = "Example MacOS VPP application managed by Terraform"
+  publisher                   = "Example Publisher"
+  bundle_id                   = "com.example.macosvppapp"
+  vpp_token_id                = "00000000-0000-0000-0000-000000000000" # Replace with actual VPP token ID
   vpp_token_organization_name = "Example Organization"
-  vpp_token_account_type    = "business" # Possible values: business, education
-  vpp_token_apple_id        = "example@organization.com"
-  
+  vpp_token_account_type      = "business" # Possible values: business, education
+  vpp_token_apple_id          = "example@organization.com"
+
   # Optional fields
-  information_url           = "https://example.com/app-info"
-  privacy_information_url   = "https://example.com/privacy"
-  owner                     = "IT Department"
-  developer                 = "Example Developer"
-  notes                     = "Managed by Terraform"
-  is_featured               = false
-  
+  information_url         = "https://example.com/app-info"
+  privacy_information_url = "https://example.com/privacy"
+  owner                   = "IT Department"
+  developer               = "Example Developer"
+  notes                   = "Managed by Terraform"
+  is_featured             = false
+
   # Role scope tags (optional)
-  role_scope_tag_ids        = ["0"]
-  
+  role_scope_tag_ids = ["0"]
+
   # App icon (optional)
   # app_icon {
   #   icon_file_path_source = "/path/to/icon.png"
   #   # OR
   #   # icon_url_source     = "https://example.com/icon.png"
   # }
-  
+
   # Licensing type (optional)
   licensing_type {
     support_user_licensing    = true
@@ -68,10 +68,10 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_vpp_app" "exam
     supports_user_licensing   = true
     supports_device_licensing = true
   }
-  
+
   # Categories (optional)
   # categories = ["00000000-0000-0000-0000-000000000000"] # Replace with actual category IDs
-  
+
   timeouts = {
     create = "30m"
     read   = "10m"
@@ -100,12 +100,12 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_vpp_app" "exam
 - `app_icon` (Attributes) The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune. (see [below for nested schema](#nestedatt--app_icon))
 - `categories` (Set of String) The list of categories for this app. You can use either the predefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs.
 - `developer` (String) The developer of the app.
-- `information_url` (String) The more information URL.
+- `information_url` (String) The more information Url.
 - `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
 - `licensing_type` (Attributes) The supported License Type. (see [below for nested schema](#nestedatt--licensing_type))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
-- `privacy_information_url` (String) The privacy statement URL.
+- `privacy_information_url` (String) The privacy statement Url.
 - `relationships` (Attributes List) The set of direct relationships for this app. (see [below for nested schema](#nestedatt--relationships))
 - `role_scope_tag_ids` (Set of String) List of scope tag ids for this mobile app.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
