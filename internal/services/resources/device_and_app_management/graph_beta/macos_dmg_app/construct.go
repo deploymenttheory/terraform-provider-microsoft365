@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	sharedConstructors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
-	download "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 
-	//utility "github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/device_and_app_management/installers/macos_dmg"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -39,41 +38,18 @@ func constructResource(ctx context.Context, data *MacOSDmgAppResourceModel, inst
 
 	// Handle app icon (either from file path or web source)
 	if data.AppIcon != nil {
-		largeIcon := graphmodels.NewMimeContent()
-		iconType := "image/png"
-		largeIcon.SetTypeEscaped(&iconType)
-
-		if !data.AppIcon.IconFilePathSource.IsNull() && data.AppIcon.IconFilePathSource.ValueString() != "" {
-			iconPath := data.AppIcon.IconFilePathSource.ValueString()
-			iconBytes, err := os.ReadFile(iconPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read PNG icon file from %s: %v", iconPath, err)
-			}
-			largeIcon.SetValue(iconBytes)
-			requestBody.SetLargeIcon(largeIcon)
-		} else if !data.AppIcon.IconURLSource.IsNull() && data.AppIcon.IconURLSource.ValueString() != "" {
-			webSource := data.AppIcon.IconURLSource.ValueString()
-
-			downloadedPath, err := download.DownloadFile(webSource)
-			if err != nil {
-				return nil, fmt.Errorf("failed to download icon file from %s: %v", webSource, err)
-			}
-
-			iconTempFile := helpers.TempFileInfo{
-				FilePath:      downloadedPath,
-				ShouldCleanup: true,
-			}
-			// Clean up the icon file when done with this function
-			defer helpers.CleanupTempFile(ctx, iconTempFile)
-
-			iconBytes, err := os.ReadFile(downloadedPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read downloaded PNG icon file from %s: %v", downloadedPath, err)
-			}
-
-			largeIcon.SetValue(iconBytes)
-			requestBody.SetLargeIcon(largeIcon)
+		largeIcon, tempFiles, err := sharedConstructors.ConstructMobileAppIcon(ctx, data.AppIcon)
+		if err != nil {
+			return nil, err
 		}
+
+		defer func() {
+			for _, tempFile := range tempFiles {
+				helpers.CleanupTempFile(ctx, tempFile)
+			}
+		}()
+
+		requestBody.SetLargeIcon(largeIcon)
 	}
 
 	// For creating resources, we need the installer file to set filename

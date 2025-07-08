@@ -1,4 +1,4 @@
-package graphBetaMacOSVppApp
+package graphBetaIOSiPadOSWebClip
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (graphmodels.MobileAppable, error) {
+func constructResource(ctx context.Context, data *IOSiPadOSWebClipResourceModel) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := graphmodels.NewMacOsVppApp()
+	requestBody := graphmodels.NewIosiPadOSWebClip()
 
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
@@ -27,14 +27,14 @@ func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (gra
 	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
 	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
 	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
-	convert.FrameworkToGraphString(data.BundleId, requestBody.SetBundleId)
-	convert.FrameworkToGraphString(data.VppTokenId, requestBody.SetVppTokenId)
-	convert.FrameworkToGraphString(data.VppTokenAppleId, requestBody.SetVppTokenAppleId)
-	convert.FrameworkToGraphString(data.VppTokenOrganizationName, requestBody.SetVppTokenOrganizationName)
 
-	if err := convert.FrameworkToGraphEnum(data.VppTokenAccountType, graphmodels.ParseVppTokenAccountType, requestBody.SetVppTokenAccountType); err != nil {
-		return nil, fmt.Errorf("failed to set VPP token account type: %s", err)
-	}
+	// Set iOS Web Clip specific properties
+	convert.FrameworkToGraphString(data.AppUrl, requestBody.SetAppUrl)
+	convert.FrameworkToGraphBool(data.FullScreenEnabled, requestBody.SetFullScreenEnabled)
+	convert.FrameworkToGraphBool(data.IgnoreManifestScope, requestBody.SetIgnoreManifestScope)
+	convert.FrameworkToGraphBool(data.PreComposedIconEnabled, requestBody.SetPreComposedIconEnabled)
+	convert.FrameworkToGraphString(data.TargetApplicationBundleIdentifier, requestBody.SetTargetApplicationBundleIdentifier)
+	convert.FrameworkToGraphBool(data.UseManagedBrowser, requestBody.SetUseManagedBrowser)
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
@@ -54,15 +54,6 @@ func constructResource(ctx context.Context, data *MacOSVppAppResourceModel) (gra
 		}()
 
 		requestBody.SetLargeIcon(largeIcon)
-	}
-
-	if data.LicensingType != nil {
-		licensingType := graphmodels.NewVppLicensingType()
-		convert.FrameworkToGraphBool(data.LicensingType.SupportUserLicensing, licensingType.SetSupportUserLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportDeviceLicensing, licensingType.SetSupportDeviceLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportsUserLicensing, licensingType.SetSupportsUserLicensing)
-		convert.FrameworkToGraphBool(data.LicensingType.SupportsDeviceLicensing, licensingType.SetSupportsDeviceLicensing)
-		requestBody.SetLicensingType(licensingType)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

@@ -106,11 +106,23 @@ func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The privacy statement URL.",
+				MarkdownDescription: "The privacy statement Url.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+						"must be a valid URL starting with http:// or https://",
+					),
+				},
 			},
 			"information_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The more information URL.",
+				MarkdownDescription: "The more information Url.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+						"must be a valid URL starting with http:// or https://",
+					),
+				},
 			},
 			"owner": schema.StringAttribute{
 				Optional:            true,
