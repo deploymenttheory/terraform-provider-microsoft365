@@ -156,7 +156,11 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"is_featured": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin.",
+				Computed:            true,
+				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin. Default is false.",
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
+				},
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,

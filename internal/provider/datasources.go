@@ -10,6 +10,7 @@ import (
 	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
 	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
 	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
@@ -44,8 +45,7 @@ import (
 	// Utilities
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/utilities/macos_pkg_app_metadata"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	utilityMicrosoftStorePackageManifestMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_store_package_manifest_metadata"
 )
 
 // DataSources returns a slice of functions that each return a datasource.DataSource.
@@ -98,6 +98,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Utilities
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
+		utilityMicrosoftStorePackageManifestMetadata.NewMicrosoftStorePackageManifestDataSource,
 
 		// Add microsoft 365 provider datasources here
 	}
