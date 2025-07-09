@@ -1,0 +1,19 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utilities"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The `graph_beta_macos_pkg_app_metadata` data source extracts metadata from macOS PKG installer files (.pkg), providing essential information needed for deploying macOS applications in Microsoft Intune. It can extract metadata from either local files or remote URLs.
+
+This data source is particularly useful when creating macOS PKG app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
+
+## Example Usage
+
+{{ tffile "examples/utilities/microsoft365_utility_microsoft_store_package_manifest_metadata/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

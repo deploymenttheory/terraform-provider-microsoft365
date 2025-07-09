@@ -1,0 +1,270 @@
+package microsoft_store_package_manifest_metadata_test
+
+import (
+	"fmt"
+	"net/http"
+	"regexp"
+	"testing"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/jarcoal/httpmock"
+)
+
+func TestUnitMicrosoftStorePackageManifestMetadataDataSource_ByPackageId(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Mock the response for a specific package ID
+	packageId := "9PM860492SZD"
+	mockResponse := `{
+		"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestData, StoreEdgeFD",
+		"PackageIdentifier": "9PM860492SZD",
+		"Versions": [
+			{
+				"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestVersion, StoreEdgeFD",
+				"PackageVersion": "Unknown",
+				"DefaultLocale": {
+					"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.DefaultLocale, StoreEdgeFD",
+					"PackageLocale": "en",
+					"Publisher": "Microsoft Corporation",
+					"PublisherUrl": "https://pcmanager.microsoft.com/",
+					"PrivacyUrl": "https://go.microsoft.com/fwlink/?LinkId=521839",
+					"PublisherSupportUrl": "mailto:pcm_feedback@microsoft.com",
+					"PackageName": "Microsoft PC Manager",
+					"License": "https://go.microsoft.com/fwlink/?LinkId=2009023",
+					"Copyright": "",
+					"ShortDescription": "Microsoft PC Manager is a utility app for your PC that effortlessly enhances PC performance with just one click.",
+					"Description": "Microsoft PC Manager is a utility app for your PC that effortlessly enhances PC performance with just one click. Enjoy seamless storage clean-up, efficient file management, and a host of other powerful features designed to keep your PC running smoothly.",
+					"Tags": [],
+					"Agreements": [
+						{
+							"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.AgreementDetail, StoreEdgeFD",
+							"AgreementLabel": "Category",
+							"Agreement": "Security"
+						},
+						{
+							"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.AgreementDetail, StoreEdgeFD",
+							"AgreementLabel": "Pricing",
+							"Agreement": "Free"
+						}
+					]
+				},
+				"Installers": [
+					{
+						"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.BigCatInstaller, StoreEdgeFD",
+						"MSStoreProductIdentifier": "9PM860492SZD",
+						"Architecture": "x64",
+						"InstallerType": "msstore",
+						"Markets": {
+							"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.Markets, StoreEdgeFD",
+							"AllowedMarkets": [
+								"US"
+							]
+						},
+						"PackageFamilyName": "Microsoft.MicrosoftPCManager_8wekyb3d8bbwe",
+						"Scope": "user",
+						"DownloadCommandProhibited": false
+					}
+				]
+			}
+		]
+	}`
+
+	httpmock.RegisterResponder(
+		"GET",
+		fmt.Sprintf("https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/%s", packageId),
+		httpmock.NewStringResponder(http.StatusOK, mockResponse),
+	)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (terraform.ResourceProvider, error){
+			"microsoft365": provider.TestAccProtoV6ProviderFactory,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_byPackageId(packageId),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", packageId),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "package_id", packageId),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.package_identifier", packageId),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.default_locale.package_name", "Microsoft PC Manager"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.default_locale.publisher", "Microsoft Corporation"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.installers.0.architecture", "x64"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.installers.0.package_family_name", "Microsoft.MicrosoftPCManager_8wekyb3d8bbwe"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.installers.0.markets.allowed_markets.0", "US"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitMicrosoftStorePackageManifestMetadataDataSource_BySearchTerm(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Mock the search response
+	searchTerm := "microsoft"
+	searchResponse := `{
+		"Data": [
+			{
+				"PackageIdentifier": "9PM860492SZD",
+				"PackageName": "Microsoft PC Manager"
+			},
+			{
+				"PackageIdentifier": "9WZDNCRFHVN5",
+				"PackageName": "Microsoft Teams"
+			}
+		]
+	}`
+
+	httpmock.RegisterResponder(
+		"POST",
+		"https://storeedgefd.dsx.mp.microsoft.com/v9.0/manifestSearch",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(http.StatusOK, searchResponse), nil
+		},
+	)
+
+	// Mock the package manifest responses for each search result
+	pcManagerResponse := `{
+		"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestData, StoreEdgeFD",
+		"PackageIdentifier": "9PM860492SZD",
+		"Versions": [
+			{
+				"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestVersion, StoreEdgeFD",
+				"PackageVersion": "Unknown",
+				"DefaultLocale": {
+					"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.DefaultLocale, StoreEdgeFD",
+					"PackageLocale": "en",
+					"Publisher": "Microsoft Corporation",
+					"PublisherUrl": "https://pcmanager.microsoft.com/",
+					"PackageName": "Microsoft PC Manager",
+					"ShortDescription": "PC Manager",
+					"Description": "PC Manager",
+					"Tags": []
+				},
+				"Installers": [
+					{
+						"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.BigCatInstaller, StoreEdgeFD",
+						"MSStoreProductIdentifier": "9PM860492SZD",
+						"Architecture": "x64",
+						"InstallerType": "msstore",
+						"Markets": {
+							"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.Markets, StoreEdgeFD",
+							"AllowedMarkets": ["US"]
+						},
+						"PackageFamilyName": "Microsoft.MicrosoftPCManager_8wekyb3d8bbwe",
+						"Scope": "user"
+					}
+				]
+			}
+		]
+	}`
+
+	teamsResponse := `{
+		"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestData, StoreEdgeFD",
+		"PackageIdentifier": "9WZDNCRFHVN5",
+		"Versions": [
+			{
+				"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.PackageManifestVersion, StoreEdgeFD",
+				"PackageVersion": "Unknown",
+				"DefaultLocale": {
+					"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.DefaultLocale, StoreEdgeFD",
+					"PackageLocale": "en",
+					"Publisher": "Microsoft Corporation",
+					"PublisherUrl": "https://www.microsoft.com/teams",
+					"PackageName": "Microsoft Teams",
+					"ShortDescription": "Teams",
+					"Description": "Teams",
+					"Tags": []
+				},
+				"Installers": [
+					{
+						"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.BigCatInstaller, StoreEdgeFD",
+						"MSStoreProductIdentifier": "9WZDNCRFHVN5",
+						"Architecture": "x64",
+						"InstallerType": "msstore",
+						"Markets": {
+							"$type": "Microsoft.Marketplace.Storefront.StoreEdgeFD.BusinessLogic.Response.PackageManifest.Markets, StoreEdgeFD",
+							"AllowedMarkets": ["US", "UK"]
+						},
+						"PackageFamilyName": "Microsoft.Teams_8wekyb3d8bbwe",
+						"Scope": "user"
+					}
+				]
+			}
+		]
+	}`
+
+	httpmock.RegisterResponder(
+		"GET",
+		"https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/9PM860492SZD",
+		httpmock.NewStringResponder(http.StatusOK, pcManagerResponse),
+	)
+
+	httpmock.RegisterResponder(
+		"GET",
+		"https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/9WZDNCRFHVN5",
+		httpmock.NewStringResponder(http.StatusOK, teamsResponse),
+	)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (terraform.ResourceProvider, error){
+			"microsoft365": provider.TestAccProtoV6ProviderFactory,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_bySearchTerm(searchTerm),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", searchTerm),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "search_term", searchTerm),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.#", "2"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.package_identifier", "9PM860492SZD"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.1.package_identifier", "9WZDNCRFHVN5"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.0.versions.0.default_locale.package_name", "Microsoft PC Manager"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.1.versions.0.default_locale.package_name", "Microsoft Teams"),
+					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "results.1.versions.0.installers.0.markets.allowed_markets.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitMicrosoftStorePackageManifestMetadataDataSource_MissingRequiredParams(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: map[string]func() (terraform.ResourceProvider, error){
+			"microsoft365": provider.TestAccProtoV6ProviderFactory,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_missingParams(),
+				ExpectError: regexp.MustCompile(`Either package_id or search_term must be provided`),
+			},
+		},
+	})
+}
+
+func testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_byPackageId(packageId string) string {
+	return fmt.Sprintf(`
+data "microsoft365_utility_microsoft_store_package_manifest_metadata" "test" {
+  package_id = "%s"
+}
+`, packageId)
+}
+
+func testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_bySearchTerm(searchTerm string) string {
+	return fmt.Sprintf(`
+data "microsoft365_utility_microsoft_store_package_manifest_metadata" "test" {
+  search_term = "%s"
+}
+`, searchTerm)
+}
+
+func testAccMicrosoftStorePackageManifestMetadataDataSourceConfig_missingParams() string {
+	return `
+data "microsoft365_utility_microsoft_store_package_manifest_metadata" "test" {
+}
+`
+}
