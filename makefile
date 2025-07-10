@@ -30,6 +30,8 @@ userdocs:
 	go generate
 	tfplugindocs validate --provider-name microsoft365
 
+terraformfmt:
+	find . -type f -name "*.tf" -exec terraform fmt {} \;
 
 unittest:
 	$(MAKE) clean
@@ -73,3 +75,4 @@ precommit:
 	$(MAKE) lint
 	$(MAKE) unittest
 	$(MAKE) userdocs
+	$(MAKE) terraformfmt
