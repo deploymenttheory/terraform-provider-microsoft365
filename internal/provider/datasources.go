@@ -43,9 +43,10 @@ import (
 	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
 
 	// Utilities
-	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/utilities/macos_pkg_app_metadata"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
+	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
 	utilityMicrosoftStorePackageManifestMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_store_package_manifest_metadata"
+	utilityWindowsMSIAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_msi_app_metadata"
 )
 
 // DataSources returns a slice of functions that each return a datasource.DataSource.
@@ -99,6 +100,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
 		utilityMicrosoftStorePackageManifestMetadata.NewMicrosoftStorePackageManifestDataSource,
+		utilityWindowsMSIAppMetadata.NewWindowsMSIAppMetadataDataSource,
 
 		// Add microsoft 365 provider datasources here
 	}

@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} Data Source - {{.ProviderName}}"
+subcategory: "Utilities"
+description: |-
+  Use this data source to query the iTunes App Store API for app metadata.
+---
+
+# {{.Name}}
+
+Use this data source to extract metadata from a Windows MSI installer file.
+This data source allows you to extract metadata from a Windows MSI installer file,
+returning details like product name, version, and other metadata.
+
+## Example Usage
+
+```terraform
+{{ tffile "examples/microsoft365_utility/microsoft365_utility_windows_msi_app_metadata/datasource.tf" }}
+```
+
+## Argument Reference
+
+* `installer_file_path_source` - (Required) The path to the Windows MSI installer file.
+* `installer_url_source` - (Required) The URL to the Windows MSI installer file.
+
+## Attributes Reference
+
+In addition to the arguments listed above, the following attributes are exported:
+
+* `id` - The ID of this resource.
+* `metadata` - A list of app results returned from the iTunes App Store API. Each result contains:
+  * `product_name` - The name of the app.
+  * `product_version` - The version of the app.
+  * `product_code` - The product code of the app.
+  * `publisher` - The publisher of the app.
+  * `upgrade_code` - The upgrade code of the app.
+
+  * `description` - The description of the app.
+  * `version` - The version of the app.
+  * `price` - The price of the app in the local currency.
+  * `formatted_price` - The formatted price of the app (e.g., 'Free', '$0.99').
+  * `release_date` - The release date of the app.
+  * `average_rating` - The average user rating of the app.
+  * `artist_name` - The name of the artist/developer.
+  * `minimum_os_version` - The minimum OS version required to run the app.
+  * `content_advisory_rating` - The content advisory rating (e.g., '4+', '12+', '17+').
+  * `is_vpp_device_based_licensed` - Whether the app supports VPP device-based licensing.
+  * `release_notes` - Notes about the latest release of the app.
+  * `currency` - The currency code for the price (e.g., 'USD', 'GBP', 'EUR').
+  * `user_rating_count` - The number of user ratings for the app. 
