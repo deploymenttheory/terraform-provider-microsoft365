@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteStateToTerraform maps the remote state to the win32lobapp to Terraform state
-func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceModel, remoteResource graphmodels.Win32LobAppable) {
+// MapRemoteResourceStateToTerraform maps the remote state to the win32lobapp to Terraform state
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppResourceModel, remoteResource graphmodels.Win32LobAppable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -38,11 +38,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	data.PublishingState = convert.GraphToFrameworkEnum(remoteResource.GetPublishingState())
 	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
 
-	if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
-		data.LargeIcon = sharedmodels.MimeContentResourceModel{
-			Type:  convert.GraphToFrameworkString(largeIcon.GetTypeEscaped()),
-			Value: convert.GraphToFrameworkBytes(largeIcon.GetValue()),
+	if data.AppIcon != nil {
+		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
+	} else if largeIcon := remoteResource.GetLargeIcon(); largeIcon != nil {
+		data.AppIcon = &sharedmodels.MobileAppIconResourceModel{
+			IconFilePathSource: types.StringNull(),
+			IconURLSource:      types.StringNull(),
 		}
+	} else {
+		data.AppIcon = nil
 	}
 
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
@@ -67,7 +71,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 	// MinimumSupportedOperatingSystem
 	minOS := remoteResource.GetMinimumSupportedOperatingSystem()
 	if minOS != nil {
-		data.MinimumSupportedOperatingSystem = WindowsMinimumOperatingSystemResourceModel{
+		data.MinimumSupportedOperatingSystem = &WindowsMinimumOperatingSystemResourceModel{
 			V8_0:     convert.GraphToFrameworkBool(minOS.GetV80()),
 			V8_1:     convert.GraphToFrameworkBool(minOS.GetV81()),
 			V10_0:    convert.GraphToFrameworkBool(minOS.GetV100()),
@@ -137,12 +141,14 @@ func MapRemoteStateToTerraform(ctx context.Context, data *Win32LobAppResourceMod
 		for i, rule := range requirementRules {
 			if registryRequirement, ok := rule.(graphmodels.Win32LobAppRegistryRequirementable); ok {
 				data.RequirementRules[i] = Win32LobAppRegistryRequirementResourceModel{
+					RequirementType:      types.StringValue("registry"),
+					Operator:             convert.GraphToFrameworkEnum(registryRequirement.GetOperator()),
+					DetectionValue:       convert.GraphToFrameworkString(registryRequirement.GetDetectionValue()),
 					Check32BitOn64System: convert.GraphToFrameworkBool(registryRequirement.GetCheck32BitOn64System()),
 					KeyPath:              convert.GraphToFrameworkString(registryRequirement.GetKeyPath()),
 					ValueName:            convert.GraphToFrameworkString(registryRequirement.GetValueName()),
-					Operator:             convert.GraphToFrameworkEnum(registryRequirement.GetOperator()),
-					DetectionValue:       convert.GraphToFrameworkString(registryRequirement.GetDetectionValue()),
-					DetectionType:        types.StringValue("registry"),
+					DetectionType:        convert.GraphToFrameworkEnum(registryRequirement.GetDetectionType()),
+					FileOrFolderName:     types.StringNull(), // Not applicable for registry requirements
 				}
 			}
 		}

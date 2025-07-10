@@ -8,11 +8,14 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,9 +48,11 @@ func NewWin32LobAppResource() resource.Resource {
 	return &Win32LobAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileApps",
 	}
@@ -105,21 +110,23 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The description of the app.",
 			},
 			"publisher": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The publisher of the app.",
+				Required:            true,
+				MarkdownDescription: "The publisher of the Intune macOS pkg application.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 1024),
+				},
 			},
-			"large_icon": schema.SingleNestedAttribute{
+			"categories": schema.SetAttribute{
+				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "The large icon, to be displayed in the app details and used for upload of the icon.",
-				Attributes: map[string]schema.Attribute{
-					"type": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The MIME type of the icon.",
-					},
-					"value": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The base64-encoded icon data.",
-					},
+				MarkdownDescription: "Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(Other apps|Books & Reference|Data management|Productivity|Business|Development & Design|Photos & Media|Collaboration & Social|Computer management|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$`),
+							"must be either a predefined category name or a valid GUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+						),
+					),
 				},
 			},
 			"created_date_time": schema.StringAttribute{
@@ -234,55 +241,81 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Attributes: map[string]schema.Attribute{
 					"v8_0": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 8.0 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 8.0 or later. Defaults to `false`.",
 					},
 					"v8_1": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 8.1 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 8.1 or later. Defaults to `false`.",
 					},
 					"v10_0": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10.0 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10.0 or later. Defaults to `false`.",
 					},
 					"v10_1607": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1607 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1607 or later. Defaults to `false`.",
 					},
 					"v10_1703": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1703 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1703 or later. Defaults to `false`.",
 					},
 					"v10_1709": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1709 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1709 or later. Defaults to `false`.",
 					},
 					"v10_1803": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1803 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1803 or later. Defaults to `false`.",
 					},
 					"v10_1809": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1809 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1809 or later. Defaults to `false`.",
 					},
 					"v10_1903": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1903 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1903 or later. Defaults to `false`.",
 					},
 					"v10_1909": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 1909 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 1909 or later. Defaults to `false`.",
 					},
 					"v10_2004": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 2004 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 2004 or later. Defaults to `false`.",
 					},
 					"v10_2h20": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 20H2 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 20H2 or later. Defaults to `false`.",
 					},
 					"v10_21h1": schema.BoolAttribute{
 						Optional:            true,
-						MarkdownDescription: "Windows 10 21H1 or later.",
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+						MarkdownDescription: "Application supports Windows 10 21H1 or later. Defaults to `false`.",
 					},
 				},
 			},
@@ -327,15 +360,6 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						"value_name": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "The registry value name for registry detection.",
-						},
-						"registry_detection_type": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The comparison operator for detection. Possible values are: notConfigured, exists, doesNotExist, string, integer, version. Applicable for registry detection.",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									"notConfigured", "exists", "doesNotExist", "string", "integer", "version",
-								),
-							},
 						},
 						"registry_detection_operator": schema.StringAttribute{
 							Optional:            true,
@@ -418,18 +442,6 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 								stringvalidator.OneOf("registry", "file", "script"),
 							},
 						},
-						"key_path": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The path to check for file or registry type.",
-						},
-						"file_or_folder_name": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The file or folder name to check for.",
-						},
-						"check_32_bit_on_64_system": schema.BoolAttribute{
-							Optional:            true,
-							MarkdownDescription: "A value indicating whether to check 32-bit on 64-bit system.",
-						},
 						"operator": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "The operator for the requirement. Possible values are: notConfigured, equal, notEqual, greaterThan, greaterThanOrEqual, lessThan, lessThanOrEqual.",
@@ -437,6 +449,26 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 						"detection_value": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "The value to check for.",
+						},
+						"check_32_bit_on_64_system": schema.BoolAttribute{
+							Optional:            true,
+							MarkdownDescription: "A value indicating whether to check 32-bit on 64-bit system.",
+						},
+						"key_path": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The registry key path for registry requirement.",
+						},
+						"value_name": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The registry value name for registry requirement.",
+						},
+						"detection_type": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The detection type for registry requirement.",
+						},
+						"file_or_folder_name": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The file or folder name to check for file requirement.",
 						},
 					},
 				},
@@ -561,7 +593,10 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				MarkdownDescription: "When TRUE, indicates that uninstall is supported from the company portal for the Windows app (Win32) with an Available assignment. When FALSE, indicates that uninstall is not supported for the Windows app (Win32) with an Available assignment. Default value is FALSE.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
+			"app_installer":   commonschemagraphbeta.MobileAppMacOSPkgInstallerMetadataSchema(),
+			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
+			"timeouts":        commonschema.Timeouts(ctx),
 		},
 	}
 }

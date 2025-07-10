@@ -3,14 +3,19 @@ package graphBetaWin32LobApp
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	sharedConstructors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (graphmodels.Win32LobAppable, error) {
+func constructResource(ctx context.Context, data *Win32LobAppResourceModel, installerSourcePath string) (graphmodels.Win32LobAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewWin32LobApp()
@@ -28,7 +33,37 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	if minOS := data.MinimumSupportedOperatingSystem; minOS != (WindowsMinimumOperatingSystemResourceModel{}) {
+	// Handle app icon (either from file path or web source)
+	if data.AppIcon != nil {
+		largeIcon, tempFiles, err := sharedConstructors.ConstructMobileAppIcon(ctx, data.AppIcon)
+		if err != nil {
+			return nil, err
+		}
+
+		defer func() {
+			for _, tempFile := range tempFiles {
+				helpers.CleanupTempFile(ctx, tempFile)
+			}
+		}()
+
+		requestBody.SetLargeIcon(largeIcon)
+	}
+
+	// For creating resources, we need the installer file to extract metadata
+	// Verify the installer path is provided and the file exists
+	if installerSourcePath == "" {
+		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
+	}
+
+	if _, err := os.Stat(installerSourcePath); err != nil {
+		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
+	}
+
+	filename := filepath.Base(installerSourcePath)
+	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
+	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
+
+	if minOS := data.MinimumSupportedOperatingSystem; minOS != nil {
 		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()
 
 		convert.FrameworkToGraphBool(minOS.V8_0, minSupportedOS.SetV80)
@@ -117,6 +152,8 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 	if len(data.RequirementRules) > 0 {
 		requirementRules := make([]graphmodels.Win32LobAppRequirementable, len(data.RequirementRules))
 		for i, rule := range data.RequirementRules {
+			// For now, only handle registry requirements as that's what the SDK model we have supports
+			// The RequirementType field indicates the type, but we'll focus on registry requirements
 			registryRequirement := graphmodels.NewWin32LobAppRegistryRequirement()
 
 			convert.FrameworkToGraphString(rule.KeyPath, registryRequirement.SetKeyPath)
@@ -209,7 +246,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel) (gra
 		convert.FrameworkToGraphString(msiInfo.UpgradeCode, msiInformation.SetUpgradeCode)
 		convert.FrameworkToGraphBool(msiInfo.RequiresReboot, msiInformation.SetRequiresReboot)
 
-		err := convert.FrameworkToGraphEnum[*graphmodels.Win32LobAppMsiPackageType](msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
+		err := convert.FrameworkToGraphEnum(msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse MSI package type: %v", err)
 		}

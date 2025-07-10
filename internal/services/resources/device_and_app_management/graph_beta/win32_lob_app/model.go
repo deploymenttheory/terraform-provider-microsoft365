@@ -2,7 +2,7 @@
 package graphBetaWin32LobApp
 
 import (
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -12,7 +12,7 @@ type Win32LobAppResourceModel struct {
 	DisplayName                     types.String                                     `tfsdk:"display_name"`
 	Description                     types.String                                     `tfsdk:"description"`
 	Publisher                       types.String                                     `tfsdk:"publisher"`
-	LargeIcon                       sharedmodels.MimeContentResourceModel            `tfsdk:"large_icon"`
+	AppIcon                         *sharedmodels.MobileAppIconResourceModel         `tfsdk:"app_icon"`
 	CreatedDateTime                 types.String                                     `tfsdk:"created_date_time"`
 	LastModifiedDateTime            types.String                                     `tfsdk:"last_modified_date_time"`
 	IsFeatured                      types.Bool                                       `tfsdk:"is_featured"`
@@ -34,7 +34,7 @@ type Win32LobAppResourceModel struct {
 	InstallCommandLine              types.String                                     `tfsdk:"install_command_line"`
 	UninstallCommandLine            types.String                                     `tfsdk:"uninstall_command_line"`
 	ApplicableArchitectures         types.String                                     `tfsdk:"applicable_architectures"`
-	MinimumSupportedOperatingSystem WindowsMinimumOperatingSystemResourceModel       `tfsdk:"minimum_supported_operating_system"`
+	MinimumSupportedOperatingSystem *WindowsMinimumOperatingSystemResourceModel      `tfsdk:"minimum_supported_operating_system"`
 	MinimumFreeDiskSpaceInMB        types.Int32                                      `tfsdk:"minimum_free_disk_space_in_mb"`
 	MinimumMemoryInMB               types.Int32                                      `tfsdk:"minimum_memory_in_mb"`
 	MinimumNumberOfProcessors       types.Int32                                      `tfsdk:"minimum_number_of_processors"`
@@ -49,6 +49,9 @@ type Win32LobAppResourceModel struct {
 	MinimumSupportedWindowsRelease  types.String                                     `tfsdk:"minimum_supported_windows_release"`
 	DisplayVersion                  types.String                                     `tfsdk:"display_version"`
 	AllowAvailableUninstall         types.Bool                                       `tfsdk:"allow_available_uninstall"`
+	AppInstaller                    types.Object                                     `tfsdk:"app_installer"`
+	ContentVersion                  types.List                                       `tfsdk:"content_version"`
+	Categories                      types.Set                                        `tfsdk:"categories"`
 	Timeouts                        timeouts.Value                                   `tfsdk:"timeouts"`
 }
 
@@ -94,12 +97,14 @@ type Win32LobAppRegistryDetectionRulesResourceModel struct {
 }
 
 type Win32LobAppRegistryRequirementResourceModel struct {
+	RequirementType      types.String `tfsdk:"requirement_type"`
 	Operator             types.String `tfsdk:"operator"`
 	DetectionValue       types.String `tfsdk:"detection_value"`
 	Check32BitOn64System types.Bool   `tfsdk:"check_32_bit_on_64_system"`
 	KeyPath              types.String `tfsdk:"key_path"`
 	ValueName            types.String `tfsdk:"value_name"`
 	DetectionType        types.String `tfsdk:"detection_type"`
+	FileOrFolderName     types.String `tfsdk:"file_or_folder_name"`
 }
 
 type Win32LobAppRegistryRuleResourceModel struct {
@@ -129,6 +134,4 @@ type Win32LobAppMsiInformationResourceModel struct {
 	UpgradeCode    types.String `tfsdk:"upgrade_code"`
 	RequiresReboot types.Bool   `tfsdk:"requires_reboot"`
 	PackageType    types.String `tfsdk:"package_type"`
-	ProductName    types.String `tfsdk:"product_name"`
-	Publisher      types.String `tfsdk:"publisher"`
 }
