@@ -28,9 +28,23 @@ The following API permissions are required in order to use this resource.
 ```terraform
 resource "microsoft365_graph_beta_device_and_app_management_win32_lob_app" "example" {
   allow_available_uninstall = true
+
   app_installer = {
     installer_file_path_source = "/Users/dafyddwatkins/Downloads/win_32_lob_app/Firefox_Setup_140.0.4.intunewin"
   }
+
+  // Optional
+  app_icon = {
+    icon_url_source = "https://images.g2crowd.com/uploads/product/image/large_detail/large_detail_c65522c8f7bacfdc0684fc8d26bba00d/mozilla-firefox.png"
+  }
+
+  // Optional
+  categories = [
+    microsoft365_graph_beta_device_and_app_management_application_category.web_browser.id,
+    "Business",
+    "Productivity",
+  ]
+
   description     = "Mozilla Firefox 140.0.4 x64 en-US"
   publisher       = "Mozilla"
   developer       = "Mozilla"
