@@ -3,6 +3,7 @@ package convert
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -311,4 +312,34 @@ func GraphToFrameworkFloat64(value *float64) types.Float64 {
 		return types.Float64Null()
 	}
 	return types.Float64Value(*value)
+}
+
+// GraphToFrameworkBitmaskEnumAsSet converts a bitmask enum to a Terraform Framework set of strings.
+// This is useful for APIs that use bitmask enums with String() methods that return comma-separated values.
+// The function calls the String() method on the enum, splits the result by commas, and creates a set.
+// Returns types.SetNull() if the input is nil.
+func GraphToFrameworkBitmaskEnumAsSet[T fmt.Stringer](ctx context.Context, value *T) types.Set {
+	if value == nil {
+		return types.SetNull(types.StringType)
+	}
+
+	// Get string representation and split by commas
+	enumStr := (*value).String()
+	if enumStr == "" {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	// Split the comma-separated string
+	parts := strings.Split(enumStr, ",")
+
+	// Create a set from the parts
+	set, diags := types.SetValueFrom(ctx, types.StringType, parts)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to convert bitmask enum to set", map[string]interface{}{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.SetNull(types.StringType)
+	}
+
+	return set
 }

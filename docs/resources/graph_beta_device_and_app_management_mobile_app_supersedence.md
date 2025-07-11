@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_supers
 subcategory: "Device and App Management"
 
 description: |-
-  Manages mobile app supersedence relationships in Microsoft Intune. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+  Manages mobile app supersedence relationships in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence (Resource)
 
-Manages mobile app supersedence relationships in Microsoft Intune. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+Manages mobile app supersedence relationships in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
 
 ## Microsoft Documentation
 

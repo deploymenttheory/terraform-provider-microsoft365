@@ -737,3 +737,67 @@ func TestFrameworkToGraphDateOnly(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, resultDate)
 }
+
+func TestFrameworkToGraphBitmaskEnumFromSet(t *testing.T) {
+	ctx := context.Background()
+
+	// Case: Null set
+	var result *MockBitmaskEnum
+	err := FrameworkToGraphBitmaskEnumFromSet(ctx, types.SetNull(types.StringType),
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.Nil(t, result, "Setter should not be called for null set")
+
+	// Case: Unknown set
+	result = nil
+	err = FrameworkToGraphBitmaskEnumFromSet(ctx, types.SetUnknown(types.StringType),
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.Nil(t, result, "Setter should not be called for unknown set")
+
+	// Case: Empty set
+	result = nil
+	emptySet, _ := types.SetValue(types.StringType, []attr.Value{})
+	err = FrameworkToGraphBitmaskEnumFromSet(ctx, emptySet,
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.Nil(t, result, "Setter should not be called for empty set")
+
+	// Case: Single value set
+	result = nil
+	singleSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"one"})
+	err = FrameworkToGraphBitmaskEnumFromSet(ctx, singleSet,
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called for valid set")
+	assert.Equal(t, MockBitmaskOne, *result, "Should set the correct enum value")
+
+	// Case: Multiple values set
+	result = nil
+	multiSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"one", "two"})
+	err = FrameworkToGraphBitmaskEnumFromSet(ctx, multiSet,
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called for valid set")
+	assert.Equal(t, MockBitmaskOne|MockBitmaskTwo, *result, "Should set the combined enum value")
+
+	// Case: Invalid value in set
+	result = nil
+	invalidSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"one", "invalid"})
+	err = FrameworkToGraphBitmaskEnumFromSet(ctx, invalidSet,
+		MockParseBitmaskEnum, func(val *MockBitmaskEnum) {
+			result = val
+		})
+	assert.Error(t, err, "Should return error for invalid enum value")
+	assert.Nil(t, result, "Setter should not be called for invalid value")
+}

@@ -1,0 +1,2124 @@
+// Code snippets are only available for the latest major version. Current major version is $v0.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	  graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	  //other-imports
+)
+
+requestBody := graphmodels.NewTargetedManagedAppConfiguration()
+displayName := "test"
+requestBody.SetDisplayName(&displayName) 
+description := "test"
+requestBody.SetDescription(&description) 
+
+
+managedMobileApp := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.avinside"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp1 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.365rm.365pay"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp1.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp2 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.fourcee.connect"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp2.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp3 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.4cee.connect"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp3.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp4 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.achievers.client"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp4.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp5 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.achievers.native.achievers"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp5.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp6 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.adobe.reader"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp6.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp7 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.adobe.adobe-reader"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp7.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp8 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.adobe.reader.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp8.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp9 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.adobe.acrobatdc.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp9.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp10 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.akumina.exp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp10.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp11 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.akumina.exp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp11.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp12 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mfbtech.align.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp12.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp13 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.appian.android.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp13.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp14 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.appian.tempo.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp14.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp15 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.manageengine.apm.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp15.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp16 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.manageengine.apm.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp16.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp17 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.esri.indoors.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp17.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp18 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.esri.indoors.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp18.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp19 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "jp.co.cegb.archxtractforstore"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp19.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp20 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "jp.co.cegb.archxtractforstore"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp20.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp21 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.asana.app"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp21.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp22 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.asana.asana"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp22.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp23 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.align.assetscanforintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp23.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp24 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.arlanto.atomedge"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp24.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp25 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.arlanto.atomedge"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp25.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp26 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.ipviewer"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp26.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp27 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.rms-sharing"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp27.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp28 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "io.beakon"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp28.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp29 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "io.beakon"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp29.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp30 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.bluejeansnet.base"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp30.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp31 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.bluejeansnet.blue-jeans"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp31.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp32 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.pervasent.boardpapers"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp32.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp33 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.pervasent.boardpapers.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp33.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp34 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "sg.com.trustedsource.boardvision"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp34.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp35 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "sg.com.trustedservices.bvassistant"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp35.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp36 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "sg.com.trustedsource.boardvision"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp36.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp37 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.hibob"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp37.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp38 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.hibob.hibob"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp38.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp39 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.box.android"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp39.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp40 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "net.box.boxnet"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp40.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp41 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.box.mdmios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp41.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp42 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.breezy.intune.ios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp42.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp43 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.brother.nbs.buddyboard"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp43.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp44 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.inkscreen.captor.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp44.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp45 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.inkscreen.captor.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp45.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp46 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.celltrust.sl2_intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp46.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp47 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.celltrust.securelinegen2.securelinegen2-intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp47.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp48 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.cerby"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp48.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp49 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.cerby.mobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp49.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp50 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "za.co.onlineintelligence.mobile.ciims.ciimsgo"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp50.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp51 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "za.co.onlineintelligence.mobile.ciims"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp51.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp52 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "co.lumenati.cinebody"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp52.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp53 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.cisco.im.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp53.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp54 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.cisco.jabberimintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp54.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp55 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.citrix.sharefile.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp55.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp56 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.sharefile.mobile.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp56.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp57 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.clipchamp.go"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp57.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp58 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.buildingrobotics.comfy"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp58.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp59 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.buildingrobotics.comfy"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp59.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp60 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.condecosoftware.condeco"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp60.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp61 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.condecosoftware.condeco"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp61.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp62 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "jp.co.hitachi_solutions.hibun.hibundp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp62.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp63 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "jp.co.hitachi-solutions.hibun.hibundp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp63.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp64 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.cortana"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp64.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp65 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.bing.halseyassistant"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp65.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp66 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.iaipl.dfintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp66.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp67 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.datasite.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp67.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp68 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.dealcloud.mobileapp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp68.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp69 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.dealcloud.mobileapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp69.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp70 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "co.switchapp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp70.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp71 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "co.switch.switch"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp71.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp72 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.boardbooks.boardbooks"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp72.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp73 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.dooray.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp73.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp74 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.dooray.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp74.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp75 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.crm.crmphone.sales"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp75.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp76 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.dynamics.iphone.moca.sales"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp76.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp77 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.stratospherix.enterpriseit"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp77.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp78 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.egnyte.intune.egnyte"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp78.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp79 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.eprintitsaas.mobile"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp79.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp80 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.eprintitsaas.mobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp80.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp81 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.groupkom.evalarm"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp81.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp82 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.cbrain.f2-manager.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp82.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp83 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.cbrain.f2touchapp.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp83.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp84 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.cbrain.intune.f2touchapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp84.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp85 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.apleona.apleonaoneintune.production"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp85.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp86 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.factset.wireless"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp86.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp87 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.factset.mobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp87.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp88 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "co.fellow.app"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp88.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp89 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.crm.crmphone.fieldservices"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp89.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp90 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.dynamics.iphone.moca.fieldservices"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp90.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp91 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.fileorbisv2intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp91.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp92 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.fileorbisv2intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp92.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp93 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.socialchorus.jfac.ios.appstore"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp93.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp94 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.aegismobility.guardian"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp94.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp95 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.aegismobility.fleetsafer"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp95.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp96 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.freshservice.helpdesk.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp96.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp97 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.freshworks.freshservice.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp97.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp98 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.fuze.fuzeappmdm"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp98.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp99 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.fuze.fuzeappmdm"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp99.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp100 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.globalrelay.message.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp100.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp101 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.globalrelay.gr-app-im"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp101.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp102 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.goodnotesapp.x"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp102.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp103 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.hcss.mobile.appstore"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp103.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp104 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.hcss.plans"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp104.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp105 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.hearsaysocial.messages.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp105.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp106 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "public.hearsaysocial.hearsay-messages-for-microsoft"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp106.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp107 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.civi.heydanforintune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp107.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp108 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.civi.heydanforintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp108.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp109 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.hownow.gethownow"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp109.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp110 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.wonderush.gethownow"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp110.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp111 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.hp.mobileconnector.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp111.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp112 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.hp.mobileconnecter.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp112.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp113 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.branchfire.ia4c.office365"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp113.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp114 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "nl.msi.ibabspro.it"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp114.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp115 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "uk.co.applymobile.idenprotectgo"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp115.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp116 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "uk.co.applymobile.idenprotect-for-intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp116.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp117 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.imanage.work3intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp117.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp118 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.incorta.mobile.bestbuy"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp118.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp119 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.intapp.pma"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp119.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp120 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.intapp.pma"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp120.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp121 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "intraactiveapp.proactive.dk.intraactiveapp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp121.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp122 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "dk.proactive.intraactiveapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp122.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp123 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.isec7.android.med.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp123.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp124 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.isec7.med.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp124.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp125 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "io.island.island.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp125.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp126 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.isec7.med"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp126.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp127 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "io.island.island"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp127.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp128 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.inax.ixarmav6"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp128.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp129 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.inax.ixarma.2"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp129.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp130 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.keepassium.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp130.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp131 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.klaxoon.app.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp131.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp132 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.kofax.power.pdf"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp132.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp133 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.leapxpert.leap.work.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp133.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp134 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.leapxpert.leap.work.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp134.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp135 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.critigen.lemur.pro.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp135.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp136 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "--.liquidtext-pdf"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp136.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp137 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.lumapps.android.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp137.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp138 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.mfiles.mfms"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp138.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp139 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.m-files.mfms.m-files"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp139.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp140 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.lumapps.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp140.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp141 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ms.engage"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp141.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp142 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mangospring.engage"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp142.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp143 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.meetingdecisions.androidapp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp143.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp144 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.getmeetio.personal"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp144.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp145 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.meetingdecisions.decisions"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp145.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp146 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.getmeetio.meetio-enterprise"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp146.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp147 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.mentorcliq"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp147.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp148 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mentorcliq.app.ios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp148.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp149 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ms.office365admin"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp149.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp150 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.o365shdmobileapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp150.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp151 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.officehub"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp151.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp152 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.azure"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp152.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp153 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.officemobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp153.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp154 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.azure"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp154.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp155 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.scmx"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp155.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp156 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.scmx"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp156.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp157 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.designer"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp157.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp158 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.designer"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp158.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp159 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.dynamics"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp159.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp160 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.crm.crmphone"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp160.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp161 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.dynamics.iphone.moca"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp161.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp162 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.crm.crmtablet"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp162.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp163 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.emmx"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp163.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp164 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.msedge"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp164.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp165 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewWindowsAppIdentifier()
+windowsAppId := "com.microsoft.edge"
+mobileAppIdentifier.SetWindowsAppId(&windowsAppId) 
+managedMobileApp165.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp166 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.excel"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp166.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp167 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.office.excel"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp167.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp168 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.dynamics.invoice"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp168.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp169 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.dynamics.invoice"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp169.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp170 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.mobile.polymer"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp170.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp171 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.mobile.polymer"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp171.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp172 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.launcher"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp172.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp173 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.officelens"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp173.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp174 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.officelens"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp174.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp175 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.lists.public"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp175.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp176 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.splists"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp176.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp177 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.loop"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp177.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp178 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.loop"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp178.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp179 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.officehubhl"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp179.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp180 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.officehubrow"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp180.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp181 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.skydrive"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp181.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp182 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.skydrive"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp182.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp183 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.onenote"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp183.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp184 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.onenote"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp184.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp185 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.outlook"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp185.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp186 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.office.outlook"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp186.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp187 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.planner"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp187.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp188 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.plannermobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp188.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp189 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.msapps"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp189.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp190 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.powerbim"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp190.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp191 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.powerbimobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp191.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp192 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.powerpoint"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp192.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp193 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.office.powerpoint"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp193.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp194 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.sharepoint"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp194.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp195 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.sharepoint"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp195.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp196 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "ols.microsoft.com.shiftr"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp196.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp197 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.shiftr"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp197.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp198 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.teams"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp198.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp199 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.skype.teams"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp199.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp200 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.todos"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp200.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp201 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.to-do"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp201.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp202 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.whiteboard.publicpreview"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp202.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp203 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.whiteboard"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp203.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp204 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.word"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp204.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp205 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.office.word"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp205.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp206 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "nl.intus.myswisio"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp206.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp207 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.mobilehelix.link.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp207.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp208 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mobilehelix.link.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp208.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp209 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.strsoftware.aventxmobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp209.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp210 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.moveinsync.ets"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp210.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp211 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.moveinsync.ets"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp211.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp212 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.moviuscorp.multilineforintune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp212.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp213 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.moviuscorp.multilineintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp213.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp214 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.mural"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp214.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp215 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "co.mural.ios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp215.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp216 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ms.portal"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp216.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp217 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mangospring.myportal"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp217.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp218 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "no.bldngai.mybldng"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp218.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp219 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "no.bldngai.mybldng"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp219.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp220 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.myitops.asiapp.msint"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp220.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp221 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.myitops.asiapp.msint"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp221.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp222 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "cloud.myq.roger"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp222.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp223 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "cloud.myq.roger"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp223.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp224 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "se.evoko.naso.mobile"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp224.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp225 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "se.evoko.naso.mobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp225.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp226 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.lexisnexis.newsdesk"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp226.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp227 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.lexisnexis.newsdesk"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp227.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp228 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ninefolders.hd3.work.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp228.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp229 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.gonitro.nitropdfpro.ios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp229.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp230 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.shafersystems.notate.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp230.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp231 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.shafersystems.notate.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp231.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp232 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.servicenow.requestor.mam.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp232.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp233 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.servicenow.intune.requestor"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp233.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp234 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "app.officemail.go"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp234.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp235 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.omnipresence.live"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp235.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp236 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.indegene.omnipresenceprodapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp236.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp237 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "io.outreach.sales"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp237.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp238 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "io.outreach.sales"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp238.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp239 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.pagerduty.android.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp239.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp240 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.pagerduty.pagerduty.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp240.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp241 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.penlink.penpoint"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp241.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp242 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.penlink.penpoint"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp242.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp243 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.pkware.smartcrypt.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp243.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp244 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.msapps"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp244.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp245 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.flow"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp245.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp246 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.procsimo"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp246.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp247 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.printeron.droid.phone.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp247.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp248 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.printeron.printeron.microsoft"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp248.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp249 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.printeron.print"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp249.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp250 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.printeron.print"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp250.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp251 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.qlik.qliksense.mobile"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp251.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp252 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.qlik.qliksense.mobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp252.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp253 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "so.rework.app.enterprise"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp253.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp254 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.rework.app.enterprise"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp254.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp255 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.recruitment.exchange"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp255.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp256 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.recruitment.exchange"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp256.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp257 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ricohspaces.app"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp257.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp258 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.ricohspaces.app"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp258.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp259 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.ringcentral.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp259.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp260 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.ringcentral.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp260.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp261 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.avalution.catalystportalmobile"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp261.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp262 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.avalution.catalystportalmobile"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp262.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp263 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "de.provectus.securecontacts22"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp263.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp264 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.seismic.doccenter"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp264.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp265 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.seismic.doccenterintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp265.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp266 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mazrica.senses"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp266.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp267 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.servicenow.fulfiller.mam.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp267.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp268 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.servicenow.intune.fulfiller"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp268.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp269 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.singletrack.singletrack-mobile-for-intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp269.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp270 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.office.lync15"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp270.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp271 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.lync2013.iphone"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp271.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp272 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.slack.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp272.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp273 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.slack.slackintune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp273.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp274 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.smarttech.teamworks4"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp274.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp275 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.bluechilli.spaceconnectapp"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp275.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp276 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "co.spaceconnect.app"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp276.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp277 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "nz.co.beweb.speakingemail"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp277.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp278 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.synchrotab.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp278.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp279 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.tableau.tableauapp.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp279.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp280 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.tableausoftware.tableau.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp280.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp281 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.talent.exchange"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp281.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp282 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.talent.exchange"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp282.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp283 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.pervasent.teampapers.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp283.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp284 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "ch.unique.moments"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp284.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp285 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "ch.unique.moments"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp285.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp286 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.varicent"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp286.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp287 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.varicent.varicent"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp287.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp288 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.veeva.vaultcrmapp"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp288.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp289 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.vbrick.rev"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp289.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp290 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.vbrick.rev"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp290.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp291 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.veradocs.ios.appstore.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp291.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp292 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.mackeyllc.mackeyrms"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp292.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp293 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.yammer.v1"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp293.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp294 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "wefwef"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp294.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp295 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.voltage.securemail"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp295.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp296 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.voltage.mobile.securemail.ui"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp296.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp297 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.lrs.vpsxprint.intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp297.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp298 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.lrs.vpsxprint.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp298.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp299 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.cisco.wx2.android.msintune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp299.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp300 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.cisco.squared.intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp300.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp301 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.rdc.androidx"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp301.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp302 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.rdc.ios"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp302.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp303 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.microsoft.workfolders"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp303.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp304 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.microsoft.workfolders"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp304.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp305 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "com.workvivo.android"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp305.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp306 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.workvivo.ios.production"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp306.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp307 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "com.inboxzero.zeroprointune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp307.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp308 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewAndroidMobileAppIdentifier()
+packageId := "us.zoom.videomeetings4intune"
+mobileAppIdentifier.SetPackageId(&packageId) 
+managedMobileApp308.SetMobileAppIdentifier(mobileAppIdentifier)
+managedMobileApp309 := graphmodels.NewManagedMobileApp()
+mobileAppIdentifier := graphmodels.NewIosMobileAppIdentifier()
+bundleId := "us.zoom.videomeetings4intune"
+mobileAppIdentifier.SetBundleId(&bundleId) 
+managedMobileApp309.SetMobileAppIdentifier(mobileAppIdentifier)
+
+apps := []graphmodels.ManagedMobileAppable {
+	managedMobileApp,
+	managedMobileApp1,
+	managedMobileApp2,
+	managedMobileApp3,
+	managedMobileApp4,
+	managedMobileApp5,
+	managedMobileApp6,
+	managedMobileApp7,
+	managedMobileApp8,
+	managedMobileApp9,
+	managedMobileApp10,
+	managedMobileApp11,
+	managedMobileApp12,
+	managedMobileApp13,
+	managedMobileApp14,
+	managedMobileApp15,
+	managedMobileApp16,
+	managedMobileApp17,
+	managedMobileApp18,
+	managedMobileApp19,
+	managedMobileApp20,
+	managedMobileApp21,
+	managedMobileApp22,
+	managedMobileApp23,
+	managedMobileApp24,
+	managedMobileApp25,
+	managedMobileApp26,
+	managedMobileApp27,
+	managedMobileApp28,
+	managedMobileApp29,
+	managedMobileApp30,
+	managedMobileApp31,
+	managedMobileApp32,
+	managedMobileApp33,
+	managedMobileApp34,
+	managedMobileApp35,
+	managedMobileApp36,
+	managedMobileApp37,
+	managedMobileApp38,
+	managedMobileApp39,
+	managedMobileApp40,
+	managedMobileApp41,
+	managedMobileApp42,
+	managedMobileApp43,
+	managedMobileApp44,
+	managedMobileApp45,
+	managedMobileApp46,
+	managedMobileApp47,
+	managedMobileApp48,
+	managedMobileApp49,
+	managedMobileApp50,
+	managedMobileApp51,
+	managedMobileApp52,
+	managedMobileApp53,
+	managedMobileApp54,
+	managedMobileApp55,
+	managedMobileApp56,
+	managedMobileApp57,
+	managedMobileApp58,
+	managedMobileApp59,
+	managedMobileApp60,
+	managedMobileApp61,
+	managedMobileApp62,
+	managedMobileApp63,
+	managedMobileApp64,
+	managedMobileApp65,
+	managedMobileApp66,
+	managedMobileApp67,
+	managedMobileApp68,
+	managedMobileApp69,
+	managedMobileApp70,
+	managedMobileApp71,
+	managedMobileApp72,
+	managedMobileApp73,
+	managedMobileApp74,
+	managedMobileApp75,
+	managedMobileApp76,
+	managedMobileApp77,
+	managedMobileApp78,
+	managedMobileApp79,
+	managedMobileApp80,
+	managedMobileApp81,
+	managedMobileApp82,
+	managedMobileApp83,
+	managedMobileApp84,
+	managedMobileApp85,
+	managedMobileApp86,
+	managedMobileApp87,
+	managedMobileApp88,
+	managedMobileApp89,
+	managedMobileApp90,
+	managedMobileApp91,
+	managedMobileApp92,
+	managedMobileApp93,
+	managedMobileApp94,
+	managedMobileApp95,
+	managedMobileApp96,
+	managedMobileApp97,
+	managedMobileApp98,
+	managedMobileApp99,
+	managedMobileApp100,
+	managedMobileApp101,
+	managedMobileApp102,
+	managedMobileApp103,
+	managedMobileApp104,
+	managedMobileApp105,
+	managedMobileApp106,
+	managedMobileApp107,
+	managedMobileApp108,
+	managedMobileApp109,
+	managedMobileApp110,
+	managedMobileApp111,
+	managedMobileApp112,
+	managedMobileApp113,
+	managedMobileApp114,
+	managedMobileApp115,
+	managedMobileApp116,
+	managedMobileApp117,
+	managedMobileApp118,
+	managedMobileApp119,
+	managedMobileApp120,
+	managedMobileApp121,
+	managedMobileApp122,
+	managedMobileApp123,
+	managedMobileApp124,
+	managedMobileApp125,
+	managedMobileApp126,
+	managedMobileApp127,
+	managedMobileApp128,
+	managedMobileApp129,
+	managedMobileApp130,
+	managedMobileApp131,
+	managedMobileApp132,
+	managedMobileApp133,
+	managedMobileApp134,
+	managedMobileApp135,
+	managedMobileApp136,
+	managedMobileApp137,
+	managedMobileApp138,
+	managedMobileApp139,
+	managedMobileApp140,
+	managedMobileApp141,
+	managedMobileApp142,
+	managedMobileApp143,
+	managedMobileApp144,
+	managedMobileApp145,
+	managedMobileApp146,
+	managedMobileApp147,
+	managedMobileApp148,
+	managedMobileApp149,
+	managedMobileApp150,
+	managedMobileApp151,
+	managedMobileApp152,
+	managedMobileApp153,
+	managedMobileApp154,
+	managedMobileApp155,
+	managedMobileApp156,
+	managedMobileApp157,
+	managedMobileApp158,
+	managedMobileApp159,
+	managedMobileApp160,
+	managedMobileApp161,
+	managedMobileApp162,
+	managedMobileApp163,
+	managedMobileApp164,
+	managedMobileApp165,
+	managedMobileApp166,
+	managedMobileApp167,
+	managedMobileApp168,
+	managedMobileApp169,
+	managedMobileApp170,
+	managedMobileApp171,
+	managedMobileApp172,
+	managedMobileApp173,
+	managedMobileApp174,
+	managedMobileApp175,
+	managedMobileApp176,
+	managedMobileApp177,
+	managedMobileApp178,
+	managedMobileApp179,
+	managedMobileApp180,
+	managedMobileApp181,
+	managedMobileApp182,
+	managedMobileApp183,
+	managedMobileApp184,
+	managedMobileApp185,
+	managedMobileApp186,
+	managedMobileApp187,
+	managedMobileApp188,
+	managedMobileApp189,
+	managedMobileApp190,
+	managedMobileApp191,
+	managedMobileApp192,
+	managedMobileApp193,
+	managedMobileApp194,
+	managedMobileApp195,
+	managedMobileApp196,
+	managedMobileApp197,
+	managedMobileApp198,
+	managedMobileApp199,
+	managedMobileApp200,
+	managedMobileApp201,
+	managedMobileApp202,
+	managedMobileApp203,
+	managedMobileApp204,
+	managedMobileApp205,
+	managedMobileApp206,
+	managedMobileApp207,
+	managedMobileApp208,
+	managedMobileApp209,
+	managedMobileApp210,
+	managedMobileApp211,
+	managedMobileApp212,
+	managedMobileApp213,
+	managedMobileApp214,
+	managedMobileApp215,
+	managedMobileApp216,
+	managedMobileApp217,
+	managedMobileApp218,
+	managedMobileApp219,
+	managedMobileApp220,
+	managedMobileApp221,
+	managedMobileApp222,
+	managedMobileApp223,
+	managedMobileApp224,
+	managedMobileApp225,
+	managedMobileApp226,
+	managedMobileApp227,
+	managedMobileApp228,
+	managedMobileApp229,
+	managedMobileApp230,
+	managedMobileApp231,
+	managedMobileApp232,
+	managedMobileApp233,
+	managedMobileApp234,
+	managedMobileApp235,
+	managedMobileApp236,
+	managedMobileApp237,
+	managedMobileApp238,
+	managedMobileApp239,
+	managedMobileApp240,
+	managedMobileApp241,
+	managedMobileApp242,
+	managedMobileApp243,
+	managedMobileApp244,
+	managedMobileApp245,
+	managedMobileApp246,
+	managedMobileApp247,
+	managedMobileApp248,
+	managedMobileApp249,
+	managedMobileApp250,
+	managedMobileApp251,
+	managedMobileApp252,
+	managedMobileApp253,
+	managedMobileApp254,
+	managedMobileApp255,
+	managedMobileApp256,
+	managedMobileApp257,
+	managedMobileApp258,
+	managedMobileApp259,
+	managedMobileApp260,
+	managedMobileApp261,
+	managedMobileApp262,
+	managedMobileApp263,
+	managedMobileApp264,
+	managedMobileApp265,
+	managedMobileApp266,
+	managedMobileApp267,
+	managedMobileApp268,
+	managedMobileApp269,
+	managedMobileApp270,
+	managedMobileApp271,
+	managedMobileApp272,
+	managedMobileApp273,
+	managedMobileApp274,
+	managedMobileApp275,
+	managedMobileApp276,
+	managedMobileApp277,
+	managedMobileApp278,
+	managedMobileApp279,
+	managedMobileApp280,
+	managedMobileApp281,
+	managedMobileApp282,
+	managedMobileApp283,
+	managedMobileApp284,
+	managedMobileApp285,
+	managedMobileApp286,
+	managedMobileApp287,
+	managedMobileApp288,
+	managedMobileApp289,
+	managedMobileApp290,
+	managedMobileApp291,
+	managedMobileApp292,
+	managedMobileApp293,
+	managedMobileApp294,
+	managedMobileApp295,
+	managedMobileApp296,
+	managedMobileApp297,
+	managedMobileApp298,
+	managedMobileApp299,
+	managedMobileApp300,
+	managedMobileApp301,
+	managedMobileApp302,
+	managedMobileApp303,
+	managedMobileApp304,
+	managedMobileApp305,
+	managedMobileApp306,
+	managedMobileApp307,
+	managedMobileApp308,
+	managedMobileApp309,
+}
+requestBody.SetApps(apps)
+assignments := []graphmodels.TargetedManagedAppPolicyAssignmentable {
+
+}
+requestBody.SetAssignments(assignments)
+roleScopeTagIds := []string {
+	"0",
+}
+requestBody.SetRoleScopeTagIds(roleScopeTagIds)
+
+
+keyValuePair := graphmodels.NewKeyValuePair()
+name := "com.microsoft.intune.mam.managedbrowser.AppProxyRedirection"
+keyValuePair.SetName(&name) 
+value := "false"
+keyValuePair.SetValue(&value) 
+keyValuePair1 := graphmodels.NewKeyValuePair()
+name := "com.microsoft.intune.mam.managedbrowser.AllowTransitionOnBlock"
+keyValuePair1.SetName(&name) 
+value := "true"
+keyValuePair1.SetValue(&value) 
+
+customSettings := []graphmodels.KeyValuePairable {
+	keyValuePair,
+	keyValuePair1,
+}
+requestBody.SetCustomSettings(customSettings)
+
+
+deviceManagementConfigurationSetting := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.enablemediarouter"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.enablemediarouter_false"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting1 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.showcasticonintoolbar"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.showcasticonintoolbar_false"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting1.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting2 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.newtabpagesearchbox"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.newtabpagesearchbox_bing"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting2.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting3 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.newtabpagesearchbox_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.newtabpagesearchbox_recommended_bing"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting3.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting4 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderkeyword"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting4.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting5 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderkeyword_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting5.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting6 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidername"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting6.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting7 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidername_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting7.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting8 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidersearchurl"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting8.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting9 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidersearchurl_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting9.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting10 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidersuggesturl"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting10.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting11 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchprovidersuggesturl_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting11.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting12 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderenabled"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderenabled_false"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting12.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting13 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderenabled_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+value := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderenabled_recommended_false"
+choiceSettingValue.SetValue(&value) 
+children := []graphmodels.DeviceManagementConfigurationSettingInstanceable {
+
+}
+choiceSettingValue.SetChildren(children)
+settingInstance.SetChoiceSettingValue(choiceSettingValue)
+deviceManagementConfigurationSetting13.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting14 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderimageurlpostparams"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting14.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting15 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderimageurlpostparams_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting15.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting16 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderimageurl"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting16.SetSettingInstance(settingInstance)
+deviceManagementConfigurationSetting17 := graphmodels.NewDeviceManagementConfigurationSetting()
+settingInstance := graphmodels.NewDeviceManagementConfigurationSimpleSettingInstance()
+settingDefinitionId := "com.microsoft.edge.mamedgeappconfigsettings.defaultsearchproviderimageurl_recommended"
+settingInstance.SetSettingDefinitionId(&settingDefinitionId) 
+simpleSettingValue := graphmodels.NewDeviceManagementConfigurationStringSettingValue()
+value := "test"
+simpleSettingValue.SetValue(&value) 
+settingInstance.SetSimpleSettingValue(simpleSettingValue)
+deviceManagementConfigurationSetting17.SetSettingInstance(settingInstance)
+
+settings := []graphmodels.DeviceManagementConfigurationSettingable {
+	deviceManagementConfigurationSetting,
+	deviceManagementConfigurationSetting1,
+	deviceManagementConfigurationSetting2,
+	deviceManagementConfigurationSetting3,
+	deviceManagementConfigurationSetting4,
+	deviceManagementConfigurationSetting5,
+	deviceManagementConfigurationSetting6,
+	deviceManagementConfigurationSetting7,
+	deviceManagementConfigurationSetting8,
+	deviceManagementConfigurationSetting9,
+	deviceManagementConfigurationSetting10,
+	deviceManagementConfigurationSetting11,
+	deviceManagementConfigurationSetting12,
+	deviceManagementConfigurationSetting13,
+	deviceManagementConfigurationSetting14,
+	deviceManagementConfigurationSetting15,
+	deviceManagementConfigurationSetting16,
+	deviceManagementConfigurationSetting17,
+}
+requestBody.SetSettings(settings)
+appGroupType := graphmodels.SELECTEDPUBLICAPPS_TARGETEDMANAGEDAPPGROUPTYPE 
+requestBody.SetAppGroupType(&appGroupType) 
+targetedAppManagementLevels := graphmodels.UNSPECIFIED_APPMANAGEMENTLEVEL 
+requestBody.SetTargetedAppManagementLevels(&targetedAppManagementLevels) 
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&tabs=go
+targetedManagedAppConfigurations, err := graphClient.DeviceAppManagement().TargetedManagedAppConfigurations().Post(context.Background(), requestBody, nil)

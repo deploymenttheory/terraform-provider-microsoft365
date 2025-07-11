@@ -3,6 +3,7 @@ package convert
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -280,5 +281,59 @@ func FrameworkToGraphObjectsFromStringSet[T any](
 
 	objects := converter(ctx, stringValues)
 	setter(objects)
+	return nil
+}
+
+// FrameworkToGraphBitmaskEnumFromSet converts a Terraform Framework set of strings to a bitmask enum.
+// This is useful for APIs that use bitmask enums with String() methods that return comma-separated values.
+// The function joins the set elements with commas, parses the result using the provided parser function,
+// and sets the resulting enum using the provided setter function.
+// Returns an error if parsing fails. No-op if the set is null or unknown.
+func FrameworkToGraphBitmaskEnumFromSet[T any](
+	ctx context.Context,
+	set types.Set,
+	parser func(string) (any, error),
+	setter func(*T)) error {
+
+	if set.IsNull() || set.IsUnknown() {
+		return nil
+	}
+
+	// Extract string values from the set
+	elements := set.Elements()
+	if len(elements) == 0 {
+		return nil
+	}
+
+	// Convert to string slice
+	var stringValues []string
+	for _, elem := range elements {
+		if strVal, ok := elem.(types.String); ok && !strVal.IsNull() && !strVal.IsUnknown() {
+			stringValues = append(stringValues, strVal.ValueString())
+		}
+	}
+
+	if len(stringValues) == 0 {
+		return nil
+	}
+
+	// Join with commas and parse
+	joinedStr := strings.Join(stringValues, ",")
+	result, err := parser(joinedStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse bitmask enum: %v", err)
+	}
+
+	// Type assert and set
+	if result == nil {
+		return nil
+	}
+
+	typed, ok := result.(*T)
+	if !ok {
+		return fmt.Errorf("failed to cast parsed value to expected type")
+	}
+
+	setter(typed)
 	return nil
 }

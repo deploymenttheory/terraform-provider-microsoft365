@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,6 +25,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.DisplayVersion = convert.GraphToFrameworkString(remoteResource.GetDisplayVersion())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.Publisher = convert.GraphToFrameworkString(remoteResource.GetPublisher())
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
@@ -37,6 +39,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 	data.UploadState = convert.GraphToFrameworkInt32(remoteResource.GetUploadState())
 	data.PublishingState = convert.GraphToFrameworkEnum(remoteResource.GetPublishingState())
 	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
+	data.InformationUrl = convert.GraphToFrameworkString(remoteResource.GetInformationUrl())
+	data.PrivacyInformationUrl = convert.GraphToFrameworkString(remoteResource.GetPrivacyInformationUrl())
+	data.AllowAvailableUninstall = convert.GraphToFrameworkBool(remoteResource.GetAllowAvailableUninstall())
 
 	if data.AppIcon != nil {
 		tflog.Debug(ctx, "Preserving original app_icon values from configuration")
@@ -58,7 +63,16 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 	data.Size = convert.GraphToFrameworkInt64(remoteResource.GetSize())
 	data.InstallCommandLine = convert.GraphToFrameworkString(remoteResource.GetInstallCommandLine())
 	data.UninstallCommandLine = convert.GraphToFrameworkString(remoteResource.GetUninstallCommandLine())
-	data.ApplicableArchitectures = convert.GraphToFrameworkEnum(remoteResource.GetApplicableArchitectures())
+	data.MinimumSupportedWindowsRelease = convert.GraphToFrameworkString(remoteResource.GetMinimumSupportedWindowsRelease())
+
+	// Handle applicable architectures
+	if applicableArchitectures := remoteResource.GetAllowedArchitectures(); applicableArchitectures != nil {
+		data.AllowedArchitectures = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, applicableArchitectures)
+		tflog.Debug(ctx, "Set applicable architectures in state", map[string]interface{}{
+			"architectures": (*applicableArchitectures).String(),
+		})
+	}
+
 	data.MinimumFreeDiskSpaceInMB = convert.GraphToFrameworkInt32(remoteResource.GetMinimumFreeDiskSpaceInMB())
 	data.MinimumMemoryInMB = convert.GraphToFrameworkInt32(remoteResource.GetMinimumMemoryInMB())
 	data.MinimumNumberOfProcessors = convert.GraphToFrameworkInt32(remoteResource.GetMinimumNumberOfProcessors())
@@ -68,107 +82,138 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 	data.DisplayVersion = convert.GraphToFrameworkString(remoteResource.GetDisplayVersion())
 	data.AllowAvailableUninstall = convert.GraphToFrameworkBool(remoteResource.GetAllowAvailableUninstall())
 
-	// MinimumSupportedOperatingSystem
-	minOS := remoteResource.GetMinimumSupportedOperatingSystem()
-	if minOS != nil {
-		data.MinimumSupportedOperatingSystem = &WindowsMinimumOperatingSystemResourceModel{
-			V8_0:     convert.GraphToFrameworkBool(minOS.GetV80()),
-			V8_1:     convert.GraphToFrameworkBool(minOS.GetV81()),
-			V10_0:    convert.GraphToFrameworkBool(minOS.GetV100()),
-			V10_1607: convert.GraphToFrameworkBool(minOS.GetV101607()),
-			V10_1703: convert.GraphToFrameworkBool(minOS.GetV101703()),
-			V10_1709: convert.GraphToFrameworkBool(minOS.GetV101709()),
-			V10_1803: convert.GraphToFrameworkBool(minOS.GetV101803()),
-			V10_1809: convert.GraphToFrameworkBool(minOS.GetV101809()),
-			V10_1903: convert.GraphToFrameworkBool(minOS.GetV101903()),
-			V10_1909: convert.GraphToFrameworkBool(minOS.GetV101909()),
-			V10_2004: convert.GraphToFrameworkBool(minOS.GetV102004()),
-			V10_2H20: convert.GraphToFrameworkBool(minOS.GetV102H20()),
-			V10_21H1: convert.GraphToFrameworkBool(minOS.GetV1021H1()),
-		}
-	}
-
 	// Detection Rules
 	if detectionRules := remoteResource.GetDetectionRules(); detectionRules != nil {
-		data.DetectionRules = make([]Win32LobAppRegistryDetectionRulesResourceModel, len(detectionRules))
-		for i, rule := range detectionRules {
-			switch detectionRule := rule.(type) {
-			case graphmodels.Win32LobAppRegistryDetectionable:
-				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					DetectionType:             types.StringValue("registry"),
-					RegistryDetectionType:     convert.GraphToFrameworkEnum(detectionRule.GetDetectionType()),
-					Check32BitOn64System:      convert.GraphToFrameworkBool(detectionRule.GetCheck32BitOn64System()),
-					KeyPath:                   convert.GraphToFrameworkString(detectionRule.GetKeyPath()),
-					ValueName:                 convert.GraphToFrameworkString(detectionRule.GetValueName()),
-					RegistryDetectionOperator: convert.GraphToFrameworkEnum(detectionRule.GetOperator()),
-					DetectionValue:            convert.GraphToFrameworkString(detectionRule.GetDetectionValue()),
-				}
-			case graphmodels.Win32LobAppProductCodeDetectionable:
-				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					DetectionType:          types.StringValue("msi_information"),
-					ProductCode:            convert.GraphToFrameworkString(detectionRule.GetProductCode()),
-					ProductVersion:         convert.GraphToFrameworkString(detectionRule.GetProductVersion()),
-					ProductVersionOperator: convert.GraphToFrameworkEnum(detectionRule.GetProductVersionOperator()),
-				}
-			case graphmodels.Win32LobAppFileSystemDetectionable:
-				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					DetectionType:               types.StringValue("file_system"),
-					FileSystemDetectionType:     convert.GraphToFrameworkEnum(detectionRule.GetDetectionType()),
-					FilePath:                    convert.GraphToFrameworkString(detectionRule.GetPath()),
-					FileFolderName:              convert.GraphToFrameworkString(detectionRule.GetFileOrFolderName()),
-					Check32BitOn64System:        convert.GraphToFrameworkBool(detectionRule.GetCheck32BitOn64System()),
-					FileSystemDetectionOperator: convert.GraphToFrameworkEnum(detectionRule.GetOperator()),
-					DetectionValue:              convert.GraphToFrameworkString(detectionRule.GetDetectionValue()),
-				}
-			case graphmodels.Win32LobAppPowerShellScriptDetectionable:
-				data.DetectionRules[i] = Win32LobAppRegistryDetectionRulesResourceModel{
-					DetectionType:         types.StringValue("powershell_script"),
-					ScriptContent:         convert.GraphToFrameworkString(detectionRule.GetScriptContent()),
-					EnforceSignatureCheck: convert.GraphToFrameworkBool(detectionRule.GetEnforceSignatureCheck()),
-					RunAs32Bit:            convert.GraphToFrameworkBool(detectionRule.GetRunAs32Bit()),
-				}
-			default:
-				tflog.Warn(ctx, "Unknown detection rule type", map[string]interface{}{
-					"ruleType": fmt.Sprintf("%T", rule),
-				})
-			}
-		}
+		tflog.Debug(ctx, "Processing detection rules from API response", map[string]interface{}{
+			"count": len(detectionRules),
+		})
 	}
 
 	// Requirement Rules
 	if requirementRules := remoteResource.GetRequirementRules(); requirementRules != nil {
-		data.RequirementRules = make([]Win32LobAppRegistryRequirementResourceModel, len(requirementRules))
-		for i, rule := range requirementRules {
-			if registryRequirement, ok := rule.(graphmodels.Win32LobAppRegistryRequirementable); ok {
-				data.RequirementRules[i] = Win32LobAppRegistryRequirementResourceModel{
-					RequirementType:      types.StringValue("registry"),
-					Operator:             convert.GraphToFrameworkEnum(registryRequirement.GetOperator()),
-					DetectionValue:       convert.GraphToFrameworkString(registryRequirement.GetDetectionValue()),
-					Check32BitOn64System: convert.GraphToFrameworkBool(registryRequirement.GetCheck32BitOn64System()),
-					KeyPath:              convert.GraphToFrameworkString(registryRequirement.GetKeyPath()),
-					ValueName:            convert.GraphToFrameworkString(registryRequirement.GetValueName()),
-					DetectionType:        convert.GraphToFrameworkEnum(registryRequirement.GetDetectionType()),
-					FileOrFolderName:     types.StringNull(), // Not applicable for registry requirements
+		tflog.Debug(ctx, "Processing requirement rules from API response", map[string]interface{}{
+			"count": len(requirementRules),
+		})
+	}
+
+	// Rules - This is the unified field that should be populated from the API response
+	if rules := remoteResource.GetRules(); rules != nil {
+		data.Rules = make([]Win32LobAppRuleResourceModel, len(rules))
+		for i, rule := range rules {
+			// Set common rule properties
+			switch ruleType := rule.(type) {
+			case graphmodels.Win32LobAppRegistryRuleable:
+				data.Rules[i] = Win32LobAppRuleResourceModel{
+					RuleType:             convert.GraphToFrameworkEnum(ruleType.GetRuleType()),
+					RuleSubType:          types.StringValue("registry"),
+					Check32BitOn64System: convert.GraphToFrameworkBool(ruleType.GetCheck32BitOn64System()),
+					KeyPath:              convert.GraphToFrameworkString(ruleType.GetKeyPath()),
+					ValueName:            convert.GraphToFrameworkString(ruleType.GetValueName()),
+					OperationType:        convert.GraphToFrameworkEnum(ruleType.GetOperationType()),
+					LobAppRuleOperator:   convert.GraphToFrameworkEnum(ruleType.GetOperator()),
+					ComparisonValue:      convert.GraphToFrameworkString(ruleType.GetComparisonValue()),
+				}
+			case graphmodels.Win32LobAppFileSystemRuleable:
+				data.Rules[i] = Win32LobAppRuleResourceModel{
+					RuleType:                convert.GraphToFrameworkEnum(ruleType.GetRuleType()),
+					RuleSubType:             types.StringValue("file_system"),
+					Check32BitOn64System:    convert.GraphToFrameworkBool(ruleType.GetCheck32BitOn64System()),
+					Path:                    convert.GraphToFrameworkString(ruleType.GetPath()),
+					FileOrFolderName:        convert.GraphToFrameworkString(ruleType.GetFileOrFolderName()),
+					FileSystemOperationType: convert.GraphToFrameworkEnum(ruleType.GetOperationType()),
+					LobAppRuleOperator:      convert.GraphToFrameworkEnum(ruleType.GetOperator()),
+					ComparisonValue:         convert.GraphToFrameworkString(ruleType.GetComparisonValue()),
+				}
+			case graphmodels.Win32LobAppPowerShellScriptRuleable:
+				data.Rules[i] = Win32LobAppRuleResourceModel{
+					RuleType:                          convert.GraphToFrameworkEnum(ruleType.GetRuleType()),
+					RuleSubType:                       types.StringValue("powershell_script"),
+					DisplayName:                       convert.GraphToFrameworkString(ruleType.GetDisplayName()),
+					EnforceSignatureCheck:             convert.GraphToFrameworkBool(ruleType.GetEnforceSignatureCheck()),
+					RunAs32Bit:                        convert.GraphToFrameworkBool(ruleType.GetRunAs32Bit()),
+					RunAsAccount:                      convert.GraphToFrameworkEnum(ruleType.GetRunAsAccount()),
+					ScriptContent:                     helpers.DecodeBase64ToString(ctx, convert.GraphToFrameworkString(ruleType.GetScriptContent()).ValueString()),
+					PowerShellScriptRuleOperationType: convert.GraphToFrameworkEnum(ruleType.GetOperationType()),
+					LobAppRuleOperator:                convert.GraphToFrameworkEnum(ruleType.GetOperator()),
+					ComparisonValue:                   convert.GraphToFrameworkString(ruleType.GetComparisonValue()),
+				}
+			default:
+				tflog.Warn(ctx, "Unknown rule type", map[string]interface{}{
+					"ruleType": fmt.Sprintf("%T", rule),
+				})
+			}
+		}
+	} else {
+		// If no rules are returned from the API but we have detection rules or requirement rules,
+		// we need to convert those to the unified rules format
+		var rulesFromDetectionAndRequirement []Win32LobAppRuleResourceModel
+
+		// Convert detection rules to unified rules format if any exist
+		if detectionRules := remoteResource.GetDetectionRules(); detectionRules != nil {
+			for _, rule := range detectionRules {
+				switch detectionRule := rule.(type) {
+				case graphmodels.Win32LobAppRegistryDetectionable:
+					rulesFromDetectionAndRequirement = append(rulesFromDetectionAndRequirement, Win32LobAppRuleResourceModel{
+						RuleType:             types.StringValue("detection"),
+						RuleSubType:          types.StringValue("registry"),
+						Check32BitOn64System: convert.GraphToFrameworkBool(detectionRule.GetCheck32BitOn64System()),
+						KeyPath:              convert.GraphToFrameworkString(detectionRule.GetKeyPath()),
+						ValueName:            convert.GraphToFrameworkString(detectionRule.GetValueName()),
+						OperationType:        convert.GraphToFrameworkEnum(detectionRule.GetDetectionType()),
+						LobAppRuleOperator:   convert.GraphToFrameworkEnum(detectionRule.GetOperator()),
+					})
+				case graphmodels.Win32LobAppProductCodeDetectionable:
+					rulesFromDetectionAndRequirement = append(rulesFromDetectionAndRequirement, Win32LobAppRuleResourceModel{
+						RuleType:           types.StringValue("detection"),
+						RuleSubType:        types.StringValue("msi_information"),
+						LobAppRuleOperator: convert.GraphToFrameworkEnum(detectionRule.GetProductVersionOperator()),
+						ComparisonValue:    convert.GraphToFrameworkString(detectionRule.GetProductVersion()),
+					})
+				case graphmodels.Win32LobAppFileSystemDetectionable:
+					rulesFromDetectionAndRequirement = append(rulesFromDetectionAndRequirement, Win32LobAppRuleResourceModel{
+						RuleType:                types.StringValue("detection"),
+						RuleSubType:             types.StringValue("file_system"),
+						Check32BitOn64System:    convert.GraphToFrameworkBool(detectionRule.GetCheck32BitOn64System()),
+						Path:                    convert.GraphToFrameworkString(detectionRule.GetPath()),
+						FileOrFolderName:        convert.GraphToFrameworkString(detectionRule.GetFileOrFolderName()),
+						FileSystemOperationType: convert.GraphToFrameworkEnum(detectionRule.GetDetectionType()),
+						LobAppRuleOperator:      convert.GraphToFrameworkEnum(detectionRule.GetOperator()),
+						ComparisonValue:         convert.GraphToFrameworkString(detectionRule.GetDetectionValue()),
+					})
+				case graphmodels.Win32LobAppPowerShellScriptDetectionable:
+					rulesFromDetectionAndRequirement = append(rulesFromDetectionAndRequirement, Win32LobAppRuleResourceModel{
+						RuleType:              types.StringValue("detection"),
+						RuleSubType:           types.StringValue("powershell_script"),
+						EnforceSignatureCheck: convert.GraphToFrameworkBool(detectionRule.GetEnforceSignatureCheck()),
+						RunAs32Bit:            convert.GraphToFrameworkBool(detectionRule.GetRunAs32Bit()),
+						ScriptContent:         helpers.DecodeBase64ToString(ctx, convert.GraphToFrameworkString(detectionRule.GetScriptContent()).ValueString()),
+						LobAppRuleOperator:    types.StringValue("notConfigured"),
+					})
 				}
 			}
 		}
-	}
 
-	// Rules
-	if rules := remoteResource.GetRules(); rules != nil {
-		data.Rules = make([]Win32LobAppRegistryRuleResourceModel, len(rules))
-		for i, rule := range rules {
-			if registryRule, ok := rule.(graphmodels.Win32LobAppRegistryRuleable); ok {
-				data.Rules[i] = Win32LobAppRegistryRuleResourceModel{
-					RuleType:             convert.GraphToFrameworkEnum(registryRule.GetRuleType()),
-					Check32BitOn64System: convert.GraphToFrameworkBool(registryRule.GetCheck32BitOn64System()),
-					KeyPath:              convert.GraphToFrameworkString(registryRule.GetKeyPath()),
-					ValueName:            convert.GraphToFrameworkString(registryRule.GetValueName()),
-					OperationType:        convert.GraphToFrameworkEnum(registryRule.GetOperationType()),
-					Operator:             convert.GraphToFrameworkEnum(registryRule.GetOperator()),
-					ComparisonValue:      convert.GraphToFrameworkString(registryRule.GetComparisonValue()),
+		// Convert requirement rules to unified rules format if any exist
+		if requirementRules := remoteResource.GetRequirementRules(); requirementRules != nil {
+			for _, rule := range requirementRules {
+				if registryRequirement, ok := rule.(graphmodels.Win32LobAppRegistryRequirementable); ok {
+					rulesFromDetectionAndRequirement = append(rulesFromDetectionAndRequirement, Win32LobAppRuleResourceModel{
+						RuleType:             types.StringValue("requirement"),
+						RuleSubType:          types.StringValue("registry"),
+						Check32BitOn64System: convert.GraphToFrameworkBool(registryRequirement.GetCheck32BitOn64System()),
+						KeyPath:              convert.GraphToFrameworkString(registryRequirement.GetKeyPath()),
+						ValueName:            convert.GraphToFrameworkString(registryRequirement.GetValueName()),
+						OperationType:        convert.GraphToFrameworkEnum(registryRequirement.GetDetectionType()),
+						LobAppRuleOperator:   convert.GraphToFrameworkEnum(registryRequirement.GetOperator()),
+						ComparisonValue:      convert.GraphToFrameworkString(registryRequirement.GetDetectionValue()),
+					})
 				}
 			}
+		}
+
+		// Set the combined rules in the state
+		if len(rulesFromDetectionAndRequirement) > 0 {
+			data.Rules = rulesFromDetectionAndRequirement
 		}
 	}
 
@@ -194,12 +239,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 
 	// MSI Information
 	if msiInfo := remoteResource.GetMsiInformation(); msiInfo != nil {
-		data.MsiInformation = Win32LobAppMsiInformationResourceModel{
+		data.MsiInformation = &Win32LobAppMsiInformationResourceModel{
 			ProductCode:    convert.GraphToFrameworkString(msiInfo.GetProductCode()),
 			ProductVersion: convert.GraphToFrameworkString(msiInfo.GetProductVersion()),
 			UpgradeCode:    convert.GraphToFrameworkString(msiInfo.GetUpgradeCode()),
 			RequiresReboot: convert.GraphToFrameworkBool(msiInfo.GetRequiresReboot()),
 			PackageType:    convert.GraphToFrameworkEnum(msiInfo.GetPackageType()),
+			ProductName:    convert.GraphToFrameworkString(msiInfo.GetProductName()),
+			Publisher:      convert.GraphToFrameworkString(msiInfo.GetPublisher()),
 		}
 	}
 

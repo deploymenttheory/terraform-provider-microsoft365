@@ -6,10 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	sharedConstructors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
+	helpersCrud "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -28,9 +29,26 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	convert.FrameworkToGraphString(data.UninstallCommandLine, requestBody.SetUninstallCommandLine)
 	convert.FrameworkToGraphString(data.SetupFilePath, requestBody.SetSetupFilePath)
 	convert.FrameworkToGraphString(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
+	convert.FrameworkToGraphString(data.DisplayVersion, requestBody.SetDisplayVersion)
+	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
+	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
+	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphString(data.MinimumSupportedWindowsRelease, requestBody.SetMinimumSupportedWindowsRelease)
+	convert.FrameworkToGraphBool(data.AllowAvailableUninstall, requestBody.SetAllowAvailableUninstall)
+	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
+	}
+
+	// Handle applicable architectures
+	if err := convert.FrameworkToGraphBitmaskEnumFromSet(ctx, data.AllowedArchitectures,
+		graphmodels.ParseWindowsArchitecture, requestBody.SetAllowedArchitectures); err != nil {
+		tflog.Warn(ctx, "Failed to set applicable architectures", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	// Handle app icon (either from file path or web source)
@@ -42,7 +60,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 
 		defer func() {
 			for _, tempFile := range tempFiles {
-				helpers.CleanupTempFile(ctx, tempFile)
+				helpersCrud.CleanupTempFile(ctx, tempFile)
 			}
 		}()
 
@@ -63,30 +81,10 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
 	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 
-	if minOS := data.MinimumSupportedOperatingSystem; minOS != nil {
-		minSupportedOS := graphmodels.NewWindowsMinimumOperatingSystem()
-
-		convert.FrameworkToGraphBool(minOS.V8_0, minSupportedOS.SetV80)
-		convert.FrameworkToGraphBool(minOS.V8_1, minSupportedOS.SetV81)
-		convert.FrameworkToGraphBool(minOS.V10_0, minSupportedOS.SetV100)
-		convert.FrameworkToGraphBool(minOS.V10_1607, minSupportedOS.SetV101607)
-		convert.FrameworkToGraphBool(minOS.V10_1703, minSupportedOS.SetV101703)
-		convert.FrameworkToGraphBool(minOS.V10_1709, minSupportedOS.SetV101709)
-		convert.FrameworkToGraphBool(minOS.V10_1803, minSupportedOS.SetV101803)
-		convert.FrameworkToGraphBool(minOS.V10_1809, minSupportedOS.SetV101809)
-		convert.FrameworkToGraphBool(minOS.V10_1903, minSupportedOS.SetV101903)
-		convert.FrameworkToGraphBool(minOS.V10_1909, minSupportedOS.SetV101909)
-		convert.FrameworkToGraphBool(minOS.V10_2004, minSupportedOS.SetV102004)
-		convert.FrameworkToGraphBool(minOS.V10_2H20, minSupportedOS.SetV102H20)
-		convert.FrameworkToGraphBool(minOS.V10_21H1, minSupportedOS.SetV1021H1)
-
-		requestBody.SetMinimumSupportedOperatingSystem(minSupportedOS)
-	}
-
 	if len(data.DetectionRules) > 0 {
 		detectionRules := make([]graphmodels.Win32LobAppDetectionable, len(data.DetectionRules))
 		for i, rule := range data.DetectionRules {
-			switch rule.RegistryDetectionType.ValueString() {
+			switch rule.DetectionType.ValueString() {
 			case "registry":
 				registryRule := graphmodels.NewWin32LobAppRegistryDetection()
 				convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
@@ -139,7 +137,22 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 				detectionRules[i] = fileRule
 			case "powershell_script":
 				powershellRule := graphmodels.NewWin32LobAppPowerShellScriptDetection()
-				convert.FrameworkToGraphString(rule.ScriptContent, powershellRule.SetScriptContent)
+
+				// Convert script content to base64 before setting the
+				// converted content as a string
+				if !rule.ScriptContent.IsNull() && !rule.ScriptContent.IsUnknown() {
+					scriptContent := rule.ScriptContent.ValueString()
+
+					base64Content, err := helpers.StringToBase64(scriptContent)
+					if err == nil {
+
+						convert.FrameworkToGraphString(types.StringValue(base64Content), powershellRule.SetScriptContent)
+					} else {
+
+						convert.FrameworkToGraphString(rule.ScriptContent, powershellRule.SetScriptContent)
+					}
+				}
+
 				convert.FrameworkToGraphBool(rule.EnforceSignatureCheck, powershellRule.SetEnforceSignatureCheck)
 				convert.FrameworkToGraphBool(rule.RunAs32Bit, powershellRule.SetRunAs32Bit)
 
@@ -180,25 +193,121 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	if len(data.Rules) > 0 {
 		rules := make([]graphmodels.Win32LobAppRuleable, len(data.Rules))
 		for i, rule := range data.Rules {
-			registryRule := graphmodels.NewWin32LobAppRegistryRule()
+			// Determine which type of rule to create based on the rule_sub_type
+			switch rule.RuleSubType.ValueString() {
+			case "registry":
+				registryRule := graphmodels.NewWin32LobAppRegistryRule()
 
-			convert.FrameworkToGraphString(rule.KeyPath, registryRule.SetKeyPath)
-			convert.FrameworkToGraphString(rule.ValueName, registryRule.SetValueName)
-			convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
+				// Set common rule properties
+				err := convert.FrameworkToGraphEnum(rule.RuleType, graphmodels.ParseWin32LobAppRuleType, registryRule.SetRuleType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse rule type: %v", err)
+				}
 
-			err := convert.FrameworkToGraphEnum(rule.Operator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse registry rule operator: %v", err)
+				convert.FrameworkToGraphString(rule.KeyPath, registryRule.SetKeyPath)
+				convert.FrameworkToGraphString(rule.ValueName, registryRule.SetValueName)
+				convert.FrameworkToGraphBool(rule.Check32BitOn64System, registryRule.SetCheck32BitOn64System)
+
+				err = convert.FrameworkToGraphEnum(rule.LobAppRuleOperator, graphmodels.ParseWin32LobAppRuleOperator, registryRule.SetOperator)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry rule operator: %v", err)
+				}
+
+				err = convert.FrameworkToGraphEnum(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse registry rule operation type: %v", err)
+				}
+
+				convert.FrameworkToGraphString(rule.ComparisonValue, registryRule.SetComparisonValue)
+
+				rules[i] = registryRule
+
+			case "file_system":
+				fileSystemRule := graphmodels.NewWin32LobAppFileSystemRule()
+
+				// Set common rule properties
+				err := convert.FrameworkToGraphEnum(rule.RuleType, graphmodels.ParseWin32LobAppRuleType, fileSystemRule.SetRuleType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse rule type: %v", err)
+				}
+
+				convert.FrameworkToGraphString(rule.Path, fileSystemRule.SetPath)
+				convert.FrameworkToGraphString(rule.FileOrFolderName, fileSystemRule.SetFileOrFolderName)
+				convert.FrameworkToGraphBool(rule.Check32BitOn64System, fileSystemRule.SetCheck32BitOn64System)
+
+				err = convert.FrameworkToGraphEnum(rule.LobAppRuleOperator, graphmodels.ParseWin32LobAppRuleOperator, fileSystemRule.SetOperator)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse file system rule operator: %v", err)
+				}
+
+				err = convert.FrameworkToGraphEnum(rule.FileSystemOperationType, graphmodels.ParseWin32LobAppFileSystemOperationType, fileSystemRule.SetOperationType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse file system rule operation type: %v", err)
+				}
+
+				convert.FrameworkToGraphString(rule.ComparisonValue, fileSystemRule.SetComparisonValue)
+
+				rules[i] = fileSystemRule
+
+			case "powershell_script":
+				powershellRule := graphmodels.NewWin32LobAppPowerShellScriptRule()
+
+				// Set common rule properties
+				err := convert.FrameworkToGraphEnum(rule.RuleType, graphmodels.ParseWin32LobAppRuleType, powershellRule.SetRuleType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse rule type: %v", err)
+				}
+
+				// Only set DisplayName for requirement rules, not detection rules
+				// The API doesn't allow DisplayName for detection rules
+				if rule.RuleType.ValueString() == "requirement" && !rule.DisplayName.IsNull() {
+					convert.FrameworkToGraphString(rule.DisplayName, powershellRule.SetDisplayName)
+				}
+
+				convert.FrameworkToGraphBool(rule.EnforceSignatureCheck, powershellRule.SetEnforceSignatureCheck)
+				convert.FrameworkToGraphBool(rule.RunAs32Bit, powershellRule.SetRunAs32Bit)
+
+				// Convert script content to base64 before setting the
+				// converted content as a string
+				if !rule.ScriptContent.IsNull() && !rule.ScriptContent.IsUnknown() {
+					scriptContent := rule.ScriptContent.ValueString()
+
+					base64Content, err := helpers.StringToBase64(scriptContent)
+					if err == nil {
+
+						convert.FrameworkToGraphString(types.StringValue(base64Content), powershellRule.SetScriptContent)
+					} else {
+
+						convert.FrameworkToGraphString(rule.ScriptContent, powershellRule.SetScriptContent)
+					}
+				}
+
+				// Only set RunAsAccount if it's provided AND this is a requirement rule
+				// The API doesn't allow RunAsAccount for detection rules
+				if rule.RuleType.ValueString() == "requirement" && !rule.RunAsAccount.IsNull() && !rule.RunAsAccount.IsUnknown() {
+					err = convert.FrameworkToGraphEnum(rule.RunAsAccount, graphmodels.ParseRunAsAccountType, powershellRule.SetRunAsAccount)
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse PowerShell script rule run as account: %v", err)
+					}
+				}
+
+				err = convert.FrameworkToGraphEnum(rule.LobAppRuleOperator, graphmodels.ParseWin32LobAppRuleOperator, powershellRule.SetOperator)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse PowerShell script rule operator: %v", err)
+				}
+
+				err = convert.FrameworkToGraphEnum(rule.PowerShellScriptRuleOperationType, graphmodels.ParseWin32LobAppPowerShellScriptRuleOperationType, powershellRule.SetOperationType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse PowerShell script rule operation type: %v", err)
+				}
+
+				convert.FrameworkToGraphString(rule.ComparisonValue, powershellRule.SetComparisonValue)
+
+				rules[i] = powershellRule
+
+			default:
+				return nil, fmt.Errorf("unsupported rule sub-type: %s", rule.RuleSubType.ValueString())
 			}
-
-			err = convert.FrameworkToGraphEnum(rule.OperationType, graphmodels.ParseWin32LobAppRegistryRuleOperationType, registryRule.SetOperationType)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse registry rule operation type: %v", err)
-			}
-
-			convert.FrameworkToGraphString(rule.ComparisonValue, registryRule.SetComparisonValue)
-
-			rules[i] = registryRule
 		}
 		requestBody.SetRules(rules)
 	}
@@ -238,13 +347,15 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 		requestBody.SetReturnCodes(returnCodes)
 	}
 
-	if msiInfo := data.MsiInformation; msiInfo != (Win32LobAppMsiInformationResourceModel{}) {
+	if msiInfo := data.MsiInformation; msiInfo != (&Win32LobAppMsiInformationResourceModel{}) {
 		msiInformation := graphmodels.NewWin32LobAppMsiInformation()
 
 		convert.FrameworkToGraphString(msiInfo.ProductCode, msiInformation.SetProductCode)
 		convert.FrameworkToGraphString(msiInfo.ProductVersion, msiInformation.SetProductVersion)
 		convert.FrameworkToGraphString(msiInfo.UpgradeCode, msiInformation.SetUpgradeCode)
 		convert.FrameworkToGraphBool(msiInfo.RequiresReboot, msiInformation.SetRequiresReboot)
+		convert.FrameworkToGraphString(msiInfo.ProductName, msiInformation.SetProductName)
+		convert.FrameworkToGraphString(msiInfo.Publisher, msiInformation.SetPublisher)
 
 		err := convert.FrameworkToGraphEnum(msiInfo.PackageType, graphmodels.ParseWin32LobAppMsiPackageType, msiInformation.SetPackageType)
 		if err != nil {

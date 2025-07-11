@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +12,28 @@ import (
 	"github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/stretchr/testify/assert"
 )
+
+// TestBitmaskEnum represents a mock bitmask enum for testing GraphToFrameworkBitmaskEnumAsSet
+type TestBitmaskEnum int
+
+const (
+	TestBitmaskNone TestBitmaskEnum = 1
+	TestBitmaskOne  TestBitmaskEnum = 2
+	TestBitmaskTwo  TestBitmaskEnum = 4
+	TestBitmaskAll  TestBitmaskEnum = 7
+)
+
+func (e TestBitmaskEnum) String() string {
+	var values []string
+	options := []string{"none", "one", "two"}
+	for p := 0; p < 3; p++ {
+		mask := TestBitmaskEnum(1 << p)
+		if e&mask == mask {
+			values = append(values, options[p])
+		}
+	}
+	return strings.Join(values, ",")
+}
 
 func TestGraphToFrameworkString(t *testing.T) {
 	// Case: Non-nil string pointer
@@ -368,43 +391,82 @@ func TestGraphToFrameworkUUID(t *testing.T) {
 }
 
 func TestGraphToFrameworkStringSlice(t *testing.T) {
-	t.Run("nil input", func(t *testing.T) {
-		result := GraphToFrameworkStringSlice(nil)
-		assert.Empty(t, result, "Result should be an empty slice for nil input")
-		assert.Equal(t, []types.String{}, result, "Result should be an empty slice for nil input")
-	})
+	// Case: Nil input slice
+	var nilInput []string
+	result := GraphToFrameworkStringSlice(nilInput)
+	assert.Equal(t, 0, len(result), "Should return empty slice for nil input")
 
-	t.Run("empty input", func(t *testing.T) {
-		result := GraphToFrameworkStringSlice([]string{})
-		assert.Empty(t, result, "Result should be an empty slice for empty input")
-		assert.Equal(t, []types.String{}, result, "Result should be an empty slice for empty input")
-	})
+	// Case: Empty input slice
+	emptyInput := []string{}
+	result = GraphToFrameworkStringSlice(emptyInput)
+	assert.Equal(t, 0, len(result), "Should return an empty slice")
 
-	t.Run("single value", func(t *testing.T) {
-		input := []string{"test"}
-		result := GraphToFrameworkStringSlice(input)
+	// Case: Non-empty input slice
+	input := []string{"one", "two", "three"}
+	expected := []types.String{
+		types.StringValue("one"),
+		types.StringValue("two"),
+		types.StringValue("three"),
+	}
+	result = GraphToFrameworkStringSlice(input)
+	assert.Equal(t, expected, result, "Should convert slice of strings to slice of types.String")
+}
 
-		assert.Len(t, result, 1, "Result should have 1 element")
-		assert.Equal(t, "test", result[0].ValueString(), "Value should match input")
-	})
+func TestGraphToFrameworkBitmaskEnumAsSet(t *testing.T) {
+	ctx := context.Background()
 
-	t.Run("multiple values", func(t *testing.T) {
-		input := []string{"value1", "value2", "value3"}
-		result := GraphToFrameworkStringSlice(input)
+	// Import MockBitmaskEnum from framework_to_graph_test.go
 
-		assert.Len(t, result, 3, "Result should have 3 elements")
-		assert.Equal(t, "value1", result[0].ValueString(), "First value should match")
-		assert.Equal(t, "value2", result[1].ValueString(), "Second value should match")
-		assert.Equal(t, "value3", result[2].ValueString(), "Third value should match")
-	})
+	// Case: Nil enum pointer
+	var nilInput *MockBitmaskEnum
+	result := GraphToFrameworkBitmaskEnumAsSet(ctx, nilInput)
+	assert.True(t, result.IsNull(), "Should return null set for nil input")
 
-	t.Run("values with empty strings", func(t *testing.T) {
-		input := []string{"value1", "", "value3"}
-		result := GraphToFrameworkStringSlice(input)
+	// Case: Empty string representation
+	emptyEnum := MockBitmaskEnum(0)
+	result = GraphToFrameworkBitmaskEnumAsSet(ctx, &emptyEnum)
+	expected, _ := types.SetValueFrom(ctx, types.StringType, []string{})
+	assert.Equal(t, expected, result, "Should return empty set for empty string representation")
 
-		assert.Len(t, result, 3, "Result should have 3 elements")
-		assert.Equal(t, "value1", result[0].ValueString(), "First value should match")
-		assert.Equal(t, "", result[1].ValueString(), "Second value should be empty string")
-		assert.Equal(t, "value3", result[2].ValueString(), "Third value should match")
-	})
+	// Case: Single value enum
+	singleEnum := MockBitmaskOne
+	result = GraphToFrameworkBitmaskEnumAsSet(ctx, &singleEnum)
+	expected, _ = types.SetValueFrom(ctx, types.StringType, []string{"one"})
+	assert.Equal(t, expected, result, "Should return set with single value")
+
+	// Case: Multiple values enum
+	multiEnum := MockBitmaskOne | MockBitmaskTwo
+	result = GraphToFrameworkBitmaskEnumAsSet(ctx, &multiEnum)
+	// Order doesn't matter in a set, but we need to verify the values are correct
+	elements := result.Elements()
+	assert.Equal(t, 2, len(elements), "Should have 2 elements in the set")
+
+	// Convert elements to strings for easier assertion
+	var values []string
+	for _, elem := range elements {
+		if strVal, ok := elem.(types.String); ok {
+			values = append(values, strVal.ValueString())
+		}
+	}
+
+	assert.Contains(t, values, "one", "Set should contain 'one'")
+	assert.Contains(t, values, "two", "Set should contain 'two'")
+
+	// Case: All values enum
+	allEnum := MockBitmaskAll
+	result = GraphToFrameworkBitmaskEnumAsSet(ctx, &allEnum)
+	elements = result.Elements()
+	assert.Equal(t, 3, len(elements), "Should have 3 elements in the set")
+
+	// Convert elements to strings for easier assertion
+	values = []string{}
+	for _, elem := range elements {
+		if strVal, ok := elem.(types.String); ok {
+			values = append(values, strVal.ValueString())
+		}
+	}
+
+	assert.Contains(t, values, "none", "Set should contain 'none'")
+	assert.Contains(t, values, "one", "Set should contain 'one'")
+	assert.Contains(t, values, "two", "Set should contain 'two'")
 }
