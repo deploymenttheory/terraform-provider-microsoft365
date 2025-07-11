@@ -3,6 +3,7 @@ package schema
 import (
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -40,7 +41,7 @@ func MobileAppMacOSPkgInstallerMetadataSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: "The web location of the PKG file, can be a http(s) URL. The file must be a valid `.pkg` file. Value is not returned by API call.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
 						"Must be a valid URL.",
 					),
 				},
@@ -81,7 +82,7 @@ func MobileAppMacOSLobInstallerMetadataSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: "The web location of the LOB installer file, can be a http(s) URL. The file must be a valid `.pkg` file. Value is not returned by API call.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
 						"Must be a valid URL.",
 					),
 				},
@@ -122,7 +123,48 @@ func MobileAppDmgInstallerMetadataSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: "The web location of the DMG installer file, can be a http(s) URL. The file must be a valid `.dmg` file. Value is not returned by API call.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`),
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+						"Must be a valid URL.",
+					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+		},
+	}
+}
+
+// MobileAppWin32LobInstallerMetadataSchema returns schema for win32 lob app installer metadata
+func MobileAppWin32LobInstallerMetadataSchema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: "Metadata related to the win32 lob app installer file, such as size and checksums. This is automatically computed during app creation and updates.",
+		PlanModifiers: []planmodifier.Object{
+			planmodifiers.UseStateForUnknownObject(),
+		},
+		Attributes: map[string]schema.Attribute{
+			"installer_file_path_source": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The path to the win32 lob app installer file to be uploaded. The file must be a valid `.intunewin` file. Value is not returned by API call.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`.*\.intunewin$`),
+						"File path must point to a valid .intunewin file.",
+					),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"installer_url_source": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The web location of the win32 lob app installer file, can be a http(s) URL. The file must be a valid `.intunewin` file. Value is not returned by API call.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
 						"Must be a valid URL.",
 					),
 				},

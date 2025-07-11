@@ -34,3 +34,8 @@ func SplitCommaSeparatedString(s string) []string {
 	// Split the string by commas and return the result
 	return strings.Split(s, ",")
 }
+
+// JoinWithSeparator joins a slice of strings with the specified separator
+func JoinWithSeparator(strs []string, sep string) string {
+	return strings.Join(strs, sep)
+}
