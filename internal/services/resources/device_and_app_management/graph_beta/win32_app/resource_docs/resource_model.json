@@ -1,0 +1,116 @@
+{
+  "@odata.type": "#microsoft.graph.win32LobApp",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "publisher": "String",
+  "largeIcon": {
+    "@odata.type": "microsoft.graph.mimeContent",
+    "type": "String",
+    "value": "binary"
+  },
+  "createdDateTime": "String (timestamp)",
+  "lastModifiedDateTime": "String (timestamp)",
+  "isFeatured": true,
+  "privacyInformationUrl": "String",
+  "informationUrl": "String",
+  "owner": "String",
+  "developer": "String",
+  "notes": "String",
+  "uploadState": 1024,
+  "publishingState": "String",
+  "isAssigned": true,
+  "roleScopeTagIds": [
+    "String"
+  ],
+  "dependentAppCount": 1024,
+  "supersedingAppCount": 1024,
+  "supersededAppCount": 1024,
+  "committedContentVersion": "String",
+  "fileName": "String",
+  "size": 1024,
+  "installCommandLine": "String",
+  "uninstallCommandLine": "String",
+  "applicableArchitectures": "String",
+  "minimumSupportedOperatingSystem": {
+    "@odata.type": "microsoft.graph.windowsMinimumOperatingSystem",
+    "v8_0": true,
+    "v8_1": true,
+    "v10_0": true,
+    "v10_1607": true,
+    "v10_1703": true,
+    "v10_1709": true,
+    "v10_1803": true,
+    "v10_1809": true,
+    "v10_1903": true,
+    "v10_1909": true,
+    "v10_2004": true,
+    "v10_2H20": true,
+    "v10_21H1": true
+  },
+  "minimumFreeDiskSpaceInMB": 1024,
+  "minimumMemoryInMB": 1024,
+  "minimumNumberOfProcessors": 1024,
+  "minimumCpuSpeedInMHz": 1024,
+  "detectionRules": [
+    {
+      "@odata.type": "microsoft.graph.win32LobAppRegistryDetection",
+      "check32BitOn64System": true,
+      "keyPath": "String",
+      "valueName": "String",
+      "detectionType": "String",
+      "operator": "String",
+      "detectionValue": "String"
+    }
+  ],
+  "requirementRules": [
+    {
+      "@odata.type": "microsoft.graph.win32LobAppRegistryRequirement",
+      "operator": "String",
+      "detectionValue": "String",
+      "check32BitOn64System": true,
+      "keyPath": "String",
+      "valueName": "String",
+      "detectionType": "String"
+    }
+  ],
+  "rules": [
+    {
+      "@odata.type": "microsoft.graph.win32LobAppRegistryRule",
+      "ruleType": "String",
+      "check32BitOn64System": true,
+      "keyPath": "String",
+      "valueName": "String",
+      "operationType": "String",
+      "operator": "String",
+      "comparisonValue": "String"
+    }
+  ],
+  "installExperience": {
+    "@odata.type": "microsoft.graph.win32LobAppInstallExperience",
+    "runAsAccount": "String",
+    "maxRunTimeInMinutes": 1024,
+    "deviceRestartBehavior": "String"
+  },
+  "returnCodes": [
+    {
+      "@odata.type": "microsoft.graph.win32LobAppReturnCode",
+      "returnCode": 1024,
+      "type": "String"
+    }
+  ],
+  "msiInformation": {
+    "@odata.type": "microsoft.graph.win32LobAppMsiInformation",
+    "productCode": "String",
+    "productVersion": "String",
+    "upgradeCode": "String",
+    "requiresReboot": true,
+    "packageType": "String",
+    "productName": "String",
+    "publisher": "String"
+  },
+  "setupFilePath": "String",
+  "minimumSupportedWindowsRelease": "String",
+  "displayVersion": "String",
+  "allowAvailableUninstall": true
+}

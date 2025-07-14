@@ -50,7 +50,7 @@ func (d *MicrosoftStorePackageManifestDataSource) Configure(ctx context.Context,
 // Schema defines the schema for the data source
 func (d *MicrosoftStorePackageManifestDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Microsoft Store package manifests by package identifier or search term.",
+		MarkdownDescription: "Retrieves Microsoft Store package manifests by package identifier or search term. Used for winget packages.",
 		Attributes: map[string]schema.Attribute{
 			"package_identifier": schema.StringAttribute{
 				Optional:            true,

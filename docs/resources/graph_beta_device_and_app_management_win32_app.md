@@ -1,14 +1,14 @@
 ---
-page_title: "microsoft365_graph_beta_device_and_app_management_win32_lob_app Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_and_app_management_win32_app Resource - terraform-provider-microsoft365"
 subcategory: "Device and App Management"
 
 description: |-
-  Manages Win32 line-of-business applications using the /deviceAppManagement/mobileApps endpoint. Win32 LOB apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution.
+  Manages Win32 applications using the /deviceAppManagement/mobileApps endpoint. Win apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution. They must be wrapped in the .intunewin file type.'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-win32-app-management'
 ---
 
-# microsoft365_graph_beta_device_and_app_management_win32_lob_app (Resource)
+# microsoft365_graph_beta_device_and_app_management_win32_app (Resource)
 
-Manages Win32 line-of-business applications using the `/deviceAppManagement/mobileApps` endpoint. Win32 LOB apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution.
+Manages Win32 applications using the `/deviceAppManagement/mobileApps` endpoint. Win apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution. They must be wrapped in the .intunewin file type.'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-win32-app-management'
 
 ## Microsoft Documentation
 
@@ -26,7 +26,7 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_and_app_management_win32_lob_app" "example" {
+resource "microsoft365_graph_beta_device_and_app_management_win32_app" "example" {
   allow_available_uninstall = true
 
   app_installer = {

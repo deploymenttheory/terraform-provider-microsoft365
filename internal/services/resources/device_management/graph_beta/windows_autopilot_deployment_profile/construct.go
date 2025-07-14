@@ -26,14 +26,11 @@ func constructResource(ctx context.Context, data *WindowsAutopilotDeploymentProf
 		return nil, fmt.Errorf("invalid device join type: %s", data.DeviceJoinType.ValueString())
 	}
 
-	// Basic properties
 	convert.FrameworkToGraphString(data.DisplayName, resource.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, resource.SetDescription)
 	convert.FrameworkToGraphString(data.Locale, resource.SetLocale)
 	convert.FrameworkToGraphString(data.DeviceNameTemplate, resource.SetDeviceNameTemplate)
 	convert.FrameworkToGraphString(data.ManagementServiceAppId, resource.SetManagementServiceAppId)
-
-	// Boolean properties
 	convert.FrameworkToGraphBool(data.HardwareHashExtractionEnabled, resource.SetHardwareHashExtractionEnabled)
 	convert.FrameworkToGraphBool(data.PreprovisioningAllowed, resource.SetPreprovisioningAllowed)
 
@@ -42,17 +39,14 @@ func constructResource(ctx context.Context, data *WindowsAutopilotDeploymentProf
 		convert.FrameworkToGraphBool(data.HybridAzureADJoinSkipConnectivityCheck, adProfile.SetHybridAzureADJoinSkipConnectivityCheck)
 	}
 
-	// Device type enum
 	if err := convert.FrameworkToGraphEnum(data.DeviceType, graphmodels.ParseWindowsAutopilotDeviceType, resource.SetDeviceType); err != nil {
 		return nil, fmt.Errorf("error setting device type: %v", err)
 	}
 
-	// Role scope tag IDs
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, resource.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("error setting role scope tag IDs: %v", err)
 	}
 
-	// Set out-of-box experience setting (current)
 	if data.OutOfBoxExperienceSetting != nil {
 		oobe := graphmodels.NewOutOfBoxExperienceSetting()
 
@@ -72,7 +66,6 @@ func constructResource(ctx context.Context, data *WindowsAutopilotDeploymentProf
 		resource.SetOutOfBoxExperienceSetting(oobe)
 	}
 
-	// Set enrollment status screen settings
 	if data.EnrollmentStatusScreenSettings != nil {
 		ess := graphmodels.NewWindowsEnrollmentStatusScreenSettings()
 

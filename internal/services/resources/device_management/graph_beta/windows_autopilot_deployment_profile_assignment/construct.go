@@ -45,7 +45,7 @@ func constructTarget(targetData AssignmentTargetResourceModel) (graphmodels.Devi
 	switch targetType {
 	case "allDevices":
 		target := graphmodels.NewAllDevicesAssignmentTarget()
-		setCommonTargetProperties(target, targetData)
+		setGroupAssignmentFilter(target, targetData)
 		return target, nil
 
 	case "groupAssignment":
@@ -54,7 +54,7 @@ func constructTarget(targetData AssignmentTargetResourceModel) (graphmodels.Devi
 			groupId := targetData.GroupId.ValueString()
 			target.SetGroupId(&groupId)
 		}
-		setCommonTargetProperties(target, targetData)
+		setGroupAssignmentFilter(target, targetData)
 		return target, nil
 
 	case "exclusionGroupAssignment":
@@ -63,7 +63,7 @@ func constructTarget(targetData AssignmentTargetResourceModel) (graphmodels.Devi
 			groupId := targetData.GroupId.ValueString()
 			target.SetGroupId(&groupId)
 		}
-		setCommonTargetProperties(target, targetData)
+		setGroupAssignmentFilter(target, targetData)
 		return target, nil
 
 	default:
@@ -71,8 +71,8 @@ func constructTarget(targetData AssignmentTargetResourceModel) (graphmodels.Devi
 	}
 }
 
-// setCommonTargetProperties sets properties common to all target types
-func setCommonTargetProperties(target graphmodels.DeviceAndAppManagementAssignmentTargetable, targetData AssignmentTargetResourceModel) {
+// setGroupAssignmentFilter sets properties common to all target types
+func setGroupAssignmentFilter(target graphmodels.DeviceAndAppManagementAssignmentTargetable, targetData AssignmentTargetResourceModel) {
 	if !targetData.DeviceAndAppManagementAssignmentFilterId.IsNull() && !targetData.DeviceAndAppManagementAssignmentFilterId.IsUnknown() {
 		filterId := targetData.DeviceAndAppManagementAssignmentFilterId.ValueString()
 		target.SetDeviceAndAppManagementAssignmentFilterId(&filterId)

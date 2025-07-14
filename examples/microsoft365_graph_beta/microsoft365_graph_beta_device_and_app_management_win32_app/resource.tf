@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_device_and_app_management_win32_lob_app" "example" {
+resource "microsoft365_graph_beta_device_and_app_management_win32_app" "example" {
   allow_available_uninstall = true
 
   app_installer = {
