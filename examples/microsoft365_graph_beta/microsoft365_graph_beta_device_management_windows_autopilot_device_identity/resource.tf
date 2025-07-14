@@ -5,7 +5,7 @@
 resource "microsoft365_graph_beta_device_management_windows_autopilot_device_identity" "example_with_user" {
   # Required field - must be unique per device
   serial_number = "EXAMPLESERIAL123"
-  
+
   # Optional fields for device identification and organization
   group_tag                 = "Finance-Dept" # Used for targeting specific deployment profiles
   purchase_order_identifier = "PO-12345"     # For tracking procurement information
@@ -13,14 +13,14 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_ide
   display_name              = "Finance-Laptop-01"
   manufacturer              = "Example Manufacturer"
   model                     = "Example Model"
-  
+
   # User assignment configuration - enables personalized setup
   # Warning: Ensure the UPN exists or device may become inaccessible
   user_assignment {
     user_principal_name = "finance-user@example.com"
     # addressable_user_name is computed and returned by the API
   }
-  
+
   timeouts {
     create = "30m"
     read   = "10m"
@@ -38,9 +38,9 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_ide
   display_name              = "Example Device without User"
   manufacturer              = "Example Manufacturer"
   model                     = "Example Model"
-  
+
   # No user_assignment block means no user will be assigned to this device
-  
+
   timeouts = {
     create = "30m"
     read   = "10m"
