@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.20.0-alpha...v0.21.0-alpha) (2025-07-14)
+
+
+### Features
+
+* added 1st itteration of enterprise app catalog ([65bcd68](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/65bcd68cb69394888fe00c71a470e30c388f634b))
+* added datasource utility_windows_msi_app_metadata with examples ([d547d5c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d547d5c2121ec4e5cf04d72ea023df1cd9c6f29a))
+* added datasource utility_windows_msi_app_metadata with examples ([#593](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/593)) ([370093b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/370093bd1359d99983d5b74d2e64bedd91ee85f9))
+* added ios_store_app with examples ([e6aa49f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e6aa49f6297a50afbbb0829f087c5ec4708b4cd6))
+* added ios_store_app with examples ([#586](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/586)) ([0f9342d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0f9342dd220c2e09582edaf78d7c0b11434cb49d))
+* added mobile_app_relationship datasource and mobile_app_supersedence resource with example ([b5bdc2d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b5bdc2d80edca31c8d55b8a9b9ae9309cf72ac4c))
+* added mobile_app_relationship datasource and mobile_app_supersedence resource with examples ([#591](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/591)) ([4531c1b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4531c1b5b992fe74b379a6dffc07a4f592c83662))
+* added utility_microsoft_store_package_manifest_metadata with examples ([0fb7804](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0fb78041580686f9a4935d79e0da705e31d920b1))
+* added utility_microsoft_store_package_manifest_metadata with examples ([#592](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/592)) ([28187fa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/28187fa4b8c8b8e0d96e1f2775a5907312e57203))
+* added win32_lob_app_with_examples ([ba42395](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ba423951160590485e02af4f9bd1582733aa0410))
+* added win32_lob_app_with_examples ([#594](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/594)) ([ef9ee54](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ef9ee54e11b586aab828df896668625962258659))
+* added windows_autopilot_device_identity with example ([6eb785a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6eb785a71fd73c0dbf87f4e2aed7e0aea7499432))
+* added windows_autopilot_device_identity with example ([#596](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/596)) ([c3f2425](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c3f2425566e7300693b47cff3fb418ca6bf83f00))
+* added windows_web_app resource and ios_ipados_web_clip with examples ([#590](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/590)) ([2b34fe1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2b34fe1d1ce469226c2e7b55aff4b7b76b2058f7))
+* added windows_web_app resource with examples ([d59e19c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d59e19c7e6b685c43b5a83cbd900fbc1da4a662d))
+* initial commit of vpp apps ([58b00f3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/58b00f3169719f3d003fe523577a16f404ba0d09))
+* initial implementation of microsoft_teams resources ([4ee45cf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4ee45cfc924e1f6de39d426b779e22090e6b049a))
+* initial implementation of microsoft_teams resources ([#584](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/584)) ([912c14a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/912c14a61fb0f346d1ac55ad0cbc1a6c1eef140b))
+
+
+### Bug Fixes
+
+* for macos platform script assignments ([32a67de](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/32a67ded912795e02aebd4c107ba821fa6c44088))
+* for windows 32 log app ([69d45c1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/69d45c1c757b7d406933798c91fb87739f99bd24))
+* macos script assignments ([#581](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/581)) ([2635444](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2635444fd9ac8beb68aeac0c0f4eacd1152a9528))
+* updated all mobile apps to support all image types and added http[s] validators with constants consistently ([89d6277](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/89d6277b081e1973e392a6b4cd08d5fb8aaa7443))
+
 ## [0.20.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.19.0-alpha...v0.20.0-alpha) (2025-07-03)
 
 
