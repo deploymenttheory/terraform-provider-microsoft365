@@ -76,14 +76,14 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 - `display_name` (String) Name of the device management script.
 - `file_name` (String) Script file name.
 - `run_as_account` (String) Indicates the type of execution context. Possible values: system, user.
-- `script_content` (String, Sensitive) The script content.
+- `script_content` (String) The script content.
 
 ### Optional
 
 - `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
 - `custom_attribute_name` (String) The name of the custom attribute.
 - `description` (String) Optional description for the device management script.
-- `role_scope_tag_ids` (Set of String) List of Scope Tag IDs for this PowerShellScript instance.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

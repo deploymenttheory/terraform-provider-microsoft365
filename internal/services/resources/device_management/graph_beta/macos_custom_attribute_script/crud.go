@@ -31,7 +31,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Create(ctx context.Context, r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for create method",
@@ -167,7 +167,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",

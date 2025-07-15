@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_settings_catalog"
+	ResourceName  = "graph_beta_device_management_settings_catalog_configuration_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -108,14 +108,57 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				MarkdownDescription: "Optional description for the settings catalog policy.",
 			},
-			"settings_catalog_template_type": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: "Defines which settings catalog setting template will be deployed. " +
-					"Unused by non settings catalog template items, but required in schema to satisify tfsdk model.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+			"template_reference": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Policy template reference information",
+				Attributes: map[string]schema.Attribute{
+					"template_id": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "Template ID to reference. This is a UUID that identifies a specific template in Microsoft Intune.",
+					},
+					"template_family": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Describes the TemplateFamily for the Template entity. This is a read-only property.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								"none",
+								"endpointSecurityAntivirus",
+								"endpointSecurityDiskEncryption",
+								"endpointSecurityFirewall",
+								"endpointSecurityEndpointDetectionAndResponse",
+								"endpointSecurityAttackSurfaceReduction",
+								"endpointSecurityAccountProtection",
+								"endpointSecurityApplicationControl",
+								"endpointSecurityEndpointPrivilegeManagement",
+								"enrollmentConfiguration",
+								"appQuietTime",
+								"baseline",
+								"unknownFutureValue",
+								"deviceConfigurationScripts",
+								"deviceConfigurationPolicies",
+								"windowsOsRecoveryPolicies",
+								"companyPortal",
+							),
+						},
+					},
+					"template_display_name": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Template Display Name of the referenced template. This property is read-only.",
+					},
+					"template_display_version": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Template Display Version of the referenced Template. This property is read-only.",
+					},
 				},
 			},
+			// "settings_catalog_template_type": schema.StringAttribute{
+			// 	Computed: true,
+			// 	MarkdownDescription: "Defines which settings catalog setting template will be deployed. " +
+			// 		"Unused by non settings catalog template items, but required in schema to satisify tfsdk model.",
+			// 	PlanModifiers: []planmodifier.String{
+			// 		stringplanmodifier.UseStateForUnknown(),
+			// 	},
+			// },
 			"configuration_policy": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Settings Catalog (configuration policy) settings",
@@ -169,6 +212,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					),
 				},
 			},
+
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
