@@ -19,7 +19,7 @@ require (
 	github.com/microsoft/kiota-abstractions-go v1.9.2
 	github.com/microsoft/kiota-http-go v1.5.4
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.142.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.144.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.77.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/sassoftware/relic/v8 v8.2.0
