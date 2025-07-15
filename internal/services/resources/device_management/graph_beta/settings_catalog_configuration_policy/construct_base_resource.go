@@ -63,6 +63,25 @@ func constructResource(ctx context.Context, data *SettingsCatalogProfileResource
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
+	// Optionally set template reference if provided
+	if data.TemplateReference != nil {
+		templateRef := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
+
+		if !data.TemplateReference.TemplateId.IsNull() && !data.TemplateReference.TemplateId.IsUnknown() {
+			convert.FrameworkToGraphString(data.TemplateReference.TemplateId, templateRef.SetTemplateId)
+		}
+
+		if !data.TemplateReference.TemplateFamily.IsNull() && !data.TemplateReference.TemplateFamily.IsUnknown() {
+			templateFamilyStr := data.TemplateReference.TemplateFamily.ValueString()
+			templateFamily, err := graphmodels.ParseDeviceManagementConfigurationTemplateFamily(templateFamilyStr)
+			if err == nil && templateFamily != nil {
+				templateRef.SetTemplateFamily(templateFamily.(*graphmodels.DeviceManagementConfigurationTemplateFamily))
+			}
+		}
+
+		requestBody.SetTemplateReference(templateRef)
+	}
+
 	settings := ConstructSettingsCatalogSettings(ctx, *data.ConfigurationPolicy)
 	requestBody.SetSettings(settings)
 

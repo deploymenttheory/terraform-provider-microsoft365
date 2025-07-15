@@ -30,7 +30,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = convert.GraphToFrameworkInt32(remoteResource.GetSettingCount())
 	// SettingsCatalogTemplateType are not set by this resource type. But the field is required to satisfy schema.
-	data.SettingsCatalogTemplateType = types.StringValue("")
+	//data.SettingsCatalogTemplateType = types.StringValue("")
 
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
@@ -40,6 +40,22 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *SettingsCatalo
 
 	if technologies := remoteResource.GetTechnologies(); technologies != nil {
 		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
+	}
+
+	// Handle template reference if available
+	if templateRef := remoteResource.GetTemplateReference(); templateRef != nil {
+		if data.TemplateReference == nil {
+			data.TemplateReference = &TemplateReferenceResourceModel{}
+		}
+
+		data.TemplateReference.TemplateId = convert.GraphToFrameworkString(templateRef.GetTemplateId())
+
+		if templateFamily := templateRef.GetTemplateFamily(); templateFamily != nil {
+			data.TemplateReference.TemplateFamily = convert.GraphToFrameworkEnum(templateFamily)
+		}
+
+		data.TemplateReference.TemplateDisplayName = convert.GraphToFrameworkString(templateRef.GetTemplateDisplayName())
+		data.TemplateReference.TemplateDisplayVersion = convert.GraphToFrameworkString(templateRef.GetTemplateDisplayVersion())
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
