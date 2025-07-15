@@ -9,10 +9,12 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -92,6 +94,17 @@ func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, r
 				},
 				MarkdownDescription: "The unique identifier for the custom attribute shell script.",
 			},
+			"display_name": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Name of the device management script.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"description": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional description for the device management script.",
+			},
 			"custom_attribute_name": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -103,18 +116,12 @@ func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, r
 				Validators: []validator.String{
 					stringvalidator.OneOf("integer", "string", "dateTime"),
 				},
-			},
-			"display_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Name of the device management script.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional description for the device management script.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"script_content": schema.StringAttribute{
 				Required:            true,
-				Sensitive:           true,
 				MarkdownDescription: "The script content.",
 			},
 			"run_as_account": schema.StringAttribute{
@@ -132,7 +139,12 @@ func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, r
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "List of Scope Tag IDs for this PowerShellScript instance.",
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,

@@ -10,15 +10,20 @@ import (
 	msgraphbetamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *DeviceCustomAttributeShellScriptResourceModel) (msgraphbetamodels.DeviceCustomAttributeShellScriptable, error) {
+func constructResource(ctx context.Context, data *DeviceCustomAttributeShellScriptResourceModel, isCreate bool) (msgraphbetamodels.DeviceCustomAttributeShellScriptable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 	requestBody := msgraphbetamodels.NewDeviceCustomAttributeShellScript()
 
 	convert.FrameworkToGraphString(data.CustomAttributeName, requestBody.SetCustomAttributeName)
-	if err := convert.FrameworkToGraphEnum(data.CustomAttributeType, msgraphbetamodels.ParseDeviceCustomAttributeValueType, requestBody.SetCustomAttributeType); err != nil {
-		return nil, err
+
+	// Only set these values during creates. 400's the req in updates
+	if isCreate {
+		if err := convert.FrameworkToGraphEnum(data.CustomAttributeType, msgraphbetamodels.ParseDeviceCustomAttributeValueType, requestBody.SetCustomAttributeType); err != nil {
+			return nil, err
+		}
+		convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	}
-	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphBytes(data.ScriptContent, requestBody.SetScriptContent)
 
