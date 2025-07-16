@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.2-alpha...v0.21.3-alpha) (2025-07-16)
+
+
+### Bug Fixes
+
+* added assignment removal to deletion of CloudPcProvisioningPolicy resource ([#610](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/610)) ([aeb93c7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aeb93c78439f676010ef1d2cdb3cf1ca71ff830c))
+* multiple assignment fixes for macos scripts and cloudpc provisioning policies ([#612](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/612)) ([769bb85](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/769bb85cc8d573418652b3e21646f1488886445b))
+
 ## [0.21.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.1-alpha...v0.21.2-alpha) (2025-07-16)
 
 
