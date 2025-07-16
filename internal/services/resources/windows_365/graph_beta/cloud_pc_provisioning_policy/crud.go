@@ -380,7 +380,37 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	err := r.client.
+	tflog.Debug(ctx, fmt.Sprintf("Removing all assignments for policy ID: %s before deletion", object.ID.ValueString()))
+
+	// Call the assign endpoint with an empty assignments array to remove all assignments
+	// else policy deletion fails with a 400 if there are assignments
+	assignBody, err := constructAssignmentsRequestBody(ctx, []CloudPcProvisioningPolicyAssignmentModel{})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing empty assignments request body",
+			fmt.Sprintf("Could not construct assignments request body: %s", err.Error()),
+		)
+		return
+	}
+
+	err = r.client.
+		DeviceManagement().
+		VirtualEndpoint().
+		ProvisioningPolicies().
+		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, assignBody, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		return
+	}
+
+	tflog.Debug(ctx, "Successfully removed all assignments")
+
+	time.Sleep(2 * time.Second)
+
+	err = r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		ProvisioningPolicies().
