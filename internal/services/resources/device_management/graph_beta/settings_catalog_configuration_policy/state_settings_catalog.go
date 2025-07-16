@@ -264,25 +264,20 @@ func mapSimpleSettingCollection(ctx context.Context, values []graphmodels.Device
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
-		// Handle different value types
-		switch typedValue := value.(type) {
-		case graphmodels.DeviceManagementConfigurationStringSettingValueable:
-			if stringVal := typedValue.GetValue(); stringVal != nil {
-				collectionItem.Value = convert.GraphToFrameworkString(stringVal)
-			}
-
-		case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
-			if intVal := typedValue.GetValue(); intVal != nil {
-				collectionItem.Value = types.StringValue(strconv.Itoa(int(*intVal)))
-			}
-
-		case graphmodels.DeviceManagementConfigurationChoiceSettingValueable:
-			if val := typedValue.GetValue(); val != nil {
+		if stringVal, ok := value.(graphmodels.DeviceManagementConfigurationStringSettingValueable); ok {
+			if val := stringVal.GetValue(); val != nil {
 				collectionItem.Value = convert.GraphToFrameworkString(val)
 			}
-
-		default:
-			return nil, fmt.Errorf("unsupported simple setting collection value type: %T", typedValue)
+		} else if intVal, ok := value.(graphmodels.DeviceManagementConfigurationIntegerSettingValueable); ok {
+			if val := intVal.GetValue(); val != nil {
+				collectionItem.Value = types.StringValue(strconv.Itoa(int(*val)))
+			}
+		} else if choiceVal, ok := value.(graphmodels.DeviceManagementConfigurationChoiceSettingValueable); ok {
+			if val := choiceVal.GetValue(); val != nil {
+				collectionItem.Value = convert.GraphToFrameworkString(val)
+			}
+		} else {
+			return nil, fmt.Errorf("unsupported simple setting collection value type: %T", value)
 		}
 
 		result = append(result, collectionItem)
@@ -298,12 +293,10 @@ func mapChoiceSettingCollection(ctx context.Context, values []graphmodels.Device
 	for _, value := range values {
 		collectionItem := ChoiceSettingCollectionStruct{}
 
-		// Map value
 		if val := value.GetValue(); val != nil {
 			collectionItem.Value = types.StringValue(*val)
 		}
 
-		// Map value template reference
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
