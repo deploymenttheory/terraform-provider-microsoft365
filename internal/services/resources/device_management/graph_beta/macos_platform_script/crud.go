@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -135,7 +136,11 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 		DeviceManagement().
 		DeviceShellScripts().
 		ByDeviceShellScriptId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceShellScriptsDeviceShellScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -143,20 +148,6 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceShellScripts().
-		ByDeviceShellScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
