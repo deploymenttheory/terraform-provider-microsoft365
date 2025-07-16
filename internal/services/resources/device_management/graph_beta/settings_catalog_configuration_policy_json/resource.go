@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalogJson
+package graphBetaSettingsCatalogConfigurationPolicyJson
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_settings_catalog_json"
+	ResourceName  = "graph_beta_device_management_settings_catalog_configuration_policy_json"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180

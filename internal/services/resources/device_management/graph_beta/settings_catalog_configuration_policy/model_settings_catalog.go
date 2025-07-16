@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogConfigurationPolicy
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
