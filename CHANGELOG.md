@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.0-alpha...v0.21.1-alpha) (2025-07-16)
+
+
+### Bug Fixes
+
+* added page itteration to settings_catalog to handle &gt;25 config items within hcl. ([e9bfa49](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e9bfa4956acc56e650b1d4d845f5b902e69ed2fe))
+* added page itteration to settings_catalog to handle &gt;25 config items within hcl. ([#603](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/603)) ([50947df](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/50947df300c70b48cc20ff59424cc382ab98fb06))
+* added template_reference block to device_management_settings_catalog_configuration_policy and updated examples ([0460890](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/046089081783545b364328eed01d2d535075f9f8))
+* for macos_custom_attribute_script resource updates ([c175a29](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c175a29db1dd7d5461a525d834fed444cfbe096c))
+* for macos_custom_attribute_script resource updates and added template_reference block to device_management_settings_catalog_configuration_policy and updated examples ([#601](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/601)) ([38e1a4c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/38e1a4c1e87455be5bd33a1a1d50dafc56c87eba))
+* setValueTemplateReference unreachable case matching ([45709ca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/45709ca36b7a74f4f10f007e6f0612ca0403a731))
+
 ## [0.21.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.20.0-alpha...v0.21.0-alpha) (2025-07-14)
 
 
