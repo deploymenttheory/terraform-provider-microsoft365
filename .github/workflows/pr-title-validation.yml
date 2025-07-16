@@ -15,7 +15,7 @@ jobs:
       - name: Check PR Title
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
-          PATTERN="^(([Ff]eat|[Ff]ix|[Dd]ocs|[Ss]tyle|[Rr]efactor|[Tt]est|[Cc]hore|[Bb]uild|[Cc]i|[Pp]erf)(\(.+\))?: .+|dependabot.*)$"
+          PATTERN="^((feat|fix|docs|style|refactor|test|chore|build|ci|perf)(\(.+\))?: .+|dependabot.*)$"
           
           if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
             echo "❌ ERROR: Invalid PR title format"
@@ -23,17 +23,17 @@ jobs:
             echo "Got PR title: $PR_TITLE"
             echo ""
             echo "PR titles must:"
-            echo "1. Start with one of these prefixes (case-insensitive first letter):"
-            echo "   - feat     / Feat     (for new features)"
-            echo "   - fix      / Fix      (for bug fixes)"
-            echo "   - docs     / Docs     (for documentation)"
-            echo "   - style    / Style    (for formatting)"
-            echo "   - refactor / Refactor (for code restructuring)"
-            echo "   - test     / Test     (for adding tests)"
-            echo "   - chore    / Chore    (for maintenance)"
-            echo "   - build    / Build    (for build system)"
-            echo "   - ci       / CI       (for CI/CD)"
-            echo "   - perf     / Perf     (for performance)"
+            echo "1. Start with one of these prefixes (lowercase only):"
+            echo "   - feat     (for new features)"
+            echo "   - fix      (for bug fixes)"
+            echo "   - docs     (for documentation)"
+            echo "   - style    (for formatting)"
+            echo "   - refactor (for code restructuring)"
+            echo "   - test     (for adding tests)"
+            echo "   - chore    (for maintenance)"
+            echo "   - build    (for build system)"
+            echo "   - ci       (for CI/CD)"
+            echo "   - perf     (for performance)"
             echo ""
             echo "2. Optionally include a scope in parentheses after the type"
             echo ""
@@ -45,6 +45,9 @@ jobs:
             echo "✅ fix: resolve connection timeout"
             echo "✅ fix(database): fix query performance"
             echo "✅ dependabot: bump lodash from 4.17.20 to 4.17.21"
+            echo ""
+            echo "❌ Feat: add new resource (uppercase first letter is not allowed)"
+            echo "❌ FIX: resolve issue (uppercase is not allowed)"
             exit 1
           fi
           
