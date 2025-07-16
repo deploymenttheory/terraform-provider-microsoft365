@@ -103,9 +103,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 
 ### Read-Only
 
-- `created_date_time` (String) The date and time the macOS Platform Script was created. This property is read-only.
 - `id` (String) The unique identifier of the macOS platform script.
-- `last_modified_date_time` (String) The date and time the macOS Platform Script was last modified. This property is read-only.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
