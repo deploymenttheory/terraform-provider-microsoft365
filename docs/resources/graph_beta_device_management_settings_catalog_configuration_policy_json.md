@@ -28,6 +28,8 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.14.1-alpha | Experimental | Initial release |
+| v0.20.1-alpha | Experimental | Changed resource name to microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json |
+
 
 ## Example Usage
 
