@@ -151,14 +151,6 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					},
 				},
 			},
-			// "settings_catalog_template_type": schema.StringAttribute{
-			// 	Computed: true,
-			// 	MarkdownDescription: "Defines which settings catalog setting template will be deployed. " +
-			// 		"Unused by non settings catalog template items, but required in schema to satisify tfsdk model.",
-			// 	PlanModifiers: []planmodifier.String{
-			// 		stringplanmodifier.UseStateForUnknown(),
-			// 	},
-			// },
 			"configuration_policy": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Settings Catalog (configuration policy) settings",
@@ -212,7 +204,6 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 					),
 				},
 			},
-
 			"created_date_time": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{

@@ -13,7 +13,7 @@ import (
 
 // StateConfigurationPolicySettings maps settings from Graph  models to Terraform state
 func StateConfigurationPolicySettings(ctx context.Context, data *SettingsCatalogProfileResourceModel, settingsResponse graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) error {
-	tflog.Debug(ctx, "Starting to map settings from Graph  models to Terraform state")
+	tflog.Debug(ctx, "Starting to map settings from Graph models to Terraform state")
 
 	if settingsResponse == nil {
 		tflog.Debug(ctx, "No settings response data to process")
@@ -26,22 +26,57 @@ func StateConfigurationPolicySettings(ctx context.Context, data *SettingsCatalog
 		return nil
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Processing %d settings from API response", len(settings)))
+
 	// Convert settings to our model
 	deviceConfigModel := &DeviceConfigV2GraphServiceResourceModel{}
 	var mappedSettings []Setting
+	successfulMappings := 0
+	failedMappings := 0
 
-	for _, apiSetting := range settings {
+	for i, apiSetting := range settings {
+		if apiSetting == nil {
+			tflog.Warn(ctx, fmt.Sprintf("Setting at index %d is nil", i))
+			failedMappings++
+			continue
+		}
+
+		// Log details about the setting being processed
+		settingId := "unknown"
+		if id := apiSetting.GetId(); id != nil {
+			settingId = *id
+		}
+
+		settingDefId := "unknown"
+		if instance := apiSetting.GetSettingInstance(); instance != nil {
+			if defId := instance.GetSettingDefinitionId(); defId != nil {
+				settingDefId = *defId
+			}
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Mapping setting %d: ID=%s, DefinitionID=%s", i, settingId, settingDefId))
+
 		setting, err := mapSettingToModel(ctx, apiSetting)
 		if err != nil {
-			tflog.Warn(ctx, "Failed to map setting", map[string]interface{}{
-				"error": err.Error(),
-			})
-			continue
+			tflog.Error(ctx, fmt.Sprintf("Failed to map setting %d (ID: %s, DefinitionID: %s): %s", i, settingId, settingDefId, err.Error()))
+			failedMappings++
+			continue // This is where settings get dropped!
 		}
 
 		if setting != nil {
 			mappedSettings = append(mappedSettings, *setting)
+			successfulMappings++
+			tflog.Debug(ctx, fmt.Sprintf("Successfully mapped setting %d (ID: %s)", i, settingId))
+		} else {
+			tflog.Warn(ctx, fmt.Sprintf("Setting %d (ID: %s) mapped to nil", i, settingId))
+			failedMappings++
 		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Mapping summary: %d successful, %d failed, %d total from API", successfulMappings, failedMappings, len(settings)))
+
+	if failedMappings > 0 {
+		tflog.Error(ctx, fmt.Sprintf("WARNING: %d settings failed to map - this will cause state inconsistency!", failedMappings))
 	}
 
 	deviceConfigModel.Settings = mappedSettings
@@ -264,25 +299,20 @@ func mapSimpleSettingCollection(ctx context.Context, values []graphmodels.Device
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}
 
-		// Handle different value types
-		switch typedValue := value.(type) {
-		case graphmodels.DeviceManagementConfigurationStringSettingValueable:
-			if stringVal := typedValue.GetValue(); stringVal != nil {
-				collectionItem.Value = convert.GraphToFrameworkString(stringVal)
-			}
-
-		case graphmodels.DeviceManagementConfigurationIntegerSettingValueable:
-			if intVal := typedValue.GetValue(); intVal != nil {
-				collectionItem.Value = types.StringValue(strconv.Itoa(int(*intVal)))
-			}
-
-		case graphmodels.DeviceManagementConfigurationChoiceSettingValueable:
-			if val := typedValue.GetValue(); val != nil {
+		if stringVal, ok := value.(graphmodels.DeviceManagementConfigurationStringSettingValueable); ok {
+			if val := stringVal.GetValue(); val != nil {
 				collectionItem.Value = convert.GraphToFrameworkString(val)
 			}
-
-		default:
-			return nil, fmt.Errorf("unsupported simple setting collection value type: %T", typedValue)
+		} else if intVal, ok := value.(graphmodels.DeviceManagementConfigurationIntegerSettingValueable); ok {
+			if val := intVal.GetValue(); val != nil {
+				collectionItem.Value = types.StringValue(strconv.Itoa(int(*val)))
+			}
+		} else if choiceVal, ok := value.(graphmodels.DeviceManagementConfigurationChoiceSettingValueable); ok {
+			if val := choiceVal.GetValue(); val != nil {
+				collectionItem.Value = convert.GraphToFrameworkString(val)
+			}
+		} else {
+			return nil, fmt.Errorf("unsupported simple setting collection value type: %T", value)
 		}
 
 		result = append(result, collectionItem)
@@ -298,12 +328,10 @@ func mapChoiceSettingCollection(ctx context.Context, values []graphmodels.Device
 	for _, value := range values {
 		collectionItem := ChoiceSettingCollectionStruct{}
 
-		// Map value
 		if val := value.GetValue(); val != nil {
 			collectionItem.Value = types.StringValue(*val)
 		}
 
-		// Map value template reference
 		if valueTemplateRef := value.GetSettingValueTemplateReference(); valueTemplateRef != nil {
 			collectionItem.SettingValueTemplateReference = mapValueTemplateReference(valueTemplateRef)
 		}

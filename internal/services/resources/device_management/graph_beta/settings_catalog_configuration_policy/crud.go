@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
 // Create handles the Create operation for Settings Catalog resources.
@@ -124,7 +125,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 //   - Retrieves the current state from the read request
 //   - Gets the base resource details from the API
 //   - Maps the base resource details to Terraform state
-//   - Gets the settings configuration from the API
+//   - Gets the settings configuration from the API using @odata.nextLink
 //   - Maps the settings configuration to Terraform state
 //   - Gets the assignments configuration from the API
 //   - Maps the assignments configuration to Terraform state
@@ -135,7 +136,6 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
-	var settingsResponse models.DeviceManagementConfigurationSettingCollectionResponseable
 	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -172,19 +172,19 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	settingsResponse, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Settings().
-		Get(ctx, nil)
+	// Use PageIterator from graph core as default response returns only the first 25 settings.
+	tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for settings")
 
+	allSettings, err := r.getAllPolicySettingsWithPageIterator(ctx, object.ID.ValueString())
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	err = StateConfigurationPolicySettings(ctx, &object, settingsResponse)
+	combinedSettingsResponse := models.NewDeviceManagementConfigurationSettingCollectionResponse()
+	combinedSettingsResponse.SetValue(allSettings)
+
+	err = StateConfigurationPolicySettings(ctx, &object, combinedSettingsResponse)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error mapping settings state",
@@ -213,6 +213,56 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
+}
+
+func (r *SettingsCatalogResource) getAllPolicySettingsWithPageIterator(ctx context.Context, policyId string) ([]models.DeviceManagementConfigurationSettingable, error) {
+	var allSettings []models.DeviceManagementConfigurationSettingable
+
+	// Get the first page
+	settingsResponse, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(policyId).
+		Settings().
+		Get(ctx, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Init page iterator with the first page of settings
+	pageIterator, err := graphcore.NewPageIterator[models.DeviceManagementConfigurationSettingable](
+		settingsResponse,
+		r.client.GetAdapter(),
+		models.CreateDeviceManagementConfigurationSettingCollectionResponseFromDiscriminatorValue,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create page iterator: %w", err)
+	}
+
+	// Collect all items using the iterator
+	pageCount := 0
+	err = pageIterator.Iterate(ctx, func(item models.DeviceManagementConfigurationSettingable) bool {
+		if item != nil {
+			allSettings = append(allSettings, item)
+
+			// Log every 25 items (default page size)
+			if len(allSettings)%25 == 0 {
+				pageCount++
+				tflog.Debug(ctx, fmt.Sprintf("PageIterator: collected %d settings (estimated page %d)", len(allSettings), pageCount))
+			}
+		}
+		return true
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to iterate pages: %w", err)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("PageIterator complete: collected %d total settings", len(allSettings)))
+
+	return allSettings, nil
 }
 
 // Update handles the Update operation for Settings Catalog resources.
