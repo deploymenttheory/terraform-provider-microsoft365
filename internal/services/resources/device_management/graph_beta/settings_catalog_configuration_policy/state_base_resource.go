@@ -1,4 +1,4 @@
-package graphBetaSettingsCatalog
+package graphBetaSettingsCatalogConfigurationPolicy
 
 import (
 	"context"
