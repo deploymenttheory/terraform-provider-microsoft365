@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_windows_driver_update_inventory"
+	DataSourceName = "graph_beta_device_management_windows_driver_update_inventory"
 	ReadTimeout    = 180
 )
 
