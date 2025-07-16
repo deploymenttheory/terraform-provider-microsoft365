@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.1-alpha...v0.21.2-alpha) (2025-07-16)
+
+
+### Bug Fixes
+
+* doc gen for device_management_windows_driver_update_profile and device_management_windows_driver_update_inventory datasources ([#607](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/607)) ([bacccc7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bacccc7cc7d6305753c15085e0724d215f3c889f))
+
 ## [0.21.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.0-alpha...v0.21.1-alpha) (2025-07-16)
 
 
