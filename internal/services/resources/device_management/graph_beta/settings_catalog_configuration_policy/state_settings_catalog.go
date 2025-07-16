@@ -13,7 +13,7 @@ import (
 
 // StateConfigurationPolicySettings maps settings from Graph  models to Terraform state
 func StateConfigurationPolicySettings(ctx context.Context, data *SettingsCatalogProfileResourceModel, settingsResponse graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) error {
-	tflog.Debug(ctx, "Starting to map settings from Graph  models to Terraform state")
+	tflog.Debug(ctx, "Starting to map settings from Graph models to Terraform state")
 
 	if settingsResponse == nil {
 		tflog.Debug(ctx, "No settings response data to process")
@@ -26,22 +26,57 @@ func StateConfigurationPolicySettings(ctx context.Context, data *SettingsCatalog
 		return nil
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Processing %d settings from API response", len(settings)))
+
 	// Convert settings to our model
 	deviceConfigModel := &DeviceConfigV2GraphServiceResourceModel{}
 	var mappedSettings []Setting
+	successfulMappings := 0
+	failedMappings := 0
 
-	for _, apiSetting := range settings {
+	for i, apiSetting := range settings {
+		if apiSetting == nil {
+			tflog.Warn(ctx, fmt.Sprintf("Setting at index %d is nil", i))
+			failedMappings++
+			continue
+		}
+
+		// Log details about the setting being processed
+		settingId := "unknown"
+		if id := apiSetting.GetId(); id != nil {
+			settingId = *id
+		}
+
+		settingDefId := "unknown"
+		if instance := apiSetting.GetSettingInstance(); instance != nil {
+			if defId := instance.GetSettingDefinitionId(); defId != nil {
+				settingDefId = *defId
+			}
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Mapping setting %d: ID=%s, DefinitionID=%s", i, settingId, settingDefId))
+
 		setting, err := mapSettingToModel(ctx, apiSetting)
 		if err != nil {
-			tflog.Warn(ctx, "Failed to map setting", map[string]interface{}{
-				"error": err.Error(),
-			})
-			continue
+			tflog.Error(ctx, fmt.Sprintf("Failed to map setting %d (ID: %s, DefinitionID: %s): %s", i, settingId, settingDefId, err.Error()))
+			failedMappings++
+			continue // This is where settings get dropped!
 		}
 
 		if setting != nil {
 			mappedSettings = append(mappedSettings, *setting)
+			successfulMappings++
+			tflog.Debug(ctx, fmt.Sprintf("Successfully mapped setting %d (ID: %s)", i, settingId))
+		} else {
+			tflog.Warn(ctx, fmt.Sprintf("Setting %d (ID: %s) mapped to nil", i, settingId))
+			failedMappings++
 		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Mapping summary: %d successful, %d failed, %d total from API", successfulMappings, failedMappings, len(settings)))
+
+	if failedMappings > 0 {
+		tflog.Error(ctx, fmt.Sprintf("WARNING: %d settings failed to map - this will cause state inconsistency!", failedMappings))
 	}
 
 	deviceConfigModel.Settings = mappedSettings
