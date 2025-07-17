@@ -26,7 +26,11 @@ param (
     
     [Parameter(Mandatory=$true,
     HelpMessage="Export results to HCL/Terraform file (optional)")]
-    [bool]$ExportToHcl = $false
+    [bool]$ExportToHcl = $false,
+    
+    [Parameter(Mandatory=$false,
+    HelpMessage="Enable verbose debug output")]
+    [bool]$EnableDebug = $false
 )
 
 # Usage Examples:
@@ -34,8 +38,25 @@ param (
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToJson $true
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToHcl $true
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToJson $true -ExportToHcl $true
+# .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToHcl $true -EnableDebug $true
 
 Import-Module Microsoft.Graph.Authentication
+
+function Write-DebugInfo {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+        [Parameter(Mandatory=$false)]
+        [object]$Data = $null
+    )
+    
+    if ($EnableDebug) {
+        Write-Host "🐛 DEBUG: $Message" -ForegroundColor Yellow
+        if ($Data) {
+            Write-Host "   Data: $($Data | ConvertTo-Json -Depth 2 -Compress)" -ForegroundColor Gray
+        }
+    }
+}
 
 function Get-PaginatedResults {
     param (
@@ -57,7 +78,25 @@ function Get-PaginatedResults {
             
             $response = Invoke-MgGraphRequest -Method GET -Uri $currentUri
             
+            Write-DebugInfo "API Response structure" @{
+                "hasValue" = ($null -ne $response.value)
+                "valueType" = if ($response.value) { $response.value.GetType().Name } else { "null" }
+                "valueCount" = if ($response.value) { $response.value.Count } else { 0 }
+                "responseKeys" = $response.PSObject.Properties.Name
+            }
+            
             if ($response.value) {
+                # Log each item being added
+                for ($i = 0; $i -lt $response.value.Count; $i++) {
+                    $item = $response.value[$i]
+                    Write-DebugInfo "Adding item $i to results" @{
+                        "isNull" = ($null -eq $item)
+                        "type" = if ($item) { $item.GetType().Name } else { "null" }
+                        "hasId" = if ($item) { ($null -ne $item.id) } else { $false }
+                        "hasSettingInstance" = if ($item) { ($null -ne $item.settingInstance) } else { $false }
+                    }
+                }
+                
                 $allResults += $response.value
             }
             
@@ -65,6 +104,13 @@ function Get-PaginatedResults {
         } while ($currentUri)
 
         Write-Host "   ✅ Retrieved $($allResults.Count) total results from $pageCount page(s)" -ForegroundColor Green
+        
+        Write-DebugInfo "Final allResults array" @{
+            "count" = $allResults.Count
+            "firstItemIsNull" = if ($allResults.Count -gt 0) { ($null -eq $allResults[0]) } else { "no items" }
+            "types" = if ($allResults.Count -gt 0) { $allResults | ForEach-Object { if ($_ -eq $null) { "null" } else { $_.GetType().Name } } } else { @() }
+        }
+        
         return $allResults
     }
     catch {
@@ -106,23 +152,82 @@ function Get-SettingsCatalogPolicy {
         
         $policy = Invoke-MgGraphRequest -Method GET -Uri $policyUri
         Write-Host "   ✅ Policy retrieved successfully" -ForegroundColor Green
+        Write-DebugInfo "Policy metadata" @{
+            "name" = $policy.name
+            "platforms" = $policy.platforms
+            "technologies" = $policy.technologies
+            "settingCount" = $policy.settingCount
+        }
         
         $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$PolicyId/settings"
         Write-Host "   Settings Endpoint: $settingsUri" -ForegroundColor Gray
         
         $allSettings = Get-PaginatedResults -InitialUri $settingsUri
+        Write-DebugInfo "Raw settings count" $allSettings.Count
         
-        # Format settings with sequential IDs
-        $formattedSettings = @()
-        for($i = 0; $i -lt $allSettings.Count; $i++) {
-            $formattedSettings += @{
-                id = $i.ToString()
-                settingInstance = $allSettings[$i].settingInstance
+        # Debug: Check the actual contents of $allSettings
+        Write-DebugInfo "allSettings array details" @{
+            "count" = $allSettings.Count
+            "isArray" = $allSettings -is [Array]
+            "type" = $allSettings.GetType().Name
+        }
+        
+        # FIXED: Handle both single object and array cases
+        # Force $allSettings to be an array to handle single object case
+        if ($allSettings -is [Array]) {
+            $settingsArray = $allSettings
+        } else {
+            # Single object - wrap in array
+            $settingsArray = @($allSettings)
+        }
+        
+        Write-DebugInfo "Normalized settings array" @{
+            "count" = $settingsArray.Count
+            "isArray" = $settingsArray -is [Array]
+            "type" = $settingsArray.GetType().Name
+        }
+        
+        # Debug: Check each item in the normalized array
+        for ($j = 0; $j -lt $settingsArray.Count; $j++) {
+            $item = $settingsArray[$j]
+            Write-DebugInfo "settingsArray[$j] details" @{
+                "isNull" = ($null -eq $item)
+                "type" = if ($item) { $item.GetType().Name } else { "null" }
+                "hasId" = if ($item) { [bool]($item.PSObject.Properties['id']) } else { $false }
+                "hasSettingInstance" = if ($item) { [bool]($item.PSObject.Properties['settingInstance']) } else { $false }
+                "properties" = if ($item) { $item.PSObject.Properties.Name } else { @() }
             }
         }
         
+        # FIXED: Use the normalized array instead of the raw response
+        $formattedSettings = @()
+        for($i = 0; $i -lt $settingsArray.Count; $i++) {
+            $currentSetting = $settingsArray[$i]
+            
+            Write-DebugInfo "Processing setting $i" @{
+                "id" = $currentSetting.id
+                "hasSettingInstance" = ($null -ne $currentSetting.settingInstance)
+                "settingInstanceType" = $currentSetting.settingInstance.'@odata.type'
+                "isNull" = ($null -eq $currentSetting)
+            }
+            
+            # Skip null settings
+            if ($null -eq $currentSetting) {
+                Write-Warning "⚠️ Skipping null setting at index $i"
+                continue
+            }
+            
+            # Add ID if not present (some APIs include it, some don't)
+            if (-not $currentSetting.id) {
+                $currentSetting | Add-Member -NotePropertyName 'id' -NotePropertyValue $i.ToString()
+            }
+            
+            # Add the complete setting object (which already contains settingInstance)
+            $formattedSettings += $currentSetting
+        }
+        
         # Add formatted settings to policy object
-        $policy | Add-Member -NotePropertyName 'settings' -NotePropertyValue $formattedSettings
+        $policy | Add-Member -NotePropertyName 'settings' -NotePropertyValue $formattedSettings -Force
         
         Write-Host "   ✅ Settings processed: $($formattedSettings.Count) setting(s)" -ForegroundColor Green
         Write-Host ""
@@ -201,13 +306,27 @@ function Convert-PolicyToHcl {
     
     $description = if ($Policy.description) { $Policy.description } else { "" }
     
+    # Handle technologies as array
+    $technologies = if ($Policy.technologies) {
+        ($Policy.technologies -split ',' | ForEach-Object { '"' + $_.Trim() + '"' }) -join ', '
+    } else {
+        '""'
+    }
+    
+    # Handle roleScopeTagIds as array
+    $roleScopeTagIds = if ($Policy.roleScopeTagIds) {
+        ($Policy.roleScopeTagIds | ForEach-Object { '"' + $_ + '"' }) -join ', '
+    } else {
+        '"0"'
+    }
+    
     $hcl = @"
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "$resourceName" {
   name               = "$($Policy.name)"
   description        = "$description"
   platforms          = "$($Policy.platforms)"
-  technologies       = [$(($Policy.technologies -split ',' | ForEach-Object { '"' + $_.Trim() + '"' }) -join ', ')]
-  role_scope_tag_ids = [$(($Policy.roleScopeTagIds | ForEach-Object { '"' + $_ + '"' }) -join ', ')]
+  technologies       = [$technologies]
+  role_scope_tag_ids = [$roleScopeTagIds]
 
   template_reference = {
     template_id = "$($Policy.templateReference.templateId)"
@@ -270,6 +389,16 @@ function Convert-SettingInstanceToHcl {
     $indent = " " * $IndentLevel
     $hcl = ""
     
+    Write-DebugInfo "Converting SettingInstance" @{
+        "odata.type" = $SettingInstance.'@odata.type'
+        "settingDefinitionId" = $SettingInstance.settingDefinitionId
+        "hasSimpleValue" = ($null -ne $SettingInstance.simpleSettingValue)
+        "hasChoiceValue" = ($null -ne $SettingInstance.choiceSettingValue)
+        "hasGroupCollectionValue" = ($null -ne $SettingInstance.groupSettingCollectionValue)
+        "hasSimpleCollectionValue" = ($null -ne $SettingInstance.simpleSettingCollectionValue)
+        "hasGroupValue" = ($null -ne $SettingInstance.groupSettingValue)
+    }
+    
     # Handle @odata.type
     if ($SettingInstance.'@odata.type') {
         $hcl += "`n$indent" + "odata_type = `"$($SettingInstance.'@odata.type')`""
@@ -282,25 +411,33 @@ function Convert-SettingInstanceToHcl {
     
     # Handle settingInstanceTemplateReference
     if ($SettingInstance.settingInstanceTemplateReference) {
-        $hcl += "`n$indent" + "setting_instance_template_reference = $($SettingInstance.settingInstanceTemplateReference)"
+        $hcl += "`n$indent" + "setting_instance_template_reference = `"$($SettingInstance.settingInstanceTemplateReference)`""
     } else {
         $hcl += "`n$indent" + "setting_instance_template_reference = null"
     }
     
-    # Handle different setting value types
+    # Handle different setting value types - order matters for proper detection
     if ($SettingInstance.simpleSettingValue) {
+        Write-DebugInfo "Processing simpleSettingValue" $SettingInstance.simpleSettingValue
         $hcl += "`n$indent" + "simple_setting_value = {"
         $hcl += Convert-SimpleSettingValueToHcl -SimpleSettingValue $SettingInstance.simpleSettingValue -IndentLevel ($IndentLevel + 2)
         $hcl += "`n$indent" + "}"
     }
     
     if ($SettingInstance.choiceSettingValue) {
+        Write-DebugInfo "Processing choiceSettingValue" @{
+            "value" = $SettingInstance.choiceSettingValue.value
+            "childrenCount" = if ($SettingInstance.choiceSettingValue.children) { $SettingInstance.choiceSettingValue.children.Count } else { 0 }
+        }
         $hcl += "`n$indent" + "choice_setting_value = {"
         $hcl += Convert-ChoiceSettingValueToHcl -ChoiceSettingValue $SettingInstance.choiceSettingValue -IndentLevel ($IndentLevel + 2)
         $hcl += "`n$indent" + "}"
     }
     
     if ($SettingInstance.groupSettingCollectionValue) {
+        Write-DebugInfo "Processing groupSettingCollectionValue" @{
+            "itemCount" = $SettingInstance.groupSettingCollectionValue.Count
+        }
         $hcl += "`n$indent" + "group_setting_collection_value = ["
         foreach ($groupValue in $SettingInstance.groupSettingCollectionValue) {
             $hcl += "`n$indent" + "  {"
@@ -309,6 +446,44 @@ function Convert-SettingInstanceToHcl {
         }
         $hcl = $hcl.TrimEnd(',')
         $hcl += "`n$indent" + "]"
+    }
+    
+    # Handle simple setting collection value (for arrays like URLs)
+    if ($SettingInstance.simpleSettingCollectionValue) {
+        Write-DebugInfo "Processing simpleSettingCollectionValue" @{
+            "itemCount" = $SettingInstance.simpleSettingCollectionValue.Count
+        }
+        $hcl += "`n$indent" + "simple_setting_collection_value = ["
+        foreach ($simpleValue in $SettingInstance.simpleSettingCollectionValue) {
+            $hcl += "`n$indent" + "  {"
+            $hcl += Convert-SimpleSettingValueToHcl -SimpleSettingValue $simpleValue -IndentLevel ($IndentLevel + 4)
+            $hcl += "`n$indent" + "  },"
+        }
+        $hcl = $hcl.TrimEnd(',')
+        $hcl += "`n$indent" + "]"
+    }
+    
+    # Handle group setting value (single group, not collection)
+    if ($SettingInstance.groupSettingValue) {
+        Write-DebugInfo "Processing groupSettingValue" $SettingInstance.groupSettingValue
+        $hcl += "`n$indent" + "group_setting_value = {"
+        $hcl += Convert-GroupSettingValueToHcl -GroupSettingValue $SettingInstance.groupSettingValue -IndentLevel ($IndentLevel + 2)
+        $hcl += "`n$indent" + "}"
+    }
+    
+    # Check for any unsupported patterns
+    $supportedProperties = @('@odata.type', 'settingDefinitionId', 'settingInstanceTemplateReference', 
+                            'simpleSettingValue', 'choiceSettingValue', 'groupSettingCollectionValue', 
+                            'simpleSettingCollectionValue', 'groupSettingValue')
+    
+    foreach ($property in $SettingInstance.PSObject.Properties.Name) {
+        if ($property -notin $supportedProperties) {
+            Write-Warning "🚨 Unsupported property detected: $property in SettingInstance"
+            Write-DebugInfo "Unsupported property" @{
+                "property" = $property
+                "value" = $SettingInstance.$property
+            }
+        }
     }
     
     return $hcl
@@ -330,7 +505,7 @@ function Convert-SimpleSettingValueToHcl {
     }
     
     if ($SimpleSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = $($SimpleSettingValue.settingValueTemplateReference)"
+        $hcl += "`n$indent" + "setting_value_template_reference = `"$($SimpleSettingValue.settingValueTemplateReference)`""
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -343,6 +518,8 @@ function Convert-SimpleSettingValueToHcl {
     if ($SimpleSettingValue.value -ne $null) {
         if ($SimpleSettingValue.'@odata.type' -match 'Integer') {
             $hcl += "`n$indent" + "value = $($SimpleSettingValue.value)"
+        } elseif ($SimpleSettingValue.'@odata.type' -match 'Boolean') {
+            $hcl += "`n$indent" + "value = $($SimpleSettingValue.value.ToString().ToLower())"
         } else {
             # Escape quotes in string values
             $escapedValue = $SimpleSettingValue.value -replace '"', '\"'
@@ -365,7 +542,7 @@ function Convert-ChoiceSettingValueToHcl {
     $hcl = ""
     
     if ($ChoiceSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = $($ChoiceSettingValue.settingValueTemplateReference)"
+        $hcl += "`n$indent" + "setting_value_template_reference = `"$($ChoiceSettingValue.settingValueTemplateReference)`""
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -402,7 +579,7 @@ function Convert-GroupSettingValueToHcl {
     $hcl = ""
     
     if ($GroupSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = $($GroupSettingValue.settingValueTemplateReference)"
+        $hcl += "`n$indent" + "setting_value_template_reference = `"$($GroupSettingValue.settingValueTemplateReference)`""
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -497,46 +674,84 @@ function Show-PolicyDetails {
         }
     }
     
-    # Settings information
+    # Settings information - ENHANCED to show nested structure
     if ($Policy.settings -and $Policy.settings.Count -gt 0) {
         Write-Host "   • settings ($($Policy.settings.Count) setting(s)):" -ForegroundColor Green
         foreach ($setting in $Policy.settings) {
             Write-Host "     · Setting ID: $($setting.id)" -ForegroundColor Yellow
             if ($setting.settingInstance) {
-                $instance = $setting.settingInstance
-                Write-Host "       - settingDefinitionId: $($instance.settingDefinitionId)" -ForegroundColor Magenta
-                Write-Host "       - settingInstanceTemplateId: $($instance.settingInstanceTemplateId)" -ForegroundColor Magenta
-                
-                if ($instance.simpleSettingValue) {
-                    Write-Host "       - simpleSettingValue:" -ForegroundColor Magenta
-                    Write-Host "         · value: $($instance.simpleSettingValue.value)" -ForegroundColor White
-                    Write-Host "         · valueType: $($instance.simpleSettingValue.valueType)" -ForegroundColor White
-                }
-                
-                if ($instance.choiceSettingValue) {
-                    Write-Host "       - choiceSettingValue:" -ForegroundColor Magenta
-                    Write-Host "         · value: $($instance.choiceSettingValue.value)" -ForegroundColor White
-                    Write-Host "         · settingValueTemplateId: $($instance.choiceSettingValue.settingValueTemplateId)" -ForegroundColor White
-                    
-                    if ($instance.choiceSettingValue.children) {
-                        Write-Host "         · children:" -ForegroundColor White
-                        foreach ($child in $instance.choiceSettingValue.children) {
-                            Write-Host "           - settingDefinitionId: $($child.settingDefinitionId)" -ForegroundColor Gray
-                            Write-Host "           - settingInstanceTemplateId: $($child.settingInstanceTemplateId)" -ForegroundColor Gray
-                        }
-                    }
-                }
-                
-                if ($instance.groupSettingCollectionValue) {
-                    Write-Host "       - groupSettingCollectionValue:" -ForegroundColor Magenta
-                    Write-Host "         · children count: $($instance.groupSettingCollectionValue.children.Count)" -ForegroundColor White
-                }
+                Show-SettingInstanceDetails -SettingInstance $setting.settingInstance -IndentLevel 3
             }
         }
     }
     
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host ""
+}
+
+function Show-SettingInstanceDetails {
+    param (
+        [Parameter(Mandatory=$true)]
+        $SettingInstance,
+        [Parameter(Mandatory=$true)]
+        [int]$IndentLevel
+    )
+    
+    $indent = "       " + ("  " * $IndentLevel)
+    
+    if ($SettingInstance) {
+        Write-Host "$indent- @odata.type: $($SettingInstance.'@odata.type')" -ForegroundColor Magenta
+        Write-Host "$indent- settingDefinitionId: $($SettingInstance.settingDefinitionId)" -ForegroundColor Magenta
+        
+        if ($SettingInstance.simpleSettingValue) {
+            Write-Host "$indent- simpleSettingValue:" -ForegroundColor Magenta
+            Write-Host "$indent  · value: $($SettingInstance.simpleSettingValue.value)" -ForegroundColor White
+            Write-Host "$indent  · @odata.type: $($SettingInstance.simpleSettingValue.'@odata.type')" -ForegroundColor White
+        }
+        
+        if ($SettingInstance.choiceSettingValue) {
+            Write-Host "$indent- choiceSettingValue:" -ForegroundColor Magenta
+            Write-Host "$indent  · value: $($SettingInstance.choiceSettingValue.value)" -ForegroundColor White
+            
+            if ($SettingInstance.choiceSettingValue.children -and $SettingInstance.choiceSettingValue.children.Count -gt 0) {
+                Write-Host "$indent  · children ($($SettingInstance.choiceSettingValue.children.Count)):" -ForegroundColor White
+                foreach ($child in $SettingInstance.choiceSettingValue.children) {
+                    Show-SettingInstanceDetails -SettingInstance $child -IndentLevel ($IndentLevel + 2)
+                }
+            }
+        }
+        
+        if ($SettingInstance.groupSettingCollectionValue) {
+            Write-Host "$indent- groupSettingCollectionValue ($($SettingInstance.groupSettingCollectionValue.Count) items):" -ForegroundColor Magenta
+            foreach ($groupValue in $SettingInstance.groupSettingCollectionValue) {
+                if ($groupValue.children -and $groupValue.children.Count -gt 0) {
+                    Write-Host "$indent  · children ($($groupValue.children.Count)):" -ForegroundColor White
+                    foreach ($child in $groupValue.children) {
+                        Show-SettingInstanceDetails -SettingInstance $child -IndentLevel ($IndentLevel + 2)
+                    }
+                }
+            }
+        }
+        
+        if ($SettingInstance.simpleSettingCollectionValue) {
+            Write-Host "$indent- simpleSettingCollectionValue ($($SettingInstance.simpleSettingCollectionValue.Count) items):" -ForegroundColor Magenta
+            foreach ($simpleValue in $SettingInstance.simpleSettingCollectionValue) {
+                Write-Host "$indent  · value: $($simpleValue.value)" -ForegroundColor White
+                Write-Host "$indent  · @odata.type: $($simpleValue.'@odata.type')" -ForegroundColor White
+            }
+        }
+        
+        # Handle single group setting value (not collection)
+        if ($SettingInstance.groupSettingValue) {
+            Write-Host "$indent- groupSettingValue:" -ForegroundColor Magenta
+            if ($SettingInstance.groupSettingValue.children -and $SettingInstance.groupSettingValue.children.Count -gt 0) {
+                Write-Host "$indent  · children ($($SettingInstance.groupSettingValue.children.Count)):" -ForegroundColor White
+                foreach ($child in $SettingInstance.groupSettingValue.children) {
+                    Show-SettingInstanceDetails -SettingInstance $child -IndentLevel ($IndentLevel + 2)
+                }
+            }
+        }
+    }
 }
 
 try {
@@ -554,6 +769,12 @@ try {
     if (-not $ExportToJson -and -not $ExportToHcl) {
         Write-Host "ℹ️  No export format specified. Policy details will be displayed in console." -ForegroundColor Yellow
         Write-Host "   Use -ExportToJson `$true or -ExportToHcl `$true to export to files." -ForegroundColor Yellow
+        Write-Host "   Use -EnableDebug `$true to enable detailed debugging output." -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
+    if ($EnableDebug) {
+        Write-Host "🐛 Debug mode enabled - verbose output will be shown" -ForegroundColor Yellow
         Write-Host ""
     }
     
