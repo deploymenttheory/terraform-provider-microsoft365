@@ -12,26 +12,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// settingsCatalogValidator validates settings catalog json structure
-type settingsCatalogValidator struct{}
+// settingsCatalogJSONValidator validates settings catalog json structure
+type settingsCatalogJSONValidator struct{}
 
-// SettingsCatalogValidator returns a validator which ensures settings catalog json is valid
-func SettingsCatalogValidator() validator.String {
-	return &settingsCatalogValidator{}
+// settingsCatalogJSONValidator returns a validator which ensures settings catalog json is valid
+func SettingsCatalogJSONValidator() validator.String {
+	return &settingsCatalogJSONValidator{}
 }
 
 // Description describes the validation in plain text formatting.
-func (v settingsCatalogValidator) Description(_ context.Context) string {
+func (v settingsCatalogJSONValidator) Description(_ context.Context) string {
 	return "validates settings catalog configuration"
 }
 
 // MarkdownDescription describes the validation in Markdown formatting.
-func (v settingsCatalogValidator) MarkdownDescription(ctx context.Context) string {
+func (v settingsCatalogJSONValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
 // Validate performs the validation.
-func (v settingsCatalogValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+func (v settingsCatalogJSONValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}

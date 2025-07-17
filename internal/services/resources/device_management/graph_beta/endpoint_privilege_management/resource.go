@@ -166,7 +166,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					sharedValidators.SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogJSONValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},

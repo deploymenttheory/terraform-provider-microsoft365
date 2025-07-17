@@ -155,7 +155,7 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					sharedValidators.SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogJSONValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},

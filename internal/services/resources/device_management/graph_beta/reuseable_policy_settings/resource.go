@@ -151,7 +151,7 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					sharedValidators.SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogJSONValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},
