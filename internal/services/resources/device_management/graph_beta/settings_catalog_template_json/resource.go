@@ -260,7 +260,7 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 					"```\n\n",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
-					sharedValidators.SettingsCatalogValidator(),
+					sharedValidators.SettingsCatalogJSONValidator(),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.NormalizeJSONPlanModifier{},

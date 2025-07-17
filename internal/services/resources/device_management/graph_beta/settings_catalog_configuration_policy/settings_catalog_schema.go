@@ -1,6 +1,10 @@
 package graphBetaSettingsCatalogConfigurationPolicy
 
-import "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+)
 
 const maxSchemaDepth = 15
 
@@ -109,8 +113,11 @@ func simpleSettingAttributes() map[string]schema.Attribute {
 			Required:    true,
 		},
 		"value_state": schema.StringAttribute{
-			Description: "Value state",
+			Description: "Value state. This is only used for secret settings and for a valid request, it must always be set to 'notEncrypted'",
 			Optional:    true,
+			Validators: []validator.String{
+				stringvalidator.OneOf("notEncrypted"),
+			},
 		},
 	}
 }

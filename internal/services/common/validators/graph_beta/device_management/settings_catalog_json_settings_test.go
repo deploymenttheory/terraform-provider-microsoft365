@@ -135,7 +135,7 @@ func Test_settingsCatalogValidator(t *testing.T) {
 			}
 			response := validator.StringResponse{}
 
-			SettingsCatalogValidator().ValidateString(context.TODO(), request, &response)
+			SettingsCatalogJSONValidator().ValidateString(context.TODO(), request, &response)
 
 			if tt.expectedError == "" && response.Diagnostics.HasError() {
 				t.Errorf("expected no error, got: %v", response.Diagnostics)

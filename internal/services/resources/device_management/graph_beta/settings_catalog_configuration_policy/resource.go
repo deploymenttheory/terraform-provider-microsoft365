@@ -89,7 +89,11 @@ func (r *SettingsCatalogResource) ImportState(ctx context.Context, req resource.
 // Function to create the full device management configuration policy schema
 func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Intune Settings Catalog policies using the `/deviceManagement/configurationPolicies` endpoint. Settings Catalog provides a unified configuration experience for Windows, macOS, iOS/iPadOS, and Android devices through a modern, simplified interface that replaces traditional device configuration profiles.",
+		MarkdownDescription: "Manages Intune Settings Catalog policies using the `/deviceManagement/configurationPolicies` endpoint. " +
+			"Settings Catalog provides a unified configuration experience for Windows, macOS, iOS/iPadOS, and Android devices through a modern, " +
+			"simplified interface that replaces traditional device configuration profiles. You can simplify the hcl creation process by using the " +
+			"`Export-IntuneSettingsCatalogConfigurationByIdToHCL.ps1` [https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/powershell/Export-IntuneSettingsCatalogConfigurationByIdToHCL.ps1] " +
+			"script to export the settings catalog configuration by ID. This will build the hcl representation of the settings catalog configuration automatically.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
