@@ -146,10 +146,14 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 			operation = opStr
 		}
 	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Create a copy of the current state to use as "plan" for secret value preservation
+	currentState := object
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
@@ -184,7 +188,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	combinedSettingsResponse := models.NewDeviceManagementConfigurationSettingCollectionResponse()
 	combinedSettingsResponse.SetValue(allSettings)
 
-	err = StateConfigurationPolicySettings(ctx, &object, combinedSettingsResponse)
+	err = StateConfigurationPolicySettings(ctx, &object, combinedSettingsResponse, &currentState)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error mapping settings state",
