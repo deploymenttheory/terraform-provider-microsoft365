@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.3-alpha...v0.22.0-alpha) (2025-07-17)
+
+
+### Features
+
+* added settings catalog to hcl generator script ([#615](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/615)) ([762ab6f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/762ab6f349d9c9ce111deecd4ba953c42c164a84))
+
+
+### Bug Fixes
+
+* for settings catalog simple settings with secret values and added schema validator to only accept "notEncrypted" for requests ([#617](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/617)) ([f40a8dd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f40a8ddd8753cdeba4d755d6c1972a78c4456959))
+* updated powershell hcl exporter for settings catalog to support complex types ([#619](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/619)) ([9d20c88](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9d20c88e5aba1a2adc7e238affb1e2f2e865af40))
+
 ## [0.21.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.2-alpha...v0.21.3-alpha) (2025-07-16)
 
 
