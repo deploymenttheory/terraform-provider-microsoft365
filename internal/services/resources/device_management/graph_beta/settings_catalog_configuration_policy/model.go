@@ -8,12 +8,11 @@ import (
 // SettingsCatalogProfileResourceModel holds the configuration for a Settings Catalog profile.
 // Reference: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta
 type SettingsCatalogProfileResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Name         types.String `tfsdk:"name"`
-	Description  types.String `tfsdk:"description"`
-	Platforms    types.String `tfsdk:"platforms"`
-	Technologies types.List   `tfsdk:"technologies"`
-	//SettingsCatalogTemplateType types.String                                    `tfsdk:"settings_catalog_template_type"`
+	ID                   types.String                                    `tfsdk:"id"`
+	Name                 types.String                                    `tfsdk:"name"`
+	Description          types.String                                    `tfsdk:"description"`
+	Platforms            types.String                                    `tfsdk:"platforms"`
+	Technologies         types.List                                      `tfsdk:"technologies"`
 	RoleScopeTagIds      types.Set                                       `tfsdk:"role_scope_tag_ids"`
 	SettingsCount        types.Int32                                     `tfsdk:"settings_count"`
 	IsAssigned           types.Bool                                      `tfsdk:"is_assigned"`

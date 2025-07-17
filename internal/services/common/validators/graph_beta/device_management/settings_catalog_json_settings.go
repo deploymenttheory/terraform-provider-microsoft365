@@ -47,46 +47,46 @@ func (v settingsCatalogJSONValidator) ValidateString(ctx context.Context, req va
 	}
 
 	// Validate all secret settings in the JSON structure
-	validateSecretSettings(req.Path, jsonData, resp)
+	validateJSONSecretSettings(req.Path, jsonData, resp)
 
 	// Validate settings catalog ID sequence and initial ID value is 0
-	validateSettingsCatalogIDSequences(req.Path, jsonData, resp)
+	validateJSONSettingsCatalogIDSequences(req.Path, jsonData, resp)
 
 	// validate the settings hierarchy
-	validateSettingsHierarchy(req.Path, jsonData, resp)
+	validateJSONSettingsHierarchy(req.Path, jsonData, resp)
 
-	// validateSettingsTemplates for settings templates existance
-	validateSettingsTemplates(req.Path, jsonData, resp)
+	// validateJSONSettingsTemplates for settings templates existance
+	validateJSONSettingsTemplates(req.Path, jsonData, resp)
 
 }
 
 //----------------------------------------------------------------------------------------------//
 
-// validateSecretSettings recursively searches through the JSON structure for secret settings
-func validateSecretSettings(path path.Path, data interface{}, resp *validator.StringResponse) {
+// validateJSONSecretSettings recursively searches through the JSON structure for secret settings
+func validateJSONSecretSettings(path path.Path, data interface{}, resp *validator.StringResponse) {
 	switch v := data.(type) {
 	case map[string]interface{}:
-		if isSecretSetting(v) {
-			validateSecretSettingState(path, v, resp)
+		if isJSONSecretSetting(v) {
+			validateJSONSecretSettingstate(path, v, resp)
 		}
 		for _, value := range v {
-			validateSecretSettings(path, value, resp)
+			validateJSONSecretSettings(path, value, resp)
 		}
 	case []interface{}:
 		for _, elem := range v {
-			validateSecretSettings(path, elem, resp)
+			validateJSONSecretSettings(path, elem, resp)
 		}
 	}
 }
 
-// isSecretSetting checks if the current map represents a secret setting
-func isSecretSetting(m map[string]interface{}) bool {
+// isJSONSecretSetting checks if the current map represents a secret setting
+func isJSONSecretSetting(m map[string]interface{}) bool {
 	odataType, ok := m["@odata.type"].(string)
 	return ok && odataType == "#microsoft.graph.deviceManagementConfigurationSecretSettingValue"
 }
 
-// validateSecretSettingState checks the valueState of a secret setting
-func validateSecretSettingState(path path.Path, secretSetting map[string]interface{}, resp *validator.StringResponse) {
+// validateJSONSecretSettingstate checks the valueState of a secret setting
+func validateJSONSecretSettingstate(path path.Path, secretSetting map[string]interface{}, resp *validator.StringResponse) {
 	const (
 		expectedState = "notEncrypted"
 		invalidState  = "encryptedValueToken"
@@ -99,7 +99,7 @@ func validateSecretSettingState(path path.Path, secretSetting map[string]interfa
 
 	if valueState == invalidState {
 		// Get the settingDefinitionId if available (walking up the structure)
-		settingId := findSettingDefinitionId(secretSetting)
+		settingId := findJSONSettingDefinitionId(secretSetting)
 
 		errorMsg := fmt.Sprintf("Secret Setting Value state must be '%s' when setting a new secret value, got '%s'",
 			expectedState, invalidState)
@@ -116,8 +116,8 @@ func validateSecretSettingState(path path.Path, secretSetting map[string]interfa
 	}
 }
 
-// findSettingDefinitionId attempts to find the settingDefinitionId associated with a secret setting
-func findSettingDefinitionId(m map[string]interface{}) string {
+// findJSONSettingDefinitionId attempts to find the settingDefinitionId associated with a secret setting
+func findJSONSettingDefinitionId(m map[string]interface{}) string {
 
 	if id, ok := m["settingDefinitionId"].(string); ok {
 		return id
@@ -134,9 +134,9 @@ func findSettingDefinitionId(m map[string]interface{}) string {
 
 //----------------------------------------------------------------------------------------------//
 
-// validateSettingsCatalogIDSequences validates that settings IDs start at 0 and increment sequentially
+// validateJSONSettingsCatalogIDSequences validates that settings IDs start at 0 and increment sequentially
 // It validates that all settings have an ID and that the IDs are sequential, or the correct field value type
-func validateSettingsCatalogIDSequences(path path.Path, data interface{}, resp *validator.StringResponse) {
+func validateJSONSettingsCatalogIDSequences(path path.Path, data interface{}, resp *validator.StringResponse) {
 
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
@@ -227,8 +227,8 @@ func validateSettingsCatalogIDSequences(path path.Path, data interface{}, resp *
 
 //----------------------------------------------------------------------------------------------//
 
-// validateSettingsHierarchy validates that settingsDetails entries follow the required structure and ordering
-func validateSettingsHierarchy(path path.Path, data interface{}, resp *validator.StringResponse) {
+// validateJSONSettingsHierarchy validates that settingsDetails entries follow the required structure and ordering
+func validateJSONSettingsHierarchy(path path.Path, data interface{}, resp *validator.StringResponse) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
 		return
@@ -246,25 +246,25 @@ func validateSettingsHierarchy(path path.Path, data interface{}, resp *validator
 			continue
 		}
 
-		fieldOrder, keyValuePairs := extractFieldOrderAndPairs(jsonBytes)
+		fieldOrder, keyValuePairs := extractJSONFieldOrderAndPairs(jsonBytes)
 		if len(fieldOrder) == 0 {
 			continue // Skip if we couldn't parse the JSON structure
 		}
 
 		// Validate field count first
-		if err := validateFieldCount(fieldOrder, keyValuePairs, i, path, resp); err != nil {
+		if err := validateJSONFieldCount(fieldOrder, keyValuePairs, i, path, resp); err != nil {
 			return
 		}
 
 		// Then validate field order
-		if err := validateFieldOrder(fieldOrder, keyValuePairs, i, path, resp); err != nil {
+		if err := validateJSONFieldOrder(fieldOrder, keyValuePairs, i, path, resp); err != nil {
 			return
 		}
 	}
 }
 
-// extractFieldOrderAndPairs reads the JSON and returns both the field order and formatted key-value pairs
-func extractFieldOrderAndPairs(jsonBytes []byte) ([]string, []string) {
+// extractJSONFieldOrderAndPairs reads the JSON and returns both the field order and formatted key-value pairs
+func extractJSONFieldOrderAndPairs(jsonBytes []byte) ([]string, []string) {
 	dec := json.NewDecoder(bytes.NewReader(jsonBytes))
 	var fieldOrder []string
 	var keyValuePairs []string
@@ -290,15 +290,15 @@ func extractFieldOrderAndPairs(jsonBytes []byte) ([]string, []string) {
 		}
 
 		// Format key-value pair based on type
-		formattedPair := formatKeyValuePair(keyStr, value)
+		formattedPair := formatJSONKeyValuePair(keyStr, value)
 		keyValuePairs = append(keyValuePairs, formattedPair)
 	}
 
 	return fieldOrder, keyValuePairs
 }
 
-// formatKeyValuePair handles different value types and returns a formatted string
-func formatKeyValuePair(key string, value interface{}) string {
+// formatJSONKeyValuePair handles different value types and returns a formatted string
+func formatJSONKeyValuePair(key string, value interface{}) string {
 	switch val := value.(type) {
 	case string:
 		return fmt.Sprintf(`"%s" = "%s"`, key, val)
@@ -311,8 +311,8 @@ func formatKeyValuePair(key string, value interface{}) string {
 	}
 }
 
-// validateFieldCount checks if there are exactly 2 fields
-func validateFieldCount(fieldOrder []string, keyValuePairs []string, index int, path path.Path, resp *validator.StringResponse) error {
+// validateJSONFieldCount checks if there are exactly 2 fields
+func validateJSONFieldCount(fieldOrder []string, keyValuePairs []string, index int, path path.Path, resp *validator.StringResponse) error {
 	if len(fieldOrder) != 2 {
 		resp.Diagnostics.AddAttributeError(
 			path,
@@ -325,8 +325,8 @@ func validateFieldCount(fieldOrder []string, keyValuePairs []string, index int, 
 	return nil
 }
 
-// validateFieldOrder ensures fields are in the correct order: id then settingInstance
-func validateFieldOrder(fieldOrder []string, keyValuePairs []string, index int, path path.Path, resp *validator.StringResponse) error {
+// validateJSONFieldOrder ensures fields are in the correct order: id then settingInstance
+func validateJSONFieldOrder(fieldOrder []string, keyValuePairs []string, index int, path path.Path, resp *validator.StringResponse) error {
 	if fieldOrder[0] != "id" || fieldOrder[1] != "settingInstance" {
 		resp.Diagnostics.AddAttributeError(
 			path,
@@ -341,8 +341,8 @@ func validateFieldOrder(fieldOrder []string, keyValuePairs []string, index int, 
 
 //----------------------------------------------------------------------------------------------//
 
-// validateSettingsTemplates validates that settingTemplates are not present in the JSON structure
-func validateSettingsTemplates(path path.Path, data interface{}, resp *validator.StringResponse) {
+// validateJSONSettingsTemplates validates that settingTemplates are not present in the JSON structure
+func validateJSONSettingsTemplates(path path.Path, data interface{}, resp *validator.StringResponse) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
 		return
