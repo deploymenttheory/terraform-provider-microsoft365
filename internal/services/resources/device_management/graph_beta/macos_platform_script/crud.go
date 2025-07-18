@@ -161,7 +161,7 @@ func (r *MacOSPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 //
 // The function performs the following operations:
 //   - Patches the existing script resource with updated settings using PATCH
-//   - Updates assignments using POST if they are defined
+//   - Updates assignments using POST if they are defined or removes all assignments if nil
 //   - Retrieves the updated resource with expanded assignments
 //   - Maps the remote state back to Terraform
 //
@@ -207,27 +207,26 @@ func (r *MacOSPlatformScriptResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceShellScripts().
-			ByDeviceShellScriptId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceShellScripts().
+		ByDeviceShellScriptId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

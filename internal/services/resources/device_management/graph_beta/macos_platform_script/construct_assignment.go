@@ -2,7 +2,6 @@ package graphBetaMacOSPlatformScript
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -14,18 +13,31 @@ import (
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceModel) (devicemanagement.DeviceManagementScriptsItemAssignPostRequestBodyable, error) {
-	if data.Assignments == nil {
-		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
-	}
-
 	tflog.Debug(ctx, "Starting assignment construction")
+
+	// Create the request body with an empty assignments array
+	requestBody := devicemanagement.NewDeviceShellScriptsItemAssignPostRequestBody()
+	assignments := make([]graphsdkmodels.DeviceManagementScriptAssignmentable, 0)
+
+	// If assignments is nil, return the request body with an empty assignments array
+	// This will effectively remove all assignments when sent to the API
+	if data.Assignments == nil {
+		tflog.Debug(ctx, "Assignments is nil, creating empty assignments array to remove all assignments")
+		requestBody.SetDeviceManagementScriptAssignments(assignments)
+
+		// Debug log the final request body
+		if err := constructors.DebugLogGraphObject(ctx, "Constructed empty assignment request body", requestBody); err != nil {
+			tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+
+		return requestBody, nil
+	}
 
 	if err := validateAssignmentConfig(data.Assignments); err != nil {
 		return nil, err
 	}
-
-	requestBody := devicemanagement.NewDeviceShellScriptsItemAssignPostRequestBody()
-	assignments := make([]graphsdkmodels.DeviceManagementScriptAssignmentable, 0)
 
 	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {

@@ -36,7 +36,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.ScriptContent = convert.GraphToFrameworkBytes(remoteResource.GetScriptContent())
 	data.RetryCount = convert.GraphToFrameworkInt32(remoteResource.GetRetryCount())
 
-	if assignments := remoteResource.GetAssignments(); len(assignments) > 0 {
+	assignments := remoteResource.GetAssignments()
+
+	// If there are no assignments, set data.Assignments to nil
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments found, setting assignments to nil")
+		data.Assignments = nil
+	} else {
 		MapAssignmentsToTerraform(ctx, data, assignments)
 	}
 
@@ -47,14 +53,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 // There appears to be no other way to do this, as the assignments are not returned by any other api call
 // despite all of the docs saying there is.
 func MapAssignmentsToTerraform(ctx context.Context, data *MacOSPlatformScriptResourceModel, assignments []graphmodels.DeviceManagementScriptAssignmentable) {
-	if len(assignments) > 0 {
-		tflog.Debug(ctx, "No assignments to process")
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to process, setting assignments to nil")
+		data.Assignments = nil
 		return
 	}
 
 	tflog.Debug(ctx, "Processing assignments from resource response")
 
-	// Create a wrapper to process the assignments directly
 	processAssignments(ctx, data, assignments)
 }
 
@@ -63,21 +69,23 @@ func MapAssignmentsToTerraform(ctx context.Context, data *MacOSPlatformScriptRes
 func processAssignments(ctx context.Context, data *MacOSPlatformScriptResourceModel, assignments []graphmodels.DeviceManagementScriptAssignmentable) {
 	tflog.Debug(ctx, "Starting to map assignments directly to Terraform state")
 
+	// If no assignments are provided, set data.Assignments to nil and return
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to process in processAssignments, setting assignments to nil")
+		data.Assignments = nil
+		return
+	}
+
 	scriptAssignments := &sharedmodels.DeviceManagementScriptAssignmentResourceModel{
 		AllDevices: types.BoolValue(false),
 		AllUsers:   types.BoolValue(false),
 	}
 
-	// Map All Devices assignments
 	var allDeviceAssignments []graphmodels.DeviceManagementScriptAssignmentable
-	// Map All Users assignments
 	var allUserAssignments []graphmodels.DeviceManagementScriptAssignmentable
-	// Map Include Group assignments
 	var includeGroupAssignments []graphmodels.DeviceManagementScriptAssignmentable
-	// Map Exclude Group assignments
 	var excludeGroupAssignments []graphmodels.DeviceManagementScriptAssignmentable
 
-	// Categorize assignments by type
 	for _, assignment := range assignments {
 		if target := assignment.GetTarget(); target != nil {
 			if odataType := target.GetOdataType(); odataType != nil {
@@ -95,17 +103,14 @@ func processAssignments(ctx context.Context, data *MacOSPlatformScriptResourceMo
 		}
 	}
 
-	// Process all devices assignments
 	if len(allDeviceAssignments) > 0 {
 		scriptAssignments.AllDevices = types.BoolValue(true)
 	}
 
-	// Process all users assignments
 	if len(allUserAssignments) > 0 {
 		scriptAssignments.AllUsers = types.BoolValue(true)
 	}
 
-	// Process include group assignments
 	if len(includeGroupAssignments) > 0 {
 		includeGroupIds := make([]types.String, 0)
 		for _, assignment := range includeGroupAssignments {
@@ -124,7 +129,6 @@ func processAssignments(ctx context.Context, data *MacOSPlatformScriptResourceMo
 		scriptAssignments.IncludeGroupIds = includeGroupIds
 	}
 
-	// Process exclude group assignments
 	if len(excludeGroupAssignments) > 0 {
 		excludeGroupIds := make([]types.String, 0)
 		for _, assignment := range excludeGroupAssignments {
@@ -143,7 +147,13 @@ func processAssignments(ctx context.Context, data *MacOSPlatformScriptResourceMo
 		scriptAssignments.ExcludeGroupIds = excludeGroupIds
 	}
 
-	data.Assignments = scriptAssignments
+	// Only set assignments if there are actual assignments
+	if len(allDeviceAssignments) > 0 || len(allUserAssignments) > 0 ||
+		len(includeGroupAssignments) > 0 || len(excludeGroupAssignments) > 0 {
+		data.Assignments = scriptAssignments
+	} else {
+		data.Assignments = nil
+	}
 
 	tflog.Debug(ctx, "Finished mapping assignments directly to Terraform state")
 }
