@@ -186,8 +186,8 @@ github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6T
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
 github.com/maxatome/go-testdeep v1.14.0 h1:rRlLv1+kI8eOI3OaBXZwb3O7xY3exRzdW5QyX48g9wI=
 github.com/maxatome/go-testdeep v1.14.0/go.mod h1:lPZc/HAcJMP92l7yI6TRz1aZN5URwUBUAfUNvrclaNM=
-github.com/microsoft/kiota-abstractions-go v1.9.2 h1:3U5VgN2YGe3lsu1pyuS0t5jxv1llxX2ophwX8ewE6wQ=
-github.com/microsoft/kiota-abstractions-go v1.9.2/go.mod h1:f06pl3qSyvUHEfVNkiRpXPkafx7khZqQEb71hN/pmuU=
+github.com/microsoft/kiota-abstractions-go v1.9.3 h1:cqhbqro+VynJ7kObmo7850h3WN2SbvoyhypPn8uJ1SE=
+github.com/microsoft/kiota-abstractions-go v1.9.3/go.mod h1:f06pl3qSyvUHEfVNkiRpXPkafx7khZqQEb71hN/pmuU=
 github.com/microsoft/kiota-authentication-azure-go v1.3.0 h1:PWH6PgtzhJjnmvR6N1CFjriwX09Kv7S5K3vL6VbPVrg=
 github.com/microsoft/kiota-authentication-azure-go v1.3.0/go.mod h1:l/MPGUVvD7xfQ+MYSdZaFPv0CsLDqgSOp8mXwVgArIs=
 github.com/microsoft/kiota-http-go v1.5.4 h1:wSUmL1J+bTQlAWHjbRkSwr+SPAkMVYeYxxB85Zw0KFs=
@@ -200,10 +200,10 @@ github.com/microsoft/kiota-serialization-multipart-go v1.1.2 h1:1pUyA1QgIeKslQwb
 github.com/microsoft/kiota-serialization-multipart-go v1.1.2/go.mod h1:j2K7ZyYErloDu7Kuuk993DsvfoP7LPWvAo7rfDpdPio=
 github.com/microsoft/kiota-serialization-text-go v1.1.2 h1:7OfKFlzdjpPygca/+OtqafkEqCWR7+94efUFGC28cLw=
 github.com/microsoft/kiota-serialization-text-go v1.1.2/go.mod h1:QNTcswkBPFY3QVBFmzfk00UMNViKQtV0AQKCrRw5ibM=
-github.com/microsoftgraph/msgraph-beta-sdk-go v0.144.0 h1:LSEmQmocXUU3oHtcfGennQ4Kuqkhcb4Pb5phtpFgEeE=
-github.com/microsoftgraph/msgraph-beta-sdk-go v0.144.0/go.mod h1:Zh/s2dFQByhDuzIB6SQL4y8SQbD+AEy9jQY4adIHvp0=
-github.com/microsoftgraph/msgraph-sdk-go v1.78.0 h1:oBvzsU9ImDpSl7Lt2ZQKESemH8IVieAAf5ykVEDfFts=
-github.com/microsoftgraph/msgraph-sdk-go v1.78.0/go.mod h1:5ncg4aauxM5XKHo/xvAq7Cjl6+Dqu6lOtoihSGKtDt4=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.145.0 h1:kYyn8jwI+Wb+RXG6URBq7rGAc5+4Tv+zPfdh+74kEmg=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.145.0/go.mod h1:ne9YzT3Zp1s6lvNnnLrFatiy1y/Wef46ldRrENPB/CA=
+github.com/microsoftgraph/msgraph-sdk-go v1.79.0 h1:Pz6xWAQ097DP2/SKm4xtnSAHZSHbQMkSVLzNfFrTUEs=
+github.com/microsoftgraph/msgraph-sdk-go v1.79.0/go.mod h1:w+NAJ1j3fyxb2An9NWB1CsY+KQMcgBbcrXXA/cNtZ3c=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2 h1:5jCUSosTKaINzPPQXsz7wsHWwknyBmJSu8+ZWxx3kdQ=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2/go.mod h1:iD75MK3LX8EuwjDYCmh0hkojKXK6VKME33u4daCo3cE=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=
