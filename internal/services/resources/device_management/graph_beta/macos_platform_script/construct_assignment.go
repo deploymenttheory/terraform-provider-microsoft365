@@ -25,7 +25,6 @@ func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceM
 		tflog.Debug(ctx, "Assignments is nil, creating empty assignments array to remove all assignments")
 		requestBody.SetDeviceManagementScriptAssignments(assignments)
 
-		// Debug log the final request body
 		if err := constructors.DebugLogGraphObject(ctx, "Constructed empty assignment request body", requestBody); err != nil {
 			tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 				"error": err.Error(),
@@ -39,17 +38,14 @@ func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceM
 		return nil, err
 	}
 
-	// Check All Devices
 	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
 		assignments = append(assignments, constructAllDevicesAssignment())
 	}
 
-	// Check All Users
 	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
 		assignments = append(assignments, constructAllUsersAssignment())
 	}
 
-	// Check Include Groups
 	if !data.Assignments.AllDevices.ValueBool() &&
 		!data.Assignments.AllUsers.ValueBool() &&
 		len(data.Assignments.IncludeGroupIds) > 0 {
@@ -61,7 +57,6 @@ func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceM
 		}
 	}
 
-	// Check Exclude Groups
 	if len(data.Assignments.ExcludeGroupIds) > 0 {
 		for _, id := range data.Assignments.ExcludeGroupIds {
 			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
@@ -75,7 +70,6 @@ func constructAssignment(ctx context.Context, data *MacOSPlatformScriptResourceM
 	// as update http method is a post not patch.
 	requestBody.SetDeviceManagementScriptAssignments(assignments)
 
-	// Debug log the final request body
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),

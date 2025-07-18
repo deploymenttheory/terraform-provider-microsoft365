@@ -25,7 +25,7 @@ type DeviceHealthScriptResourceModel struct {
 	LastModifiedDateTime      types.String                                      `tfsdk:"last_modified_date_time"`
 	HighestAvailableVersion   types.String                                      `tfsdk:"highest_available_version"`
 	DetectionScriptParameters types.List                                        `tfsdk:"detection_script_parameters"`
-	Assignment                []WindowsRemediationScriptAssignmentResourceModel `tfsdk:"assignment"`
+	Assignments               []WindowsRemediationScriptAssignmentResourceModel `tfsdk:"assignments"`
 	Timeouts                  timeouts.Value                                    `tfsdk:"timeouts"`
 }
 
@@ -37,29 +37,28 @@ type DeviceHealthScriptParameterModel struct {
 	ApplyDefaultValueWhenNotAssigned types.Bool   `tfsdk:"apply_default_value_when_not_assigned"`
 }
 
-// WindowsRemediationScriptAssignmentResourceModel struct to hold device configuation assignment configuration
+// WindowsRemediationScriptAssignmentResourceModel represents the assignment configuration
+// This maps directly to the API structure where assignments are a flat list of DeviceHealthScriptAssignment objects
 type WindowsRemediationScriptAssignmentResourceModel struct {
-	AllDevices           types.Bool   `tfsdk:"all_devices"`
-	AllDevicesFilterType types.String `tfsdk:"all_devices_filter_type"`
-	AllDevicesFilterId   types.String `tfsdk:"all_devices_filter_id"`
-	AllUsers             types.Bool   `tfsdk:"all_users"`
-	AllUsersFilterType   types.String `tfsdk:"all_users_filter_type"`
-	AllUsersFilterId     types.String `tfsdk:"all_users_filter_id"`
-	IncludeGroups        types.Set    `tfsdk:"include_groups"`
-	ExcludeGroupIds      types.Set    `tfsdk:"exclude_group_ids"`
+	// All Devices Assignment
+	AllDevices      types.Bool   `tfsdk:"all_devices"`
+	AllUsers        types.Bool   `tfsdk:"all_users"`
+	Type            types.String `tfsdk:"type"`
+	FilterId        types.String `tfsdk:"filter_id"`
+	IncludeGroups   types.Set    `tfsdk:"include_groups"`
+	ExcludeGroupIds types.Set    `tfsdk:"exclude_group_ids"`
 }
 
-// IncludeGroupResourceModel represents a group with its corresponding filter type , filter group ID
-// and it's optional run schedule.
+// IncludeGroupResourceModel represents a GroupAssignmentTarget with its properties
+// This directly maps to a GroupAssignmentTarget in the API
 type IncludeGroupResourceModel struct {
-	GroupId                 types.String              `tfsdk:"group_id"`
-	IncludeGroupsFilterType types.String              `tfsdk:"include_groups_filter_type"`
-	IncludeGroupsFilterId   types.String              `tfsdk:"include_groups_filter_id"`
-	RunRemediationScript    types.Bool                `tfsdk:"run_remediation_script"`
-	RunSchedule             *RunScheduleResourceModel `tfsdk:"run_schedule"`
+	GroupId     types.String              `tfsdk:"group_id"`
+	Type        types.String              `tfsdk:"type"`
+	FilterId    types.String              `tfsdk:"filter_id"`
+	RunSchedule *RunScheduleResourceModel `tfsdk:"run_schedule"`
 }
 
-// RunScheduleResourceModel represents different schedule types for include groups
+// RunScheduleResourceModel represents different schedule types for assignments
 type RunScheduleResourceModel struct {
 	ScheduleType types.String `tfsdk:"schedule_type"` // "daily", "hourly", or "once"
 	Interval     types.Int32  `tfsdk:"interval"`

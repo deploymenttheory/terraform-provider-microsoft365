@@ -1,9 +1,8 @@
+// Updated constructor functions to match the simplified model structure
 package graphBetaWindowsRemediationScript
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -13,70 +12,56 @@ import (
 )
 
 // constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, assignments []WindowsRemediationScriptAssignmentResourceModel) (devicemanagement.DeviceHealthScriptsItemAssignPostRequestBodyable, error) {
-	if assignments == nil {
-		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
-	}
+func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceModel) (devicemanagement.DeviceHealthScriptsItemAssignPostRequestBodyable, error) {
+	tflog.Debug(ctx, "Starting Device Health Script assignment construction")
 
-	tflog.Debug(ctx, "Starting Device Health Script assignment construction", map[string]interface{}{
-		"assignmentCount": len(assignments),
-	})
-
+	// Create the request body - use the specific assign request body type
 	requestBody := devicemanagement.NewDeviceHealthScriptsItemAssignPostRequestBody()
 	scriptAssignments := make([]graphmodels.DeviceHealthScriptAssignmentable, 0)
 
+	// If assignments is nil, return empty array to remove all assignments
+	if data.Assignments == nil {
+		tflog.Debug(ctx, "Assignments is nil, creating empty assignments array")
+		requestBody.SetDeviceHealthScriptAssignments(scriptAssignments)
+		return requestBody, nil
+	}
+
 	// Process each assignment block
-	for idx, assignment := range assignments {
+	for idx, assignment := range data.Assignments {
 		tflog.Debug(ctx, "Processing assignment block", map[string]interface{}{
-			"index":             idx,
-			"allDevices":        assignment.AllDevices.ValueBool(),
-			"allUsers":          assignment.AllUsers.ValueBool(),
-			"includeGroupsNull": assignment.IncludeGroups.IsNull(),
-			"includeGroupsLen":  len(assignment.IncludeGroups.Elements()),
-			"excludeGroupsNull": assignment.ExcludeGroupIds.IsNull(),
-			"excludeGroupsLen":  len(assignment.ExcludeGroupIds.Elements()),
+			"index": idx,
 		})
 
-		// Check All Devices
+		// 1. Handle All Devices Assignment
 		if !assignment.AllDevices.IsNull() && assignment.AllDevices.ValueBool() {
-			tflog.Debug(ctx, "Adding all devices assignment")
-			scriptAssignments = append(scriptAssignments, constructAllDevicesAssignment(ctx, assignment))
+			allDevicesAssignment := constructAllDevicesAssignment(ctx, assignment)
+			scriptAssignments = append(scriptAssignments, allDevicesAssignment)
+			tflog.Debug(ctx, "Added all devices assignment")
 		}
 
-		// Check All Users
+		// 2. Handle All Users Assignment
 		if !assignment.AllUsers.IsNull() && assignment.AllUsers.ValueBool() {
-			tflog.Debug(ctx, "Adding all users assignment")
-			scriptAssignments = append(scriptAssignments, constructAllUsersAssignment(ctx, assignment))
+			allUsersAssignment := constructAllUsersAssignment(ctx, assignment)
+			scriptAssignments = append(scriptAssignments, allUsersAssignment)
+			tflog.Debug(ctx, "Added all users assignment")
 		}
 
-		// Check Include Groups
+		// 3. Handle Include Groups (GroupAssignmentTarget objects)
 		if !assignment.IncludeGroups.IsNull() && len(assignment.IncludeGroups.Elements()) > 0 {
-			tflog.Debug(ctx, "Processing include groups", map[string]interface{}{
-				"count": len(assignment.IncludeGroups.Elements()),
+			includeAssignments := constructIncludeGroupAssignments(ctx, assignment)
+			scriptAssignments = append(scriptAssignments, includeAssignments...)
+			tflog.Debug(ctx, "Added include group assignments", map[string]interface{}{
+				"count": len(includeAssignments),
 			})
-			includeAssignments := constructGroupIncludeAssignments(ctx, assignment)
-			if len(includeAssignments) > 0 {
-				scriptAssignments = append(scriptAssignments, includeAssignments...)
-				tflog.Debug(ctx, "Added include group assignments", map[string]interface{}{
-					"addedCount": len(includeAssignments),
-				})
-			} else {
-				tflog.Warn(ctx, "No include group assignments were constructed")
-			}
 		}
 
-		// Check Exclude Groups
+		// 4. Handle Exclude Groups (ExclusionGroupAssignmentTarget objects)
 		if !assignment.ExcludeGroupIds.IsNull() && len(assignment.ExcludeGroupIds.Elements()) > 0 {
-			tflog.Debug(ctx, "Processing exclude groups", map[string]interface{}{
-				"count": len(assignment.ExcludeGroupIds.Elements()),
+			excludeAssignments := constructExcludeGroupAssignments(ctx, assignment)
+			scriptAssignments = append(scriptAssignments, excludeAssignments...)
+			tflog.Debug(ctx, "Added exclude group assignments", map[string]interface{}{
+				"count": len(excludeAssignments),
 			})
-			excludeAssignments := constructGroupExcludeAssignments(ctx, assignment)
-			if len(excludeAssignments) > 0 {
-				scriptAssignments = append(scriptAssignments, excludeAssignments...)
-				tflog.Debug(ctx, "Added exclude group assignments", map[string]interface{}{
-					"addedCount": len(excludeAssignments),
-				})
-			}
 		}
 	}
 
@@ -95,229 +80,273 @@ func constructAssignment(ctx context.Context, assignments []WindowsRemediationSc
 	return requestBody, nil
 }
 
-// constructGroupIncludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for included groups
-func constructGroupIncludeAssignments(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
+// constructAllDevicesAssignment creates an assignment targeting all devices
+func constructAllDevicesAssignment(ctx context.Context, assignment WindowsRemediationScriptAssignmentResourceModel) graphmodels.DeviceHealthScriptAssignmentable {
+	tflog.Debug(ctx, "Constructing all devices assignment")
+
+	scriptAssignment := graphmodels.NewDeviceHealthScriptAssignment()
+
+	// Create AllDevicesAssignmentTarget
+	target := graphmodels.NewAllDevicesAssignmentTarget()
+
+	// Set filter properties if provided
+	convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+
+	// Use enum constants instead of parsing strings
+	if !assignment.Type.IsNull() && assignment.Type.ValueString() != "" {
+		switch assignment.Type.ValueString() {
+		case "include":
+			filterType := graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+		case "exclude":
+			filterType := graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+		default:
+			tflog.Warn(ctx, "Unknown filter type for all devices assignment", map[string]interface{}{
+				"type": assignment.Type.ValueString(),
+			})
+		}
+	}
+
+	scriptAssignment.SetTarget(target)
+
+	// Set runRemediationScript to true (as per Microsoft example)
+	runRemediation := true
+	scriptAssignment.SetRunRemediationScript(&runRemediation)
+
+	return scriptAssignment
+}
+
+// constructAllUsersAssignment creates an assignment targeting all licensed users
+func constructAllUsersAssignment(ctx context.Context, assignment WindowsRemediationScriptAssignmentResourceModel) graphmodels.DeviceHealthScriptAssignmentable {
+	tflog.Debug(ctx, "Constructing all users assignment")
+
+	scriptAssignment := graphmodels.NewDeviceHealthScriptAssignment()
+
+	// Create AllLicensedUsersAssignmentTarget
+	target := graphmodels.NewAllLicensedUsersAssignmentTarget()
+
+	// Set filter properties if provided
+	convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+
+	// Use enum constants instead of parsing strings
+	if !assignment.Type.IsNull() && assignment.Type.ValueString() != "" {
+		switch assignment.Type.ValueString() {
+		case "include":
+			filterType := graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+		case "exclude":
+			filterType := graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+		default:
+			tflog.Warn(ctx, "Unknown filter type for all users assignment", map[string]interface{}{
+				"type": assignment.Type.ValueString(),
+			})
+		}
+	}
+
+	scriptAssignment.SetTarget(target)
+
+	// Set runRemediationScript to true (as per Microsoft example)
+	runRemediation := true
+	scriptAssignment.SetRunRemediationScript(&runRemediation)
+
+	return scriptAssignment
+}
+
+// constructIncludeGroupAssignments creates group assignment targets for included groups
+func constructIncludeGroupAssignments(ctx context.Context, assignment WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
+	tflog.Debug(ctx, "Constructing include group assignments")
+
 	var assignments []graphmodels.DeviceHealthScriptAssignmentable
 
-	tflog.Debug(ctx, "Entering constructGroupIncludeAssignments", map[string]interface{}{
-		"includeGroups.IsNull":    config.IncludeGroups.IsNull(),
-		"includeGroups.IsUnknown": config.IncludeGroups.IsUnknown(),
-	})
-
-	if config.IncludeGroups.IsNull() {
-		tflog.Debug(ctx, "IncludeGroups is null, returning empty assignments")
-		return assignments
-	}
-
-	// Parse IncludeGroups set
+	// Convert the Set to slice of IncludeGroupResourceModel
 	var includeGroups []IncludeGroupResourceModel
-	diags := config.IncludeGroups.ElementsAs(ctx, &includeGroups, false)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to parse include groups", map[string]interface{}{
-			"error": diags.Errors(),
+	if diags := assignment.IncludeGroups.ElementsAs(ctx, &includeGroups, false); diags.HasError() {
+		tflog.Error(ctx, "Failed to convert include_groups set", map[string]interface{}{
+			"errors": diags.Errors(),
 		})
 		return assignments
 	}
 
-	tflog.Debug(ctx, "Successfully parsed include groups", map[string]interface{}{
-		"count": len(includeGroups),
-	})
+	for _, group := range includeGroups {
+		scriptAssignment := graphmodels.NewDeviceHealthScriptAssignment()
 
-	for idx, group := range includeGroups {
-		tflog.Debug(ctx, "Processing include group", map[string]interface{}{
-			"index":   idx,
-			"groupId": group.GroupId.ValueString(),
-		})
-
-		if group.GroupId.IsNull() || group.GroupId.IsUnknown() || group.GroupId.ValueString() == "" {
-			tflog.Warn(ctx, "Skipping group with null/empty GroupId", map[string]interface{}{
-				"index": idx,
-			})
-			continue
-		}
-
-		assignment := graphmodels.NewDeviceHealthScriptAssignment()
+		// Create GroupAssignmentTarget
 		target := graphmodels.NewGroupAssignmentTarget()
+		groupId := group.GroupId.ValueString()
+		target.SetGroupId(&groupId)
 
-		convert.FrameworkToGraphString(group.GroupId, target.SetGroupId)
+		// Set filter properties if provided
+		convert.FrameworkToGraphString(group.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
 
-		// Set filter ID and type if present
-		if !group.IncludeGroupsFilterId.IsNull() && !group.IncludeGroupsFilterId.IsUnknown() {
-			convert.FrameworkToGraphString(group.IncludeGroupsFilterId,
-				target.SetDeviceAndAppManagementAssignmentFilterId)
-
-			if !group.IncludeGroupsFilterType.IsNull() && !group.IncludeGroupsFilterType.IsUnknown() {
-				tflog.Debug(ctx, "Setting filter type", map[string]interface{}{
-					"groupId":    group.GroupId.ValueString(),
-					"filterType": group.IncludeGroupsFilterType.ValueString(),
-				})
-
-				err := convert.FrameworkToGraphEnum(group.IncludeGroupsFilterType,
-					graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-					target.SetDeviceAndAppManagementAssignmentFilterType)
-				if err != nil {
-					tflog.Warn(ctx, "Failed to parse include groups filter type", map[string]interface{}{
-						"error":   err.Error(),
-						"groupId": group.GroupId.ValueString(),
-					})
-				}
-			}
-		}
-
-		assignment.SetTarget(target)
-
-		// Set run remediation script if specified
-		if !group.RunRemediationScript.IsNull() {
-			runRemediation := group.RunRemediationScript.ValueBool()
-			assignment.SetRunRemediationScript(&runRemediation)
-			tflog.Debug(ctx, "Set RunRemediationScript", map[string]interface{}{
-				"groupId":              group.GroupId.ValueString(),
-				"runRemediationScript": runRemediation,
-			})
-		}
-
-		if group.RunSchedule != nil {
-			tflog.Debug(ctx, "Processing run schedule", map[string]interface{}{
-				"groupId":      group.GroupId.ValueString(),
-				"scheduleType": group.RunSchedule.ScheduleType.ValueString(),
-			})
-
-			schedule := constructRunSchedule(ctx, group.RunSchedule)
-			if schedule != nil {
-				assignment.SetRunSchedule(schedule)
-				tflog.Debug(ctx, "Set run schedule for group", map[string]interface{}{
+		// Use enum constants instead of parsing strings
+		if !group.Type.IsNull() && group.Type.ValueString() != "" {
+			switch group.Type.ValueString() {
+			case "include":
+				filterType := graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+				target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+			case "exclude":
+				filterType := graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+				target.SetDeviceAndAppManagementAssignmentFilterType(&filterType)
+			default:
+				tflog.Warn(ctx, "Unknown filter type for group assignment", map[string]interface{}{
+					"type":    group.Type.ValueString(),
 					"groupId": group.GroupId.ValueString(),
 				})
 			}
 		}
 
-		assignments = append(assignments, assignment)
+		scriptAssignment.SetTarget(target)
+
+		// hardcode runRemediationScript to true it's never returned by API
+		// in a resp. but needed for a valid request.
+		runRemediation := true
+		scriptAssignment.SetRunRemediationScript(&runRemediation)
+
+		// Set run schedule if provided
+		if group.RunSchedule != nil {
+			if schedule := constructRunSchedule(ctx, group.RunSchedule); schedule != nil {
+				scriptAssignment.SetRunSchedule(schedule)
+			}
+		}
+
+		assignments = append(assignments, scriptAssignment)
+
 		tflog.Debug(ctx, "Added include group assignment", map[string]interface{}{
-			"groupId": group.GroupId.ValueString(),
-			"index":   idx,
+			"groupId":              group.GroupId.ValueString(),
+			"runRemediationScript": runRemediation,
+			"hasSchedule":          group.RunSchedule != nil,
 		})
 	}
-
-	tflog.Debug(ctx, "Completed constructGroupIncludeAssignments", map[string]interface{}{
-		"totalAssignments": len(assignments),
-	})
 
 	return assignments
 }
 
-// constructRunSchedule constructs the appropriate schedule type based on the schedule model
-func constructRunSchedule(ctx context.Context, schedule *RunScheduleResourceModel) graphmodels.DeviceHealthScriptRunScheduleable {
-	if schedule == nil {
-		tflog.Debug(ctx, "Schedule is nil, returning nil")
+// constructExcludeGroupAssignments creates exclusion group assignment targets
+func constructExcludeGroupAssignments(ctx context.Context, assignment WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
+	tflog.Debug(ctx, "Constructing exclude group assignments")
+
+	var assignments []graphmodels.DeviceHealthScriptAssignmentable
+
+	// Convert the Set to slice of strings
+	var excludeGroupIds []string
+	if diags := assignment.ExcludeGroupIds.ElementsAs(ctx, &excludeGroupIds, false); diags.HasError() {
+		tflog.Error(ctx, "Failed to convert exclude_group_ids set", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return assignments
+	}
+
+	for _, groupId := range excludeGroupIds {
+		scriptAssignment := graphmodels.NewDeviceHealthScriptAssignment()
+
+		// Create ExclusionGroupAssignmentTarget
+		target := graphmodels.NewExclusionGroupAssignmentTarget()
+		target.SetGroupId(&groupId)
+
+		scriptAssignment.SetTarget(target)
+
+		// As per Microsoft example: exclusion assignments also have runRemediationScript = true
+		runRemediation := true
+		scriptAssignment.SetRunRemediationScript(&runRemediation)
+
+		// As per Microsoft example: exclusion assignments have runSchedule = null
+		// Don't set any schedule for exclusion assignments
+
+		assignments = append(assignments, scriptAssignment)
+
+		tflog.Debug(ctx, "Added exclude group assignment", map[string]interface{}{
+			"groupId":              groupId,
+			"runRemediationScript": runRemediation,
+		})
+	}
+
+	return assignments
+}
+
+// constructRunSchedule creates a run schedule from the model
+func constructRunSchedule(ctx context.Context, scheduleModel *RunScheduleResourceModel) graphmodels.DeviceHealthScriptRunScheduleable {
+	if scheduleModel == nil {
 		return nil
 	}
 
-	tflog.Debug(ctx, "Constructing run schedule from model", map[string]interface{}{
-		"scheduleType": schedule.ScheduleType.ValueString(),
-		"interval":     schedule.Interval.ValueInt32(),
-		"time":         schedule.Time.ValueString(),
-		"date":         schedule.Date.ValueString(),
-		"useUtc":       schedule.UseUtc.ValueBool(),
-	})
+	scheduleType := scheduleModel.ScheduleType.ValueString()
 
-	switch schedule.ScheduleType.ValueString() {
+	switch scheduleType {
 	case "daily":
-		tflog.Debug(ctx, "Creating daily schedule")
-		dailySchedule := graphmodels.NewDeviceHealthScriptDailySchedule()
-		convert.FrameworkToGraphInt32(schedule.Interval, dailySchedule.SetInterval)
-		convert.FrameworkToGraphTimeOnly(schedule.Time, dailySchedule.SetTime)
-		convert.FrameworkToGraphBool(schedule.UseUtc, dailySchedule.SetUseUtc)
-		return dailySchedule
+		schedule := graphmodels.NewDeviceHealthScriptDailySchedule()
+
+		convert.FrameworkToGraphInt32(scheduleModel.Interval, schedule.SetInterval)
+
+		if !scheduleModel.Time.IsNull() && scheduleModel.Time.ValueString() != "" {
+			if err := convert.FrameworkToGraphTimeOnly(scheduleModel.Time, schedule.SetTime); err != nil {
+				tflog.Warn(ctx, "Failed to convert time for daily schedule", map[string]interface{}{
+					"error": err.Error(),
+					"time":  scheduleModel.Time.ValueString(),
+				})
+			}
+		}
+
+		convert.FrameworkToGraphBool(scheduleModel.UseUtc, schedule.SetUseUtc)
+
+		tflog.Debug(ctx, "Created daily schedule", map[string]interface{}{
+			"interval": scheduleModel.Interval.ValueInt32(),
+			"time":     scheduleModel.Time.ValueString(),
+			"useUtc":   scheduleModel.UseUtc.ValueBool(),
+		})
+
+		return schedule
 
 	case "hourly":
-		tflog.Debug(ctx, "Creating hourly schedule")
-		hourlySchedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
-		convert.FrameworkToGraphInt32(schedule.Interval, hourlySchedule.SetInterval)
-		return hourlySchedule
+		schedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
+
+		convert.FrameworkToGraphInt32(scheduleModel.Interval, schedule.SetInterval)
+
+		tflog.Debug(ctx, "Created hourly schedule", map[string]interface{}{
+			"interval": scheduleModel.Interval.ValueInt32(),
+		})
+
+		return schedule
 
 	case "once":
-		tflog.Debug(ctx, "Creating once schedule")
-		onceSchedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
-		convert.FrameworkToGraphInt32(schedule.Interval, onceSchedule.SetInterval)
-		convert.FrameworkToGraphDateOnly(schedule.Date, onceSchedule.SetDate)
-		convert.FrameworkToGraphTimeOnly(schedule.Time, onceSchedule.SetTime)
-		convert.FrameworkToGraphBool(schedule.UseUtc, onceSchedule.SetUseUtc)
-		return onceSchedule
+		schedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
+
+		convert.FrameworkToGraphInt32(scheduleModel.Interval, schedule.SetInterval)
+
+		if !scheduleModel.Date.IsNull() && scheduleModel.Date.ValueString() != "" {
+			if err := convert.FrameworkToGraphDateOnly(scheduleModel.Date, schedule.SetDate); err != nil {
+				tflog.Warn(ctx, "Failed to convert date for once schedule", map[string]interface{}{
+					"error": err.Error(),
+					"date":  scheduleModel.Date.ValueString(),
+				})
+			}
+		}
+
+		if !scheduleModel.Time.IsNull() && scheduleModel.Time.ValueString() != "" {
+			if err := convert.FrameworkToGraphTimeOnly(scheduleModel.Time, schedule.SetTime); err != nil {
+				tflog.Warn(ctx, "Failed to convert time for once schedule", map[string]interface{}{
+					"error": err.Error(),
+					"time":  scheduleModel.Time.ValueString(),
+				})
+			}
+		}
+
+		convert.FrameworkToGraphBool(scheduleModel.UseUtc, schedule.SetUseUtc)
+
+		tflog.Debug(ctx, "Created once schedule", map[string]interface{}{
+			"interval": scheduleModel.Interval.ValueInt32(),
+			"date":     scheduleModel.Date.ValueString(),
+			"time":     scheduleModel.Time.ValueString(),
+			"useUtc":   scheduleModel.UseUtc.ValueBool(),
+		})
+
+		return schedule
 
 	default:
 		tflog.Warn(ctx, "Unknown schedule type", map[string]interface{}{
-			"scheduleType": schedule.ScheduleType.ValueString(),
+			"scheduleType": scheduleType,
 		})
 		return nil
 	}
-}
-
-// constructAllDevicesAssignment constructs and returns a DeviceHealthScriptAssignment object for all devices
-func constructAllDevicesAssignment(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) graphmodels.DeviceHealthScriptAssignmentable {
-	assignment := graphmodels.NewDeviceHealthScriptAssignment()
-	target := graphmodels.NewAllDevicesAssignmentTarget()
-
-	if !config.AllDevicesFilterId.IsNull() && !config.AllDevicesFilterId.IsUnknown() &&
-		config.AllDevicesFilterId.ValueString() != "" {
-		convert.FrameworkToGraphString(config.AllDevicesFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
-
-		if !config.AllDevicesFilterType.IsNull() && !config.AllDevicesFilterType.IsUnknown() {
-			err := convert.FrameworkToGraphEnum(config.AllDevicesFilterType,
-				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-				target.SetDeviceAndAppManagementAssignmentFilterType)
-			if err != nil {
-				tflog.Warn(ctx, "Failed to parse all devices filter type", map[string]interface{}{
-					"error": err.Error(),
-				})
-			}
-		}
-	}
-
-	assignment.SetTarget(target)
-	return assignment
-}
-
-// constructAllUsersAssignment constructs and returns a DeviceHealthScriptAssignment object for all licensed users
-func constructAllUsersAssignment(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) graphmodels.DeviceHealthScriptAssignmentable {
-	assignment := graphmodels.NewDeviceHealthScriptAssignment()
-	target := graphmodels.NewAllLicensedUsersAssignmentTarget()
-
-	if !config.AllUsersFilterId.IsNull() && !config.AllUsersFilterId.IsUnknown() &&
-		config.AllUsersFilterId.ValueString() != "" {
-		convert.FrameworkToGraphString(config.AllUsersFilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
-
-		if !config.AllUsersFilterType.IsNull() && !config.AllUsersFilterType.IsUnknown() {
-			err := convert.FrameworkToGraphEnum(config.AllUsersFilterType,
-				graphmodels.ParseDeviceAndAppManagementAssignmentFilterType,
-				target.SetDeviceAndAppManagementAssignmentFilterType)
-			if err != nil {
-				tflog.Warn(ctx, "Failed to parse all users filter type", map[string]interface{}{
-					"error": err.Error(),
-				})
-			}
-		}
-	}
-
-	assignment.SetTarget(target)
-	return assignment
-}
-
-// constructGroupExcludeAssignments constructs and returns a list of DeviceHealthScriptAssignment objects for excluded groups
-func constructGroupExcludeAssignments(ctx context.Context, config WindowsRemediationScriptAssignmentResourceModel) []graphmodels.DeviceHealthScriptAssignmentable {
-	var assignments []graphmodels.DeviceHealthScriptAssignmentable
-
-	for _, elem := range config.ExcludeGroupIds.Elements() {
-		if !elem.IsNull() && !elem.IsUnknown() && elem.String() != "" {
-			assignment := graphmodels.NewDeviceHealthScriptAssignment()
-			target := graphmodels.NewExclusionGroupAssignmentTarget()
-
-			groupId := strings.Trim(elem.String(), "\"")
-			target.SetGroupId(&groupId)
-
-			assignment.SetTarget(target)
-			assignments = append(assignments, assignment)
-		}
-	}
-
-	return assignments
 }

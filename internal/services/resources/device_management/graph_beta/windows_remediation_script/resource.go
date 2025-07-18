@@ -204,77 +204,58 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 		Blocks: map[string]schema.Block{
-			"assignment": AssignmentBlock(),
+			"assignments": AssignmentBlock(),
 		},
 	}
 }
 
 // AssignmentBlock returns the schema block for Windows remediation script assignments
-
-// AssignmentBlock returns the schema block for Windows remediation script assignments
 func AssignmentBlock() schema.ListNestedBlock {
 	return schema.ListNestedBlock{
-		MarkdownDescription: "List of assignment configurations for the device health script",
+		MarkdownDescription: "Assignment configurations for the device health script. Each assignment block represents a collection of assignment targets that will be sent to the API as separate DeviceHealthScriptAssignment objects.",
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
 				"all_devices": schema.BoolAttribute{
 					Optional:            true,
-					MarkdownDescription: "Assign to all devices. Cannot be used with all_users or include_groups.",
-				},
-				"all_devices_filter_type": schema.StringAttribute{
-					Optional:            true,
-					MarkdownDescription: "Filter type for all devices assignment. Can be 'include' or 'exclude'.",
-					Validators: []validator.String{
-						stringvalidator.OneOf("include", "exclude"),
-					},
-				},
-				"all_devices_filter_id": schema.StringAttribute{
-					Optional:            true,
-					MarkdownDescription: "Filter ID for all devices assignment.",
+					MarkdownDescription: "Assign to all devices. Creates an AllDevicesAssignmentTarget. Cannot be used with all_users or include_groups.",
 				},
 				"all_users": schema.BoolAttribute{
 					Optional:            true,
-					MarkdownDescription: "Assign to all users. Cannot be used with all_devices or include_groups.",
+					MarkdownDescription: "Assign to all licensed users. Creates an AllLicensedUsersAssignmentTarget. Cannot be used with all_devices or include_groups.",
 				},
-				"all_users_filter_type": schema.StringAttribute{
+				"type": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Filter type for all users assignment. Can be 'include' or 'exclude'.",
+					MarkdownDescription: "Filter type for all_devices or all_users assignments. Determines how the filter is applied to the assignment target.",
 					Validators: []validator.String{
 						stringvalidator.OneOf("include", "exclude"),
 					},
 				},
-				"all_users_filter_id": schema.StringAttribute{
+				"filter_id": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Filter ID for all users assignment.",
+					MarkdownDescription: "Filter ID for all_devices or all_users assignments. Applied to the assignment target.",
 				},
 				"include_groups": schema.SetNestedAttribute{
 					Optional:            true,
-					MarkdownDescription: "Groups to include in the assignment. Cannot be used with all_devices or all_users.",
+					MarkdownDescription: "Groups to include in the assignment. Each group creates a separate GroupAssignmentTarget object. Cannot be used with all_devices or all_users.",
 					NestedObject: schema.NestedAttributeObject{
 						Attributes: map[string]schema.Attribute{
 							"group_id": schema.StringAttribute{
 								Required:            true,
-								MarkdownDescription: "Group ID to include.",
+								MarkdownDescription: "Azure AD Group ID to include. This will create a GroupAssignmentTarget.",
 							},
-							"include_groups_filter_type": schema.StringAttribute{
-								Optional:            true,
-								MarkdownDescription: "Filter type for include group assignment. Can be 'include' or 'exclude'.",
+							"type": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Filter type for this GroupAssignmentTarget. This is a property of the target, not what determines the target type.",
 								Validators: []validator.String{
 									stringvalidator.OneOf("include", "exclude"),
 								},
 							},
-							"include_groups_filter_id": schema.StringAttribute{
+							"filter_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Filter ID for include group assignment.",
-							},
-							"run_remediation_script": schema.BoolAttribute{
-								Optional:            true,
-								Computed:            true,
-								Default:             booldefault.StaticBool(true),
-								MarkdownDescription: "Whether to run the remediation script for this group assignment.",
+								MarkdownDescription: "Filter ID for this GroupAssignmentTarget.",
 							},
 							"run_schedule": schema.SingleNestedAttribute{
-								Optional:            true,
+								Required:            true,
 								MarkdownDescription: "Run schedule for this group assignment.",
 								Attributes: map[string]schema.Attribute{
 									"schedule_type": schema.StringAttribute{
@@ -288,7 +269,7 @@ func AssignmentBlock() schema.ListNestedBlock {
 										Optional:            true,
 										Computed:            true,
 										Default:             int32default.StaticInt32(1),
-										MarkdownDescription: "Repeat interval for the schedule.For 'daily' the interal represents days, for 'hourly' the interval represents hours. ",
+										MarkdownDescription: "Repeat interval for the schedule. For 'daily' the interval represents days, for 'hourly' the interval represents hours.",
 									},
 									"time": schema.StringAttribute{
 										Optional:            true,
@@ -309,11 +290,10 @@ func AssignmentBlock() schema.ListNestedBlock {
 						},
 					},
 				},
-
 				"exclude_group_ids": schema.SetAttribute{
 					ElementType:         types.StringType,
 					Optional:            true,
-					MarkdownDescription: "Group IDs to exclude from the assignment.",
+					MarkdownDescription: "Azure AD Group IDs to exclude from the assignment. Each group ID creates a separate ExclusionGroupAssignmentTarget object.",
 				},
 			},
 		},
