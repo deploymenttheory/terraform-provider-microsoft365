@@ -352,6 +352,7 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
     - The file names have to be sensible without empty spaces and special characters.
 
 - **Acceptance Tests:** Add acceptance tests for any new resource covering the same scenarios as unit tests, but against real Microsoft365 resources. These tests live in files with the `TestAcc...` prefix and require real credentials.
+  - **IMPORTANT: If you don't have access to a test tenant, DO NOT modify, rename, or remove existing acceptance tests.** Focus exclusively on writing unit tests instead. Existing acceptance tests have been verified to work correctly and modifying them without the ability to test against a real Microsoft 365 environment can break the test suite.
   - Wrap any acceptance test with appropriate pre-check functions and environment variable checks so it skips if not configured.
   - Ensure each acceptance test cleans up after itself. Use `CheckDestroy` functions to verify that resources are actually deleted in Azure/Microsoft365 after the test run.
   - Keep acceptance tests focused and isolated (use separate environment or resource names to avoid conflicts).
