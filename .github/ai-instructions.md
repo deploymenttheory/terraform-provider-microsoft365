@@ -12,6 +12,7 @@ These instructions, guide ai tools to follow our project's conventions and best 
   - `make userdocs` to regenerate documentation
   - `make precommit` to run all checks once code is ready to commit. As a copilot agent you don't want to run this command as it will timeout for you. Read the makefile content and run needed commands manually.
   - `make coverage` to run all unit tests and output a code coverage report. It also shows the files that have changed on this branch to help target coverage suggestions to files in the current PR.
+  - For comprehensive testing details including test types, patterns, and infrastructure components, see the **Testing Infrastructure and Organization** section below.
 - Always run the above `make` commands from the repository root (e.g. in the `/workspaces/terraform-provider-microsoft365` directory).
 - **Never run** `terraform init` inside the provider repo. Terraform is only used in examples or tests; initializing in the provider directory is not needed and may cause conflicts.
 - Do not manually edit files under the `/docs` folder. These files are auto-generated from the schema `MarkdownDescription` attributes. Instead, update schema's `MarkdownDescription` in code and run `make userdocs` to regenerate documentation.
@@ -351,6 +352,7 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
     - The file names have to be sensible without empty spaces and special characters.
 
 - **Acceptance Tests:** Add acceptance tests for any new resource covering the same scenarios as unit tests, but against real Microsoft365 resources. These tests live in files with the `TestAcc...` prefix and require real credentials.
+  - **IMPORTANT: If you don't have access to a test tenant, DO NOT modify, rename, or remove existing acceptance tests.** Focus exclusively on writing unit tests instead. Existing acceptance tests have been verified to work correctly and modifying them without the ability to test against a real Microsoft 365 environment can break the test suite.
   - Wrap any acceptance test with appropriate pre-check functions and environment variable checks so it skips if not configured.
   - Ensure each acceptance test cleans up after itself. Use `CheckDestroy` functions to verify that resources are actually deleted in Azure/Microsoft365 after the test run.
   - Keep acceptance tests focused and isolated (use separate environment or resource names to avoid conflicts).
@@ -358,6 +360,100 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
 - **Test Coverage:** Aim for **at least 80%** code coverage for unit tests on new code. `make unittest` will return a coverage score by service and overall. Focus on the service that is currently being worked on when adding tests to improve coverage.
 
 - **Examples and Documentation:** Whenever a new resource or data source is added, provide an example configuration under the `/examples` directory to demonstrate usage. This helps both in documentation and in manually verifying the resource behavior. After implementing and testing, run `make userdocs` to update the documentation in `/docs` from your schema comments.
+
+## Testing Infrastructure and Organization
+
+### Test Types
+
+- **Unit Tests:**
+  - **Naming Pattern:** `TestUnit[ResourceName]_[Operation]_[Scenario]` (e.g., `TestUnitUserResource_Create_Minimal`)
+  - **Characteristics:** Mock all API calls using `httpmock`, no real Microsoft 365 API interactions
+  - **Timeout:** 10 minutes per test
+  - **Parallelism:** Run with `-p 16` for fast execution
+  - **Environment:** Run with `TF_ACC=0` or omitted (default)
+  - **Purpose:** Test resource CRUD logic, state management, and schema validation
+
+- **Acceptance Tests:**
+  - **Naming Pattern:** `TestAcc[ResourceName]_[Operation]_[Scenario]` (e.g., `TestAccUserResource_Create_Minimal`)
+  - **Characteristics:** Make real API calls to Microsoft 365 services
+  - **Timeout:** 300 minutes (5 hours) to accommodate complex operations
+  - **Parallelism:** Run with `-p 10` to avoid API rate limits
+  - **Environment:** Require `TF_ACC=1` and valid authentication credentials
+  - **Purpose:** Verify actual resource creation, modification, and deletion in Microsoft 365
+
+### Test Commands
+
+- **Unit Tests:**
+  ```bash
+  make unittest                    # Run all unit tests
+  make unittest TEST=MyTest        # Run specific unit test by prefix
+  go test -v -run TestUnitUserResource_Create ./path/to/package
+  ```
+
+- **Acceptance Tests:**
+  ```bash
+  make acctest                     # Run all acceptance tests
+  make acctest TEST=MyTest         # Run specific acceptance test by prefix
+  TF_ACC=1 go test -v -timeout 30m -run TestAccUserResource_Create ./path/to/package
+  ```
+
+- **Coverage and Full Suite:**
+  ```bash
+  make test                        # Run all tests (unit + acceptance)
+  make coverage                    # Generate test coverage report with branch diff
+  ```
+
+### Test Infrastructure Components
+
+- **Mock System (`/internal/mocks/`):**
+  - `AuthenticationMocks`: Mock authentication endpoints
+  - `MockGraphClients`: Mock Microsoft Graph API clients
+  - Resource-specific mock responders in `mocks/responders.go`
+  - Terraform configuration files in `mocks/terraform/`
+  - Sophisticated state management across CRUD operations
+
+- **Test Configurations:**
+  - **Minimal:** `resource_minimal.tf` - Tests basic required fields
+  - **Maximal:** `resource_maximal.tf` - Tests all optional fields
+  - **Error:** Test configurations for error scenarios
+
+- **Test Helpers:**
+  - `setupTestEnvironment()`: Configure test environment variables
+  - `setupMockEnvironment()`: Activate HTTP mocking
+  - `testCheckExists()`: Verify resource existence in state
+  - `testAccPreCheck()`: Validate required environment variables
+  - `testAccCheckResourceDestroy()`: Verify resource cleanup
+
+### Required Environment Variables for Acceptance Tests
+
+```bash
+M365_TENANT_ID                   # Azure AD tenant ID
+M365_AUTH_METHOD                 # Authentication method to use
+M365_CLOUD                       # Cloud environment (public, gcc, gcchigh, dod, china)
+M365_CLIENT_ID                   # Application client ID
+# Additional auth-specific variables based on M365_AUTH_METHOD
+```
+
+### Testing Best Practices Specific to This Provider
+
+- **Mock Data Organization:** Store mock responses in `tests/` subdirectory within resource directory
+  - Folder structure: `tests/[TestScenario]/[method]_[object].json`
+  - Example: `tests/Validate_Create/post_device_shell_script.json`
+
+- **State Management Testing:** Verify Terraform state correctly reflects API responses
+- **Drift Detection:** Test that changes made outside Terraform are detected
+- **Import Testing:** Verify resource import functionality works correctly
+- **Edge Case Testing:** Test minimal configurations, maximal configurations, and error scenarios
+- **Eventual Consistency:** Use `ReadWithRetry` after create/update operations
+- **Permission Testing:** Verify appropriate error messages for insufficient permissions
+
+### Network Debugging
+
+```bash
+make netdump  # Start mitmproxy for capturing and debugging API traffic
+```
+
+This tool is invaluable for debugging API interactions during test development.
 
 ### Shared Logic and Utilities
 
