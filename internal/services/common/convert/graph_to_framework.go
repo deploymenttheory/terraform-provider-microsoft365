@@ -104,10 +104,29 @@ func GraphToFrameworkDateOnly(value *serialization.DateOnly) types.String {
 
 // GraphToFrameworkTimeOnly converts a Graph SDK TimeOnly pointer to a Terraform Framework string.
 // Returns types.StringNull() if the input is nil.
+// Uses default formatting with seconds precision (HH:MM:SS).
 func GraphToFrameworkTimeOnly(value *serialization.TimeOnly) types.String {
 	if value == nil {
 		return types.StringNull()
 	}
+	return types.StringValue(value.String())
+}
+
+// GraphToFrameworkTimeOnlyWithPrecision converts a Graph SDK TimeOnly pointer to a Terraform Framework string
+// with the specified precision.
+// Returns types.StringNull() if the input is nil.
+// precision: 0-9, where 0 = HH:MM:SS, 1 = HH:MM:SS.f, 2 = HH:MM:SS.ff, etc.
+func GraphToFrameworkTimeOnlyWithPrecision(value *serialization.TimeOnly, precision int) types.String {
+	if value == nil {
+		return types.StringNull()
+	}
+
+	// If precision is within valid range, use it
+	if precision >= 0 && precision <= 9 {
+		return types.StringValue(value.StringWithPrecision(precision))
+	}
+
+	// Otherwise use default precision
 	return types.StringValue(value.String())
 }
 

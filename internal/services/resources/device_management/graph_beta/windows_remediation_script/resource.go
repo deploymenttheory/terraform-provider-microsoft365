@@ -2,6 +2,7 @@ package graphBetaWindowsRemediationScript
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -116,7 +118,9 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"run_as_32_bit": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Indicate whether PowerShell script(s) should run as 32-bit.",
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Indicate whether PowerShell script(s) should run as 32-bit. Default is false, which runs script in 64-bit PowerShell.",
 			},
 			"run_as_account": schema.StringAttribute{
 				Required:            true,
@@ -127,7 +131,9 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"enforce_signature_check": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Indicate whether the script signature needs be checked.",
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Indicate whether the script signature needs be checked. Default is false, which does not check the script signature.",
 			},
 			"detection_script_content": schema.StringAttribute{
 				Required:            true,
@@ -201,99 +207,138 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 				Computed:            true,
 				MarkdownDescription: "Highest available version for a Microsoft Proprietary script.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
 			"assignments": AssignmentBlock(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
 
-// AssignmentBlock returns the schema block for Windows remediation script assignments
-func AssignmentBlock() schema.ListNestedBlock {
-	return schema.ListNestedBlock{
-		MarkdownDescription: "Assignment configurations for the device health script. Each assignment block represents a collection of assignment targets that will be sent to the API as separate DeviceHealthScriptAssignment objects.",
-		NestedObject: schema.NestedBlockObject{
+// AssignmentBlock returns the schema for the assignments block
+func AssignmentBlock() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		MarkdownDescription: "Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution.",
+		Optional:            true,
+		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				"all_devices": schema.BoolAttribute{
-					Optional:            true,
-					MarkdownDescription: "Assign to all devices. Creates an AllDevicesAssignmentTarget. Cannot be used with all_users or include_groups.",
-				},
-				"all_users": schema.BoolAttribute{
-					Optional:            true,
-					MarkdownDescription: "Assign to all licensed users. Creates an AllLicensedUsersAssignmentTarget. Cannot be used with all_devices or include_groups.",
-				},
+				// Target assignment fields - only one should be used at a time
 				"type": schema.StringAttribute{
-					Optional:            true,
-					MarkdownDescription: "Filter type for all_devices or all_users assignments. Determines how the filter is applied to the assignment target.",
+					Required:            true,
+					MarkdownDescription: "Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.",
 					Validators: []validator.String{
-						stringvalidator.OneOf("include", "exclude"),
+						stringvalidator.OneOf(
+							"allDevicesAssignmentTarget",
+							"allLicensedUsersAssignmentTarget",
+							"groupAssignmentTarget",
+							"exclusionGroupAssignmentTarget",
+						),
 					},
 				},
+				"group_id": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					Default:             stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
+					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+						),
+					},
+				},
+				// Assignment filter fields
 				"filter_id": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Filter ID for all_devices or all_users assignments. Applied to the assignment target.",
+					Computed:            true,
+					MarkdownDescription: "ID of the filter to apply to the assignment.",
+					Default:             stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+						),
+					},
 				},
-				"include_groups": schema.SetNestedAttribute{
+				"filter_type": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Groups to include in the assignment. Each group creates a separate GroupAssignmentTarget object. Cannot be used with all_devices or all_users.",
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: map[string]schema.Attribute{
-							"group_id": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "Azure AD Group ID to include. This will create a GroupAssignmentTarget.",
+					MarkdownDescription: "Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.",
+					Computed:            true,
+					Default:             stringdefault.StaticString("none"),
+					Validators: []validator.String{
+						stringvalidator.OneOf("include", "exclude", "none"),
+					},
+				},
+				// Schedule configuration - only one should be used at a time
+				"daily_schedule": schema.SingleNestedAttribute{
+					Optional:            true,
+					MarkdownDescription: "Configuration for daily schedule execution. Only one schedule type (daily_schedule, hourly_schedule, or run_once_schedule) should be specified per assignment.",
+					Attributes: map[string]schema.Attribute{
+						"interval": schema.Int32Attribute{
+							Optional:            true,
+							Computed:            true,
+							Default:             int32default.StaticInt32(1),
+							MarkdownDescription: "Days between runs. Default is 1.",
+						},
+						"time": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Time of day in format 'HH:MM:SS'.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+									"Time must be in the format 'HH:MM:SS' (24-hour format)",
+								),
 							},
-							"type": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "Filter type for this GroupAssignmentTarget. This is a property of the target, not what determines the target type.",
-								Validators: []validator.String{
-									stringvalidator.OneOf("include", "exclude"),
-								},
-							},
-							"filter_id": schema.StringAttribute{
-								Optional:            true,
-								MarkdownDescription: "Filter ID for this GroupAssignmentTarget.",
-							},
-							"run_schedule": schema.SingleNestedAttribute{
-								Required:            true,
-								MarkdownDescription: "Run schedule for this group assignment.",
-								Attributes: map[string]schema.Attribute{
-									"schedule_type": schema.StringAttribute{
-										Required:            true,
-										MarkdownDescription: "Type of schedule. Can be 'daily', 'hourly', or 'once'.",
-										Validators: []validator.String{
-											stringvalidator.OneOf("daily", "hourly", "once"),
-										},
-									},
-									"interval": schema.Int32Attribute{
-										Optional:            true,
-										Computed:            true,
-										Default:             int32default.StaticInt32(1),
-										MarkdownDescription: "Repeat interval for the schedule. For 'daily' the interval represents days, for 'hourly' the interval represents hours.",
-									},
-									"time": schema.StringAttribute{
-										Optional:            true,
-										MarkdownDescription: "Time of day for daily and once schedules (e.g., '14:30').",
-									},
-									"date": schema.StringAttribute{
-										Optional:            true,
-										MarkdownDescription: "Date for once schedule (e.g., '2025-05-01').",
-									},
-									"use_utc": schema.BoolAttribute{
-										Optional:            true,
-										Computed:            true,
-										Default:             booldefault.StaticBool(false),
-										MarkdownDescription: "Whether to use UTC time.",
-									},
-								},
-							},
+						},
+						"use_utc": schema.BoolAttribute{
+							Optional:            true,
+							Computed:            true,
+							Default:             booldefault.StaticBool(false),
+							MarkdownDescription: "Whether to use UTC time. Default is false (local time).",
 						},
 					},
 				},
-				"exclude_group_ids": schema.SetAttribute{
-					ElementType:         types.StringType,
+				"hourly_schedule": schema.SingleNestedAttribute{
 					Optional:            true,
-					MarkdownDescription: "Azure AD Group IDs to exclude from the assignment. Each group ID creates a separate ExclusionGroupAssignmentTarget object.",
+					MarkdownDescription: "Configuration for hourly schedule execution. Only one schedule type (daily_schedule, hourly_schedule, or run_once_schedule) should be specified per assignment.",
+					Attributes: map[string]schema.Attribute{
+						"interval": schema.Int32Attribute{
+							Optional:            true,
+							Computed:            true,
+							Default:             int32default.StaticInt32(1),
+							MarkdownDescription: "Hours between runs. Default is 1.",
+						},
+					},
+				},
+				"run_once_schedule": schema.SingleNestedAttribute{
+					Optional:            true,
+					MarkdownDescription: "Configuration for one-time execution. Only one schedule type (daily_schedule, hourly_schedule, or run_once_schedule) should be specified per assignment.",
+					Attributes: map[string]schema.Attribute{
+						"date": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Date for the one-time execution in format 'YYYY-MM-DD'.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.DateFormatYYYYMMDDRegex),
+									"Date must be in the format 'YYYY-MM-DD'",
+								),
+							},
+						},
+						"time": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Time of day in format 'HH:MM:SS'.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+									"Time must be in the format 'HH:MM:SS' (24-hour format)",
+								),
+							},
+						},
+						"use_utc": schema.BoolAttribute{
+							Optional:            true,
+							Computed:            true,
+							Default:             booldefault.StaticBool(false),
+							MarkdownDescription: "Whether to use UTC time. Default is false (local time).",
+						},
+					},
 				},
 			},
 		},

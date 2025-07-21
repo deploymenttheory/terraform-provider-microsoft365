@@ -3,11 +3,9 @@ package graphBetaWindowsRemediationScript
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -43,504 +41,625 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 	data.RemediationScriptContent = convert.GraphToFrameworkBytes(remoteResource.GetRemediationScriptContent())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	// Map assignments
+	tflog.Debug(ctx, "Successfully mapped basic resource properties", map[string]interface{}{
+		"resourceId":             data.ID.ValueString(),
+		"displayName":            data.DisplayName.ValueString(),
+		"runAsAccount":           data.RunAsAccount.ValueString(),
+		"deviceHealthScriptType": data.DeviceHealthScriptType.ValueString(),
+		"version":                data.Version.ValueString(),
+		"isGlobalScript":         data.IsGlobalScript.ValueBool(),
+	})
+
+	// Map assignments with comprehensive logging
 	assignments := remoteResource.GetAssignments()
 	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
 		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
 	})
 
 	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments found, setting assignments to nil")
-		data.Assignments = nil
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
 	} else {
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+			"resourceId":      data.ID.ValueString(),
+			"assignmentCount": len(assignments),
+		})
 		MapAssignmentsToTerraform(ctx, data, assignments)
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
+// WindowsRemediationScriptAssignmentType returns the object type for WindowsRemediationScriptAssignmentModel
+func WindowsRemediationScriptAssignmentType() attr.Type {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"type":              types.StringType,
+			"group_id":          types.StringType,
+			"filter_id":         types.StringType,
+			"filter_type":       types.StringType,
+			"daily_schedule":    types.ObjectType{AttrTypes: dailyScheduleAttrTypes()},
+			"hourly_schedule":   types.ObjectType{AttrTypes: hourlyScheduleAttrTypes()},
+			"run_once_schedule": types.ObjectType{AttrTypes: runOnceScheduleAttrTypes()},
+		},
+	}
+}
+
+func dailyScheduleAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"interval": types.Int32Type,
+		"time":     types.StringType,
+		"use_utc":  types.BoolType,
+	}
+}
+
+func hourlyScheduleAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"interval": types.Int32Type,
+	}
+}
+
+func runOnceScheduleAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"date":    types.StringType,
+		"time":    types.StringType,
+		"use_utc": types.BoolType,
+	}
+}
+
 // MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
-// Updated to use simplified model structure with unified Type and FilterId fields
+// MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
 func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptResourceModel, assignments []graphmodels.DeviceHealthScriptAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = nil
+		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
 		return
 	}
 
-	tflog.Debug(ctx, "Processing assignments from API response", map[string]interface{}{
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
 		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
 	})
 
-	// Create a single assignment model to aggregate all assignment types
-	assignment := WindowsRemediationScriptAssignmentResourceModel{
-		AllDevices: types.BoolValue(false),
-		AllUsers:   types.BoolValue(false),
-	}
+	assignmentValues := []attr.Value{}
 
-	// Separate assignments by type
-	var includeGroups []IncludeGroupResourceModel
-	var excludeGroupIds []types.String
+	for i, assignment := range assignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
 
-	// Process each assignment from the API
-	for i, assignmentItem := range assignments {
-		target := assignmentItem.GetTarget()
+		target := assignment.GetTarget()
 		if target == nil {
-			tflog.Warn(ctx, "Assignment has no target", map[string]interface{}{"index": i})
+			tflog.Warn(ctx, "Assignment target is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
 			continue
 		}
 
 		odataType := target.GetOdataType()
 		if odataType == nil {
-			tflog.Warn(ctx, "Assignment target has no @odata.type", map[string]interface{}{"index": i})
+			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
 			continue
 		}
 
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
-			"index":      i,
-			"targetType": *odataType,
+		tflog.Debug(ctx, "Processing assignment target", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"targetType":      *odataType,
+			"resourceId":      data.ID.ValueString(),
 		})
 
+		// Initialize assignment object with all required fields
+		// Use null/default values for fields that will be set conditionally
+		assignmentObj := map[string]attr.Value{
+			"type":              types.StringNull(),
+			"group_id":          types.StringNull(),
+			"filter_id":         types.StringNull(),
+			"filter_type":       types.StringNull(),
+			"daily_schedule":    types.ObjectNull(dailyScheduleAttrTypes()),
+			"hourly_schedule":   types.ObjectNull(hourlyScheduleAttrTypes()),
+			"run_once_schedule": types.ObjectNull(runOnceScheduleAttrTypes()),
+		}
+
+		// Map target type and specific properties
 		switch *odataType {
 		case "#microsoft.graph.allDevicesAssignmentTarget":
-			assignment.AllDevices = types.BoolValue(true)
-			mapAllDevicesTarget(ctx, &assignment, target)
+			tflog.Debug(ctx, "Mapping allDevicesAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allDevicesAssignmentTarget")
+			// These target types don't have group_id, so use schema default
+			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 
 		case "#microsoft.graph.allLicensedUsersAssignmentTarget":
-			assignment.AllUsers = types.BoolValue(true)
-			mapAllUsersTarget(ctx, &assignment, target)
+			tflog.Debug(ctx, "Mapping allLicensedUsersAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allLicensedUsersAssignmentTarget")
+			// These target types don't have group_id, so use schema default
+			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 
 		case "#microsoft.graph.groupAssignmentTarget":
-			includeGroup := mapGroupAssignmentTarget(ctx, assignmentItem, target)
-			if includeGroup != nil {
-				includeGroups = append(includeGroups, *includeGroup)
+			tflog.Debug(ctx, "Mapping groupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Debug(ctx, "Group ID is nil/empty for group assignment target, using schema default", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					// Set to schema default value
+					assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				// Set to schema default value as fallback
+				assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 			}
 
 		case "#microsoft.graph.exclusionGroupAssignmentTarget":
-			excludeGroupId := mapExclusionGroupTarget(ctx, target)
-			if excludeGroupId != nil {
-				excludeGroupIds = append(excludeGroupIds, *excludeGroupId)
+			tflog.Debug(ctx, "Mapping exclusionGroupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("exclusionGroupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.ExclusionGroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for exclusion group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Debug(ctx, "Group ID is nil/empty for exclusion group assignment target, using schema default", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					// Set to schema default value
+					assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to ExclusionGroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				// Set to schema default value as fallback
+				assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 			}
 
 		default:
-			tflog.Warn(ctx, "Unknown assignment target type", map[string]interface{}{
-				"targetType": *odataType,
+			tflog.Warn(ctx, "Unknown target type encountered", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"targetType":      *odataType,
+				"resourceId":      data.ID.ValueString(),
+			})
+			// Set to schema default value for unknown types
+			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+		}
+
+		// Handle assignment filters - only set if meaningful values exist
+		tflog.Debug(ctx, "Processing assignment filters", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
+		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
+			tflog.Debug(ctx, "Assignment has meaningful filter ID", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterId":        *filterID,
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
+		} else {
+			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			// Set to schema default value
+			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+		}
+
+		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
+		if filterType != nil {
+			tflog.Debug(ctx, "Processing filter type", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterType":      *filterType,
+				"resourceId":      data.ID.ValueString(),
+			})
+
+			switch *filterType {
+			case graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to include", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("include")
+			case graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to exclude", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("exclude")
+			case graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to none", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("none")
+			default:
+				tflog.Debug(ctx, "Unknown filter type, using schema default", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"filterType":      *filterType,
+					"resourceId":      data.ID.ValueString(),
+				})
+				// Set to schema default value
+				assignmentObj["filter_type"] = types.StringValue("none")
+			}
+		} else {
+			tflog.Debug(ctx, "No filter type specified, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			// Set to schema default value
+			assignmentObj["filter_type"] = types.StringValue("none")
+		}
+
+		// Handle assignment schedules
+		tflog.Debug(ctx, "Processing assignment schedule", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		runSchedule := assignment.GetRunSchedule()
+		if runSchedule != nil {
+			scheduleType := runSchedule.GetOdataType()
+			if scheduleType != nil {
+				tflog.Debug(ctx, "Assignment has schedule", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"scheduleType":    *scheduleType,
+					"resourceId":      data.ID.ValueString(),
+				})
+
+				switch *scheduleType {
+				case "#microsoft.graph.deviceHealthScriptDailySchedule":
+					tflog.Debug(ctx, "Processing daily schedule", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+
+					if dailySchedule, ok := runSchedule.(graphmodels.DeviceHealthScriptDailyScheduleable); ok {
+						dailyScheduleObj := map[string]attr.Value{
+							"interval": convert.GraphToFrameworkInt32(dailySchedule.GetInterval()),
+							"use_utc":  convert.GraphToFrameworkBool(dailySchedule.GetUseUtc()),
+							"time":     types.StringNull(),
+						}
+
+						// Log interval and UTC setting
+						if interval := dailySchedule.GetInterval(); interval != nil {
+							tflog.Debug(ctx, "Daily schedule interval", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"interval":        *interval,
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						if useUtc := dailySchedule.GetUseUtc(); useUtc != nil {
+							tflog.Debug(ctx, "Daily schedule UTC setting", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"useUtc":          *useUtc,
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						// Handle time using GraphToFrameworkTimeOnlyWithPrecision
+						if timeValue := dailySchedule.GetTime(); timeValue != nil {
+							tflog.Debug(ctx, "Processing daily schedule time", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"timeValue":       timeValue.String(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							dailyScheduleObj["time"] = convert.GraphToFrameworkTimeOnlyWithPrecision(timeValue, 0)
+						} else {
+							tflog.Warn(ctx, "Daily schedule time is nil", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						dailyObj, diags := types.ObjectValue(dailyScheduleAttrTypes(), dailyScheduleObj)
+						if !diags.HasError() {
+							tflog.Debug(ctx, "Successfully created daily schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							assignmentObj["daily_schedule"] = dailyObj
+						} else {
+							tflog.Error(ctx, "Failed to create daily schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"errors":          diags.Errors(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+					} else {
+						tflog.Error(ctx, "Failed to cast run schedule to DeviceHealthScriptDailyScheduleable", map[string]interface{}{
+							"assignmentIndex": i,
+							"assignmentId":    assignment.GetId(),
+							"resourceId":      data.ID.ValueString(),
+						})
+					}
+
+				case "#microsoft.graph.deviceHealthScriptHourlySchedule":
+					tflog.Debug(ctx, "Processing hourly schedule", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+
+					if hourlySchedule, ok := runSchedule.(graphmodels.DeviceHealthScriptHourlyScheduleable); ok {
+						hourlyScheduleObj := map[string]attr.Value{
+							"interval": convert.GraphToFrameworkInt32(hourlySchedule.GetInterval()),
+						}
+
+						// Log interval
+						if interval := hourlySchedule.GetInterval(); interval != nil {
+							tflog.Debug(ctx, "Hourly schedule interval", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"interval":        *interval,
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						hourlyObj, diags := types.ObjectValue(hourlyScheduleAttrTypes(), hourlyScheduleObj)
+						if !diags.HasError() {
+							tflog.Debug(ctx, "Successfully created hourly schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							assignmentObj["hourly_schedule"] = hourlyObj
+						} else {
+							tflog.Error(ctx, "Failed to create hourly schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"errors":          diags.Errors(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+					} else {
+						tflog.Error(ctx, "Failed to cast run schedule to DeviceHealthScriptHourlyScheduleable", map[string]interface{}{
+							"assignmentIndex": i,
+							"assignmentId":    assignment.GetId(),
+							"resourceId":      data.ID.ValueString(),
+						})
+					}
+
+				case "#microsoft.graph.deviceHealthScriptRunOnceSchedule":
+					tflog.Debug(ctx, "Processing run once schedule", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+
+					if runOnceSchedule, ok := runSchedule.(graphmodels.DeviceHealthScriptRunOnceScheduleable); ok {
+						runOnceScheduleObj := map[string]attr.Value{
+							"date":    types.StringNull(),
+							"time":    types.StringNull(),
+							"use_utc": convert.GraphToFrameworkBool(runOnceSchedule.GetUseUtc()),
+						}
+
+						// Log UTC setting
+						if useUtc := runOnceSchedule.GetUseUtc(); useUtc != nil {
+							tflog.Debug(ctx, "Run once schedule UTC setting", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"useUtc":          *useUtc,
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						// Handle date using GraphToFrameworkDateOnly
+						if dateValue := runOnceSchedule.GetDate(); dateValue != nil {
+							tflog.Debug(ctx, "Processing run once schedule date", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"dateValue":       dateValue.String(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							runOnceScheduleObj["date"] = convert.GraphToFrameworkDateOnly(dateValue)
+						} else {
+							tflog.Warn(ctx, "Run once schedule date is nil", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						// Handle time using GraphToFrameworkTimeOnlyWithPrecision
+						if timeValue := runOnceSchedule.GetTime(); timeValue != nil {
+							tflog.Debug(ctx, "Processing run once schedule time", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"timeValue":       timeValue.String(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							runOnceScheduleObj["time"] = convert.GraphToFrameworkTimeOnlyWithPrecision(timeValue, 0)
+						} else {
+							tflog.Warn(ctx, "Run once schedule time is nil", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+
+						runOnceObj, diags := types.ObjectValue(runOnceScheduleAttrTypes(), runOnceScheduleObj)
+						if !diags.HasError() {
+							tflog.Debug(ctx, "Successfully created run once schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"resourceId":      data.ID.ValueString(),
+							})
+							assignmentObj["run_once_schedule"] = runOnceObj
+						} else {
+							tflog.Error(ctx, "Failed to create run once schedule object", map[string]interface{}{
+								"assignmentIndex": i,
+								"assignmentId":    assignment.GetId(),
+								"errors":          diags.Errors(),
+								"resourceId":      data.ID.ValueString(),
+							})
+						}
+					} else {
+						tflog.Error(ctx, "Failed to cast run schedule to DeviceHealthScriptRunOnceScheduleable", map[string]interface{}{
+							"assignmentIndex": i,
+							"assignmentId":    assignment.GetId(),
+							"resourceId":      data.ID.ValueString(),
+						})
+					}
+
+				default:
+					tflog.Warn(ctx, "Unknown schedule type encountered", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"scheduleType":    *scheduleType,
+						"resourceId":      data.ID.ValueString(),
+					})
+				}
+			} else {
+				tflog.Warn(ctx, "Schedule OData type is nil", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+			}
+		} else {
+			tflog.Debug(ctx, "No schedule found for assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+		}
+
+		// Create the object value and add it to our list
+		tflog.Debug(ctx, "Creating assignment object value", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		objValue, diags := types.ObjectValue(WindowsRemediationScriptAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		if !diags.HasError() {
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentValues = append(assignmentValues, objValue)
+		} else {
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"errors":          diags.Errors(),
+				"resourceId":      data.ID.ValueString(),
 			})
 		}
 	}
 
-	// Set include_groups
-	assignment.IncludeGroups = mapIncludeGroupsToSet(ctx, includeGroups)
+	// Create the final set value
+	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+		"processedAssignments": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
+	})
 
-	// Set exclude_group_ids
-	assignment.ExcludeGroupIds = mapExcludeGroupIdsToSet(ctx, excludeGroupIds)
-
-	// Create the assignments slice with our single aggregated assignment
-	data.Assignments = []WindowsRemediationScriptAssignmentResourceModel{assignment}
+	if len(assignmentValues) > 0 {
+		setVal, diags := types.SetValue(WindowsRemediationScriptAssignmentType(), assignmentValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+				"errors":     diags.Errors(),
+				"resourceId": data.ID.ValueString(),
+			})
+			data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+		} else {
+			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+				"assignmentCount": len(assignmentValues),
+				"resourceId":      data.ID.ValueString(),
+			})
+			data.Assignments = setVal
+		}
+	} else {
+		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+	}
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{
-		"assignmentCount":      len(data.Assignments),
-		"includeGroupsCount":   len(includeGroups),
-		"excludeGroupIdsCount": len(excludeGroupIds),
+		"finalAssignmentCount": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
 	})
-}
-
-// mapAllDevicesTarget maps AllDevicesAssignmentTarget properties
-// Updated to use unified Type and FilterId fields
-func mapAllDevicesTarget(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, target graphmodels.DeviceAndAppManagementAssignmentTargetable) {
-	if allDevicesTarget, ok := target.(graphmodels.AllDevicesAssignmentTargetable); ok {
-		if filterId := allDevicesTarget.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-			assignment.FilterId = types.StringValue(*filterId)
-		}
-		if filterType := allDevicesTarget.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-			assignment.Type = types.StringValue(filterType.String())
-		}
-	}
-}
-
-// mapAllUsersTarget maps AllLicensedUsersAssignmentTarget properties
-// Updated to use unified Type and FilterId fields
-func mapAllUsersTarget(ctx context.Context, assignment *WindowsRemediationScriptAssignmentResourceModel, target graphmodels.DeviceAndAppManagementAssignmentTargetable) {
-	if allUsersTarget, ok := target.(graphmodels.AllLicensedUsersAssignmentTargetable); ok {
-		if filterId := allUsersTarget.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-			assignment.FilterId = types.StringValue(*filterId)
-		}
-		if filterType := allUsersTarget.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-			assignment.Type = types.StringValue(filterType.String())
-		}
-	}
-}
-
-// mapGroupAssignmentTarget maps GroupAssignmentTarget to IncludeGroupResourceModel
-// Updated to use unified Type and FilterId fields
-func mapGroupAssignmentTarget(ctx context.Context, assignmentItem graphmodels.DeviceHealthScriptAssignmentable, target graphmodels.DeviceAndAppManagementAssignmentTargetable) *IncludeGroupResourceModel {
-	groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable)
-	if !ok {
-		return nil
-	}
-
-	groupId := groupTarget.GetGroupId()
-	if groupId == nil {
-		return nil
-	}
-
-	includeGroup := &IncludeGroupResourceModel{
-		GroupId: types.StringValue(*groupId),
-	}
-
-	// Map filter properties using unified field names
-	if filterId := groupTarget.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil {
-		includeGroup.FilterId = types.StringValue(*filterId)
-	} else {
-		includeGroup.FilterId = types.StringValue("")
-	}
-
-	if filterType := groupTarget.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {
-		includeGroup.Type = types.StringValue(filterType.String())
-	} else {
-		includeGroup.Type = types.StringValue("")
-	}
-
-	// Handle API inconsistency with runRemediationScript
-	runRemediationFromAPI := assignmentItem.GetRunRemediationScript()
-
-	tflog.Debug(ctx, "API returned RunRemediationScript", map[string]interface{}{
-		"groupId":       *groupId,
-		"apiValue":      runRemediationFromAPI,
-		"apiValueIsNil": runRemediationFromAPI == nil,
-	})
-
-	// Map run schedule with better error handling
-	if runSchedule := assignmentItem.GetRunSchedule(); runSchedule != nil {
-		scheduleModel := mapRunSchedule(ctx, runSchedule)
-		if scheduleModel != nil {
-			includeGroup.RunSchedule = scheduleModel
-		} else {
-			tflog.Warn(ctx, "Failed to map run schedule from API", map[string]interface{}{
-				"groupId": *groupId,
-			})
-		}
-	}
-
-	tflog.Debug(ctx, "Successfully mapped group assignment target", map[string]interface{}{
-		"groupId":     *groupId,
-		"type":        includeGroup.Type.ValueString(),
-		"filterId":    includeGroup.FilterId.ValueString(),
-		"hasSchedule": includeGroup.RunSchedule != nil,
-	})
-
-	return includeGroup
-}
-
-// mapExclusionGroupTarget maps ExclusionGroupAssignmentTarget to string
-// No changes needed as this only deals with group IDs
-func mapExclusionGroupTarget(ctx context.Context, target graphmodels.DeviceAndAppManagementAssignmentTargetable) *types.String {
-	exclusionTarget, ok := target.(graphmodels.ExclusionGroupAssignmentTargetable)
-	if !ok {
-		return nil
-	}
-
-	groupId := exclusionTarget.GetGroupId()
-	if groupId == nil {
-		return nil
-	}
-
-	result := types.StringValue(*groupId)
-	tflog.Debug(ctx, "Mapped exclusion group target", map[string]interface{}{
-		"groupId": *groupId,
-	})
-
-	return &result
-}
-
-// mapIncludeGroupsToSet converts IncludeGroupResourceModel slice to types.Set
-// Updated to use unified Type and FilterId fields
-func mapIncludeGroupsToSet(ctx context.Context, includeGroups []IncludeGroupResourceModel) types.Set {
-	if len(includeGroups) == 0 {
-		return types.SetNull(getIncludeGroupObjectType())
-	}
-
-	// Sort for consistent ordering
-	sort.Slice(includeGroups, func(i, j int) bool {
-		return includeGroups[i].GroupId.ValueString() < includeGroups[j].GroupId.ValueString()
-	})
-
-	includeGroupValues := make([]attr.Value, 0, len(includeGroups))
-
-	for _, group := range includeGroups {
-		tflog.Debug(ctx, "Processing include group for set", map[string]interface{}{
-			"groupId":        group.GroupId.ValueString(),
-			"type":           group.Type.ValueString(),
-			"filterId":       group.FilterId.ValueString(),
-			"hasRunSchedule": group.RunSchedule != nil,
-		})
-
-		// Handle type: preserve the exact value from API or empty if not set
-		var filterType types.String
-		if group.Type.IsNull() || group.Type.ValueString() == "" {
-			filterType = types.StringValue("")
-		} else {
-			filterType = group.Type
-		}
-
-		// Handle filter ID: preserve the exact value from API or empty if not set
-		var filterId types.String
-		if group.FilterId.IsNull() || group.FilterId.ValueString() == "" {
-			filterId = types.StringValue("")
-		} else {
-			filterId = group.FilterId
-		}
-
-		// Create run_schedule object with exact value patterns
-		var runScheduleObj attr.Value
-		if group.RunSchedule != nil {
-			scheduleAttrs := map[string]attr.Value{
-				"schedule_type": group.RunSchedule.ScheduleType,
-				"interval":      group.RunSchedule.Interval,
-				"time":          group.RunSchedule.Time,
-				"date":          group.RunSchedule.Date,
-				"use_utc":       group.RunSchedule.UseUtc,
-			}
-
-			var diags diag.Diagnostics
-			runScheduleObj, diags = types.ObjectValue(getRunScheduleObjectType().AttrTypes, scheduleAttrs)
-			if diags.HasError() {
-				tflog.Error(ctx, "Failed to create run_schedule object", map[string]interface{}{
-					"errors": diags.Errors(),
-					"group":  group.GroupId.ValueString(),
-				})
-				continue // Skip this group if we can't create the schedule object
-			}
-		} else {
-			runScheduleObj = types.ObjectNull(getRunScheduleObjectType().AttrTypes)
-		}
-
-		groupAttrs := map[string]attr.Value{
-			"group_id":     group.GroupId,
-			"type":         filterType,
-			"filter_id":    filterId,
-			"run_schedule": runScheduleObj,
-		}
-
-		groupObj, diags := types.ObjectValue(getIncludeGroupObjectType().AttrTypes, groupAttrs)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create include group object", map[string]interface{}{
-				"errors": diags.Errors(),
-				"group":  group.GroupId.ValueString(),
-			})
-			continue
-		}
-
-		includeGroupValues = append(includeGroupValues, groupObj)
-
-		tflog.Debug(ctx, "Successfully created include group object", map[string]interface{}{
-			"groupId":        group.GroupId.ValueString(),
-			"type":           filterType.ValueString(),
-			"filterId":       filterId.ValueString(),
-			"hasRunSchedule": group.RunSchedule != nil,
-		})
-	}
-
-	if len(includeGroupValues) == 0 {
-		return types.SetNull(getIncludeGroupObjectType())
-	}
-
-	includeGroupsSet, diags := types.SetValue(getIncludeGroupObjectType(), includeGroupValues)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create include_groups set", map[string]interface{}{
-			"errors": diags.Errors(),
-		})
-		return types.SetNull(getIncludeGroupObjectType())
-	}
-
-	return includeGroupsSet
-}
-
-// mapExcludeGroupIdsToSet converts string slice to types.Set
-// No changes needed as this only deals with string IDs
-func mapExcludeGroupIdsToSet(ctx context.Context, excludeGroupIds []types.String) types.Set {
-	if len(excludeGroupIds) == 0 {
-		return types.SetNull(types.StringType)
-	}
-
-	// Sort for consistent ordering
-	sort.Slice(excludeGroupIds, func(i, j int) bool {
-		return excludeGroupIds[i].ValueString() < excludeGroupIds[j].ValueString()
-	})
-
-	excludeGroupsSet, diags := types.SetValueFrom(ctx, types.StringType, excludeGroupIds)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create exclude_group_ids set", map[string]interface{}{
-			"errors": diags.Errors(),
-		})
-		return types.SetNull(types.StringType)
-	}
-
-	return excludeGroupsSet
-}
-
-func mapRunSchedule(ctx context.Context, schedule graphmodels.DeviceHealthScriptRunScheduleable) *RunScheduleResourceModel {
-	if schedule == nil {
-		return nil
-	}
-
-	// Initialize with schema defaults
-	result := &RunScheduleResourceModel{
-		Interval: types.Int32Value(1),    // Schema default
-		UseUtc:   types.BoolValue(false), // Schema default
-	}
-
-	odataType := schedule.GetOdataType()
-	if odataType == nil {
-		tflog.Warn(ctx, "Schedule missing @odata.type, defaulting to hourly")
-		result.ScheduleType = types.StringValue("hourly")
-		result.Time = types.StringNull()
-		result.Date = types.StringNull()
-		return result
-	}
-
-	switch *odataType {
-	case "#microsoft.graph.deviceHealthScriptDailySchedule":
-		if dailySchedule, ok := schedule.(graphmodels.DeviceHealthScriptDailyScheduleable); ok {
-			result.ScheduleType = types.StringValue("daily")
-
-			if interval := dailySchedule.GetInterval(); interval != nil {
-				result.Interval = types.Int32Value(*interval)
-			}
-
-			// CRITICAL FIX: Handle API returning empty/null time values
-			if time := dailySchedule.GetTime(); time != nil {
-				timeStr := convert.GraphToFrameworkTimeOnly(time)
-				if !timeStr.IsNull() && timeStr.ValueString() != "" {
-					result.Time = timeStr
-				} else {
-					// API returned empty time - this is an API inconsistency
-					tflog.Warn(ctx, "API returned empty time for daily schedule")
-					result.Time = types.StringValue("") // Preserve as empty string
-				}
-			} else {
-				// API didn't return time field at all
-				tflog.Warn(ctx, "API didn't return time field for daily schedule")
-				result.Time = types.StringValue("") // Set as empty string
-			}
-
-			// Date is always null for daily schedules
-			result.Date = types.StringNull()
-
-			if useUtc := dailySchedule.GetUseUtc(); useUtc != nil {
-				result.UseUtc = types.BoolValue(*useUtc)
-			}
-
-			tflog.Debug(ctx, "Mapped daily schedule", map[string]interface{}{
-				"interval":   result.Interval.ValueInt32(),
-				"time":       result.Time.ValueString(),
-				"timeIsNull": result.Time.IsNull(),
-				"useUtc":     result.UseUtc.ValueBool(),
-			})
-		}
-
-	case "#microsoft.graph.deviceHealthScriptHourlySchedule":
-		if hourlySchedule, ok := schedule.(graphmodels.DeviceHealthScriptHourlyScheduleable); ok {
-			result.ScheduleType = types.StringValue("hourly")
-
-			if interval := hourlySchedule.GetInterval(); interval != nil {
-				result.Interval = types.Int32Value(*interval)
-			}
-
-			// For hourly schedule: time and date should be null
-			result.Time = types.StringNull()
-			result.Date = types.StringNull()
-			result.UseUtc = types.BoolValue(false) // Always false for hourly
-
-			tflog.Debug(ctx, "Mapped hourly schedule", map[string]interface{}{
-				"interval": result.Interval.ValueInt32(),
-			})
-		}
-
-	case "#microsoft.graph.deviceHealthScriptRunOnceSchedule":
-		if onceSchedule, ok := schedule.(graphmodels.DeviceHealthScriptRunOnceScheduleable); ok {
-			result.ScheduleType = types.StringValue("once")
-
-			if interval := onceSchedule.GetInterval(); interval != nil {
-				result.Interval = types.Int32Value(*interval)
-			}
-
-			if date := onceSchedule.GetDate(); date != nil {
-				dateStr := convert.GraphToFrameworkDateOnly(date)
-				if !dateStr.IsNull() && dateStr.ValueString() != "" {
-					result.Date = dateStr
-				} else {
-					tflog.Warn(ctx, "API returned empty date for once schedule")
-					result.Date = types.StringValue("")
-				}
-			} else {
-				tflog.Warn(ctx, "API didn't return date field for once schedule")
-				result.Date = types.StringValue("")
-			}
-
-			if time := onceSchedule.GetTime(); time != nil {
-				timeStr := convert.GraphToFrameworkTimeOnly(time)
-				if !timeStr.IsNull() && timeStr.ValueString() != "" {
-					result.Time = timeStr
-				} else {
-					tflog.Warn(ctx, "API returned empty time for once schedule")
-					result.Time = types.StringValue("")
-				}
-			} else {
-				tflog.Warn(ctx, "API didn't return time field for once schedule")
-				result.Time = types.StringValue("")
-			}
-
-			if useUtc := onceSchedule.GetUseUtc(); useUtc != nil {
-				result.UseUtc = types.BoolValue(*useUtc)
-			}
-
-			tflog.Debug(ctx, "Mapped once schedule", map[string]interface{}{
-				"interval":   result.Interval.ValueInt32(),
-				"date":       result.Date.ValueString(),
-				"dateIsNull": result.Date.IsNull(),
-				"time":       result.Time.ValueString(),
-				"timeIsNull": result.Time.IsNull(),
-				"useUtc":     result.UseUtc.ValueBool(),
-			})
-		}
-
-	default:
-		tflog.Warn(ctx, "Unknown schedule type", map[string]interface{}{
-			"scheduleType": *odataType,
-		})
-		// Default to hourly for unknown types
-		result.ScheduleType = types.StringValue("hourly")
-		result.Time = types.StringNull()
-		result.Date = types.StringNull()
-		result.UseUtc = types.BoolValue(false)
-	}
-
-	return result
-}
-
-// Helper functions to get object types - Updated for simplified model
-func getIncludeGroupObjectType() types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"group_id":               types.StringType,
-			"type":                   types.StringType,
-			"filter_id":              types.StringType,
-			"run_remediation_script": types.BoolType,
-			"run_schedule":           getRunScheduleObjectType(),
-		},
-	}
-}
-
-// getRunScheduleObjectType remains unchanged
-func getRunScheduleObjectType() types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"schedule_type": types.StringType,
-			"interval":      types.Int32Type,
-			"time":          types.StringType,
-			"date":          types.StringType,
-			"use_utc":       types.BoolType,
-		},
-	}
 }

@@ -601,8 +601,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Optional:            true,
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(
-										regexp.MustCompile(constants.TimeFormatHMSRegex),
-										"must be a valid time format (HH:MM:SS)",
+										regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+										"Time must be in the format 'HH:MM:SS' (24-hour format)",
 									),
 								},
 							},
@@ -611,8 +611,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Optional:            true,
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(
-										regexp.MustCompile(constants.TimeFormatHMSRegex),
-										"must be a valid time format (HH:MM:SS)",
+										regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+										"Time must be in the format 'HH:MM:SS' (24-hour format)",
 									),
 								},
 							},
