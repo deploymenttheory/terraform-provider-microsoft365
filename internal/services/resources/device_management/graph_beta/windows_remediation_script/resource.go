@@ -137,12 +137,10 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"detection_script_content": schema.StringAttribute{
 				Required:            true,
-				Sensitive:           true,
 				MarkdownDescription: "The entire content of the detection PowerShell script.",
 			},
 			"remediation_script_content": schema.StringAttribute{
 				Required:            true,
-				Sensitive:           true,
 				MarkdownDescription: "The entire content of the remediation PowerShell script.",
 			},
 			"detection_script_parameters": schema.ListNestedAttribute{
