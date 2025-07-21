@@ -25,7 +25,6 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 		return requestBody, nil
 	}
 
-	// Extract assignments using the proper struct types
 	var terraformAssignments []WindowsRemediationScriptAssignmentModel
 	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
 	if diags.HasError() {
@@ -37,10 +36,8 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 			"index": idx,
 		})
 
-		// Create a new assignment
 		graphAssignment := graphmodels.NewDeviceHealthScriptAssignment()
 
-		// Process the assignment target based on type
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
 			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
 				"index": idx,
@@ -50,7 +47,6 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 
 		targetType := assignment.Type.ValueString()
 
-		// Create the target based on the target type
 		target := constructTarget(ctx, targetType, assignment)
 		if target == nil {
 			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
@@ -60,10 +56,8 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 			continue
 		}
 
-		// Set the target on the assignment
 		graphAssignment.SetTarget(target)
 
-		// Set run schedule if provided
 		runSchedule := constructRunSchedule(ctx, assignment)
 		if runSchedule != nil {
 			graphAssignment.SetRunSchedule(runSchedule)
@@ -99,15 +93,23 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 	case "groupAssignmentTarget":
 		groupTarget := graphmodels.NewGroupAssignmentTarget()
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
-			// Use helper to set group ID
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
 		}
 		target = groupTarget
 	case "exclusionGroupAssignmentTarget":
 		exclusionTarget := graphmodels.NewExclusionGroupAssignmentTarget()
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
-			// Use helper to set group ID
 			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
 		}
 		target = exclusionTarget
 	default:
@@ -117,26 +119,30 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 		return nil
 	}
 
-	// Set filter if provided
-	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() && assignment.FilterId.ValueString() != "" {
-		if targetWithFilter, ok := target.(graphmodels.DeviceAndAppManagementAssignmentTargetable); ok {
-			// Use helper to set filter ID
-			convert.FrameworkToGraphString(assignment.FilterId, targetWithFilter.SetDeviceAndAppManagementAssignmentFilterId)
+	// Set filter if provided and meaningful (not default values)
+	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() &&
+		assignment.FilterId.ValueString() != "" &&
+		assignment.FilterId.ValueString() != "00000000-0000-0000-0000-000000000000" {
 
-			// Set filter type if provided
-			if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() && assignment.FilterType.ValueString() != "" {
-				filterType := assignment.FilterType.ValueString()
-				var filterTypeEnum graphmodels.DeviceAndAppManagementAssignmentFilterType
-				switch filterType {
-				case "include":
-					filterTypeEnum = graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
-				case "exclude":
-					filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
-				default:
-					return target
-				}
-				targetWithFilter.SetDeviceAndAppManagementAssignmentFilterType(&filterTypeEnum)
+		convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+
+		if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() &&
+			assignment.FilterType.ValueString() != "" && assignment.FilterType.ValueString() != "none" {
+
+			filterType := assignment.FilterType.ValueString()
+			var filterTypeEnum graphmodels.DeviceAndAppManagementAssignmentFilterType
+			switch filterType {
+			case "include":
+				filterTypeEnum = graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			case "exclude":
+				filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			default:
+				tflog.Warn(ctx, "Unknown filter type, not setting filter", map[string]interface{}{
+					"filterType": filterType,
+				})
+				return target
 			}
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterTypeEnum)
 		}
 	}
 
@@ -145,20 +151,16 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 
 // constructRunSchedule creates a run schedule from the assignment
 func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScriptAssignmentModel) graphmodels.DeviceHealthScriptRunScheduleable {
-	// Check for daily schedule
+
 	if assignment.DailySchedule != nil {
 		dailySchedule := graphmodels.NewDeviceHealthScriptDailySchedule()
 
-		// Set interval using Int32 helper
 		if !assignment.DailySchedule.Interval.IsNull() && !assignment.DailySchedule.Interval.IsUnknown() {
-			// Convert int32 to int32 for the API
 			interval := int32(assignment.DailySchedule.Interval.ValueInt32())
 			dailySchedule.SetInterval(&interval)
 		}
 
-		// Set time using TimeOnly helper
 		if !assignment.DailySchedule.Time.IsNull() && !assignment.DailySchedule.Time.IsUnknown() && assignment.DailySchedule.Time.ValueString() != "" {
-			// Use FrameworkToGraphTimeOnlyWithPrecision helper
 			err := convert.FrameworkToGraphTimeOnlyWithPrecision(assignment.DailySchedule.Time, 0, dailySchedule.SetTime)
 			if err != nil {
 				tflog.Error(ctx, "Failed to parse daily schedule time", map[string]interface{}{
@@ -168,7 +170,6 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 			}
 		}
 
-		// Set useUtc using Bool helper
 		if !assignment.DailySchedule.UseUtc.IsNull() && !assignment.DailySchedule.UseUtc.IsUnknown() {
 			convert.FrameworkToGraphBool(assignment.DailySchedule.UseUtc, dailySchedule.SetUseUtc)
 		}
@@ -176,13 +177,10 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 		return dailySchedule
 	}
 
-	// Check for hourly schedule
 	if assignment.HourlySchedule != nil {
 		hourlySchedule := graphmodels.NewDeviceHealthScriptHourlySchedule()
 
-		// Set interval using Int32 helper
 		if !assignment.HourlySchedule.Interval.IsNull() && !assignment.HourlySchedule.Interval.IsUnknown() {
-			// Convert int32 to int32 for the API
 			interval := int32(assignment.HourlySchedule.Interval.ValueInt32())
 			hourlySchedule.SetInterval(&interval)
 		}
@@ -190,13 +188,10 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 		return hourlySchedule
 	}
 
-	// Check for run once schedule
 	if assignment.RunOnceSchedule != nil {
 		runOnceSchedule := graphmodels.NewDeviceHealthScriptRunOnceSchedule()
 
-		// Set date using DateOnly helper
 		if !assignment.RunOnceSchedule.Date.IsNull() && !assignment.RunOnceSchedule.Date.IsUnknown() && assignment.RunOnceSchedule.Date.ValueString() != "" {
-			// Use DateOnly helper
 			err := convert.FrameworkToGraphDateOnly(assignment.RunOnceSchedule.Date, runOnceSchedule.SetDate)
 			if err != nil {
 				tflog.Error(ctx, "Failed to parse run once schedule date", map[string]interface{}{
@@ -206,9 +201,7 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 			}
 		}
 
-		// Set time using TimeOnly helper
 		if !assignment.RunOnceSchedule.Time.IsNull() && !assignment.RunOnceSchedule.Time.IsUnknown() && assignment.RunOnceSchedule.Time.ValueString() != "" {
-			// Use FrameworkToGraphTimeOnlyWithPrecision helper directly
 			err := convert.FrameworkToGraphTimeOnlyWithPrecision(assignment.RunOnceSchedule.Time, 0, runOnceSchedule.SetTime)
 			if err != nil {
 				tflog.Error(ctx, "Failed to parse run once schedule time", map[string]interface{}{
@@ -218,7 +211,6 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 			}
 		}
 
-		// Set useUtc using Bool helper
 		if !assignment.RunOnceSchedule.UseUtc.IsNull() && !assignment.RunOnceSchedule.UseUtc.IsUnknown() {
 			convert.FrameworkToGraphBool(assignment.RunOnceSchedule.UseUtc, runOnceSchedule.SetUseUtc)
 		}

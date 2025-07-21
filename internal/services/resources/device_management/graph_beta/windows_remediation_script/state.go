@@ -23,7 +23,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 		"resourceId":   remoteResource.GetId(),
 	})
 
-	// Map basic resource properties
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -50,7 +49,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 		"isGlobalScript":         data.IsGlobalScript.ValueBool(),
 	})
 
-	// Map assignments with comprehensive logging
 	assignments := remoteResource.GetAssignments()
 	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
 		"assignmentCount": len(assignments),
@@ -114,7 +112,6 @@ func runOnceScheduleAttrTypes() map[string]attr.Type {
 }
 
 // MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
-// MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
 func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptResourceModel, assignments []graphmodels.DeviceHealthScriptAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
@@ -163,8 +160,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 			"resourceId":      data.ID.ValueString(),
 		})
 
-		// Initialize assignment object with all required fields
-		// Use null/default values for fields that will be set conditionally
 		assignmentObj := map[string]attr.Value{
 			"type":              types.StringNull(),
 			"group_id":          types.StringNull(),
@@ -175,7 +170,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 			"run_once_schedule": types.ObjectNull(runOnceScheduleAttrTypes()),
 		}
 
-		// Map target type and specific properties
 		switch *odataType {
 		case "#microsoft.graph.allDevicesAssignmentTarget":
 			tflog.Debug(ctx, "Mapping allDevicesAssignmentTarget", map[string]interface{}{
@@ -184,8 +178,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 				"resourceId":      data.ID.ValueString(),
 			})
 			assignmentObj["type"] = types.StringValue("allDevicesAssignmentTarget")
-			// These target types don't have group_id, so use schema default
-			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+			assignmentObj["group_id"] = types.StringNull()
 
 		case "#microsoft.graph.allLicensedUsersAssignmentTarget":
 			tflog.Debug(ctx, "Mapping allLicensedUsersAssignmentTarget", map[string]interface{}{
@@ -194,8 +187,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 				"resourceId":      data.ID.ValueString(),
 			})
 			assignmentObj["type"] = types.StringValue("allLicensedUsersAssignmentTarget")
-			// These target types don't have group_id, so use schema default
-			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+			assignmentObj["group_id"] = types.StringNull()
 
 		case "#microsoft.graph.groupAssignmentTarget":
 			tflog.Debug(ctx, "Mapping groupAssignmentTarget", map[string]interface{}{
@@ -216,13 +208,12 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					})
 					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
 				} else {
-					tflog.Debug(ctx, "Group ID is nil/empty for group assignment target, using schema default", map[string]interface{}{
+					tflog.Warn(ctx, "Group ID is nil/empty for group assignment target", map[string]interface{}{
 						"assignmentIndex": i,
 						"assignmentId":    assignment.GetId(),
 						"resourceId":      data.ID.ValueString(),
 					})
-					// Set to schema default value
-					assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+					assignmentObj["group_id"] = types.StringNull()
 				}
 			} else {
 				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]interface{}{
@@ -230,8 +221,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					"assignmentId":    assignment.GetId(),
 					"resourceId":      data.ID.ValueString(),
 				})
-				// Set to schema default value as fallback
-				assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+				assignmentObj["group_id"] = types.StringNull()
 			}
 
 		case "#microsoft.graph.exclusionGroupAssignmentTarget":
@@ -253,13 +243,12 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					})
 					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
 				} else {
-					tflog.Debug(ctx, "Group ID is nil/empty for exclusion group assignment target, using schema default", map[string]interface{}{
+					tflog.Warn(ctx, "Group ID is nil/empty for exclusion group assignment target", map[string]interface{}{
 						"assignmentIndex": i,
 						"assignmentId":    assignment.GetId(),
 						"resourceId":      data.ID.ValueString(),
 					})
-					// Set to schema default value
-					assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+					assignmentObj["group_id"] = types.StringNull()
 				}
 			} else {
 				tflog.Error(ctx, "Failed to cast target to ExclusionGroupAssignmentTargetable", map[string]interface{}{
@@ -267,8 +256,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					"assignmentId":    assignment.GetId(),
 					"resourceId":      data.ID.ValueString(),
 				})
-				// Set to schema default value as fallback
-				assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+				assignmentObj["group_id"] = types.StringNull()
 			}
 
 		default:
@@ -278,11 +266,9 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 				"targetType":      *odataType,
 				"resourceId":      data.ID.ValueString(),
 			})
-			// Set to schema default value for unknown types
-			assignmentObj["group_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+			assignmentObj["group_id"] = types.StringNull()
 		}
 
-		// Handle assignment filters - only set if meaningful values exist
 		tflog.Debug(ctx, "Processing assignment filters", map[string]interface{}{
 			"assignmentIndex": i,
 			"assignmentId":    assignment.GetId(),
@@ -304,7 +290,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 				"assignmentId":    assignment.GetId(),
 				"resourceId":      data.ID.ValueString(),
 			})
-			// Set to schema default value
 			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 		}
 
@@ -346,7 +331,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					"filterType":      *filterType,
 					"resourceId":      data.ID.ValueString(),
 				})
-				// Set to schema default value
 				assignmentObj["filter_type"] = types.StringValue("none")
 			}
 		} else {
@@ -355,11 +339,9 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 				"assignmentId":    assignment.GetId(),
 				"resourceId":      data.ID.ValueString(),
 			})
-			// Set to schema default value
 			assignmentObj["filter_type"] = types.StringValue("none")
 		}
 
-		// Handle assignment schedules
 		tflog.Debug(ctx, "Processing assignment schedule", map[string]interface{}{
 			"assignmentIndex": i,
 			"assignmentId":    assignment.GetId(),
@@ -392,7 +374,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							"time":     types.StringNull(),
 						}
 
-						// Log interval and UTC setting
 						if interval := dailySchedule.GetInterval(); interval != nil {
 							tflog.Debug(ctx, "Daily schedule interval", map[string]interface{}{
 								"assignmentIndex": i,
@@ -411,7 +392,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							})
 						}
 
-						// Handle time using GraphToFrameworkTimeOnlyWithPrecision
 						if timeValue := dailySchedule.GetTime(); timeValue != nil {
 							tflog.Debug(ctx, "Processing daily schedule time", map[string]interface{}{
 								"assignmentIndex": i,
@@ -464,7 +444,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							"interval": convert.GraphToFrameworkInt32(hourlySchedule.GetInterval()),
 						}
 
-						// Log interval
 						if interval := hourlySchedule.GetInterval(); interval != nil {
 							tflog.Debug(ctx, "Hourly schedule interval", map[string]interface{}{
 								"assignmentIndex": i,
@@ -512,7 +491,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							"use_utc": convert.GraphToFrameworkBool(runOnceSchedule.GetUseUtc()),
 						}
 
-						// Log UTC setting
 						if useUtc := runOnceSchedule.GetUseUtc(); useUtc != nil {
 							tflog.Debug(ctx, "Run once schedule UTC setting", map[string]interface{}{
 								"assignmentIndex": i,
@@ -522,7 +500,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							})
 						}
 
-						// Handle date using GraphToFrameworkDateOnly
 						if dateValue := runOnceSchedule.GetDate(); dateValue != nil {
 							tflog.Debug(ctx, "Processing run once schedule date", map[string]interface{}{
 								"assignmentIndex": i,
@@ -539,7 +516,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 							})
 						}
 
-						// Handle time using GraphToFrameworkTimeOnlyWithPrecision
 						if timeValue := runOnceSchedule.GetTime(); timeValue != nil {
 							tflog.Debug(ctx, "Processing run once schedule time", map[string]interface{}{
 								"assignmentIndex": i,
@@ -603,7 +579,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 			})
 		}
 
-		// Create the object value and add it to our list
 		tflog.Debug(ctx, "Creating assignment object value", map[string]interface{}{
 			"assignmentIndex": i,
 			"assignmentId":    assignment.GetId(),
@@ -628,7 +603,6 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 		}
 	}
 
-	// Create the final set value
 	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
 		"processedAssignments": len(assignmentValues),
 		"originalAssignments":  len(assignments),
