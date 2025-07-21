@@ -14,6 +14,13 @@ import (
 func constructResource(ctx context.Context, data *DeviceHealthScriptResourceModel) (graphmodels.DeviceHealthScriptable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	// Validate assignments before proceeding so that we don't send an
+	// invalid request to the API and end up an orphaned resource with a
+	// broken assignment.
+	// if diags := ValidateAssignments(ctx, data); diags.HasError() {
+	// 	return nil, fmt.Errorf("assignment validation failed: %s", diags.Errors())
+	// }
+
 	requestBody := graphmodels.NewDeviceHealthScript()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)

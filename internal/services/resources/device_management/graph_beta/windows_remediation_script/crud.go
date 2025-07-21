@@ -52,27 +52,25 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignment != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignment)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceHealthScripts().
-			ByDeviceHealthScriptId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceHealthScripts().
+		ByDeviceHealthScriptId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create - Assignments", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -161,7 +159,7 @@ func (r *DeviceHealthScriptResource) Read(ctx context.Context, req resource.Read
 //
 // The function performs the following operations:
 //   - Patches the existing script resource with updated settings using PATCH
-//   - Updates assignments using POST if they are defined
+//   - Updates assignments using POST or removes all assignments if nil
 //   - Retrieves the updated resource with expanded assignments
 //   - Maps the remote state back to Terraform
 //
@@ -211,29 +209,27 @@ func (r *DeviceHealthScriptResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	// Assignment updating is commented out in original code
-	// if plan.Assignment != nil {
-	// 	requestAssignment, err := constructAssignment(ctx, plan.Assignment)
-	// 	if err != nil {
-	// 		resp.Diagnostics.AddError(
-	// 			"Error constructing assignment for update method",
-	// 			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-	// 		)
-	// 		return
-	// 	}
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-	// 	err = r.client.
-	// 		DeviceManagement().
-	// 		DeviceHealthScripts().
-	// 		ByDeviceHealthScriptId(state.ID.ValueString()).
-	// 		Assign().
-	// 		Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceHealthScripts().
+		ByDeviceHealthScriptId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-	// 	if err != nil {
-	// 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-	// 		return
-	// 	}
-	// }
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

@@ -3,6 +3,7 @@ package convert
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -95,9 +96,41 @@ func FrameworkToGraphDateOnly(value basetypes.StringValue, setter func(*serializ
 	return nil
 }
 
-// FrameworkToGraphTimeOnly parses a Terraform Framework string as HH:MM:SS time and sets a Graph SDK TimeOnly property.
+// Supports various time formats with different nanosecond precision levels (HH:MM:SS, HH:MM:SS.fff, etc.).
 // Returns an error if parsing fails. No-op if the value is null, unknown, or empty.
 func FrameworkToGraphTimeOnly(value types.String, setter func(*serialization.TimeOnly)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	timeStr := strings.TrimSpace(value.ValueString())
+	if timeStr == "" {
+		return nil
+	}
+
+	// Handle HH:MM format cases by converting to HH:MM:SS
+	if matched, _ := regexp.MatchString(`^([01]?[0-9]|2[0-3]):[0-5][0-9]$`, timeStr); matched {
+		timeStr = timeStr + ":00"
+	}
+
+	timeOnly, _, err := serialization.ParseTimeOnlyWithPrecision(timeStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse time string '%s': expected format HH:MM or HH:MM:SS (e.g., '14:30' or '14:30:00'), got error: %v", value.ValueString(), err)
+	}
+
+	if timeOnly != nil {
+		setter(timeOnly)
+	} else {
+		return fmt.Errorf("parsed time resulted in nil TimeOnly object for input '%s'", value.ValueString())
+	}
+
+	return nil
+}
+
+// FrameworkToGraphTimeOnlyWithPrecision parses a Terraform Framework string as time with explicit precision control.
+// Supports various time formats and allows specifying the desired output precision.
+// precision: 0-9, where 0 = HH:MM:SS, 1 = HH:MM:SS.f, 2 = HH:MM:SS.ff, etc.
+func FrameworkToGraphTimeOnlyWithPrecision(value types.String, precision int, setter func(*serialization.TimeOnly)) error {
 	if value.IsNull() || value.IsUnknown() {
 		return nil
 	}
@@ -107,13 +140,25 @@ func FrameworkToGraphTimeOnly(value types.String, setter func(*serialization.Tim
 		return nil
 	}
 
-	timeValue, err := time.Parse("15:04:05", timeStr)
+	timeOnly, detectedPrecision, err := serialization.ParseTimeOnlyWithPrecision(timeStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse time string '%s': %v", timeStr, err)
 	}
 
-	timeOnly := serialization.NewTimeOnly(timeValue)
-	setter(timeOnly)
+	if timeOnly != nil {
+		// If we need a different precision than detected, we can create a new TimeOnly
+		// with the desired precision by formatting and re-parsing
+		if precision != detectedPrecision && precision >= 0 && precision <= 9 {
+			// Format with desired precision and re-parse
+			formattedTime := timeOnly.StringWithPrecision(precision)
+			timeOnly, _, err = serialization.ParseTimeOnlyWithPrecision(formattedTime)
+			if err != nil {
+				return fmt.Errorf("failed to reformat time with precision %d: %v", precision, err)
+			}
+		}
+		setter(timeOnly)
+	}
+
 	return nil
 }
 

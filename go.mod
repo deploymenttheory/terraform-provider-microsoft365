@@ -16,11 +16,11 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.2
 	github.com/jarcoal/httpmock v1.4.0
-	github.com/microsoft/kiota-abstractions-go v1.9.2
+	github.com/microsoft/kiota-abstractions-go v1.9.3
 	github.com/microsoft/kiota-http-go v1.5.4
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.144.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.78.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.145.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.79.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/sassoftware/relic/v8 v8.2.0
 	github.com/stretchr/testify v1.10.0

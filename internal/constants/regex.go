@@ -39,10 +39,6 @@ const (
 	// Example: "true"
 	BooleanRegex = "^(true|false)$"
 
-	// TimeFormatHMSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
-	// Example: "14:30:59"
-	TimeFormatHMSRegex = "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
-
 	// TimeFormatRFC3339Regex is the time format for RFC3339.
 	// Example: "2023-05-01T13:45:30Z"
 	TimeFormatRFC3339Regex = time.RFC3339
@@ -54,4 +50,12 @@ const (
 	// AzureImageResourceIDRegex matches a valid Azure image resource ID for a custom image.
 	// Example: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Compute/images/myimage"
 	AzureImageResourceIDRegex = `^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Compute/images/[^/]+$`
+
+	// DateFormatYYYYMMDDRegex matches a date string in the format "YYYY-MM-DD".
+	// Example: "2023-12-31"
+	DateFormatYYYYMMDDRegex = "^\\d{4}-\\d{2}-\\d{2}$"
+
+	// TimeFormatHHMMSSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
+	// Example: "23:59:59"
+	TimeFormatHHMMSSRegex = "^([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)$"
 )
