@@ -1,0 +1,27 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#deviceAppManagement/mobileAppConfigurations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "Duplicate Config",
+      "description": "First duplicate config",
+      "createdDateTime": "2023-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2023-01-02T00:00:00Z",
+      "version": 1,
+      "targetedMobileApps": [],
+      "settings": []
+    },
+    {
+      "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Duplicate Config",
+      "description": "Second duplicate config",
+      "createdDateTime": "2023-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2023-01-02T00:00:00Z",
+      "version": 1,
+      "targetedMobileApps": [],
+      "settings": []
+    }
+  ]
+}

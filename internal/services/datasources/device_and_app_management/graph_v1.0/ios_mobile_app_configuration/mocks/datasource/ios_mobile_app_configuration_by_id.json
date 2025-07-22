@@ -1,0 +1,37 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "iOS App Config Test",
+  "description": "Test iOS app configuration",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2023-01-02T00:00:00Z",
+  "version": 1,
+  "targetedMobileApps": [
+    "com.example.app1",
+    "com.example.app2"
+  ],
+  "settings": [
+    {
+      "@odata.type": "#microsoft.graph.appConfigurationSettingItem",
+      "appConfigKey": "serverUrl",
+      "appConfigKeyType": "stringType",
+      "appConfigKeyValue": "https://api.example.com"
+    },
+    {
+      "@odata.type": "#microsoft.graph.appConfigurationSettingItem",
+      "appConfigKey": "syncInterval",
+      "appConfigKeyType": "integerType",
+      "appConfigKeyValue": "300"
+    }
+  ],
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.managedDeviceMobileAppConfigurationAssignment",
+      "id": "00000000-0000-0000-0000-000000000002",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000003"
+      }
+    }
+  ]
+}

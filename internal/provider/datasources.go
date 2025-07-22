@@ -39,6 +39,9 @@ import (
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site_list"
 
+	// Graph v1.0 - Device & app management datasources
+	graphV1DeviceAndAppManagementIOSMobileAppConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_v1.0/ios_mobile_app_configuration"
+
 	// Graph v1.0 - Directory Management datasources
 	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
 
@@ -93,6 +96,8 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaWindows365CloudPcDeviceImages.NewCloudPcDeviceImagesDataSource,
 		graphBetaWindows365CloudPcs.NewCloudPcsDataSource,
 		graphBetaWindows365CloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
+		// Graph v1.0 - Device & app management datasources
+		graphV1DeviceAndAppManagementIOSMobileAppConfiguration.NewIOSMobileAppConfigurationDataSource,
 		// Graph v1.0 - Directory Management datasources
 		graphDirectoryManagementSubscribedSkus.NewSubscribedSkusDataSource,
 
