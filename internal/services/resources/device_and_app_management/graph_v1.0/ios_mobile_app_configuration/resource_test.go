@@ -199,7 +199,7 @@ func TestAccIOSMobileAppConfigurationResource_Basic(t *testing.T) {
 	tenantID := os.Getenv("MICROSOFT365_TENANT_ID")
 	clientID := os.Getenv("MICROSOFT365_CLIENT_ID")
 	clientSecret := os.Getenv("MICROSOFT365_CLIENT_SECRET")
-	
+
 	if tenantID == "" || clientID == "" || clientSecret == "" {
 		t.Skip("Set MICROSOFT365_TENANT_ID, MICROSOFT365_CLIENT_ID, and MICROSOFT365_CLIENT_SECRET to run acceptance tests")
 	}
@@ -233,7 +233,7 @@ func TestAccIOSMobileAppConfigurationResource_Basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccProviderConfig() + testAccIOSMobileAppConfigurationResource_basic("Updated " + displayName),
+				Config: testAccProviderConfig() + testAccIOSMobileAppConfigurationResource_basic("Updated "+displayName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "display_name", "Updated "+displayName),
 				),
