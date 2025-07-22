@@ -35,6 +35,8 @@ func mapResourceToState(
 
 	if resource.GetDescription() != nil {
 		data.Description = types.StringValue(*resource.GetDescription())
+	} else {
+		data.Description = types.StringNull()
 	}
 
 	// Handle targeted mobile apps - treat empty list as null to match Terraform behavior
@@ -48,6 +50,8 @@ func mapResourceToState(
 	if resource.GetEncodedSettingXml() != nil {
 		encodedString := base64.StdEncoding.EncodeToString(resource.GetEncodedSettingXml())
 		data.EncodedSettingXml = types.StringValue(encodedString)
+	} else {
+		data.EncodedSettingXml = types.StringNull()
 	}
 
 	if resource.GetSettings() != nil {

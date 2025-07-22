@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 
@@ -115,6 +116,15 @@ func (r *IOSMobileAppConfigurationResource) Create(
 	}
 
 	mapResourceToState(ctx, iosMobileAppConfig, &plan, &resp.Diagnostics)
+
+	// Preserve sensitive field values from plan when they are null
+	// This prevents "inconsistent values for sensitive attribute" errors
+	var planData IOSMobileAppConfigurationResourceModel
+	diags = req.Plan.Get(ctx, &planData)
+	resp.Diagnostics.Append(diags...)
+	if !resp.Diagnostics.HasError() && planData.EncodedSettingXml.IsNull() {
+		plan.EncodedSettingXml = types.StringNull()
+	}
 
 	// Read assignments
 	assignmentsResp, err := r.client.DeviceAppManagement().
@@ -301,6 +311,20 @@ func (r *IOSMobileAppConfigurationResource) Update(
 	}
 
 	mapResourceToState(ctx, iosMobileAppConfig, &plan, &resp.Diagnostics)
+
+	// Preserve sensitive field values from plan when they are being explicitly set to null
+	var planData IOSMobileAppConfigurationResourceModel
+	diags = req.Plan.Get(ctx, &planData)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If encoded_setting_xml is null in the plan, keep it null in state
+	// This prevents "inconsistent values for sensitive attribute" errors
+	if planData.EncodedSettingXml.IsNull() {
+		plan.EncodedSettingXml = types.StringNull()
+	}
 
 	// Read assignments
 	assignmentsResp, err := r.client.DeviceAppManagement().
