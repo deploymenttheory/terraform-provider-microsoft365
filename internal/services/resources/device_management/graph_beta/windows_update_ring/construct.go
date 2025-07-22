@@ -103,7 +103,7 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 		return nil, fmt.Errorf("error setting PrereleaseFeatures: %v", err)
 	}
 
-	if data.AdditionalProperties != nil && len(data.AdditionalProperties) > 0 {
+	if len(data.AdditionalProperties) > 0 {
 		requestBody.SetAdditionalData(data.AdditionalProperties)
 	}
 

@@ -3,8 +3,10 @@ package provider
 import (
 	"context"
 	// Graph Beta - Device & app management
+	graphBetaDeviceAndAppManagementAndroidManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_mobile_app"
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementIOSiPadOSWebClip "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_ipados_web_clip"
+	graphBetaDeviceAndAppManagementIOSManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app"
 	graphBetaDeviceAndAppManagementIOSStoreApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_store_app"
 	graphBetaDeviceAndAppManagementMacOSDmgApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_dmg_app"
 	graphBetaDeviceAndAppManagementMacOSLobApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_lob_app"
@@ -13,6 +15,7 @@ import (
 	graphBetaDeviceAndAppManagementApplicationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_assignment"
 	graphBetaDeviceAndAppManagementMobileAppSupersedence "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_supersedence"
 	graphBetaDeviceAndAppManagementWin32App "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win32_app"
+	graphBetaDeviceAndAppManagementWindowsManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_managed_mobile_app"
 	graphBetaDeviceAndAppManagementWindowsWebApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_web_app"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
 
@@ -58,6 +61,7 @@ import (
 	graphBetaDeviceManagementWindowsQualityUpdatePolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy_assignment"
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	graphBetaDeviceManagementWindowsRemediationScriptAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script_assignment"
+	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
@@ -81,9 +85,6 @@ import (
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
 	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
-
-	// TODO current broken due to how the sdk builds time fields
-	//graphBetaDeviceAndAppManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Windows 365 resources
 	graphBetaWindows365AzureNetworkConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection"
@@ -128,6 +129,9 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementWinGetApp.NewWinGetAppResource,
 		graphBetaDeviceAndAppManagementWindowsWebApp.NewWindowsWebAppResource,
 		graphBetaDeviceAndAppManagementWin32App.NewWin32LobAppResource,
+		graphBetaDeviceAndAppManagementAndroidManagedMobileApp.NewAndroidManagedMobileAppResource,
+		graphBetaDeviceAndAppManagementIOSManagedMobileApp.NewIOSManagedMobileAppResource,
+		graphBetaDeviceAndAppManagementWindowsManagedMobileApp.NewWindowsManagedMobileAppResource,
 
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,
@@ -171,7 +175,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsQualityExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyResource,
 		graphBetaDeviceManagementWindowsQualityUpdatePolicyAssignment.NewWindowsQualityUpdateProfileAssignmentResource,
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
-		//graphBetaDeviceAndAppManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
+		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,

@@ -1,4 +1,3 @@
-
 resource "microsoft365_graph_beta_device_management_windows_remediation_script" "example" {
   display_name            = "Windows Security Remediation Script"
   description             = "Detects and remediates common security issues"
