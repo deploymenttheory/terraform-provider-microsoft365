@@ -37,7 +37,7 @@ func constructResource(
 		return nil
 	}
 
-	// Set encoded setting XML
+	// Set encoded setting XML - explicitly set to nil if null to clear it
 	if !data.EncodedSettingXml.IsNull() && !data.EncodedSettingXml.IsUnknown() {
 		xmlString := data.EncodedSettingXml.ValueString()
 		encodedBytes, err := base64.StdEncoding.DecodeString(xmlString)
@@ -49,6 +49,9 @@ func constructResource(
 			return nil
 		}
 		resource.SetEncodedSettingXml(encodedBytes)
+	} else if data.EncodedSettingXml.IsNull() {
+		// Explicitly set to nil to clear the field
+		resource.SetEncodedSettingXml(nil)
 	}
 
 	// Set settings

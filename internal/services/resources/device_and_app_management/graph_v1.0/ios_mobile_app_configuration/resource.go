@@ -126,6 +126,10 @@ func (r *IOSMobileAppConfigurationResource) Schema(
 				MarkdownDescription: "Base64 encoded configuration XML.",
 				Optional:            true,
 				Sensitive:           true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				MarkdownDescription: "DateTime the object was created. Read-only.",

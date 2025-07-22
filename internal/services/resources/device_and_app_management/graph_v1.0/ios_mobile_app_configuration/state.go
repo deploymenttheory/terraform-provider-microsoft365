@@ -47,10 +47,20 @@ func mapResourceToState(
 		data.TargetedMobileApps = convert.GraphToFrameworkStringList(targetedApps)
 	}
 
-	if resource.GetEncodedSettingXml() != nil {
-		encodedString := base64.StdEncoding.EncodeToString(resource.GetEncodedSettingXml())
+	// Handle encoded setting XML - treat empty byte arrays as null
+	encodedXml := resource.GetEncodedSettingXml()
+	if encodedXml != nil && len(encodedXml) > 0 {
+		encodedString := base64.StdEncoding.EncodeToString(encodedXml)
+		tflog.Debug(ctx, "Setting encoded_setting_xml", map[string]interface{}{
+			"length": len(encodedXml),
+			"value":  encodedString,
+		})
 		data.EncodedSettingXml = types.StringValue(encodedString)
 	} else {
+		tflog.Debug(ctx, "Setting encoded_setting_xml to null", map[string]interface{}{
+			"encodedXml_is_nil": encodedXml == nil,
+			"length":            len(encodedXml),
+		})
 		data.EncodedSettingXml = types.StringNull()
 	}
 
