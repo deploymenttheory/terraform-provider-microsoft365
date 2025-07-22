@@ -45,3 +45,7 @@ coverage.html
 
 # Python virtual environments
 scripts/python/venv/
+
+# AI instructions
+.claude
+.cursor
