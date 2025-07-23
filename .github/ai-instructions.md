@@ -107,20 +107,24 @@ Each resource directory MUST contain:
 ## Data Type Conversion for resource construction and state mapping
 
 - Use the data type conversion utilities in the following packages:
-  - **Constructors (`internal/services/common/constructors/data_type_conversion.go`)**: Contains functions for converting Terraform types to Microsoft Graph SDK types when constructing API requests:
-    - `convert.FrameworkToGraphString`, `SetBoolProperty`, `convert.FrameworkToGraphBool`, etc.: Convert Terraform primitive types to pointers for Graph API setters
-    - `convert.FrameworkToGraphEnum`: Convert string values to enumeration types
-    - `SetStringList`, `SetStringSet`: Convert Terraform collections to string slices
-    - `SetBytesProperty`: Convert string values to byte slices
-    - `SetISODurationProperty`: Parse ISO 8601 duration strings
-    - `StringToTimeOnly`, `StringToDateOnly`: Convert string values to specialized time/date types
-    - `SetUUIDProperty`: Parse and convert string UUIDs
-  - **State (`internal/services/common/state/data_type_conversion.go`)**: Contains functions for converting Microsoft Graph SDK types to Terraform types when mapping API responses to state:
-    - `TimeToString`, `DateOnlyPtrToString`, `TimeOnlyPtrToString`: Convert time types to strings
-    - `BoolPtrToTypeBool`, `Int32PtrToTypeInt32`: Convert primitive pointers to Terraform types
-    - `EnumPtrToTypeString`: Convert enumeration values to strings
-    - `BytesToString`: Convert byte arrays to strings
-
+  - **Constructors (`internal/services/common/convert/framework_to_graph.go`)**: Contains functions for converting Terraform types to Microsoft Graph SDK types when constructing API requests:
+    - `FrameworkToGraphString`, `FrameworkToGraphBool`, `FrameworkToGraphInt32`, etc.: Convert Terraform primitive types to pointers for Graph API setters
+    - `FrameworkToGraphEnum`: Convert string values to enumeration types
+    - `FrameworkToGraphTime`, `FrameworkToGraphDateOnly`, `FrameworkToGraphTimeOnly`: Convert string values to time/date types
+    - `FrameworkToGraphStringList`, `FrameworkToGraphStringSet`: Convert Terraform collections to string slices
+    - `FrameworkToGraphBytes`: Convert string values to byte slices
+    - `FrameworkToGraphISODuration`: Parse ISO 8601 duration strings
+    - `FrameworkToGraphUUID`: Parse and convert string UUIDs
+    - `FrameworkToGraphBitmaskEnumFromSet`: Convert string sets to bitmask enums
+  - **State (`internal/services/common/convert/graph_to_framework.go`)**: Contains functions for converting Microsoft Graph SDK types to Terraform types when mapping API responses to state:
+    - `GraphToFrameworkString`, `GraphToFrameworkBool`, `GraphToFrameworkInt32`: Convert primitive pointers to Terraform types
+    - `GraphToFrameworkTime`, `GraphToFrameworkDateOnly`, `GraphToFrameworkTimeOnly`: Convert time types to strings
+    - `GraphToFrameworkEnum`: Convert enumeration values to strings
+    - `GraphToFrameworkBytes`: Convert byte arrays to strings
+    - `GraphToFrameworkStringList`, `GraphToFrameworkStringSet`: Convert string slices to Terraform collections
+    - `GraphToFrameworkUUID`: Convert UUID values to strings
+    - `GraphToFrameworkBitmaskEnumAsSet`: Convert bitmask enums to string sets
+    
 ## Comments and Documentation
 
 - Write Go comments only on exported functions, types, and methods to explain their purpose, parameters, and return values when it adds clarity.
