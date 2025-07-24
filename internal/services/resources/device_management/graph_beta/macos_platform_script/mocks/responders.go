@@ -85,7 +85,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 						{
 							"id": "00000000-0000-0000-0000-000000000004",
 							"target": map[string]interface{}{
-								"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+								"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
 							},
 						},
 					}
@@ -389,7 +389,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 					{
 						"id": fmt.Sprintf("%s_adadadad-808e-44e2-905a-0b7873a8a531", id),
 						"target": map[string]interface{}{
-							"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+							"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
 						},
 					},
 				}
