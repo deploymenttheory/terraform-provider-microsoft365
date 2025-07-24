@@ -1,6 +1,7 @@
 package graphBetaWindowsPlatformScriptAssignment_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -26,6 +27,32 @@ func TestUnitWindowsPlatformScriptAssignmentResource_Basic(t *testing.T) {
 
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
+
+	// Mock POST for creating assignment
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/00000000-0000-0000-0000-000000000002/assignments",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(201, map[string]interface{}{
+				"id": "00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000003",
+				"target": map[string]interface{}{
+					"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+				},
+			})
+		})
+
+	// Mock GET for reading assignment
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/00000000-0000-0000-0000-000000000002/assignments/00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000003",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(200, map[string]interface{}{
+				"id": "00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000003",
+				"target": map[string]interface{}{
+					"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+				},
+			})
+		})
+
+	// Mock DELETE for removing assignment
+	httpmock.RegisterResponder("DELETE", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/00000000-0000-0000-0000-000000000002/assignments/00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000003",
+		httpmock.NewBytesResponder(204, nil))
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
