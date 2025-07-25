@@ -2,6 +2,8 @@ package graphBetaDeviceAndAppManagementWindowsManagedMobileApp
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -67,7 +69,21 @@ func (r *WindowsManagedMobileAppResource) Configure(ctx context.Context, req res
 }
 
 func (r *WindowsManagedMobileAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// The import ID is expected to be in the format "managedAppProtectionId/appId"
+	idParts := strings.Split(req.ID, "/")
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID in format 'managedAppProtectionId/appId', got: %s", req.ID),
+		)
+		return
+	}
+
+	managedAppProtectionId := idParts[0]
+	appId := idParts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("managed_app_protection_id"), managedAppProtectionId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), appId)...)
 }
 
 func (r *WindowsManagedMobileAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -97,11 +113,11 @@ func (r *WindowsManagedMobileAppResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "The ID of the Windows managed app protection policy to associate this app with",
 			},
 			"mobile_app_identifier": schema.SingleNestedAttribute{
-				Required: true,
+				Required:            true,
 				MarkdownDescription: "The Windows app identifier information",
 				Attributes: map[string]schema.Attribute{
 					"windows_app_id": schema.StringAttribute{
-						Required: true,
+						Required:            true,
 						MarkdownDescription: "The Windows app identifier (e.g., Microsoft.WindowsApp_8wekyb3d8bbwe)",
 					},
 				},

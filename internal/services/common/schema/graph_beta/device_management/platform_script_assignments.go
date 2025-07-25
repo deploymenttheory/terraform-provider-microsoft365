@@ -16,7 +16,7 @@ import (
 func PlatformScriptAssignmentsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:    true,
-		Description: "The assignment configuration for this Windows Settings Catalog profile.",
+		Description: "The assignment configuration for this Intune device management platform script.",
 		Attributes: map[string]schema.Attribute{
 			"all_devices": schema.BoolAttribute{
 				Optional: true,

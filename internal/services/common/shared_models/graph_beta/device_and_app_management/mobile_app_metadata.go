@@ -14,3 +14,9 @@ type MobileAppIconResourceModel struct {
 	IconFilePathSource types.String `tfsdk:"icon_file_path_source"`
 	IconURLSource      types.String `tfsdk:"icon_url_source"`
 }
+
+// ImageResourceModel contains the image url and file path sources
+type ImageResourceModel struct {
+	ImageFilePathSource types.String `tfsdk:"image_file_path_source"`
+	ImageURLSource      types.String `tfsdk:"image_url_source"`
+}

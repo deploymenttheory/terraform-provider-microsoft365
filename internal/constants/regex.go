@@ -19,6 +19,10 @@ const (
 	// Example: "https://example.com" or "http://example.org"
 	HttpOrHttpsUrlRegex = "^https?://.*$"
 
+	// EmailRegex matches a valid email address format
+	// Example: "user@example.com"
+	EmailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+
 	// ApiIdRegex matches API IDs consisting of alphanumeric characters, slashes, dots, or underscores.
 	// Example: "api/v1/resource_1"
 	ApiIdRegex = "^[0-9a-zA-Z/._]*$"

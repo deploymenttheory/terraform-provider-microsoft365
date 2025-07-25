@@ -327,22 +327,38 @@ func TestUnitAndroidManagedMobileAppResource_Import(t *testing.T) {
 	// Set up the test environment
 	setupTestEnvironment(t)
 
+	// Use a pre-existing app ID that exists in the mock
+	importConfig := `
+resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app" "import_test" {
+  managed_app_protection_id = "00000000-0000-0000-0000-000000000002"
+  mobile_app_identifier = {
+    package_id = "com.example.testapp"
+  }
+}
+`
+
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create
+			// Import using the composite ID format: managedAppProtectionId/appId
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"),
-				),
-			},
-			// Import
-			{
-				ResourceName:      "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:        importConfig,
+				ResourceName:  "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.import_test",
+				ImportState:   true,
+				ImportStateId: "00000000-0000-0000-0000-000000000002/00000000-0000-0000-0000-000000000001",
+				ImportStateCheck: func(state []*terraform.InstanceState) error {
+					if len(state) != 1 {
+						return fmt.Errorf("expected 1 state, got %d", len(state))
+					}
+					if state[0].ID != "00000000-0000-0000-0000-000000000001" {
+						return fmt.Errorf("expected ID '00000000-0000-0000-0000-000000000001', got '%s'", state[0].ID)
+					}
+					if state[0].Attributes["managed_app_protection_id"] != "00000000-0000-0000-0000-000000000002" {
+						return fmt.Errorf("expected managed_app_protection_id '00000000-0000-0000-0000-000000000002', got '%s'", state[0].Attributes["managed_app_protection_id"])
+					}
+					return nil
+				},
 			},
 		},
 	})
@@ -366,7 +382,7 @@ func TestUnitAndroidManagedMobileAppResource_Error(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),
-				ExpectError: regexp.MustCompile("Attribute managed_app_protection_id Must be a valid UUID format"),
+				ExpectError: regexp.MustCompile("Error creating Android managed mobile app"),
 			},
 		},
 	})

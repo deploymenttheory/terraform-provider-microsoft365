@@ -212,7 +212,6 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 }
 
 // AssignmentBlock returns the schema for the assignments block
-// AssignmentBlock returns the schema for the assignments block
 func AssignmentBlock() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		MarkdownDescription: "Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution.",
