@@ -8,6 +8,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -306,14 +307,17 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 			},
 			"device_compliance_policy_script": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Device compliance policy script for custom compliance",
+				Computed:            true,
+				MarkdownDescription: "Device compliance policy script for custom compliance. When wsl block is set, this block is computed and should not be set.",
 				Attributes: map[string]schema.Attribute{
 					"device_compliance_script_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "The ID of the device compliance script",
 					},
 					"rules_content": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "The base64 encoded rules content of the compliance script",
 					},
 				},
@@ -331,34 +335,47 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 						"distribution": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The name of the WSL distribution",
+							Validators: []validator.String{
+								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+							},
 						},
 						"minimum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The minimum OS version for the WSL distribution",
+							Validators: []validator.String{
+								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+							},
 						},
 						"maximum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The maximum OS version for the WSL distribution",
+							Validators: []validator.String{
+								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+							},
 						},
 					},
 				},
 			},
-			"scheduled_actions_for_rule": schema.SetNestedAttribute{
+			"scheduled_actions_for_rule": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "The list of scheduled action for this rule",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"rule_name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Name of the scheduled action rule",
-						},
-						"scheduled_action_configurations": schema.ListNestedAttribute{
 							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "Name of the scheduled action rule",
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.DefaultValueString("unavailable"),
+							},
+						},
+						"scheduled_action_configurations": schema.SetNestedAttribute{
+							Required:            true,
 							MarkdownDescription: "The list of scheduled action configurations for this compliance policy",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"action_type": schema.StringAttribute{
-										Optional:            true,
+										Required:            true,
 										MarkdownDescription: "What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.",
 										Validators: []validator.String{
 											stringvalidator.OneOf("noAction", "notification", "block", "retire", "wipe", "removeResourceAccessProfiles", "pushNotification", "remoteLock"),
@@ -372,7 +389,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 										Optional:            true,
 										MarkdownDescription: "What notification Message template to use",
 									},
-									"notification_message_cc_list": schema.SetAttribute{
+									"notification_message_cc_list": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										MarkdownDescription: "A list of group GUIDs to specify who to CC this notification message to",

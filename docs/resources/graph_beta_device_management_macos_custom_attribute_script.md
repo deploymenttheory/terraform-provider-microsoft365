@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
 - `custom_attribute_name` (String) The name of the custom attribute.
 - `description` (String) Optional description for the device management script.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

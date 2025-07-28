@@ -1,4 +1,4 @@
-package graphBetaDeviceCompliancePolicies
+package graphBetaMacosDeviceCompliancePolicy
 
 import (
 	"context"
@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation for Device Compliance Policy resources.
-func (r *DeviceCompliancePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *MacosDeviceCompliancePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object DeviceCompliancePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -30,7 +31,7 @@ func (r *DeviceCompliancePolicyResource) Create(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -50,6 +51,26 @@ func (r *DeviceCompliancePolicyResource) Create(ctx context.Context, req resourc
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
+
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+	_, err = r.client.
+		DeviceManagement().
+		DeviceCompliancePolicies().
+		ByDeviceCompliancePolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -76,7 +97,7 @@ func (r *DeviceCompliancePolicyResource) Create(ctx context.Context, req resourc
 }
 
 // Read handles the Read operation for Device Compliance Policy resources.
-func (r *DeviceCompliancePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *MacosDeviceCompliancePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object DeviceCompliancePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -101,18 +122,22 @@ func (r *DeviceCompliancePolicyResource) Read(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	resource, err := r.client.
+	respResource, err := r.client.
 		DeviceManagement().
 		DeviceCompliancePolicies().
 		ByDeviceCompliancePolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, resource)
+	MapRemoteStateToTerraform(ctx, &object, respResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -123,7 +148,7 @@ func (r *DeviceCompliancePolicyResource) Read(ctx context.Context, req resource.
 }
 
 // Update handles the Update operation for Device Compliance Policy resources.
-func (r *DeviceCompliancePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *MacosDeviceCompliancePolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan DeviceCompliancePolicyResourceModel
 	var state DeviceCompliancePolicyResourceModel
 
@@ -141,7 +166,7 @@ func (r *DeviceCompliancePolicyResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -158,6 +183,67 @@ func (r *DeviceCompliancePolicyResource) Update(ctx context.Context, req resourc
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	// Handle scheduleActionsForRules if present
+	if !plan.ScheduledActionsForRule.IsNull() && !plan.ScheduledActionsForRule.IsUnknown() {
+		var scheduledActionsModels []ScheduledActionForRuleModel
+		diags := plan.ScheduledActionsForRule.ElementsAs(ctx, &scheduledActionsModels, false)
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Error parsing scheduled actions for rules",
+				fmt.Sprintf("Could not parse scheduled actions list: %v", diags.Errors()),
+			)
+			return
+		}
+
+		for _, scheduledAction := range scheduledActionsModels {
+			scheduleRequestBody, err := constructDeviceComplianceScheduledActionForRulesWithPatchMethod(ctx, scheduledAction)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing scheduled actions for rules",
+					fmt.Sprintf("Could not construct scheduled actions request: %s", err.Error()),
+				)
+				return
+			}
+
+			err = r.client.
+				DeviceManagement().
+				DeviceCompliancePolicies().
+				ByDeviceCompliancePolicyId(state.ID.ValueString()).
+				ScheduleActionsForRules().
+				Post(ctx, scheduleRequestBody, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Successfully scheduled actions for rule '%s' for policy ID: %s",
+				scheduledAction.RuleName.ValueString(), state.ID.ValueString()))
+		}
+	}
+
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		DeviceCompliancePolicies().
+		ByDeviceCompliancePolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 		return
 	}
 
@@ -181,7 +267,7 @@ func (r *DeviceCompliancePolicyResource) Update(ctx context.Context, req resourc
 }
 
 // Delete handles the Delete operation for Device Compliance Policy resources.
-func (r *DeviceCompliancePolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *MacosDeviceCompliancePolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object DeviceCompliancePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))

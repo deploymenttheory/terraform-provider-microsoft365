@@ -4,67 +4,63 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ComplianceScriptAssignmentsSchema() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Optional:    true,
-		Description: "The assignment configuration for this Intune device management compliance script.",
-		Attributes: map[string]schema.Attribute{
-			"all_devices": schema.BoolAttribute{
-				Optional: true,
-				MarkdownDescription: "Specifies whether this assignment applies to all devices. " +
-					"When set to `true`, the assignment targets all devices in the organization." +
-					"Can be used in conjuction with `all_users`." +
-					"Can be used as an alternative to `include_groups`." +
-					"Can be used in conjuction with `all_users` and `exclude_group_ids`.",
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.UseStateForUnknownBool(),
+// ComplianceScriptAssignmentsSchema returns the schema for the assignments block
+func ComplianceScriptAssignmentsSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		MarkdownDescription: "Assignments for the compliance polic. Each assignment specifies the target group and schedule for script execution.",
+		Optional:            true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				// Target assignment fields - only one should be used at a time
+				"type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"allDevicesAssignmentTarget",
+							"allLicensedUsersAssignmentTarget",
+							"groupAssignmentTarget",
+							"exclusionGroupAssignmentTarget",
+						),
+					},
 				},
-			},
-			"all_users": schema.BoolAttribute{
-				Optional: true,
-				MarkdownDescription: "Specifies whether this assignment applies to all users. " +
-					"When set to `true`, the assignment targets all licensed users within the organization." +
-					"Can be used in conjuction with `all_devices`." +
-					"Can be used as an alternative to `include_groups`." +
-					"Can be used in conjuction with `all_devices` and `exclude_group_ids`.",
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.UseStateForUnknownBool(),
-				},
-			},
-			"include_group_ids": schema.SetAttribute{
-				Optional:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "A set of entra id group Id's to include in the assignment.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
+				"group_id": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(constants.GuidRegex),
 							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
-					),
+					},
 				},
-			},
-			"exclude_group_ids": schema.SetAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
-				MarkdownDescription: "A set of group IDs to exclude from the assignment. " +
-					"These groups will not receive the assignment, even if they match other inclusion criteria.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
+				// Assignment filter fields
+				"filter_id": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					MarkdownDescription: "ID of the filter to apply to the assignment.",
+					Default:             stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
+					Validators: []validator.String{
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(constants.GuidRegex),
 							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
-					),
+					},
+				},
+				"filter_type": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.",
+					Computed:            true,
+					Default:             stringdefault.StaticString("none"),
+					Validators: []validator.String{
+						stringvalidator.OneOf("include", "exclude", "none"),
+					},
 				},
 			},
 		},

@@ -1,4 +1,3 @@
-// Updated constructor functions to match the simplified model structure
 package graphBetaWindowsRemediationScript
 
 import (

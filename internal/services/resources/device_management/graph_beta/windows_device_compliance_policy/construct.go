@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -17,7 +16,6 @@ import (
 func constructResource(ctx context.Context, data *DeviceCompliancePolicyResourceModel, isCreate bool) (graphmodels.DeviceCompliancePolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	// Hardcode the OData type for Windows 10 compliance policy
 	windowsPolicy := graphmodels.NewWindows10CompliancePolicy()
 	if err := constructWindows10CompliancePolicy(ctx, data, windowsPolicy); err != nil {
 		return nil, fmt.Errorf("failed to construct Windows 10 policy: %s", err)
@@ -31,13 +29,22 @@ func constructResource(ctx context.Context, data *DeviceCompliancePolicyResource
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// This is only used for create, this field doesnt support PATCH. Requires a separate API call.
+	// Include scheduled actions during create operation as API requires at least one block action
 	if !data.ScheduledActionsForRule.IsNull() && !data.ScheduledActionsForRule.IsUnknown() && isCreate {
-		scheduledActions, err := constructScheduledActionsForRule(ctx, data.ScheduledActionsForRule)
-		if err != nil {
-			return nil, fmt.Errorf("failed to construct scheduled actions for rule: %s", err)
+		var scheduledActionsModels []ScheduledActionForRuleModel
+		diags := data.ScheduledActionsForRule.ElementsAs(ctx, &scheduledActionsModels, false)
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to parse scheduled actions list: %v", diags.Errors())
 		}
-		requestBody.SetScheduledActionsForRule(scheduledActions)
+
+		if len(scheduledActionsModels) > 0 {
+			firstRule := scheduledActionsModels[0]
+			scheduledActions, err := constructScheduledActionsForPolicyCreation(ctx, firstRule)
+			if err != nil {
+				return nil, fmt.Errorf("failed to construct scheduled actions for rule: %s", err)
+			}
+			requestBody.SetScheduledActionsForRule(scheduledActions)
+		}
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
@@ -53,7 +60,6 @@ func constructResource(ctx context.Context, data *DeviceCompliancePolicyResource
 
 // constructWindows10CompliancePolicy handles Windows 10 specific settings using SDK setters
 func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) error {
-	// Password-related properties
 	convert.FrameworkToGraphBool(data.PasswordRequired, policy.SetPasswordRequired)
 	convert.FrameworkToGraphBool(data.PasswordBlockSimple, policy.SetPasswordBlockSimple)
 	convert.FrameworkToGraphBool(data.PasswordRequiredToUnlockFromIdle, policy.SetPasswordRequiredToUnlockFromIdle)
@@ -68,7 +74,6 @@ func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceComplia
 		return fmt.Errorf("failed to set password required type: %s", err)
 	}
 
-	// Device health and attestation properties
 	convert.FrameworkToGraphBool(data.RequireHealthyDeviceReport, policy.SetRequireHealthyDeviceReport)
 	convert.FrameworkToGraphBool(data.EarlyLaunchAntiMalwareDriverEnabled, policy.SetEarlyLaunchAntiMalwareDriverEnabled)
 	convert.FrameworkToGraphBool(data.BitLockerEnabled, policy.SetBitLockerEnabled)
@@ -78,8 +83,6 @@ func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceComplia
 	convert.FrameworkToGraphBool(data.KernelDmaProtectionEnabled, policy.SetKernelDmaProtectionEnabled)
 	convert.FrameworkToGraphBool(data.VirtualizationBasedSecurityEnabled, policy.SetVirtualizationBasedSecurityEnabled)
 	convert.FrameworkToGraphBool(data.FirmwareProtectionEnabled, policy.SetFirmwareProtectionEnabled)
-
-	// Security and compliance properties
 	convert.FrameworkToGraphBool(data.StorageRequireEncryption, policy.SetStorageRequireEncryption)
 	convert.FrameworkToGraphBool(data.ActiveFirewallRequired, policy.SetActiveFirewallRequired)
 	convert.FrameworkToGraphBool(data.DefenderEnabled, policy.SetDefenderEnabled)
@@ -141,23 +144,18 @@ func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceComplia
 
 // constructDeviceCompliancePolicyScript converts Terraform Object to Graph SDK model
 func constructDeviceCompliancePolicyScript(ctx context.Context, scriptData types.Object) (graphmodels.DeviceCompliancePolicyScriptable, error) {
-	// Extract the attributes from the object
 	attrs := scriptData.Attributes()
 
-	// Create the script object
 	script := graphmodels.NewDeviceCompliancePolicyScript()
 
-	// Extract the script ID
 	if scriptIdAttr, ok := attrs["device_compliance_script_id"].(types.String); ok && !scriptIdAttr.IsNull() {
 		scriptId := scriptIdAttr.ValueString()
 		script.SetDeviceComplianceScriptId(&scriptId)
 	}
 
-	// Extract and encode the rules content
 	if rulesContentAttr, ok := attrs["rules_content"].(types.String); ok && !rulesContentAttr.IsNull() {
 		rulesContentStr := rulesContentAttr.ValueString()
-		// The rules content comes as a JSON string from the user
-		// We need to encode it to base64 for the API request
+		// The rules content comes as a JSON string from the user which needs to be encoded to base64 for the API request
 		encodedBytes := []byte(rulesContentStr)
 		script.SetRulesContent(encodedBytes)
 	}
@@ -208,102 +206,24 @@ func constructValidOperatingSystemBuildRanges(ctx context.Context, buildRangesDa
 	return buildRanges, nil
 }
 
-// constructScheduledActionsForRule converts Terraform Set to Graph SDK model using proper SDK types
-func constructScheduledActionsForRule(ctx context.Context, scheduledActionsData types.Set) ([]graphmodels.DeviceComplianceScheduledActionForRuleable, error) {
-	var scheduledActionsModels []ScheduledActionForRuleModel
-	diags := scheduledActionsData.ElementsAs(ctx, &scheduledActionsModels, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to convert scheduled actions for rule: %v", diags.Errors())
+// constructScheduledActionsForPolicyCreation creates scheduled actions for inclusion during policy creation
+func constructScheduledActionsForPolicyCreation(ctx context.Context, scheduledActionData ScheduledActionForRuleModel) ([]graphmodels.DeviceComplianceScheduledActionForRuleable, error) {
+	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, 1)
+	scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
+
+	if !scheduledActionData.RuleName.IsNull() && !scheduledActionData.RuleName.IsUnknown() {
+		ruleName := scheduledActionData.RuleName.ValueString()
+		scheduledAction.SetRuleName(&ruleName)
 	}
 
-	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, len(scheduledActionsModels))
-	for _, action := range scheduledActionsModels {
-		scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
-
-		convert.FrameworkToGraphString(action.RuleName, scheduledAction.SetRuleName)
-
-		if !action.ScheduledActionConfigurations.IsNull() && !action.ScheduledActionConfigurations.IsUnknown() {
-			configs, err := constructScheduledActionConfiguration(ctx, action.ScheduledActionConfigurations)
-			if err != nil {
-				return nil, fmt.Errorf("failed to construct scheduled action configurations: %s", err)
-			}
-			scheduledAction.SetScheduledActionConfigurations(configs)
+	if !scheduledActionData.ScheduledActionConfigurations.IsNull() && !scheduledActionData.ScheduledActionConfigurations.IsUnknown() {
+		configs, err := constructScheduledActionItem(ctx, scheduledActionData.ScheduledActionConfigurations)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct scheduled action configurations: %s", err)
 		}
-
-		scheduledActions = append(scheduledActions, scheduledAction)
+		scheduledAction.SetScheduledActionConfigurations(configs)
 	}
 
+	scheduledActions = append(scheduledActions, scheduledAction)
 	return scheduledActions, nil
-}
-
-// constructScheduledActionConfiguration converts Terraform List to Graph SDK model using proper SDK types
-func constructScheduledActionConfiguration(ctx context.Context, configurationsData types.List) ([]graphmodels.DeviceComplianceActionItemable, error) {
-	var configModels []ScheduledActionConfigurationModel
-	diags := configurationsData.ElementsAs(ctx, &configModels, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to convert scheduled action configurations: %v", diags.Errors())
-	}
-
-	configurations := make([]graphmodels.DeviceComplianceActionItemable, 0, len(configModels))
-	for _, config := range configModels {
-		actionItem := graphmodels.NewDeviceComplianceActionItem()
-
-		if err := convert.FrameworkToGraphEnum(config.ActionType,
-			graphmodels.ParseDeviceComplianceActionType, actionItem.SetActionType); err != nil {
-			return nil, fmt.Errorf("failed to set action type: %s", err)
-		}
-
-		// Convert GracePeriodHours to Int32 for the SDK
-		convert.FrameworkToGraphInt32(config.GracePeriodHours, actionItem.SetGracePeriodHours)
-
-		convert.FrameworkToGraphString(config.NotificationTemplateId, actionItem.SetNotificationTemplateId)
-
-		if err := convert.FrameworkToGraphStringSet(ctx, config.NotificationMessageCcList, actionItem.SetNotificationMessageCCList); err != nil {
-			return nil, fmt.Errorf("failed to set notification message CC list: %s", err)
-		}
-
-		configurations = append(configurations, actionItem)
-	}
-
-	return configurations, nil
-}
-
-// constructDeviceComplianceScheduledActionForRulesWithPatchMethod creates the request body for the scheduleActionsForRules API call
-func constructDeviceComplianceScheduledActionForRulesWithPatchMethod(ctx context.Context, scheduledActionsData types.Set) (devicemanagement.DeviceCompliancePoliciesItemScheduleActionsForRulesPostRequestBodyable, error) {
-	var scheduledActionsModels []ScheduledActionForRuleModel
-	diags := scheduledActionsData.ElementsAs(ctx, &scheduledActionsModels, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to convert scheduled actions for rule: %v", diags.Errors())
-	}
-
-	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, len(scheduledActionsModels))
-	for _, action := range scheduledActionsModels {
-		scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
-
-		if !action.RuleName.IsNull() && !action.RuleName.IsUnknown() {
-			ruleName := action.RuleName.ValueString()
-			scheduledAction.SetRuleName(&ruleName)
-		}
-
-		if !action.ScheduledActionConfigurations.IsNull() && !action.ScheduledActionConfigurations.IsUnknown() {
-			configs, err := constructScheduledActionConfiguration(ctx, action.ScheduledActionConfigurations)
-			if err != nil {
-				return nil, fmt.Errorf("failed to construct scheduled action configurations: %s", err)
-			}
-			scheduledAction.SetScheduledActionConfigurations(configs)
-		}
-
-		scheduledActions = append(scheduledActions, scheduledAction)
-	}
-
-	requestBody := devicemanagement.NewDeviceCompliancePoliciesItemScheduleActionsForRulesPostRequestBody()
-	requestBody.SetDeviceComplianceScheduledActionForRules(scheduledActions)
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-
-	return requestBody, nil
 }

@@ -1,10 +1,10 @@
 # Example: Basic Notification Message Template
 resource "microsoft365_graph_beta_device_management_notification_message_template" "basic" {
-  display_name    = "Basic Compliance Notification"
-  description     = "Basic notification template for device compliance violations"
-  default_locale  = "en-US"
+  display_name     = "Basic Compliance Notification"
+  description      = "Basic notification template for device compliance violations"
+  default_locale   = "en-US"
   branding_options = "includeCompanyLogo"
-  
+
   role_scope_tag_ids = ["0"]
 
   localized_notification_messages = [
@@ -26,11 +26,11 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
 
 # Example: Multi-language Notification Message Template
 resource "microsoft365_graph_beta_device_management_notification_message_template" "multilingual" {
-  display_name    = "Multi-language Compliance Notification"
-  description     = "Notification template with multiple language support"
-  default_locale  = "en-US"
+  display_name     = "Multi-language Compliance Notification"
+  description      = "Notification template with multiple language support"
+  default_locale   = "en-US"
   branding_options = "includeCompanyLogo"
-  
+
   role_scope_tag_ids = ["0"]
 
   localized_notification_messages = [
@@ -64,11 +64,11 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
 
 # Example: Advanced Notification Template with Full Branding
 resource "microsoft365_graph_beta_device_management_notification_message_template" "advanced" {
-  display_name    = "Advanced Compliance Notification"
-  description     = "Advanced notification template with comprehensive branding and device details"
-  default_locale  = "en-US"
+  display_name     = "Advanced Compliance Notification"
+  description      = "Advanced notification template with comprehensive branding and device details"
+  default_locale   = "en-US"
   branding_options = "includeCompanyLogo"
-  
+
   role_scope_tag_ids = ["0", "1"]
 
   localized_notification_messages = [
