@@ -1,0 +1,51 @@
+{"id":"00000000-0000-0000-0000-000000000000",
+"displayName":"test",
+"description":"test",
+"roleScopeTagIds":["0"],
+"@odata.type":"#microsoft.graph.macOSCompliancePolicy",
+"scheduledActionsForRule":[
+  {"ruleName":"PasswordRequired",
+  "scheduledActionConfigurations":[
+    {"actionType":"block",
+    "gracePeriodHours":0,
+    "notificationTemplateId":"",
+    "notificationMessageCCList":[]
+    },
+    {"actionType":"notification",
+    "gracePeriodHours":0,
+    "notificationTemplateId":"13b6c4dc-f6a1-4475-8e30-5ae7427c0110",
+    "notificationMessageCCList":["aa856a09-cf0c-4b31-a315-cb53251e54d8","a77240dc-2827-47af-8fcb-e209a67e176a"]
+    },
+    {"actionType":"notification",
+    "gracePeriodHours":24,
+    "notificationTemplateId":"bbf43ceb-5e68-428b-8ad3-00c9efb54210",
+    "notificationMessageCCList":["91710c72-1358-4438-b0b2-70eb32b542dd","aa856a09-cf0c-4b31-a315-cb53251e54d8"]
+    },
+    {"actionType":"remoteLock",
+    "gracePeriodHours":72,
+    "notificationTemplateId":"",
+    "notificationMessageCCList":[]
+    },
+    {"actionType":"retire",
+    "gracePeriodHours":120,
+    "notificationTemplateId":"",
+    "notificationMessageCCList":[]
+    }
+  ]}],
+  "gatekeeperAllowedAppSource":"macAppStoreAndIdentifiedDevelopers",
+  "passwordRequiredType":"alphanumeric",
+  "systemIntegrityProtectionEnabled":true,
+  "osMinimumVersion":"25",
+  "osMaximumVersion":"26",
+  "osMinimumBuildVersion":"20E772520a",
+  "osMaximumBuildVersion":"20E772520a",
+  "passwordRequired":true,
+  "passwordBlockSimple":true,
+  "passwordMinimumCharacterSetCount":3,
+  "passwordExpirationDays":41,
+  "passwordPreviousPasswordBlockCount":5,
+  "storageRequireEncryption":true,
+  "firewallEnabled":true,
+  "firewallBlockAllIncoming":true,
+  "firewallEnableStealthMode":true
+}

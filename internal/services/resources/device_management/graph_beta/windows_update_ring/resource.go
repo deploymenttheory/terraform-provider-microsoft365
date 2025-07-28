@@ -87,11 +87,6 @@ func (r *WindowsUpdateRingResource) ImportState(ctx context.Context, req resourc
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// ModifyPlan modifies the planned state of the resource.
-func (r *WindowsUpdateRingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	// Add any plan modifications here
-}
-
 // Schema defines the schema for the resource.
 func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -125,7 +120,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-			// Update settings
 			"microsoft_update_service_allowed": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -174,8 +168,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "When TRUE, skips all checks before restart: Battery level = 40%, User presence, Display Needed, Presentation mode, Full screen mode, phone call state, game mode etc. When FALSE, does not skip all checks before restart. Returned by default. Query parameters are not supported.",
 			},
-
-			// Enum properties
 			"business_ready_updates_only": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -250,8 +242,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-
-			// Installation schedule
 			"active_hours_start": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -274,8 +264,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-
-			// User access settings
 			"user_pause_access": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -308,8 +296,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-
-			// Advanced update settings
 			"feature_updates_rollback_window_in_days": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
@@ -332,8 +318,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.",
 			},
-
-			// Restart settings
 			"engaged_restart_deadline_in_days": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Deadline in days before automatically scheduling and executing a pending restart outside of active hours, with valid range from 2 to 30 days. Returned by default. Query parameters are not supported.",
@@ -363,8 +347,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported.",
 			},
-
-			// Feature update specific settings
 			"engaged_restart_snooze_schedule_for_feature_updates_in_days": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Number of days a user can snooze Engaged Restart reminder notifications for feature updates.",
@@ -373,14 +355,11 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				MarkdownDescription: "Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.",
 			},
-
-			// Additional properties
 			"additional_properties": schema.MapAttribute{
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "Additional properties that are not yet exposed in the API.",
 			},
-
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}

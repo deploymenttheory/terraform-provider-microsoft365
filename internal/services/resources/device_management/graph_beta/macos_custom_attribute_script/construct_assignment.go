@@ -70,7 +70,6 @@ func constructAssignment(ctx context.Context, data *DeviceCustomAttributeShellSc
 	// as update http method is a post not patch.
 	requestBody.SetDeviceManagementScriptAssignments(assignments)
 
-	// Debug log the final request body
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),

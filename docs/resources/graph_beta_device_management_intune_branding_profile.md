@@ -1,0 +1,264 @@
+---
+page_title: "microsoft365_graph_beta_device_management_intune_branding_profile Resource - terraform-provider-microsoft365"
+subcategory: "Device Management"
+
+description: |-
+  Manages an Intune branding profile resource in Intune.
+  API Documentation
+  Graph API Endpoint https://learn.microsoft.com/en-us/graph/api/resources/intune-wip-intunebrandingprofile?view=graph-rest-beta
+---
+
+# microsoft365_graph_beta_device_management_intune_branding_profile (Resource)
+
+Manages an Intune branding profile resource in Intune.
+
+## API Documentation
+
+- [Graph API Endpoint](https://learn.microsoft.com/en-us/graph/api/resources/intune-wip-intunebrandingprofile?view=graph-rest-beta)
+
+## Microsoft Documentation
+
+- [intuneBrandingProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-wip-intunebrandingprofile?view=graph-rest-beta)
+- [Create intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-create?view=graph-rest-beta)
+- [Update intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-update?view=graph-rest-beta)
+- [Delete intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-delete?view=graph-rest-beta)
+- [Assign intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-assign?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.23.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+```terraform
+resource "microsoft365_graph_beta_device_management_intune_branding_profile" "example" {
+  profile_name                    = "Corporate Branding"
+  profile_description             = "Corporate branding profile"
+  display_name                    = "Company Portal Branding"
+  contact_it_name                 = "IT Support Team"
+  contact_it_phone_number         = "+1 (555) 123-4567"
+  contact_it_email_address        = "support@example.com"
+  contact_it_notes                = "Available Monday to Friday, 9am to 5pm"
+  online_support_site_url         = "https://support.example.com"
+  online_support_site_name        = "Company IT Support Portal"
+  privacy_url                     = "https://www.example.com/privacy"
+  custom_privacy_message          = "Your privacy is important to us. Please read our privacy policy."
+  custom_can_see_privacy_message  = "You can view our privacy policy at any time."
+  custom_cant_see_privacy_message = "Please contact IT support for privacy information."
+  show_logo                       = true
+  show_display_name_next_to_logo  = true
+  role_scope_tag_ids              = ["0"]
+
+  # Optional: Branding colors
+  theme_color = {
+    r = 0   # Red
+    g = 120 # Green
+    b = 212 # Blue
+  }
+
+  # Optional: Branding images
+  theme_color_logo = {
+    image_url_source = "https://mailmeteor.com/logos/assets/PNG/Microsoft_Logo_256px.png"
+  }
+
+  light_background_logo = {
+    image_url_source = "https://mailmeteor.com/logos/assets/PNG/Microsoft_Logo_256px.png"
+  }
+
+  landing_page_customized_image = {
+    image_url_source = "https://mailmeteor.com/logos/assets/PNG/Microsoft_Logo_256px.png"
+  }
+
+  # Company portal settings
+  is_remove_device_disabled                      = false
+  is_factory_reset_disabled                      = false
+  show_azure_ad_enterprise_apps                  = true
+  show_office_web_apps                           = true
+  send_device_ownership_change_push_notification = true
+  enrollment_availability                        = "availableWithPrompts"
+  disable_client_telemetry                       = false
+  is_default_profile                             = false
+
+  # Company portal blocked actions
+  company_portal_blocked_actions = [
+    {
+      platform   = "windows10AndLater"
+      owner_type = "company"
+      action     = "remove"
+    },
+    {
+      platform   = "iOS"
+      owner_type = "company"
+      action     = "reset"
+    }
+  ]
+
+  # Assignments
+  assignments = [
+    # Optional: Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "51a96cdd-4b9b-4849-b416-8c94a6d88797"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "b8c661c2-fa9a-4351-af86-adc1729c343f"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f"
+    },
+
+  ]
+
+  # Timeouts
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "10m"
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+## Schema
+
+### Required
+
+- `profile_name` (String) Name of the branding profile.
+
+### Optional
+
+- `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
+- `company_portal_blocked_actions` (Attributes Set) Collection of blocked actions on the company portal as per platform and device ownership types. (see [below for nested schema](#nestedatt--company_portal_blocked_actions))
+- `contact_it_email_address` (String) Email address of the person/organization responsible for IT support.
+- `contact_it_name` (String) Name of the person/organization responsible for IT support.
+- `contact_it_notes` (String) Text comments regarding the person/organization responsible for IT support.
+- `contact_it_phone_number` (String) Phone number of the person/organization responsible for IT support.
+- `custom_can_see_privacy_message` (String) Text comments regarding what the admin can see on the device.
+- `custom_cant_see_privacy_message` (String) Text comments regarding what the admin can't see on the device.
+- `custom_privacy_message` (String) Text comments regarding what the admin has access to on the device.
+- `disable_client_telemetry` (Boolean) Applies to telemetry sent from all clients to the Intune service. When disabled, all proactive troubleshooting and issue warnings within the client are turned off, and telemetry settings appear grayed out or hidden to the device user.
+- `disable_device_category_selection` (Boolean) Boolean that indicates if device category selection is disabled during enrollment.
+- `display_name` (String) Company/organization name that is displayed to end users.
+- `enrollment_availability` (String) Customized device enrollment flow displayed to the end user. Possible values are: `availableWithPrompts`, `availableWithoutPrompts`, `unavailable`.
+- `is_default_profile` (Boolean) Boolean that represents whether the profile is used as default or not.
+- `is_factory_reset_disabled` (Boolean) Boolean that represents whether the adminstrator has disabled the 'Factory Reset' action on corporate owned devices.
+- `is_remove_device_disabled` (Boolean) Boolean that represents whether the adminstrator has disabled the 'Remove Device' action on corporate owned devices.
+- `landing_page_customized_image` (Attributes) Customized image displayed in Company Portal app landing page. Supports various image formats which will be automatically converted as required by Microsoft Intune. (see [below for nested schema](#nestedatt--landing_page_customized_image))
+- `light_background_logo` (Attributes) Logo image displayed in Company Portal apps which have a light background behind the logo. Supports various image formats which will be automatically converted as required by Microsoft Intune. (see [below for nested schema](#nestedatt--light_background_logo))
+- `online_support_site_name` (String) Display name of the company/organization's IT helpdesk site.
+- `online_support_site_url` (String) URL to the company/organization's IT helpdesk site.
+- `privacy_url` (String) URL to the company/organization's privacy policy.
+- `profile_description` (String) Description of the branding profile.
+- `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
+- `send_device_ownership_change_push_notification` (Boolean) Boolean that indicates if a push notification is sent to users when their device ownership type changes from personal to corporate.
+- `show_azure_ad_enterprise_apps` (Boolean) Boolean that indicates if AzureAD Enterprise Apps will be shown in Company Portal.
+- `show_configuration_manager_apps` (Boolean) Boolean that indicates if Configuration Manager Apps will be shown in Company Portal.
+- `show_display_name_next_to_logo` (Boolean) Boolean that represents whether the administrator-supplied display name text is shown next to the logo image or not.
+- `show_logo` (Boolean) Boolean that represents whether the administrator-supplied logo images are shown or not.
+- `show_office_web_apps` (Boolean) Boolean that indicates if Office WebApps will be shown in Company Portal.
+- `theme_color` (Attributes) Primary theme color used in the Company Portal applications and web portal. (see [below for nested schema](#nestedatt--theme_color))
+- `theme_color_logo` (Attributes) Logo image displayed in Company Portal apps which have a theme color background behind the logo. Supports various image formats which will be automatically converted as required by Microsoft Intune. (see [below for nested schema](#nestedatt--theme_color_logo))
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+
+### Read-Only
+
+- `created_date_time` (String) Time when the BrandingProfile was created.
+- `id` (String) The unique identifier for the branding profile.
+- `last_modified_date_time` (String) Time when the BrandingProfile was last modified.
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
+Optional:
+
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+
+
+<a id="nestedatt--company_portal_blocked_actions"></a>
+### Nested Schema for `company_portal_blocked_actions`
+
+Required:
+
+- `action` (String) Action to block. Possible values are: `unknown`, `remove`, `reset`.
+- `owner_type` (String) Device ownership type. Possible values are: `unknown`, `company`, `personal`.
+- `platform` (String) Device platform. Possible values are: `android`, `androidForWork`, `iOS`, `macOS`, `windowsPhone81`, `windows81AndLater`, `windows10AndLater`, `androidWorkProfile`, `unknown`, `androidAOSP`, `androidMobileApplicationManagement`, `iOSMobileApplicationManagement`, `unknownFutureValue`, `windowsMobileApplicationManagement`.
+
+
+<a id="nestedatt--landing_page_customized_image"></a>
+### Nested Schema for `landing_page_customized_image`
+
+Optional:
+
+- `image_file_path_source` (String) The file path to the image file to be uploaded. Supports various image formats.
+- `image_url_source` (String) The web location of the image file, can be a http(s) URL. Supports various image formats.
+
+
+<a id="nestedatt--light_background_logo"></a>
+### Nested Schema for `light_background_logo`
+
+Optional:
+
+- `image_file_path_source` (String) The file path to the image file to be uploaded. Supports various image formats.
+- `image_url_source` (String) The web location of the image file, can be a http(s) URL. Supports various image formats.
+
+
+<a id="nestedatt--theme_color"></a>
+### Nested Schema for `theme_color`
+
+Required:
+
+- `b` (Number) Blue value (0-255).
+- `g` (Number) Green value (0-255).
+- `r` (Number) Red value (0-255).
+
+
+<a id="nestedatt--theme_color_logo"></a>
+### Nested Schema for `theme_color_logo`
+
+Optional:
+
+- `image_file_path_source` (String) The file path to the image file to be uploaded. Supports various image formats.
+- `image_url_source` (String) The web location of the image file, can be a http(s) URL. Supports various image formats.
+
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+#!/bin/bash
+# Import using the IntuneBrandingProfile ID
+terraform import microsoft365_graph_beta_device_management_intune_branding_profile.example 00000000-0000-0000-0000-000000000000
+```

@@ -81,7 +81,7 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the windows platform script.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

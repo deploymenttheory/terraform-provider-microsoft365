@@ -497,3 +497,61 @@ func ODataParameterValidator(odataFieldNames ...string) validator.String {
 }
 
 //---------------------------------------------------
+
+// mutuallyExclusiveObjectAndSetValidator validates that an Object attribute and a Set attribute cannot both be configured
+type mutuallyExclusiveObjectAndSetValidator struct {
+	objectFieldName string
+	setFieldName    string
+}
+
+// Description describes the validation in plain text formatting.
+func (v mutuallyExclusiveObjectAndSetValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("%s (object) and %s (set) cannot both be configured in the same policy", v.objectFieldName, v.setFieldName)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v mutuallyExclusiveObjectAndSetValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v mutuallyExclusiveObjectAndSetValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Get the values of both fields from the root configuration
+	var objectValue types.Object
+	var setValue types.Set
+
+	// Get the object field (e.g., device_compliance_policy_script)
+	diags1 := req.Config.GetAttribute(ctx, path.Root(v.objectFieldName), &objectValue)
+	if diags1.HasError() {
+		return
+	}
+
+	// Get the set field (e.g., wsl_distributions)
+	diags2 := req.Config.GetAttribute(ctx, path.Root(v.setFieldName), &setValue)
+	if diags2.HasError() {
+		return
+	}
+
+	// Check if object field is configured - has attributes and is not null/unknown
+	objectConfigured := !objectValue.IsNull() && !objectValue.IsUnknown() && len(objectValue.Attributes()) > 0
+
+	// Check if set field is configured - has elements and is not null/unknown
+	setConfigured := !setValue.IsNull() && !setValue.IsUnknown() && len(setValue.Elements()) > 0
+
+	if objectConfigured && setConfigured {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Mutually Exclusive Configuration",
+			fmt.Sprintf("You cannot configure %s and %s in the same policy. WSL and custom compliance settings are mutually exclusive.", v.objectFieldName, v.setFieldName),
+		)
+	}
+}
+
+// MutuallyExclusiveObjectAndSet returns a string validator which ensures that an Object attribute
+// and a Set attribute cannot both be configured in the same policy.
+func MutuallyExclusiveObjectAndSet(objectFieldName, setFieldName string) validator.String {
+	return &mutuallyExclusiveObjectAndSetValidator{
+		objectFieldName: objectFieldName,
+		setFieldName:    setFieldName,
+	}
+}

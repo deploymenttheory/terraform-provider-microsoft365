@@ -93,7 +93,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
 - `block_execution_notifications` (Boolean) Does not notify the user a script is being executed.
 - `description` (String) Optional description for the macOS Platform Script.
 - `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.

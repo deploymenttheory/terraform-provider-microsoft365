@@ -28,3 +28,14 @@ type DeviceManagementScriptAssignmentResourceModel struct {
 	IncludeGroupIds []types.String `tfsdk:"include_group_ids"`
 	ExcludeGroupIds []types.String `tfsdk:"exclude_group_ids"`
 }
+
+// DeviceCompliancePolicyAssignmentResourceModel struct to hold device compliance policy assignment configuration
+type DeviceCompliancePolicyAssignmentResourceModel struct {
+	// Target assignment fields - only one should be used at a time
+	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+	// Assignment filter fields
+	FilterId   types.String `tfsdk:"filter_id"`
+	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"
+
+}

@@ -176,7 +176,8 @@ func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, r
 		return
 	}
 
-	_, err = r.client.DeviceManagement().
+	_, err = r.client.
+		DeviceManagement().
 		DeviceCustomAttributeShellScripts().
 		ByDeviceCustomAttributeShellScriptId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
