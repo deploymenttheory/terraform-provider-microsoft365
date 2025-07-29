@@ -79,7 +79,6 @@ func (r *NotificationMessageTemplateResource) ImportState(ctx context.Context, r
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-
 func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an Intune notification message template for compliance notifications",

@@ -1,13 +1,16 @@
-package graphBetaDeviceCompliancePolicies
+package graphBetaAndroidDeviceOwnerCompliancePolicy
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,7 +21,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_device_compliance_policy"
+	ResourceName  = "graph_beta_device_management_android_device_owner_compliance_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -27,20 +30,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceCompliancePolicyResource{}
+	_ resource.Resource = &AndroidDeviceOwnerCompliancePolicyResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceCompliancePolicyResource{}
+	_ resource.ResourceWithConfigure = &AndroidDeviceOwnerCompliancePolicyResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceCompliancePolicyResource{}
+	_ resource.ResourceWithImportState = &AndroidDeviceOwnerCompliancePolicyResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceCompliancePolicyResource{}
+	_ resource.ResourceWithModifyPlan = &AndroidDeviceOwnerCompliancePolicyResource{}
 )
 
-func NewDeviceCompliancePolicyResource() resource.Resource {
-	return &DeviceCompliancePolicyResource{
+func NewAndroidDeviceOwnerCompliancePolicyResource() resource.Resource {
+	return &AndroidDeviceOwnerCompliancePolicyResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -51,7 +54,7 @@ func NewDeviceCompliancePolicyResource() resource.Resource {
 	}
 }
 
-type DeviceCompliancePolicyResource struct {
+type AndroidDeviceOwnerCompliancePolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -61,98 +64,217 @@ type DeviceCompliancePolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceCompliancePolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *AndroidDeviceOwnerCompliancePolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *DeviceCompliancePolicyResource) FullTypeName() string {
+func (r *AndroidDeviceOwnerCompliancePolicyResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *DeviceCompliancePolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *AndroidDeviceOwnerCompliancePolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *DeviceCompliancePolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AndroidDeviceOwnerCompliancePolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
-func (r *DeviceCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *AndroidDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements. This resource supports four policy types: AOSP Device Owner, Android Device Owner, iOS, and Windows 10 compliance policies.",
+		MarkdownDescription: "Manages Android Device Owner compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` " +
+			"endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security " +
+			"requirements.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this device compliance policy",
-			},
-			"type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The OData type of the compliance policy. Supported values: 'aospDeviceOwnerCompliancePolicy', 'androidDeviceOwnerCompliancePolicy', 'iosCompliancePolicy', 'windows10CompliancePolicy', 'macOSCompliancePolicy'",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"aospDeviceOwnerCompliancePolicy",
-						"androidDeviceOwnerCompliancePolicy",
-						"iosCompliancePolicy",
-						"windows10CompliancePolicy",
-						"macOSCompliancePolicy",
-					),
-				},
+				MarkdownDescription: "Key of the entity. Inherited from deviceCompliancePolicy",
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The display name of the device compliance policy",
+				MarkdownDescription: "Admin provided name of the device configuration. Inherited from deviceCompliancePolicy",
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The description of the device compliance policy",
+				MarkdownDescription: "Admin provided description of the Device Configuration. Inherited from deviceCompliancePolicy",
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of role scope tag IDs for this Entity instance",
+				Computed:            true,
+				MarkdownDescription: "List of Scope Tags for this Entity instance. Inherited from deviceCompliancePolicy",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
 			},
+			// Threat Protection settings
+			"device_threat_protection_enabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the policy requires devices have device threat protection enabled. When TRUE, threat protection is enabled. When FALSE, threat protection is not enabled. Default is FALSE.",
+			},
+			"device_threat_protection_required_security_level": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates the minimum mobile threat protection risk level to that results in Intune reporting device noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("unavailable", "secured", "low", "medium", "high", "notSet"),
+				},
+			},
+			"advanced_threat_protection_required_security_level": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates the Microsoft Defender for Endpoint (also referred to Microsoft Defender Advanced Threat Protection (MDATP)) minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("unavailable", "secured", "low", "medium", "high", "notSet"),
+				},
+			},
+			// Security settings
+			"security_block_jailbroken_devices": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates the device should not be rooted. When TRUE, if the device is detected as rooted it will be reported non-compliant. When FALSE, the device is not reported as non-compliant regardless of device rooted state. Default is FALSE.",
+			},
+			"security_require_safety_net_attestation_basic_integrity": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the compliance check will validate the Google Play Integrity check. When TRUE, the Google Play integrity basic check must pass to consider the device compliant. When FALSE, the Google Play integrity basic check can pass or fail and the device will be considered compliant. Default is FALSE.",
+			},
+			"security_require_safety_net_attestation_certified_device": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the compliance check will validate the Google Play Integrity check. When TRUE, the Google Play integrity device check must pass to consider the device compliant. When FALSE, the Google Play integrity device check can pass or fail and the device will be considered compliant. Default is FALSE.",
+			},
+			// OS version settings
 			"os_minimum_version": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Minimum OS version required for device compliance",
+				MarkdownDescription: "Indicates the minimum Android version required to mark the device as compliant. For example: '14'",
 			},
 			"os_maximum_version": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Maximum OS version allowed for device compliance",
+				MarkdownDescription: "Indicates the maximum Android version required to mark the device as compliant. For example: '15'",
 			},
+			"min_android_security_patch_level": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum Android security patch level required to mark the device as compliant. Must be a valid date format (YYYY-MM-DD). Example: 2026-10-01, 2026-10-31 etc.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.DateFormatYYYYMMDDRegex), "must be a valid date in YYYY-MM-DD format"),
+				},
+			},
+			// Password settings
 			"password_required": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Whether password is required on the device",
+				Computed:            true,
+				MarkdownDescription: "Indicates whether a password is required to unlock the device. When TRUE, there must be a password set that unlocks the device for the device to be marked as compliant. When FALSE, a device is marked as compliant whether or not a password is set as required to unlock the device. Default is FALSE.",
+			},
+			"password_minimum_length": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum password length required to mark the device as compliant. Valid values are 4 to 16, inclusive. Valid values 4 to 16",
+			},
+			"password_minimum_letter_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of letter characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
+			},
+			"password_minimum_lower_case_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of lower case characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
+			},
+			"password_minimum_non_letter_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of non-letter characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
+			},
+			"password_minimum_numeric_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of numeric characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
+			},
+			"password_minimum_symbol_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of symbol characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
+			},
+			"password_minimum_upper_case_characters": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the minimum number of upper case letter characters required for device password for the device to be marked compliant. Valid values 1 to 16.",
 			},
 			"password_required_type": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The type of password required",
+				Computed:            true,
+				MarkdownDescription: "Indicates the password complexity requirement for the device to be marked compliant. Possible values are: deviceDefault, required, numeric, numericComplex, alphabetic, alphanumeric, alphanumericWithSymbols, lowSecurityBiometric, customPassword.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("deviceDefault", "required", "numeric", "numericComplex", "alphabetic", "alphanumeric", "alphanumericWithSymbols", "lowSecurityBiometric", "customPassword"),
+				},
 			},
-			"scheduled_actions_for_rule": schema.SetNestedAttribute{
+			"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the number of minutes of inactivity before a password is required.",
+			},
+			"password_expiration_days": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the number of days before the password expires. Valid values 1 to 365.",
+			},
+			"password_previous_password_count_to_block": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates the number of previous passwords to block. Valid values 1 to 24.",
+			},
+			// Storage settings
+			"storage_require_encryption": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether encryption on Android devices is required to mark the device as compliant.",
+			},
+			// Additional security settings
+			"security_require_intune_app_integrity": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether Intune application integrity is required to mark the device as compliant. When TRUE, Intune checks that the Intune app installed on fully managed, dedicated, or corporate-owned work profile Android Enterprise enrolled devices, is the one provided by Microsoft from the Managed Google Play store. If the check fails, the device will be reported as non-compliant. Default is FALSE.",
+			},
+			"require_no_pending_system_updates": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the device has pending security or OS updates and sets the compliance state accordingly. When TRUE, checks if there are any pending system updates on each check in and if there are any pending security or OS version updates (System Updates), the device will be reported as non-compliant. If set to FALSE, then checks for any pending security or OS version updates (System Updates) are done without impact to device compliance state. Default is FALSE.",
+			},
+			"security_required_android_safety_net_evaluation_type": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates the types of measurements and reference data used to evaluate the device SafetyNet evaluation. Evaluation is completed on the device to assess device integrity based on checks defined by Android and built into the device hardware, for example, compromised OS version or root detection. Possible values are: basic, hardwareBacked, with default value of basic.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("basic", "hardwareBacked"),
+				},
+			},
+			"scheduled_actions_for_rule": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "The list of scheduled action for this rule",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"rule_name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Name of the rule",
-						},
-						"scheduled_action_configurations": schema.ListNestedAttribute{
 							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "Name of the scheduled action rule",
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.DefaultValueString("unavailable"),
+							},
+						},
+						"scheduled_action_configurations": schema.SetNestedAttribute{
+							Required:            true,
 							MarkdownDescription: "The list of scheduled action configurations for this compliance policy",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"action_type": schema.StringAttribute{
-										Optional:            true,
-										MarkdownDescription: "What action to take",
+										Required:            true,
+										MarkdownDescription: "What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.",
+										Validators: []validator.String{
+											stringvalidator.OneOf("noAction", "notification", "block", "retire", "wipe", "removeResourceAccessProfiles", "pushNotification", "remoteLock"),
+										},
 									},
 									"grace_period_hours": schema.Int32Attribute{
 										Optional:            true,
@@ -162,7 +284,7 @@ func (r *DeviceCompliancePolicyResource) Schema(ctx context.Context, req resourc
 										Optional:            true,
 										MarkdownDescription: "What notification Message template to use",
 									},
-									"notification_message_cc_list": schema.SetAttribute{
+									"notification_message_cc_list": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										MarkdownDescription: "A list of group GUIDs to specify who to CC this notification message to",
@@ -173,354 +295,8 @@ func (r *DeviceCompliancePolicyResource) Schema(ctx context.Context, req resourc
 					},
 				},
 			},
-			"local_actions": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "The list of local actions available on this device",
-			},
-			"aosp_device_owner_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for AOSP Device Owner compliance",
-				Attributes: map[string]schema.Attribute{
-					"min_android_security_patch_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum Android security patch level",
-					},
-					"security_block_jailbroken_devices": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Devices must not be jailbroken or rooted",
-					},
-					"storage_require_encryption": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require encryption on Android device",
-					},
-					"password_minimum_length": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum password length",
-					},
-					"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before a password is required",
-					},
-				},
-			},
-			"android_device_owner_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for Android Device Owner compliance",
-				Attributes: map[string]schema.Attribute{
-					"min_android_security_patch_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum Android security patch level",
-					},
-					"security_block_jailbroken_devices": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Devices must not be jailbroken or rooted",
-					},
-					"storage_require_encryption": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require encryption on Android device",
-					},
-					"password_minimum_length": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum password length",
-					},
-					"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before a password is required",
-					},
-					"device_threat_protection_required_security_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require device threat protection minimum risk level",
-					},
-					"advanced_threat_protection_required_security_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require mobile threat protection minimum risk level",
-					},
-					"password_expiration_days": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Number of days before the password expires",
-					},
-					"password_previous_password_count_to_block": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Number of previous passwords to block",
-					},
-					"security_required_android_safety_net_evaluation_type": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require a specific SafetyNet evaluation type for Android devices",
-					},
-					"security_require_intune_app_integrity": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require the device to pass the Company Portal app runtime check",
-					},
-					"device_threat_protection_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require that devices have enabled device threat protection",
-					},
-					"security_require_safety_net_attestation_basic_integrity": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require SafetyNet attestation basic integrity",
-					},
-					"security_require_safety_net_attestation_certified_device": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require SafetyNet attestation certified device",
-					},
-				},
-			},
-			"ios_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for iOS compliance",
-				Attributes: map[string]schema.Attribute{
-					"device_threat_protection_required_security_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require device threat protection minimum risk level",
-					},
-					"advanced_threat_protection_required_security_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require mobile threat protection minimum risk level",
-					},
-					"device_threat_protection_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require that devices have enabled device threat protection",
-					},
-					"passcode_required_type": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The required passcode type",
-					},
-					"managed_email_profile_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Indicates whether or not to require a managed email profile",
-					},
-					"security_block_jailbroken_devices": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Devices must not be jailbroken or rooted",
-					},
-					"os_minimum_build_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum iOS build version",
-					},
-					"os_maximum_build_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Maximum iOS build version",
-					},
-					"passcode_minimum_character_set_count": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "The number of character sets required in the password",
-					},
-					"passcode_minutes_of_inactivity_before_lock": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before a passcode is required",
-					},
-					"passcode_minutes_of_inactivity_before_screen_timeout": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before the screen times out",
-					},
-					"passcode_expiration_days": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Number of days before the passcode expires",
-					},
-					"passcode_previous_passcode_block_count": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Number of previous passcodes to block",
-					},
-					"restricted_apps": schema.ListNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require the device to not have the specified apps installed",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"name": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "The display name of the app",
-								},
-								"app_id": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "The application ID of the app",
-								},
-							},
-						},
-					},
-				},
-			},
-			"macos_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for macOS compliance",
-				Attributes: map[string]schema.Attribute{
-					"gatekeeper_allowed_app_source": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "System and Privacy setting that determines which download locations apps can be run from on a macOS device",
-					},
-					"system_integrity_protection_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require that devices have enabled system integrity protection",
-					},
-					"os_minimum_build_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum macOS build version",
-					},
-					"os_maximum_build_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Maximum macOS build version",
-					},
-					"password_block_simple": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Indicates whether or not to block simple passwords",
-					},
-					"password_minimum_character_set_count": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "The number of character sets required in the password",
-					},
-					"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before a password is required",
-					},
-					"storage_require_encryption": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require encryption on Mac OS devices",
-					},
-					"firewall_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Whether the firewall should be enabled or not",
-					},
-					"firewall_block_all_incoming": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Corresponds to the 'Block all incoming connections' option",
-					},
-					"firewall_enable_stealth_mode": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Corresponds to 'Enable stealth mode.'",
-					},
-				},
-			},
-			"windows10_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for Windows 10 compliance",
-				Attributes: map[string]schema.Attribute{
-					"device_threat_protection_required_security_level": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require device threat protection minimum risk level",
-					},
-					"device_compliance_policy_script": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The PowerShell script to use for device compliance policy",
-					},
-					"password_required_type": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The required password type",
-					},
-					"wsl_distributions": schema.ListNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Windows Subsystem for Linux (WSL) distributions that should be checked for compliance",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"distribution": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "The WSL distribution name",
-								},
-								"minimum_os_version": schema.StringAttribute{
-									Optional:            true,
-									MarkdownDescription: "The minimum OS version of the WSL distribution",
-								},
-								"maximum_os_version": schema.StringAttribute{
-									Optional:            true,
-									MarkdownDescription: "The maximum OS version of the WSL distribution",
-								},
-							},
-						},
-					},
-					"password_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require a password to unlock Windows device",
-					},
-					"password_block_simple": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Indicates whether or not to block simple passwords",
-					},
-					"password_required_to_unlock_from_idle": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require a password to unlock an idle device",
-					},
-					"storage_require_encryption": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require encryption on windows devices",
-					},
-					"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Minutes of inactivity before a password is required",
-					},
-					"password_minimum_character_set_count": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "The number of character sets required in the password",
-					},
-					"active_firewall_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Active firewall on Windows devices",
-					},
-					"tpm_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Trusted Platform Module (TPM) to be present",
-					},
-					"antivirus_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require any antivirus solution registered with Windows Decurity Center",
-					},
-					"anti_spyware_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require any antispyware solution registered with Windows Decurity Center",
-					},
-					"defender_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Windows Defender Antimalware on Windows devices",
-					},
-					"signature_out_of_date": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Windows Defender Antimalware signature to be up to date on Windows devices",
-					},
-					"rtp_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Windows Defender Antimalware Real-Time Protection on Windows devices",
-					},
-					"defender_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require Windows Defender Antimalware minimum version on Windows devices",
-					},
-					"configuration_manager_compliance_required": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require devices to be reported healthy by System Center Configuration Manager",
-					},
-					"os_minimum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum Windows 10 version",
-					},
-					"os_maximum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Maximum Windows 10 version",
-					},
-					"mobile_os_minimum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Minimum Windows Phone version",
-					},
-					"mobile_os_maximum_version": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Maximum Windows Phone version",
-					},
-					"secure_boot_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require devices to be reported as healthy by Windows Device Health Attestation - secure boot is enabled",
-					},
-					"bit_locker_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled",
-					},
-					"code_integrity_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require devices to be reported as healthy by Windows Device Health Attestation - code integrity is enabled",
-					},
-					"device_threat_protection_enabled": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Require that devices have enabled device threat protection",
-					},
-				},
-			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

@@ -8,11 +8,11 @@ import (
 
 // AndroidManagedMobileAppResourceModel represents the Terraform resource model for an Android managed mobile app.
 type AndroidManagedMobileAppResourceModel struct {
-	ID                         types.String                               `tfsdk:"id"`
-	Version                    types.String                               `tfsdk:"version"`
-	MobileAppIdentifier        *AndroidMobileAppIdentifierResourceModel  `tfsdk:"mobile_app_identifier"`
-	ManagedAppProtectionId     types.String                               `tfsdk:"managed_app_protection_id"`
-	Timeouts                   timeouts.Value                             `tfsdk:"timeouts"`
+	ID                     types.String                             `tfsdk:"id"`
+	Version                types.String                             `tfsdk:"version"`
+	MobileAppIdentifier    *AndroidMobileAppIdentifierResourceModel `tfsdk:"mobile_app_identifier"`
+	ManagedAppProtectionId types.String                             `tfsdk:"managed_app_protection_id"`
+	Timeouts               timeouts.Value                           `tfsdk:"timeouts"`
 }
 
 // AndroidMobileAppIdentifierResourceModel represents the Android mobile app identifier.

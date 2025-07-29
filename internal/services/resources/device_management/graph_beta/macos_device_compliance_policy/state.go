@@ -122,7 +122,6 @@ func mapMacOSCompliancePolicyToState(ctx context.Context, data *DeviceCompliance
 	data.FirewallEnableStealthMode = convert.GraphToFrameworkBool(policy.GetFirewallEnableStealthMode())
 }
 
-
 // mapScheduledActionsForRuleToState maps scheduled actions for rule from SDK to state.
 func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable) (types.List, error) {
 	scheduledActionType := types.ObjectType{
@@ -211,7 +210,6 @@ func mapScheduledActionConfigurationsToState(ctx context.Context, configurations
 	}
 	return set, nil
 }
-
 
 // MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
 func MapAssignmentsToTerraform(ctx context.Context, data *DeviceCompliancePolicyResourceModel, assignments []graphmodels.DeviceCompliancePolicyAssignmentable) {
