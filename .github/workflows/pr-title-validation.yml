@@ -15,7 +15,7 @@ jobs:
       - name: Check PR Title
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
-          PATTERN="^((feat|fix|docs|style|refactor|test|chore|build|ci|perf)(\(.+\))?: .+|dependabot.*)$"
+          PATTERN="^((feat|fix|docs|style|refactor|test|chore|build|ci|perf)(\(.+\))?: .+|(build|Build)(\(deps\)): Bump .+ from .+ to .+)$"
           
           if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
             echo "❌ ERROR: Invalid PR title format"
@@ -39,12 +39,14 @@ jobs:
             echo ""
             echo "3. Include a description after a colon and space"
             echo ""
+            echo "4. OR follow the Dependabot format: Build(deps): Bump [package] from [version] to [version]"
+            echo ""
             echo "Examples:"
             echo "✅ feat: add new resource"
             echo "✅ feat(api): add new endpoint"
             echo "✅ fix: resolve connection timeout"
             echo "✅ fix(database): fix query performance"
-            echo "✅ dependabot: bump lodash from 4.17.20 to 4.17.21"
+            echo "✅ Build(deps): Bump github.com/microsoftgraph/msgraph-sdk-go from 1.79.0 to 1.80.0"
             echo ""
             echo "❌ Feat: add new resource (uppercase first letter is not allowed)"
             echo "❌ FIX: resolve issue (uppercase is not allowed)"
