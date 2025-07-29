@@ -25,7 +25,7 @@ func constructResource(ctx context.Context, data *NotificationMessageTemplateRes
 	if !data.BrandingOptions.IsNull() && !data.BrandingOptions.IsUnknown() {
 		brandingValue := data.BrandingOptions.ValueString()
 		var brandingOptions graphmodels.NotificationTemplateBrandingOptions
-		
+
 		switch brandingValue {
 		case "none":
 			brandingOptions = graphmodels.NONE_NOTIFICATIONTEMPLATEBRANDINGOPTIONS
@@ -54,16 +54,16 @@ func constructResource(ctx context.Context, data *NotificationMessageTemplateRes
 	if !data.LocalizedNotificationMessages.IsNull() && !data.LocalizedNotificationMessages.IsUnknown() {
 		var localizedMessages []LocalizedNotificationMessageModel
 		data.LocalizedNotificationMessages.ElementsAs(ctx, &localizedMessages, false)
-		
+
 		var graphLocalizedMessages []graphmodels.LocalizedNotificationMessageable
 		for _, msg := range localizedMessages {
 			graphMsg := graphmodels.NewLocalizedNotificationMessage()
-			
+
 			convert.FrameworkToGraphString(msg.Locale, graphMsg.SetLocale)
 			convert.FrameworkToGraphString(msg.Subject, graphMsg.SetSubject)
 			convert.FrameworkToGraphString(msg.MessageTemplate, graphMsg.SetMessageTemplate)
 			convert.FrameworkToGraphBool(msg.IsDefault, graphMsg.SetIsDefault)
-			
+
 			graphLocalizedMessages = append(graphLocalizedMessages, graphMsg)
 		}
 		requestBody.SetLocalizedNotificationMessages(graphLocalizedMessages)

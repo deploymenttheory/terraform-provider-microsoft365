@@ -8,11 +8,11 @@ import (
 
 // WindowsManagedMobileAppResourceModel represents the Terraform resource model for a Windows managed mobile app.
 type WindowsManagedMobileAppResourceModel struct {
-	ID                         types.String                               `tfsdk:"id"`
-	Version                    types.String                               `tfsdk:"version"`
-	MobileAppIdentifier        *WindowsMobileAppIdentifierResourceModel  `tfsdk:"mobile_app_identifier"`
-	ManagedAppProtectionId     types.String                               `tfsdk:"managed_app_protection_id"`
-	Timeouts                   timeouts.Value                             `tfsdk:"timeouts"`
+	ID                     types.String                             `tfsdk:"id"`
+	Version                types.String                             `tfsdk:"version"`
+	MobileAppIdentifier    *WindowsMobileAppIdentifierResourceModel `tfsdk:"mobile_app_identifier"`
+	ManagedAppProtectionId types.String                             `tfsdk:"managed_app_protection_id"`
+	Timeouts               timeouts.Value                           `tfsdk:"timeouts"`
 }
 
 // WindowsMobileAppIdentifierResourceModel represents the Windows mobile app identifier.

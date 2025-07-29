@@ -201,9 +201,9 @@ func registerTestApps() {
 			"@odata.type": "#microsoft.graph.iosMobileAppIdentifier",
 			"bundleId":    "com.example.testapp",
 		},
-		"@odata.context":    "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/iosManagedAppProtections('00000000-0000-0000-0000-000000000002')/apps/$entity",
-		"@odata.type":       "#microsoft.graph.managedMobileApp",
-		"createdDateTime":   "2023-01-01T00:00:00Z",
+		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/iosManagedAppProtections('00000000-0000-0000-0000-000000000002')/apps/$entity",
+		"@odata.type":     "#microsoft.graph.managedMobileApp",
+		"createdDateTime": "2023-01-01T00:00:00Z",
 	}
 
 	// Maximal app with all attributes
@@ -215,9 +215,9 @@ func registerTestApps() {
 			"@odata.type": "#microsoft.graph.iosMobileAppIdentifier",
 			"bundleId":    "com.example.complexapp",
 		},
-		"@odata.context":    "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/iosManagedAppProtections('00000000-0000-0000-0000-000000000003')/apps/$entity",
-		"@odata.type":       "#microsoft.graph.managedMobileApp",
-		"createdDateTime":   "2023-01-01T00:00:00Z",
+		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/iosManagedAppProtections('00000000-0000-0000-0000-000000000003')/apps/$entity",
+		"@odata.type":     "#microsoft.graph.managedMobileApp",
+		"createdDateTime": "2023-01-01T00:00:00Z",
 	}
 
 	// Store apps in mock state

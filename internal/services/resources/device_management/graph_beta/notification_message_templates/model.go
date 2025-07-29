@@ -8,22 +8,22 @@ import (
 )
 
 type NotificationMessageTemplateResourceModel struct {
-	ID                             types.String   `tfsdk:"id"`
-	DisplayName                    types.String   `tfsdk:"display_name"`
-	Description                    types.String   `tfsdk:"description"`
-	DefaultLocale                  types.String   `tfsdk:"default_locale"`
-	BrandingOptions                types.String   `tfsdk:"branding_options"`
-	RoleScopeTagIds                types.Set      `tfsdk:"role_scope_tag_ids"`
-	LastModifiedDateTime           types.String   `tfsdk:"last_modified_date_time"`
-	LocalizedNotificationMessages  types.Set      `tfsdk:"localized_notification_messages"`
-	Timeouts                       timeouts.Value `tfsdk:"timeouts"`
+	ID                            types.String   `tfsdk:"id"`
+	DisplayName                   types.String   `tfsdk:"display_name"`
+	Description                   types.String   `tfsdk:"description"`
+	DefaultLocale                 types.String   `tfsdk:"default_locale"`
+	BrandingOptions               types.String   `tfsdk:"branding_options"`
+	RoleScopeTagIds               types.Set      `tfsdk:"role_scope_tag_ids"`
+	LastModifiedDateTime          types.String   `tfsdk:"last_modified_date_time"`
+	LocalizedNotificationMessages types.Set      `tfsdk:"localized_notification_messages"`
+	Timeouts                      timeouts.Value `tfsdk:"timeouts"`
 }
 
 type LocalizedNotificationMessageModel struct {
-	ID                      types.String `tfsdk:"id"`
-	Locale                  types.String `tfsdk:"locale"`
-	Subject                 types.String `tfsdk:"subject"`
-	MessageTemplate         types.String `tfsdk:"message_template"`
-	IsDefault               types.Bool   `tfsdk:"is_default"`
-	LastModifiedDateTime    types.String `tfsdk:"last_modified_date_time"`
+	ID                   types.String `tfsdk:"id"`
+	Locale               types.String `tfsdk:"locale"`
+	Subject              types.String `tfsdk:"subject"`
+	MessageTemplate      types.String `tfsdk:"message_template"`
+	IsDefault            types.Bool   `tfsdk:"is_default"`
+	LastModifiedDateTime types.String `tfsdk:"last_modified_date_time"`
 }

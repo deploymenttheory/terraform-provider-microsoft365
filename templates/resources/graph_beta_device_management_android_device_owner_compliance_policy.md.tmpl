@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [androidDeviceOwnerCompliancePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-androiddeviceownercompliancepolicy?view=graph-rest-beta)
+- [Create androidDeviceOwnerCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-androiddeviceownercompliancepolicy-create?view=graph-rest-beta&tabs=http)
+- [Update androidDeviceOwnerCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-androiddeviceownercompliancepolicy-update?view=graph-rest-beta&tabs=http)
+- [Delete androidDeviceOwnerCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-androiddeviceownercompliancepolicy-delete?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_android_device_owner_compliance_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.23.0-alpha | Experimental | Initial release |
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_android_device_owner_compliance_policy/import.sh" }}

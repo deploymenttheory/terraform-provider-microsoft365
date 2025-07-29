@@ -1,4 +1,4 @@
-package graphBetaDeviceCompliancePolicies
+package graphBetaAospDeviceOwnerCompliancePolicy
 
 import (
 	"context"
@@ -26,28 +26,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
-	data.Type = convert.GraphToFrameworkString(remoteResource.GetOdataType())
 
-	odataType := data.Type.ValueString()
-	switch odataType {
-	case "aospDeviceOwnerCompliancePolicy":
-		if aospPolicy, ok := remoteResource.(*graphmodels.AospDeviceOwnerCompliancePolicy); ok {
-			mapAospDeviceOwnerCompliancePolicyToState(ctx, data, aospPolicy)
-		}
-	case "androidDeviceOwnerCompliancePolicy":
-		if androidPolicy, ok := remoteResource.(*graphmodels.AndroidDeviceOwnerCompliancePolicy); ok {
-			mapAndroidDeviceOwnerCompliancePolicyToState(ctx, data, androidPolicy)
-		}
-	case "#microsoft.graph.iosCompliancePolicy":
-		if iosPolicy, ok := remoteResource.(*graphmodels.IosCompliancePolicy); ok {
-			mapIosCompliancePolicyToState(ctx, data, iosPolicy)
-		}
-	case "#microsoft.graph.windows10CompliancePolicy":
-		if windowsPolicy, ok := remoteResource.(*graphmodels.Windows10CompliancePolicy); ok {
-			mapWindows10CompliancePolicyToState(ctx, data, windowsPolicy)
-		}
-	default:
-		tflog.Warn(ctx, fmt.Sprintf("Unsupported compliance policy type: %s, using additionalData", odataType))
+	// This resource only handles AOSP device owner compliance policies
+	if aospPolicy, ok := remoteResource.(*graphmodels.AospDeviceOwnerCompliancePolicy); ok {
+		mapAospCompliancePolicyToState(ctx, data, aospPolicy)
+	} else {
+		tflog.Error(ctx, "Remote resource is not an AOSP device owner compliance policy")
+		return
 	}
 
 	// Map scheduled actions using SDK getters
@@ -62,309 +47,128 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 		}
 	}
 
-	// Map local actions from additionalData only if no SDK getter exists
-	if additionalData := remoteResource.GetAdditionalData(); additionalData != nil {
-		mapLocalActionsToState(ctx, data, additionalData)
+	assignments := remoteResource.GetAssignments()
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
+	})
+
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(AospDeviceOwnerCompliancePolicyAssignmentType())
+	} else {
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+			"resourceId":      data.ID.ValueString(),
+			"assignmentCount": len(assignments),
+		})
+		MapAssignmentsToTerraform(ctx, data, assignments)
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state for resource %s with id %s", ResourceName, data.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
-// mapAospDeviceOwnerCompliancePolicyToState is a responder function that maps AOSP Device Owner compliance policy properties.
-func mapAospDeviceOwnerCompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.AospDeviceOwnerCompliancePolicy) {
-	// Map common properties
+// AospDeviceOwnerCompliancePolicyAssignmentType returns the object type for AospDeviceOwnerCompliancePolicyAssignmentModel
+func AospDeviceOwnerCompliancePolicyAssignmentType() attr.Type {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"type":        types.StringType,
+			"group_id":    types.StringType,
+			"filter_id":   types.StringType,
+			"filter_type": types.StringType,
+		},
+	}
+}
+
+// mapAospCompliancePolicyToState is a responder function that maps AOSP device owner compliance policy properties.
+func mapAospCompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.AospDeviceOwnerCompliancePolicy) {
+	// Password settings - AOSP uses "password" in SDK but "passcode" in Terraform schema
+	data.PasscodeRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
+	data.PasscodeMinimumLength = convert.GraphToFrameworkInt32(policy.GetPasswordMinimumLength())
+	data.PasscodeMinutesOfInactivityBeforeLock = convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock())
+	data.PasscodeRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
+
+	// OS version settings
 	data.OsMinimumVersion = convert.GraphToFrameworkString(policy.GetOsMinimumVersion())
 	data.OsMaximumVersion = convert.GraphToFrameworkString(policy.GetOsMaximumVersion())
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
-	data.PasswordRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
 
-	// Map AOSP-specific settings
-	mapAospDeviceOwnerSettingsToState(ctx, data, policy)
-}
+	// Security settings
+	data.SecurityBlockJailbrokenDevices = convert.GraphToFrameworkBool(policy.GetSecurityBlockJailbrokenDevices())
+	data.StorageRequireEncryption = convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption())
 
-// mapAndroidDeviceOwnerCompliancePolicyToState is a responder function that maps Android Device Owner compliance policy properties.
-func mapAndroidDeviceOwnerCompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.AndroidDeviceOwnerCompliancePolicy) {
-	// Map common properties
-	data.OsMinimumVersion = convert.GraphToFrameworkString(policy.GetOsMinimumVersion())
-	data.OsMaximumVersion = convert.GraphToFrameworkString(policy.GetOsMaximumVersion())
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
-	data.PasswordRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
-
-	// Map Android Device Owner-specific settings
-	mapAndroidDeviceOwnerSettingsToState(ctx, data, policy)
-}
-
-// mapIosCompliancePolicyToState is a responder function that maps iOS compliance policy properties.
-func mapIosCompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.IosCompliancePolicy) {
-	// Map common properties
-	data.OsMinimumVersion = convert.GraphToFrameworkString(policy.GetOsMinimumVersion())
-	data.OsMaximumVersion = convert.GraphToFrameworkString(policy.GetOsMaximumVersion())
-	// iOS uses passcodeRequired instead of passwordRequired
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasscodeRequired())
-
-	// Map iOS-specific settings
-	mapIosSettingsToState(ctx, data, policy)
-}
-
-// mapWindows10CompliancePolicyToState is a responder function that maps Windows 10 compliance policy properties.
-func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
-	// Map common properties
-	data.OsMinimumVersion = convert.GraphToFrameworkString(policy.GetOsMinimumVersion())
-	data.OsMaximumVersion = convert.GraphToFrameworkString(policy.GetOsMaximumVersion())
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
-	data.PasswordRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
-
-	// Map Windows 10-specific settings
-	mapWindows10SettingsToState(ctx, data, policy)
-}
-
-// mapAospDeviceOwnerSettingsToState maps AOSP Device Owner specific settings using SDK getters.
-func mapAospDeviceOwnerSettingsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.AospDeviceOwnerCompliancePolicy) {
-	settingsType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"min_android_security_patch_level":           types.StringType,
-			"security_block_jailbroken_devices":          types.BoolType,
-			"storage_require_encryption":                 types.BoolType,
-			"password_minimum_length":                    types.Int32Type,
-			"password_minutes_of_inactivity_before_lock": types.Int32Type,
-		},
-	}
-
-	settingsAttrs := map[string]attr.Value{
-		"min_android_security_patch_level":           convert.GraphToFrameworkString(policy.GetMinAndroidSecurityPatchLevel()),
-		"security_block_jailbroken_devices":          convert.GraphToFrameworkBool(policy.GetSecurityBlockJailbrokenDevices()),
-		"storage_require_encryption":                 convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
-		"password_minimum_length":                    convert.GraphToFrameworkInt32(policy.GetPasswordMinimumLength()),
-		"password_minutes_of_inactivity_before_lock": convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock()),
-	}
-
-	data.AospDeviceOwnerSettings, _ = types.ObjectValue(settingsType.AttrTypes, settingsAttrs)
-}
-
-// mapAndroidDeviceOwnerSettingsToState maps Android Device Owner specific settings using SDK getters.
-func mapAndroidDeviceOwnerSettingsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.AndroidDeviceOwnerCompliancePolicy) {
-	settingsType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"min_android_security_patch_level":                         types.StringType,
-			"security_block_jailbroken_devices":                        types.BoolType,
-			"storage_require_encryption":                               types.BoolType,
-			"password_minimum_length":                                  types.Int32Type,
-			"password_minutes_of_inactivity_before_lock":               types.Int32Type,
-			"device_threat_protection_required_security_level":         types.StringType,
-			"advanced_threat_protection_required_security_level":       types.StringType,
-			"password_expiration_days":                                 types.Int32Type,
-			"password_previous_password_count_to_block":                types.Int32Type,
-			"security_required_android_safety_net_evaluation_type":     types.StringType,
-			"security_require_intune_app_integrity":                    types.BoolType,
-			"device_threat_protection_enabled":                         types.BoolType,
-			"security_require_safety_net_attestation_basic_integrity":  types.BoolType,
-			"security_require_safety_net_attestation_certified_device": types.BoolType,
-		},
-	}
-
-	settingsAttrs := map[string]attr.Value{
-		"min_android_security_patch_level":                         convert.GraphToFrameworkString(policy.GetMinAndroidSecurityPatchLevel()),
-		"security_block_jailbroken_devices":                        convert.GraphToFrameworkBool(policy.GetSecurityBlockJailbrokenDevices()),
-		"storage_require_encryption":                               convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
-		"password_minimum_length":                                  convert.GraphToFrameworkInt32(policy.GetPasswordMinimumLength()),
-		"password_minutes_of_inactivity_before_lock":               convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock()),
-		"device_threat_protection_required_security_level":         convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
-		"advanced_threat_protection_required_security_level":       convert.GraphToFrameworkEnum(policy.GetAdvancedThreatProtectionRequiredSecurityLevel()),
-		"password_expiration_days":                                 convert.GraphToFrameworkInt32(policy.GetPasswordExpirationDays()),
-		"password_previous_password_count_to_block":                convert.GraphToFrameworkInt32(policy.GetPasswordPreviousPasswordCountToBlock()),
-		"security_required_android_safety_net_evaluation_type":     convert.GraphToFrameworkEnum(policy.GetSecurityRequiredAndroidSafetyNetEvaluationType()),
-		"security_require_intune_app_integrity":                    convert.GraphToFrameworkBool(policy.GetSecurityRequireIntuneAppIntegrity()),
-		"device_threat_protection_enabled":                         convert.GraphToFrameworkBool(policy.GetDeviceThreatProtectionEnabled()),
-		"security_require_safety_net_attestation_basic_integrity":  convert.GraphToFrameworkBool(policy.GetSecurityRequireSafetyNetAttestationBasicIntegrity()),
-		"security_require_safety_net_attestation_certified_device": convert.GraphToFrameworkBool(policy.GetSecurityRequireSafetyNetAttestationCertifiedDevice()),
-	}
-
-	data.AndroidDeviceOwnerSettings, _ = types.ObjectValue(settingsType.AttrTypes, settingsAttrs)
-}
-
-// mapIosSettingsToState maps iOS specific settings using SDK getters.
-func mapIosSettingsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.IosCompliancePolicy) {
-	restrictedAppType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"name":   types.StringType,
-			"app_id": types.StringType,
-		},
-	}
-
-	settingsType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"device_threat_protection_required_security_level":     types.StringType,
-			"advanced_threat_protection_required_security_level":   types.StringType,
-			"device_threat_protection_enabled":                     types.BoolType,
-			"passcode_required_type":                               types.StringType,
-			"managed_email_profile_required":                       types.BoolType,
-			"security_block_jailbroken_devices":                    types.BoolType,
-			"os_minimum_build_version":                             types.StringType,
-			"os_maximum_build_version":                             types.StringType,
-			"passcode_minimum_character_set_count":                 types.Int32Type,
-			"passcode_minutes_of_inactivity_before_lock":           types.Int32Type,
-			"passcode_minutes_of_inactivity_before_screen_timeout": types.Int32Type,
-			"passcode_expiration_days":                             types.Int32Type,
-			"passcode_previous_passcode_block_count":               types.Int32Type,
-			"restricted_apps":                                      types.ListType{ElemType: restrictedAppType},
-		},
-	}
-
-	settingsAttrs := map[string]attr.Value{
-		"device_threat_protection_required_security_level":     convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
-		"advanced_threat_protection_required_security_level":   convert.GraphToFrameworkEnum(policy.GetAdvancedThreatProtectionRequiredSecurityLevel()),
-		"device_threat_protection_enabled":                     convert.GraphToFrameworkBool(policy.GetDeviceThreatProtectionEnabled()),
-		"passcode_required_type":                               convert.GraphToFrameworkEnum(policy.GetPasscodeRequiredType()),
-		"managed_email_profile_required":                       convert.GraphToFrameworkBool(policy.GetManagedEmailProfileRequired()),
-		"security_block_jailbroken_devices":                    convert.GraphToFrameworkBool(policy.GetSecurityBlockJailbrokenDevices()),
-		"os_minimum_build_version":                             convert.GraphToFrameworkString(policy.GetOsMinimumBuildVersion()),
-		"os_maximum_build_version":                             convert.GraphToFrameworkString(policy.GetOsMaximumBuildVersion()),
-		"passcode_minimum_character_set_count":                 convert.GraphToFrameworkInt32(policy.GetPasscodeMinimumCharacterSetCount()),
-		"passcode_minutes_of_inactivity_before_lock":           convert.GraphToFrameworkInt32(policy.GetPasscodeMinutesOfInactivityBeforeLock()),
-		"passcode_minutes_of_inactivity_before_screen_timeout": convert.GraphToFrameworkInt32(policy.GetPasscodeMinutesOfInactivityBeforeScreenTimeout()),
-		"passcode_expiration_days":                             convert.GraphToFrameworkInt32(policy.GetPasscodeExpirationDays()),
-		"passcode_previous_passcode_block_count":               convert.GraphToFrameworkInt32(policy.GetPasscodePreviousPasscodeBlockCount()),
-		"restricted_apps":                                      mapRestrictedAppsFromSDK(ctx, policy.GetRestrictedApps()),
-	}
-
-	data.IosSettings, _ = types.ObjectValue(settingsType.AttrTypes, settingsAttrs)
-}
-
-// mapWindows10SettingsToState maps Windows 10 specific settings using SDK getters.
-func mapWindows10SettingsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
-	wslDistributionType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"distribution":       types.StringType,
-			"minimum_os_version": types.StringType,
-			"maximum_os_version": types.StringType,
-		},
-	}
-
-	settingsType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"device_threat_protection_required_security_level": types.StringType,
-			"device_compliance_policy_script":                  types.StringType,
-			"password_required_type":                           types.StringType,
-			"wsl_distributions":                                types.ListType{ElemType: wslDistributionType},
-			"password_required":                                types.BoolType,
-			"password_block_simple":                            types.BoolType,
-			"password_required_to_unlock_from_idle":            types.BoolType,
-			"storage_require_encryption":                       types.BoolType,
-			"password_minutes_of_inactivity_before_lock":       types.Int32Type,
-			"password_minimum_character_set_count":             types.Int32Type,
-			"active_firewall_required":                         types.BoolType,
-			"tpm_required":                                     types.BoolType,
-			"antivirus_required":                               types.BoolType,
-			"anti_spyware_required":                            types.BoolType,
-			"defender_enabled":                                 types.BoolType,
-			"signature_out_of_date":                            types.BoolType,
-			"rtp_enabled":                                      types.BoolType,
-			"defender_version":                                 types.StringType,
-			"configuration_manager_compliance_required":        types.BoolType,
-			"os_minimum_version":                               types.StringType,
-			"os_maximum_version":                               types.StringType,
-			"mobile_os_minimum_version":                        types.StringType,
-			"mobile_os_maximum_version":                        types.StringType,
-			"secure_boot_enabled":                              types.BoolType,
-			"bit_locker_enabled":                               types.BoolType,
-			"code_integrity_enabled":                           types.BoolType,
-			"device_threat_protection_enabled":                 types.BoolType,
-		},
-	}
-
-	settingsAttrs := map[string]attr.Value{
-		"device_threat_protection_required_security_level": convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
-		"device_compliance_policy_script":                  convert.GraphToFrameworkString(nil), // This might need special handling
-		"password_required_type":                           convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType()),
-		"wsl_distributions":                                mapWslDistributionsFromSDK(ctx, policy.GetWslDistributions()),
-		"password_required":                                convert.GraphToFrameworkBool(policy.GetPasswordRequired()),
-		"password_block_simple":                            convert.GraphToFrameworkBool(policy.GetPasswordBlockSimple()),
-		"password_required_to_unlock_from_idle":            convert.GraphToFrameworkBool(policy.GetPasswordRequiredToUnlockFromIdle()),
-		"storage_require_encryption":                       convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
-		"password_minutes_of_inactivity_before_lock":       convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock()),
-		"password_minimum_character_set_count":             convert.GraphToFrameworkInt32(policy.GetPasswordMinimumCharacterSetCount()),
-		"active_firewall_required":                         convert.GraphToFrameworkBool(policy.GetActiveFirewallRequired()),
-		"tpm_required":                                     convert.GraphToFrameworkBool(policy.GetTpmRequired()),
-		"antivirus_required":                               convert.GraphToFrameworkBool(policy.GetAntivirusRequired()),
-		"anti_spyware_required":                            convert.GraphToFrameworkBool(policy.GetAntiSpywareRequired()),
-		"defender_enabled":                                 convert.GraphToFrameworkBool(policy.GetDefenderEnabled()),
-		"signature_out_of_date":                            convert.GraphToFrameworkBool(policy.GetSignatureOutOfDate()),
-		"rtp_enabled":                                      convert.GraphToFrameworkBool(policy.GetRtpEnabled()),
-		"defender_version":                                 convert.GraphToFrameworkString(policy.GetDefenderVersion()),
-		"configuration_manager_compliance_required":        convert.GraphToFrameworkBool(policy.GetConfigurationManagerComplianceRequired()),
-		"os_minimum_version":                               convert.GraphToFrameworkString(policy.GetOsMinimumVersion()),
-		"os_maximum_version":                               convert.GraphToFrameworkString(policy.GetOsMaximumVersion()),
-		"mobile_os_minimum_version":                        convert.GraphToFrameworkString(policy.GetMobileOsMinimumVersion()),
-		"mobile_os_maximum_version":                        convert.GraphToFrameworkString(policy.GetMobileOsMaximumVersion()),
-		"secure_boot_enabled":                              convert.GraphToFrameworkBool(policy.GetSecureBootEnabled()),
-		"bit_locker_enabled":                               convert.GraphToFrameworkBool(policy.GetBitLockerEnabled()),
-		"code_integrity_enabled":                           convert.GraphToFrameworkBool(policy.GetCodeIntegrityEnabled()),
-		"device_threat_protection_enabled":                 convert.GraphToFrameworkBool(policy.GetDeviceThreatProtectionEnabled()),
-	}
-
-	data.Windows10Settings, _ = types.ObjectValue(settingsType.AttrTypes, settingsAttrs)
+	// Android-specific settings
+	data.MinAndroidSecurityPatchLevel = convert.GraphToFrameworkString(policy.GetMinAndroidSecurityPatchLevel())
 }
 
 // mapScheduledActionsForRuleToState maps scheduled actions for rule from SDK to state.
-func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable) (types.Set, error) {
-	scheduledActionsType := types.ObjectType{
+func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable) (types.List, error) {
+	scheduledActionType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"rule_name": types.StringType,
-			"scheduled_action_configurations": types.ListType{
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"action_type":                  types.StringType,
-						"grace_period_hours":           types.Int32Type,
-						"notification_template_id":     types.StringType,
-						"notification_message_cc_list": types.SetType{ElemType: types.StringType},
-					},
-				},
-			},
-		},
-	}
-
-	scheduledActionsValues := make([]attr.Value, 0, len(scheduledActions))
-
-	for _, action := range scheduledActions {
-		actionAttrs := map[string]attr.Value{
-			"rule_name": convert.GraphToFrameworkString(action.GetRuleName()),
-			"scheduled_action_configurations": types.ListNull(types.ObjectType{
+			"scheduled_action_configurations": types.SetType{ElemType: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"action_type":                  types.StringType,
 					"grace_period_hours":           types.Int32Type,
 					"notification_template_id":     types.StringType,
-					"notification_message_cc_list": types.SetType{ElemType: types.StringType},
+					"notification_message_cc_list": types.ListType{ElemType: types.StringType},
 				},
-			}),
-		}
+			}},
+		},
+	}
 
+	if len(scheduledActions) == 0 {
+		return types.ListNull(scheduledActionType), nil
+	}
+
+	actionValues := make([]attr.Value, 0, len(scheduledActions))
+
+	for _, action := range scheduledActions {
+		var mappedConfigs types.Set
 		if configs := action.GetScheduledActionConfigurations(); configs != nil {
-			mappedConfigs, err := mapScheduledActionConfigurationsToState(ctx, configs)
+			var err error
+			mappedConfigs, err = mapScheduledActionConfigurationsToState(ctx, configs)
 			if err != nil {
-				return types.SetNull(scheduledActionsType), err
+				return types.ListNull(scheduledActionType), err
 			}
-			actionAttrs["scheduled_action_configurations"] = mappedConfigs
+		} else {
+			mappedConfigs = types.SetNull(types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"action_type":                  types.StringType,
+					"grace_period_hours":           types.Int32Type,
+					"notification_template_id":     types.StringType,
+					"notification_message_cc_list": types.ListType{ElemType: types.StringType},
+				},
+			})
 		}
 
-		actionValue, _ := types.ObjectValue(scheduledActionsType.AttrTypes, actionAttrs)
-		scheduledActionsValues = append(scheduledActionsValues, actionValue)
+		actionAttrs := map[string]attr.Value{
+			"rule_name":                       convert.GraphToFrameworkString(action.GetRuleName()),
+			"scheduled_action_configurations": mappedConfigs,
+		}
+
+		actionValue, _ := types.ObjectValue(scheduledActionType.AttrTypes, actionAttrs)
+		actionValues = append(actionValues, actionValue)
 	}
 
-	set, diags := types.SetValue(scheduledActionsType, scheduledActionsValues)
+	list, diags := types.ListValue(scheduledActionType, actionValues)
 	if diags.HasError() {
-		return types.SetNull(scheduledActionsType), fmt.Errorf("failed to create scheduled actions set")
+		return types.ListNull(scheduledActionType), fmt.Errorf("failed to create scheduled actions list")
 	}
-	return set, nil
+	return list, nil
 }
 
 // mapScheduledActionConfigurationsToState maps scheduled action configurations from SDK to state.
-func mapScheduledActionConfigurationsToState(ctx context.Context, configurations []graphmodels.DeviceComplianceActionItemable) (types.List, error) {
+func mapScheduledActionConfigurationsToState(ctx context.Context, configurations []graphmodels.DeviceComplianceActionItemable) (types.Set, error) {
 	configurationType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"action_type":                  types.StringType,
 			"grace_period_hours":           types.Int32Type,
 			"notification_template_id":     types.StringType,
-			"notification_message_cc_list": types.SetType{ElemType: types.StringType},
+			"notification_message_cc_list": types.ListType{ElemType: types.StringType},
 		},
 	}
 
@@ -375,101 +179,303 @@ func mapScheduledActionConfigurationsToState(ctx context.Context, configurations
 			"action_type":                  convert.GraphToFrameworkEnum(config.GetActionType()),
 			"grace_period_hours":           convert.GraphToFrameworkInt32(config.GetGracePeriodHours()),
 			"notification_template_id":     convert.GraphToFrameworkString(config.GetNotificationTemplateId()),
-			"notification_message_cc_list": convert.GraphToFrameworkStringSet(ctx, config.GetNotificationMessageCCList()),
+			"notification_message_cc_list": convert.GraphToFrameworkStringList(config.GetNotificationMessageCCList()),
 		}
 
 		configValue, _ := types.ObjectValue(configurationType.AttrTypes, configAttrs)
 		configValues = append(configValues, configValue)
 	}
 
-	list, diags := types.ListValue(configurationType, configValues)
+	set, diags := types.SetValue(configurationType, configValues)
 	if diags.HasError() {
-		return types.ListNull(configurationType), fmt.Errorf("failed to create scheduled action configurations list")
+		return types.SetNull(configurationType), fmt.Errorf("failed to create scheduled action configurations set")
 	}
-	return list, nil
+	return set, nil
 }
 
-// mapLocalActionsToState maps local actions from additional data to state.
-func mapLocalActionsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, additionalData map[string]interface{}) {
-	if localActionsData, ok := additionalData["localActions"].([]interface{}); ok {
-		localActions := make([]attr.Value, 0, len(localActionsData))
-		for _, action := range localActionsData {
-			if actionStr, ok := action.(string); ok {
-				localActions = append(localActions, convert.GraphToFrameworkString(&actionStr))
+// MapAssignmentsToTerraform maps the remote DeviceCompliancePolicy assignments to Terraform state
+func MapAssignmentsToTerraform(ctx context.Context, data *DeviceCompliancePolicyResourceModel, assignments []graphmodels.DeviceCompliancePolicyAssignmentable) {
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to process")
+		data.Assignments = types.SetNull(AospDeviceOwnerCompliancePolicyAssignmentType())
+		return
+	}
+
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
+	})
+
+	assignmentValues := []attr.Value{}
+
+	for i, assignment := range assignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		target := assignment.GetTarget()
+		if target == nil {
+			tflog.Warn(ctx, "Assignment target is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			continue
+		}
+
+		odataType := target.GetOdataType()
+		if odataType == nil {
+			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			continue
+		}
+
+		tflog.Debug(ctx, "Processing assignment target", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"targetType":      *odataType,
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		assignmentObj := map[string]attr.Value{
+			"type":        types.StringNull(),
+			"group_id":    types.StringNull(),
+			"filter_id":   types.StringNull(),
+			"filter_type": types.StringNull(),
+		}
+
+		switch *odataType {
+		case "#microsoft.graph.allDevicesAssignmentTarget":
+			tflog.Debug(ctx, "Mapping allDevicesAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allDevicesAssignmentTarget")
+			assignmentObj["group_id"] = types.StringNull()
+
+		case "#microsoft.graph.allLicensedUsersAssignmentTarget":
+			tflog.Debug(ctx, "Mapping allLicensedUsersAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allLicensedUsersAssignmentTarget")
+			assignmentObj["group_id"] = types.StringNull()
+
+		case "#microsoft.graph.groupAssignmentTarget":
+			tflog.Debug(ctx, "Mapping groupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Warn(ctx, "Group ID is nil/empty for group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = types.StringNull()
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["group_id"] = types.StringNull()
 			}
+
+		case "#microsoft.graph.exclusionGroupAssignmentTarget":
+			tflog.Debug(ctx, "Mapping exclusionGroupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("exclusionGroupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.ExclusionGroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for exclusion group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Warn(ctx, "Group ID is nil/empty for exclusion group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = types.StringNull()
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to ExclusionGroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["group_id"] = types.StringNull()
+			}
+
+		default:
+			tflog.Warn(ctx, "Unknown target type encountered", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"targetType":      *odataType,
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["group_id"] = types.StringNull()
 		}
-		data.LocalActions, _ = types.ListValue(types.StringType, localActions)
-	}
-}
 
-// mapRestrictedAppsFromSDK maps restricted apps from SDK to state.
-func mapRestrictedAppsFromSDK(ctx context.Context, restrictedApps []graphmodels.AppListItemable) types.List {
-	restrictedAppType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"name":   types.StringType,
-			"app_id": types.StringType,
-		},
-	}
-
-	if restrictedApps == nil || len(restrictedApps) == 0 {
-		return types.ListNull(restrictedAppType)
-	}
-
-	restrictedAppsValues := make([]attr.Value, 0, len(restrictedApps))
-
-	for _, app := range restrictedApps {
-		appAttrs := map[string]attr.Value{
-			"name":   convert.GraphToFrameworkString(app.GetName()),
-			"app_id": convert.GraphToFrameworkString(app.GetAppId()),
-		}
-
-		appValue, _ := types.ObjectValue(restrictedAppType.AttrTypes, appAttrs)
-		restrictedAppsValues = append(restrictedAppsValues, appValue)
-	}
-
-	list, diags := types.ListValue(restrictedAppType, restrictedAppsValues)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create restricted apps list from SDK", map[string]interface{}{
-			"error": diags.Errors(),
+		tflog.Debug(ctx, "Processing assignment filters", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
 		})
-		return types.ListNull(restrictedAppType)
-	}
-	return list
-}
 
-// mapWslDistributionsFromSDK maps WSL distributions from SDK to state.
-func mapWslDistributionsFromSDK(ctx context.Context, wslDistributions []graphmodels.WslDistributionConfigurationable) types.List {
-	wslDistributionType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"distribution":       types.StringType,
-			"minimum_os_version": types.StringType,
-			"maximum_os_version": types.StringType,
-		},
-	}
-
-	if len(wslDistributions) == 0 {
-		return types.ListNull(wslDistributionType)
-	}
-
-	wslDistributionValues := make([]attr.Value, 0, len(wslDistributions))
-
-	for _, wslDist := range wslDistributions {
-		wslDistAttrs := map[string]attr.Value{
-			"distribution":       convert.GraphToFrameworkString(wslDist.GetDistribution()),
-			"minimum_os_version": convert.GraphToFrameworkString(wslDist.GetMinimumOSVersion()),
-			"maximum_os_version": convert.GraphToFrameworkString(wslDist.GetMaximumOSVersion()),
+		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
+		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
+			tflog.Debug(ctx, "Assignment has meaningful filter ID", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterId":        *filterID,
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
+		} else {
+			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
 		}
 
-		wslDistValue, _ := types.ObjectValue(wslDistributionType.AttrTypes, wslDistAttrs)
-		wslDistributionValues = append(wslDistributionValues, wslDistValue)
+		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
+		if filterType != nil {
+			tflog.Debug(ctx, "Processing filter type", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterType":      *filterType,
+				"resourceId":      data.ID.ValueString(),
+			})
+
+			switch *filterType {
+			case graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to include", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("include")
+			case graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to exclude", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("exclude")
+			case graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to none", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("none")
+			default:
+				tflog.Debug(ctx, "Unknown filter type, using schema default", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"filterType":      *filterType,
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("none")
+			}
+		} else {
+			tflog.Debug(ctx, "No filter type specified, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_type"] = types.StringValue("none")
+		}
+
+		tflog.Debug(ctx, "Creating assignment object value", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		objValue, diags := types.ObjectValue(AospDeviceOwnerCompliancePolicyAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		if !diags.HasError() {
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentValues = append(assignmentValues, objValue)
+		} else {
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"errors":          diags.Errors(),
+				"resourceId":      data.ID.ValueString(),
+			})
+		}
 	}
 
-	list, diags := types.ListValue(wslDistributionType, wslDistributionValues)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create WSL distributions list from SDK", map[string]interface{}{
-			"error": diags.Errors(),
+	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+		"processedAssignments": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
+	})
+
+	if len(assignmentValues) > 0 {
+		setVal, diags := types.SetValue(AospDeviceOwnerCompliancePolicyAssignmentType(), assignmentValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+				"errors":     diags.Errors(),
+				"resourceId": data.ID.ValueString(),
+			})
+			data.Assignments = types.SetNull(AospDeviceOwnerCompliancePolicyAssignmentType())
+		} else {
+			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+				"assignmentCount": len(assignmentValues),
+				"resourceId":      data.ID.ValueString(),
+			})
+			data.Assignments = setVal
+		}
+	} else {
+		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
 		})
-		return types.ListNull(wslDistributionType)
+		data.Assignments = types.SetNull(AospDeviceOwnerCompliancePolicyAssignmentType())
 	}
-	return list
+
+	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{
+		"finalAssignmentCount": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
+	})
 }

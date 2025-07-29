@@ -198,7 +198,7 @@ func registerTestApps() {
 		"id":      minimalAppId,
 		"version": "1.0",
 		"mobileAppIdentifier": map[string]interface{}{
-			"@odata.type":   "#microsoft.graph.windowsAppIdentifier",
+			"@odata.type":  "#microsoft.graph.windowsAppIdentifier",
 			"windowsAppId": "com.example.testapp",
 		},
 		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/windowsManagedAppProtections('00000000-0000-0000-0000-000000000002')/apps/$entity",
@@ -212,7 +212,7 @@ func registerTestApps() {
 		"id":      maximalAppId,
 		"version": "1.5",
 		"mobileAppIdentifier": map[string]interface{}{
-			"@odata.type":   "#microsoft.graph.windowsAppIdentifier",
+			"@odata.type":  "#microsoft.graph.windowsAppIdentifier",
 			"windowsAppId": "com.example.complexapp",
 		},
 		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/windowsManagedAppProtections('00000000-0000-0000-0000-000000000003')/apps/$entity",

@@ -33,7 +33,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NotificationMessageTem
 	if remoteResource.GetLocalizedNotificationMessages() != nil {
 		localizedMessages := remoteResource.GetLocalizedNotificationMessages()
 		var terraformMessages []LocalizedNotificationMessageModel
-		
+
 		for _, msg := range localizedMessages {
 			terraformMsg := LocalizedNotificationMessageModel{
 				ID:                   convert.GraphToFrameworkString(msg.GetId()),
@@ -45,40 +45,40 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NotificationMessageTem
 			}
 			terraformMessages = append(terraformMessages, terraformMsg)
 		}
-		
+
 		// Convert to framework set using the object type
 		if len(terraformMessages) > 0 {
 			data.LocalizedNotificationMessages, _ = types.SetValueFrom(ctx, types.ObjectType{
 				AttrTypes: map[string]attr.Type{
-					"id":                        types.StringType,
-					"locale":                    types.StringType,
-					"subject":                   types.StringType,
-					"message_template":          types.StringType,
-					"is_default":               types.BoolType,
-					"last_modified_date_time":  types.StringType,
+					"id":                      types.StringType,
+					"locale":                  types.StringType,
+					"subject":                 types.StringType,
+					"message_template":        types.StringType,
+					"is_default":              types.BoolType,
+					"last_modified_date_time": types.StringType,
 				},
 			}, terraformMessages)
 		} else {
 			data.LocalizedNotificationMessages = types.SetNull(types.ObjectType{
 				AttrTypes: map[string]attr.Type{
-					"id":                        types.StringType,
-					"locale":                    types.StringType,
-					"subject":                   types.StringType,
-					"message_template":          types.StringType,
-					"is_default":               types.BoolType,
-					"last_modified_date_time":  types.StringType,
+					"id":                      types.StringType,
+					"locale":                  types.StringType,
+					"subject":                 types.StringType,
+					"message_template":        types.StringType,
+					"is_default":              types.BoolType,
+					"last_modified_date_time": types.StringType,
 				},
 			})
 		}
 	} else {
 		data.LocalizedNotificationMessages = types.SetNull(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"id":                        types.StringType,
-				"locale":                    types.StringType,
-				"subject":                   types.StringType,
-				"message_template":          types.StringType,
-				"is_default":               types.BoolType,
-				"last_modified_date_time":  types.StringType,
+				"id":                      types.StringType,
+				"locale":                  types.StringType,
+				"subject":                 types.StringType,
+				"message_template":        types.StringType,
+				"is_default":              types.BoolType,
+				"last_modified_date_time": types.StringType,
 			},
 		})
 	}
