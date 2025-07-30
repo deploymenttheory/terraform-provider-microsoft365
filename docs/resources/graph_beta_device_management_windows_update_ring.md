@@ -160,41 +160,40 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "advanc
 
 ### Required
 
+- `allow_windows11_upgrade` (Boolean) When TRUE, allows eligible Windows 10 devices to latest Windows 11 release. When FALSE, implies the device stays on the existing operating system. Returned by default. Query parameters are not supported.
+- `automatic_update_mode` (String) The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl.
 - `display_name` (String) Admin provided name of the device configuration. Inherited from deviceConfiguration.
+- `drivers_excluded` (Boolean) When TRUE, excludes Windows update Drivers. When FALSE, does not exclude Windows update Drivers. Returned by default. Query parameters are not supported.
+- `feature_updates_deferral_period_in_days` (Number) Defer Feature Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
+- `feature_updates_rollback_window_in_days` (Number) The number of days after a Feature Update for which a rollback is valid with valid range from 2 to 60 days. Returned by default. Query parameters are not supported.
+- `microsoft_update_service_allowed` (Boolean) When TRUE, allows Microsoft Update Service. When FALSE, does not allow Microsoft Update Service. Returned by default. Query parameters are not supported.
+- `quality_updates_deferral_period_in_days` (Number) Defer Quality Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
+- `skip_checks_before_restart` (Boolean) When TRUE, skips all checks before restart: Battery level = 40%, User presence, Display Needed, Presentation mode, Full screen mode, phone call state, game mode etc. When FALSE, does not skip all checks before restart. Returned by default. Query parameters are not supported.
 
 ### Optional
 
 - `active_hours_end` (String) Active Hours End. Part of the Installation Schedule.
 - `active_hours_start` (String) Active Hours Start. Part of the Installation Schedule.
-- `additional_properties` (Map of String) Additional properties that are not yet exposed in the API.
-- `allow_windows11_upgrade` (Boolean) When TRUE, allows eligible Windows 10 devices to upgrade to Windows 11. When FALSE, implies the device stays on the existing operating system. Returned by default. Query parameters are not supported.
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `auto_restart_notification_dismissal` (String) Specify the method by which the auto-restart required notification is dismissed. Possible values are: NotConfigured, Automatic, User. Returned by default. Query parameters are not supported. Possible values are: notConfigured, automatic, user, unknownFutureValue.
-- `automatic_update_mode` (String) The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl.
-- `business_ready_updates_only` (String) Determines which branch devices will receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, WindowsInsiderBuildSlow, WindowsInsiderBuildRelease. Returned by default. Query parameters are not supported. Possible values are: userDefined, all, businessReadyOnly, windowsInsiderBuildFast, windowsInsiderBuildSlow, windowsInsiderBuildRelease.
-- `deadline_for_feature_updates_in_days` (Number) Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
-- `deadline_for_quality_updates_in_days` (Number) Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
-- `deadline_grace_period_in_days` (Number) Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.
+- `business_ready_updates_only` (String) Enable pre-release builds if you want devices to be on a Windows Insider channel.Enabling pre-release builds will cause devices to reboot. Determines which update branch devices will receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, WindowsInsiderBuildSlow, WindowsInsiderBuildRelease.UserDefined equates to 'Not configured' in the gui.all equates to 'Not configured' in the gui.windowsInsiderBuildRelease equates to 'Windows Insider - Release Preview' in the gui.windowsInsiderBuildSlow equates to 'Beta Channel' in the gui.windowsInsiderBuildFast equates to ' Dev Channel' in the gui.
+- `deadline_settings` (Attributes) Settings for update installation deadlines and reboot behavior. (see [below for nested schema](#nestedatt--deadline_settings))
 - `delivery_optimization_mode` (String) The Delivery Optimization Mode. Possible values are: UserDefined, HttpOnly, HttpWithPeeringNat, HttpWithPeeringPrivateGroup, HttpWithInternetPeering, SimpleDownload, BypassMode. UserDefined allows the user to set. Returned by default. Query parameters are not supported. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode.
 - `description` (String) Admin provided description of the Device Configuration. Inherited from deviceConfiguration.
-- `drivers_excluded` (Boolean) When TRUE, excludes Windows update Drivers. When FALSE, does not exclude Windows update Drivers. Returned by default. Query parameters are not supported.
 - `engaged_restart_deadline_in_days` (Number) Deadline in days before automatically scheduling and executing a pending restart outside of active hours, with valid range from 2 to 30 days. Returned by default. Query parameters are not supported.
 - `engaged_restart_snooze_schedule_for_feature_updates_in_days` (Number) Number of days a user can snooze Engaged Restart reminder notifications for feature updates.
 - `engaged_restart_snooze_schedule_in_days` (Number) Number of days a user can snooze Engaged Restart reminder notifications with valid range from 1 to 3 days. Returned by default. Query parameters are not supported.
 - `engaged_restart_transition_schedule_for_feature_updates_in_days` (Number) Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.
 - `engaged_restart_transition_schedule_in_days` (Number) Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart, which requires the user to schedule, with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
-- `feature_updates_deferral_period_in_days` (Number) Defer Feature Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
 - `feature_updates_paused` (Boolean) When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s
-- `feature_updates_rollback_window_in_days` (Number) The number of days after a Feature Update for which a rollback is valid with valid range from 2 to 60 days. Returned by default. Query parameters are not supported.
-- `microsoft_update_service_allowed` (Boolean) When TRUE, allows Microsoft Update Service. When FALSE, does not allow Microsoft Update Service. Returned by default. Query parameters are not supported.
-- `postpone_reboot_until_after_deadline` (Boolean) When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.
 - `prerelease_features` (String) The Pre-Release Features. Possible values are: UserDefined, SettingsOnly, SettingsAndExperimentations, NotAllowed. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed.
-- `quality_updates_deferral_period_in_days` (Number) Defer Quality Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
 - `quality_updates_paused` (Boolean) When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `schedule_imminent_restart_warning_in_minutes` (Number) Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported.
 - `schedule_restart_warning_in_hours` (Number) Specify the period for auto-restart warning reminder notifications. Supported values: 2, 4, 8, 12 or 24 (hours). Returned by default. Query parameters are not supported.
-- `skip_checks_before_restart` (Boolean) When TRUE, skips all checks before restart: Battery level = 40%, User presence, Display Needed, Presentation mode, Full screen mode, phone call state, game mode etc. When FALSE, does not skip all checks before restart. Returned by default. Query parameters are not supported.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `uninstall` (Attributes) Settings for update installation deadlines and reboot behavior. (see [below for nested schema](#nestedatt--uninstall))
+- `update_actions` (Attributes) Actions to control update pause, resume, extend pause, and uninstall operations. (see [below for nested schema](#nestedatt--update_actions))
 - `update_notification_level` (String) Specifies what Windows Update notifications users see. Possible values are: NotConfigured, DefaultNotifications, RestartWarningsOnly, DisableAllNotifications. Returned by default. Query parameters are not supported. Possible values are: notConfigured, defaultNotifications, restartWarningsOnly, disableAllNotifications, unknownFutureValue.
 - `update_weeks` (String) Schedule the update installation on the weeks of the month. Possible values are: UserDefined, FirstWeek, SecondWeek, ThirdWeek, FourthWeek, EveryWeek. Returned by default. Query parameters are not supported. Possible values are: userDefined, firstWeek, secondWeek, thirdWeek, fourthWeek, everyWeek, unknownFutureValue.
 - `user_pause_access` (String) Specifies whether to enable end user's access to pause software updates. Possible values are: NotConfigured, Enabled, Disabled. Returned by default. Query parameters are not supported. Possible values are: notConfigured, enabled, disabled.
@@ -202,7 +201,38 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "advanc
 
 ### Read-Only
 
+- `feature_updates_pause_expiry_date_time` (String) The date and time when feature updates pause expires. This value is in ISO 8601 format, in UTC time.
+- `feature_updates_pause_start_date` (String) The date when feature updates are paused. This value is in ISO 8601 format, in UTC time.
+- `feature_updates_rollback_start_date_time` (String) The date and time when feature updates rollback started. This value is in ISO 8601 format, in UTC time.
 - `id` (String) Key of the entity. Inherited from deviceConfiguration.
+- `quality_updates_pause_expiry_date_time` (String) The date and time when quality updates pause expires. This value is in ISO 8601 format, in UTC time.
+- `quality_updates_pause_start_date` (String) The date when quality updates are paused. This value is in ISO 8601 format, in UTC time.
+- `quality_updates_rollback_start_date_time` (String) The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
+Optional:
+
+- `filter_id` (String) ID of the filter to apply to the assignment.
+- `filter_type` (String) Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+
+
+<a id="nestedatt--deadline_settings"></a>
+### Nested Schema for `deadline_settings`
+
+Required:
+
+- `deadline_for_feature_updates_in_days` (Number) Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
+- `deadline_for_quality_updates_in_days` (Number) Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
+- `deadline_grace_period_in_days` (Number) Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.
+- `postpone_reboot_until_after_deadline` (Boolean) When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -213,6 +243,42 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+
+<a id="nestedatt--uninstall"></a>
+### Nested Schema for `uninstall`
+
+Optional:
+
+- `feature_updates_will_be_rolled_back` (Boolean) Indicates whether the latest feature updates are set to be uninstalled and paused for the Update Ring.
+- `quality_updates_will_be_rolled_back` (Boolean) Indicates whether quality updates will be rolled back automatically.
+
+
+<a id="nestedatt--update_actions"></a>
+### Nested Schema for `update_actions`
+
+Optional:
+
+- `feature_updates` (Attributes) Feature update control actions. (see [below for nested schema](#nestedatt--update_actions--feature_updates))
+- `quality_updates` (Attributes) Quality update control actions. (see [below for nested schema](#nestedatt--update_actions--quality_updates))
+
+<a id="nestedatt--update_actions--feature_updates"></a>
+### Nested Schema for `update_actions.feature_updates`
+
+Optional:
+
+- `extend_pause` (Boolean) Extend the pause period by 35 days (fixed duration). Only valid when updates are already paused.
+- `pause` (Boolean) Pause or resume feature updates. When true, pauses updates; when false, resumes updates.
+- `trigger_uninstall` (Boolean) Trigger uninstall of feature updates by setting featureUpdatesWillBeRolledBack to true.
+
+
+<a id="nestedatt--update_actions--quality_updates"></a>
+### Nested Schema for `update_actions.quality_updates`
+
+Optional:
+
+- `pause` (Boolean) Pause or resume quality updates. When true, pauses updates; when false, resumes updates.
+- `trigger_uninstall` (Boolean) Trigger uninstall of quality updates by setting qualityUpdatesWillBeRolledBack to true.
 
 ## Important Notes
 
