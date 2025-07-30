@@ -172,3 +172,47 @@ func constructQualityUpdateRollBack(ctx context.Context, data *WindowsUpdateRing
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s quality update rollback settings", ResourceName))
 	return requestBody, nil
 }
+
+// constructFeatureUpdatesPause creates a request body for feature updates pause/resume operations
+func constructFeatureUpdatesPause(ctx context.Context, pause bool) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s feature updates pause operation (pause: %t)", ResourceName, pause))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+	requestBody.SetFeatureUpdatesPaused(&pause)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s feature updates pause operation", ResourceName))
+	return requestBody, nil
+}
+
+// constructQualityUpdatesPause creates a request body for quality updates pause/resume operations
+func constructQualityUpdatesPause(ctx context.Context, pause bool) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s quality updates pause operation (pause: %t)", ResourceName, pause))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+	requestBody.SetQualityUpdatesPaused(&pause)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s quality updates pause operation", ResourceName))
+	return requestBody, nil
+}
+
+// constructFeatureUpdatesUninstall creates a request body for feature updates uninstall operation
+func constructFeatureUpdatesUninstall(ctx context.Context, uninstall bool) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s feature updates uninstall operation (uninstall: %t)", ResourceName, uninstall))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+	requestBody.SetFeatureUpdatesWillBeRolledBack(&uninstall)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s feature updates uninstall operation", ResourceName))
+	return requestBody, nil
+}
+
+// constructQualityUpdatesUninstall creates a request body for quality updates uninstall operation
+func constructQualityUpdatesUninstall(ctx context.Context, uninstall bool) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s quality updates uninstall operation (uninstall: %t)", ResourceName, uninstall))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+	requestBody.SetQualityUpdatesWillBeRolledBack(&uninstall)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s quality updates uninstall operation", ResourceName))
+	return requestBody, nil
+}

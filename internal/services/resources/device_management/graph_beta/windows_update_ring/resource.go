@@ -386,56 +386,77 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					},
 				},
 			},
+			"update_actions": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Actions to control update pause, resume, extend pause, and uninstall operations.",
+				Attributes: map[string]schema.Attribute{
+					"feature_updates": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Feature update control actions.",
+						Attributes: map[string]schema.Attribute{
+							"pause": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Pause or resume feature updates. When true, pauses updates; when false, resumes updates.",
+							},
+							"extend_pause": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Extend the pause period by 35 days (fixed duration). Only valid when updates are already paused.",
+							},
+							"trigger_uninstall": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Trigger uninstall of feature updates by setting featureUpdatesWillBeRolledBack to true.",
+							},
+						},
+					},
+					"quality_updates": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Quality update control actions.",
+						Attributes: map[string]schema.Attribute{
+							"pause": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Pause or resume quality updates. When true, pauses updates; when false, resumes updates.",
+							},
+							"trigger_uninstall": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Trigger uninstall of quality updates by setting qualityUpdatesWillBeRolledBack to true.",
+							},
+						},
+					},
+				},
+			},
 			"quality_updates_paused": schema.BoolAttribute{
+				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.",
 			},
 			"feature_updates_paused": schema.BoolAttribute{
+				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s",
 			},
 			"feature_updates_pause_expiry_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when feature updates pause expires. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"feature_updates_rollback_start_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when feature updates rollback started. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"feature_updates_pause_start_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date when feature updates are paused. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"quality_updates_pause_expiry_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates pause expires. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"quality_updates_pause_start_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date when quality updates are paused. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"quality_updates_rollback_start_date_time": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),

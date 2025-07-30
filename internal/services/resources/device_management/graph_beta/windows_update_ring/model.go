@@ -38,6 +38,7 @@ type WindowsUpdateRingResourceModel struct {
 	UpdateNotificationLevel                                 types.String            `tfsdk:"update_notification_level"`
 	FeatureUpdatesRollbackWindowInDays                      types.Int32             `tfsdk:"feature_updates_rollback_window_in_days"`
 	UninstallSettings                                       *UninstallSettingsModel `tfsdk:"uninstall"`
+	UpdateActions                                           *UpdateActionsModel     `tfsdk:"update_actions"`
 	DeadlineSettings                                        *DeadlineSettingsModel  `tfsdk:"deadline_settings"`
 	EngagedRestartDeadlineInDays                            types.Int32             `tfsdk:"engaged_restart_deadline_in_days"`
 	EngagedRestartSnoozeScheduleInDays                      types.Int32             `tfsdk:"engaged_restart_snooze_schedule_in_days"`
@@ -55,6 +56,25 @@ type WindowsUpdateRingResourceModel struct {
 type UninstallSettingsModel struct {
 	FeatureUpdatesWillBeRolledBack types.Bool `tfsdk:"feature_updates_will_be_rolled_back"`
 	QualityUpdatesWillBeRolledBack types.Bool `tfsdk:"quality_updates_will_be_rolled_back"`
+}
+
+// UpdateActionsModel defines the schema for update control actions
+type UpdateActionsModel struct {
+	FeatureUpdates *FeatureUpdateActionsModel `tfsdk:"feature_updates"`
+	QualityUpdates *QualityUpdateActionsModel `tfsdk:"quality_updates"`
+}
+
+// FeatureUpdateActionsModel defines the schema for feature update actions
+type FeatureUpdateActionsModel struct {
+	Pause           types.Bool `tfsdk:"pause"`
+	ExtendPause     types.Bool `tfsdk:"extend_pause"`
+	TriggerUninstall types.Bool `tfsdk:"trigger_uninstall"`
+}
+
+// QualityUpdateActionsModel defines the schema for quality update actions
+type QualityUpdateActionsModel struct {
+	Pause           types.Bool `tfsdk:"pause"`
+	TriggerUninstall types.Bool `tfsdk:"trigger_uninstall"`
 }
 
 // DeadlineSettingsModel defines the schema for deadline settings

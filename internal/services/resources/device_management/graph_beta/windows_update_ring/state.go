@@ -51,6 +51,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 	} else {
 		data.UninstallSettings = nil
 	}
+
+	// Update actions are not returned by the API - they are action triggers only
+	// So we set them to nil to indicate no actions are pending
+	data.UpdateActions = nil
+
 	data.SkipChecksBeforeRestart = convert.GraphToFrameworkBool(remoteResource.GetSkipChecksBeforeRestart())
 	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(remoteResource.GetBusinessReadyUpdatesOnly())
 	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(remoteResource.GetAutomaticUpdateMode())
