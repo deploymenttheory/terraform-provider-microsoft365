@@ -130,10 +130,8 @@ func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req res
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
+			"assignments": commonschemagraphbeta.WindowsSoftwareUpdateAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
