@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -51,32 +52,30 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Create(ctx context.Context,
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if len(object.Assignments) > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", object.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignments",
-				fmt.Sprintf("Failed to construct assignments for policy: %s", err.Error()),
-			)
-			return
-		}
-
-		err = r.client.
-			DeviceManagement().
-			WindowsQualityUpdateProfiles().
-			ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, assignRequestBody, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
+
+	err = r.client.
+		DeviceManagement().
+		WindowsQualityUpdateProfiles().
+		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Successfully posted assignments for policy ID: %s", object.ID.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -139,7 +138,11 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 		DeviceManagement().
 		WindowsQualityUpdateProfiles().
 		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.WindowsQualityUpdateProfilesWindowsQualityUpdateProfileItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.WindowsQualityUpdateProfilesWindowsQualityUpdateProfileItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -147,20 +150,6 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Read(ctx context.Context, r
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	assignmentsResp, err := r.client.
-		DeviceManagement().
-		WindowsQualityUpdateProfiles().
-		ByWindowsQualityUpdateProfileId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentsToTerraform(ctx, &object, assignmentsResp.GetValue())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -220,10 +209,10 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 		return
 	}
 
-	if len(plan.Assignments) > 0 {
+	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
 		tflog.Debug(ctx, fmt.Sprintf("Assignments detected, constructing assignment request for policy ID: %s", state.ID.ValueString()))
 
-		assignRequestBody, err := constructAssignments(ctx, &plan)
+		assignRequestBody, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing assignments",
@@ -240,7 +229,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Update(ctx context.Context,
 			Post(ctx, assignRequestBody, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 

@@ -7,30 +7,24 @@ import (
 )
 
 type WindowsFeatureUpdateProfileResourceModel struct {
-	ID                                                types.String              `tfsdk:"id"`
-	DisplayName                                       types.String              `tfsdk:"display_name"`
-	Description                                       types.String              `tfsdk:"description"`
-	FeatureUpdateVersion                              types.String              `tfsdk:"feature_update_version"`
-	RolloutSettings                                   *RolloutSettingsModel     `tfsdk:"rollout_settings"`
-	CreatedDateTime                                   types.String              `tfsdk:"created_date_time"`
-	LastModifiedDateTime                              types.String              `tfsdk:"last_modified_date_time"`
-	RoleScopeTagIds                                   types.Set                 `tfsdk:"role_scope_tag_ids"`
-	DeployableContentDisplayName                      types.String              `tfsdk:"deployable_content_display_name"`
-	EndOfSupportDate                                  types.String              `tfsdk:"end_of_support_date"`
-	InstallLatestWindows10OnWindows11IneligibleDevice types.Bool                `tfsdk:"install_latest_windows10_on_windows11_ineligible_device"`
-	InstallFeatureUpdatesOptional                     types.Bool                `tfsdk:"install_feature_updates_optional"`
-	Assignments                                       []AssignmentResourceModel `tfsdk:"assignment"`
-	Timeouts                                          timeouts.Value            `tfsdk:"timeouts"`
+	ID                                                types.String          `tfsdk:"id"`
+	DisplayName                                       types.String          `tfsdk:"display_name"`
+	Description                                       types.String          `tfsdk:"description"`
+	FeatureUpdateVersion                              types.String          `tfsdk:"feature_update_version"`
+	RolloutSettings                                   *RolloutSettingsModel `tfsdk:"rollout_settings"`
+	CreatedDateTime                                   types.String          `tfsdk:"created_date_time"`
+	LastModifiedDateTime                              types.String          `tfsdk:"last_modified_date_time"`
+	RoleScopeTagIds                                   types.Set             `tfsdk:"role_scope_tag_ids"`
+	DeployableContentDisplayName                      types.String          `tfsdk:"deployable_content_display_name"`
+	EndOfSupportDate                                  types.String          `tfsdk:"end_of_support_date"`
+	InstallLatestWindows10OnWindows11IneligibleDevice types.Bool            `tfsdk:"install_latest_windows10_on_windows11_ineligible_device"`
+	InstallFeatureUpdatesOptional                     types.Bool            `tfsdk:"install_feature_updates_optional"`
+	Assignments                                       types.Set             `tfsdk:"assignments"`
+	Timeouts                                          timeouts.Value        `tfsdk:"timeouts"`
 }
 
 type RolloutSettingsModel struct {
 	OfferStartDateTimeInUTC types.String `tfsdk:"offer_start_date_time_in_utc"`
 	OfferEndDateTimeInUTC   types.String `tfsdk:"offer_end_date_time_in_utc"`
 	OfferIntervalInDays     types.Int32  `tfsdk:"offer_interval_in_days"`
-}
-
-// AssignmentResourceModel defines a single assignment block within the primary resource
-type AssignmentResourceModel struct {
-	Target   types.String `tfsdk:"target"`    // "include" or "exclude"
-	GroupIds types.Set    `tfsdk:"group_ids"` // Set of Microsoft Entra ID group IDs
 }

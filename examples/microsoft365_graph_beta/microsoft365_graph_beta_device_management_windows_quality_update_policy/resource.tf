@@ -4,22 +4,28 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
   hotpatch_enabled   = true
   role_scope_tag_ids = ["9", "8"]
 
-  // Optional assignment blocks
-  assignment {
-    target = "include"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
-  assignment {
-    target = "exclude"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+    # Assignments
+  assignments = [
+    # Assignment targeting a specific group
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assignment targeting a specific group
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 
   // Optional timeout block
   timeouts = {

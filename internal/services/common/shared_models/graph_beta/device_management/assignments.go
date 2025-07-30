@@ -39,3 +39,21 @@ type DeviceCompliancePolicyAssignmentResourceModel struct {
 	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"
 
 }
+
+// DeviceManagementDeviceConfigurationAssignmentModel defines the schema for a Windows Remediation Script assignment.
+type DeviceManagementDeviceConfigurationAssignmentModel struct {
+	// Target assignment fields - only one should be used at a time
+	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+
+	// Assignment filter fields
+	FilterId   types.String `tfsdk:"filter_id"`
+	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"
+}
+
+// WindowsSoftwareUpdateAssignmentModel defines the schema for a Windows Software Update assignment.
+type WindowsSoftwareUpdateAssignmentModel struct {
+	// Target assignment fields - only one should be used at a time
+	Type    types.String `tfsdk:"type"`     // "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+}

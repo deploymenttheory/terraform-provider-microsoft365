@@ -5,69 +5,443 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // MapRemoteResourceStateToTerraform maps the API response to the Terraform model
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateRingResourceModel, apiData graphmodels.WindowsUpdateForBusinessConfigurationable) {
-	if apiData == nil {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateRingResourceModel, remoteResource graphmodels.WindowsUpdateForBusinessConfigurationable) {
+	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
-	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{"resourceId": apiData.GetId()})
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+		"resourceName": remoteResource.GetDisplayName(),
+		"resourceId":   remoteResource.GetId(),
+	})
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
+	data.MicrosoftUpdateServiceAllowed = convert.GraphToFrameworkBool(remoteResource.GetMicrosoftUpdateServiceAllowed())
+	data.DriversExcluded = convert.GraphToFrameworkBool(remoteResource.GetDriversExcluded())
+	data.QualityUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(remoteResource.GetQualityUpdatesDeferralPeriodInDays())
+	data.FeatureUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(remoteResource.GetFeatureUpdatesDeferralPeriodInDays())
+	data.AllowWindows11Upgrade = convert.GraphToFrameworkBool(remoteResource.GetAllowWindows11Upgrade())
+	data.QualityUpdatesPaused = convert.GraphToFrameworkBool(remoteResource.GetQualityUpdatesPaused())
+	data.FeatureUpdatesPaused = convert.GraphToFrameworkBool(remoteResource.GetFeatureUpdatesPaused())
 
-	data.ID = convert.GraphToFrameworkString(apiData.GetId())
-	data.DisplayName = convert.GraphToFrameworkString(apiData.GetDisplayName())
-	data.Description = convert.GraphToFrameworkString(apiData.GetDescription())
-	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, apiData.GetRoleScopeTagIds())
-	data.MicrosoftUpdateServiceAllowed = convert.GraphToFrameworkBool(apiData.GetMicrosoftUpdateServiceAllowed())
-	data.DriversExcluded = convert.GraphToFrameworkBool(apiData.GetDriversExcluded())
-	data.QualityUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(apiData.GetQualityUpdatesDeferralPeriodInDays())
-	data.FeatureUpdatesDeferralPeriodInDays = convert.GraphToFrameworkInt32(apiData.GetFeatureUpdatesDeferralPeriodInDays())
-	data.AllowWindows11Upgrade = convert.GraphToFrameworkBool(apiData.GetAllowWindows11Upgrade())
-	data.QualityUpdatesPaused = convert.GraphToFrameworkBool(apiData.GetQualityUpdatesPaused())
-	data.FeatureUpdatesPaused = convert.GraphToFrameworkBool(apiData.GetFeatureUpdatesPaused())
-	data.SkipChecksBeforeRestart = convert.GraphToFrameworkBool(apiData.GetSkipChecksBeforeRestart())
-	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(apiData.GetBusinessReadyUpdatesOnly())
-	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(apiData.GetAutomaticUpdateMode())
-	data.UpdateNotificationLevel = convert.GraphToFrameworkEnum(apiData.GetUpdateNotificationLevel())
-	data.DeliveryOptimizationMode = convert.GraphToFrameworkEnum(apiData.GetDeliveryOptimizationMode())
-	data.PrereleaseFeatures = convert.GraphToFrameworkEnum(apiData.GetPrereleaseFeatures())
-	data.UpdateWeeks = convert.GraphToFrameworkEnum(apiData.GetUpdateWeeks())
+	data.FeatureUpdatesPauseStartDate = convert.GraphToFrameworkDateOnly(remoteResource.GetFeatureUpdatesPauseStartDate())
+	data.FeatureUpdatesPauseExpiryDateTime = convert.GraphToFrameworkTime(remoteResource.GetFeatureUpdatesPauseExpiryDateTime())
+	data.FeatureUpdatesRollbackStartDateTime = convert.GraphToFrameworkTime(remoteResource.GetFeatureUpdatesRollbackStartDateTime())
+	data.QualityUpdatesPauseStartDate = convert.GraphToFrameworkDateOnly(remoteResource.GetQualityUpdatesPauseStartDate())
+	data.QualityUpdatesPauseExpiryDateTime = convert.GraphToFrameworkTime(remoteResource.GetQualityUpdatesPauseExpiryDateTime())
+	data.QualityUpdatesRollbackStartDateTime = convert.GraphToFrameworkTime(remoteResource.GetQualityUpdatesRollbackStartDateTime())
 
-	if installationSchedule := apiData.GetInstallationSchedule(); installationSchedule != nil {
+	// Handle uninstall settings - only set if any rollback field has a non-null value from the API
+	if remoteResource.GetFeatureUpdatesWillBeRolledBack() != nil ||
+		remoteResource.GetQualityUpdatesWillBeRolledBack() != nil {
+		data.UninstallSettings = &UninstallSettingsModel{
+			FeatureUpdatesWillBeRolledBack: convert.GraphToFrameworkBool(remoteResource.GetFeatureUpdatesWillBeRolledBack()),
+			QualityUpdatesWillBeRolledBack: convert.GraphToFrameworkBool(remoteResource.GetQualityUpdatesWillBeRolledBack()),
+		}
+	} else {
+		data.UninstallSettings = nil
+	}
+
+	// Update actions are not returned by the API - they are action triggers only
+	// So we set them to nil to indicate no actions are pending
+	data.UpdateActions = nil
+
+	data.SkipChecksBeforeRestart = convert.GraphToFrameworkBool(remoteResource.GetSkipChecksBeforeRestart())
+	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(remoteResource.GetBusinessReadyUpdatesOnly())
+	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(remoteResource.GetAutomaticUpdateMode())
+	data.UpdateNotificationLevel = convert.GraphToFrameworkEnum(remoteResource.GetUpdateNotificationLevel())
+	data.DeliveryOptimizationMode = convert.GraphToFrameworkEnum(remoteResource.GetDeliveryOptimizationMode())
+	data.PrereleaseFeatures = convert.GraphToFrameworkEnum(remoteResource.GetPrereleaseFeatures())
+	data.UpdateWeeks = convert.GraphToFrameworkEnum(remoteResource.GetUpdateWeeks())
+
+	if installationSchedule := remoteResource.GetInstallationSchedule(); installationSchedule != nil {
 		if activeHoursInstall, ok := installationSchedule.(graphmodels.WindowsUpdateActiveHoursInstallable); ok {
 			if activeHoursInstall.GetActiveHoursStart() != nil {
 				data.ActiveHoursStart = types.StringValue(activeHoursInstall.GetActiveHoursStart().String())
+			} else {
+				data.ActiveHoursStart = types.StringNull()
 			}
 
 			if activeHoursInstall.GetActiveHoursEnd() != nil {
 				data.ActiveHoursEnd = types.StringValue(activeHoursInstall.GetActiveHoursEnd().String())
+			} else {
+				data.ActiveHoursEnd = types.StringNull()
 			}
 		} else {
 			tflog.Warn(ctx, "Installation schedule is not of type WindowsUpdateActiveHoursInstallable")
+			data.ActiveHoursStart = types.StringNull()
+			data.ActiveHoursEnd = types.StringNull()
+		}
+	} else {
+		// No installation schedule means no active hours configured
+		data.ActiveHoursStart = types.StringNull()
+		data.ActiveHoursEnd = types.StringNull()
+	}
+
+	data.UserPauseAccess = convert.GraphToFrameworkEnum(remoteResource.GetUserPauseAccess())
+	data.UserWindowsUpdateScanAccess = convert.GraphToFrameworkEnum(remoteResource.GetUserWindowsUpdateScanAccess())
+	data.FeatureUpdatesRollbackWindowInDays = convert.GraphToFrameworkInt32(remoteResource.GetFeatureUpdatesRollbackWindowInDays())
+
+	// Only set deadline settings if any deadline field has a non-null value from the API
+	if remoteResource.GetDeadlineForFeatureUpdatesInDays() != nil ||
+		remoteResource.GetDeadlineForQualityUpdatesInDays() != nil ||
+		remoteResource.GetDeadlineGracePeriodInDays() != nil ||
+		remoteResource.GetPostponeRebootUntilAfterDeadline() != nil {
+		data.DeadlineSettings = &DeadlineSettingsModel{
+			DeadlineForFeatureUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForFeatureUpdatesInDays()),
+			DeadlineForQualityUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForQualityUpdatesInDays()),
+			DeadlineGracePeriodInDays:        convert.GraphToFrameworkInt32(remoteResource.GetDeadlineGracePeriodInDays()),
+			PostponeRebootUntilAfterDeadline: convert.GraphToFrameworkBool(remoteResource.GetPostponeRebootUntilAfterDeadline()),
+		}
+	} else {
+		data.DeadlineSettings = nil
+	}
+
+	data.EngagedRestartDeadlineInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartDeadlineInDays())
+	data.EngagedRestartSnoozeScheduleInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartSnoozeScheduleInDays())
+	data.EngagedRestartTransitionScheduleInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartTransitionScheduleInDays())
+	data.AutoRestartNotificationDismissal = convert.GraphToFrameworkEnum(remoteResource.GetAutoRestartNotificationDismissal())
+	data.ScheduleRestartWarningInHours = convert.GraphToFrameworkInt32(remoteResource.GetScheduleRestartWarningInHours())
+	data.ScheduleImminentRestartWarningInMinutes = convert.GraphToFrameworkInt32(remoteResource.GetScheduleImminentRestartWarningInMinutes())
+	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartSnoozeScheduleInDays())
+	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartTransitionScheduleInDays())
+
+	assignments := remoteResource.GetAssignments()
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
+	})
+
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(WindowsUpdateRingAssignmentType())
+	} else {
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+			"resourceId":      data.ID.ValueString(),
+			"assignmentCount": len(assignments),
+		})
+		MapAssignmentsToTerraform(ctx, data, assignments)
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
+}
+
+// WindowsUpdateRingAssignmentType returns the object type for WindowsRemediationScriptAssignmentModel
+func WindowsUpdateRingAssignmentType() attr.Type {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"type":        types.StringType,
+			"group_id":    types.StringType,
+			"filter_id":   types.StringType,
+			"filter_type": types.StringType,
+		},
+	}
+}
+
+// MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
+func MapAssignmentsToTerraform(ctx context.Context, data *WindowsUpdateRingResourceModel, assignments []graphmodels.DeviceConfigurationAssignmentable) {
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to process")
+		data.Assignments = types.SetNull(WindowsUpdateRingAssignmentType())
+		return
+	}
+
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
+	})
+
+	assignmentValues := []attr.Value{}
+
+	for i, assignment := range assignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		target := assignment.GetTarget()
+		if target == nil {
+			tflog.Warn(ctx, "Assignment target is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			continue
+		}
+
+		odataType := target.GetOdataType()
+		if odataType == nil {
+			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			continue
+		}
+
+		tflog.Debug(ctx, "Processing assignment target", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"targetType":      *odataType,
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		assignmentObj := map[string]attr.Value{
+			"type":        types.StringNull(),
+			"group_id":    types.StringNull(),
+			"filter_id":   types.StringNull(),
+			"filter_type": types.StringNull(),
+		}
+
+		switch *odataType {
+		case "#microsoft.graph.allDevicesAssignmentTarget":
+			tflog.Debug(ctx, "Mapping allDevicesAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allDevicesAssignmentTarget")
+			assignmentObj["group_id"] = types.StringNull()
+
+		case "#microsoft.graph.allLicensedUsersAssignmentTarget":
+			tflog.Debug(ctx, "Mapping allLicensedUsersAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("allLicensedUsersAssignmentTarget")
+			assignmentObj["group_id"] = types.StringNull()
+
+		case "#microsoft.graph.groupAssignmentTarget":
+			tflog.Debug(ctx, "Mapping groupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Warn(ctx, "Group ID is nil/empty for group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = types.StringNull()
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["group_id"] = types.StringNull()
+			}
+
+		case "#microsoft.graph.exclusionGroupAssignmentTarget":
+			tflog.Debug(ctx, "Mapping exclusionGroupAssignmentTarget", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["type"] = types.StringValue("exclusionGroupAssignmentTarget")
+
+			if groupTarget, ok := target.(graphmodels.ExclusionGroupAssignmentTargetable); ok {
+				groupId := groupTarget.GetGroupId()
+				if groupId != nil && *groupId != "" {
+					tflog.Debug(ctx, "Setting group ID for exclusion group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"groupId":         *groupId,
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
+				} else {
+					tflog.Warn(ctx, "Group ID is nil/empty for exclusion group assignment target", map[string]interface{}{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					})
+					assignmentObj["group_id"] = types.StringNull()
+				}
+			} else {
+				tflog.Error(ctx, "Failed to cast target to ExclusionGroupAssignmentTargetable", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["group_id"] = types.StringNull()
+			}
+
+		default:
+			tflog.Warn(ctx, "Unknown target type encountered", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"targetType":      *odataType,
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["group_id"] = types.StringNull()
+		}
+
+		tflog.Debug(ctx, "Processing assignment filters", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
+		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
+			tflog.Debug(ctx, "Assignment has meaningful filter ID", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterId":        *filterID,
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
+		} else {
+			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+		}
+
+		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
+		if filterType != nil {
+			tflog.Debug(ctx, "Processing filter type", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"filterType":      *filterType,
+				"resourceId":      data.ID.ValueString(),
+			})
+
+			switch *filterType {
+			case graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to include", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("include")
+			case graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to exclude", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("exclude")
+			case graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				tflog.Debug(ctx, "Setting filter type to none", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("none")
+			default:
+				tflog.Debug(ctx, "Unknown filter type, using schema default", map[string]interface{}{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"filterType":      *filterType,
+					"resourceId":      data.ID.ValueString(),
+				})
+				assignmentObj["filter_type"] = types.StringValue("none")
+			}
+		} else {
+			tflog.Debug(ctx, "No filter type specified, using schema default", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentObj["filter_type"] = types.StringValue("none")
+		}
+
+		tflog.Debug(ctx, "Processing assignment schedule", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		tflog.Debug(ctx, "Creating assignment object value", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"resourceId":      data.ID.ValueString(),
+		})
+
+		objValue, diags := types.ObjectValue(WindowsUpdateRingAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		if !diags.HasError() {
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"resourceId":      data.ID.ValueString(),
+			})
+			assignmentValues = append(assignmentValues, objValue)
+		} else {
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+				"assignmentIndex": i,
+				"assignmentId":    assignment.GetId(),
+				"errors":          diags.Errors(),
+				"resourceId":      data.ID.ValueString(),
+			})
 		}
 	}
 
-	data.UserPauseAccess = convert.GraphToFrameworkEnum(apiData.GetUserPauseAccess())
-	data.UserWindowsUpdateScanAccess = convert.GraphToFrameworkEnum(apiData.GetUserWindowsUpdateScanAccess())
-	data.FeatureUpdatesRollbackWindowInDays = convert.GraphToFrameworkInt32(apiData.GetFeatureUpdatesRollbackWindowInDays())
-	data.DeadlineForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineForFeatureUpdatesInDays())
-	data.DeadlineForQualityUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineForQualityUpdatesInDays())
-	data.DeadlineGracePeriodInDays = convert.GraphToFrameworkInt32(apiData.GetDeadlineGracePeriodInDays())
-	data.PostponeRebootUntilAfterDeadline = convert.GraphToFrameworkBool(apiData.GetPostponeRebootUntilAfterDeadline())
-	data.EngagedRestartDeadlineInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartDeadlineInDays())
-	data.EngagedRestartSnoozeScheduleInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
-	data.AutoRestartNotificationDismissal = convert.GraphToFrameworkEnum(apiData.GetAutoRestartNotificationDismissal())
-	data.ScheduleRestartWarningInHours = convert.GraphToFrameworkInt32(apiData.GetScheduleRestartWarningInHours())
-	data.ScheduleImminentRestartWarningInMinutes = convert.GraphToFrameworkInt32(apiData.GetScheduleImminentRestartWarningInMinutes())
-	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(apiData.GetEngagedRestartTransitionScheduleInDays())
+	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+		"processedAssignments": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
+	})
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+	if len(assignmentValues) > 0 {
+		setVal, diags := types.SetValue(WindowsUpdateRingAssignmentType(), assignmentValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+				"errors":     diags.Errors(),
+				"resourceId": data.ID.ValueString(),
+			})
+			data.Assignments = types.SetNull(WindowsUpdateRingAssignmentType())
+		} else {
+			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+				"assignmentCount": len(assignmentValues),
+				"resourceId":      data.ID.ValueString(),
+			})
+			data.Assignments = setVal
+		}
+	} else {
+		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(WindowsUpdateRingAssignmentType())
+	}
 
+	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{
+		"finalAssignmentCount": len(assignmentValues),
+		"originalAssignments":  len(assignments),
+		"resourceId":           data.ID.ValueString(),
+	})
 }

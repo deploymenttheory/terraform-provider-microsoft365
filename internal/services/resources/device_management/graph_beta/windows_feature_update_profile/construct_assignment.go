@@ -5,75 +5,114 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignments builds the /assign request body from the unified resource model
-func constructAssignments(ctx context.Context, data *WindowsFeatureUpdateProfileResourceModel) (devicemanagement.WindowsFeatureUpdateProfilesItemAssignPostRequestBodyable, error) {
-	tflog.Debug(ctx, "Creating assign request body from assignment blocks")
+// constructAssignment constructs and returns a WindowsQualityUpdateProfilesItemAssignPostRequestBody
+func constructAssignment(ctx context.Context, data *WindowsFeatureUpdateProfileResourceModel) (devicemanagement.WindowsFeatureUpdateProfilesItemAssignPostRequestBodyable, error) {
+	tflog.Debug(ctx, "Starting Windows Quality Update Profile assignment construction")
 
-	assignRequest := devicemanagement.NewWindowsFeatureUpdateProfilesItemAssignPostRequestBody()
-	var assignments []graphmodels.WindowsFeatureUpdateProfileAssignmentable
+	requestBody := devicemanagement.NewWindowsFeatureUpdateProfilesItemAssignPostRequestBody()
+	scriptAssignments := make([]graphmodels.WindowsFeatureUpdateProfileAssignmentable, 0)
 
-	for i, assignmentBlock := range data.Assignments {
-		if assignmentBlock.Target.IsNull() || assignmentBlock.Target.IsUnknown() {
-			return nil, fmt.Errorf("assignment[%d]: target is required", i)
-		}
+	if data.Assignments.IsNull() || data.Assignments.IsUnknown() {
+		tflog.Debug(ctx, "Assignments is null or unknown, creating empty assignments array")
+		requestBody.SetAssignments(scriptAssignments)
+		return requestBody, nil
+	}
 
-		if assignmentBlock.GroupIds.IsNull() || assignmentBlock.GroupIds.IsUnknown() {
-			return nil, fmt.Errorf("assignment[%d]: group_ids is required", i)
-		}
+	var terraformAssignments []sharedmodels.WindowsSoftwareUpdateAssignmentModel
+	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
+	if diags.HasError() {
+		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
+	}
 
-		targetType := assignmentBlock.Target.ValueString()
+	for idx, assignment := range terraformAssignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"index": idx,
+		})
 
-		var groupIDs []string
-		diags := assignmentBlock.GroupIds.ElementsAs(ctx, &groupIDs, false)
-		if diags.HasError() {
-			return nil, fmt.Errorf("assignment[%d]: error extracting group IDs: %s", i, diags.Errors())
-		}
+		graphAssignment := graphmodels.NewWindowsQualityUpdateProfileAssignment()
 
-		if len(groupIDs) == 0 {
+		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+				"index": idx,
+			})
 			continue
 		}
 
-		for _, groupID := range groupIDs {
-			assignment := graphmodels.NewWindowsFeatureUpdateProfileAssignment()
+		targetType := assignment.Type.ValueString()
 
-			switch targetType {
-			case "include":
-				target := graphmodels.NewGroupAssignmentTarget()
-				target.SetGroupId(&groupID)
-				assignment.SetTarget(target)
-				tflog.Debug(ctx, fmt.Sprintf("Added inclusion group assignment for group: %s", groupID))
-
-			case "exclude":
-				target := graphmodels.NewExclusionGroupAssignmentTarget()
-				target.SetGroupId(&groupID)
-				assignment.SetTarget(target)
-				tflog.Debug(ctx, fmt.Sprintf("Added exclusion group assignment for group: %s", groupID))
-
-			default:
-				return nil, fmt.Errorf("assignment[%d]: invalid target type: %s", i, targetType)
-			}
-
-			assignments = append(assignments, assignment)
+		target := constructTarget(ctx, targetType, assignment)
+		if target == nil {
+			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+				"index":      idx,
+				"targetType": targetType,
+			})
+			continue
 		}
+
+		graphAssignment.SetTarget(target)
+
+		scriptAssignments = append(scriptAssignments, graphAssignment)
 	}
 
-	if len(assignments) == 0 {
-		return nil, fmt.Errorf("at least one assignment with group_ids is required")
-	}
+	tflog.Debug(ctx, "Completed assignment construction", map[string]interface{}{
+		"totalAssignments": len(scriptAssignments),
+	})
 
-	assignRequest.SetAssignments(assignments)
+	requestBody.SetAssignments(scriptAssignments)
 
-	if err := constructors.DebugLogGraphObject(ctx, "Final assign request", assignRequest); err != nil {
-		tflog.Error(ctx, "Failed to debug log assign request", map[string]interface{}{
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished creating assign request body with %d assignments", len(assignments)))
-	return assignRequest, nil
+	return requestBody, nil
+}
+
+// constructTarget creates the appropriate target based on the target type
+func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.WindowsSoftwareUpdateAssignmentModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
+
+	switch targetType {
+	case "allDevicesAssignmentTarget":
+		target = graphmodels.NewAllDevicesAssignmentTarget()
+	case "allLicensedUsersAssignmentTarget":
+		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
+	case "groupAssignmentTarget":
+		groupTarget := graphmodels.NewGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
+		}
+		target = groupTarget
+	case "exclusionGroupAssignmentTarget":
+		exclusionTarget := graphmodels.NewExclusionGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
+		}
+		target = exclusionTarget
+	default:
+		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+			"targetType": targetType,
+		})
+		return nil
+	}
+
+	return target
 }

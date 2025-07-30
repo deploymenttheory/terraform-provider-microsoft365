@@ -55,7 +55,7 @@ func FrameworkToGraphInt64(value basetypes.Int64Value, setter func(*int64)) {
 }
 
 // FrameworkToGraphTime parses a Terraform Framework string as RFC3339 time and sets a Graph SDK time property.
-// Returns an error if parsing fails. No-op if the value is null, unknown, or empty.
+// Returns an error if parsing fails. No-op if the value is null, unknown, empty, or zero-value time.
 func FrameworkToGraphTime(value basetypes.StringValue, setter func(*time.Time)) error {
 	if value.IsNull() || value.IsUnknown() {
 		return nil
@@ -69,6 +69,11 @@ func FrameworkToGraphTime(value basetypes.StringValue, setter func(*time.Time)) 
 	parsed, err := time.Parse(time.RFC3339, dateStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse time string: %s", err)
+	}
+
+	// Skip zero-value timestamps (0001-01-01T00:00:00Z) to avoid API validation errors
+	if parsed.IsZero() {
+		return nil
 	}
 
 	setter(&parsed)

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -51,6 +52,27 @@ func (r *WindowsUpdateRingResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	object.ID = types.StringValue(*createdResource.GetId())
+
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -105,7 +127,11 @@ func (r *WindowsUpdateRingResource) Read(ctx context.Context, req resource.ReadR
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -165,6 +191,193 @@ func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.Upd
 		DeviceConfigurations().
 		ByDeviceConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	// Handle feature update rollback settings with separate PATCH call
+	if plan.UninstallSettings != nil {
+		featureRollbackBody, err := constructFeatureUpdateRollBack(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing feature update rollback settings",
+				fmt.Sprintf("Could not construct feature update rollback settings: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceManagement().
+			DeviceConfigurations().
+			ByDeviceConfigurationId(state.ID.ValueString()).
+			Patch(ctx, featureRollbackBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+
+		// Handle quality update rollback settings with separate PATCH call
+		qualityRollbackBody, err := constructQualityUpdateRollBack(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing quality update rollback settings",
+				fmt.Sprintf("Could not construct quality update rollback settings: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceManagement().
+			DeviceConfigurations().
+			ByDeviceConfigurationId(state.ID.ValueString()).
+			Patch(ctx, qualityRollbackBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	}
+
+	// Handle update actions if specified
+	if plan.UpdateActions != nil {
+		// Handle feature update actions
+		if plan.UpdateActions.FeatureUpdates != nil {
+			// Handle pause/resume feature updates
+			if !plan.UpdateActions.FeatureUpdates.Pause.IsNull() {
+				pauseValue := plan.UpdateActions.FeatureUpdates.Pause.ValueBool()
+				pauseBody, err := constructFeatureUpdatesPause(ctx, pauseValue)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error constructing feature updates pause request",
+						fmt.Sprintf("Could not construct feature updates pause request: %s: %s", ResourceName, err.Error()),
+					)
+					return
+				}
+
+				_, err = r.client.
+					DeviceManagement().
+					DeviceConfigurations().
+					ByDeviceConfigurationId(state.ID.ValueString()).
+					Patch(ctx, pauseBody, nil)
+
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+			}
+
+			// Handle extend feature updates pause (POST to special endpoint)
+			if !plan.UpdateActions.FeatureUpdates.ExtendPause.IsNull() && plan.UpdateActions.FeatureUpdates.ExtendPause.ValueBool() {
+				// This uses a POST to a specific endpoint: /deviceConfigurations/{id}/microsoft.graph.windowsUpdateForBusinessConfiguration/extendFeatureUpdatesPause
+				// The exact implementation will depend on the SDK structure - this is a placeholder
+				tflog.Info(ctx, "Extending feature updates pause by 35 days", map[string]interface{}{
+					"resourceId": state.ID.ValueString(),
+				})
+
+				// Note: The actual API call structure may need to be adjusted based on the SDK
+				// For now, this is a placeholder that would need the correct SDK method
+				resp.Diagnostics.AddError(
+					"Extend Feature Updates Pause Not Yet Implemented",
+					"The extend feature updates pause functionality requires a specific SDK method that needs to be implemented",
+				)
+				return
+			}
+
+			// Handle feature updates uninstall
+			if !plan.UpdateActions.FeatureUpdates.TriggerUninstall.IsNull() {
+				uninstallValue := plan.UpdateActions.FeatureUpdates.TriggerUninstall.ValueBool()
+				uninstallBody, err := constructFeatureUpdatesUninstall(ctx, uninstallValue)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error constructing feature updates uninstall request",
+						fmt.Sprintf("Could not construct feature updates uninstall request: %s: %s", ResourceName, err.Error()),
+					)
+					return
+				}
+
+				_, err = r.client.
+					DeviceManagement().
+					DeviceConfigurations().
+					ByDeviceConfigurationId(state.ID.ValueString()).
+					Patch(ctx, uninstallBody, nil)
+
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+			}
+		}
+
+		// Handle quality update actions
+		if plan.UpdateActions.QualityUpdates != nil {
+			// Handle pause/resume quality updates
+			if !plan.UpdateActions.QualityUpdates.Pause.IsNull() {
+				pauseValue := plan.UpdateActions.QualityUpdates.Pause.ValueBool()
+				pauseBody, err := constructQualityUpdatesPause(ctx, pauseValue)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error constructing quality updates pause request",
+						fmt.Sprintf("Could not construct quality updates pause request: %s: %s", ResourceName, err.Error()),
+					)
+					return
+				}
+
+				_, err = r.client.
+					DeviceManagement().
+					DeviceConfigurations().
+					ByDeviceConfigurationId(state.ID.ValueString()).
+					Patch(ctx, pauseBody, nil)
+
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+			}
+
+			// Handle quality updates uninstall
+			if !plan.UpdateActions.QualityUpdates.TriggerUninstall.IsNull() {
+				uninstallValue := plan.UpdateActions.QualityUpdates.TriggerUninstall.ValueBool()
+				uninstallBody, err := constructQualityUpdatesUninstall(ctx, uninstallValue)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error constructing quality updates uninstall request",
+						fmt.Sprintf("Could not construct quality updates uninstall request: %s: %s", ResourceName, err.Error()),
+					)
+					return
+				}
+
+				_, err = r.client.
+					DeviceManagement().
+					DeviceConfigurations().
+					ByDeviceConfigurationId(state.ID.ValueString()).
+					Patch(ctx, uninstallBody, nil)
+
+				if err != nil {
+					errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+			}
+		}
+	}
+
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Update Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)

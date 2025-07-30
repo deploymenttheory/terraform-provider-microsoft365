@@ -1,4 +1,4 @@
-package graphBetaWindowsDriverUpdateProfile
+package graphBetaWindowsUpdateRing
 
 import (
 	"context"
@@ -12,12 +12,12 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructAssignment constructs and returns a WindowsQualityUpdateProfilesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *WindowsDriverUpdateProfileResourceModel) (devicemanagement.WindowsDriverUpdateProfilesItemAssignPostRequestBodyable, error) {
-	tflog.Debug(ctx, "Starting Windows Quality Update Profile assignment construction")
+// constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
+func constructAssignment(ctx context.Context, data *WindowsUpdateRingResourceModel) (devicemanagement.DeviceConfigurationsItemAssignPostRequestBodyable, error) {
+	tflog.Debug(ctx, "Starting Device Health Script assignment construction")
 
-	requestBody := devicemanagement.NewWindowsDriverUpdateProfilesItemAssignPostRequestBody()
-	scriptAssignments := make([]graphmodels.WindowsDriverUpdateProfileAssignmentable, 0)
+	requestBody := devicemanagement.NewDeviceConfigurationsItemAssignPostRequestBody()
+	scriptAssignments := make([]graphmodels.DeviceConfigurationAssignmentable, 0)
 
 	if data.Assignments.IsNull() || data.Assignments.IsUnknown() {
 		tflog.Debug(ctx, "Assignments is null or unknown, creating empty assignments array")
@@ -25,7 +25,7 @@ func constructAssignment(ctx context.Context, data *WindowsDriverUpdateProfileRe
 		return requestBody, nil
 	}
 
-	var terraformAssignments []sharedmodels.WindowsSoftwareUpdateAssignmentModel
+	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentModel
 	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
 	if diags.HasError() {
 		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
@@ -36,7 +36,7 @@ func constructAssignment(ctx context.Context, data *WindowsDriverUpdateProfileRe
 			"index": idx,
 		})
 
-		graphAssignment := graphmodels.NewWindowsQualityUpdateProfileAssignment()
+		graphAssignment := graphmodels.NewDeviceConfigurationAssignment()
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
 			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
@@ -77,7 +77,7 @@ func constructAssignment(ctx context.Context, data *WindowsDriverUpdateProfileRe
 }
 
 // constructTarget creates the appropriate target based on the target type
-func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.WindowsSoftwareUpdateAssignmentModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
 	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
 
 	switch targetType {
@@ -112,6 +112,33 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 			"targetType": targetType,
 		})
 		return nil
+	}
+
+	// Set filter if provided and meaningful (not default values)
+	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() &&
+		assignment.FilterId.ValueString() != "" &&
+		assignment.FilterId.ValueString() != "00000000-0000-0000-0000-000000000000" {
+
+		convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+
+		if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() &&
+			assignment.FilterType.ValueString() != "" && assignment.FilterType.ValueString() != "none" {
+
+			filterType := assignment.FilterType.ValueString()
+			var filterTypeEnum graphmodels.DeviceAndAppManagementAssignmentFilterType
+			switch filterType {
+			case "include":
+				filterTypeEnum = graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			case "exclude":
+				filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+			default:
+				tflog.Warn(ctx, "Unknown filter type, not setting filter", map[string]interface{}{
+					"filterType": filterType,
+				})
+				return target
+			}
+			target.SetDeviceAndAppManagementAssignmentFilterType(&filterTypeEnum)
+		}
 	}
 
 	return target

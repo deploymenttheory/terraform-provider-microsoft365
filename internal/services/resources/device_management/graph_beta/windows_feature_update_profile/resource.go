@@ -171,10 +171,8 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"assignment": commonschemagraphbeta.WindowsUpdateAssignments(),
+			"assignments": commonschemagraphbeta.WindowsSoftwareUpdateAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
