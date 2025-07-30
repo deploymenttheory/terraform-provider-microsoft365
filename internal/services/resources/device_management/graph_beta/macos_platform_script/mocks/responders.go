@@ -78,19 +78,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if isUpdated {
-				// Check if this is a request with expand=assignments
-				if req.URL.Query().Get("$expand") == "assignments" {
-					// For updated script, we need to ensure assignments match the update config
-					scriptData["assignments"] = []map[string]interface{}{
-						{
-							"id": "00000000-0000-0000-0000-000000000004",
-							"target": map[string]interface{}{
-								"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
-							},
-						},
-					}
-				}
-				// Return the updated script data
+				// Return the updated script data (no need to override assignments)
 				return httpmock.NewJsonResponse(200, scriptData)
 			}
 
@@ -377,23 +365,12 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 
 			mockState.Lock()
 			scriptData := mockState.scriptData[id]
-			isUpdated := mockState.scriptUpdated[id]
 			mockState.Unlock()
 
 			var assignments []map[string]interface{}
 
-			// Special case for the basic script ID when it's updated
-			if id == "00000000-0000-0000-0000-000000000001" && isUpdated {
-				// For updated script, return the assignments from the update config
-				assignments = []map[string]interface{}{
-					{
-						"id": fmt.Sprintf("%s_adadadad-808e-44e2-905a-0b7873a8a531", id),
-						"target": map[string]interface{}{
-							"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
-						},
-					},
-				}
-			} else if scriptData != nil {
+			// Use stored assignments if available, regardless of update status
+			if scriptData != nil {
 				if scriptAssignments, ok := scriptData["assignments"].([]map[string]interface{}); ok {
 					assignments = scriptAssignments
 				} else if scriptAssignmentsInterface, ok := scriptData["assignments"].([]interface{}); ok {

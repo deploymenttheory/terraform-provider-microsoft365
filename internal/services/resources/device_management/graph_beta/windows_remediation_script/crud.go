@@ -69,7 +69,7 @@ func (r *DeviceHealthScriptResource) Create(ctx context.Context, req resource.Cr
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create - Assignments", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 

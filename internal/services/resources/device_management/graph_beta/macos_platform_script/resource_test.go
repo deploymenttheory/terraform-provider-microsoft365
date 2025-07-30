@@ -3,7 +3,9 @@ package graphBetaMacOSPlatformScript_test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -12,6 +14,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
+
+// Helper functions to return the test configurations by reading from files
+func testConfigMinimal() string {
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+	if err != nil {
+		return ""
+	}
+	return unitTestProviderConfig + string(content)
+}
+
+func testConfigMaximal() string {
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+	return unitTestProviderConfig + string(content)
+}
+
+func testConfigMinimalToMaximal() string {
+	// For minimal to maximal test, we need to use the maximal config
+	// but with the minimal resource name to simulate an update
+
+	// Read the maximal config
+	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	if err != nil {
+		return ""
+	}
+
+	// Replace the resource name to match the minimal one
+	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
+
+	return unitTestProviderConfig + updatedMaximal
+}
+
+func testConfigUpdate() string {
+	return unitTestProviderConfig + testConfigUpdateTemplate
+}
 
 // Common test configurations that can be used by both unit and acceptance tests
 const (
@@ -252,6 +291,120 @@ func TestUnitMacOSPlatformScriptResource_Maximal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "retry_count", "10"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.all_devices", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.all_users", "false"),
+				),
+			},
+		},
+	})
+}
+
+// TestUnitMacOSPlatformScriptResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitMacOSPlatformScriptResource_Update_MinimalToMaximal(t *testing.T) {
+	// Activate httpmock
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register local mocks directly
+	macOSMock := &localMocks.MacOSPlatformScriptMock{}
+	macOSMock.RegisterMocks()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Start with minimal configuration
+			{
+				Config: testConfigMinimal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Minimal macOS Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "run_as_account", "system"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "minimal-script.sh"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_users", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_devices", "false"),
+				),
+			},
+			// Update to maximal configuration (with the same resource name)
+			{
+				Config: testConfigMinimalToMaximal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Maximal macOS Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "description", "This is a comprehensive script with all fields populated"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "run_as_account", "user"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "maximal-script.sh"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "block_execution_notifications", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "retry_count", "10"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_devices", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_users", "false"),
+				),
+			},
+		},
+	})
+}
+
+// TestUnitMacOSPlatformScriptResource_Delete_Minimal tests the deletion of a minimal script
+func TestUnitMacOSPlatformScriptResource_Delete_Minimal(t *testing.T) {
+	// Activate httpmock
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register local mocks directly
+	macOSMock := &localMocks.MacOSPlatformScriptMock{}
+	macOSMock.RegisterMocks()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigMinimal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
+				),
+			},
+		},
+	})
+}
+
+// TestUnitMacOSPlatformScriptResource_Delete_Maximal tests the deletion of a maximal script
+func TestUnitMacOSPlatformScriptResource_Delete_Maximal(t *testing.T) {
+	// Activate httpmock
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register local mocks directly
+	macOSMock := &localMocks.MacOSPlatformScriptMock{}
+	macOSMock.RegisterMocks()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigMaximal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.maximal"),
 				),
 			},
 		},
@@ -524,18 +677,6 @@ func testAccCheckMacOSPlatformScriptDestroy(s *terraform.State) error {
 // Unit test configurations
 func testConfigBasic() string {
 	return unitTestProviderConfig + testConfigBasicTemplate
-}
-
-func testConfigMinimal() string {
-	return unitTestProviderConfig + testConfigMinimalTemplate
-}
-
-func testConfigMaximal() string {
-	return unitTestProviderConfig + testConfigMaximalTemplate
-}
-
-func testConfigUpdate() string {
-	return unitTestProviderConfig + testConfigUpdateTemplate
 }
 
 func testConfigGroupAssignments() string {

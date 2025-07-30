@@ -31,6 +31,30 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 	convert.FrameworkToGraphBool(data.QualityUpdatesPaused, requestBody.SetQualityUpdatesPaused)
 	convert.FrameworkToGraphBool(data.FeatureUpdatesPaused, requestBody.SetFeatureUpdatesPaused)
 
+	if err := convert.FrameworkToGraphDateOnly(data.FeatureUpdatesPauseStartDate, requestBody.SetFeatureUpdatesPauseStartDate); err != nil {
+		return nil, fmt.Errorf("error setting FeatureUpdatesPauseStartDate: %v", err)
+	}
+
+	if err := convert.FrameworkToGraphTime(data.FeatureUpdatesPauseExpiryDateTime, requestBody.SetFeatureUpdatesPauseExpiryDateTime); err != nil {
+		return nil, fmt.Errorf("error setting FeatureUpdatesPauseExpiryDateTime: %v", err)
+	}
+
+	if err := convert.FrameworkToGraphTime(data.FeatureUpdatesRollbackStartDateTime, requestBody.SetFeatureUpdatesRollbackStartDateTime); err != nil {
+		return nil, fmt.Errorf("error setting FeatureUpdatesRollbackStartDateTime: %v", err)
+	}
+
+	if err := convert.FrameworkToGraphDateOnly(data.QualityUpdatesPauseStartDate, requestBody.SetQualityUpdatesPauseStartDate); err != nil {
+		return nil, fmt.Errorf("error setting QualityUpdatesPauseStartDate: %v", err)
+	}
+
+	if err := convert.FrameworkToGraphTime(data.QualityUpdatesPauseExpiryDateTime, requestBody.SetQualityUpdatesPauseExpiryDateTime); err != nil {
+		return nil, fmt.Errorf("error setting QualityUpdatesPauseExpiryDateTime: %v", err)
+	}
+
+	if err := convert.FrameworkToGraphTime(data.QualityUpdatesRollbackStartDateTime, requestBody.SetQualityUpdatesRollbackStartDateTime); err != nil {
+		return nil, fmt.Errorf("error setting QualityUpdatesRollbackStartDateTime: %v", err)
+	}
+
 	err := convert.FrameworkToGraphEnum(data.BusinessReadyUpdatesOnly, graphmodels.ParseWindowsUpdateType, requestBody.SetBusinessReadyUpdatesOnly)
 	if err != nil {
 		return nil, fmt.Errorf("error setting BusinessReadyUpdatesOnly: %v", err)
@@ -43,7 +67,8 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 		return nil, fmt.Errorf("error setting AutomaticUpdateMode: %v", err)
 	}
 
-	if !data.ActiveHoursStart.IsNull() && !data.ActiveHoursEnd.IsNull() {
+	if !data.ActiveHoursStart.IsNull() && !data.ActiveHoursEnd.IsNull() &&
+		data.ActiveHoursStart.ValueString() != "" && data.ActiveHoursEnd.ValueString() != "" {
 		installationSchedule := graphmodels.NewWindowsUpdateActiveHoursInstall()
 
 		if err := convert.FrameworkToGraphTimeOnly(data.ActiveHoursStart, installationSchedule.SetActiveHoursStart); err != nil {
@@ -77,10 +102,14 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 	}
 
 	convert.FrameworkToGraphInt32(data.FeatureUpdatesRollbackWindowInDays, requestBody.SetFeatureUpdatesRollbackWindowInDays)
-	convert.FrameworkToGraphInt32(data.DeadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
-	convert.FrameworkToGraphInt32(data.DeadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
-	convert.FrameworkToGraphInt32(data.DeadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
-	convert.FrameworkToGraphBool(data.PostponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
+
+	// Handle deadline settings nested block
+	if data.DeadlineSettings != nil {
+		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
+		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
+		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
+		convert.FrameworkToGraphBool(data.DeadlineSettings.PostponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
+	}
 	convert.FrameworkToGraphInt32(data.EngagedRestartDeadlineInDays, requestBody.SetEngagedRestartDeadlineInDays)
 	convert.FrameworkToGraphInt32(data.EngagedRestartSnoozeScheduleInDays, requestBody.SetEngagedRestartSnoozeScheduleInDays)
 	convert.FrameworkToGraphInt32(data.EngagedRestartTransitionScheduleInDays, requestBody.SetEngagedRestartTransitionScheduleInDays)
@@ -103,10 +132,6 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 		return nil, fmt.Errorf("error setting PrereleaseFeatures: %v", err)
 	}
 
-	if len(data.AdditionalProperties) > 0 {
-		requestBody.SetAdditionalData(data.AdditionalProperties)
-	}
-
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
 			"error": err.Error(),
@@ -115,5 +140,35 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
+	return requestBody, nil
+}
+
+// constructFeatureUpdateRollBack creates a request body for feature update rollback settings
+func constructFeatureUpdateRollBack(ctx context.Context, data *WindowsUpdateRingResourceModel) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s feature update rollback settings", ResourceName))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+
+	// Only set the rollback setting if uninstall settings exist
+	if data.UninstallSettings != nil {
+		convert.FrameworkToGraphBool(data.UninstallSettings.FeatureUpdatesWillBeRolledBack, requestBody.SetFeatureUpdatesWillBeRolledBack)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s feature update rollback settings", ResourceName))
+	return requestBody, nil
+}
+
+// constructQualityUpdateRollBack creates a request body for quality update rollback settings
+func constructQualityUpdateRollBack(ctx context.Context, data *WindowsUpdateRingResourceModel) (graphmodels.WindowsUpdateForBusinessConfigurationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s quality update rollback settings", ResourceName))
+
+	requestBody := graphmodels.NewWindowsUpdateForBusinessConfiguration()
+
+	// Only set the rollback setting if uninstall settings exist
+	if data.UninstallSettings != nil {
+		convert.FrameworkToGraphBool(data.UninstallSettings.QualityUpdatesWillBeRolledBack, requestBody.SetQualityUpdatesWillBeRolledBack)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s quality update rollback settings", ResourceName))
 	return requestBody, nil
 }

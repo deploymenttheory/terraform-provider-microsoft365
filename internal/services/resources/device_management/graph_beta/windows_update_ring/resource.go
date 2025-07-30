@@ -8,13 +8,14 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -113,6 +114,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
 				PlanModifiers: []planmodifier.Set{
 					planmodifiers.DefaultSetValue(
@@ -121,58 +123,43 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 			"microsoft_update_service_allowed": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Required:            true,
 				MarkdownDescription: "When TRUE, allows Microsoft Update Service. When FALSE, does not allow Microsoft Update Service. Returned by default. Query parameters are not supported.",
 			},
 			"drivers_excluded": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				Required:            true,
 				MarkdownDescription: "When TRUE, excludes Windows update Drivers. When FALSE, does not exclude Windows update Drivers. Returned by default. Query parameters are not supported.",
 			},
 			"quality_updates_deferral_period_in_days": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(0),
+				Required:            true,
 				MarkdownDescription: "Defer Quality Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 			},
 			"feature_updates_deferral_period_in_days": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(0),
+				Required:            true,
 				MarkdownDescription: "Defer Feature Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 			},
 			"allow_windows11_upgrade": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "When TRUE, allows eligible Windows 10 devices to upgrade to Windows 11. When FALSE, implies the device stays on the existing operating system. Returned by default. Query parameters are not supported.",
+				Required:            true,
+				MarkdownDescription: "When TRUE, allows eligible Windows 10 devices to latest Windows 11 release. When FALSE, implies the device stays on the existing operating system. Returned by default. Query parameters are not supported.",
 			},
-			"quality_updates_paused": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.",
-			},
-			"feature_updates_paused": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s",
-			},
+
 			"skip_checks_before_restart": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				Required:            true,
 				MarkdownDescription: "When TRUE, skips all checks before restart: Battery level = 40%, User presence, Display Needed, Presentation mode, Full screen mode, phone call state, game mode etc. When FALSE, does not skip all checks before restart. Returned by default. Query parameters are not supported.",
 			},
 			"business_ready_updates_only": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("userDefined"),
-				MarkdownDescription: "Determines which branch devices will receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, WindowsInsiderBuildSlow, WindowsInsiderBuildRelease. Returned by default. Query parameters are not supported. Possible values are: userDefined, all, businessReadyOnly, windowsInsiderBuildFast, windowsInsiderBuildSlow, windowsInsiderBuildRelease.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("userDefined"),
+				MarkdownDescription: "Enable pre-release builds if you want devices to be on a Windows Insider channel." +
+					"Enabling pre-release builds will cause devices to reboot. Determines which update branch devices will " +
+					"receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, " +
+					"WindowsInsiderBuildSlow, WindowsInsiderBuildRelease." +
+					"UserDefined equates to 'Not configured' in the gui." +
+					"all equates to 'Not configured' in the gui." +
+					"windowsInsiderBuildRelease equates to 'Windows Insider - Release Preview' in the gui." +
+					"windowsInsiderBuildSlow equates to 'Beta Channel' in the gui." +
+					"windowsInsiderBuildFast equates to ' Dev Channel' in the gui.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"userDefined",
@@ -185,23 +172,22 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 			"automatic_update_mode": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("userDefined"),
+				Required:            true,
 				MarkdownDescription: "The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"userDefined",
-						"notifyDownload",
-						"autoInstallAtMaintenanceTime",
-						"autoInstallAndRebootAtMaintenanceTime",
-						"autoInstallAndRebootAtScheduledTime",
-						"autoInstallAndRebootWithoutEndUserControl",
+						"userDefined",                               // reset to default - no other fields should be set
+						"notifyDownload",                            // notify download - no other fields should be set
+						"autoInstallAtMaintenanceTime",              // auto install at maintenance time - requires active_hours_start and active_hours_end to be set
+						"autoInstallAndRebootAtMaintenanceTime",     // auto install and reboot at maintenance time - requires active_hours_start and active_hours_end to be set
+						"autoInstallAndRebootAtScheduledTime",       // auto install and reboot at scheduled time - requires active_hours_start and active_hours_end to be set and update_weeks to be set
+						"autoInstallAndRebootWithoutEndUserControl", // auto install and reboot without end user control - no other fields should be set
 					),
 				},
 			},
 			"delivery_optimization_mode": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The Delivery Optimization Mode. Possible values are: UserDefined, HttpOnly, HttpWithPeeringNat, HttpWithPeeringPrivateGroup, HttpWithInternetPeering, SimpleDownload, BypassMode. UserDefined allows the user to set. Returned by default. Query parameters are not supported. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -217,6 +203,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"prerelease_features": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The Pre-Release Features. Possible values are: UserDefined, SettingsOnly, SettingsAndExperimentations, NotAllowed. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -240,6 +227,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						"everyWeek",
 						"unknownFutureValue",
 					),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_start": schema.StringAttribute{
@@ -248,9 +236,12 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Active Hours Start. Part of the Installation Schedule.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
+						regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
 						"must be in format HH:MM:SS",
 					),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_end": schema.StringAttribute{
@@ -259,9 +250,12 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Active Hours End. Part of the Installation Schedule.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
+						regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
 						"must be in format HH:MM:SS",
 					),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
+					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"user_pause_access": schema.StringAttribute{
@@ -297,26 +291,39 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 			"feature_updates_rollback_window_in_days": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(10),
+				Required:            true,
 				MarkdownDescription: "The number of days after a Feature Update for which a rollback is valid with valid range from 2 to 60 days. Returned by default. Query parameters are not supported.",
 			},
-			"deadline_for_feature_updates_in_days": schema.Int32Attribute{
+			"deadline_settings": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
-			},
-			"deadline_for_quality_updates_in_days": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
-			},
-			"deadline_grace_period_in_days": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.",
-			},
-			"postpone_reboot_until_after_deadline": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.",
+				MarkdownDescription: "Settings for update installation deadlines and reboot behavior.",
+				Attributes: map[string]schema.Attribute{
+					"deadline_for_feature_updates_in_days": schema.Int32Attribute{
+						Required:            true,
+						MarkdownDescription: "Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
+						Validators: []validator.Int32{
+							int32validator.Between(0, 30),
+						},
+					},
+					"deadline_for_quality_updates_in_days": schema.Int32Attribute{
+						Required:            true,
+						MarkdownDescription: "Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
+						Validators: []validator.Int32{
+							int32validator.Between(0, 30),
+						},
+					},
+					"deadline_grace_period_in_days": schema.Int32Attribute{
+						Required:            true,
+						MarkdownDescription: "Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.",
+						Validators: []validator.Int32{
+							int32validator.Between(0, 7),
+						},
+					},
+					"postpone_reboot_until_after_deadline": schema.BoolAttribute{
+						Required:            true,
+						MarkdownDescription: "When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.",
+					},
+				},
 			},
 			"engaged_restart_deadline_in_days": schema.Int32Attribute{
 				Optional:            true,
@@ -342,25 +349,96 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			"schedule_restart_warning_in_hours": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Specify the period for auto-restart warning reminder notifications. Supported values: 2, 4, 8, 12 or 24 (hours). Returned by default. Query parameters are not supported.",
+				Validators: []validator.Int32{
+					int32validator.OneOf(2, 4, 8, 12, 24),
+				},
 			},
 			"schedule_imminent_restart_warning_in_minutes": schema.Int32Attribute{
 				Optional:            true,
 				MarkdownDescription: "Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported.",
+				Validators: []validator.Int32{
+					int32validator.OneOf(15, 30, 60),
+				},
 			},
 			"engaged_restart_snooze_schedule_for_feature_updates_in_days": schema.Int32Attribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Number of days a user can snooze Engaged Restart reminder notifications for feature updates.",
 			},
 			"engaged_restart_transition_schedule_for_feature_updates_in_days": schema.Int32Attribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.",
 			},
-			"additional_properties": schema.MapAttribute{
+			"uninstall": schema.SingleNestedAttribute{
 				Optional:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "Additional properties that are not yet exposed in the API.",
+				MarkdownDescription: "Settings for update installation deadlines and reboot behavior.",
+				Attributes: map[string]schema.Attribute{
+					"feature_updates_will_be_rolled_back": schema.BoolAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "Indicates whether the latest feature updates are set to be uninstalled and paused for the Update Ring.",
+					},
+					"quality_updates_will_be_rolled_back": schema.BoolAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "Indicates whether quality updates will be rolled back automatically.",
+					},
+				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"quality_updates_paused": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.",
+			},
+			"feature_updates_paused": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s",
+			},
+			"feature_updates_pause_expiry_date_time": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The date and time when feature updates pause expires. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"feature_updates_rollback_start_date_time": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The date and time when feature updates rollback started. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"feature_updates_pause_start_date": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The date when feature updates are paused. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"quality_updates_pause_expiry_date_time": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The date and time when quality updates pause expires. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"quality_updates_pause_start_date": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The date when quality updates are paused. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"quality_updates_rollback_start_date_time": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+			},
+			"assignments": commonschemagraphbeta.DeviceConfigurationAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

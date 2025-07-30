@@ -10,14 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// ComplianceScriptAssignmentsSchema returns the schema for the assignments block
-func ComplianceScriptAssignmentsSchema() schema.SetNestedAttribute {
+func DeviceConfigurationAssignmentsSchema() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
-		MarkdownDescription: "Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution.",
+		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
 		Optional:            true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				// Target assignment fields - only one should be used at a time
 				"type": schema.StringAttribute{
 					Required:            true,
 					MarkdownDescription: "Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.",

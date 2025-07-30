@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -51,6 +52,27 @@ func (r *WindowsUpdateRingResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	object.ID = types.StringValue(*createdResource.GetId())
+
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -105,7 +127,11 @@ func (r *WindowsUpdateRingResource) Read(ctx context.Context, req resource.ReadR
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -165,6 +191,71 @@ func (r *WindowsUpdateRingResource) Update(ctx context.Context, req resource.Upd
 		DeviceConfigurations().
 		ByDeviceConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	// Handle feature update rollback settings with separate PATCH call
+	if plan.UninstallSettings != nil {
+		featureRollbackBody, err := constructFeatureUpdateRollBack(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing feature update rollback settings",
+				fmt.Sprintf("Could not construct feature update rollback settings: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceManagement().
+			DeviceConfigurations().
+			ByDeviceConfigurationId(state.ID.ValueString()).
+			Patch(ctx, featureRollbackBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+
+		// Handle quality update rollback settings with separate PATCH call
+		qualityRollbackBody, err := constructQualityUpdateRollBack(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing quality update rollback settings",
+				fmt.Sprintf("Could not construct quality update rollback settings: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceManagement().
+			DeviceConfigurations().
+			ByDeviceConfigurationId(state.ID.ValueString()).
+			Patch(ctx, qualityRollbackBody, nil)
+
+		if err != nil {
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	}
+
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Update Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)

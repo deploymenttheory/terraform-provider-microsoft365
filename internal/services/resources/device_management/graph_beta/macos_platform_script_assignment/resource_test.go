@@ -3,6 +3,7 @@ package graphBetaMacosPlatformScriptAssignment_test
 import (
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -20,7 +21,7 @@ provider "microsoft365" {
 
 func TestUnitMacosPlatformScriptAssignmentResource_Basic(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
-		// ProtoV6ProviderFactories: ... (add when provider factory is available)
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: unitTestProviderConfig + `
