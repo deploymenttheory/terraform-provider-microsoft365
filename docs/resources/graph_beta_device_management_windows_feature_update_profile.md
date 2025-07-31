@@ -48,21 +48,27 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
   }
 
   // Optional assignment blocks
-  assignment {
-    target = "include"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
-  assignment {
-    target = "exclude"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  assignments = [
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 
   # Optional timeout block
   timeouts = {
@@ -84,25 +90,31 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
 
   // rollout_settings = Make update available on a specific date
   rollout_settings = {
-    offer_start_date_time_in_utc = "2025-05-01T00:00:00Z"
+    offer_start_date_time_in_utc = "2025-08-01T00:00:00Z"
   }
 
   // Optional assignment blocks
-  assignment {
-    target = "include"
-    group_ids = [
-      //"11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
-  assignment {
-    target = "exclude"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      //"11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  assignments = [
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 
   # Optional timeout block
   timeouts = {
@@ -124,21 +136,27 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
   // include no rollout_settings block to make Make update available as soon as possible
 
   // Optional assignment blocks
-  assignment {
-    target = "include"
-    group_ids = [
-      //"11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
-  assignment {
-    target = "exclude"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      //"11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  assignments = [
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 
   # Optional timeout block
   timeouts = {
@@ -160,7 +178,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
 
 ### Optional
 
-- `assignment` (Block List) Assignments for Windows Quality Update policies, specifying groups to include or exclude. (see [below for nested schema](#nestedblock--assignment))
+- `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) The description of the profile which is specified by the user.
 - `install_feature_updates_optional` (Boolean) If true, the Windows 11 update will become optional
 - `install_latest_windows10_on_windows11_ineligible_device` (Boolean) Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.
@@ -176,13 +194,16 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
 - `id` (String) The Identifier of the entity.
 - `last_modified_date_time` (String) The date time that the profile was last modified.
 
-<a id="nestedblock--assignment"></a>
-### Nested Schema for `assignment`
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
 
 Required:
 
-- `group_ids` (Set of String) Set of Microsoft Entra ID group IDs to apply for this assignment.
-- `target` (String) Specifies whether the assignment is 'include' or 'exclude'.
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
+Optional:
+
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--rollout_settings"></a>

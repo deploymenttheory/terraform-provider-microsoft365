@@ -4,17 +4,18 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
   hotpatch_enabled   = true
   role_scope_tag_ids = ["9", "8"]
 
-    # Assignments
+  # Assignments
   assignments = [
     # Assignment targeting a specific group
     {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
     },
     # Assignment targeting a specific group
     {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+
     },
     # Exclusion group assignments
     {

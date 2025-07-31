@@ -66,6 +66,9 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 
 	if data.AutopilotConfiguration != nil {
 		autopilotConfig := models.NewCloudPcAutopilotConfiguration()
+		convert.FrameworkToGraphString(data.AutopilotConfiguration.DevicePreparationProfileId, autopilotConfig.SetDevicePreparationProfileId)
+		convert.FrameworkToGraphInt32(data.AutopilotConfiguration.ApplicationTimeoutInMinutes, autopilotConfig.SetApplicationTimeoutInMinutes)
+		convert.FrameworkToGraphBool(data.AutopilotConfiguration.OnFailureDeviceAccessDenied, autopilotConfig.SetOnFailureDeviceAccessDenied)
 		requestBody.SetAutopilotConfiguration(autopilotConfig)
 	}
 

@@ -68,7 +68,6 @@ import (
 	graphBetaDeviceManagementWindowsQualityExpeditePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_expedite_policy"
 	graphBetaDeviceManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy"
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
-	graphBetaDeviceManagementWindowsRemediationScriptAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script_assignment"
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Identity and Access resources
@@ -187,7 +186,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsPlatformScript.NewWindowsPlatformScriptResource,
 		graphBetaDeviceManagementWindowsPlatformScriptAssignment.NewWindowsPlatformScriptAssignmentResource,
 		graphBetaDeviceManagementWindowsRemediationScript.NewDeviceHealthScriptResource,
-		graphBetaDeviceManagementWindowsRemediationScriptAssignment.NewDeviceHealthScriptAssignmentResource,
 		graphBetaDeviceManagementWindowsQualityExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyResource,
 
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,

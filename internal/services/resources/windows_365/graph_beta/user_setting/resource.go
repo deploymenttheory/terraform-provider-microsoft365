@@ -227,29 +227,31 @@ func (r *CloudPcUserSettingResource) Schema(ctx context.Context, req resource.Sc
 					},
 				},
 			},
-			"assignments": AssignmentsSchema(),
+			"assignments": Windows365UserSettingsAssignmentSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
 
-// AssignmentsSchema returns the schema for the assignments attribute
-func AssignmentsSchema() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
+// Windows365UserSettingsAssignmentSchema returns the schema for the assignments attribute
+func Windows365UserSettingsAssignmentSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
 		Optional:            true,
 		MarkdownDescription: "Assignments of the Cloud PC user setting to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported.",
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: "The unique identifier for the assignment. This is auto-generated and should not be specified.",
-					PlanModifiers: []planmodifier.String{
-						planmodifiers.UseStateForUnknownString(),
+				"type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "The type of assignment target. Valid values are 'groupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"groupAssignmentTarget",
+						),
 					},
 				},
 				"group_id": schema.StringAttribute{
 					Required:            true,
-					MarkdownDescription: "The ID of the Microsoft 365 group or security group in Microsoft Entra ID to assign the setting to.",
+					MarkdownDescription: "The ID of the Microsoft 365 group or security group in Microsoft Entra ID. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
 				},
 			},
 		},

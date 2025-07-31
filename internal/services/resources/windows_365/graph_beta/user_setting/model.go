@@ -17,7 +17,7 @@ type CloudPcUserSettingResourceModel struct {
 	RestorePointSetting                *RestorePointSettingModel                `tfsdk:"restore_point_setting"`
 	CrossRegionDisasterRecoverySetting *CrossRegionDisasterRecoverySettingModel `tfsdk:"cross_region_disaster_recovery_setting"`
 	NotificationSetting                *NotificationSettingModel                `tfsdk:"notification_setting"`
-	Assignments                        []CloudPcUserSettingAssignmentModel      `tfsdk:"assignments"`
+	Assignments                        types.Set                                `tfsdk:"assignments"`
 	Timeouts                           timeouts.Value                           `tfsdk:"timeouts"`
 }
 
@@ -44,8 +44,8 @@ type NotificationSettingModel struct {
 	RestartPromptsDisabled types.Bool `tfsdk:"restart_prompts_disabled"`
 }
 
-// CloudPcUserSettingAssignmentModel represents an assignment of a Cloud PC user setting to a group
+// CloudPcUserSettingAssignmentModel represents an assignment of a Cloud PC user setting to a target
 type CloudPcUserSettingAssignmentModel struct {
-	ID      types.String `tfsdk:"id"`
-	GroupId types.String `tfsdk:"group_id"`
+	Type    types.String `tfsdk:"type"`     // "groupAssignmentTarget" only
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 }

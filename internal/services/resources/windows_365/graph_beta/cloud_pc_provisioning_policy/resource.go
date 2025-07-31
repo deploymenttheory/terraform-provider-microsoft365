@@ -203,7 +203,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "True if the provisioned Cloud PC can be accessed by single sign-on. False indicates that the provisioned Cloud PC doesn't support this feature. The default value is false. ",
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 			},
 			"grace_period_in_hours": schema.Int32Attribute{
 				Computed:            true,
@@ -240,7 +240,9 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			},
 			"local_admin_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "When true, the local admin is enabled for Cloud PCs; false indicates that the local admin isn't enabled for Cloud PCs. The default value is false. Supports $filter, $select, and $orderBy.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"managed_by": schema.StringAttribute{
 				Optional:            true,
@@ -397,24 +399,26 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					},
 				},
 			},
-			"assignments": AssignmentsSchema(),
+			"assignments": Windows365ProvisioningPolicyAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
 
-// AssignmentsSchema returns the schema for the assignments attribute
-func AssignmentsSchema() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
+// Windows365ProvisioningPolicyAssignmentsSchema returns the schema for the assignments attribute
+func Windows365ProvisioningPolicyAssignmentsSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
 		Optional:            true,
 		MarkdownDescription: "Assignments of the Cloud PC provisioning policy to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported.",
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: "The unique identifier for the assignment. This is auto-generated and should not be specified.",
-					PlanModifiers: []planmodifier.String{
-						planmodifiers.UseStateForUnknownString(),
+				"type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "The type of assignment target. Valid values are 'groupAssignmentTarget' only.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"groupAssignmentTarget",
+						),
 					},
 				},
 				"group_id": schema.StringAttribute{
@@ -426,7 +430,7 @@ func AssignmentsSchema() schema.ListNestedAttribute {
 					MarkdownDescription: "The ID of the frontlineservice plan. Required when provisioning_type is 'shared', 'sharedByUser', or 'sharedByEntraGroup'." +
 						"This value can be obtained from the 'microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan' data source.",
 				},
-				"allotment_license_count": schema.Int64Attribute{
+				"allotment_license_count": schema.Int32Attribute{
 					Optional: true,
 					MarkdownDescription: "The number of licenses to allot. Required when provisioning_type is 'shared', 'sharedByUser', or 'sharedByEntraGroup'." +
 						"The number must be between 0 and 900 and can't be more than the number of shared Cloud PC licenses available.",

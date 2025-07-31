@@ -43,21 +43,27 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
   }
 
   // Optional assignment blocks
-  assignment {
-    target = "include"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
-  assignment {
-    target = "exclude"
-    group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  assignments = [
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assignment targeting a specific group
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    }
+  ]
 
   timeouts = {
     create = "30m"
@@ -77,7 +83,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 
 ### Optional
 
-- `assignment` (Block List) Assignments for Windows Quality Update policies, specifying groups to include or exclude. (see [below for nested schema](#nestedblock--assignment))
+- `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) The description of the profile which is specified by the user.
 - `expedited_update_settings` (Attributes) Expedited Quality update settings. (see [below for nested schema](#nestedatt--expedited_update_settings))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
@@ -91,13 +97,16 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 - `last_modified_date_time` (String) The date time that the profile was last modified.
 - `release_date_display_name` (String) Friendly release date to display for a Quality Update release
 
-<a id="nestedblock--assignment"></a>
-### Nested Schema for `assignment`
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
 
 Required:
 
-- `group_ids` (Set of String) Set of Microsoft Entra ID group IDs to apply for this assignment.
-- `target` (String) Specifies whether the assignment is 'include' or 'exclude'.
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
+Optional:
+
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--expedited_update_settings"></a>

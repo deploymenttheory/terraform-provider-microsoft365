@@ -74,7 +74,7 @@ resource "microsoft365_graph_beta_windows_365_user_setting" "example" {
 
 ### Optional
 
-- `assignments` (Attributes List) Assignments of the Cloud PC user setting to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments of the Cloud PC user setting to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported. (see [below for nested schema](#nestedatt--assignments))
 - `cross_region_disaster_recovery_setting` (Attributes) Defines whether the user's Cloud PC enables cross-region disaster recovery and specifies the network for the disaster recovery. (see [below for nested schema](#nestedatt--cross_region_disaster_recovery_setting))
 - `local_admin_enabled` (Boolean) Indicates whether the local admin option is enabled. Default value is false. To enable the local admin option, change the setting to true. If the local admin option is enabled, the end user can be an admin of the Cloud PC device.
 - `notification_setting` (Attributes) Defines the setting of the Cloud PC notification prompts for the Cloud PC user. (see [below for nested schema](#nestedatt--notification_setting))
@@ -94,11 +94,8 @@ resource "microsoft365_graph_beta_windows_365_user_setting" "example" {
 
 Required:
 
-- `group_id` (String) The ID of the Microsoft 365 group or security group in Microsoft Entra ID to assign the setting to.
-
-Read-Only:
-
-- `id` (String) The unique identifier for the assignment. This is auto-generated and should not be specified.
+- `group_id` (String) The ID of the Microsoft 365 group or security group in Microsoft Entra ID. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+- `type` (String) The type of assignment target. Valid values are 'groupAssignmentTarget'.
 
 
 <a id="nestedatt--cross_region_disaster_recovery_setting"></a>

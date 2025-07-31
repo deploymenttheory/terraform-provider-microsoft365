@@ -142,7 +142,7 @@ func (r *CloudPcOnPremisesConnectionResource) Update(ctx context.Context, req re
 		return
 	}
 
-	_, err = r.client.
+	updated, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		OnPremisesConnections().
@@ -153,6 +153,8 @@ func (r *CloudPcOnPremisesConnectionResource) Update(ctx context.Context, req re
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
+
+	MapRemoteStateToTerraform(ctx, &plan, updated, plan.AdDomainPassword)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

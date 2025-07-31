@@ -21,7 +21,7 @@ Manages Linux device compliance policies in Microsoft Intune using the `/deviceM
 
 ### Optional
 
-- `assignments` (Attributes Set) Assignments for the compliance polic. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_compliance_discovery_script` (String) Reference ID to the custom compliance discovery script for Linux devices.
 - `custom_compliance_required` (Boolean) Indicates whether custom compliance rules are required for Linux devices.
 - `custom_compliance_rules` (String) Base64-encoded JSON string containing custom compliance rules for Linux devices.

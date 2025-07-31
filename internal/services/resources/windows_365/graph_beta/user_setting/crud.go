@@ -54,7 +54,7 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 	object.ID = types.StringValue(*cloudPcUserSetting.GetId())
 
 	// Handle assignments if present
-	if len(object.Assignments) > 0 {
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
 		assignBody, err := constructAssignmentsRequestBody(ctx, object.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -126,20 +126,17 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	}
 	defer cancel()
 
-	// Expand assignments in the response
-	requestConfig := &devicemanagement.VirtualEndpointUserSettingsCloudPcUserSettingItemRequestBuilderGetRequestConfiguration{
-		QueryParameters: &devicemanagement.VirtualEndpointUserSettingsCloudPcUserSettingItemRequestBuilderGetQueryParameters{
-			Expand: []string{"assignments"},
-			Select: []string{"*"},
-		},
-	}
-
 	cloudPcUserSetting, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
 		ByCloudPcUserSettingId(object.ID.ValueString()).
-		Get(ctx, requestConfig)
+		Get(ctx, &devicemanagement.VirtualEndpointUserSettingsCloudPcUserSettingItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.VirtualEndpointUserSettingsCloudPcUserSettingItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+				Select: []string{"*"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -184,7 +181,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err = r.client.
+	updated, err := r.client.
 		DeviceManagement().
 		VirtualEndpoint().
 		UserSettings().
@@ -196,8 +193,10 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
+	MapRemoteStateToTerraform(ctx, &plan, updated)
+
 	// Handle assignments if present
-	if len(plan.Assignments) > 0 {
+	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
 		assignBody, err := constructAssignmentsRequestBody(ctx, plan.Assignments)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -216,7 +215,7 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 			Post(ctx, assignBody, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}

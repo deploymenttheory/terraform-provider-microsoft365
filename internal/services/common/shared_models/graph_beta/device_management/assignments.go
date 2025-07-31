@@ -45,7 +45,6 @@ type DeviceManagementDeviceConfigurationAssignmentModel struct {
 	// Target assignment fields - only one should be used at a time
 	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
-
 	// Assignment filter fields
 	FilterId   types.String `tfsdk:"filter_id"`
 	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"

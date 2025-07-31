@@ -20,15 +20,15 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "win
     locale = "en-US"
   }
 
-  # microsoft_managed_desktop = {
-  #   managed_type = "starterManaged"
-  #   profile      = null
-  #   type         = "starterManaged"
-  # }
+  microsoft_managed_desktop = {
+    managed_type = "starterManaged"
+    profile      = null
+    type         = "starterManaged"
+  }
 
-  # autopatch = {
-  #   autopatch_group_id = "4aa9b805-9494-4eed-a04b-ed51ec9e631e"
-  # }
+  autopatch = {
+    autopatch_group_id = "00000000-0000-0000-0000-000000000000"
+  }
 
   apply_to_existing_cloud_pcs = {
     microsoft_entra_single_sign_on_for_all_devices        = false
@@ -82,10 +82,10 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 
   assignments = [
     {
-      group_id                = "af5dbc68-0ee3-485c-b85c-e27bbfff44c2"
+      group_id                = "00000000-0000-0000-0000-000000000000"
       service_plan_id         = data.microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan.all.items[0].id
       allotment_license_count = 1
       allotment_display_name  = "Frontline Allotment"
     }
   ]
-} 
+}
