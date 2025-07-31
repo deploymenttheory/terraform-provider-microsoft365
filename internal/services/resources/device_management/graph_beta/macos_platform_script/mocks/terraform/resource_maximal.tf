@@ -9,6 +9,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "maxi
   retry_count                   = 10
   role_scope_tag_ids            = ["0", "1"]
 
+
   assignments = {
     all_devices = true
     all_users   = false

@@ -15,6 +15,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
     {
       type     = "groupAssignmentTarget"
       group_id = "00000000-0000-0000-0000-000000000000"
+
     },
     # Exclusion group assignments
     {
