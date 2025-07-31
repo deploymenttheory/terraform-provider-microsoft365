@@ -78,7 +78,12 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the policy data
 				if assignments, hasAssignments := policyData["assignments"]; hasAssignments && assignments != nil {
-					responseCopy["assignments"] = assignments
+					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+						responseCopy["assignments"] = assignments
+					} else {
+						// If assignments array is empty, return empty array (not null)
+						responseCopy["assignments"] = []interface{}{}
+					}
 				} else {
 					// If no assignments stored, return empty array (not null)
 					responseCopy["assignments"] = []interface{}{}
@@ -145,9 +150,19 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			// Add computed fields that are always returned by the API
 			policyData["gracePeriodInHours"] = 4
 
+			// Ensure autopilot configuration fields are preserved properly
+			if autopilotConfig, exists := requestBody["autopilotConfiguration"]; exists && autopilotConfig != nil {
+				policyData["autopilotConfiguration"] = autopilotConfig
+			}
+
 			// Handle nested attributes - always set if provided (including empty arrays)
 			if domainJoinConfigs, exists := requestBody["domainJoinConfigurations"]; exists {
-				policyData["domainJoinConfigurations"] = domainJoinConfigs
+				// Ensure empty array is preserved as empty array, not null
+				if domainJoinConfigs == nil {
+					policyData["domainJoinConfigurations"] = []interface{}{}
+				} else {
+					policyData["domainJoinConfigurations"] = domainJoinConfigs
+				}
 			}
 
 			if windowsSetting, exists := requestBody["windowsSetting"]; exists {
@@ -170,6 +185,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			if applyToExisting, exists := requestBody["applyToExistingCloudPcs"]; exists {
 				policyData["applyToExistingCloudPcs"] = applyToExisting
 			}
+
+			// Initialize assignments as empty array
+			policyData["assignments"] = []interface{}{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -219,7 +237,16 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 					// If value is explicitly null, remove the field from the stored state
 					delete(policyData, key)
 				} else {
-					policyData[key] = value
+					// Special handling for domainJoinConfigurations to preserve empty arrays
+					if key == "domainJoinConfigurations" && value != nil {
+						if configList, ok := value.([]interface{}); ok && len(configList) == 0 {
+							policyData[key] = []interface{}{}
+						} else {
+							policyData[key] = value
+						}
+					} else {
+						policyData[key] = value
+					}
 				}
 			}
 			// Ensure the ID is preserved
@@ -254,7 +281,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/[^/]+/assign$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
-			policyId := urlParts[len(urlParts)-3] // provisioningPolicies/{id}/assign
+			policyId := urlParts[len(urlParts)-2] // provisioningPolicies/{id}/assign
 
 			// Parse request body to get assignments
 			var requestBody map[string]interface{}
@@ -269,25 +296,36 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
 					assignmentList := assignments.([]interface{})
 					if len(assignmentList) > 0 {
-						// Create assignment in the format the API returns
-						graphAssignments := []interface{}{
-							map[string]interface{}{
-								"id": "44444444-4444-4444-4444-444444444444",
-								"target": map[string]interface{}{
-									"@odata.type": "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
-									"additionalData": map[string]interface{}{
-										"groupId": "44444444-4444-4444-4444-444444444444",
-									},
-								},
-							},
+						// Extract the actual assignment data from the request
+						graphAssignments := []interface{}{}
+						for _, assignment := range assignmentList {
+							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
+								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
+									// Check for groupId directly in target (not in additionalData)
+									if groupId, hasGroupId := target["groupId"].(string); hasGroupId {
+										// Create assignment in the format the API returns
+										// The API returns the group ID as the assignment ID
+										// and the target additionalData is empty on read (as per state logic comment)
+										graphAssignment := map[string]interface{}{
+											"id": groupId, // Use the actual group ID as the assignment ID
+											"target": map[string]interface{}{
+												"@odata.type":    "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
+												"additionalData": map[string]interface{}{}, // Empty on read
+											},
+										}
+										graphAssignments = append(graphAssignments, graphAssignment)
+									}
+								}
+							}
 						}
 						policyData["assignments"] = graphAssignments
 					} else {
-						delete(policyData, "assignments")
+						// Set empty assignments array instead of deleting
+						policyData["assignments"] = []interface{}{}
 					}
 				} else {
-					// Remove assignments if none provided
-					delete(policyData, "assignments")
+					// Set empty assignments array instead of deleting
+					policyData["assignments"] = []interface{}{}
 				}
 				mockState.provisioningPolicies[policyId] = policyData
 			}

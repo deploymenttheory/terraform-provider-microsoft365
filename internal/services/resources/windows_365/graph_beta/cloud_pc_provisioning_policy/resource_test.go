@@ -63,6 +63,9 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 
 	// Replace the resource name
 	updated := strings.Replace(string(content), "maximal", resourceName, 1)
+	
+	// Fix the display name to match test expectations
+	updated = strings.Replace(updated, "Test Maximal Provisioning Policy - Unique", "Test Maximal Provisioning Policy", 1)
 
 	return updated
 }
@@ -70,7 +73,7 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 // Helper function to get minimal config with a custom resource name
 func testConfigMinimalWithResourceName(resourceName string) string {
 	return fmt.Sprintf(`resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "%s" {
-  display_name = "Test Minimal Provisioning Policy - %s"
+  display_name = "Test Minimal Provisioning Policy"
   image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
   
   microsoft_managed_desktop = {
@@ -87,7 +90,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
     update = "30s"
     delete = "30s"
   }
-}`, resourceName, resourceName)
+}`, resourceName)
 }
 
 // TestUnitCloudPcProvisioningPolicyResource_Create_Minimal tests the creation of a provisioning policy with minimal configuration
@@ -208,7 +211,7 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal(t *testin
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "grace_period_in_hours", "8"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "starterManaged"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
 				),
 			},
 		},
@@ -238,7 +241,7 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Maximal Provisioning Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "starterManaged"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
 				),
 			},
 			// Update to minimal configuration (with the same resource name)

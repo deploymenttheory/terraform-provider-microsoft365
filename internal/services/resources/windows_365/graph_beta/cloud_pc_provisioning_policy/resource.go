@@ -203,7 +203,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "True if the provisioned Cloud PC can be accessed by single sign-on. False indicates that the provisioned Cloud PC doesn't support this feature. The default value is false. ",
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 			},
 			"grace_period_in_hours": schema.Int32Attribute{
 				Computed:            true,
@@ -240,7 +240,9 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			},
 			"local_admin_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "When true, the local admin is enabled for Cloud PCs; false indicates that the local admin isn't enabled for Cloud PCs. The default value is false. Supports $filter, $select, and $orderBy.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"managed_by": schema.StringAttribute{
 				Optional:            true,
