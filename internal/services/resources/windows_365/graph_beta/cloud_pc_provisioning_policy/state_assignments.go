@@ -4,130 +4,205 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapAssignmentsSliceToTerraform maps a slice of assignments directly to the Terraform model
-func MapAssignmentsSliceToTerraform(ctx context.Context, assignments []models.CloudPcProvisioningPolicyAssignmentable) []CloudPcProvisioningPolicyAssignmentModel {
-	if assignments == nil {
-		return []CloudPcProvisioningPolicyAssignmentModel{}
+// CloudPcProvisioningPolicyAssignmentType returns the object type for CloudPcProvisioningPolicyAssignmentModel
+func CloudPcProvisioningPolicyAssignmentType() attr.Type {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"type":                    types.StringType,
+			"group_id":                types.StringType,
+			"service_plan_id":         types.StringType,
+			"allotment_license_count": types.Int32Type,
+			"allotment_display_name":  types.StringType,
+		},
+	}
+}
+
+// MapAssignmentsToTerraformSet maps assignments from Graph API response directly to a Terraform Set
+func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.CloudPcProvisioningPolicyAssignmentable) types.Set {
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments to process, returning null set")
+		return types.SetNull(CloudPcProvisioningPolicyAssignmentType())
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Mapping %d assignments from Graph API to Terraform model", len(assignments)))
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		"assignmentCount": len(assignments),
+	})
 
-	result := make([]CloudPcProvisioningPolicyAssignmentModel, 0, len(assignments))
+	assignmentValues := []attr.Value{}
 
 	for i, assignment := range assignments {
 		if assignment == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Assignment at index %d is nil, skipping", i))
+			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]interface{}{
+				"assignmentIndex": i,
+			})
 			continue
 		}
 
-		id := safeGetStringPtr(assignment.GetId())
-		tflog.Debug(ctx, fmt.Sprintf("Processing assignment %d with ID: %s", i, id))
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    convert.GraphToFrameworkString(assignment.GetId()).ValueString(),
+		})
 
-		tfAssignment := CloudPcProvisioningPolicyAssignmentModel{}
-
-		// Set ID
-		if id != "<nil>" {
-			tfAssignment.ID = types.StringValue(id)
-		} else {
-			tfAssignment.ID = types.StringNull()
-		}
-
-		// Process target data
-		target := assignment.GetTarget()
-		if target == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Target for assignment %d is nil", i))
-
-			// In some API responses, the assignment ID itself is actually the group ID
-			if id != "<nil>" {
-				tflog.Debug(ctx, fmt.Sprintf("Using assignment ID as groupId: %s", id))
-				tfAssignment.GroupId = types.StringValue(id)
-			} else {
-				tfAssignment.GroupId = types.StringNull()
-			}
-
-			result = append(result, tfAssignment)
+		assignmentObj := createAssignmentObject(ctx, assignment, i)
+		if assignmentObj == nil {
 			continue
 		}
 
-		// Debug log the target data
-		additionalData := target.GetAdditionalData()
-		tflog.Debug(ctx, "Target additional data", map[string]interface{}{
-			"assignmentId": id,
-			"data":         fmt.Sprintf("%v", additionalData),
-			"odataType":    target.GetOdataType(),
-		})
-
-		// Based on the actual API response, the groupId is directly in the target's additionalData
-		if groupId, ok := additionalData["groupId"].(string); ok && groupId != "" {
-			tflog.Debug(ctx, fmt.Sprintf("Found groupId in target additionalData: %s", groupId))
-			tfAssignment.GroupId = types.StringValue(groupId)
+		objValue, diags := types.ObjectValue(CloudPcProvisioningPolicyAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		if !diags.HasError() {
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+				"assignmentIndex": i,
+			})
+			assignmentValues = append(assignmentValues, objValue)
 		} else {
-			// Fallback to using the assignment ID as the group ID
-			tflog.Debug(ctx, fmt.Sprintf("Fallback: Using assignment ID as groupId: %s", id))
-			tfAssignment.GroupId = types.StringValue(id)
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+				"assignmentIndex": i,
+				"errors":          diags.Errors(),
+			})
 		}
+	}
 
-		// Extract servicePlanId (only present for frontline)
-		if v, ok := additionalData["servicePlanId"].(string); ok && v != "" && v != "null" {
-			tfAssignment.ServicePlanId = types.StringValue(v)
-		} else {
-			tfAssignment.ServicePlanId = types.StringNull()
-		}
+	return createAssignmentsSet(ctx, assignmentValues)
+}
 
-		// Extract allotmentDisplayName (only present for frontline)
-		if v, ok := additionalData["allotmentDisplayName"].(string); ok && v != "" && v != "null" {
-			tfAssignment.AllotmentDisplayName = types.StringValue(v)
-		} else {
-			tfAssignment.AllotmentDisplayName = types.StringNull()
-		}
+// createAssignmentObject creates a single assignment object from Graph API data
+func createAssignmentObject(ctx context.Context, assignment models.CloudPcProvisioningPolicyAssignmentable, index int) map[string]attr.Value {
+	assignmentObj := map[string]attr.Value{
+		"type":                    types.StringNull(),
+		"group_id":                types.StringNull(),
+		"service_plan_id":         types.StringNull(),
+		"allotment_license_count": types.Int32Null(),
+		"allotment_display_name":  types.StringNull(),
+	}
 
-		// Extract allotmentLicensesCount (only present for frontline)
-		if v, ok := additionalData["allotmentLicensesCount"]; ok && v != nil && v != "null" {
-			switch val := v.(type) {
-			case int32:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(int64(val))
-			case int64:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(val)
-			case float64:
-				tfAssignment.AllotmentLicenseCount = types.Int64Value(int64(val))
-			default:
-				tfAssignment.AllotmentLicenseCount = types.Int64Null()
-			}
-		} else {
-			tfAssignment.AllotmentLicenseCount = types.Int64Null()
-		}
-
-		result = append(result, tfAssignment)
-		tflog.Debug(ctx, fmt.Sprintf("Successfully mapped assignment %d", i), map[string]interface{}{
-			"id":      tfAssignment.ID.ValueString(),
-			"groupId": tfAssignment.GroupId.ValueString(),
+	// For Cloud PC assignments, the API returns the group ID as the assignment ID
+	// The target additionalData is empty when reading back from the API
+	assignmentID := convert.GraphToFrameworkString(assignment.GetId())
+	if !assignmentID.IsNull() {
+		assignmentObj["group_id"] = assignmentID
+		tflog.Debug(ctx, "Set group_id from assignment ID (Cloud PC API behavior)", map[string]interface{}{
+			"assignmentIndex": index,
+			"assignmentId":    assignmentID.ValueString(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Mapped %d assignments to Terraform model", len(result)))
-	return result
-}
-
-// Helper function to safely get string pointer value
-func safeGetStringPtr(ptr *string) string {
-	if ptr == nil {
-		return "<nil>"
-	}
-	return *ptr
-}
-
-// MapAssignmentsToTerraform maps the assignments from the Graph API response to the Terraform model
-// used for a read operation.
-func MapAssignmentsToTerraform(ctx context.Context, assignmentsResponse models.CloudPcProvisioningPolicyAssignmentCollectionResponseable) []CloudPcProvisioningPolicyAssignmentModel {
-	if assignmentsResponse == nil {
-		return []CloudPcProvisioningPolicyAssignmentModel{}
+	// Process target data for any additional fields (like frontline service plan info)
+	target := assignment.GetTarget()
+	if target != nil {
+		mapTargetData(ctx, target, assignmentObj, index)
 	}
 
-	assignments := assignmentsResponse.GetValue()
-	return MapAssignmentsSliceToTerraform(ctx, assignments)
+	// Debug log the final assignment object
+	tflog.Debug(ctx, "Final assignment object", map[string]interface{}{
+		"assignmentIndex":         index,
+		"type":                    assignmentObj["type"],
+		"group_id":                assignmentObj["group_id"],
+		"service_plan_id":         assignmentObj["service_plan_id"],
+		"allotment_license_count": assignmentObj["allotment_license_count"],
+		"allotment_display_name":  assignmentObj["allotment_display_name"],
+	})
+
+	return assignmentObj
+}
+
+// mapTargetData extracts data from the assignment target
+func mapTargetData(ctx context.Context, target models.CloudPcManagementAssignmentTargetable, assignmentObj map[string]attr.Value, index int) {
+	// Map the target type from OData type
+	odataType := ""
+	if target.GetOdataType() != nil {
+		odataType = *target.GetOdataType()
+	}
+
+	switch odataType {
+	case "#microsoft.graph.cloudPcManagementGroupAssignmentTarget":
+		assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
+	case "#microsoft.graph.cloudPcManagementExclusionGroupAssignmentTarget":
+		assignmentObj["type"] = types.StringValue("exclusionGroupAssignmentTarget")
+	default:
+		// Default to groupAssignmentTarget for backwards compatibility
+		assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
+		tflog.Debug(ctx, "Unknown or null OData type, defaulting to groupAssignmentTarget", map[string]interface{}{
+			"assignmentIndex": index,
+			"odataType":       odataType,
+		})
+	}
+	additionalData := target.GetAdditionalData()
+	if additionalData == nil {
+		tflog.Debug(ctx, "Target additionalData is nil", map[string]interface{}{
+			"assignmentIndex": index,
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "Processing target additionalData", map[string]interface{}{
+		"assignmentIndex": index,
+		"additionalData":  fmt.Sprintf("%+v", additionalData),
+	})
+
+	// Extract groupId
+	if groupId, ok := additionalData["groupId"].(string); ok && groupId != "" {
+		assignmentObj["group_id"] = types.StringValue(groupId)
+		tflog.Debug(ctx, "Set groupId from additionalData", map[string]interface{}{
+			"assignmentIndex": index,
+			"groupId":         groupId,
+		})
+	} else {
+		tflog.Debug(ctx, "No groupId found in additionalData", map[string]interface{}{
+			"assignmentIndex": index,
+		})
+	}
+
+	// Extract servicePlanId (for frontline)
+	if servicePlanId, ok := additionalData["servicePlanId"].(string); ok && servicePlanId != "" {
+		assignmentObj["service_plan_id"] = types.StringValue(servicePlanId)
+	}
+
+	// Extract allotmentDisplayName (for frontline)
+	if allotmentDisplayName, ok := additionalData["allotmentDisplayName"].(string); ok && allotmentDisplayName != "" && allotmentDisplayName != "null" {
+		assignmentObj["allotment_display_name"] = types.StringValue(allotmentDisplayName)
+	}
+
+	// Extract allotmentLicensesCount (for frontline) - convert to int32
+	if allotmentLicensesCount, ok := additionalData["allotmentLicensesCount"]; ok && allotmentLicensesCount != nil && allotmentLicensesCount != "null" {
+		switch val := allotmentLicensesCount.(type) {
+		case int32:
+			assignmentObj["allotment_license_count"] = types.Int32Value(val)
+		case int64:
+			assignmentObj["allotment_license_count"] = types.Int32Value(int32(val))
+		case float64:
+			assignmentObj["allotment_license_count"] = types.Int32Value(int32(val))
+		}
+	}
+}
+
+// createAssignmentsSet creates the final Set from processed assignment values
+func createAssignmentsSet(ctx context.Context, assignmentValues []attr.Value) types.Set {
+	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+		"processedAssignments": len(assignmentValues),
+	})
+
+	if len(assignmentValues) > 0 {
+		setVal, diags := types.SetValue(CloudPcProvisioningPolicyAssignmentType(), assignmentValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+				"errors": diags.Errors(),
+			})
+			return types.SetNull(CloudPcProvisioningPolicyAssignmentType())
+		}
+
+		tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+			"assignmentCount": len(assignmentValues),
+		})
+		return setVal
+	}
+
+	tflog.Debug(ctx, "No valid assignments processed, returning null set")
+	return types.SetNull(CloudPcProvisioningPolicyAssignmentType())
 }

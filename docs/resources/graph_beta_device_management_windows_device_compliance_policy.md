@@ -420,7 +420,7 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
 - `active_firewall_required` (Boolean) Require active firewall on Windows devices
 - `anti_spyware_required` (Boolean) Require any AntiSpyware solution registered with Windows Security Center to be on and monitoring
 - `antivirus_required` (Boolean) Require any Antivirus solution registered with Windows Security Center to be on and monitoring
-- `assignments` (Attributes Set) Assignments for the compliance polic. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `bit_locker_enabled` (Boolean) Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled
 - `code_integrity_enabled` (Boolean) Require devices to be reported as healthy by Windows Device Health Attestation
 - `configuration_manager_compliance_required` (Boolean) Require to consider SCCM Compliance state into consideration for Intune Compliance State

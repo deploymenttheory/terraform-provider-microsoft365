@@ -2,6 +2,7 @@
 package graphBetaCloudPcOrganizationSettings
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -12,6 +13,7 @@ type CloudPcOrganizationSettingsResourceModel struct {
 	OsVersion           types.String          `tfsdk:"os_version"`
 	UserAccountType     types.String          `tfsdk:"user_account_type"`
 	WindowsSettings     *WindowsSettingsModel `tfsdk:"windows_settings"`
+	Timeouts            timeouts.Value        `tfsdk:"timeouts"`
 }
 
 type WindowsSettingsModel struct {

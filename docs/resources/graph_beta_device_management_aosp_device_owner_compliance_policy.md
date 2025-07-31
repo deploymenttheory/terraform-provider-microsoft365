@@ -133,7 +133,7 @@ resource "microsoft365_graph_beta_device_management_aosp_device_owner_compliance
 
 ### Optional
 
-- `assignments` (Attributes Set) Assignments for the compliance polic. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Admin provided description of the Device Configuration. Inherited from deviceCompliancePolicy
 - `min_android_security_patch_level` (String) Minimum Android security patch level.
 - `os_maximum_version` (String) Maximum Android version.

@@ -14,7 +14,9 @@ func constructResource(ctx context.Context, data *CloudPcOnPremisesConnectionRes
 	requestBody := models.NewCloudPcOnPremisesConnection()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-	convert.FrameworkToGraphEnum(data.ConnectionType, models.ParseCloudPcOnPremisesConnectionType, requestBody.SetConnectionType)
+	if err := convert.FrameworkToGraphEnum(data.ConnectionType, models.ParseCloudPcOnPremisesConnectionType, requestBody.SetConnectionType); err != nil {
+		return nil, fmt.Errorf("failed to set connectionType: %v", err)
+	}
 	convert.FrameworkToGraphString(data.AdDomainName, requestBody.SetAdDomainName)
 	convert.FrameworkToGraphString(data.AdDomainUsername, requestBody.SetAdDomainUsername)
 	convert.FrameworkToGraphString(data.AdDomainPassword, requestBody.SetAdDomainPassword)

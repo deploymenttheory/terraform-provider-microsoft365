@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -82,6 +83,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		}
 	} else {
 		data.WindowsSetting = nil
+	}
+
+	// Map assignments if present
+	assignments := remoteResource.GetAssignments()
+	if len(assignments) > 0 {
+		data.Assignments = MapAssignmentsToTerraformSet(ctx, assignments)
+	} else {
+		// If no assignments are present, set to null set
+		data.Assignments = types.SetNull(CloudPcProvisioningPolicyAssignmentType())
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))

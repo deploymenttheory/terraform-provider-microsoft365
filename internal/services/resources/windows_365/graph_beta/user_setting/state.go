@@ -108,11 +108,26 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 		data.NotificationSetting = nil
 	}
 
-	// Handle Assignments (if present in the expanded response)
-	if assignments := remoteResource.GetAssignments(); assignments != nil {
-		data.Assignments = MapAssignmentsSliceToTerraform(ctx, assignments)
+	assignments := remoteResource.GetAssignments()
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+		"assignmentCount": len(assignments),
+		"resourceId":      data.ID.ValueString(),
+	})
+
+	if len(assignments) == 0 {
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
+		data.Assignments = types.SetNull(CloudPcUserSettingAssignmentType())
 	} else {
-		data.Assignments = nil
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+			"resourceId":      data.ID.ValueString(),
+			"assignmentCount": len(assignments),
+		})
+		MapAssignmentsToTerraform(ctx, data, assignments)
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+			"resourceId": data.ID.ValueString(),
+		})
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))

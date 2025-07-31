@@ -18,11 +18,13 @@ func (r *CloudPcOrganizationSettingsResource) Create(ctx context.Context, req re
 	var plan CloudPcOrganizationSettingsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of singleton resource: %s", ResourceName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	ctx, cancel := crud.HandleTimeout(ctx, nil, CreateTimeout*time.Second, &resp.Diagnostics)
+
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -49,6 +51,7 @@ func (r *CloudPcOrganizationSettingsResource) Create(ctx context.Context, req re
 	}
 
 	plan.ID = types.StringValue(SingletonID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -75,11 +78,20 @@ func (r *CloudPcOrganizationSettingsResource) Read(ctx context.Context, req reso
 	var state CloudPcOrganizationSettingsResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for singleton: %s", ResourceName))
+
+	operation := "Read"
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	ctx, cancel := crud.HandleTimeout(ctx, nil, ReadTimeout*time.Second, &resp.Diagnostics)
+
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -92,7 +104,7 @@ func (r *CloudPcOrganizationSettingsResource) Read(ctx context.Context, req reso
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -118,7 +130,7 @@ func (r *CloudPcOrganizationSettingsResource) Update(ctx context.Context, req re
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, nil, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -145,6 +157,7 @@ func (r *CloudPcOrganizationSettingsResource) Update(ctx context.Context, req re
 	}
 
 	plan.ID = types.StringValue(SingletonID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -169,12 +182,15 @@ func (r *CloudPcOrganizationSettingsResource) Update(ctx context.Context, req re
 // Delete resets the singleton to default values and removes from state
 func (r *CloudPcOrganizationSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state CloudPcOrganizationSettingsResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion (reset) of singleton resource: %s", ResourceName))
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	ctx, cancel := crud.HandleTimeout(ctx, nil, DeleteTimeout*time.Second, &resp.Diagnostics)
+
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}

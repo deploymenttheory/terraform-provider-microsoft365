@@ -12,13 +12,13 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
   assignments = [
     # Assignment targeting a specific group
     {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
     },
     # Assignment targeting a specific group
     {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
     },
     # Exclusion group assignments
     {
