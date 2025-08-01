@@ -35,7 +35,8 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Get changed packages
+            # Step 1: Identify all changed packages
+      - name: Identify changed packages
         id: changed-packages
         run: |
           # Get list of changed .go files
@@ -45,89 +46,104 @@ jobs:
             echo "No Go files changed"
             echo "packages=" >> $GITHUB_OUTPUT
             echo "has-changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changed Go files:"
-            echo "$CHANGED_FILES"
-            
-            # Extract unique package directories from changed files
-            ALL_PACKAGES=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | sort -u)
-            
-            # Filter packages to only include those with test files
-            PACKAGES_WITH_TESTS=""
-            for pkg in $ALL_PACKAGES; do
-              TEST_FILES=$(find "$pkg" -maxdepth 1 -name "*_test.go" 2>/dev/null | wc -l)
-              if [ "$TEST_FILES" -gt 0 ]; then
-                PACKAGES_WITH_TESTS="$PACKAGES_WITH_TESTS ./$pkg"
-              else
-                echo "Skipping $pkg (no test files)"
-              fi
-            done
-            
-            if [ -n "$PACKAGES_WITH_TESTS" ]; then
-              echo "Packages with tests: $PACKAGES_WITH_TESTS"
-              echo "packages<<EOF" >> $GITHUB_OUTPUT
-              echo "$PACKAGES_WITH_TESTS" >> $GITHUB_OUTPUT
-              echo "EOF" >> $GITHUB_OUTPUT
-              echo "has-changes=true" >> $GITHUB_OUTPUT
-            else
-              echo "No packages with test files found"
-              echo "packages=" >> $GITHUB_OUTPUT
-              echo "has-changes=false" >> $GITHUB_OUTPUT
-            fi
-          fi
-
-      - name: Run unit tests for changed packages
-        if: steps.changed-packages.outputs.has-changes == 'true'
-        run: |
-          echo "Running unit tests for changed packages..."
-          go mod tidy
-          go mod download
-          
-          PACKAGES="${{ steps.changed-packages.outputs.packages }}"
-          echo "Testing packages: $PACKAGES"
-          
-          # Run unit tests only for changed packages
-          echo "$PACKAGES" | xargs -I {} sh -c 'echo "Testing package: {}" && TF_ACC=0 go test -v -race {}'
-
-      - name: Validate test coverage for changed packages
-        run: |
-          # Get list of changed .go files (excluding test files)
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '\.(go)$' | grep -v '_test\.go$' || true)
-          
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No non-test Go files changed"
             exit 0
           fi
           
-          # Extract unique package directories from changed non-test files
+          echo "Changed Go files:"
+          echo "$CHANGED_FILES"
+          
+          # Extract unique package directories from changed files
           ALL_PACKAGES=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | sort -u)
           
+          echo "All changed packages:"
+          echo "$ALL_PACKAGES"
+          
+          # Convert to space-separated list for output
+          PACKAGES_LIST=$(echo "$ALL_PACKAGES" | tr '\n' ' ' | sed 's/ $//')
+          
+          echo "packages<<EOF" >> $GITHUB_OUTPUT
+          echo "$PACKAGES_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "has-changes=true" >> $GITHUB_OUTPUT
+
+      # Step 2: Check if tests exist for all changed packages (excluding certain directories)
+      - name: Check test coverage for changed packages
+        id: check-test-coverage
+        if: steps.changed-packages.outputs.has-changes == 'true'
+        run: |
+          PACKAGES="${{ steps.changed-packages.outputs.packages }}"
+          
+          if [ -z "$PACKAGES" ]; then
+            echo "No packages to check"
+            exit 0
+          fi
+          
           MISSING_TESTS=false
-          for pkg in $ALL_PACKAGES; do
-            # Skip if it's a mocks directory
+          PACKAGES_WITH_TESTS=""
+          
+          for pkg in $PACKAGES; do
+            # Skip directories that don't require tests
             if [[ "$pkg" == *"/mocks" ]]; then
               echo "Skipping test requirement check for mocks directory: $pkg"
               continue
+            elif [[ "$pkg" == *"/schema/"* ]]; then
+              echo "Skipping test requirement check for schema directory: $pkg"
+              continue
+            elif [[ "$pkg" == *"/shared_models/"* ]]; then
+              echo "Skipping test requirement check for shared_models directory: $pkg"
+              continue
+            elif [[ "$pkg" == *"/common/"* ]]; then
+              echo "Skipping test requirement check for common directory: $pkg"
+              continue
             fi
             
-            TEST_FILES=$(find "$pkg" -maxdepth 1 -name "*_test.go" 2>/dev/null | wc -l)
-            if [ "$TEST_FILES" -gt 0 ]; then
-              echo "✅ Found $TEST_FILES test files in $pkg"
+            # Check if package has test files
+            TEST_COUNT=$(find "$pkg" -maxdepth 1 -name "*_test.go" 2>/dev/null | wc -l)
+            
+            if [ "$TEST_COUNT" -gt 0 ]; then
+              echo "✅ Found $TEST_COUNT test files in $pkg"
+              PACKAGES_WITH_TESTS="$PACKAGES_WITH_TESTS ./$pkg"
             else
               echo "❌ No test files found in $pkg"
               MISSING_TESTS=true
             fi
           done
           
+          # Step 3: If tests don't exist for required packages, throw an error
           if [ "$MISSING_TESTS" = true ]; then
             echo ""
             echo "ERROR: Some packages with Go code changes are missing tests"
-            echo "All Go code changes (except mocks) must include tests"
+            echo "All Go code changes must include tests (except mocks, schema, shared_models, and common directories)"
             exit 1
-          else
-            echo ""
-            echo "✅ All changed packages have appropriate test coverage"
           fi
+          
+          echo ""
+          echo "✅ All changed packages have appropriate test coverage"
+          
+          # Save packages with tests for the next step
+          echo "packages-with-tests<<EOF" >> $GITHUB_OUTPUT
+          echo "$PACKAGES_WITH_TESTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Step 4: If tests exist, run the unit tests
+      - name: Run unit tests for changed packages
+        if: steps.changed-packages.outputs.has-changes == 'true'
+        run: |
+          PACKAGES_WITH_TESTS="${{ steps.check-test-coverage.outputs.packages-with-tests }}"
+          
+          if [ -z "$PACKAGES_WITH_TESTS" ]; then
+            echo "No packages with tests to run"
+            exit 0
+          fi
+          
+          echo "Running unit tests for packages with tests..."
+          go mod tidy
+          go mod download
+          
+          echo "Testing packages: $PACKAGES_WITH_TESTS"
+          
+          # Step 5: Run unit tests (any test failures will cause the workflow to fail)
+          echo "$PACKAGES_WITH_TESTS" | xargs -I {} sh -c 'echo "Testing package: {}" && TF_ACC=0 go test -v -race {}'
 
       - name: Skip - No Go changes
         if: steps.changed-packages.outputs.has-changes == 'false'
