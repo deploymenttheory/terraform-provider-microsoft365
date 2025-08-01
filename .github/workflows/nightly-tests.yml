@@ -1,4 +1,4 @@
-name: Nightly Acceptance Tests
+name: Nightly Tests
 
 permissions:
   contents: read
@@ -10,8 +10,8 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  comprehensive-test:
-    name: '🧪 Nightly Test Suite'
+  test-suite:
+    name: '🧪 Test Suite'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 240
     steps:
@@ -95,15 +95,53 @@ jobs:
             acc-coverage.txt
           retention-days: 90
 
+      - name: Generate failure report
+        if: failure()
+        run: |
+          echo "## Nightly Test Failure Report" > failure_report.md
+          echo "**Date:** $(date)" >> failure_report.md
+          echo "**Workflow:** ${{ github.workflow }}" >> failure_report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> failure_report.md
+          echo "" >> failure_report.md
+          
+          # Check unit test status
+          if [ -f coverage.txt ]; then
+            echo "### Unit Tests: ✅ Completed" >> failure_report.md
+            COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' || echo "N/A")
+            echo "- Coverage: $COVERAGE" >> failure_report.md
+          else
+            echo "### Unit Tests: ❌ Failed" >> failure_report.md
+            echo "- No coverage file generated - unit tests likely failed" >> failure_report.md
+          fi
+          echo "" >> failure_report.md
+          
+          # Check acceptance test status
+          if [ -f acc-coverage.txt ]; then
+            echo "### Acceptance Tests: ✅ Completed" >> failure_report.md
+            ACC_COVERAGE=$(go tool cover -func=acc-coverage.txt | grep total | awk '{print $3}' || echo "N/A")
+            echo "- Coverage: $ACC_COVERAGE" >> failure_report.md
+          else
+            echo "### Acceptance Tests: ❌ Failed or Skipped" >> failure_report.md
+            if [ -z "${{ secrets.M365_TENANT_ID }}" ]; then
+              echo "- Skipped: Environment variables not configured" >> failure_report.md
+            else
+              echo "- Failed: Check logs for details" >> failure_report.md
+            fi
+          fi
+          echo "" >> failure_report.md
+          
+          echo "### Links" >> failure_report.md
+          echo "- [Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> failure_report.md
+          echo "- [Codecov Report](https://codecov.io/gh/${{ github.repository }})" >> failure_report.md
+
       - name: Create Issue on Failure
         if: failure()
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Nightly Tests Failed - ${new Date().toISOString().split('T')[0]}`,
-              body: `The nightly test suite has failed. Check the workflow run for details.`,
-              labels: ['bug', 'testing', 'automated']
-            });
+        run: |
+          DATE=$(date -I)
+          BODY=$(cat failure_report.md)
+          gh issue create \
+            --title "Nightly Tests Failed - $DATE" \
+            --body "$BODY" \
+            --label "bug,testing,automated"
+        env:
+          GH_TOKEN: ${{ github.token }}
