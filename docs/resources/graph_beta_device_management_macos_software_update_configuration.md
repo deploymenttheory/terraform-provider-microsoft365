@@ -76,7 +76,6 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
 ### Required
 
 - `all_other_update_behavior` (String) Update behavior for all other updates. Possible values: `notConfigured`, `default`, `downloadOnly`, `installASAP`, `notifyOnly`, `installLater`.
-- `assignments` (Attributes) Assignment configuration for the macOS software update configuration. (see [below for nested schema](#nestedatt--assignments))
 - `config_data_update_behavior` (String) Update behavior for configuration data file updates. Possible values: `notConfigured`, `default`, `downloadOnly`, `installASAP`, `notifyOnly`, `installLater`.
 - `critical_update_behavior` (String) Update behavior for critical updates. Possible values: `notConfigured`, `default`, `downloadOnly`, `installASAP`, `notifyOnly`, `installLater`. See [macOSSoftwareUpdateBehavior](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdatebehavior?view=graph-rest-beta).
 - `display_name` (String) The display name of the macOS software update configuration
@@ -86,6 +85,7 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
 
 ### Optional
 
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_update_time_windows` (Attributes List) Custom time windows when updates will be allowed or blocked. Maximum 20 elements. See [customUpdateTimeWindow](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-customupdatetimewindow?view=graph-rest-beta). (see [below for nested schema](#nestedatt--custom_update_time_windows))
 - `description` (String) Admin provided description of the device configuration.
 - `max_user_deferrals_count` (Number) The maximum number of times the system allows the user to postpone an update before it's installed. Supported values: 0 - 365.
@@ -102,13 +102,11 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
 
 Required:
 
-- `all_devices` (Boolean) Whether to assign the configuration to all devices.
-- `all_users` (Boolean) Whether to assign the configuration to all users.
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
 
 Optional:
 
-- `exclude_group_ids` (Set of String) List of group IDs to exclude from the assignment.
-- `include_group_ids` (Set of String) List of group IDs to include in the assignment.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--custom_update_time_windows"></a>
