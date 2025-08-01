@@ -1,11 +1,11 @@
-name: Run tests and upload coverage
+name: Codecov
 
 on: 
   push
 
 jobs:
   test:
-    name: Run tests and collect coverage
+    name: '🧪 Run tests and collect coverage'
     permissions:
       contents: read
 
