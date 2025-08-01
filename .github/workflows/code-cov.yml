@@ -21,8 +21,6 @@ jobs:
         with:
           go-version-file: .go-version
 
-      - run: go version
-
       - name: Install dependencies
         run: go mod download
 
