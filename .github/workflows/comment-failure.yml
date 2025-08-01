@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   comment-failure:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Get run url
         if: failure()

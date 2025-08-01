@@ -5,8 +5,8 @@ permissions:
 
 on:
   schedule:
-    # Run every Sunday at 2 AM UTC
-    - cron: '0 2 * * 0'
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -63,15 +63,16 @@ jobs:
           echo "Acceptance tests skipped - environment variables not configured"
 
       
-      - name: Upload acceptance test coverage to Codecov
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./acc-coverage.txt
-          flags: acceptancetests
-          name: nightly-acceptance-tests
-          fail_ci_if_error: false
-          verbose: true
+      # Uncomment when acceptance tests are enabled:
+      # - name: Upload acceptance test coverage to Codecov
+      #   uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: ./acc-coverage.txt
+      #     flags: acceptancetests
+      #     name: nightly-acceptance-tests
+      #     fail_ci_if_error: false
+      #     verbose: true
 
       - name: Generate test report
         run: |

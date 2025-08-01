@@ -11,6 +11,12 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 > If you need help, want to ask questions, or connect with other users and contributors, join our community
 > [Discord](https://discord.gg/Uq8zG6g7WE)
 
+## Code Coverage
+
+The code coverage for the provider is available on Codecov.
+
+[![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
+
 ## Overview
 
 The Community Terraform Provider for Microsoft 365 empowers workplace teams and administrators to manage their Microsoft 365 environments using Infrastructure as Code (IaC) principles. This provider bridges the gap between Terraform's powerful resource management capabilities and the extensive features of Microsoft 365, allowing for automated, version-controlled, and repeatable deployments across various Microsoft cloud services.

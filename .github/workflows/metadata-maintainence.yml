@@ -17,7 +17,7 @@ env:
 jobs:
   extract-graph-metadata:
     name: '🔄 Extract Graph Metadata'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
 
     - name: Harden Runner
