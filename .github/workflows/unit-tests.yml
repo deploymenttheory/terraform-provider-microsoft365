@@ -33,31 +33,21 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Get changed Go packages
-        id: changed-packages
+      - name: Run unit tests
         run: |
-          # Get list of changed .go files
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.go$' || true)
+          echo "Running unit tests..."
+          go mod tidy
+          go mod download
           
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No Go files changed"
-            echo "packages=" >> $GITHUB_OUTPUT
-          else
-            echo "Changed Go files:"
-            echo "$CHANGED_FILES"
-            
-            # Extract unique package directories from changed files
-            PACKAGES=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | sort -u | xargs -I {} echo "./{}" | tr '\n' ' ')
-            echo "Changed packages: $PACKAGES"
-            echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run tests
+          # Run all unit tests (not acceptance tests)
+          TF_ACC=0 go test -v -race ./...
+          
+      - name: Check for tests
         run: |
-          PACKAGES="${{ steps.changed-packages.outputs.packages }}"
-          if [ -z "$PACKAGES" ]; then
-            echo "No Go packages to test"
-          else
-            echo "Running tests for packages: $PACKAGES"
-            go test -v -race -coverprofile=coverage.txt -covermode=atomic $PACKAGES
+          # Ensure there are actual test files in the codebase
+          TEST_FILES=$(find . -name "*_test.go" -not -path "./vendor/*" | wc -l)
+          if [ "$TEST_FILES" -eq 0 ]; then
+            echo "ERROR: No test files found in the codebase"
+            exit 1
           fi
+          echo "Found $TEST_FILES test files"
