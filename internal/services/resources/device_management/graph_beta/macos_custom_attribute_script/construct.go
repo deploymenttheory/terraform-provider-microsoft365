@@ -14,8 +14,6 @@ func constructResource(ctx context.Context, data *DeviceCustomAttributeShellScri
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 	requestBody := msgraphbetamodels.NewDeviceCustomAttributeShellScript()
 
-	convert.FrameworkToGraphString(data.CustomAttributeName, requestBody.SetCustomAttributeName)
-
 	// Only set these values during creates. 400's the req in updates
 	if isCreate {
 		if err := convert.FrameworkToGraphEnum(data.CustomAttributeType, msgraphbetamodels.ParseDeviceCustomAttributeValueType, requestBody.SetCustomAttributeType); err != nil {

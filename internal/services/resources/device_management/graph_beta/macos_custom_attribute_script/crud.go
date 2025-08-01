@@ -52,27 +52,25 @@ func (r *DeviceCustomAttributeShellScriptResource) Create(ctx context.Context, r
 
 	plan.ID = types.StringValue(*created.GetId())
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceCustomAttributeShellScripts().
-			ByDeviceCustomAttributeShellScriptId(plan.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceCustomAttributeShellScripts().
+		ByDeviceCustomAttributeShellScriptId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -148,7 +146,18 @@ func (r *DeviceCustomAttributeShellScriptResource) Read(ctx context.Context, req
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for macos custom attribute scripts resources.
+//
+// The function performs the following operations:
+//   - Patches the existing script resource with updated settings using PATCH
+//   - Updates assignments using POST if they are defined or removes all assignments if nil
+//   - Retrieves the updated resource with expanded assignments
+//   - Maps the remote state back to Terraform
+//
+// The Microsoft Graph Beta API supports direct updates of device shell script resources
+// through PATCH operations for the base resource, while assignments are handled through
+// a separate POST operation to the assign endpoint. This allows for atomic updates
+// of both the script properties and its assignments.
 func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan DeviceCustomAttributeShellScriptResourceModel
 	var state DeviceCustomAttributeShellScriptResourceModel

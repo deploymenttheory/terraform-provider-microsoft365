@@ -55,21 +55,27 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
   # Role scope tag IDs (optional)
   role_scope_tag_ids = ["0"]
 
-  # Script assignments (optional)
-  assignments = {
-    all_devices = false
-    all_users   = false
-
-    include_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  # Optional: Assignments block
+  assignments = [
+    # Optional: inclusion group assignments
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   # Timeouts configuration (optional)
   timeouts = {
@@ -93,7 +99,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `block_execution_notifications` (Boolean) Does not notify the user a script is being executed.
 - `description` (String) Optional description for the macOS Platform Script.
 - `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.
@@ -108,12 +114,13 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
 Optional:
 
-- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_users`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `exclude_group_ids`.
-- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_devices`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `exclude_group_ids`.
-- `exclude_group_ids` (Set of String) A set of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
-- `include_group_ids` (Set of String) A set of entra id group Id's to include in the assignment.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>

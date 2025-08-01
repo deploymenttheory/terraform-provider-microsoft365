@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -51,27 +52,25 @@ func (r *WindowsPlatformScriptResource) Create(ctx context.Context, req resource
 
 	object.ID = types.StringValue(*requestResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for create method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for create method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceManagementScripts().
-			ByDeviceManagementScriptId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -136,7 +135,11 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 		DeviceManagement().
 		DeviceManagementScripts().
 		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceManagementScriptsDeviceManagementScriptItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -144,20 +147,6 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
-
-	respAssignments, err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, respAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -167,30 +156,26 @@ func (r *WindowsPlatformScriptResource) Read(ctx context.Context, req resource.R
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Device Management Script resources.
+// Update handles the Update operation for windows platform scripts resources.
 //
-//   - Deletes the existing resource
-//   - Creates a new resource with the updated settings and assignments
-//   - Updates the Terraform state with the new resource ID and settings
+// The function performs the following operations:
+//   - Patches the existing script resource with updated settings using PATCH
+//   - Updates assignments using POST if they are defined or removes all assignments if nil
+//   - Retrieves the updated resource with expanded assignments
+//   - Maps the remote state back to Terraform
 //
-// NOTE: The Update operation is implemented as a delete followed by a create operation.
-// This is because the Microsoft Graph Beta API does not support updating the settings of a device management script
-// resource directly despite what the SDK and documentation may suggest.
-// https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-update?view=graph-rest-beta
-// Produces 400 ODATA errors when attempting to update the resource settings using PATCH.
-// Tested with custom PUT, SDK PATCH and custom POST requests, all failed.
+// The Microsoft Graph Beta API supports direct updates of device shell script resources
+// through PATCH operations for the base resource, while assignments are handled through
+// a separate POST operation to the assign endpoint. This allows for atomic updates
+// of both the script properties and its assignments.
 func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsPlatformScriptResourceModel
 	var state WindowsPlatformScriptResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -201,18 +186,6 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		DeviceManagementScripts().
-		ByDeviceManagementScriptId(state.ID.ValueString()).
-		Delete(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-		return
-	}
-
-	// Then create new resource
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -222,39 +195,37 @@ func (r *WindowsPlatformScriptResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	requestResource, err := r.client.
+	_, err = r.client.
 		DeviceManagement().
 		DeviceManagementScripts().
-		Post(ctx, requestBody, nil)
+		ByDeviceManagementScriptId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	plan.ID = types.StringValue(*requestResource.GetId())
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for create method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	err = r.client.
+		DeviceManagement().
+		DeviceManagementScripts().
+		ByDeviceManagementScriptId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		err = r.client.
-			DeviceManagement().
-			DeviceManagementScripts().
-			ByDeviceManagementScriptId(plan.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

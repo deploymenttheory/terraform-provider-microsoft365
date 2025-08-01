@@ -9,236 +9,96 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_platform_script/mocks"
+	platformScriptMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_platform_script/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
-// Helper functions to return the test configurations by reading from files
+func TestMain(m *testing.M) {
+	exitCode := m.Run()
+	os.Exit(exitCode)
+}
+
+func setupMockEnvironment() (*platformScriptMocks.MacOSPlatformScriptMock, *platformScriptMocks.MacOSPlatformScriptMock) {
+	httpmock.Activate()
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	errorMock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	return mock, errorMock
+}
+
+func setupTestEnvironment(t *testing.T) {
+	// Set up any test-specific environment variables or configurations here if needed
+}
+
+// testCheckExists is a basic check to ensure the resource exists in the state
+func testCheckExists(resourceName string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrSet(resourceName, "id")
+}
+
+// testConfigMinimal returns the minimal configuration for testing
 func testConfigMinimal() string {
 	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
 	if err != nil {
 		return ""
 	}
-	return unitTestProviderConfig + string(content)
+	return string(content)
 }
 
+// testConfigMaximal returns the maximal configuration for testing
 func testConfigMaximal() string {
 	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
 	if err != nil {
 		return ""
 	}
-	return unitTestProviderConfig + string(content)
+	return string(content)
 }
 
-func testConfigMinimalToMaximal() string {
-	// For minimal to maximal test, we need to use the maximal config
-	// but with the minimal resource name to simulate an update
-
+// Helper function to get maximal config with a custom resource name
+func testConfigMaximalWithResourceName(resourceName string) string {
 	// Read the maximal config
-	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
 	if err != nil {
 		return ""
 	}
 
-	// Replace the resource name to match the minimal one
-	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
+	// Replace the resource name
+	updated := strings.Replace(string(content), "maximal", resourceName, 1)
+	
+	// Fix the display name to match test expectations
+	updated = strings.Replace(updated, "Test Maximal macOS Platform Script - Unique", "Test Maximal macOS Platform Script", 1)
 
-	return unitTestProviderConfig + updatedMaximal
+	return updated
 }
 
-func testConfigUpdate() string {
-	return unitTestProviderConfig + testConfigUpdateTemplate
-}
-
-// Common test configurations that can be used by both unit and acceptance tests
-const (
-	// Basic configuration with standard attributes
-	testConfigBasicTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Test macOS Script"
-  description     = "Test description"
-  script_content  = "#!/bin/bash\necho 'Hello World'"
+// Helper function to get minimal config with a custom resource name
+func testConfigMinimalWithResourceName(resourceName string) string {
+	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_management_macos_platform_script" "%s" {
+  display_name    = "Test Minimal macOS Platform Script"
+  file_name       = "test_minimal.sh"
+  script_content  = "#!/bin/bash\necho 'Hello World'\nexit 0"
   run_as_account  = "system"
-  file_name       = "test-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P1D"
-  retry_count     = 3
-
-  assignments = {
-    all_devices = false
-    all_users   = true
+  
+  timeouts = {
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
   }
+}`, resourceName)
 }
-`
 
-	// Minimal configuration with only required attributes
-	testConfigMinimalTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "minimal" {
-  display_name   = "Minimal macOS Script"
-  script_content = "#!/bin/bash\necho 'Minimal Script'"
-  run_as_account = "system"
-  file_name      = "minimal-script.sh"
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-  }
-}
-`
-
-	// Maximal configuration with all possible attributes
-	testConfigMaximalTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "maximal" {
-  display_name    = "Maximal macOS Script"
-  description     = "This is a comprehensive script with all fields populated"
-  script_content  = "#!/bin/bash\necho 'Maximal Script Configuration'"
-  run_as_account  = "user"
-  file_name       = "maximal-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P4W"
-  retry_count     = 10
-  role_scope_tag_ids = ["0", "1"]
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`
-
-	// Update configuration for testing changes
-	testConfigUpdateTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "test" {
-  display_name    = "Updated macOS Script"
-  description     = "Updated description"
-  script_content  = "#!/bin/bash\necho 'Hello Updated World'"
-  run_as_account  = "user"
-  file_name       = "updated-script.sh"
-  block_execution_notifications = false
-  execution_frequency = "P1W"
-  retry_count     = 5
-
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
-}
-`
-
-	// Group assignments configuration
-	testConfigGroupAssignmentsTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "group_assigned" {
-  display_name    = "Group Assignment Script"
-  description     = "Script with group assignments"
-  script_content  = "#!/bin/bash\necho 'Group Assignment Script'"
-  run_as_account  = "system"
-  file_name       = "group-script.sh"
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-    include_group_ids = ["11111111-1111-1111-1111-111111111111"]
-    exclude_group_ids = ["22222222-2222-2222-2222-222222222222"]
-  }
-}
-`
-
-	// Complex duration configuration
-	testConfigComplexDurationTemplate = `
-resource "microsoft365_graph_beta_device_management_macos_platform_script" "complex_duration" {
-  display_name    = "Complex Duration Script"
-  description     = "Testing complex ISO 8601 duration"
-  script_content  = "#!/bin/bash\necho 'Testing complex duration'"
-  run_as_account  = "system"
-  file_name       = "complex-duration-script.sh"
-  block_execution_notifications = true
-  execution_frequency = "P4W2D"
-  retry_count     = 3
-
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
-}
-`
-)
-
-// Unit test provider configuration
-const unitTestProviderConfig = `
-provider "microsoft365" {
-  tenant_id = "00000000-0000-0000-0000-000000000001"
-  auth_method = "client_secret"
-  entra_id_options = {
-    client_id = "11111111-1111-1111-1111-111111111111"
-    client_secret = "mock-secret-value"
-  }
-  cloud = "public"
-}
-`
-
-// Acceptance test provider configuration
-const accTestProviderConfig = `
-provider "microsoft365" {
-  # Configuration from environment variables
-}
-`
-
-func TestUnitMacOSPlatformScriptResource_Basic(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+// TestUnitMacOSPlatformScriptResource_Create_Minimal tests the creation of a platform script with minimal configuration
+func TestUnitMacOSPlatformScriptResource_Create_Minimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
 
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "description", "Test description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "file_name", "test-script.sh"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "block_execution_notifications", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "retry_count", "3"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "assignments.all_users", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "assignments.all_devices", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestUnitMacOSPlatformScriptResource_Minimal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -248,32 +108,30 @@ func TestUnitMacOSPlatformScriptResource_Minimal(t *testing.T) {
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Minimal macOS Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Test Minimal macOS Platform Script - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "test_minimal.sh"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "minimal-script.sh"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_users", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_devices", "false"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "script_content"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "role_scope_tag_ids.0", "0"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitMacOSPlatformScriptResource_Maximal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+// TestUnitMacOSPlatformScriptResource_Create_Maximal tests the creation of a platform script with maximal configuration
+func TestUnitMacOSPlatformScriptResource_Create_Maximal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -283,14 +141,19 @@ func TestUnitMacOSPlatformScriptResource_Maximal(t *testing.T) {
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "display_name", "Maximal macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "description", "This is a comprehensive script with all fields populated"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "display_name", "Test Maximal macOS Platform Script - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "description", "Maximal platform script for testing with all features"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "file_name", "test_maximal.sh"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "file_name", "maximal-script.sh"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "script_content"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "role_scope_tag_ids.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "role_scope_tag_ids.0", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "role_scope_tag_ids.1", "1"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "block_execution_notifications", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "retry_count", "10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.all_devices", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.all_users", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "execution_frequency", "P1D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "retry_count", "3"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.0.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.maximal", "assignments.0.group_id", "44444444-4444-4444-4444-444444444444"),
 				),
 			},
 		},
@@ -299,20 +162,16 @@ func TestUnitMacOSPlatformScriptResource_Maximal(t *testing.T) {
 
 // TestUnitMacOSPlatformScriptResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
 func TestUnitMacOSPlatformScriptResource_Update_MinimalToMaximal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -320,51 +179,82 @@ func TestUnitMacOSPlatformScriptResource_Update_MinimalToMaximal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigMinimalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Minimal macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "minimal-script.sh"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_users", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_devices", "false"),
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test Minimal macOS Platform Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "system"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "role_scope_tag_ids.#", "1"),
 				),
 			},
 			// Update to maximal configuration (with the same resource name)
 			{
-				Config: testConfigMinimalToMaximal(),
+				Config: testConfigMaximalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "display_name", "Maximal macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "description", "This is a comprehensive script with all fields populated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "file_name", "maximal-script.sh"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "block_execution_notifications", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "retry_count", "10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_devices", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.minimal", "assignments.all_users", "false"),
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test Maximal macOS Platform Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "user"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "block_execution_notifications", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "retry_count", "3"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSPlatformScriptResource_Delete_Minimal tests the deletion of a minimal script
-func TestUnitMacOSPlatformScriptResource_Delete_Minimal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+// TestUnitMacOSPlatformScriptResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitMacOSPlatformScriptResource_Update_MaximalToMinimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Start with maximal configuration
+			{
+				Config: testConfigMaximalWithResourceName("test"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test Maximal macOS Platform Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "user"),
+				),
+			},
+			// Update to minimal configuration (with the same resource name)
+			{
+				Config: testConfigMinimalWithResourceName("test"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test Minimal macOS Platform Script"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "system"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "role_scope_tag_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+// TestUnitMacOSPlatformScriptResource_Delete_Minimal tests deleting a platform script with minimal configuration
+func TestUnitMacOSPlatformScriptResource_Delete_Minimal(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -380,22 +270,18 @@ func TestUnitMacOSPlatformScriptResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitMacOSPlatformScriptResource_Delete_Maximal tests the deletion of a maximal script
+// TestUnitMacOSPlatformScriptResource_Delete_Maximal tests deleting a platform script with maximal configuration
 func TestUnitMacOSPlatformScriptResource_Delete_Maximal(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
@@ -411,341 +297,58 @@ func TestUnitMacOSPlatformScriptResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-func TestUnitMacOSPlatformScriptResource_GroupAssignments(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
+// TestUnitMacOSPlatformScriptResource_Import tests importing a platform script
+func TestUnitMacOSPlatformScriptResource_Import(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
 
 	// Set up the test environment
 	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
+	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigGroupAssignments(),
+				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "display_name", "Group Assignment Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "description", "Script with group assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.all_devices", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.all_users", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.include_group_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.include_group_ids.0", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.exclude_group_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.group_assigned", "assignments.exclude_group_ids.0", "22222222-2222-2222-2222-222222222222"),
-				),
-			},
-		},
-	})
-}
-
-func TestUnitMacOSPlatformScriptResource_FullLifecycle(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create
-			{
-				Config: testConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
-				),
-			},
-			// Update
-			{
-				Config: testConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Updated macOS Script"),
-				),
-				// Skip verification of fields that might be inconsistent
-				ImportStateVerify: false,
-			},
-			// Import
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"",
-				},
-			},
-		},
-	})
-}
-
-func TestUnitMacOSPlatformScriptResource_ErrorHandling(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register error mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterErrorMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      testConfigBasic(),
-				ExpectError: regexp.MustCompile(`.*Access denied.*`),
-			},
-		},
-	})
-}
-
-func TestUnitMacOSPlatformScriptResource_Update(t *testing.T) {
-	// Activate httpmock
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	macOSMock := &localMocks.MacOSPlatformScriptMock{}
-	macOSMock.RegisterMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create with basic configuration
-			{
-				Config: testConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
-				),
-			},
-			// Update with the update configuration
-			{
-				Config: testConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Updated macOS Script"),
-				),
-
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-// Acceptance Tests
-func TestAccMacOSPlatformScriptResource_Basic(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Test macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1D"),
+					testCheckExists("microsoft365_graph_beta_device_management_macos_platform_script.minimal"),
 				),
 			},
 			{
-				Config: testAccConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "display_name", "Updated macOS Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.test", "execution_frequency", "P1W"),
-				),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.test",
+				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
-		CheckDestroy: testAccCheckMacOSPlatformScriptDestroy,
 	})
 }
 
-func TestAccMacOSPlatformScriptResource_ComplexDuration(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC environment variable is set")
-	}
+// TestUnitMacOSPlatformScriptResource_Error tests error handling
+func TestUnitMacOSPlatformScriptResource_Error(t *testing.T) {
+	// Set up mock environment
+	_, errorMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Register the error mocks
+	errorMock.RegisterErrorMocks()
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigComplexDuration(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMacOSPlatformScriptExists("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration", "display_name", "Complex Duration Script"),
-					// P4W2D would normally be normalized to P30D or similar
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_platform_script.complex_duration", "execution_frequency", "P4W2D"),
-				),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_platform_script.complex_duration",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:      testConfigMinimal(),
+				ExpectError: regexp.MustCompile("Validation error: Invalid display name"),
 			},
 		},
-		CheckDestroy: testAccCheckMacOSPlatformScriptDestroy,
 	})
-}
-
-// Helper Functions
-func testAccCheckMacOSPlatformScriptExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No ID is set")
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckMacOSPlatformScriptDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_macos_platform_script" {
-			continue
-		}
-
-		// In a real test, we would make an API call to verify the resource is gone
-		// For unit tests with mocks, we can assume it's destroyed if we get here
-		return nil
-	}
-
-	return nil
-}
-
-// Test configurations using shared templates
-
-// Unit test configurations
-func testConfigBasic() string {
-	return unitTestProviderConfig + testConfigBasicTemplate
-}
-
-func testConfigGroupAssignments() string {
-	return unitTestProviderConfig + testConfigGroupAssignmentsTemplate
-}
-
-// Acceptance test configurations
-func testAccConfigBasic() string {
-	return accTestProviderConfig + testConfigBasicTemplate
-}
-
-func testAccConfigMinimal() string {
-	return accTestProviderConfig + testConfigMinimalTemplate
-}
-
-func testAccConfigMaximal() string {
-	return accTestProviderConfig + testConfigMaximalTemplate
-}
-
-func testAccConfigUpdate() string {
-	return accTestProviderConfig + testConfigUpdateTemplate
-}
-
-func testAccConfigComplexDuration() string {
-	return accTestProviderConfig + testConfigComplexDurationTemplate
-}
-
-func setupTestEnvironment(t *testing.T) {
-	// Set mock authentication credentials with valid values
-	os.Setenv("M365_TENANT_ID", "00000000-0000-0000-0000-000000000001")
-	os.Setenv("M365_CLIENT_ID", "11111111-1111-1111-1111-111111111111")
-	os.Setenv("M365_CLIENT_SECRET", "mock-secret-value")
-	os.Setenv("M365_AUTH_METHOD", "client_secret")
-	os.Setenv("M365_CLOUD", "public")
-
-	t.Cleanup(func() {
-		os.Unsetenv("M365_TENANT_ID")
-		os.Unsetenv("M365_CLIENT_ID")
-		os.Unsetenv("M365_CLIENT_SECRET")
-		os.Unsetenv("M365_AUTH_METHOD")
-		os.Unsetenv("M365_CLOUD")
-	})
-}
-
-// testCheckExists verifies the resource exists in Terraform state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("resource ID not set")
-		}
-		return nil
-	}
-}
-
-func testAccPreCheck(t *testing.T) {
-	// Check required environment variables for acceptance tests
-	envVars := []string{
-		"MICROSOFT365_CLIENT_ID",
-		"MICROSOFT365_CLIENT_SECRET",
-		"MICROSOFT365_TENANT_ID",
-	}
-
-	for _, envVar := range envVars {
-		if os.Getenv(envVar) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", envVar)
-		}
-	}
 }

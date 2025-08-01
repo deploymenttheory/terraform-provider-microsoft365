@@ -52,27 +52,25 @@ func (r *MacOSPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = r.client.
-			DeviceManagement().
-			DeviceShellScripts().
-			ByDeviceShellScriptId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	err = r.client.
+		DeviceManagement().
+		DeviceShellScripts().
+		ByDeviceShellScriptId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)

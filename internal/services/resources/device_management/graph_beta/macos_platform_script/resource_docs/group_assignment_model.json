@@ -1,5 +1,0 @@
-{
-    "@odata.type": "#microsoft.graph.deviceManagementScriptGroupAssignment",
-    "id": "String (identifier)",
-    "targetGroupId": "String"
-  }

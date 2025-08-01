@@ -14,13 +14,6 @@ import (
 func constructResource(ctx context.Context, data *DeviceHealthScriptResourceModel) (graphmodels.DeviceHealthScriptable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	// Validate assignments before proceeding so that we don't send an
-	// invalid request to the API and end up an orphaned resource with a
-	// broken assignment.
-	// if diags := ValidateAssignments(ctx, data); diags.HasError() {
-	// 	return nil, fmt.Errorf("assignment validation failed: %s", diags.Errors())
-	// }
-
 	requestBody := graphmodels.NewDeviceHealthScript()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
@@ -44,25 +37,6 @@ func constructResource(ctx context.Context, data *DeviceHealthScriptResourceMode
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
-	}
-
-	var detParams []DeviceHealthScriptParameterModel
-
-	if diags := data.DetectionScriptParameters.ElementsAs(ctx, &detParams, false); diags.HasError() {
-		return nil, fmt.Errorf("unable to read detectionScriptParameters: %s", diags)
-	}
-
-	if len(detParams) > 0 {
-		var graphDet []graphmodels.DeviceHealthScriptParameterable
-		for _, p := range detParams {
-			gp := graphmodels.NewDeviceHealthScriptParameter()
-			convert.FrameworkToGraphString(p.Name, gp.SetName)
-			convert.FrameworkToGraphString(p.Description, gp.SetDescription)
-			convert.FrameworkToGraphBool(p.IsRequired, gp.SetIsRequired)
-			convert.FrameworkToGraphBool(p.ApplyDefaultValueWhenNotAssigned, gp.SetApplyDefaultValueWhenNotAssigned)
-			graphDet = append(graphDet, gp)
-		}
-		requestBody.SetDetectionScriptParameters(graphDet)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
