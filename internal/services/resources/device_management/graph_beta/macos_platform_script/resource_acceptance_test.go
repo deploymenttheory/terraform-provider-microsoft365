@@ -121,14 +121,14 @@ func TestAccMacOSPlatformScriptResource_InvalidValues(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if os.Getenv("ARM_TENANT_ID") == "" {
-		t.Skip("ARM_TENANT_ID must be set for acceptance tests")
+	if os.Getenv("M365_TENANT_ID") == "" {
+		t.Skip("M365_TENANT_ID must be set for acceptance tests")
 	}
-	if os.Getenv("ARM_CLIENT_ID") == "" {
-		t.Skip("ARM_CLIENT_ID must be set for acceptance tests")
+	if os.Getenv("M365_CLIENT_ID") == "" {
+		t.Skip("M365_CLIENT_ID must be set for acceptance tests")
 	}
-	if os.Getenv("ARM_CLIENT_SECRET") == "" {
-		t.Skip("ARM_CLIENT_SECRET must be set for acceptance tests")
+	if os.Getenv("M365_CLIENT_SECRET") == "" {
+		t.Skip("M365_CLIENT_SECRET must be set for acceptance tests")
 	}
 }
 

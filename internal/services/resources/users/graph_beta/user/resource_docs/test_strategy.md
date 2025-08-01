@@ -87,9 +87,9 @@ To run the acceptance tests, you need:
 | Variable | Description |
 |----------|-------------|
 | `TF_ACC` | Set to `1` to run acceptance tests |
-| `ARM_CLIENT_ID` | Azure AD application client ID |
-| `ARM_CLIENT_SECRET` | Azure AD application client secret |
-| `ARM_TENANT_ID` | Azure AD tenant ID |
+| `M365_CLIENT_ID` | Azure AD application client ID |
+| `M365_CLIENT_SECRET` | Azure AD application client secret |
+| `M365_TENANT_ID` | Azure AD tenant ID |
 | `TEST_DOMAIN` | Domain for creating test users (e.g., `contoso.com`) |
 
 ### Running Acceptance Tests
@@ -97,9 +97,9 @@ To run the acceptance tests, you need:
 ```bash
 # Set required environment variables
 export TF_ACC=1
-export ARM_CLIENT_ID="your-client-id"
-export ARM_CLIENT_SECRET="your-client-secret"
-export ARM_TENANT_ID="your-tenant-id"
+export M365_CLIENT_ID="your-client-id"
+export M365_CLIENT_SECRET="your-client-secret"
+export M365_CLIENT_ID="your-tenant-id"
 export TEST_DOMAIN="your-domain.com"
 
 # Run acceptance tests

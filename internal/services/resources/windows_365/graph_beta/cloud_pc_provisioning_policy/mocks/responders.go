@@ -155,7 +155,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				policyData["autopilotConfiguration"] = autopilotConfig
 			}
 
-			// Handle nested attributes - always set if provided (including empty arrays)
+			// Handle nested attributes - only set if provided
 			if domainJoinConfigs, exists := requestBody["domainJoinConfigurations"]; exists {
 				// Ensure empty array is preserved as empty array, not null
 				if domainJoinConfigs == nil {
@@ -164,6 +164,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 					policyData["domainJoinConfigurations"] = domainJoinConfigs
 				}
 			}
+			// Note: Don't set domainJoinConfigurations if not provided - leave as null
 
 			if windowsSetting, exists := requestBody["windowsSetting"]; exists {
 				policyData["windowsSetting"] = windowsSetting
@@ -186,8 +187,14 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				policyData["applyToExistingCloudPcs"] = applyToExisting
 			}
 
-			// Initialize assignments as empty array
-			policyData["assignments"] = []interface{}{}
+			// Initialize assignments if provided
+			if assignments, exists := requestBody["assignments"]; exists {
+				if assignmentList, ok := assignments.([]interface{}); ok {
+					policyData["assignments"] = assignmentList
+				} else {
+					policyData["assignments"] = []interface{}{}
+				}
+			}
 
 			// Store in mock state
 			mockState.Lock()
@@ -224,21 +231,43 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			// Handle optional fields that might be removed (like going from maximal to minimal)
 			// Check for specific field patterns to simulate real API behavior
 
-			// For nested attributes, if they're not in the request, remove them
-			optionalNestedFields := []string{"windowsSetting", "microsoftManagedDesktop", "autopatch", "autopilotConfiguration", "domainJoinConfigurations", "applyToExistingCloudPcs"}
-			for _, field := range optionalNestedFields {
+			// For nested attributes and optional fields, if they're not in the request, remove them
+			// Exception: domainJoinConfigurations should be set to empty array if not provided
+			optionalFields := []string{
+				"description", 
+				"cloudPcNamingTemplate",
+				"windowsSetting", 
+				"microsoftManagedDesktop", 
+				"autopatch", 
+				"autopilotConfiguration", 
+				"applyToExistingCloudPcs",
+			}
+			for _, field := range optionalFields {
 				if _, hasField := requestBody[field]; !hasField {
 					delete(policyData, field)
 				}
 			}
+			
+			// Special handling for domainJoinConfigurations - remove if not provided in update
+			if _, hasField := requestBody["domainJoinConfigurations"]; !hasField {
+				delete(policyData, "domainJoinConfigurations")
+			}
+			
+			// Special handling for assignments - if explicitly provided as empty array, set as empty
+			if assignments, hasField := requestBody["assignments"]; hasField {
+				if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) == 0 {
+					policyData["assignments"] = []interface{}{}
+				}
+			}
 
+			// Update fields that are explicitly provided in the request
 			for key, value := range requestBody {
 				if value == nil {
 					// If value is explicitly null, remove the field from the stored state
 					delete(policyData, key)
 				} else {
 					// Special handling for domainJoinConfigurations to preserve empty arrays
-					if key == "domainJoinConfigurations" && value != nil {
+					if key == "domainJoinConfigurations" {
 						if configList, ok := value.([]interface{}); ok && len(configList) == 0 {
 							policyData[key] = []interface{}{}
 						} else {
@@ -374,10 +403,3 @@ func (m *CloudPcProvisioningPolicyMock) RegisterErrorMocks() {
 		factories.ErrorResponse(404, "ResourceNotFound", "Provisioning policy not found"))
 }
 
-// getOrDefault returns the value from the map or a default value if the key doesn't exist
-func getOrDefault(m map[string]interface{}, key string, defaultValue interface{}) interface{} {
-	if value, exists := m[key]; exists {
-		return value
-	}
-	return defaultValue
-}

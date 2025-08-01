@@ -63,7 +63,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		data.MicrosoftManagedDesktop = nil
 	}
 
-	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); domainJoinConfigs != nil {
+	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); domainJoinConfigs != nil && len(domainJoinConfigs) > 0 {
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
 			data.DomainJoinConfigurations[i] = DomainJoinConfigurationModel{
@@ -74,7 +74,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 			}
 		}
 	} else {
-		data.DomainJoinConfigurations = []DomainJoinConfigurationModel{}
+		data.DomainJoinConfigurations = nil
 	}
 
 	if windowsSetting := remoteResource.GetWindowsSetting(); windowsSetting != nil {

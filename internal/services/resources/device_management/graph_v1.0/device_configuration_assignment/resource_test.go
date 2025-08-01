@@ -373,9 +373,9 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 func testAccPreCheck(t *testing.T) {
 	// Check for required environment variables for acceptance tests
 	requiredEnvVars := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
-		"ARM_TENANT_ID",
+		"M365_TENANT_ID",
+		"M365_CLIENT_SECRET",
+		"M365_CLIENT_ID",
 	}
 
 	for _, v := range requiredEnvVars {

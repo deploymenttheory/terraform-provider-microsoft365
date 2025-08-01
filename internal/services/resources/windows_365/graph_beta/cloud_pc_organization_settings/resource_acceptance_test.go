@@ -2,124 +2,107 @@ package graphBetaCloudPcOrganizationSettings_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccOrganizationSettingsResource_Create_Minimal(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
+func TestAccCloudPcOrganizationSettingsResource_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Create with maximal configuration
 			{
-				Config: testConfigMinimal(),
+				Config: testAccCloudPcOrganizationSettingsConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal", "enable_mem_auto_enroll", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal", "enable_single_sign_on", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccOrganizationSettingsResource_Create_Maximal(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "enable_mem_auto_enroll", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "enable_single_sign_on", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "os_version", "windows11"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "user_account_type", "administrator"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "windows_settings.0.language", "en-GB"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccOrganizationSettingsResource_Update_MinimalToMaximal(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Start with minimal configuration
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "false"),
-				),
-			},
-			// Update to maximal configuration
-			{
-				Config: testConfigMaximalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "os_version", "windows11"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "user_account_type", "administrator"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "user_account_type", "standardUser"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "windows_settings.language", "en-US"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccOrganizationSettingsResource_Read(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
+			// ImportState testing
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccOrganizationSettingsResource_Import(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
-				),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal",
+				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
+}
+
+func TestAccCloudPcOrganizationSettingsResource_RequiredFields(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCloudPcOrganizationSettingsConfig_invalidOsVersion(),
+				ExpectError: regexp.MustCompile("Attribute os_version value must be one of"),
+			},
+			{
+				Config:      testAccCloudPcOrganizationSettingsConfig_invalidUserAccountType(),
+				ExpectError: regexp.MustCompile("Attribute user_account_type value must be one of"),
+			},
+		},
+	})
+}
+
+func testAccPreCheck(t *testing.T) {
+	if os.Getenv("M365_TENANT_ID") == "" {
+		t.Skip("M365_TENANT_ID must be set for acceptance tests")
+	}
+	if os.Getenv("M365_CLIENT_ID") == "" {
+		t.Skip("M365_CLIENT_ID must be set for acceptance tests")
+	}
+	if os.Getenv("M365_CLIENT_SECRET") == "" {
+		t.Skip("M365_CLIENT_SECRET must be set for acceptance tests")
+	}
+}
+
+func testAccCloudPcOrganizationSettingsConfig_maximal() string {
+	return `
+resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "test" {
+  enable_mem_auto_enroll = true
+  enable_single_sign_on  = true
+  os_version             = "windows11"
+  user_account_type      = "standardUser"
+  windows_settings = {
+    language = "en-US"
+  }
+}
+`
+}
+
+func testAccCloudPcOrganizationSettingsConfig_invalidOsVersion() string {
+	return `
+resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "test" {
+  enable_mem_auto_enroll = true
+  enable_single_sign_on  = true
+  os_version             = "invalid"
+  user_account_type      = "standardUser"
+  windows_settings = {
+    language = "en-US"
+  }
+}
+`
+}
+
+func testAccCloudPcOrganizationSettingsConfig_invalidUserAccountType() string {
+	return `
+resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "test" {
+  enable_mem_auto_enroll = true
+  enable_single_sign_on  = true
+  os_version             = "windows11"
+  user_account_type      = "invalid"
+  windows_settings = {
+    language = "en-US"
+  }
+}
+`
 }

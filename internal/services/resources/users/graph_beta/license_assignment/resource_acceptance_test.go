@@ -376,9 +376,9 @@ func TestAccUserLicenseAssignmentResource_Import(t *testing.T) {
 func testAccPreCheck(t *testing.T) {
 	// Verify required environment variables are set
 	requiredEnvVars := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
-		"ARM_TENANT_ID",
+		"M365_TENANT_ID",
+		"M365_CLIENT_SECRET",
+		"M365_CLIENT_ID",
 		"TEST_USER_ID_1",
 		"TEST_LICENSE_SKU_ID_1",
 	}

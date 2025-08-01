@@ -18,20 +18,12 @@ func constructResource(ctx context.Context, data *CloudPcOrganizationSettingsRes
 	convert.FrameworkToGraphBool(data.EnableMEMAutoEnroll, requestBody.SetEnableMEMAutoEnroll)
 	convert.FrameworkToGraphBool(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
 
-	if err := convert.FrameworkToGraphEnum(
-		data.OsVersion,
-		models.ParseCloudPcOperatingSystem,
-		func(v models.CloudPcOperatingSystem) { requestBody.SetOsVersion(&v) },
-	); err != nil {
-		return nil, fmt.Errorf("failed to set os_version: %w", err)
+	if err := convert.FrameworkToGraphEnum(data.UserAccountType, models.ParseCloudPcUserAccountType, requestBody.SetUserAccountType); err != nil {
+		return nil, fmt.Errorf("invalid user account type: %s", err)
 	}
 
-	if err := convert.FrameworkToGraphEnum(
-		data.UserAccountType,
-		models.ParseCloudPcUserAccountType,
-		func(v models.CloudPcUserAccountType) { requestBody.SetUserAccountType(&v) },
-	); err != nil {
-		return nil, fmt.Errorf("failed to set user_account_type: %w", err)
+	if err := convert.FrameworkToGraphEnum(data.OsVersion, models.ParseCloudPcOperatingSystem, requestBody.SetOsVersion); err != nil {
+		return nil, fmt.Errorf("invalid run as account type: %s", err)
 	}
 
 	// WindowsSettings mapping
