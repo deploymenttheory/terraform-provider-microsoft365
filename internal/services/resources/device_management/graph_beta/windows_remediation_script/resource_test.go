@@ -178,6 +178,8 @@ func TestUnitWindowsRemediationScriptResource_Create_Maximal(t *testing.T) {
 					// Run once schedule assignment
 					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "assignments.*", map[string]string{
 						"type":                      "allDevicesAssignmentTarget",
+						"filter_id":                 "00000000-0000-0000-0000-000000000000",
+						"filter_type":               "none",
 						"run_once_schedule.date":    "2024-12-31",
 						"run_once_schedule.time":    "23:59:00",
 						"run_once_schedule.use_utc": "false",

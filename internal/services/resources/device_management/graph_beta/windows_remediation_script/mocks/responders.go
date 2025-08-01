@@ -2,7 +2,6 @@ package mocks
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -106,22 +105,21 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 
 			// Check if expand=assignments is requested
 			expandParam := req.URL.Query().Get("$expand")
-			fmt.Printf("DEBUG: GET request for script %s, expand param: %s\n", id, expandParam)
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the script data
 				if assignments, hasAssignments := script["assignments"]; hasAssignments && assignments != nil {
 					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
-						fmt.Printf("DEBUG: Found %d assignments for script %s\n", len(assignmentList), id)
-						fmt.Printf("DEBUG: Assignments data: %+v\n", assignments)
+
+						// Return assignments in Microsoft Graph SDK format (not transformed)
+						// The SDK will handle the transformation to Terraform structure
 						scriptCopy["assignments"] = assignments
+
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						fmt.Printf("DEBUG: Assignment list is empty for script %s, returning empty array\n", id)
 						scriptCopy["assignments"] = []interface{}{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					fmt.Printf("DEBUG: No assignments found for script %s, returning empty array\n", id)
 					scriptCopy["assignments"] = []interface{}{}
 				}
 			}
@@ -201,6 +199,19 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"The specified device health script was not found"}}`), nil
 			}
 
+			// For optional fields that can be null, we need to explicitly remove them if they're not in the PATCH request
+			// This simulates how Microsoft Graph API handles PATCH requests for optional fields
+			optionalFields := []string{"description"}
+
+			// Check if optional fields are missing from the request and remove them from the stored state
+			for _, field := range optionalFields {
+				if _, exists := requestBody[field]; !exists {
+					if _, existsInState := script[field]; existsInState {
+						delete(script, field)
+					}
+				}
+			}
+
 			// Update the script with new values
 			for key, value := range requestBody {
 				if value == nil {
@@ -260,11 +271,8 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 			var requestBody map[string]interface{}
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				fmt.Printf("DEBUG: Failed to decode assignment request body: %v\n", err)
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
-
-			// Assignment processing is working correctly, debug output removed
 
 			// Store assignments in the script
 			mockState.Lock()
@@ -274,7 +282,7 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
-						for i, assignment := range assignmentList {
+						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
 								// Generate a unique assignment ID
 								assignmentId := uuid.New().String()
@@ -287,10 +295,8 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 									// Copy target fields
 									for k, v := range targetData {
 										target[k] = v
-										fmt.Printf("DEBUG: Copied target field %s: %v\n", k, v)
 									}
 								} else {
-									fmt.Printf("DEBUG: No target data found in assignment %d\n", i)
 									continue
 								}
 
@@ -301,42 +307,14 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 									// Copy schedule fields with proper structure
 									for k, v := range scheduleData {
 										runSchedule[k] = v
-										fmt.Printf("DEBUG: Copied schedule field %s: %v\n", k, v)
 									}
 								}
 
-								// Convert @odata.type to terraform type field
-								if odataType, hasOdataType := target["@odata.type"].(string); hasOdataType {
-									fmt.Printf("DEBUG: Assignment @odata.type: %s\n", odataType)
-									switch odataType {
-									case "#microsoft.graph.groupAssignmentTarget":
-										target["type"] = "groupAssignmentTarget"
-									case "#microsoft.graph.allDevicesAssignmentTarget":
-										target["type"] = "allDevicesAssignmentTarget"
-									case "#microsoft.graph.allLicensedUsersAssignmentTarget":
-										target["type"] = "allLicensedUsersAssignmentTarget"
-									case "#microsoft.graph.exclusionGroupAssignmentTarget":
-										target["type"] = "exclusionGroupAssignmentTarget"
-									}
-								}
+								// Keep the @odata.type field as-is for SDK processing
+								// SDK will process the @odata.type field
 
-								// Map Microsoft Graph API field names to terraform field names
-								if filterId, hasFilterId := target["deviceAndAppManagementAssignmentFilterId"]; hasFilterId {
-									target["filter_id"] = filterId
-									delete(target, "deviceAndAppManagementAssignmentFilterId")
-									fmt.Printf("DEBUG: Mapped filter_id: %v\n", filterId)
-								}
-								if filterType, hasFilterType := target["deviceAndAppManagementAssignmentFilterType"]; hasFilterType {
-									target["filter_type"] = filterType
-									delete(target, "deviceAndAppManagementAssignmentFilterType")
-									fmt.Printf("DEBUG: Mapped filter_type: %v\n", filterType)
-								}
-								if groupId, hasGroupId := target["groupId"]; hasGroupId {
-									target["group_id"] = groupId
-									delete(target, "groupId")
-									fmt.Printf("DEBUG: Mapped group_id: %v\n", groupId)
-								}
-
+								// Keep original Microsoft Graph API field names for SDK processing
+								// The SDK will handle the field name mapping to Terraform structure
 								graphAssignment := map[string]interface{}{
 									"id":     assignmentId,
 									"target": target,
@@ -345,27 +323,21 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 								// Add runSchedule if present
 								if runSchedule != nil {
 									graphAssignment["runSchedule"] = runSchedule
-									fmt.Printf("DEBUG: Added runSchedule to assignment: %+v\n", runSchedule)
 								}
-								fmt.Printf("DEBUG: Created graph assignment: %+v\n", graphAssignment)
+
 								graphAssignments = append(graphAssignments, graphAssignment)
 							}
 						}
 						scriptData["assignments"] = graphAssignments
-						fmt.Printf("DEBUG: Stored %d assignments in script data\n", len(graphAssignments))
 					} else {
 						// Set empty assignments array instead of deleting
 						scriptData["assignments"] = []interface{}{}
-						fmt.Printf("DEBUG: Set empty assignments array\n")
 					}
 				} else {
 					// Set empty assignments array instead of deleting
 					scriptData["assignments"] = []interface{}{}
-					fmt.Printf("DEBUG: No assignments in request body, set empty array\n")
 				}
 				mockState.windowsRemediationScripts[scriptId] = scriptData
-			} else {
-				fmt.Printf("DEBUG: Script not found in mock state: %s\n", scriptId)
 			}
 			mockState.Unlock()
 
@@ -431,16 +403,6 @@ func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	// Register error response for Windows remediation script not found
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts/not-found-script",
 		factories.ErrorResponse(404, "ResourceNotFound", "Device health script not found"))
-}
-
-// Helper functions
-func getOptionalString(data map[string]interface{}, key, defaultValue string) string {
-	if value, exists := data[key]; exists {
-		if str, ok := value.(string); ok {
-			return str
-		}
-	}
-	return defaultValue
 }
 
 func getOptionalBool(data map[string]interface{}, key string, defaultValue bool) bool {
