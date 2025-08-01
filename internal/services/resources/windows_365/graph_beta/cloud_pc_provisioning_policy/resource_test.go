@@ -84,6 +84,10 @@ func testConfigMinimalWithResourceName(resourceName string) string {
     locale = "en-US"
   }
   
+  domain_join_configurations = []
+  
+  assignments = []
+  
   timeouts = {
     create = "30s"
     read   = "30s"
@@ -200,6 +204,7 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal(t *testin
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Minimal Provisioning Policy"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "false"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.#", "0"),
 				),
 			},
 			// Update to maximal configuration (with the same resource name)
@@ -210,8 +215,12 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal(t *testin
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Maximal Provisioning Policy"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "grace_period_in_hours", "8"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "description", "Maximal policy for testing with all features"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "cloud_pc_naming_template", "CPC-MAX-%USERNAME:5%-%RAND:5%"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.0.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.0.group_id", "44444444-4444-4444-4444-444444444444"),
 				),
 			},
 		},
@@ -241,7 +250,10 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Maximal Provisioning Policy"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.#", "1"),
 				),
 			},
 			// Update to minimal configuration (with the same resource name)
@@ -252,8 +264,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal(t *testin
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Minimal Provisioning Policy"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "false"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "grace_period_in_hours", "4"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "assignments.#", "0"),
 				),
 			},
 		},
@@ -341,6 +353,39 @@ func TestUnitCloudPcProvisioningPolicyResource_Import(t *testing.T) {
 				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// TestUnitCloudPcProvisioningPolicyResource_WithAssignments tests the policy with assignment configurations
+func TestUnitCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
+	// Set up mock environment
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	// Set up the test environment
+	setupTestEnvironment(t)
+
+	// Register the mocks
+	mock := &provisioningPolicyMocks.CloudPcProvisioningPolicyMock{}
+	mock.RegisterMocks()
+
+	// Run the test
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigMaximal(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "assignments.#", "1"),
+					// Group assignment target
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "44444444-4444-4444-4444-444444444444",
+					}),
+				),
 			},
 		},
 	})

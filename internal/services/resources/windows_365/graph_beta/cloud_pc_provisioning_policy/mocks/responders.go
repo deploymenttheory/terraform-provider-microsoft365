@@ -155,7 +155,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				policyData["autopilotConfiguration"] = autopilotConfig
 			}
 
-			// Handle nested attributes - always set if provided (including empty arrays)
+			// Handle nested attributes - only set if provided
 			if domainJoinConfigs, exists := requestBody["domainJoinConfigurations"]; exists {
 				// Ensure empty array is preserved as empty array, not null
 				if domainJoinConfigs == nil {
@@ -164,6 +164,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 					policyData["domainJoinConfigurations"] = domainJoinConfigs
 				}
 			}
+			// Note: Don't set domainJoinConfigurations if not provided - leave as null
 
 			if windowsSetting, exists := requestBody["windowsSetting"]; exists {
 				policyData["windowsSetting"] = windowsSetting
@@ -186,8 +187,14 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				policyData["applyToExistingCloudPcs"] = applyToExisting
 			}
 
-			// Initialize assignments as empty array
-			policyData["assignments"] = []interface{}{}
+			// Initialize assignments if provided
+			if assignments, exists := requestBody["assignments"]; exists {
+				if assignmentList, ok := assignments.([]interface{}); ok {
+					policyData["assignments"] = assignmentList
+				} else {
+					policyData["assignments"] = []interface{}{}
+				}
+			}
 
 			// Store in mock state
 			mockState.Lock()
@@ -225,6 +232,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			// Check for specific field patterns to simulate real API behavior
 
 			// For nested attributes and optional fields, if they're not in the request, remove them
+			// Exception: domainJoinConfigurations should be set to empty array if not provided
 			optionalFields := []string{
 				"description", 
 				"cloudPcNamingTemplate",
@@ -232,13 +240,23 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				"microsoftManagedDesktop", 
 				"autopatch", 
 				"autopilotConfiguration", 
-				"domainJoinConfigurations",
 				"applyToExistingCloudPcs",
-				"assignments",
 			}
 			for _, field := range optionalFields {
 				if _, hasField := requestBody[field]; !hasField {
 					delete(policyData, field)
+				}
+			}
+			
+			// Special handling for domainJoinConfigurations - remove if not provided in update
+			if _, hasField := requestBody["domainJoinConfigurations"]; !hasField {
+				delete(policyData, "domainJoinConfigurations")
+			}
+			
+			// Special handling for assignments - if explicitly provided as empty array, set as empty
+			if assignments, hasField := requestBody["assignments"]; hasField {
+				if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) == 0 {
+					policyData["assignments"] = []interface{}{}
 				}
 			}
 
