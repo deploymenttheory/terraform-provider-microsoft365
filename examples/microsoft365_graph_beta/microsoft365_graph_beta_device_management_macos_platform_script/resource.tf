@@ -21,22 +21,29 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
   # Role scope tag IDs (optional)
   role_scope_tag_ids = ["0"]
 
-  # Script assignments (optional)
-  assignments = {
-    all_devices = false
-    all_users   = false
+  # Assignments are defined as a set
+  assignments = [
+    # Optional: Assignment targeting a specific group
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Assignment targeting a specific group
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
 
-    include_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
-
+  ]
   # Timeouts configuration (optional)
   timeouts = {
     create = "30m"

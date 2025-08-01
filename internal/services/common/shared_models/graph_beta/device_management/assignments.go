@@ -56,3 +56,10 @@ type WindowsSoftwareUpdateAssignmentModel struct {
 	Type    types.String `tfsdk:"type"`     // "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 }
+
+// PlatformScriptAssignmentModel defines the schema for a MacOS Platform Script assignment.
+type PlatformScriptAssignmentModel struct {
+	// Target assignment fields - only one should be used at a time
+	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+}
