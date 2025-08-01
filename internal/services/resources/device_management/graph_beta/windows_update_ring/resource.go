@@ -370,60 +370,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Computed:            true,
 				MarkdownDescription: "Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.",
 			},
-			"uninstall": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings for update installation deadlines and reboot behavior.",
-				Attributes: map[string]schema.Attribute{
-					"feature_updates_will_be_rolled_back": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Indicates whether the latest feature updates are set to be uninstalled and paused for the Update Ring.",
-					},
-					"quality_updates_will_be_rolled_back": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Indicates whether quality updates will be rolled back automatically.",
-					},
-				},
-			},
-			"update_actions": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Actions to control update pause, resume, extend pause, and uninstall operations.",
-				Attributes: map[string]schema.Attribute{
-					"feature_updates": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Feature update control actions.",
-						Attributes: map[string]schema.Attribute{
-							"pause": schema.BoolAttribute{
-								Optional:            true,
-								MarkdownDescription: "Pause or resume feature updates. When true, pauses updates; when false, resumes updates.",
-							},
-							"extend_pause": schema.BoolAttribute{
-								Optional:            true,
-								MarkdownDescription: "Extend the pause period by 35 days (fixed duration). Only valid when updates are already paused.",
-							},
-							"trigger_uninstall": schema.BoolAttribute{
-								Optional:            true,
-								MarkdownDescription: "Trigger uninstall of feature updates by setting featureUpdatesWillBeRolledBack to true.",
-							},
-						},
-					},
-					"quality_updates": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Quality update control actions.",
-						Attributes: map[string]schema.Attribute{
-							"pause": schema.BoolAttribute{
-								Optional:            true,
-								MarkdownDescription: "Pause or resume quality updates. When true, pauses updates; when false, resumes updates.",
-							},
-							"trigger_uninstall": schema.BoolAttribute{
-								Optional:            true,
-								MarkdownDescription: "Trigger uninstall of quality updates by setting qualityUpdatesWillBeRolledBack to true.",
-							},
-						},
-					},
-				},
-			},
 			"quality_updates_paused": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -458,7 +404,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.",
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithGroupFilterAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

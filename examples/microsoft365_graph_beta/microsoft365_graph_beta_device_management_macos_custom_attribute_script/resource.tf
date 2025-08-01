@@ -7,20 +7,27 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
   run_as_account        = "system"
   file_name             = "example-script.sh"
 
-  assignments = {
-    all_devices = false
-    all_users   = false
-
-    include_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  # Optional: Assignments block
+  assignments = [
+    # Optional: inclusion group assignments
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   timeouts = {
     create = "30m"

@@ -1,22 +1,3 @@
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "minimal" {
-  display_name                             = "Test Minimal Windows Update Ring - Unique"
-  microsoft_update_service_allowed         = true
-  drivers_excluded                         = false
-  quality_updates_deferral_period_in_days  = 0
-  feature_updates_deferral_period_in_days  = 0
-  allow_windows11_upgrade                  = true
-  skip_checks_before_restart               = false
-  automatic_update_mode                    = "userDefined"
-  feature_updates_rollback_window_in_days  = 10
-  
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-}
-
 resource "microsoft365_graph_beta_device_management_windows_update_ring" "maximal" {
   display_name                             = "Test Maximal Windows Update Ring - Unique"
   description                              = "Maximal Windows update ring for testing with all features"
@@ -44,11 +25,6 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "maxima
   schedule_restart_warning_in_hours        = 4
   schedule_imminent_restart_warning_in_minutes = 15
   role_scope_tag_ids                       = ["0", "1"]
-  
-  uninstall = {
-    feature_updates_will_be_rolled_back = true
-    quality_updates_will_be_rolled_back = false
-  }
   
   deadline_settings = {
     deadline_for_feature_updates_in_days  = 7

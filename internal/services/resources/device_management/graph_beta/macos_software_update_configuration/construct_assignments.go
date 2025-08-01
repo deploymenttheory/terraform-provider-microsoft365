@@ -9,59 +9,63 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
-	graphsdkmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
 func constructAssignment(ctx context.Context, data *MacOSSoftwareUpdateConfigurationResourceModel) (devicemanagement.DeviceConfigurationsItemAssignPostRequestBodyable, error) {
-	if data.Assignments == nil {
-		return nil, fmt.Errorf("assignments configuration block is required even if empty. Minimum config requires all_devices and all_users booleans to be set to false")
-	}
-
-	tflog.Debug(ctx, "Starting assignment construction")
-
-	if err := validateAssignmentConfig(data.Assignments); err != nil {
-		return nil, err
-	}
+	tflog.Debug(ctx, "Starting Device Management Script assignment construction")
 
 	requestBody := devicemanagement.NewDeviceConfigurationsItemAssignPostRequestBody()
-	assignments := make([]graphsdkmodels.DeviceConfigurationAssignmentable, 0)
+	scriptAssignments := make([]graphmodels.DeviceConfigurationAssignmentable, 0)
 
-	// Check All Devices
-	if !data.Assignments.AllDevices.IsNull() && data.Assignments.AllDevices.ValueBool() {
-		assignments = append(assignments, constructAllDevicesAssignment())
+	if data.Assignments.IsNull() || data.Assignments.IsUnknown() {
+		tflog.Debug(ctx, "Assignments is null or unknown, creating empty assignments array")
+		requestBody.SetAssignments(scriptAssignments)
+		return requestBody, nil
 	}
 
-	// Check All Users
-	if !data.Assignments.AllUsers.IsNull() && data.Assignments.AllUsers.ValueBool() {
-		assignments = append(assignments, constructAllUsersAssignment())
+	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel
+	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
+	if diags.HasError() {
+		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
 	}
 
-	// Check Include Groups
-	if !data.Assignments.AllDevices.ValueBool() &&
-		!data.Assignments.AllUsers.ValueBool() &&
-		len(data.Assignments.IncludeGroupIds) > 0 {
-		for _, id := range data.Assignments.IncludeGroupIds {
-			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
-				assignments = append(assignments, constructGroupIncludeAssignments(data.Assignments)...)
-				break
-			}
+	for idx, assignment := range terraformAssignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+			"index": idx,
+		})
+
+		graphAssignment := graphmodels.NewDeviceConfigurationAssignment()
+
+		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+				"index": idx,
+			})
+			continue
 		}
-	}
 
-	// Check Exclude Groups
-	if len(data.Assignments.ExcludeGroupIds) > 0 {
-		for _, id := range data.Assignments.ExcludeGroupIds {
-			if !id.IsNull() && !id.IsUnknown() && id.ValueString() != "" {
-				assignments = append(assignments, constructGroupExcludeAssignments(data.Assignments)...)
-				break
-			}
+		targetType := assignment.Type.ValueString()
+
+		target := constructTarget(ctx, targetType, assignment)
+		if target == nil {
+			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+				"index":      idx,
+				"targetType": targetType,
+			})
+			continue
 		}
+
+		graphAssignment.SetTarget(target)
+
+		scriptAssignments = append(scriptAssignments, graphAssignment)
 	}
 
-	// Always set assignments (will be empty array if no active assignments)
-	// as update http method is a post not patch.
-	requestBody.SetAssignments(assignments)
+	tflog.Debug(ctx, "Completed assignment construction", map[string]interface{}{
+		"totalAssignments": len(scriptAssignments),
+	})
+
+	requestBody.SetAssignments(scriptAssignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
@@ -72,48 +76,43 @@ func constructAssignment(ctx context.Context, data *MacOSSoftwareUpdateConfigura
 	return requestBody, nil
 }
 
-// constructAllDevicesAssignment constructs and returns a DeviceConfigurationAssignment object for all devices
-func constructAllDevicesAssignment() graphsdkmodels.DeviceConfigurationAssignmentable {
-	assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
-	target := graphsdkmodels.NewAllDevicesAssignmentTarget()
-	assignment.SetTarget(target)
-	return assignment
-}
+// constructTarget creates the appropriate target based on the target type
+func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
 
-// constructAllUsersAssignment constructs and returns a DeviceConfigurationAssignment object for all licensed users
-func constructAllUsersAssignment() graphsdkmodels.DeviceConfigurationAssignmentable {
-	assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
-	target := graphsdkmodels.NewAllLicensedUsersAssignmentTarget()
-	assignment.SetTarget(target)
-	return assignment
-}
-
-// constructGroupIncludeAssignments constructs and returns a list of DeviceConfigurationAssignment objects for included groups
-func constructGroupIncludeAssignments(config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) []graphsdkmodels.DeviceConfigurationAssignmentable {
-	var assignments []graphsdkmodels.DeviceConfigurationAssignmentable
-	for _, groupId := range config.IncludeGroupIds {
-		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
-			assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
-			target := graphsdkmodels.NewGroupAssignmentTarget()
-			convert.FrameworkToGraphString(groupId, target.SetGroupId)
-			assignment.SetTarget(target)
-			assignments = append(assignments, assignment)
+	switch targetType {
+	case "allDevicesAssignmentTarget":
+		target = graphmodels.NewAllDevicesAssignmentTarget()
+	case "allLicensedUsersAssignmentTarget":
+		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
+	case "groupAssignmentTarget":
+		groupTarget := graphmodels.NewGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
 		}
-	}
-	return assignments
-}
-
-// constructGroupExcludeAssignments constructs and returns a list of DeviceConfigurationAssignment objects for excluded groups
-func constructGroupExcludeAssignments(config *sharedmodels.DeviceManagementScriptAssignmentResourceModel) []graphsdkmodels.DeviceConfigurationAssignmentable {
-	var assignments []graphsdkmodels.DeviceConfigurationAssignmentable
-	for _, groupId := range config.ExcludeGroupIds {
-		if !groupId.IsNull() && !groupId.IsUnknown() && groupId.ValueString() != "" {
-			assignment := graphsdkmodels.NewDeviceConfigurationAssignment()
-			target := graphsdkmodels.NewExclusionGroupAssignmentTarget()
-			convert.FrameworkToGraphString(groupId, target.SetGroupId)
-			assignment.SetTarget(target)
-			assignments = append(assignments, assignment)
+		target = groupTarget
+	case "exclusionGroupAssignmentTarget":
+		exclusionTarget := graphmodels.NewExclusionGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+				"targetType": targetType,
+			})
+			return nil
 		}
+		target = exclusionTarget
+	default:
+		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+			"targetType": targetType,
+		})
+		return nil
 	}
-	return assignments
+
+	return target
 }

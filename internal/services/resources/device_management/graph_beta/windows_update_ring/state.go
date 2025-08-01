@@ -41,21 +41,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 	data.QualityUpdatesPauseExpiryDateTime = convert.GraphToFrameworkTime(remoteResource.GetQualityUpdatesPauseExpiryDateTime())
 	data.QualityUpdatesRollbackStartDateTime = convert.GraphToFrameworkTime(remoteResource.GetQualityUpdatesRollbackStartDateTime())
 
-	// Handle uninstall settings - only set if any rollback field has a non-null value from the API
-	if remoteResource.GetFeatureUpdatesWillBeRolledBack() != nil ||
-		remoteResource.GetQualityUpdatesWillBeRolledBack() != nil {
-		data.UninstallSettings = &UninstallSettingsModel{
-			FeatureUpdatesWillBeRolledBack: convert.GraphToFrameworkBool(remoteResource.GetFeatureUpdatesWillBeRolledBack()),
-			QualityUpdatesWillBeRolledBack: convert.GraphToFrameworkBool(remoteResource.GetQualityUpdatesWillBeRolledBack()),
-		}
-	} else {
-		data.UninstallSettings = nil
-	}
-
-	// Update actions are not returned by the API - they are action triggers only
-	// So we set them to nil to indicate no actions are pending
-	data.UpdateActions = nil
-
 	data.SkipChecksBeforeRestart = convert.GraphToFrameworkBool(remoteResource.GetSkipChecksBeforeRestart())
 	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(remoteResource.GetBusinessReadyUpdatesOnly())
 	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(remoteResource.GetAutomaticUpdateMode())

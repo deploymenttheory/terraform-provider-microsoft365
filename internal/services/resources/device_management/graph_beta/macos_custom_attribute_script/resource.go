@@ -105,11 +105,6 @@ func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, r
 				Optional:            true,
 				MarkdownDescription: "Optional description for the device management script.",
 			},
-			"custom_attribute_name": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The name of the custom attribute.",
-			},
 			"custom_attribute_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The expected type of the custom attribute's value. Possible values: integer, string, dateTime.",

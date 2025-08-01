@@ -21,14 +21,6 @@ type IncludeGroup struct {
 	IncludeGroupsFilterId   types.String `tfsdk:"include_groups_filter_id"`
 }
 
-// DeviceManagementScriptAssignmentResourceModel struct to hold platform script assignment configuration
-type DeviceManagementScriptAssignmentResourceModel struct {
-	AllDevices      types.Bool     `tfsdk:"all_devices"`
-	AllUsers        types.Bool     `tfsdk:"all_users"`
-	IncludeGroupIds []types.String `tfsdk:"include_group_ids"`
-	ExcludeGroupIds []types.String `tfsdk:"exclude_group_ids"`
-}
-
 // DeviceCompliancePolicyAssignmentResourceModel struct to hold device compliance policy assignment configuration
 type DeviceCompliancePolicyAssignmentResourceModel struct {
 	// Target assignment fields - only one should be used at a time
@@ -40,19 +32,22 @@ type DeviceCompliancePolicyAssignmentResourceModel struct {
 
 }
 
-// DeviceManagementDeviceConfigurationAssignmentModel defines the schema for a Windows Remediation Script assignment.
-type DeviceManagementDeviceConfigurationAssignmentModel struct {
-	// Target assignment fields - only one should be used at a time
-	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
-	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
-	// Assignment filter fields
+// DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel defines the schema for a Windows Remediation Script assignment.
+type DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel struct {
+	Type       types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId    types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 	FilterId   types.String `tfsdk:"filter_id"`
 	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"
 }
 
+// DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel defines the schema for a Windows Remediation Script assignment.
+type DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel struct {
+	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+}
+
 // WindowsSoftwareUpdateAssignmentModel defines the schema for a Windows Software Update assignment.
 type WindowsSoftwareUpdateAssignmentModel struct {
-	// Target assignment fields - only one should be used at a time
 	Type    types.String `tfsdk:"type"`     // "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 }

@@ -1,4 +1,4 @@
-package graphBetaMacOSSoftwareUpdateConfiguration
+package graphBetaMacOSCustomAttributeScript
 
 import (
 	"context"
@@ -7,12 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MacOSSoftwareUpdateAssignmentType returns the object type for MacOSSoftwareUpdateAssignmentModel
-func MacOSSoftwareUpdateAssignmentType() attr.Type {
+// MacOSCustomAttributeScriptAssignmentType returns the object type for MacOSCustomAttributeScriptAssignmentModel
+func MacOSCustomAttributeScriptAssignmentType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"type":     types.StringType,
@@ -22,10 +21,10 @@ func MacOSSoftwareUpdateAssignmentType() attr.Type {
 }
 
 // MapAssignmentsToTerraform maps the remote DeviceManagementScript assignments to Terraform state
-func MapAssignmentsToTerraform(ctx context.Context, data *MacOSSoftwareUpdateConfigurationResourceModel, assignments []graphmodels.DeviceConfigurationAssignmentable) {
+func MapAssignmentsToTerraform(ctx context.Context, data *DeviceCustomAttributeShellScriptResourceModel, assignments []graphmodels.DeviceManagementScriptAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = types.SetNull(MacOSSoftwareUpdateAssignmentType())
+		data.Assignments = types.SetNull(MacOSCustomAttributeScriptAssignmentType())
 		return
 	}
 
@@ -186,7 +185,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *MacOSSoftwareUpdateCon
 			"resourceId":      data.ID.ValueString(),
 		})
 
-		objValue, diags := types.ObjectValue(MacOSSoftwareUpdateAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		objValue, diags := types.ObjectValue(MacOSCustomAttributeScriptAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
 		if !diags.HasError() {
 			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
 				"assignmentIndex": i,
@@ -211,13 +210,13 @@ func MapAssignmentsToTerraform(ctx context.Context, data *MacOSSoftwareUpdateCon
 	})
 
 	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(MacOSSoftwareUpdateAssignmentType(), assignmentValues)
+		setVal, diags := types.SetValue(MacOSCustomAttributeScriptAssignmentType(), assignmentValues)
 		if diags.HasError() {
 			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
 				"errors":     diags.Errors(),
 				"resourceId": data.ID.ValueString(),
 			})
-			data.Assignments = types.SetNull(MacOSSoftwareUpdateAssignmentType())
+			data.Assignments = types.SetNull(MacOSCustomAttributeScriptAssignmentType())
 		} else {
 			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
 				"assignmentCount": len(assignmentValues),
@@ -229,7 +228,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *MacOSSoftwareUpdateCon
 		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
 			"resourceId": data.ID.ValueString(),
 		})
-		data.Assignments = types.SetNull(MacOSSoftwareUpdateAssignmentType())
+		data.Assignments = types.SetNull(MacOSCustomAttributeScriptAssignmentType())
 	}
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{

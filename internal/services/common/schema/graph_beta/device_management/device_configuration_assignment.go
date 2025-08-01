@@ -10,9 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-func DeviceConfigurationAssignmentsSchema() schema.SetNestedAttribute {
+// DeviceConfigurationWithGroupFilterAssignmentsSchema is a schema for device configuration
+// assignments that support group filters.
+func DeviceConfigurationWithGroupFilterAssignmentsSchema() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
-		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
+		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters.",
 		Optional:            true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
@@ -58,6 +60,41 @@ func DeviceConfigurationAssignmentsSchema() schema.SetNestedAttribute {
 					Default:             stringdefault.StaticString("none"),
 					Validators: []validator.String{
 						stringvalidator.OneOf("include", "exclude", "none"),
+					},
+				},
+			},
+		},
+	}
+}
+
+// DeviceConfigurationWithoutGroupFilterAssignmentsSchema is a schema for device configuration
+// assignments that do not support group filters.
+func DeviceConfigurationWithoutGroupFilterAssignmentsSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
+		Optional:            true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"allDevicesAssignmentTarget",
+							"allLicensedUsersAssignmentTarget",
+							"groupAssignmentTarget",
+							"exclusionGroupAssignmentTarget",
+						),
+					},
+				},
+				"group_id": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+						),
 					},
 				},
 			},

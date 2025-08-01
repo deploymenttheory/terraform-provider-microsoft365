@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_attribute_name` (String) The name of the custom attribute.
 - `description` (String) Optional description for the device management script.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
@@ -95,12 +95,13 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
 Optional:
 
-- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_users`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `exclude_group_ids`.
-- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_devices`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `exclude_group_ids`.
-- `exclude_group_ids` (Set of String) A set of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
-- `include_group_ids` (Set of String) A set of entra id group Id's to include in the assignment.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>

@@ -3,396 +3,308 @@ package graphBetaMacOSSoftwareUpdateConfiguration_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// TestAccMacOSSoftwareUpdateConfigurationResource_Create_Minimal tests creating a configuration with minimal settings
-func TestAccMacOSSoftwareUpdateConfigurationResource_Create_Minimal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal"
-
+func TestAccMacOSSoftwareUpdateConfigurationResource_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
-				Config: testAccConfigMinimal(),
+				Config: testAccMacOSSoftwareUpdateConfigurationConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Minimal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "default"),
-					resource.TestCheckResourceAttr(resourceName, "config_data_update_behavior", "default"),
-					resource.TestCheckResourceAttr(resourceName, "firmware_update_behavior", "default"),
-					resource.TestCheckResourceAttr(resourceName, "all_other_update_behavior", "default"),
-					resource.TestCheckResourceAttr(resourceName, "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr(resourceName, "update_time_window_utc_offset_in_minutes", "0"),
-					resource.TestCheckResourceAttr(resourceName, "assignments.all_devices", "false"),
-					resource.TestCheckResourceAttr(resourceName, "assignments.all_users", "false"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "installASAP"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "config_data_update_behavior", "installASAP"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "firmware_update_behavior", "installASAP"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "all_other_update_behavior", "installASAP"),
 				),
 			},
-		},
-	})
-}
-
-// TestAccMacOSSoftwareUpdateConfigurationResource_Create_Maximal tests creating a configuration with maximal settings
-func TestAccMacOSSoftwareUpdateConfigurationResource_Create_Maximal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
-		Steps: []resource.TestStep{
-			// Create with maximal configuration
+			// ImportState testing
 			{
-				Config: testAccConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Maximal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a comprehensive configuration with all fields populated"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr(resourceName, "config_data_update_behavior", "notifyOnly"),
-					resource.TestCheckResourceAttr(resourceName, "firmware_update_behavior", "downloadOnly"),
-					resource.TestCheckResourceAttr(resourceName, "all_other_update_behavior", "installLater"),
-					resource.TestCheckResourceAttr(resourceName, "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr(resourceName, "update_time_window_utc_offset_in_minutes", "60"),
-					resource.TestCheckResourceAttr(resourceName, "max_user_deferrals_count", "3"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "high"),
-					resource.TestCheckResourceAttr(resourceName, "assignments.all_devices", "true"),
-					resource.TestCheckResourceAttr(resourceName, "assignments.all_users", "false"),
-				),
-			},
-		},
-	})
-}
-
-// TestAccMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestAccMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
-		Steps: []resource.TestStep{
-			// Start with minimal configuration
-			{
-				Config: testAccConfigMinimalNamed("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Minimal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "default"),
-					// Verify minimal config doesn't have these attributes
-					resource.TestCheckNoResourceAttr(resourceName, "description"),
-					resource.TestCheckNoResourceAttr(resourceName, "max_user_deferrals_count"),
-					resource.TestCheckNoResourceAttr(resourceName, "priority"),
-				),
-			},
-			// Update to maximal configuration
-			{
-				Config: testAccConfigMaximalNamed("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Maximal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a comprehensive configuration with all fields populated"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr(resourceName, "config_data_update_behavior", "notifyOnly"),
-					resource.TestCheckResourceAttr(resourceName, "firmware_update_behavior", "downloadOnly"),
-					resource.TestCheckResourceAttr(resourceName, "all_other_update_behavior", "installLater"),
-					resource.TestCheckResourceAttr(resourceName, "max_user_deferrals_count", "3"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "high"),
-				),
-			},
-		},
-	})
-}
-
-// TestAccMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestAccMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
-		Steps: []resource.TestStep{
-			// Start with maximal configuration
-			{
-				Config: testAccConfigMaximalNamed("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Maximal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a comprehensive configuration with all fields populated"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr(resourceName, "max_user_deferrals_count", "3"),
-				),
-			},
-			// Update to minimal configuration
-			{
-				Config: testAccConfigMinimalNamed("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Minimal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "critical_update_behavior", "default"),
-				),
-			},
-		},
-	})
-}
-
-// TestAccMacOSSoftwareUpdateConfigurationResource_Import tests importing a resource
-func TestAccMacOSSoftwareUpdateConfigurationResource_Import(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
-		Steps: []resource.TestStep{
-			// Create
-			{
-				Config: testAccConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-				),
-			},
-			// Import
-			{
-				ResourceName:      resourceName,
+				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-		},
-	})
-}
-
-// TestAccMacOSSoftwareUpdateConfigurationResource_CustomTimeWindows tests configuration with custom update time windows
-func TestAccMacOSSoftwareUpdateConfigurationResource_CustomTimeWindows(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_management_macos_software_update_configuration.custom"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConfigurationDestroy,
-		Steps: []resource.TestStep{
-			// Create with custom time windows
+			// Update to maximal configuration
 			{
-				Config: testAccConfigCustomTimeWindows(),
+				Config: testAccMacOSSoftwareUpdateConfigurationConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "TF Acc Test Custom Time Windows macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr(resourceName, "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.0.start_day", "monday"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.0.end_day", "monday"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.0.start_time", "10:00:00"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.0.end_time", "18:00:00"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.1.start_day", "wednesday"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.1.end_day", "friday"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.1.start_time", "09:00:00"),
-					resource.TestCheckResourceAttr(resourceName, "custom_update_time_windows.1.end_time", "17:00:00"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration - Updated"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Updated description for acceptance testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "max_user_deferrals_count", "3"),
+				),
+			},
+			// Update back to minimal configuration
+			{
+				Config: testAccMacOSSoftwareUpdateConfigurationConfig_minimal(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
 				),
 			},
 		},
 	})
 }
 
-// Helper functions for acceptance tests
+func TestAccMacOSSoftwareUpdateConfigurationResource_WithAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create with assignments
+			{
+				Config: testAccMacOSSoftwareUpdateConfigurationConfig_withAssignments(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "display_name", "Test macOS Software Update Configuration with Assignments"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "assignments.0.type", "groupAssignmentTarget"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccMacOSSoftwareUpdateConfigurationResource_RequiredFields(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingDisplayName(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingUpdateScheduleType(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingCriticalUpdateBehavior(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingConfigDataUpdateBehavior(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingFirmwareUpdateBehavior(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingAllOtherUpdateBehavior(),
+				ExpectError: regexp.MustCompile("Missing required argument"),
+			},
+		},
+	})
+}
+
+func TestAccMacOSSoftwareUpdateConfigurationResource_InvalidValues(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_invalidUpdateScheduleType(),
+				ExpectError: regexp.MustCompile("Attribute update_schedule_type value must be one of"),
+			},
+			{
+				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_invalidPriority(),
+				ExpectError: regexp.MustCompile("Attribute priority value must be one of"),
+			},
+		},
+	})
+}
 
 func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
-		"ARM_TENANT_ID",
+	if os.Getenv("ARM_TENANT_ID") == "" {
+		t.Skip("ARM_TENANT_ID must be set for acceptance tests")
 	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
+	if os.Getenv("ARM_CLIENT_ID") == "" {
+		t.Skip("ARM_CLIENT_ID must be set for acceptance tests")
+	}
+	if os.Getenv("ARM_CLIENT_SECRET") == "" {
+		t.Skip("ARM_CLIENT_SECRET must be set for acceptance tests")
 	}
 }
 
-func testAccCheckConfigurationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("resource ID not set")
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckConfigurationDestroy(s *terraform.State) error {
-	// In a real test, we would verify the configuration is removed
-	// For this resource, we don't need to check anything special since removing
-	// the resource will remove the configuration
-	return nil
-}
-
-// Test configurations
-
-// Minimal configuration with default resource name
-func testAccConfigMinimal() string {
+func testAccMacOSSoftwareUpdateConfigurationConfig_minimal() string {
 	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "minimal" {
-  display_name                          = "TF Acc Test Minimal macOS Software Update Configuration"
-  critical_update_behavior              = "default"
-  config_data_update_behavior           = "default"
-  firmware_update_behavior              = "default"
-  all_other_update_behavior             = "default"
-  update_schedule_type                  = "alwaysUpdate"
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name           = "Test Acceptance macOS Software Update Configuration"
+  update_schedule_type   = "alwaysUpdate"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
   update_time_window_utc_offset_in_minutes = 0
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-  }
 }
 `
 }
 
-// Minimal configuration with custom resource name
-func testAccConfigMinimalNamed(resourceName string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "%s" {
-  display_name                          = "TF Acc Test Minimal macOS Software Update Configuration"
-  critical_update_behavior              = "default"
-  config_data_update_behavior           = "default"
-  firmware_update_behavior              = "default"
-  all_other_update_behavior             = "default"
-  update_schedule_type                  = "alwaysUpdate"
-  update_time_window_utc_offset_in_minutes = 0
-
-  assignments = {
-    all_devices = false
-    all_users   = false
-  }
-}
-`, resourceName)
-}
-
-// Maximal configuration with default resource name
-func testAccConfigMaximal() string {
+func testAccMacOSSoftwareUpdateConfigurationConfig_maximal() string {
 	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "maximal" {
-  display_name                          = "TF Acc Test Maximal macOS Software Update Configuration"
-  description                           = "This is a comprehensive configuration with all fields populated"
-  critical_update_behavior              = "installASAP"
-  config_data_update_behavior           = "notifyOnly"
-  firmware_update_behavior              = "downloadOnly"
-  all_other_update_behavior             = "installLater"
-  update_schedule_type                  = "updateDuringTimeWindows"
-  update_time_window_utc_offset_in_minutes = 60
-  max_user_deferrals_count              = 3
-  priority                              = "high"
-  role_scope_tag_ids                    = ["0"]
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`
-}
-
-// Maximal configuration with custom resource name
-func testAccConfigMaximalNamed(resourceName string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "%s" {
-  display_name                          = "TF Acc Test Maximal macOS Software Update Configuration"
-  description                           = "This is a comprehensive configuration with all fields populated"
-  critical_update_behavior              = "installASAP"
-  config_data_update_behavior           = "notifyOnly"
-  firmware_update_behavior              = "downloadOnly"
-  all_other_update_behavior             = "installLater"
-  update_schedule_type                  = "updateDuringTimeWindows"
-  update_time_window_utc_offset_in_minutes = 60
-  max_user_deferrals_count              = 3
-  priority                              = "high"
-  role_scope_tag_ids                    = ["0"]
-
-  assignments = {
-    all_devices = true
-    all_users   = false
-  }
-}
-`, resourceName)
-}
-
-// Configuration with custom update time windows
-func testAccConfigCustomTimeWindows() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "custom" {
-  display_name                          = "TF Acc Test Custom Time Windows macOS Software Update Configuration"
-  description                           = "Configuration with custom update time windows"
-  critical_update_behavior              = "installASAP"
-  config_data_update_behavior           = "notifyOnly"
-  firmware_update_behavior              = "downloadOnly"
-  all_other_update_behavior             = "installLater"
-  update_schedule_type                  = "updateDuringTimeWindows"
-  update_time_window_utc_offset_in_minutes = 60
-
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name           = "Test Acceptance macOS Software Update Configuration - Updated"
+  description           = "Updated description for acceptance testing"
+  update_schedule_type   = "updateDuringTimeWindows"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = -480
+  max_user_deferrals_count = 3
+  priority = "high"
+  role_scope_tag_ids = ["0", "1"]
+  
   custom_update_time_windows = [
     {
       start_day = "monday"
-      end_day   = "monday"
-      start_time = "10:00:00"
-      end_time   = "18:00:00"
-    },
-    {
-      start_day = "wednesday"
-      end_day   = "friday"
-      start_time = "09:00:00"
-      end_time   = "17:00:00"
+      end_day = "friday"
+      start_time = "02:00:00"
+      end_time = "06:00:00"
     }
   ]
+}
+`
+}
 
-  assignments = {
-    all_devices = false
-    all_users   = true
-  }
+func testAccMacOSSoftwareUpdateConfigurationConfig_withAssignments() string {
+	return fmt.Sprintf(`
+data "azuread_group" "test_group" {
+  display_name = "Test Group"
+}
+
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test_assignments" {
+  display_name           = "Test macOS Software Update Configuration with Assignments"
+  update_schedule_type   = "alwaysUpdate"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = 0
+
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group.object_id
+    }
+  ]
+}
+`)
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingDisplayName() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  update_schedule_type   = "alwaysUpdate"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = 0
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingUpdateScheduleType() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = 0
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingCriticalUpdateBehavior() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "alwaysUpdate"
+  config_data_update_behavior = "downloadInstallRestart"
+  firmware_update_behavior = "downloadInstallRestart"
+  all_other_update_behavior = "downloadInstallRestart"
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingConfigDataUpdateBehavior() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "alwaysUpdate"
+  critical_update_behavior = "downloadInstallRestart"
+  firmware_update_behavior = "downloadInstallRestart"
+  all_other_update_behavior = "downloadInstallRestart"
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingFirmwareUpdateBehavior() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "alwaysUpdate"
+  critical_update_behavior = "downloadInstallRestart"
+  config_data_update_behavior = "downloadInstallRestart"
+  all_other_update_behavior = "downloadInstallRestart"
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_missingAllOtherUpdateBehavior() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "alwaysUpdate"
+  critical_update_behavior = "downloadInstallRestart"
+  config_data_update_behavior = "downloadInstallRestart"
+  firmware_update_behavior = "downloadInstallRestart"
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_invalidUpdateScheduleType() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "invalid"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = 0
+}
+`
+}
+
+func testAccMacOSSoftwareUpdateConfigurationConfig_invalidPriority() string {
+	return `
+resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
+  display_name = "Test Configuration"
+  update_schedule_type = "alwaysUpdate"
+  critical_update_behavior = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior = "installASAP"
+  all_other_update_behavior = "installASAP"
+  update_time_window_utc_offset_in_minutes = 0
+  priority = "invalid"
 }
 `
 }

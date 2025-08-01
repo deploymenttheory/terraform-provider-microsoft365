@@ -45,20 +45,27 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
   file_name               = "example_script.ps1"
   run_as_32_bit           = false
 
-  assignments = {
-    all_devices = false
-    all_users   = false
-
-    include_group_ids = [
-      "51a96cdd-4b9b-4849-b416-8c94a6d88797",
-      "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
-    ]
-
-    exclude_group_ids = [
-      "b8c661c2-fa9a-4351-af86-adc1729c343f",
-      "f6ebd6ff-501e-4b3d-a00b-a2e102c3fa0f"
-    ]
-  }
+  # Optional: Assignments block
+  assignments = [
+    # Optional: inclusion group assignments
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   timeouts = {
     create = "1m"
@@ -81,7 +88,7 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Intune device management platform script. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the windows platform script.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
@@ -95,12 +102,13 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
+
 Optional:
 
-- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_users`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `exclude_group_ids`.
-- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_devices`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `exclude_group_ids`.
-- `exclude_group_ids` (Set of String) A set of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
-- `include_group_ids` (Set of String) A set of entra id group Id's to include in the assignment.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>

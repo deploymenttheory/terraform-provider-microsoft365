@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -200,36 +200,8 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 					stringvalidator.OneOf("low", "high", "unknownFutureValue"),
 				},
 			},
-			"assignments": assignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithoutGroupFilterAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
-		},
-	}
-}
-
-// assignmentsSchema returns the schema for the assignments block
-func assignmentsSchema() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Required:            true,
-		MarkdownDescription: "Assignment configuration for the macOS software update configuration.",
-		Attributes: map[string]schema.Attribute{
-			"all_devices": schema.BoolAttribute{
-				MarkdownDescription: "Whether to assign the configuration to all devices.",
-				Required:            true,
-			},
-			"all_users": schema.BoolAttribute{
-				MarkdownDescription: "Whether to assign the configuration to all users.",
-				Required:            true,
-			},
-			"include_group_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of group IDs to include in the assignment.",
-				Optional:            true,
-			},
-			"exclude_group_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of group IDs to exclude from the assignment.",
-				Optional:            true,
-			},
 		},
 	}
 }

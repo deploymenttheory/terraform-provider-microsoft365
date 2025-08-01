@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation.
@@ -29,9 +29,6 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 		return
 	}
 	defer cancel()
-
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
 
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
@@ -54,35 +51,25 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 
 	object.ID = types.StringValue(*createdResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &object)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-			_, err = r.client.
-				DeviceManagement().
-				DeviceConfigurations().
-				ByDeviceConfigurationId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -127,6 +114,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Read(ctx context.Context, req
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -137,27 +125,18 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Read(ctx context.Context, req
 		DeviceManagement().
 		DeviceConfigurations().
 		ByDeviceConfigurationId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.DeviceConfigurationsDeviceConfigurationItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
 	mapRemoteResourceStateToTerraform(ctx, &object, resourceItem)
-
-	assignmentsResp, err := r.client.
-		DeviceManagement().
-		DeviceConfigurations().
-		ByDeviceConfigurationId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResp)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -206,27 +185,26 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 		return
 	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, &plan)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for update method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		_, err = r.client.
-			DeviceManagement().
-			DeviceConfigurations().
-			ByDeviceConfigurationId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	_, err = r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

@@ -25,7 +25,7 @@ func constructAssignment(ctx context.Context, data *WindowsUpdateRingResourceMod
 		return requestBody, nil
 	}
 
-	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentModel
+	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel
 	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
 	if diags.HasError() {
 		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
@@ -77,7 +77,7 @@ func constructAssignment(ctx context.Context, data *WindowsUpdateRingResourceMod
 }
 
 // constructTarget creates the appropriate target based on the target type
-func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
 	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
 
 	switch targetType {
