@@ -11,7 +11,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "minimal" {
       notification_receivers = [
         {
           contact_information = "admin@test.com"
-          locale             = "en-US"
+          locale              = "en-US"
         }
       ]
     }
@@ -25,8 +25,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "minimal" {
 
   conditions = [
     {
-      relationship_type   = "and"
-      condition_category  = "provisionFailures"
+      relationship_type  = "and"
+      condition_category = "provisionFailures"
       aggregation        = "count"
       operator           = "greaterOrEqual"
       threshold_value    = "1"

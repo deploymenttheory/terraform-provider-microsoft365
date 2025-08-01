@@ -6,7 +6,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "m
   windows_settings = {
     language = "en-US"
   }
-  
+
   timeouts = {
     create = "30s"
     read   = "30s"
