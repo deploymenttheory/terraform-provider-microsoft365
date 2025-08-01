@@ -56,7 +56,6 @@ ignore:
   - "*.yaml"
   - "go.mod"
   - "go.sum"
-  - "main.go"
   - "**/*_test.go"
   - "**/testdata/**"
   - "**/mocks/**"
