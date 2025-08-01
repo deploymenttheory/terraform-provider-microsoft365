@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.22.0-alpha...v0.23.0-alpha) (2025-07-31)
+
+
+### Features
+
+* app protection policy assignments (mam) , reinstated windows update rings ([#627](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/627)) ([949f6f0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/949f6f04bc1907533d3aa8869b776f9f786c332d))
+
+
+### Bug Fixes
+
+* branch merge ([#634](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/634)) ([82ee18e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/82ee18e3c3a609d43df78bbe7173b29430b02922))
+* unit tests ([#635](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/635)) ([8f1b315](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8f1b31508633b5ba9c0cc82ff33fc561626a80b2))
+* unit tests for windows 365 and assignment logic ([#638](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/638)) ([47c26af](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/47c26afa78a634986f6eac891cee53ee17449581))
+
 ## [0.22.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.21.3-alpha...v0.22.0-alpha) (2025-07-21)
 
 
