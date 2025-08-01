@@ -298,7 +298,7 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 								var runSchedule map[string]interface{}
 								if scheduleData, hasSchedule := assignmentMap["runSchedule"].(map[string]interface{}); hasSchedule {
 									runSchedule = make(map[string]interface{})
-									// Copy schedule fields
+									// Copy schedule fields with proper structure
 									for k, v := range scheduleData {
 										runSchedule[k] = v
 										fmt.Printf("DEBUG: Copied schedule field %s: %v\n", k, v)
@@ -450,13 +450,4 @@ func getOptionalBool(data map[string]interface{}, key string, defaultValue bool)
 		}
 	}
 	return defaultValue
-}
-
-func getOptionalArray(data map[string]interface{}, key string) []interface{} {
-	if value, exists := data[key]; exists {
-		if arr, ok := value.([]interface{}); ok {
-			return arr
-		}
-	}
-	return []interface{}{}
 }

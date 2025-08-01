@@ -1,7 +1,6 @@
 resource "microsoft365_graph_beta_device_management_macos_custom_attribute_script" "maximal" {
   display_name           = "Test Maximal macOS Custom Attribute Script - Unique"
   description            = "Maximal custom attribute script for testing with all features"
-  custom_attribute_name  = "SystemInfoAttribute"
   custom_attribute_type  = "string"
   file_name              = "test_maximal.sh"
   script_content         = <<-EOT

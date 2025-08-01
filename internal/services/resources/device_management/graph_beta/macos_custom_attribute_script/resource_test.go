@@ -63,18 +63,17 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 
 	// Replace the resource name
 	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-	
+
 	// Fix the display name to match test expectations
 	updated = strings.Replace(updated, "Test Maximal macOS Custom Attribute Script - Unique", "Test Maximal macOS Custom Attribute Script", 1)
 
 	return updated
 }
 
-// Helper function to get minimal config with a custom resource name  
+// Helper function to get minimal config with a custom resource name
 func testConfigMinimalWithResourceName(resourceName string) string {
 	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_management_macos_custom_attribute_script" "%s" {
   display_name          = "Test Minimal macOS Custom Attribute Script"
-  custom_attribute_name = "TestAttribute"
   custom_attribute_type = "string"
   file_name             = "test_minimal.sh"
   script_content        = "#!/bin/bash\necho 'Test Value'\nexit 0"
@@ -111,7 +110,6 @@ func TestUnitMacOSCustomAttributeScriptResource_Create_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal", "display_name", "Test Minimal macOS Custom Attribute Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal", "custom_attribute_name", "TestAttribute"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal", "custom_attribute_type", "string"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal", "file_name", "test_minimal.sh"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.minimal", "run_as_account", "system"),
@@ -149,7 +147,6 @@ func TestUnitMacOSCustomAttributeScriptResource_Create_Maximal(t *testing.T) {
 					testCheckExists("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "display_name", "Test Maximal macOS Custom Attribute Script - Unique"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "description", "Maximal custom attribute script for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "custom_attribute_name", "SystemInfoAttribute"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "custom_attribute_type", "string"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "file_name", "test_maximal.sh"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.maximal", "run_as_account", "user"),
@@ -201,7 +198,6 @@ func TestUnitMacOSCustomAttributeScriptResource_Update_MinimalToMaximal(t *testi
 					testCheckExists("microsoft365_graph_beta_device_management_macos_custom_attribute_script.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.test", "display_name", "Test Maximal macOS Custom Attribute Script"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.test", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.test", "custom_attribute_name", "SystemInfoAttribute"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_custom_attribute_script.test", "role_scope_tag_ids.#", "2"),
 				),
 			},

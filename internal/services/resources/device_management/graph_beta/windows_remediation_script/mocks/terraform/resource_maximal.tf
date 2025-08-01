@@ -59,6 +59,23 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
         time     = "09:00:00"
         use_utc  = true
       }
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "33333333-3333-3333-3333-333333333333"
+      filter_id = "66666666-6666-6666-6666-666666666666"
+      filter_type = "exclude"
+      hourly_schedule = {
+        interval = 4
+      }
+    },
+    {
+      type     = "allDevicesAssignmentTarget"
+      run_once_schedule = {
+        date    = "2024-12-31"
+        time    = "23:59:00"
+        use_utc = false
+      }
     }
   ]
   
