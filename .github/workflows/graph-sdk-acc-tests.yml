@@ -1,0 +1,90 @@
+name: Graph SDK Acceptance Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+    paths:
+      - 'go.mod'
+      - 'go.sum'
+
+jobs:
+  check-dependabot-sdk:
+    name: '🔍 Check SDK Dependencies'
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      is-sdk-update: ${{ steps.check-sdk.outputs.is-sdk-update }}
+    steps:
+      - name: Check PR title for SDK updates
+        id: check-sdk
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ "$PR_TITLE" =~ "msgraph-sdk-go" ]] || [[ "$PR_TITLE" =~ "msgraph-beta-sdk-go" ]]; then
+            echo "is-sdk-update=true" >> $GITHUB_OUTPUT
+            echo "SDK dependency update detected"
+          else
+            echo "is-sdk-update=false" >> $GITHUB_OUTPUT
+            echo "Not an SDK dependency update"
+          fi
+
+  sdk-acceptance-tests:
+    name: '🧪 Graph SDK Acceptance Tests'
+    needs: check-dependabot-sdk
+    if: needs.check-dependabot-sdk.outputs.is-sdk-update == 'true'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 300
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+          
+      - name: Check Out  
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          go-version: stable
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run acceptance tests
+        env:
+          TF_ACC: 1
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
+          M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
+          M365_AUTH_METHOD: client_secret
+          M365_CLOUD: public
+        run: |
+          echo "Running acceptance tests for SDK dependency update..."
+          if [ -z "$M365_TENANT_ID" ]; then
+            echo "ERROR: Acceptance tests cannot run - environment variables not configured"
+            echo "SDK updates require acceptance test validation"
+            exit 1
+          else
+            echo "Running acceptance tests with updated SDK..."
+            TF_ACC=1 go test -p 5 -timeout 300m -v ./...
+          fi
+
+      - name: Comment on PR - Success
+        if: success()
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "✅ SDK acceptance tests passed! The dependency update is compatible."
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Comment on PR - Failure
+        if: failure()
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "❌ SDK acceptance tests failed! Please review the changes before merging."
+        env:
+          GH_TOKEN: ${{ github.token }}
