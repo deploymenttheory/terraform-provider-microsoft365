@@ -1,15 +1,13 @@
 package graphBetaCloudPcOrganizationSettings_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	organizationSettingsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_organization_settings/mocks"
+	cloudPcOrganizationSettingsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_organization_settings/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
@@ -19,10 +17,10 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func setupMockEnvironment() (*organizationSettingsMocks.OrganizationSettingsMock, *organizationSettingsMocks.OrganizationSettingsMock) {
+func setupMockEnvironment() (*cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock, *cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock) {
 	httpmock.Activate()
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
-	errorMock := &organizationSettingsMocks.OrganizationSettingsMock{}
+	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
+	errorMock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
 	return mock, errorMock
 }
 
@@ -33,15 +31,6 @@ func setupTestEnvironment(t *testing.T) {
 // testCheckExists is a basic check to ensure the resource exists in the state
 func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
 }
 
 // testConfigMaximal returns the maximal configuration for testing
@@ -55,23 +44,15 @@ func testConfigMaximal() string {
 
 // Helper function to get maximal config with a custom resource name
 func testConfigMaximalWithResourceName(resourceName string) string {
-	// Read the maximal config
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-
-	// Replace the resource name
-	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-
-	return updated
-}
-
-// Helper function to get minimal config with a custom resource name
-func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "%s" {
-  enable_mem_auto_enroll = false
-  enable_single_sign_on  = false
+	return `
+resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "` + resourceName + `" {
+  enable_mem_auto_enroll = true
+  enable_single_sign_on  = true
+  os_version             = "windows11"
+  user_account_type      = "standardUser"
+  windows_settings = {
+    language = "en-US"
+  }
   
   timeouts = {
     create = "30s"
@@ -79,11 +60,12 @@ func testConfigMinimalWithResourceName(resourceName string) string {
     update = "30s"
     delete = "30s"
   }
-}`, resourceName)
+}
+`
 }
 
-// TestUnitOrganizationSettingsResource_Create_Minimal tests the creation of organization settings with minimal configuration
-func TestUnitOrganizationSettingsResource_Create_Minimal(t *testing.T) {
+// TestUnitCloudPcOrganizationSettingsResource_Create_Maximal tests the creation of Cloud PC organization settings with maximal configuration
+func TestUnitCloudPcOrganizationSettingsResource_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,36 +74,7 @@ func TestUnitOrganizationSettingsResource_Create_Minimal(t *testing.T) {
 	setupTestEnvironment(t)
 
 	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal", "enable_mem_auto_enroll", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal", "enable_single_sign_on", "false"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitOrganizationSettingsResource_Create_Maximal tests the creation of organization settings with maximal configuration
-func TestUnitOrganizationSettingsResource_Create_Maximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
+	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
 	mock.RegisterMocks()
 
 	// Run the test
@@ -135,16 +88,16 @@ func TestUnitOrganizationSettingsResource_Create_Maximal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "enable_mem_auto_enroll", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "os_version", "windows11"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "user_account_type", "administrator"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "windows_settings.language", "en-GB"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "user_account_type", "standardUser"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal", "windows_settings.language", "en-US"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitOrganizationSettingsResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitOrganizationSettingsResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitCloudPcOrganizationSettingsResource_Update tests updating the Cloud PC organization settings
+func TestUnitCloudPcOrganizationSettingsResource_Update(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,39 +106,57 @@ func TestUnitOrganizationSettingsResource_Update_MinimalToMaximal(t *testing.T) 
 	setupTestEnvironment(t)
 
 	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
+	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
 	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with minimal configuration
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "false"),
-				),
-			},
-			// Update to maximal configuration (with the same resource name)
+			// Start with initial configuration
 			{
 				Config: testConfigMaximalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "os_version", "windows11"),
+				),
+			},
+			// Update configuration
+			{
+				Config: `
+resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "test" {
+  enable_mem_auto_enroll = false
+  enable_single_sign_on  = false
+  os_version             = "windows10"
+  user_account_type      = "administrator"
+  windows_settings = {
+    language = "fr-FR"
+  }
+  
+  timeouts = {
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
+  }
+}
+`,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "os_version", "windows10"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "user_account_type", "administrator"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "windows_settings.language", "fr-FR"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitOrganizationSettingsResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitOrganizationSettingsResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitCloudPcOrganizationSettingsResource_Delete tests deleting the Cloud PC organization settings
+func TestUnitCloudPcOrganizationSettingsResource_Delete(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -194,37 +165,25 @@ func TestUnitOrganizationSettingsResource_Update_MaximalToMinimal(t *testing.T) 
 	setupTestEnvironment(t)
 
 	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
+	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
 	mock.RegisterMocks()
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with maximal configuration
 			{
-				Config: testConfigMaximalWithResourceName("test"),
+				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "os_version", "windows11"),
-				),
-			},
-			// Update to minimal configuration (with the same resource name)
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_mem_auto_enroll", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.test", "enable_single_sign_on", "false"),
+					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitOrganizationSettingsResource_Read tests reading the organization settings
-func TestUnitOrganizationSettingsResource_Read(t *testing.T) {
+// TestUnitCloudPcOrganizationSettingsResource_Import tests importing the Cloud PC organization settings
+func TestUnitCloudPcOrganizationSettingsResource_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -233,7 +192,7 @@ func TestUnitOrganizationSettingsResource_Read(t *testing.T) {
 	setupTestEnvironment(t)
 
 	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
+	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}
 	mock.RegisterMocks()
 
 	// Run the test
@@ -241,40 +200,13 @@ func TestUnitOrganizationSettingsResource_Read(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitOrganizationSettingsResource_Import tests importing organization settings
-func TestUnitOrganizationSettingsResource_Import(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &organizationSettingsMocks.OrganizationSettingsMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal"),
+					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal"),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.minimal",
+				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings.maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -282,8 +214,8 @@ func TestUnitOrganizationSettingsResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitOrganizationSettingsResource_Error tests error handling
-func TestUnitOrganizationSettingsResource_Error(t *testing.T) {
+// TestUnitCloudPcOrganizationSettingsResource_Error tests error handling
+func TestUnitCloudPcOrganizationSettingsResource_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -299,8 +231,8 @@ func TestUnitOrganizationSettingsResource_Error(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
-				ExpectError: regexp.MustCompile("Validation error: Invalid settings"),
+				Config:      testConfigMaximal(),
+				ExpectError: regexp.MustCompile("Validation error: Invalid OS version"),
 			},
 		},
 	})

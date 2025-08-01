@@ -45,11 +45,6 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "maxima
   schedule_imminent_restart_warning_in_minutes = 15
   role_scope_tag_ids                           = ["0", "1"]
 
-  uninstall = {
-    feature_updates_will_be_rolled_back = true
-    quality_updates_will_be_rolled_back = false
-  }
-
   deadline_settings = {
     deadline_for_feature_updates_in_days = 7
     deadline_for_quality_updates_in_days = 2

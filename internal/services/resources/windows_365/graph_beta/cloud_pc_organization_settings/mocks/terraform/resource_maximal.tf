@@ -2,12 +2,11 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "m
   enable_mem_auto_enroll = true
   enable_single_sign_on  = true
   os_version             = "windows11"
-  user_account_type      = "administrator"
-
+  user_account_type      = "standardUser"
   windows_settings = {
-    language = "en-GB"
+    language = "en-US"
   }
-
+  
   timeouts = {
     create = "30s"
     read   = "30s"

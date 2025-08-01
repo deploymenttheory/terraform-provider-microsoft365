@@ -224,21 +224,32 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			// Handle optional fields that might be removed (like going from maximal to minimal)
 			// Check for specific field patterns to simulate real API behavior
 
-			// For nested attributes, if they're not in the request, remove them
-			optionalNestedFields := []string{"windowsSetting", "microsoftManagedDesktop", "autopatch", "autopilotConfiguration", "domainJoinConfigurations", "applyToExistingCloudPcs"}
-			for _, field := range optionalNestedFields {
+			// For nested attributes and optional fields, if they're not in the request, remove them
+			optionalFields := []string{
+				"description", 
+				"cloudPcNamingTemplate",
+				"windowsSetting", 
+				"microsoftManagedDesktop", 
+				"autopatch", 
+				"autopilotConfiguration", 
+				"domainJoinConfigurations",
+				"applyToExistingCloudPcs",
+				"assignments",
+			}
+			for _, field := range optionalFields {
 				if _, hasField := requestBody[field]; !hasField {
 					delete(policyData, field)
 				}
 			}
 
+			// Update fields that are explicitly provided in the request
 			for key, value := range requestBody {
 				if value == nil {
 					// If value is explicitly null, remove the field from the stored state
 					delete(policyData, key)
 				} else {
 					// Special handling for domainJoinConfigurations to preserve empty arrays
-					if key == "domainJoinConfigurations" && value != nil {
+					if key == "domainJoinConfigurations" {
 						if configList, ok := value.([]interface{}); ok && len(configList) == 0 {
 							policyData[key] = []interface{}{}
 						} else {
@@ -374,10 +385,3 @@ func (m *CloudPcProvisioningPolicyMock) RegisterErrorMocks() {
 		factories.ErrorResponse(404, "ResourceNotFound", "Provisioning policy not found"))
 }
 
-// getOrDefault returns the value from the map or a default value if the key doesn't exist
-func getOrDefault(m map[string]interface{}, key string, defaultValue interface{}) interface{} {
-	if value, exists := m[key]; exists {
-		return value
-	}
-	return defaultValue
-}
