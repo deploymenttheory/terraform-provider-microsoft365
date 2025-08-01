@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.23.0-alpha...v0.24.0-alpha) (2025-08-01)
+
+
+### Features
+
+* trialing code-cov ([#641](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/641)) ([1a1a8e0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1a1a8e0586063ddd7d71ccca6c197870245683da))
+
+
+### Bug Fixes
+
+* for macos windows script unit and acc tests ([5b6d120](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5b6d12092a1acfb7ed8513a5d46604db727b13a6))
+* for testing strategy ([593d1b5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/593d1b53ececd5846c4a8961b4afe1d748128367))
+* for unit tests ([da2533f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/da2533ff9f41b72247535d2fc0c21122422f32eb))
+* implemented unit tests for macos scripts ([89d5532](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/89d55323871f2c624d9fbf9c4a67648538398fb5))
+* implemented unit tests for macos scripts ([#647](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/647)) ([4fa0ec7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4fa0ec7bd75706870eeee65b96e27879ee3cf07e))
+* permissions on pipeline ([e5e46b6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e5e46b62c9aaf5f38e23a5fa5199dc8ce52368d0))
+* pipeline test strategy ([#646](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/646)) ([57b0fe3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/57b0fe380d467245ca0fd6e5cf1285d7545e610e))
+* removed redundant assignment resources ([49c34a3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/49c34a3311c3a75d51aea06d5e401347805d7097))
+* removed redundant assignment resources ([#645](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/645)) ([0b7accc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0b7accc24c3beabaccc8fd2014c55efd10ebcb78))
+* token for auto merge dependabot ([836a205](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/836a2051072cfd36ae1096e9d0515486b5f18963))
+* trials with code-cov ([630db22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/630db2227784f410ada2f23ec6f7d2e091021558))
+* windows remediation scripts ([7d1157b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7d1157beb95f0fd17ad56f10c0314886e45593be))
+
 ## [0.23.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.22.0-alpha...v0.23.0-alpha) (2025-07-31)
 
 
