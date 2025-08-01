@@ -17,7 +17,7 @@ permissions:
 jobs:
   provider-docs:
     name: '📚 Generate Go and TF Provider Docs'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
 
     - name: Harden Runner
