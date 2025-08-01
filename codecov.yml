@@ -1,0 +1,81 @@
+# Codecov configuration for terraform-provider-microsoft365
+# For more info: https://docs.codecov.io/docs/codecov-yaml
+
+codecov:
+  bot: "codecov-io"
+  require_ci_to_pass: yes
+  max_report_age: 24h
+  notify:
+    after_n_builds: 1
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...90"
+  
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+        base: auto
+        branches:
+          - main
+        if_ci_failed: error
+    
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        base: auto
+        branches:
+          - main
+
+# Flags for different test types
+flags:
+  unittests:
+    paths:
+      - "internal/"
+    carryforward: false
+  
+  acceptancetests:
+    paths:
+      - "internal/"
+    carryforward: false
+
+# Ignore paths that shouldn't count towards coverage
+ignore:
+  - "tools/"
+  - "scripts/"
+  - "examples/"
+  - "docs/"
+  - "templates/"
+  - "*.md"
+  - "*.yml"
+  - "*.yaml"
+  - "go.mod"
+  - "go.sum"
+  - "main.go"
+  - "**/*_test.go"
+  - "**/testdata/**"
+  - "**/mocks/**"
+
+# Parser settings for Go
+parsers:
+  go:
+    partials_as_hits: false
+
+# Pull request comment configuration
+comment:
+  layout: "diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches:
+    - main
+
+# GitHub Checks annotations
+github_checks:
+  annotations: true
