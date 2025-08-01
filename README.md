@@ -13,7 +13,7 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 
 ## Code Coverage
 
-The code coverage for the provider is available on Codecov.
+The code coverage for the terraform provider is available on Codecov.
 
 [![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
 

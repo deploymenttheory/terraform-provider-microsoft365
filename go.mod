@@ -1,6 +1,6 @@
 module github.com/deploymenttheory/terraform-provider-microsoft365
 
-go 1.24.1
+go 1.24.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.1
