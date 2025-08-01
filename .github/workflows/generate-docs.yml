@@ -1,6 +1,9 @@
 name: Generate Docs
 
 on:
+  schedule:
+    # Run nightly at 3 AM UTC (after tests complete)
+    - cron: '0 3 * * *'
   push:
     branches:
       - main
