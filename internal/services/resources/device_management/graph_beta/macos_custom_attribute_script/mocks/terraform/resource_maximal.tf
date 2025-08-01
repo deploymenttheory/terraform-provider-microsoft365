@@ -1,9 +1,9 @@
 resource "microsoft365_graph_beta_device_management_macos_custom_attribute_script" "maximal" {
-  display_name           = "Test Maximal macOS Custom Attribute Script - Unique"
-  description            = "Maximal custom attribute script for testing with all features"
-  custom_attribute_type  = "string"
-  file_name              = "test_maximal.sh"
-  script_content         = <<-EOT
+  display_name          = "Test Maximal macOS Custom Attribute Script - Unique"
+  description           = "Maximal custom attribute script for testing with all features"
+  custom_attribute_type = "string"
+  file_name             = "test_maximal.sh"
+  script_content        = <<-EOT
     #!/bin/bash
     
     # Comprehensive custom attribute script with all features
@@ -31,8 +31,8 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
     echo "$$SYSTEM_INFO"
     exit 0
   EOT
-  run_as_account         = "user"
-  role_scope_tag_ids     = ["0", "1"]
+  run_as_account        = "user"
+  role_scope_tag_ids    = ["0", "1"]
 
   assignments = [
     {

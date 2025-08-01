@@ -157,7 +157,6 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 
 - `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Description of the device health script.
-- `detection_script_parameters` (Attributes List) List of ComplexType DetectionScriptParameters objects. (see [below for nested schema](#nestedatt--detection_script_parameters))
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked. Default is false, which does not check the script signature.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `run_as_32_bit` (Boolean) Indicate whether PowerShell script(s) should run as 32-bit. Default is false, which runs script in 64-bit PowerShell.
@@ -222,20 +221,6 @@ Optional:
 
 - `use_utc` (Boolean) Whether to use UTC time. Default is false (local time).
 
-
-
-<a id="nestedatt--detection_script_parameters"></a>
-### Nested Schema for `detection_script_parameters`
-
-Required:
-
-- `name` (String) The name of the param
-
-Optional:
-
-- `apply_default_value_when_not_assigned` (Boolean) Whether Apply DefaultValue When Not Assigned
-- `description` (String) The description of the param
-- `is_required` (Boolean) Whether the param is required
 
 
 <a id="nestedatt--timeouts"></a>

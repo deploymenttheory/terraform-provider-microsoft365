@@ -43,20 +43,27 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
   run_as_account        = "system"
   file_name             = "example-script.sh"
 
-  assignments = {
-    all_devices = false
-    all_users   = false
-
-    include_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555"
-    ]
-  }
+  # Optional: Assignments block
+  assignments = [
+    # Optional: inclusion group assignments
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   timeouts = {
     create = "30m"
@@ -81,7 +88,6 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `custom_attribute_name` (String) The name of the custom attribute.
 - `description` (String) Optional description for the device management script.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
