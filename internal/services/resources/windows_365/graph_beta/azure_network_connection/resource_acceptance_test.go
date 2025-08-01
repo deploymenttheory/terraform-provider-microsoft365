@@ -383,9 +383,9 @@ func TestAccAzureNetworkConnectionResource_Import(t *testing.T) {
 func testAccPreCheck(t *testing.T) {
 	// Verify required environment variables are set
 	requiredEnvVars := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
-		"ARM_TENANT_ID",
+		"M365_TENANT_ID",
+		"M365_CLIENT_SECRET",
+		"M365_CLIENT_ID",
 		"TEST_SUBSCRIPTION_ID",
 		"TEST_RESOURCE_GROUP_ID",
 		"TEST_SUBNET_ID",
