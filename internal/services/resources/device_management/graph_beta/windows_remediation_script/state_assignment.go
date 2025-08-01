@@ -285,6 +285,12 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 		})
 
 		runSchedule := assignment.GetRunSchedule()
+		tflog.Debug(ctx, "DEBUG: Checking runSchedule", map[string]interface{}{
+			"assignmentIndex": i,
+			"assignmentId":    assignment.GetId(),
+			"hasRunSchedule":  runSchedule != nil,
+			"resourceId":      data.ID.ValueString(),
+		})
 		if runSchedule != nil {
 			scheduleType := runSchedule.GetOdataType()
 			if scheduleType != nil {

@@ -143,30 +143,6 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 				Required:            true,
 				MarkdownDescription: "The entire content of the remediation PowerShell script.",
 			},
-			"detection_script_parameters": schema.ListNestedAttribute{
-				Optional:    true,
-				Description: "List of ComplexType DetectionScriptParameters objects.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The name of the param",
-						},
-						"description": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The description of the param",
-						},
-						"is_required": schema.BoolAttribute{
-							Optional:            true,
-							MarkdownDescription: "Whether the param is required",
-						},
-						"apply_default_value_when_not_assigned": schema.BoolAttribute{
-							Optional:            true,
-							MarkdownDescription: "Whether Apply DefaultValue When Not Assigned",
-						},
-					},
-				},
-			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
