@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "iOS Config with XML",
+  "description": "iOS configuration using XML",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2023-01-02T00:00:00Z",
+  "version": 1,
+  "targetedMobileApps": [
+    "com.example.app1"
+  ],
+  "encodedSettingXml": "PGNvbmZpZ3VyYXRpb24+PHNldHRpbmcga2V5PSJzZXJ2ZXJVcmwiIHZhbHVlPSJodHRwczovL2FwaS5leGFtcGxlLmNvbSIvPjwvY29uZmlndXJhdGlvbj4=",
+  "settings": []
+}

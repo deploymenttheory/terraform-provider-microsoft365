@@ -1,0 +1,11 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Test iOS Config",
+  "description": "Test iOS mobile app configuration",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "version": 1,
+  "targetedMobileApps": [],
+  "roleScopeTagIds": ["0"]
+}

@@ -1,0 +1,9 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "displayName": "Complete iOS Config",
+  "description": "Complete iOS mobile app configuration with all features",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:01Z",
+  "version": 2
+}

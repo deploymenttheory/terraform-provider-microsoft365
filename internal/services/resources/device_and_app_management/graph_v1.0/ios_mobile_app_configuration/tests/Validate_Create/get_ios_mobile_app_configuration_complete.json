@@ -1,0 +1,30 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "displayName": "Complete iOS Config",
+  "description": "Complete iOS mobile app configuration with all features",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "version": 1,
+  "targetedMobileApps": [
+    "00000000-0000-0000-0000-000000000010",
+    "00000000-0000-0000-0000-000000000011"
+  ],
+  "encodedSettingXml": "PGNvbmZpZ3VyYXRpb24+PHNldHRpbmc+dGVzdDwvc2V0dGluZz48L2NvbmZpZ3VyYXRpb24+",
+  "settings": [
+    {
+      "@odata.type": "#microsoft.graph.appConfigurationSettingItem",
+      "appConfigKey": "setting1",
+      "appConfigKeyType": "stringType",
+      "appConfigKeyValue": "value1"
+    },
+    {
+      "@odata.type": "#microsoft.graph.appConfigurationSettingItem",
+      "appConfigKey": "setting2",
+      "appConfigKeyType": "integerType",
+      "appConfigKeyValue": "42"
+    }
+  ],
+  "roleScopeTagIds": ["0", "1"],
+  "assignments": []
+}

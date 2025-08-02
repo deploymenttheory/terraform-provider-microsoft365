@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#deviceAppManagement/mobileAppConfigurations('00000000-0000-0000-0000-000000000002')/assignments",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.managedDeviceMobileAppConfigurationAssignment",
+      "id": "00000000-0000-0000-0000-000000000201",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000100"
+      }
+    }
+  ]
+}
