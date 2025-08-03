@@ -150,7 +150,7 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 									platform == "windowsMobileApplicationManagement"
 
 								if isAppPlatform {
-									expectedRule := "(app.osVersion -eq \"10.0\")"
+									expectedRule := `(app.osVersion -startsWith "14.0")`
 									expectedManagementType := "apps"
 									if rs.Primary.Attributes["rule"] != expectedRule {
 										return fmt.Errorf("expected rule %s, got %s", expectedRule, rs.Primary.Attributes["rule"])
@@ -159,7 +159,7 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 										return fmt.Errorf("expected management type %s, got %s", expectedManagementType, rs.Primary.Attributes["assignment_filter_management_type"])
 									}
 								} else {
-									expectedRule := "(device.osVersion -eq \"10.0\")"
+									expectedRule := `(device.osVersion -startsWith "10.0")`
 									expectedManagementType := "devices"
 									if rs.Primary.Attributes["rule"] != expectedRule {
 										return fmt.Errorf("expected rule %s, got %s", expectedRule, rs.Primary.Attributes["rule"])
@@ -239,7 +239,7 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 
 								if mgmtType == "apps" {
 									expectedPlatform := "androidMobileApplicationManagement"
-									expectedRule := "(app.osVersion -startsWith \"10.0\")"
+									expectedRule := `(app.osVersion -startsWith "14.0")`
 									if rs.Primary.Attributes["platform"] != expectedPlatform {
 										return fmt.Errorf("expected platform %s, got %s", expectedPlatform, rs.Primary.Attributes["platform"])
 									}
@@ -248,7 +248,7 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 									}
 								} else {
 									expectedPlatform := "windows10AndLater"
-									expectedRule := "(device.osVersion -startsWith \"10.0\")"
+									expectedRule := `(device.osVersion -startsWith "10.0")`
 									if rs.Primary.Attributes["platform"] != expectedPlatform {
 										return fmt.Errorf("expected platform %s, got %s", expectedPlatform, rs.Primary.Attributes["platform"])
 									}
@@ -280,10 +280,26 @@ func testAccAssignmentFilterConfig_maximal() string {
 
 func testAccAssignmentFilterConfig_platform(platform string) string {
 	data := struct {
-		Platform string
+		Platform       string
+		Rule           string
+		ManagementType string
 	}{
 		Platform: platform,
 	}
+
+	// Check if this is an app platform
+	isAppPlatform := platform == "androidMobileApplicationManagement" ||
+		platform == "iOSMobileApplicationManagement" ||
+		platform == "windowsMobileApplicationManagement"
+
+	if isAppPlatform {
+		data.Rule = `(app.osVersion -startsWith \"14.0\")`
+		data.ManagementType = "apps"
+	} else {
+		data.Rule = `(device.osVersion -startsWith \"10.0\")`
+		data.ManagementType = "devices"
+	}
+
 	config := mocks.LoadTerraformTemplateFile("resource_platform_template.tf", data)
 	return acceptance.ConfigWithProvider(config)
 }
@@ -301,9 +317,20 @@ func testAccAssignmentFilterConfig_roleScopeTags() string {
 func testAccAssignmentFilterConfig_managementType(managementType string) string {
 	data := struct {
 		ManagementType string
+		Platform       string
+		Rule           string
 	}{
 		ManagementType: managementType,
 	}
+
+	if managementType == "apps" {
+		data.Platform = "androidMobileApplicationManagement"
+		data.Rule = `(app.osVersion -startsWith \"14.0\")`
+	} else {
+		data.Platform = "windows10AndLater"
+		data.Rule = `(device.osVersion -startsWith \"10.0\")`
+	}
+
 	config := mocks.LoadTerraformTemplateFile("resource_management_type_template.tf", data)
 	return acceptance.ConfigWithProvider(config)
 }

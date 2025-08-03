@@ -333,7 +333,7 @@ func TestAssignmentFilterResource_ComplexRule(t *testing.T) {
 resource "microsoft365_graph_beta_device_management_assignment_filter" "test" {
   display_name = "Test Complex Rule Assignment Filter"
   platform     = "windows10AndLater"
-  rule         = "(device.osVersion -startsWith \"10.0\") and (device.manufacturer -eq \"Microsoft Corporation\") and (device.model -notContains \"Virtual\")"
+  rule         = "(device.osVersion -startsWith \"10.0\") -and (device.manufacturer -eq \"Microsoft Corporation\") -and (device.model -notIn [\"Virtual\"])"
 }
 `,
 				Check: resource.ComposeTestCheckFunc(

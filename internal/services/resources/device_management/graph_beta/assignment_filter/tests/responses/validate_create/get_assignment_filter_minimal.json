@@ -2,7 +2,7 @@
   "id": "00000000-0000-0000-0000-000000000004",
   "displayName": "Test Minimal Assignment Filter",
   "platform": "windows10AndLater",
-  "rule": "(device.osVersion -startsWith \"10.0\")",
+      "rule": "(device.osVersion -startsWith \"10.0\")",
   "assignmentFilterManagementType": "devices",
   "createdDateTime": "2024-01-01T00:00:00Z",
   "lastModifiedDateTime": "2024-01-01T00:00:00Z",

@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"bytes"
-	"html/template"
+	"text/template"
 	"os"
 	"path/filepath"
 )

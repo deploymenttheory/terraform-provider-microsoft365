@@ -12,11 +12,11 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "maximal" {
       notification_receivers = [
         {
           contact_information = "admin@test.com"
-          locale             = "en-US"
+          locale              = "en-US"
         },
         {
           contact_information = "manager@test.com"
-          locale             = "en-US"
+          locale              = "en-US"
         }
       ]
     },
@@ -25,7 +25,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "maximal" {
       notification_receivers = [
         {
           contact_information = "alerts@test.com"
-          locale             = "en-US"
+          locale              = "en-US"
         }
       ]
     }
@@ -39,15 +39,15 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "maximal" {
 
   conditions = [
     {
-      relationship_type   = "and"
-      condition_category  = "provisionFailures"
+      relationship_type  = "and"
+      condition_category = "provisionFailures"
       aggregation        = "count"
       operator           = "greaterOrEqual"
       threshold_value    = "3"
     },
     {
-      relationship_type   = "or"
-      condition_category  = "cloudPcConnectionErrors"
+      relationship_type  = "or"
+      condition_category = "cloudPcConnectionErrors"
       aggregation        = "percentage"
       operator           = "less"
       threshold_value    = "95"

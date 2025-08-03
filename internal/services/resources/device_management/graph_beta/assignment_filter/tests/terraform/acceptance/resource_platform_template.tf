@@ -1,13 +1,8 @@
 resource "microsoft365_graph_beta_device_management_assignment_filter" "{{.Platform}}" {
-  display_name                        = "Test {{.Platform}} Assignment Filter"
-  platform                           = "{{.Platform}}"
-  {{- if or (eq .Platform "androidMobileApplicationManagement") (eq .Platform "iOSMobileApplicationManagement") (eq .Platform "windowsMobileApplicationManagement") }}
-  rule                               = "(app.osVersion -eq \"10.0\")"
-  assignment_filter_management_type  = "apps"
-  {{- else }}
-  rule                               = "(device.osVersion -eq \"10.0\")"
-  assignment_filter_management_type  = "devices"
-  {{- end }}
+  display_name                      = "Test {{.Platform}} Assignment Filter"
+  platform                          = "{{.Platform}}"
+  rule                              = "{{.Rule}}"
+  assignment_filter_management_type = "{{.ManagementType}}"
 
   timeouts = {
     create = "180s"
