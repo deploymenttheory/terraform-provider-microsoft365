@@ -1,0 +1,11 @@
+{
+  "id": "00000000-0000-0000-0000-000000000005",
+  "displayName": "Test Comprehensive Assignment Filter",
+  "description": "A comprehensive assignment filter with all optional fields for testing",
+  "platform": "windows10AndLater",
+  "rule": "(device.osVersion -startsWith \"10.0\") and (device.manufacturer -eq \"Microsoft Corporation\") and (device.model -startsWith \"Surface\")",
+  "assignmentFilterManagementType": "devices",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTags": ["0", "1", "2"]
+}

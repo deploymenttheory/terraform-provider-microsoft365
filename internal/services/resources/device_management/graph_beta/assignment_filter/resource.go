@@ -2,19 +2,19 @@ package graphBetaAssignmentFilter
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -108,13 +108,32 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"platform": schema.StringAttribute{
 				Required: true,
-				Description: fmt.Sprintf(
-					"The Intune device management type (platform) for the assignment filter. "+
-						"Must be one of the following values: %s. "+
-						"This specifies the OS platform type for which the assignment filter will be applied.",
-					strings.Join(validPlatformTypes, ", ")),
+				Description: "The Intune device management type (platform) for the assignment filter. " +
+					"This specifies the OS platform type for which the assignment filter will be applied.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Validators: []validator.String{
-					stringvalidator.OneOf(validPlatformTypes...),
+					stringvalidator.OneOf(
+						"android",
+						"androidForWork",
+						"iOS",
+						"macOS",
+						//"windowsPhone81", causes a 500 error in acc tests
+						//"windows81AndLater", causes a 500 error in acc tests
+						"windows10AndLater",
+						// "androidWorkProfile", causes a 500 error in acc tests
+						//"unknown", causes a 500 error in acc tests
+						"androidAOSP",
+						"androidMobileApplicationManagement",
+						"iOSMobileApplicationManagement",
+						"windowsMobileApplicationManagement"),
+					validators.RequiredOneOfWhen(
+						"assignment_filter_management_type",
+						"apps",
+						"androidMobileApplicationManagement",
+						"iOSMobileApplicationManagement",
+						"windowsMobileApplicationManagement"),
 				},
 			},
 			"rule": schema.StringAttribute{
@@ -123,9 +142,13 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"assignment_filter_management_type": schema.StringAttribute{
 				Optional:    true,
-				Description: fmt.Sprintf("Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: %s. Default filter will be applied to 'devices'.", strings.Join(validAssignmentFilterManagementTypes, ", ")),
+				Computed:    true,
+				Description: "Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: devices, apps, unknownFutureValue. Default filter will be applied to 'devices'.",
 				Validators: []validator.String{
-					stringvalidator.OneOf(validAssignmentFilterManagementTypes...),
+					stringvalidator.OneOf(
+						"devices",
+						"apps",
+					),
 				},
 			},
 			"created_date_time": schema.StringAttribute{
