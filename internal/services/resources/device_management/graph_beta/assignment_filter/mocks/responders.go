@@ -83,7 +83,7 @@ func (m *AssignmentFilterMock) createAssignmentFilterResponder() httpmock.Respon
 		}
 
 		// Load base response from JSON file
-		response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter.json"))
+		response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_assignment_filter.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
@@ -135,21 +135,21 @@ func (m *AssignmentFilterMock) getAssignmentFilterResponder() httpmock.Responder
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
+				response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
+				response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 		}
@@ -169,18 +169,18 @@ func (m *AssignmentFilterMock) updateAssignmentFilterResponder() httpmock.Respon
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
 		var requestBody map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter_error.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_assignment_filter_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
 		// Load update template
-		updatedFilter, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_assignment_filter_updated.json"))
+		updatedFilter, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_update", "get_assignment_filter_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
@@ -221,7 +221,7 @@ func (m *AssignmentFilterMock) deleteAssignmentFilterResponder() httpmock.Respon
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
@@ -235,7 +235,7 @@ func (m *AssignmentFilterMock) RegisterErrorMocks() {
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters",
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter_error.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_assignment_filter_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
 
@@ -261,7 +261,7 @@ func (m *AssignmentFilterMock) CleanupMockState() {
 
 // GetMockAssignmentFilterData returns sample assignment filter data for testing
 func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]interface{} {
-	response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
+	response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
 		return map[string]interface{}{
@@ -281,7 +281,7 @@ func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]interfac
 
 // GetMockAssignmentFilterMinimalData returns minimal assignment filter data for testing
 func (m *AssignmentFilterMock) GetMockAssignmentFilterMinimalData() map[string]interface{} {
-	response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
+	response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
 		return map[string]interface{}{
