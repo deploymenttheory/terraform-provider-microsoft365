@@ -63,14 +63,14 @@ func (m *DeviceCategoryMock) RegisterErrorMocks() {
 	// POST /deviceManagement/deviceCategories - Create Error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceCategories",
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_device_category_error.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_device_category_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
 
 	// GET /deviceManagement/deviceCategories/{id} - Read Error
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/([^/]+)$`,
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_device_category_not_found.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_device_category_not_found.json"))
 			return httpmock.NewJsonResponse(404, errorResponse)
 		})
 }
@@ -104,7 +104,7 @@ func (m *DeviceCategoryMock) createDeviceCategoryResponder() httpmock.Responder 
 	return func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_device_category_error.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_device_category_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
@@ -151,21 +151,21 @@ func (m *DeviceCategoryMock) getDeviceCategoryResponder() httpmock.Responder {
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_device_category_minimal.json"))
+				response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_device_category_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "get_device_category_maximal.json"))
+				response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_device_category_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_device_category_not_found.json"))
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_device_category_not_found.json"))
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 		}
@@ -185,18 +185,18 @@ func (m *DeviceCategoryMock) updateDeviceCategoryResponder() httpmock.Responder 
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_device_category_not_found.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_device_category_not_found.json"))
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
 		var requestBody map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_create", "post_device_category_error.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_device_category_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
 		// Load update template
-		updatedCategory, err := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_update", "get_device_category_updated.json"))
+		updatedCategory, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_device_category_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
@@ -234,7 +234,7 @@ func (m *DeviceCategoryMock) deleteDeviceCategoryResponder() httpmock.Responder 
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("mocks", "responses", "validate_delete", "get_device_category_not_found.json"))
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_device_category_not_found.json"))
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
