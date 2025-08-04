@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/jarcoal/httpmock"
 )
@@ -56,4 +57,26 @@ func JSONBodyValidator(expectedKeys []string) func(req *http.Request) error {
 
 		return nil
 	}
+}
+
+// ExtractIDFromURL extracts the resource ID from a URL path given a base path
+func ExtractIDFromURL(urlPath, basePath string) string {
+	// Remove base path prefix
+	urlPath = strings.TrimPrefix(urlPath, basePath)
+
+	// Split by "/" and get the last non-empty part
+	urlParts := strings.Split(urlPath, "/")
+	for i := len(urlParts) - 1; i >= 0; i-- {
+		if urlParts[i] != "" {
+			return urlParts[i]
+		}
+	}
+
+	// Fallback to simple split method
+	parts := strings.Split(urlPath, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
+	}
+
+	return ""
 }

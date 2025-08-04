@@ -19,6 +19,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Create(ctx context.Context, r
 	var object MacOSSoftwareUpdateConfigurationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return

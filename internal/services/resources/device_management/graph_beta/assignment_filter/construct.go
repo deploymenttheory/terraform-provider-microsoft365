@@ -12,7 +12,7 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model
-func constructResource(ctx context.Context, data *AssignmentFilterResourceModel) (*graphmodels.DeviceAndAppManagementAssignmentFilter, error) {
+func constructResource(ctx context.Context, data *AssignmentFilterResourceModel, isCreate bool) (*graphmodels.DeviceAndAppManagementAssignmentFilter, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceAndAppManagementAssignmentFilter()
@@ -21,8 +21,11 @@ func constructResource(ctx context.Context, data *AssignmentFilterResourceModel)
 
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
-	if err := convert.FrameworkToGraphEnum(data.Platform, graphmodels.ParseDevicePlatformType, requestBody.SetPlatform); err != nil {
-		return nil, fmt.Errorf("invalid device platform type: %s", err)
+	// Platform field can only be set during creation, not during updates
+	if isCreate {
+		if err := convert.FrameworkToGraphEnum(data.Platform, graphmodels.ParseDevicePlatformType, requestBody.SetPlatform); err != nil {
+			return nil, fmt.Errorf("invalid device platform type: %s", err)
+		}
 	}
 
 	convert.FrameworkToGraphString(data.Rule, requestBody.SetRule)

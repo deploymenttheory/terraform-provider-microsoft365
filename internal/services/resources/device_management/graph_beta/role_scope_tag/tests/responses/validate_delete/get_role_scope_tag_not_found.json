@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "The requested role scope tag was not found",
+    "details": [
+      {
+        "code": "ItemNotFound",
+        "message": "Role scope tag not found"
+      }
+    ]
+  }
+}

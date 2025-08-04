@@ -555,3 +555,72 @@ func MutuallyExclusiveObjectAndSet(objectFieldName, setFieldName string) validat
 		setFieldName:    setFieldName,
 	}
 }
+
+//---------------------------------------------------
+
+// requiredOneOfWhenValidator validates that when a dependent field has a specific value,
+// the current field must be one of the allowed values
+type requiredOneOfWhenValidator struct {
+	dependentField string
+	triggerValue   string
+	allowedValues  []string
+}
+
+// Description describes the validation in plain text formatting.
+func (v requiredOneOfWhenValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("when %s is '%s', field must be one of: %s", v.dependentField, v.triggerValue, strings.Join(v.allowedValues, ", "))
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v requiredOneOfWhenValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v requiredOneOfWhenValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the current field value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	// Get the dependent field value
+	var dependentValue types.String
+	diags := req.Config.GetAttribute(ctx, path.Root(v.dependentField), &dependentValue)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	// If dependent field is not the trigger value, no validation needed
+	if dependentValue.IsNull() || dependentValue.IsUnknown() || dependentValue.ValueString() != v.triggerValue {
+		return
+	}
+
+	// Check if current field value is one of the allowed values
+	currentValue := req.ConfigValue.ValueString()
+	isAllowed := false
+	for _, allowedValue := range v.allowedValues {
+		if currentValue == allowedValue {
+			isAllowed = true
+			break
+		}
+	}
+
+	if !isAllowed {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Value",
+			fmt.Sprintf("When %s is '%s', field must be one of: %s. Got: %s", v.dependentField, v.triggerValue, strings.Join(v.allowedValues, ", "), currentValue),
+		)
+	}
+}
+
+// RequiredOneOfWhen returns a string validator which ensures that when a dependent field
+// has a specific value, the current field must be one of the allowed values.
+func RequiredOneOfWhen(dependentField string, triggerValue string, allowedValues ...string) validator.String {
+	return &requiredOneOfWhenValidator{
+		dependentField: dependentField,
+		triggerValue:   triggerValue,
+		allowedValues:  allowedValues,
+	}
+}

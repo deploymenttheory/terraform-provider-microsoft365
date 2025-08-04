@@ -1,0 +1,6 @@
+{
+  "id": "87654321-4321-4321-4321-210987654321",
+  "displayName": "Test Maximal Device Category - Unique",
+  "description": "Maximal device category for testing with all features",
+  "roleScopeTagIds": ["0", "1"]
+}

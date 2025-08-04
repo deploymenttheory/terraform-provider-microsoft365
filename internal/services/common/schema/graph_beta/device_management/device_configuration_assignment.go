@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// DeviceConfigurationWithGroupFilterAssignmentsSchema is a schema for device configuration
-// assignments that support group filters.
-func DeviceConfigurationWithGroupFilterAssignmentsSchema() schema.SetNestedAttribute {
+// DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema is a schema for device configuration
+// assignments that supports all group assignment types, and group filters.
+func DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters.",
 		Optional:            true,
@@ -31,7 +31,7 @@ func DeviceConfigurationWithGroupFilterAssignmentsSchema() schema.SetNestedAttri
 					},
 				},
 				"group_id": schema.StringAttribute{
-					Optional:            true,
+					Required:            true,
 					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(
@@ -67,9 +67,9 @@ func DeviceConfigurationWithGroupFilterAssignmentsSchema() schema.SetNestedAttri
 	}
 }
 
-// DeviceConfigurationWithoutGroupFilterAssignmentsSchema is a schema for device configuration
-// assignments that do not support group filters.
-func DeviceConfigurationWithoutGroupFilterAssignmentsSchema() schema.SetNestedAttribute {
+// DeviceConfigurationWithAllGroupAssignmentsSchema is a schema for device configuration
+// assignments that supports all group types, but no group filters.
+func DeviceConfigurationWithAllGroupAssignmentsSchema() schema.SetNestedAttribute {
 	return schema.SetNestedAttribute{
 		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
 		Optional:            true,
@@ -88,7 +88,39 @@ func DeviceConfigurationWithoutGroupFilterAssignmentsSchema() schema.SetNestedAt
 					},
 				},
 				"group_id": schema.StringAttribute{
-					Optional:            true,
+					Required:            true,
+					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+						),
+					},
+				},
+			},
+		},
+	}
+}
+
+// DeviceConfigurationWithInclusionGroupAssignmentsSchema is a schema for device configuration
+// assignments that only support inclusion group assignments.
+func DeviceConfigurationWithInclusionGroupAssignmentsSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
+		Optional:            true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"type": schema.StringAttribute{
+					Required:            true,
+					MarkdownDescription: "Type of assignment target. Must be one of: 'groupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"groupAssignmentTarget",
+						),
+					},
+				},
+				"group_id": schema.StringAttribute{
+					Required:            true,
 					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(
