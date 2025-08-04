@@ -86,11 +86,8 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_mana
 
 Required:
 
-- `type` (String) Type of assignment target. Must be one of: 'groupAssignmentTarget'.
-
-Optional:
-
 - `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+- `type` (String) Type of assignment target. Must be one of: 'groupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>

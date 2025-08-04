@@ -73,10 +73,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
 output "test_group_ids" {
   description = "Group IDs for use in role scope tag assignment tests"
   value = {
-    it_support_team       = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    it_support_team        = microsoft365_graph_beta_groups_group.acc_test_group_1.id
     device_management_team = microsoft365_graph_beta_groups_group.acc_test_group_2.id
-    helpdesk_team         = microsoft365_graph_beta_groups_group.acc_test_group_3.id
-    security_team         = microsoft365_graph_beta_groups_group.acc_test_group_4.id
+    helpdesk_team          = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+    security_team          = microsoft365_graph_beta_groups_group.acc_test_group_4.id
   }
 }
 
