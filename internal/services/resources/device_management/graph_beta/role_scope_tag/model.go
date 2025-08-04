@@ -12,6 +12,6 @@ type RoleScopeTagResourceModel struct {
 	DisplayName types.String   `tfsdk:"display_name"`
 	Description types.String   `tfsdk:"description"`
 	IsBuiltIn   types.Bool     `tfsdk:"is_built_in"`
-	Assignments []types.String `tfsdk:"assignments"`
+	Assignments types.Set      `tfsdk:"assignments"`
 	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 }

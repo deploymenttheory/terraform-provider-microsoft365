@@ -404,7 +404,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.",
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithGroupFilterAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

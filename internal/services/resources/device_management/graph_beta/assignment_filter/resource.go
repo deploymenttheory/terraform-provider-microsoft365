@@ -89,7 +89,10 @@ func (r *AssignmentFilterResource) ImportState(ctx context.Context, req resource
 // Schema returns the schema for the resource.
 func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership.",
+		MarkdownDescription: "Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint." +
+			" Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, " +
+			"device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters " +
+			"[here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -109,7 +112,10 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 			"platform": schema.StringAttribute{
 				Required: true,
 				Description: "The Intune device management type (platform) for the assignment filter. " +
-					"This specifies the OS platform type for which the assignment filter will be applied.",
+					"This specifies the OS platform type for which the assignment filter will be applied." +
+					"Must be one of the following values: android, androidForWork, iOS, macOS, windows10AndLater," +
+					"androidAOSP, androidMobileApplicationManagement, iOSMobileApplicationManagement, " +
+					"windowsMobileApplicationManagement.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

@@ -2,9 +2,10 @@ package mocks
 
 import (
 	"bytes"
-	"text/template"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"text/template"
 )
 
 // EnsureField ensures that a field exists in a data map
@@ -49,4 +50,21 @@ func LoadTerraformTemplateFile(filename string, data interface{}) string {
 	}
 
 	return buf.String()
+}
+
+// LoadJSONResponse loads a JSON response file and returns its contents
+// This is a common utility function used by mock responders to load test response data
+func LoadJSONResponse(filepath string) (map[string]interface{}, error) {
+	jsonData, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	var response map[string]interface{}
+	err = json.Unmarshal(jsonData, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

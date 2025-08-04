@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_assignment_filter Resourc
 subcategory: "Device Management"
 
 description: |-
-  Manages assignment filters in Microsoft Intune using the /deviceManagement/assignmentFilters endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership.
+  Manages assignment filters in Microsoft Intune using the /deviceManagement/assignmentFilters endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters here https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties.
 ---
 
 # microsoft365_graph_beta_device_management_assignment_filter (Resource)
 
-Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership.
+Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters [here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties).
 
 ## Microsoft Documentation
 
@@ -49,7 +49,7 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "example"
 ### Required
 
 - `display_name` (String) The display name of the assignment filter.
-- `platform` (String) The Intune device management type (platform) for the assignment filter. Must be one of the following values: android, androidForWork, iOS, macOS, windowsPhone81, windows81AndLater, windows10AndLater, androidWorkProfile, unknown, androidAOSP, androidMobileApplicationManagement, iOSMobileApplicationManagement, windowsMobileApplicationManagement. This specifies the OS platform type for which the assignment filter will be applied.
+- `platform` (String) The Intune device management type (platform) for the assignment filter. This specifies the OS platform type for which the assignment filter will be applied.Must be one of the following values: android, androidForWork, iOS, macOS, windows10AndLater,androidAOSP, androidMobileApplicationManagement, iOSMobileApplicationManagement, windowsMobileApplicationManagement.
 - `rule` (String) Rule definition of the assignment filter.
 
 ### Optional

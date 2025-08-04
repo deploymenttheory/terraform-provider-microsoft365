@@ -72,6 +72,7 @@ func mapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSSoftwareU
 	} else {
 		data.CustomUpdateTimeWindows = types.ListValueMust(objType, windows)
 	}
+
 	assignments := remoteResource.GetAssignments()
 	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
 		"assignmentCount": len(assignments),

@@ -200,7 +200,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 					stringvalidator.OneOf("low", "high", "unknownFutureValue"),
 				},
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithoutGroupFilterAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

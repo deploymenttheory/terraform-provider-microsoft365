@@ -7,11 +7,11 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -99,21 +99,19 @@ func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "The display or friendly name of the Role Scope Tag.",
 			},
 			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.DefaultValueString(""),
+				},
 				MarkdownDescription: "Description of the Role Scope Tag.",
 			},
 			"is_built_in": schema.BoolAttribute{
 				Computed:            true,
 				MarkdownDescription: "Description of the Role Scope Tag. This property is read-only.",
 			},
-			"assignments": schema.SetAttribute{
-				Optional:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "The list of group assignments for the Intune Role Scope Tag.",
-			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithInclusionGroupAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

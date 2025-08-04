@@ -31,8 +31,6 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "helpdesk" {
   display_name = "Helpdesk Support Tag"
   description  = "Role scope tag for helpdesk support staff"
 
-  assignments = ["00000000-0000-0000-0000-000000000001"]
-
   timeouts = {
     create = "180s"
     read   = "180s"
@@ -41,21 +39,19 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "helpdesk" {
   }
 }
 
-# Example of creating multiple related role scope tags with assignments
-resource "microsoft365_graph_beta_device_management_role_scope_tag" "it_support" {
-  display_name = "IT Support Tag"
-  description  = "Role scope tag for IT support teams"
-
-  assignments = ["00000000-0000-0000-0000-000000000002"]
-}
-
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_management" {
   display_name = "Device Management Tag"
   description  = "Role scope tag for device management teams"
 
   assignments = [
-    "00000000-0000-0000-0000-000000000003",
-    "00000000-0000-0000-0000-000000000004"
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000002"
+    },
   ]
 
   timeouts = {
@@ -76,7 +72,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_mana
 
 ### Optional
 
-- `assignments` (Set of String) The list of group assignments for the Intune Role Scope Tag.
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Description of the Role Scope Tag.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -84,6 +80,18 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_mana
 
 - `id` (String) Key of the entity. This is read-only and automatically generated.
 - `is_built_in` (Boolean) Description of the Role Scope Tag. This property is read-only.
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'groupAssignmentTarget'.
+
+Optional:
+
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

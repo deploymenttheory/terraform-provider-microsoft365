@@ -9,9 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -39,10 +37,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, r.client, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -61,9 +56,11 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	// Map the created resource response to Terraform state
+	MapRemoteResourceStateToTerraform(ctx, &object, createdResource)
 
-	if object.Assignments != nil {
+	// Only create assignments if they are specified
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
 		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -73,20 +70,12 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 			return
 		}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-
-			_, err := r.client.
-				DeviceManagement().
-				RoleScopeTags().
-				ByRoleScopeTagId(object.ID.ValueString()).
-				Assign().
-				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
+		_, err = r.client.
+			DeviceManagement().
+			RoleScopeTags().
+			ByRoleScopeTagId(object.ID.ValueString()).
+			Assign().
+			PostAsAssignPostResponse(ctx, requestAssignment, nil)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -129,7 +118,6 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleScopeTagResourceModel
 	var baseResource graphmodels.RoleScopeTagable
-	var assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -165,7 +153,7 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
-	assignmentsResponse, err = r.client.
+	assignmentsResponse, err := r.client.
 		DeviceManagement().
 		RoleScopeTags().
 		ByRoleScopeTagId(object.ID.ValueString()).
@@ -213,10 +201,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.client, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
@@ -236,7 +221,8 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	if plan.Assignments != nil {
+	// Only update assignments if they are specified
+	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
 		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -246,20 +232,12 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 			return
 		}
 
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-
-			_, err := r.client.
-				DeviceManagement().
-				RoleScopeTags().
-				ByRoleScopeTagId(state.ID.ValueString()).
-				Assign().
-				PostAsAssignPostResponse(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to update assignment: %s", err))
-			}
-			return nil
-		})
+		_, err = r.client.
+			DeviceManagement().
+			RoleScopeTags().
+			ByRoleScopeTagId(state.ID.ValueString()).
+			Assign().
+			PostAsAssignPostResponse(ctx, requestAssignment, nil)
 
 		if err != nil {
 			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)

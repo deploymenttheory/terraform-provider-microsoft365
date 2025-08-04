@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid role scope tag data",
+    "details": [
+      {
+        "code": "ValidationFailed",
+        "message": "The provided role scope tag data is not valid"
+      }
+    ]
+  }
+}
