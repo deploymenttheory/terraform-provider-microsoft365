@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -146,18 +147,8 @@ func (r *TermsAndConditionsResource) Schema(ctx context.Context, req resource.Sc
 					),
 				},
 			},
-			"created_date_time": schema.StringAttribute{
-				MarkdownDescription: "DateTime the object was created.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"modified_date_time": schema.StringAttribute{
-				MarkdownDescription: "DateTime the object was last modified.",
-				Computed:            true,
-			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentsSchema(),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }

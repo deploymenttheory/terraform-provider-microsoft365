@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -56,8 +57,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	// Map the created resource response to Terraform state
-	MapRemoteResourceStateToTerraform(ctx, &object, createdResource)
+	object.ID = types.StringValue(*createdResource.GetId())
 
 	// Only create assignments if they are specified
 	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {

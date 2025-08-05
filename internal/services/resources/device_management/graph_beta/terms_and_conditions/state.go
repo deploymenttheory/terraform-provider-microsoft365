@@ -24,8 +24,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data TermsAndConditionsResou
 	data.AcceptanceStatement = convert.GraphToFrameworkString(termsAndConditions.GetAcceptanceStatement())
 	data.Version = convert.GraphToFrameworkInt32(termsAndConditions.GetVersion())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, termsAndConditions.GetRoleScopeTagIds())
-	data.CreatedDateTime = convert.GraphToFrameworkTime(termsAndConditions.GetCreatedDateTime())
-	data.ModifiedDateTime = convert.GraphToFrameworkTime(termsAndConditions.GetLastModifiedDateTime())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 

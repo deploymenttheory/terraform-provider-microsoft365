@@ -102,6 +102,53 @@ func DeviceConfigurationWithAllGroupAssignmentsSchema() schema.SetNestedAttribut
 	}
 }
 
+// DeviceConfigurationWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentsSchema is a schema for device configuration
+// assignments that only support inclusion group assignments.
+func DeviceConfigurationWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentsSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		MarkdownDescription: "Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution.",
+		Optional:            true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"type": schema.StringAttribute{
+					Required: true,
+					MarkdownDescription: "The target group type for the assignment. Possible values are:\n\n" +
+						"- **allLicensedUsersAssignmentTarget**: Target all users with Intune licenses\n" +
+						"- **groupAssignmentTarget**: Target a specific Entra ID group\n" +
+						"- **configurationManagerCollection**: Target System Center Configuration Manager collection",
+					Validators: []validator.String{
+						stringvalidator.OneOf(
+							"allLicensedUsersAssignmentTarget",
+							"groupAssignmentTarget",
+							"configurationManagerCollection",
+						),
+					},
+				},
+				"group_id": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+						),
+					},
+				},
+				"collection_id": schema.StringAttribute{
+					MarkdownDescription: "The SCCM group collection ID for the assignment target. Default collections start with 'SMS', while custom collections start with your site code (e.g., 'MEM').",
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[A-Za-z]{2,8}[0-9A-Za-z]{8}$`),
+							"Must be a valid SCCM collection ID format. Default collections start with 'SMS' followed by an alphanumeric ID. Custom collections start with your site code (e.g., 'MEM') followed by an alphanumeric ID.",
+						),
+					},
+				},
+			},
+		},
+	}
+}
+
 // DeviceConfigurationWithInclusionGroupAssignmentsSchema is a schema for device configuration
 // assignments that only support inclusion group assignments.
 func DeviceConfigurationWithInclusionGroupAssignmentsSchema() schema.SetNestedAttribute {

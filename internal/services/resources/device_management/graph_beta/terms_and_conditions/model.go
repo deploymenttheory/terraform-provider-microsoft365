@@ -15,7 +15,6 @@ type TermsAndConditionsResourceModel struct {
 	AcceptanceStatement types.String   `tfsdk:"acceptance_statement"`
 	Version             types.Int32    `tfsdk:"version"`
 	RoleScopeTagIds     types.Set      `tfsdk:"role_scope_tag_ids"`
-	CreatedDateTime     types.String   `tfsdk:"created_date_time"`
-	ModifiedDateTime    types.String   `tfsdk:"modified_date_time"`
+	Assignments         types.Set      `tfsdk:"assignments"`
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 }

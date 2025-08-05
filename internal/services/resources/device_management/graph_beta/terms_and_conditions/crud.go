@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -57,6 +58,39 @@ func (r *TermsAndConditionsResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	object.ID = types.StringValue(*createdResource.GetId())
+
+	// Only create assignments if they are specified
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
+		var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentModel
+		diags := object.Assignments.ElementsAs(ctx, &terraformAssignments, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		for idx, assignment := range terraformAssignments {
+			requestAssignment, err := constructAssignment(ctx, assignment)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment for Create Method",
+					fmt.Sprintf("Could not construct assignment %d: %s: %s", idx, ResourceName, err.Error()),
+				)
+				return
+			}
+
+			_, err = r.client.
+				DeviceManagement().
+				TermsAndConditions().
+				ByTermsAndConditionsId(object.ID.ValueString()).
+				Assignments().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+				return
+			}
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -126,6 +160,20 @@ func (r *TermsAndConditionsResource) Read(ctx context.Context, req resource.Read
 
 	object = MapRemoteStateToTerraform(ctx, object, resource)
 
+	assignmentsResponse, err := r.client.
+		DeviceManagement().
+		TermsAndConditions().
+		ByTermsAndConditionsId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	MapRemoteAssignmentStateToTerraform(ctx, &object, assignmentsResponse)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -178,6 +226,39 @@ func (r *TermsAndConditionsResource) Update(ctx context.Context, req resource.Up
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	// Only update assignments if they are specified
+	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
+		var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentModel
+		diags := plan.Assignments.ElementsAs(ctx, &terraformAssignments, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		for idx, assignment := range terraformAssignments {
+			requestAssignment, err := constructAssignment(ctx, assignment)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing assignment for Update Method",
+					fmt.Sprintf("Could not construct assignment %d: %s: %s", idx, ResourceName, err.Error()),
+				)
+				return
+			}
+
+			_, err = r.client.
+				DeviceManagement().
+				TermsAndConditions().
+				ByTermsAndConditionsId(state.ID.ValueString()).
+				Assignments().
+				Post(ctx, requestAssignment, nil)
+
+			if err != nil {
+				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				return
+			}
+		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
