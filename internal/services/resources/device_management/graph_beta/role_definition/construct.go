@@ -36,31 +36,34 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		}
 	}
 
-	rolePermission := graphmodels.NewRolePermission()
-	resourceAction := graphmodels.NewResourceAction()
+	// Only set role permissions if they are specified in the config
+	if len(data.RolePermissions) > 0 {
+		rolePermission := graphmodels.NewRolePermission()
+		resourceAction := graphmodels.NewResourceAction()
 
-	allowedResourceActions := []string{}
+		allowedResourceActions := []string{}
 
-	for _, perm := range data.RolePermissions {
-		if !perm.AllowedResourceActions.IsNull() {
-			for _, a := range perm.AllowedResourceActions.Elements() {
-				if actionStr, ok := a.(types.String); ok && !actionStr.IsNull() {
-					allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+		for _, perm := range data.RolePermissions {
+			if !perm.AllowedResourceActions.IsNull() {
+				for _, a := range perm.AllowedResourceActions.Elements() {
+					if actionStr, ok := a.(types.String); ok && !actionStr.IsNull() {
+						allowedResourceActions = append(allowedResourceActions, actionStr.ValueString())
+					}
 				}
 			}
 		}
-	}
 
-	validatedPermissions, err := validateRolePermissions(ctx, client, allowedResourceActions, resp, readPermissions)
-	if err != nil {
-		return nil, err
-	}
+		validatedPermissions, err := validateRolePermissions(ctx, client, allowedResourceActions, resp, readPermissions)
+		if err != nil {
+			return nil, err
+		}
 
-	resourceAction.SetAllowedResourceActions(validatedPermissions)
-	resourceActions := []graphmodels.ResourceActionable{resourceAction}
-	rolePermission.SetResourceActions(resourceActions)
-	rolePermissions := []graphmodels.RolePermissionable{rolePermission}
-	requestBody.SetRolePermissions(rolePermissions)
+		resourceAction.SetAllowedResourceActions(validatedPermissions)
+		resourceActions := []graphmodels.ResourceActionable{resourceAction}
+		rolePermission.SetResourceActions(resourceActions)
+		rolePermissions := []graphmodels.RolePermissionable{rolePermission}
+		requestBody.SetRolePermissions(rolePermissions)
+	}
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)

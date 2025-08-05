@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation for the RoleDefinition resource.
@@ -116,52 +116,17 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.RoleDefinitionsRoleDefinitionItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.RoleDefinitionsRoleDefinitionItemRequestBuilderGetQueryParameters{
+				Expand: []string{"rolePermissions"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
-
-	assignmentsList, err := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
-		RoleAssignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read Assignments List", r.ReadPermissions)
-		return
-	}
-
-	// 3️⃣ Pull each assignment's full details
-	detailedResponse := graphmodels.NewRoleAssignmentCollectionResponse()
-	var detailedAssignments []graphmodels.RoleAssignmentable
-
-	if assignmentsList != nil && assignmentsList.GetValue() != nil {
-		for _, listAssignment := range assignmentsList.GetValue() {
-			if listAssignment == nil || listAssignment.GetId() == nil {
-				continue
-			}
-			assignmentID := *listAssignment.GetId()
-
-			full, err := r.client.
-				DeviceManagement().
-				RoleAssignments().
-				ByDeviceAndAppManagementRoleAssignmentId(assignmentID).
-				Get(ctx, nil)
-
-			if err != nil {
-				tflog.Warn(ctx, fmt.Sprintf("Failed to fetch details for assignment ID %s: %s", assignmentID, err))
-				continue
-			}
-
-			detailedAssignments = append(detailedAssignments, full)
-		}
-	}
-	detailedResponse.SetValue(detailedAssignments)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 

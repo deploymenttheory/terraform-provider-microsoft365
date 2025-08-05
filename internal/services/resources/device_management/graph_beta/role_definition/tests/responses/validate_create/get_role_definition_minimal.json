@@ -1,0 +1,20 @@
+{
+  "id": "test-role-definition-minimal-id",
+  "displayName": "Test Minimal Role Definition - Unique",
+  "description": "",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0"],
+  "rolePermissions": [
+    {
+      "resourceActions": [
+        {
+          "allowedResourceActions": [
+            "microsoft.management/managedDevices/read",
+            "microsoft.management/managedDevices/write"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -87,9 +87,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		}
 
 		data.RolePermissions = mappedPermissions
-	} else {
-		data.RolePermissions = []RolePermissionResourceModel{}
 	}
+	// Note: If no role permissions are returned from API, we don't set data.RolePermissions at all,
+	// leaving it as whatever was in the original state/plan to maintain consistency
 
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
