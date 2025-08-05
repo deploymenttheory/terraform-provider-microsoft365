@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "The requested terms and conditions was not found",
+    "details": [
+      {
+        "code": "ItemNotFound",
+        "message": "Terms and conditions not found"
+      }
+    ]
+  }
+}

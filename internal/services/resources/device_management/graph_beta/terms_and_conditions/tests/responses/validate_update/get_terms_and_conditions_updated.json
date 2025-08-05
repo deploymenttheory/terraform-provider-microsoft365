@@ -1,0 +1,12 @@
+{
+  "id": "87654321-4321-4321-4321-210987654321",
+  "displayName": "Test Updated Terms and Conditions",
+  "description": "Updated terms and conditions for testing",
+  "title": "Updated Company Terms",
+  "bodyText": "These are the updated terms and conditions.",
+  "acceptanceStatement": "I accept the updated terms",
+  "version": 2,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T12:00:00Z"
+}

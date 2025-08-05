@@ -141,7 +141,6 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 }
 
 // Test configuration functions
-
 func testAccRoleScopeTagConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
 	return acceptance.ConfigWithProvider(config)
