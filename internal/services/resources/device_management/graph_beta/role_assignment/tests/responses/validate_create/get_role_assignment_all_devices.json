@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+  "displayName": "Test All Devices Role Assignment",
+  "description": "Role assignment for all devices scope",
+  "members": [
+    "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
+    "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
+  ],
+  "resourceScopes": [],
+  "scopeType": "AllDevices",
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('9e0cc482-82df-4ab2-a24c-0c23a3f52e1e')"
+}

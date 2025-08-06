@@ -63,14 +63,6 @@ func testConfigMaximal() string {
 	return string(content)
 }
 
-// testConfigMaximalBuiltIn returns the maximal built-in configuration for testing
-func testConfigMaximalBuiltIn() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal_builtin.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
 
 // TestRoleDefinitionResource_Schema validates the resource schema
 func TestRoleDefinitionResource_Schema(t *testing.T) {

@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "displayName": "Test Minimal Role Assignment - Unique",
+  "description": "Minimal role assignment for testing",
+  "members": [
+    "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
+  ],
+  "resourceScopes": [],
+  "scopeType": "AllLicensedUsers",
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')"
+}

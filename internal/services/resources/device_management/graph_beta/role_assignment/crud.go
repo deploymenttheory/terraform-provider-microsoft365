@@ -13,56 +13,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for the RoleDefinitionAssignment resource.
-func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data RoleDefinitionAssignmentResourceModel
+// Create handles the Create operation for the RoleAssignment resource.
+func (r *RoleAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// Validate that either role_definition_id or built_in_role_name is provided
-	if data.RoleDefinitionID.IsNull() && data.BuiltInRoleName.IsNull() {
-		resp.Diagnostics.AddError(
-			"Missing Required Field",
-			"Either role_definition_id or built_in_role_name must be specified",
-		)
-		return
-	}
-
-	// Determine role definition ID
-	var roleDefinitionID string
-	isBuiltInRole := false
-	builtInRoleName := ""
-
-	if !data.RoleDefinitionID.IsNull() && !data.RoleDefinitionID.IsUnknown() {
-		roleDefinitionID = data.RoleDefinitionID.ValueString()
-	} else if !data.BuiltInRoleName.IsNull() && !data.BuiltInRoleName.IsUnknown() {
-		isBuiltInRole = true
-		builtInRoleName = data.BuiltInRoleName.ValueString()
-	}
-
-	requestBody, err := constructResource(
-		ctx,
-		roleDefinitionID,
-		isBuiltInRole,
-		builtInRoleName,
-		&data,
-	)
-
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing assignment",
-			fmt.Sprintf("Could not construct assignment: %s", err.Error()),
+			"Error constructing resource",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -73,15 +45,13 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create Assignment", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	if createdResource.GetId() != nil {
-		data.ID = types.StringValue(*createdResource.GetId())
-	}
+	object.ID = types.StringValue(*createdResource.GetId())
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -105,92 +75,63 @@ func (r *RoleDefinitionAssignmentResource) Create(ctx context.Context, req resou
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the RoleDefinitionAssignment resource.
-func (r *RoleDefinitionAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data RoleDefinitionAssignmentResourceModel
+// Read handles the Read operation.
+func (r *RoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object RoleAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read of resource: %s", ResourceName))
 
-	operation := "Read"
-	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
-		if opStr, ok := ctxOp.(string); ok {
-			operation = opStr
-		}
-	}
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	resource, err := r.client.
+	roleAssignment, err := r.client.
 		DeviceManagement().
 		RoleAssignments().
-		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
+		ByDeviceAndAppManagementRoleAssignmentId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &data, resource)
+	MapRemoteStateToTerraform(ctx, &object, roleAssignment)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the RoleDefinitionAssignment resource.
-func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan RoleDefinitionAssignmentResourceModel
-	var state RoleDefinitionAssignmentResourceModel
-	var roleDefinitionID string // Determine role definition ID
+// Update handles the Update operation.
+func (r *RoleAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object RoleAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	isBuiltInRole := false
-	builtInRoleName := ""
-
-	if !plan.RoleDefinitionID.IsNull() && !plan.RoleDefinitionID.IsUnknown() {
-		roleDefinitionID = plan.RoleDefinitionID.ValueString()
-	} else if !plan.BuiltInRoleName.IsNull() && !plan.BuiltInRoleName.IsUnknown() {
-		isBuiltInRole = true
-		builtInRoleName = plan.BuiltInRoleName.ValueString()
-	}
-
-	requestBody, err := constructResource(
-		ctx,
-		roleDefinitionID,
-		isBuiltInRole,
-		builtInRoleName,
-		&plan,
-	)
-
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing assignment for update",
-			fmt.Sprintf("Could not construct assignment: %s", err.Error()),
+			"Error constructing resource for update",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -198,11 +139,16 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 	_, err = r.client.
 		DeviceManagement().
 		RoleAssignments().
-		ByDeviceAndAppManagementRoleAssignmentId(state.ID.ValueString()).
+		ByDeviceAndAppManagementRoleAssignmentId(object.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update Assignment", r.WritePermissions)
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -222,21 +168,21 @@ func (r *RoleDefinitionAssignmentResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for the RoleDefinitionAssignment resource.
-func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data RoleDefinitionAssignmentResourceModel
+// Delete handles the Delete operation.
+func (r *RoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object RoleAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -245,17 +191,13 @@ func (r *RoleDefinitionAssignmentResource) Delete(ctx context.Context, req resou
 	err := r.client.
 		DeviceManagement().
 		RoleAssignments().
-		ByDeviceAndAppManagementRoleAssignmentId(data.ID.ValueString()).
+		ByDeviceAndAppManagementRoleAssignmentId(object.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
-
-	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

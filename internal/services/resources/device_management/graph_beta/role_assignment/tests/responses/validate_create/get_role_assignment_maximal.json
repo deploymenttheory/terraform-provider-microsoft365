@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+  "displayName": "Test Maximal Role Assignment - Unique",
+  "description": "Comprehensive role assignment for testing with all features",
+  "members": [
+    "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
+    "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
+    "35d09841-af73-43e6-a59f-024fef1b6b95"
+  ],
+  "resourceScopes": [
+    "11111111-2222-3333-4444-555555555555",
+    "22222222-3333-4444-5555-666666666666",
+    "33333333-4444-5555-6666-777777777777"
+  ],
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('9e0cc482-82df-4ab2-a24c-0c23a3f52e1e')"
+}

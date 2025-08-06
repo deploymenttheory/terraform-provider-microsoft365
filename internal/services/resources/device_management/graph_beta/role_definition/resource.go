@@ -114,21 +114,6 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
 				Computed:            true,
 			},
-			"built_in_role_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"Policy and Profile manager",
-						"School Administrator",
-						"Help Desk Operator",
-						"Application Manager",
-						"Endpoint Security Manager",
-						"Read Only Operator",
-						"Intune Role Administrator",
-					),
-				},
-			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,

@@ -88,6 +88,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "terms
 
 ### Optional
 
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Administrator-supplied description of the terms and conditions policy. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -95,9 +96,24 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "terms
 
 ### Read-Only
 
-- `created_date_time` (String) DateTime the object was created.
 - `id` (String) The unique identifier of the terms and conditions policy.
-- `modified_date_time` (String) DateTime the object was last modified.
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) The target group type for the assignment. Possible values are:
+
+- **allLicensedUsersAssignmentTarget**: Target all users with Intune licenses
+- **groupAssignmentTarget**: Target a specific Entra ID group
+- **configurationManagerCollection**: Target System Center Configuration Manager collection
+
+Optional:
+
+- `collection_id` (String) The SCCM group collection ID for the assignment target. Default collections start with 'SMS', while custom collections start with your site code (e.g., 'MEM').
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
