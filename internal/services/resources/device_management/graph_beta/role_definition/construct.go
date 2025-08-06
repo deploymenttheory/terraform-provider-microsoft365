@@ -3,11 +3,9 @@ package graphBetaRoleDefinition
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -15,7 +13,7 @@ import (
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
-func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *RoleDefinitionResourceModel, resp interface{}, readPermissions []string, isUpdate bool) (graphmodels.RoleDefinitionable, error) {
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *RoleDefinitionResourceModel, resp interface{}, readPermissions []string) (graphmodels.RoleDefinitionable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewRoleDefinition()
@@ -23,20 +21,6 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
-	// For updates, don't set read-only or immutable properties
-	if !isUpdate {
-		if !data.IsBuiltIn.IsNull() {
-			isBuiltIn := data.IsBuiltIn.ValueBool()
-			requestBody.SetIsBuiltIn(&isBuiltIn)
-		}
-
-		if !data.IsBuiltInRoleDefinition.IsNull() {
-			isBuiltInRoleDefinition := data.IsBuiltInRoleDefinition.ValueBool()
-			requestBody.SetIsBuiltInRoleDefinition(&isBuiltInRoleDefinition)
-		}
-	}
-
-	// Only set role permissions if they are specified in the config
 	if len(data.RolePermissions) > 0 {
 		rolePermission := graphmodels.NewRolePermission()
 		resourceAction := graphmodels.NewResourceAction()
@@ -53,9 +37,9 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			}
 		}
 
-		validatedPermissions, err := validateRolePermissions(ctx, client, allowedResourceActions, resp, readPermissions)
+		validatedPermissions, err := validateRequest(ctx, client, allowedResourceActions, resp, readPermissions)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to validate role permissions: %s", err)
 		}
 
 		resourceAction.SetAllowedResourceActions(validatedPermissions)
@@ -77,52 +61,4 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 	return requestBody, nil
-}
-
-// validateRolePermissions validates that all provided role permissions exist in the list of available operations
-func validateRolePermissions(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, permissions []string, resp interface{}, readPermissions []string) ([]string, error) {
-	tflog.Debug(ctx, "Validating Intune role permissions against available Intune resource operations")
-
-	// Get the list of available resource operations
-	operations, err := client.
-		DeviceManagement().
-		ResourceOperations().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Read", readPermissions)
-		return nil, err
-	}
-
-	// Create a map of valid operation IDs for quick lookup
-	validOperations := make(map[string]bool)
-	for _, op := range operations.GetValue() {
-		if op.GetId() != nil {
-			validOperations[*op.GetId()] = true
-		}
-	}
-
-	// Filter out invalid permissions and log warnings
-	validPermissions := []string{}
-	for _, permission := range permissions {
-		if validOperations[permission] {
-			validPermissions = append(validPermissions, permission)
-		} else {
-			// Check if it's a syntax issue (e.g., missing prefix)
-			if !strings.HasPrefix(permission, "Microsoft.Intune_") {
-				correctedPermission := "Microsoft.Intune_" + permission
-				if validOperations[correctedPermission] {
-					tflog.Warn(ctx, fmt.Sprintf("Permission '%s' was missing 'Microsoft.Intune_' prefix, corrected to '%s'",
-						permission, correctedPermission))
-					validPermissions = append(validPermissions, correctedPermission)
-					continue
-				}
-			}
-
-			tflog.Warn(ctx, fmt.Sprintf("Permission '%s' is not a valid resource operation ID and will be ignored", permission))
-		}
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Validated %d of %d permissions", len(validPermissions), len(permissions)))
-	return validPermissions, nil
 }

@@ -39,6 +39,21 @@ func setupMockEnvironment() (*mocks.Mocks, *roleDefinitionMocks.RoleDefinitionMo
 	return mockClient, roleDefinitionMock
 }
 
+// setupErrorMockEnvironment sets up the mock environment for error testing
+func setupErrorMockEnvironment() (*mocks.Mocks, *roleDefinitionMocks.RoleDefinitionMock) {
+	// Activate httpmock
+	httpmock.Activate()
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register error mocks
+	roleDefinitionMock := &roleDefinitionMocks.RoleDefinitionMock{}
+	roleDefinitionMock.RegisterErrorMocks()
+
+	return mockClient, roleDefinitionMock
+}
 
 // testCheckExists is a basic check to ensure the resource exists in the state
 func testCheckExists(resourceName string) resource.TestCheckFunc {
@@ -87,8 +102,8 @@ func TestRoleDefinitionResource_Schema(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Check required attributes
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "display_name", "Test Minimal Role Definition - Unique"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in", "false"),
 
 					// Check computed attributes are set
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -116,8 +131,8 @@ func TestRoleDefinitionResource_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_role_definition.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "display_name", "Test Minimal Role Definition - Unique"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in", "false"),
 				),
 			},
 			// ImportState testing
@@ -183,21 +198,15 @@ func TestRoleDefinitionResource_RequiredFields(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "invalid_prefix_validation",
+			name: "missing is_built_in_role_definition",
 			config: `
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
   display_name = "Test Role Definition"
-  description  = "Test description"  
-  role_permissions = [
-    {
-      allowed_resource_actions = [
-        "InvalidPrefix_Permission"
-      ]
-    }
-  ]
+  description  = "Test description"
+  is_built_in  = false
 }
 `,
-			expectedError: `must start with 'Microsoft.Intune_'`,
+			expectedError: `The argument "is_built_in_role_definition" is required`,
 		},
 	}
 
@@ -219,7 +228,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 // TestRoleDefinitionResource_ErrorHandling tests error scenarios
 func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
 	setupUnitTestEnvironment()
-	_, roleDefinitionMock := setupMockEnvironment()
+	_, roleDefinitionMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
 
@@ -229,18 +238,13 @@ func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
 			{
 				Config: `
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name = "Test Role Definition for Error Handling"
-  description  = "Test description"
-  role_permissions = [
-    {
-      allowed_resource_actions = [
-        "Microsoft.Intune_Invalid_Permission_Name"
-      ]
-    }
-  ]
+  display_name                = "Test Role Definition"
+  description                 = "Test description"
+  is_built_in_role_definition = true
+  is_built_in                 = true
 }
 `,
-				ExpectError: regexp.MustCompile(`invalid resource operation ID`),
+				ExpectError: regexp.MustCompile(`Invalid role definition data|BadRequest`),
 			},
 		},
 	})
@@ -259,9 +263,11 @@ func TestRoleDefinitionResource_RoleScopeTagIds(t *testing.T) {
 			{
 				Config: `
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name       = "Test Role Definition with Role Scope Tags"
-  description        = "Test description"
-  role_scope_tag_ids = ["0", "1", "2"]
+  display_name                = "Test Role Definition with Role Scope Tags"
+  description                 = "Test description"
+  is_built_in_role_definition = false
+  is_built_in                 = false
+  role_scope_tag_ids          = ["0", "1", "2"]
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
@@ -269,6 +275,33 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "0"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "1"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "2"),
+				),
+			},
+		},
+	})
+}
+
+// TestRoleDefinitionResource_BuiltInRole tests built-in role definition handling
+func TestRoleDefinitionResource_BuiltInRole(t *testing.T) {
+	setupUnitTestEnvironment()
+	_, roleDefinitionMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer roleDefinitionMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigMaximalBuiltIn(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_role_definition.maximal_builtin"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "display_name", "Test Maximal Built-in Role Definition - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "description", "Comprehensive built-in role definition for testing with all features"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "is_built_in", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "is_built_in_role_definition", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "built_in_role_name", "Endpoint Security Manager"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "role_scope_tag_ids.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_builtin", "role_permissions.#", "1"),
 				),
 			},
 		},
@@ -288,15 +321,17 @@ func TestRoleDefinitionResource_RolePermissions(t *testing.T) {
 			{
 				Config: `
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name = "Test Role Definition with Permissions"
-  description  = "Test description"
+  display_name                = "Test Role Definition with Permissions"
+  description                 = "Test description"
+  is_built_in_role_definition = false
+  is_built_in                 = false
 
   role_permissions = [
     {
       allowed_resource_actions = [
-        "Microsoft.Intune_ManagedDevices_Read",
-        "Microsoft.Intune_ManagedDevices_Update",
-        "Microsoft.Intune_DeviceConfigurations_Read"
+        "microsoft.management/managedDevices/read",
+        "microsoft.management/managedDevices/write",
+        "microsoft.management/deviceConfigurations/read"
       ]
     }
   ]

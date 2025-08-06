@@ -42,7 +42,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		}
 	}
 
-	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions)
+	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -121,7 +121,6 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
-
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -149,19 +148,18 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions)
+	builder := r.client.
+		DeviceManagement().
+		RoleDefinitions().
+		ByRoleDefinitionId(state.ID.ValueString())
+
+	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(state.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
-
-	if err != nil {
+	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}

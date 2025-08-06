@@ -2,13 +2,11 @@ package graphBetaRoleDefinition
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -146,17 +144,9 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"allowed_resource_actions": schema.SetAttribute{
-							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields. Each action must start with 'Microsoft.Intune_'.",
+							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields.",
 							Optional:            true,
 							ElementType:         types.StringType,
-							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									stringvalidator.RegexMatches(
-										regexp.MustCompile(`^Microsoft\.Intune_`),
-										"must start with 'Microsoft.Intune_'",
-									),
-								),
-							},
 						},
 					},
 				},

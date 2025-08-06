@@ -1,6 +1,8 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "description" {
-  display_name = "Test Description Role Definition"
-  description  = "This is a test role definition with description"
+  display_name                = "Test Description Role Definition"
+  description                 = "This is a test role definition with description"
+  is_built_in_role_definition = false
+  is_built_in                 = false
 
   role_permissions = [
     {

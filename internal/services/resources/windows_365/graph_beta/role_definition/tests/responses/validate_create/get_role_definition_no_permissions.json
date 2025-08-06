@@ -1,0 +1,8 @@
+{
+  "id": "test-role-definition-no-permissions-id",
+  "displayName": "Test Role Definition with Role Scope Tags",
+  "description": "Test description",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0", "1", "2"]
+}

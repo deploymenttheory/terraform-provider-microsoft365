@@ -1,0 +1,28 @@
+{
+  "id": "test-role-definition-maximal-id",
+  "displayName": "Test Maximal Role Definition - Unique",
+  "description": "Comprehensive role definition for testing with all features",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0", "1"],
+  "rolePermissions": [
+    {
+      "resourceActions": [
+        {
+          "allowedResourceActions": [
+            "Microsoft.Intune_ManagedDevices_Read",
+            "Microsoft.Intune_ManagedDevices_Update",
+            "Microsoft.Intune_ManagedDevices_Delete",
+            "Microsoft.Intune_DeviceConfigurations_Read",
+            "Microsoft.Intune_DeviceConfigurations_Create",
+            "Microsoft.Intune_DeviceConfigurations_Update",
+            "Microsoft.Intune_DeviceConfigurations_Delete",
+            "Microsoft.Intune_DeviceConfigurations_Assign",
+            "Microsoft.Intune_Audit_Read",
+            "Microsoft.Intune_Organization_Read"
+          ]
+        }
+      ]
+    }
+  ]
+}
