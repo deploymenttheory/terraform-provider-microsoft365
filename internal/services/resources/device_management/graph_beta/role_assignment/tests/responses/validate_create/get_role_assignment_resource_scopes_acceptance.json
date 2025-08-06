@@ -1,0 +1,15 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "f6a7b8c9-d0e1-2345-fa67-89012345cdef",
+  "displayName": "Test Resource Scopes Role Assignment - ACC",
+  "description": "Role assignment with specific resource scopes for acceptance testing",
+  "members": [
+    "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
+  ],
+  "resourceScopes": [
+    "44444444-5555-6666-7777-888888888888",
+    "55555555-6666-7777-8888-999999999999"
+  ],
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')"
+}

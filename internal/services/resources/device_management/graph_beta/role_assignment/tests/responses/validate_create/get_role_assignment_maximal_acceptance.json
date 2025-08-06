@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "e5f6a7b8-c9d0-1234-ef56-789012345bcd",
+  "displayName": "Test Maximal Role Assignment - ACC",
+  "description": "Comprehensive role assignment for acceptance testing with all features",
+  "members": [
+    "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa"
+  ],
+  "resourceScopes": [],
+  "scopeType": "AllDevices",
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('c1d9fcbb-cba5-40b0-bf6b-527006585f4b')"
+}

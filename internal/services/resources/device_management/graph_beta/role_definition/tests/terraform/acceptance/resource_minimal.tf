@@ -1,8 +1,6 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name                = "Test Acceptance Role Definition"
-  description                 = ""
-  is_built_in_role_definition = false
-  is_built_in                 = false
+  display_name = "Test Acceptance Role Definition"
+  description  = ""
 
   role_permissions = [
     {

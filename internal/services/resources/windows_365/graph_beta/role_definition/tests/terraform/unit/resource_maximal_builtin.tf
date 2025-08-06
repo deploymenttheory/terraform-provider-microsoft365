@@ -3,7 +3,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "maximal_bu
   description                 = "Comprehensive built-in role definition for testing with all features"
   is_built_in_role_definition = true
   is_built_in                 = true
-  built_in_role_name         = "Endpoint Security Manager"
+  built_in_role_name          = "Endpoint Security Manager"
   role_scope_tag_ids          = ["0", "1"]
 
   role_permissions = [

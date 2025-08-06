@@ -82,8 +82,8 @@ func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "display_name", "Test Acceptance Role Definition"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "description", ""),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in_role_definition", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in", "false"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in_role_definition"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.#", "1"),
 				),
 			},
@@ -126,29 +126,6 @@ func TestAccRoleDefinitionResource_Description(t *testing.T) {
 	})
 }
 
-func TestAccRoleDefinitionResource_BuiltInRole(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleDefinitionConfig_maximalBuiltIn(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "display_name", "Test Acceptance Built-in Role Definition - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "description", "Updated built-in description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in_role_definition", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "built_in_role_name", "Endpoint Security Manager"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.#", "1"),
-				),
-			},
-		},
-	})
-}
-
 // Test configuration functions
 func testAccRoleDefinitionConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
@@ -162,10 +139,5 @@ func testAccRoleDefinitionConfig_maximal() string {
 
 func testAccRoleDefinitionConfig_description() string {
 	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfigWithProvider(config)
-}
-
-func testAccRoleDefinitionConfig_maximalBuiltIn() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal_builtin.tf")
 	return acceptance.ConfigWithProvider(config)
 }

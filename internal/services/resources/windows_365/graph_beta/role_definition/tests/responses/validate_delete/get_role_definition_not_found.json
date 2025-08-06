@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Role definition not found",
+    "innerError": {
+      "code": "ResourceNotFound",
+      "message": "Role definition not found"
+    }
+  }
+}

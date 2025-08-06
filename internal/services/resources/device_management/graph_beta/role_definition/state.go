@@ -23,14 +23,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		"resourceId": resourceID,
 	})
 
-	// Set basic properties
-	data.ID = types.StringValue(resourceID)
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.IsBuiltIn = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltIn())
 	data.IsBuiltInRoleDefinition = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltInRoleDefinition())
 
 	rolePermissions := remoteResource.GetRolePermissions()
+	
+	tflog.Debug(ctx, fmt.Sprintf("API returned %d rolePermissions", len(rolePermissions)))
+	
 	if len(rolePermissions) > 0 {
 		mappedPermissions := make([]RolePermissionResourceModel, 0, len(rolePermissions))
 
@@ -40,9 +41,12 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 			var allAllowedActions []string
 
 			resourceActions := rp.GetResourceActions()
+			tflog.Debug(ctx, fmt.Sprintf("Role permission has %d resourceActions", len(resourceActions)))
+			
 			for _, ra := range resourceActions {
 				allowedActions := ra.GetAllowedResourceActions()
 				if len(allowedActions) > 0 {
+					tflog.Debug(ctx, fmt.Sprintf("Found %d allowed resource actions: %v", len(allowedActions), allowedActions))
 					allAllowedActions = append(allAllowedActions, allowedActions...)
 				}
 			}
@@ -50,6 +54,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 			// Add actions from the actions field (if they exist and aren't already in the list)
 			apiActions := rp.GetActions()
 			if len(apiActions) > 0 {
+				tflog.Debug(ctx, fmt.Sprintf("Found %d actions: %v", len(apiActions), apiActions))
 				for _, action := range apiActions {
 					// Check if action is already in allAllowedActions
 					found := false
@@ -64,6 +69,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 					}
 				}
 			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Total actions collected: %d", len(allAllowedActions)))
 
 			// Create set with proper element type
 			if len(allAllowedActions) > 0 {
@@ -87,6 +94,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		}
 
 		data.RolePermissions = mappedPermissions
+		tflog.Debug(ctx, fmt.Sprintf("Set %d role permissions in state", len(mappedPermissions)))
+	} else {
+		tflog.Warn(ctx, "No role permissions returned from API - this may indicate the permissions are stored elsewhere or the API call is incomplete")
 	}
 	// Note: If no role permissions are returned from API, we don't set data.RolePermissions at all,
 	// leaving it as whatever was in the original state/plan to maintain consistency

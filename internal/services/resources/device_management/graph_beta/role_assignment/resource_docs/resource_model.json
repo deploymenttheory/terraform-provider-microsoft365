@@ -1,15 +1,116 @@
-{
-  "value": {
-    "@odata.type": "#microsoft.graph.roleAssignment",
-    "id": "b3234d24-4d24-b323-244d-23b3244d23b3",
-    "displayName": "Display Name value",
-    "description": "Description value",
-    "scopeMembers": [
-      "Scope Members value"
-    ],
-    "scopeType": "allDevices",
-    "resourceScopes": [
-      "Resource Scopes value"
-    ]
-  }
+POST https://graph.microsoft.com/beta/deviceManagement/roleAssignments
+
+// Code snippets are only available for the latest major version. Current major version is $v0.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	  graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	  //other-imports
+)
+
+requestBody := graphmodels.NewDeviceAndAppManagementRoleAssignment()
+id := ""
+requestBody.SetId(&id) 
+description := "description-1"
+requestBody.SetDescription(&description) 
+displayName := "assignment-1"
+requestBody.SetDisplayName(&displayName) 
+members := []string {
+	"ea8e2fb8-e909-44e6-bae7-56757cf6f347",
+	"b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
 }
+requestBody.SetMembers(members)
+resourceScopes := []string {
+	"ea8e2fb8-e909-44e6-bae7-56757cf6f347",
+	"b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
+}
+requestBody.SetResourceScopes(resourceScopes)
+additionalData := map[string]interface{}{
+	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('975f2808-ce1a-4bf0-acb9-f16ea23b700f')", 
+}
+requestBody.SetAdditionalData(additionalData)
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&tabs=go
+roleAssignments, err := graphClient.DeviceManagement().RoleAssignments().Post(context.Background(), requestBody, nil)
+
+assign to all users for built in role
+
+POST https://graph.microsoft.com/beta/deviceManagement/roleAssignments
+
+// Code snippets are only available for the latest major version. Current major version is $v0.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	  graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	  //other-imports
+)
+
+requestBody := graphmodels.NewDeviceAndAppManagementRoleAssignment()
+id := ""
+requestBody.SetId(&id) 
+description := "assignment"
+requestBody.SetDescription(&description) 
+displayName := "test"
+requestBody.SetDisplayName(&displayName) 
+members := []string {
+	"35d09841-af73-43e6-a59f-024fef1b6b95",
+	"410a28bd-9c9f-403f-b1b2-4a0bd04e98d9",
+}
+requestBody.SetMembers(members)
+resourceScopes := []string {
+
+}
+requestBody.SetResourceScopes(resourceScopes)
+scopeType := graphmodels.ALLLICENSEDUSERS_ROLEASSIGNMENTSCOPETYPE 
+requestBody.SetScopeType(&scopeType) 
+additionalData := map[string]interface{}{
+	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')", 
+}
+requestBody.SetAdditionalData(additionalData)
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&tabs=go
+roleAssignments, err := graphClient.DeviceManagement().RoleAssignments().Post(context.Background(), requestBody, nil)
+
+all devices
+
+POST https://graph.microsoft.com/beta/deviceManagement/roleAssignments
+
+// Code snippets are only available for the latest major version. Current major version is $v0.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	  graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	  //other-imports
+)
+
+requestBody := graphmodels.NewDeviceAndAppManagementRoleAssignment()
+id := ""
+requestBody.SetId(&id) 
+description := ""
+requestBody.SetDescription(&description) 
+displayName := "test"
+requestBody.SetDisplayName(&displayName) 
+members := []string {
+	"ea8e2fb8-e909-44e6-bae7-56757cf6f347",
+	"b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
+}
+requestBody.SetMembers(members)
+resourceScopes := []string {
+
+}
+requestBody.SetResourceScopes(resourceScopes)
+scopeType := graphmodels.ALLDEVICES_ROLEASSIGNMENTSCOPETYPE 
+requestBody.SetScopeType(&scopeType) 
+additionalData := map[string]interface{}{
+	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')", 
+}
+requestBody.SetAdditionalData(additionalData)
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&tabs=go
+roleAssignments, err := graphClient.DeviceManagement().RoleAssignments().Post(context.Background(), requestBody, nil)

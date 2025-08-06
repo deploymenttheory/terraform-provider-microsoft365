@@ -1,9 +1,7 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name                = "Test Acceptance Custom Role Definition - Updated"
-  description                 = "Updated custom description for acceptance testing"
-  is_built_in_role_definition = false
-  is_built_in                 = false
-  role_scope_tag_ids          = ["0", "1"]
+  display_name       = "Test Acceptance Role Definition - Updated"
+  description        = "Updated description for acceptance testing"
+  role_scope_tag_ids = ["0", "1"]
 
   role_permissions = [
     {

@@ -1,0 +1,19 @@
+{
+  "id": "test-role-definition-description-acceptance-id",
+  "displayName": "Test Description Role Definition",
+  "description": "This is a test role definition with description",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0"],
+  "rolePermissions": [
+    {
+      "resourceActions": [
+        {
+          "allowedResourceActions": [
+            "Microsoft.Intune_ManagedDevices_Read"
+          ]
+        }
+      ]
+    }
+  ]
+}

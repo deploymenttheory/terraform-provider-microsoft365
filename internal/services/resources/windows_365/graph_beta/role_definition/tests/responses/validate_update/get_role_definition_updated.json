@@ -1,0 +1,17 @@
+{
+  "id": "test-role-definition-updated-id",
+  "displayName": "Test Role Definition - Updated",
+  "description": "Updated description for testing",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0", "1"],
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.management/managedDevices/read",
+        "microsoft.management/managedDevices/write",
+        "microsoft.management/deviceConfigurations/read"
+      ]
+    }
+  ]
+}

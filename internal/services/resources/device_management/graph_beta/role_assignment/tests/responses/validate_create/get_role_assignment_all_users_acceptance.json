@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/roleAssignments/$entity",
+  "id": "a7b8c9d0-e1f2-3456-ab78-90123456defa",
+  "displayName": "Test All Users Role Assignment - ACC",
+  "description": "Role assignment for all licensed users scope for acceptance testing",
+  "members": [
+    "cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa",
+    "dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb"
+  ],
+  "resourceScopes": [],
+  "scopeType": "AllLicensedUsers",
+  "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('c56d53a2-73d0-4502-b6bd-4a9d3dba28d5')"
+}

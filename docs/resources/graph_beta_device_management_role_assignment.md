@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_role_assignment Resource 
 subcategory: "Device Management"
 
 description: |-
-  Manages role assignments in Microsoft Intune using the /deviceManagement/roleAssignments endpoint. Role assignments bind role definitions to administrators and define the scope of resources they can manage, enabling delegation of administrative privileges across device management, policy configuration, and user licensing operations.
+  Manages role assignments in Microsoft Intune using the /deviceManagement/roleAssignments endpoint. Role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
 ---
 
 # microsoft365_graph_beta_device_management_role_assignment (Resource)
 
-Manages role assignments in Microsoft Intune using the `/deviceManagement/roleAssignments` endpoint. Role assignments bind role definitions to administrators and define the scope of resources they can manage, enabling delegation of administrative privileges across device management, policy configuration, and user licensing operations.
+Manages role assignments in Microsoft Intune using the `/deviceManagement/roleAssignments` endpoint. Role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
 
 ## Microsoft Documentation
 
@@ -32,65 +32,107 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_management_role_assignment" "resource_scope_example" {
-  # You can reference either a role definition ID or use a built-in role name
-  role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
-  # OR
-  # built_in_role_name = "Help Desk Operator"
+# Example 1: Role Assignment with Specific Resource Scopes
+resource "microsoft365_graph_beta_device_management_role_assignment" "specific_scopes" {
+  display_name       = "Custom Assignment - Specific Scopes"
+  description        = "Assignment to specific resource scopes"
+  role_definition_id = "00000000-0000-0000-0000-000000000000"
 
-  display_name = "DevOps Team Assignment"
-  description  = "Assigns Intune administration capabilities to DevOps team"
-
-  # Scope type defines the target of this assignment
-  scope_type = "resourceScope" # One of: "allDevices", "allLicensedUsers", "allDevicesAndLicensedUsers", "resourceScope"
-
-  # If scope_type is "resourceScope", you need to specify scope members
-  scope_members = [
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555",
+  members = [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
   ]
 
-  # You can also define specific resource scopes
-  resource_scopes = [
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555"
-  ]
-
-  # Optional Timeout settings  
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+  scope_configuration {
+    type = "ResourceScopes"
+    resource_scopes = [
+      "00000000-0000-0000-0000-000000000003",
+      "00000000-0000-0000-0000-000000000004"
+    ]
   }
 }
 
-resource "microsoft365_graph_beta_device_management_role_assignment" "all_devices_example" {
-  # You can reference either a role definition ID or use a built-in role name
-  role_definition_id = microsoft365_graph_beta_device_management_role_definition.example.id
-  # OR
-  # built_in_role_name = "Help Desk Operator"
+# Example 2: Role Assignment to All Licensed Users
+resource "microsoft365_graph_beta_device_management_role_assignment" "all_licensed_users" {
+  display_name       = "Policy Manager - All Licensed Users"
+  description        = "Assignment to all licensed users"
+  role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be" # Policy and Profile manager
 
-  display_name = "1st Line Support Assignment"
-  description  = "Assigns Intune administration capabilities to 1st Line Support team"
-
-  # Scope type defines the target of this assignment
-  scope_type = "allDevices" # One of: "allDevices", "allLicensedUsers", "allDevicesAndLicensedUsers", "resourceScope"
-
-  resource_scopes = [
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555",
-    "11111111-2222-3333-4444-555555555555"
+  members = [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
   ]
 
-  # Optional Timeout settings  
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+  scope_configuration {
+    type = "AllLicensedUsers"
+  }
+}
+
+# Example 3: Role Assignment to All Devices
+resource "microsoft365_graph_beta_device_management_role_assignment" "all_devices" {
+  display_name       = "Device Manager - All Devices"
+  description        = "Assignment to all devices"
+  role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be" # Policy and Profile manager
+
+  members = [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
+  ]
+
+  scope_configuration {
+    type = "AllDevices"
+  }
+}
+
+# Example 4: Using with Custom Role Definition
+resource "microsoft365_graph_beta_device_management_role_definition" "custom_role" {
+  display_name = "Custom Device Manager"
+  description  = "Custom role for device management"
+
+  role_permissions {
+    allowed_resource_actions = [
+      "Microsoft.Intune/MobileApplications/Read",
+      "Microsoft.Intune/MobileApplications/Create",
+      "Microsoft.Intune/MobileApplications/Update"
+    ]
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_role_assignment" "custom_role_assignment" {
+  display_name       = "Custom Role Assignment"
+  description        = "Assignment using custom role definition"
+  role_definition_id = microsoft365_graph_beta_device_management_role_definition.custom_role.id
+
+  members = [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
+  ]
+
+  scope_configuration {
+    type = "AllLicensedUsers"
+  }
+}
+
+# Example 5: Using Built-in Role Names (via constants)
+locals {
+  built_in_roles = {
+    policy_manager      = "0bd113fe-6be5-400c-a28f-ae5553f9c0be"
+    help_desk_operator  = "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"
+    application_manager = "c1d9fcbb-cba5-40b0-bf6b-527006585f4b"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_role_assignment" "help_desk_assignment" {
+  display_name       = "Help Desk Team Assignment"
+  description        = "Help desk operators with device access"
+  role_definition_id = local.built_in_roles.help_desk_operator
+
+  members = [
+    "helpdesk-group@contoso.com"
+  ]
+
+  scope_configuration {
+    type = "AllDevices"
   }
 }
 ```
@@ -100,21 +142,31 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "all_device
 
 ### Required
 
-- `display_name` (String) The display or friendly name of the role assignment.
-- `scope_type` (String) Administrators in this role assignment can target policies, applications and remote tasks to a scope type of:'allDevices', 'allLicensedUsers', 'allDevicesAndLicensedUsers' and 'resourceScope'. If the scope intent is for a Entra ID group then leave this empty. Possible values are: `allDevices`, `allLicensedUsers`, `allDevicesAndLicensedUsers`, `resourceScope`.
+- `display_name` (String) The display name or name of the role Assignment.
+- `members` (Set of String) The list of ids of principals that are assigned to the role. These can be user ids or group ids.
+- `role_definition_id` (String) Role definition this assignment is for. Either use a built-in role ID or reference a custom role definition.Built-in role id's are as follows: Policy and Profile manager: 0bd113fe-6be5-400c-a28f-ae5553f9c0beSchool Administrator: 2f9f4f7e-2d13-427b-adf2-361a1eef7ae8Help Desk Operator: 9e0cc482-82df-4ab2-a24c-0c23a3f52e1eApplication Manager: c1d9fcbb-cba5-40b0-bf6b-527006585f4bEndpoint Security Manager: c56d53a2-73d0-4502-b6bd-4a9d3dba28d5Read Only Operator: fa1d7878-e8cb-41a1-8254-0142355c9f84Intune Role Administrator: fb2603eb-3c87-4be3-8b5b-d58a5b4a0bc0
 
 ### Optional
 
-- `built_in_role_name` (String) The name of the built-in role to assign. Either this or `role_definition_id` must be specified.
-- `description` (String) Description of the role assignment.
-- `resource_scopes` (Set of String) Administrators in this role assignment can target policies, applications and remote tasks. List of IDs of role scope member security groups from Entra ID.
-- `role_definition_id` (String) The ID of the role definition to assign. Either this or `built_in_role_name` must be specified.
-- `scope_members` (Set of String) Group IDs that are assigned as members of this role scope. Also known as admin_group_users_group_ids in the API.
+- `description` (String) Description of the Role Assignment.
+- `scope_configuration` (Block List) Defines the scope configuration for the role assignment. Exactly one scope configuration block is required. (see [below for nested schema](#nestedblock--scope_configuration))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) Key of the Role Assignment. This is read-only and automatically generated.
+- `id` (String) Key of the entity. This is read-only and automatically generated.
+
+<a id="nestedblock--scope_configuration"></a>
+### Nested Schema for `scope_configuration`
+
+Required:
+
+- `type` (String) The type of scope configuration. Valid values are: `ResourceScopes`, `AllLicensedUsers`, `AllDevices`.
+
+Optional:
+
+- `resource_scopes` (Set of String) List of resource scope IDs. Required when type is `ResourceScopes`, must be empty for other types.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

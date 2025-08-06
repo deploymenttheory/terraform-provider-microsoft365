@@ -1,0 +1,49 @@
+{
+  "@odata.type": "#microsoft.graph.roleDefinition",
+  "id": "String (identifier)",
+  "displayName": "String",
+  "description": "String",
+  "permissions": [
+    {
+      "@odata.type": "microsoft.graph.rolePermission",
+      "actions": [
+        "String"
+      ],
+      "resourceActions": [
+        {
+          "@odata.type": "microsoft.graph.resourceAction",
+          "allowedResourceActions": [
+            "String"
+          ],
+          "notAllowedResourceActions": [
+            "String"
+          ]
+        }
+      ]
+    }
+  ],
+  "rolePermissions": [
+    {
+      "@odata.type": "microsoft.graph.rolePermission",
+      "actions": [
+        "String"
+      ],
+      "resourceActions": [
+        {
+          "@odata.type": "microsoft.graph.resourceAction",
+          "allowedResourceActions": [
+            "String"
+          ],
+          "notAllowedResourceActions": [
+            "String"
+          ]
+        }
+      ]
+    }
+  ],
+  "isBuiltInRoleDefinition": true,
+  "isBuiltIn": true,
+  "roleScopeTagIds": [
+    "String"
+  ]
+}

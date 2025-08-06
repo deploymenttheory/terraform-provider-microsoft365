@@ -1,0 +1,20 @@
+{
+  "id": "test-role-definition-minimal-acceptance-id",
+  "displayName": "Test Acceptance Role Definition",
+  "description": "",
+  "isBuiltIn": false,
+  "isBuiltInRoleDefinition": false,
+  "roleScopeTagIds": ["0"],
+  "rolePermissions": [
+    {
+      "resourceActions": [
+        {
+          "allowedResourceActions": [
+            "Microsoft.Intune_ManagedDevices_Read",
+            "Microsoft.Intune_ManagedDevices_Update"
+          ]
+        }
+      ]
+    }
+  ]
+}

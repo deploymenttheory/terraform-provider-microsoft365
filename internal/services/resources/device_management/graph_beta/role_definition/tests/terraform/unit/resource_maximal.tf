@@ -1,9 +1,7 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "maximal_custom" {
-  display_name                = "Test Maximal Custom Role Definition - Unique"
-  description                 = "Comprehensive custom role definition for testing with all features"
-  is_built_in_role_definition = false
-  is_built_in                 = false
-  role_scope_tag_ids          = ["0", "1"]
+  display_name       = "Test Maximal Custom Role Definition - Unique"
+  description        = "Comprehensive custom role definition for testing with all features"
+  role_scope_tag_ids = ["0", "1"]
 
   role_permissions = [
     {

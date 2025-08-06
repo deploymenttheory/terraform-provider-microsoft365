@@ -2,11 +2,13 @@ package graphBetaRoleDefinition
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -106,26 +108,11 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"is_built_in": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Optional:            true,
+				Computed:            true,
 			},
 			"is_built_in_role_definition": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
-				Required:            true,
-			},
-			"built_in_role_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"Policy and Profile manager",
-						"School Administrator",
-						"Help Desk Operator",
-						"Application Manager",
-						"Endpoint Security Manager",
-						"Read Only Operator",
-						"Intune Role Administrator",
-					),
-				},
+				Computed:            true,
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -144,9 +131,17 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"allowed_resource_actions": schema.SetAttribute{
-							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields.",
+							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields. Each action must start with 'Microsoft.Intune_'.",
 							Optional:            true,
 							ElementType:         types.StringType,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^Microsoft\.Intune_`),
+										"must start with 'Microsoft.Intune_'",
+									),
+								),
+							},
 						},
 					},
 				},

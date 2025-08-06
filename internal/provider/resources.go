@@ -159,7 +159,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementRBACResourceOperation.NewRBACResourceOperationResource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsResource,
 		graphBetaDeviceManagementRoleDefinition.NewRoleDefinitionResource,
-		graphBetaDeviceManagementRoleAssignment.NewRoleDefinitionAssignmentResource,
+		graphBetaDeviceManagementRoleAssignment.NewRoleAssignmentResource,
 		graphBetaDeviceManagementRoleScopeTag.NewRoleScopeTagResource,
 		graphBetaDeviceManagementNotificationMessageTemplate.NewNotificationMessageTemplateResource,
 		graphBetaDeviceManagementSettingsCatalogConfigurationPolicy.NewSettingsCatalogResource,

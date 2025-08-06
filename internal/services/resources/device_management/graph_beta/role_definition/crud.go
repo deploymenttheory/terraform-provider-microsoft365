@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // Create handles the Create operation for the RoleDefinition resource.
@@ -43,7 +42,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 		}
 	}
 
-	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
+	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -116,16 +115,13 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 		DeviceManagement().
 		RoleDefinitions().
 		ByRoleDefinitionId(object.ID.ValueString()).
-		Get(ctx, &devicemanagement.RoleDefinitionsRoleDefinitionItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devicemanagement.RoleDefinitionsRoleDefinitionItemRequestBuilderGetQueryParameters{
-				Expand: []string{"rolePermissions"},
-			},
-		})
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
+
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -153,18 +149,19 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	builder := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(state.ID.ValueString())
-
-	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions, true)
+	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
 
-	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
+	_, err = r.client.
+		DeviceManagement().
+		RoleDefinitions().
+		ByRoleDefinitionId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
+	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
