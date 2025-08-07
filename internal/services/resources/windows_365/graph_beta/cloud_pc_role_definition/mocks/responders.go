@@ -40,29 +40,26 @@ var _ mocks.MockRegistrar = (*RoleDefinitionMock)(nil)
 // RegisterMocks sets up all the mock HTTP responders for role definition operations
 // This implements the MockRegistrar interface
 func (m *RoleDefinitionMock) RegisterMocks() {
-	// POST /deviceManagement/roleDefinitions - Create
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions",
+	// POST /roleManagement/cloudPC/roleDefinitions - Create
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions",
 		m.createRoleDefinitionResponder())
 
-	// GET /deviceManagement/roleDefinitions/{id} - Read
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
+	// GET /roleManagement/cloudPC/roleDefinitions/{id} - Read
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/([^/]+)$`,
 		m.getRoleDefinitionResponder())
 
-	// PATCH /deviceManagement/roleDefinitions/{id} - Update
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
+	// PATCH /roleManagement/cloudPC/roleDefinitions/{id} - Update
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/([^/]+)$`,
 		m.updateRoleDefinitionResponder())
 
-	// DELETE /deviceManagement/roleDefinitions/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
+	// DELETE /roleManagement/cloudPC/roleDefinitions/{id} - Delete
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/([^/]+)$`,
 		m.deleteRoleDefinitionResponder())
 
-	// GET /deviceManagement/roleDefinitions - List (for uniqueness validation)
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions",
+	// GET /roleManagement/cloudPC/roleDefinitions - List (for uniqueness validation)
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions",
 		m.listRoleDefinitionsResponder())
 
-	// GET /deviceManagement/resourceOperations - List resource operations (for role permission validation)
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/resourceOperations",
-		m.listResourceOperationsResponder())
 }
 
 // createRoleDefinitionResponder handles POST requests to create role definitions
@@ -135,7 +132,7 @@ func (m *RoleDefinitionMock) createRoleDefinitionResponder() httpmock.Responder 
 func (m *RoleDefinitionMock) getRoleDefinitionResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
 		// Extract ID from URL
-		id := factories.ExtractIDFromURL(req.URL.Path, "/deviceManagement/roleDefinitions/")
+		id := factories.ExtractIDFromURL(req.URL.Path, "/roleManagement/cloudPC/roleDefinitions/")
 
 		mockState.Lock()
 		roleDefinition, exists := mockState.roleDefinitions[id]
@@ -172,7 +169,7 @@ func (m *RoleDefinitionMock) getRoleDefinitionResponder() httpmock.Responder {
 func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
 		// Extract ID from URL
-		id := factories.ExtractIDFromURL(req.URL.Path, "/deviceManagement/roleDefinitions/")
+		id := factories.ExtractIDFromURL(req.URL.Path, "/roleManagement/cloudPC/roleDefinitions/")
 
 		mockState.Lock()
 		roleDefinition, exists := mockState.roleDefinitions[id]
@@ -222,7 +219,7 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 func (m *RoleDefinitionMock) deleteRoleDefinitionResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
 		// Extract ID from URL
-		id := factories.ExtractIDFromURL(req.URL.Path, "/deviceManagement/roleDefinitions/")
+		id := factories.ExtractIDFromURL(req.URL.Path, "/roleManagement/cloudPC/roleDefinitions/")
 
 		mockState.Lock()
 		_, exists := mockState.roleDefinitions[id]
@@ -244,7 +241,7 @@ func (m *RoleDefinitionMock) deleteRoleDefinitionResponder() httpmock.Responder 
 // This implements the MockRegistrar interface
 func (m *RoleDefinitionMock) RegisterErrorMocks() {
 	// POST - Create error
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions",
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(400, map[string]any{
 				"error": map[string]any{
@@ -255,7 +252,7 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 		})
 
 	// GET - List error (for uniqueness validation)
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions",
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(500, map[string]any{
 				"error": map[string]any{
@@ -266,27 +263,17 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 		})
 
 	// GET - Read error (simulates not found or access denied)
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/error-id$`,
 		factories.ErrorResponse(403, "Forbidden", "Access denied"))
 
 	// PATCH - Update error
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/error-id$`,
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Role definition is in use"))
 
-	// GET - Resource operations error (for role permission validation)
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/resourceOperations",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(500, map[string]any{
-				"error": map[string]any{
-					"code":    "InternalServerError",
-					"message": "Failed to retrieve resource operations",
-				},
-			})
-		})
 }
 
 // CleanupMockState clears all stored mock state

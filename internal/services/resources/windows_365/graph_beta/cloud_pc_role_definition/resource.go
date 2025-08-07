@@ -2,13 +2,14 @@ package graphBetaRoleDefinition
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_role_definition"
+	ResourceName  = "graph_beta_windows_365_cloud_pc_role_definition"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -43,14 +44,12 @@ var (
 func NewRoleDefinitionResource() resource.Resource {
 	return &RoleDefinitionResource{
 		ReadPermissions: []string{
-			"DeviceManagementRBAC.Read.All",
-			"DeviceManagementConfiguration.Read.All",
+			"RoleManagement.Read.CloudPC",
 		},
 		WritePermissions: []string{
-			"DeviceManagementRBAC.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
+			"RoleManagement.ReadWrite.CloudPC",
 		},
-		ResourcePath: "/deviceManagement/roleDefinitions",
+		ResourcePath: "/roleManagement/cloudPC/roleDefinitions",
 	}
 }
 
@@ -87,7 +86,7 @@ func (r *RoleDefinitionResource) ImportState(ctx context.Context, req resource.I
 
 func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages custom role definitions in Microsoft Intune using the `/deviceManagement/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.",
+		MarkdownDescription: "Manages custom role definitions in Microsoft Cloud PC using the `/roleManagement/cloudPC/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for Cloud PC management, policy configuration, and administrative functions within Windows 365.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -112,41 +111,23 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",
 				Computed:            true,
 			},
-			"built_in_role_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"Policy and Profile manager",
-						"School Administrator",
-						"Help Desk Operator",
-						"Application Manager",
-						"Endpoint Security Manager",
-						"Read Only Operator",
-						"Intune Role Administrator",
-					),
-				},
-			},
-			"role_scope_tag_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.DefaultSetValue(
-						[]attr.Value{types.StringValue("0")},
-					),
-				},
-			},
 			"role_permissions": schema.ListNestedAttribute{
-				MarkdownDescription: "List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions.",
+				MarkdownDescription: "List of Role Permissions this role is allowed to perform. Not used for in-built Cloud PC role definitions.",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"allowed_resource_actions": schema.SetAttribute{
-							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields.",
+							MarkdownDescription: "Allowed actions for this role permission. This field is equivalent to 'actions' and can be used interchangeably. The API will consolidate values from both fields. Each action must start with 'Microsoft.CloudPC/'.",
 							Optional:            true,
 							ElementType:         types.StringType,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^Microsoft\.CloudPC/`),
+										"must start with 'Microsoft.CloudPC/'",
+									),
+								),
+							},
 						},
 					},
 				},

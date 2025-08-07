@@ -10,14 +10,15 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform maps the remote RoleDefinition state to Terraform
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinitionResourceModel, remoteResource graphmodels.RoleDefinitionable) {
+// MapRemoteResourceStateToTerraform maps the remote UnifiedRoleDefinition state to Terraform
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinitionResourceModel, remoteResource graphmodels.UnifiedRoleDefinitionable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
-	resourceID := convert.GraphToFrameworkString(remoteResource.GetId()).ValueString()
+	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	resourceID := data.ID.ValueString()
 
 	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
 		"resourceId": resourceID,
@@ -26,46 +27,27 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.IsBuiltIn = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltIn())
-	data.IsBuiltInRoleDefinition = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltInRoleDefinition())
+	data.IsBuiltInRoleDefinition = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltIn())
 
-	rolePermissions := remoteResource.GetPermissions()
+	rolePermissions := remoteResource.GetRolePermissions()
+
+	tflog.Debug(ctx, fmt.Sprintf("API returned %d rolePermissions", len(rolePermissions)))
+
 	if len(rolePermissions) > 0 {
 		mappedPermissions := make([]RolePermissionResourceModel, 0, len(rolePermissions))
 
 		for _, rp := range rolePermissions {
 			permModel := RolePermissionResourceModel{}
 
-			var allAllowedActions []string
+			// For UnifiedRolePermissionable, get allowed resource actions directly
+			allowedActions := rp.GetAllowedResourceActions()
+			tflog.Debug(ctx, fmt.Sprintf("Found %d allowed resource actions: %v", len(allowedActions), allowedActions))
 
-			resourceActions := rp.GetResourceActions()
-			for _, ra := range resourceActions {
-				allowedActions := ra.GetAllowedResourceActions()
-				if len(allowedActions) > 0 {
-					allAllowedActions = append(allAllowedActions, allowedActions...)
-				}
-			}
-
-			// Add actions from the actions field (if they exist and aren't already in the list)
-			apiActions := rp.GetActions()
-			if len(apiActions) > 0 {
-				for _, action := range apiActions {
-					// Check if action is already in allAllowedActions
-					found := false
-					for _, existing := range allAllowedActions {
-						if existing == action {
-							found = true
-							break
-						}
-					}
-					if !found {
-						allAllowedActions = append(allAllowedActions, action)
-					}
-				}
-			}
+			tflog.Debug(ctx, fmt.Sprintf("Total actions collected: %d", len(allowedActions)))
 
 			// Create set with proper element type
-			if len(allAllowedActions) > 0 {
-				allowedActionsSet, diags := types.SetValueFrom(ctx, types.StringType, allAllowedActions)
+			if len(allowedActions) > 0 {
+				allowedActionsSet, diags := types.SetValueFrom(ctx, types.StringType, allowedActions)
 				if !diags.HasError() {
 					permModel.AllowedResourceActions = allowedActionsSet
 				} else {
@@ -85,11 +67,12 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 		}
 
 		data.RolePermissions = mappedPermissions
+		tflog.Debug(ctx, fmt.Sprintf("Set %d role permissions in state", len(mappedPermissions)))
+	} else {
+		tflog.Warn(ctx, "No role permissions returned from API - this may indicate the permissions are stored elsewhere or the API call is incomplete")
 	}
 	// Note: If no role permissions are returned from API, we don't set data.RolePermissions at all,
 	// leaving it as whatever was in the original state/plan to maintain consistency
-
-	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 

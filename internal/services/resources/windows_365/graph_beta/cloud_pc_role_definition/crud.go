@@ -30,19 +30,7 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 	defer cancel()
 
-	// Intune roles require unique display_names
-	isBuiltIn := object.IsBuiltInRoleDefinition.ValueBool() || object.IsBuiltIn.ValueBool()
-	if !isBuiltIn && !object.DisplayName.IsNull() && !object.DisplayName.IsUnknown() {
-		if err := checkRoleNameUniqueness(ctx, r.client, object.DisplayName.ValueString()); err != nil {
-			resp.Diagnostics.AddError(
-				"Role Name Not Unique",
-				err.Error(),
-			)
-			return
-		}
-	}
-
-	requestBody, err := constructResource(ctx, r.client, &object, resp, r.ReadPermissions, false)
+	requestBody, err := constructResource(ctx, &object, r.client)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -52,7 +40,8 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	}
 
 	createdResource, err := r.client.
-		DeviceManagement().
+		RoleManagement().
+		CloudPC().
 		RoleDefinitions().
 		Post(ctx, requestBody, nil)
 
@@ -112,15 +101,17 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	defer cancel()
 
 	resource, err := r.client.
-		DeviceManagement().
+		RoleManagement().
+		CloudPC().
 		RoleDefinitions().
-		ByRoleDefinitionId(object.ID.ValueString()).
+		ByUnifiedRoleDefinitionId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
+
 	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -148,18 +139,20 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	}
 	defer cancel()
 
-	builder := r.client.
-		DeviceManagement().
-		RoleDefinitions().
-		ByRoleDefinitionId(state.ID.ValueString())
-
-	requestBody, err := constructResource(ctx, r.client, &plan, resp, r.ReadPermissions, true)
+	requestBody, err := constructResource(ctx, &plan, r.client)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource", err.Error())
 		return
 	}
 
-	if _, err := builder.Patch(ctx, requestBody, nil); err != nil {
+	_, err = r.client.
+		RoleManagement().
+		CloudPC().
+		RoleDefinitions().
+		ByUnifiedRoleDefinitionId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
+	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
@@ -203,9 +196,10 @@ func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.Delete
 	defer cancel()
 
 	err := r.client.
-		DeviceManagement().
+		RoleManagement().
+		CloudPC().
 		RoleDefinitions().
-		ByRoleDefinitionId(data.ID.ValueString()).
+		ByUnifiedRoleDefinitionId(data.ID.ValueString()).
 		Delete(ctx, nil)
 
 	if err != nil {
