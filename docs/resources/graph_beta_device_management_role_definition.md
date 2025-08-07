@@ -61,7 +61,6 @@ resource "microsoft365_graph_beta_device_management_role_definition" "example" {
 
 ### Optional
 
-- `built_in_role_name` (String) Friendly name of built-in Intune role definitions. Define this if you want to assign one to a security group scope.
 - `description` (String) Description of the Role definition.
 - `display_name` (String) Display Name of the Role definition.
 - `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions. (see [below for nested schema](#nestedatt--role_permissions))
