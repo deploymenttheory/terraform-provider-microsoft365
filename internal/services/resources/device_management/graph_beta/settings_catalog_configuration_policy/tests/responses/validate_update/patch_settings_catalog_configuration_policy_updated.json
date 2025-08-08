@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": "macos mdm filevault2 settings - Updated",
+  "description": "Updated description for FileVault2 settings",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0"],
+  "isAssigned": false,
+  "settingsCount": 5,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T11:00:00Z",
+  "assignments": []
+}

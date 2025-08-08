@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000006",
+  "name": "Test All Users Assignment Settings Catalog Policy - Unit",
+  "description": "Settings catalog configuration policy with all users assignment for unit testing",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0"],
+  "isAssigned": true,
+  "settingsCount": 0,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-1",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      },
+      "entraObjectId": "",
+      "collectionId": "all-users",
+      "sourceId": "all-users",
+      "deviceAndAppManagementAssignmentFilterId": "5555555-5555-5555-5555-555555555555",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000007",
+  "name": "Test Exclusion Assignment Settings Catalog Policy - Unit",
+  "description": "Settings catalog configuration policy with exclusion assignment for unit testing",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0"],
+  "isAssigned": true,
+  "settingsCount": 0,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-1",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "7777777-7777-7777-7777-777777777777"
+      },
+      "entraObjectId": "7777777-7777-7777-7777-777777777777",
+      "collectionId": "group-exclusion",
+      "sourceId": "group-exclusion",
+      "deviceAndAppManagementAssignmentFilterId": "8888888-8888-8888-8888-888888888888",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    }
+  ]
+}

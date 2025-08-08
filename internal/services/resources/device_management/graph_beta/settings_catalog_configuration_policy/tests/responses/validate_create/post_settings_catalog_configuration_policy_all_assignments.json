@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "name": "Test All Assignment Types Settings Catalog Policy - Unit",
+  "description": "Settings catalog configuration policy with all assignment types for unit testing",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0", "1"],
+  "isAssigned": true,
+  "settingsCount": 0,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": []
+}

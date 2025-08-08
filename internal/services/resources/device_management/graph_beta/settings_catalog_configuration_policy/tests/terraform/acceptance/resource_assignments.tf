@@ -1,6 +1,6 @@
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
-  name         = "Test Acceptance Settings Catalog Policy - Updated"
-  description  = "Updated description for acceptance testing"
+resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "assignments" {
+  name         = "Test All Assignment Types Settings Catalog Policy"
+  description  = "Settings catalog configuration policy with comprehensive assignments for acceptance testing"
   platforms    = "macOS"
   technologies = ["mdm", "appleRemoteManagement"]
 
@@ -8,6 +8,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id,
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_2.id
   ]
+
   template_reference = {
     template_id = ""
   }
@@ -231,5 +232,44 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "2"
       }
     ]
+  }
+
+
+  assignments = [
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+      filter_type = "include"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
+    },
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+      filter_type = "include"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
+    },
+    {
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_type = "include"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
+    },
+    {
+      type        = "allDevicesAssignmentTarget"
+      filter_type = "include"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
+    },
+    {
+      type        = "exclusionGroupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+      filter_type = "include"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
+    }
+  ]
+
+  timeouts = {
+    create = "180s"
+    read   = "180s"
+    update = "180s"
+    delete = "180s"
   }
 }

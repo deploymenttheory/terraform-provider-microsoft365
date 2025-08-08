@@ -1,0 +1,83 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "name": "Test All Assignment Types Settings Catalog Policy - Unit",
+  "description": "Settings catalog configuration policy with all assignment types for unit testing",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0", "1"],
+  "isAssigned": true,
+  "settingsCount": 0,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-1",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "11111111-1111-1111-1111-111111111111"
+      },
+      "entraObjectId": "11111111-1111-1111-1111-111111111111",
+      "collectionId": "group-1",
+      "sourceId": "group-1",
+      "deviceAndAppManagementAssignmentFilterId": "1111111-1111-1111-1111-111111111111",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-2",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "22222222-2222-2222-2222-222222222222"
+      },
+      "entraObjectId": "22222222-2222-2222-2222-222222222222",
+      "collectionId": "group-2",
+      "sourceId": "group-2",
+      "deviceAndAppManagementAssignmentFilterId": "2222222-2222-2222-2222-222222222222",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-3",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      },
+      "entraObjectId": "",
+      "collectionId": "all-users",
+      "sourceId": "all-users",
+      "deviceAndAppManagementAssignmentFilterId": "5555555-5555-5555-5555-555555555555",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-4",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      },
+      "entraObjectId": "",
+      "collectionId": "all-devices",
+      "sourceId": "all-devices",
+      "deviceAndAppManagementAssignmentFilterId": "6666666-6666-6666-6666-666666666666",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-5",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "7777777-7777-7777-7777-777777777777"
+      },
+      "entraObjectId": "7777777-7777-7777-7777-777777777777",
+      "collectionId": "group-exclusion",
+      "sourceId": "group-exclusion",
+      "deviceAndAppManagementAssignmentFilterId": "8888888-8888-8888-8888-888888888888",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    }
+  ]
+}
