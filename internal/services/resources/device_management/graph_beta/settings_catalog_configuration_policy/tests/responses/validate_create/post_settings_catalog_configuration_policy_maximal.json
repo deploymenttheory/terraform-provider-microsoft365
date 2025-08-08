@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "name": "macos mdm filevault2 settings",
+  "description": "Configure the FileVault payload to manage FileVault disk encryption settings on devices.",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0"],
+  "isAssigned": false,
+  "settingsCount": 5,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": []
+}

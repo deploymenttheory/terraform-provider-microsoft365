@@ -1,0 +1,43 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "name": "Test Group Assignments Settings Catalog Policy - Unit",
+  "description": "Settings catalog configuration policy with group assignments for unit testing",
+  "platforms": "macOS",
+  "technologies": ["mdm"],
+  "roleScopeTagIds": ["0"],
+  "isAssigned": true,
+  "settingsCount": 0,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-1",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "11111111-1111-1111-1111-111111111111"
+      },
+      "entraObjectId": "11111111-1111-1111-1111-111111111111",
+      "collectionId": "group-1",
+      "sourceId": "group-1",
+      "deviceAndAppManagementAssignmentFilterId": "2222222-2222-2222-2222-222222222222",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+      "id": "assignment-2",
+      "source": "direct",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "33333333-3333-3333-3333-333333333333"
+      },
+      "entraObjectId": "33333333-3333-3333-3333-333333333333",
+      "collectionId": "group-2",
+      "sourceId": "group-2",
+      "deviceAndAppManagementAssignmentFilterId": "4444444-4444-4444-4444-444444444444",
+      "deviceAndAppManagementAssignmentFilterType": "include"
+    }
+  ]
+}

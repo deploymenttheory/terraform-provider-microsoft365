@@ -1,7 +1,0 @@
-{
-  "error": {
-    "code": "BadRequest",
-    "message": "Invalid settings catalog policy data"
-  }
-}
-
