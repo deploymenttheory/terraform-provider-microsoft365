@@ -1,6 +1,6 @@
 resource "microsoft365_graph_beta_device_management_windows_update_ring" "assignments" {
-  display_name         = "Test All Assignment Types Windows Update Ring"
-  description          = "Windows update ring with comprehensive assignments for acceptance testing"
+  display_name                            = "Test All Assignment Types Windows Update Ring"
+  description                             = "Windows update ring with comprehensive assignments for acceptance testing"
   microsoft_update_service_allowed        = true
   drivers_excluded                        = false
   quality_updates_deferral_period_in_days = 7
@@ -33,7 +33,7 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "assign
     }
   ]
 
-  
+
   timeouts = {
     create = "180s"
     read   = "180s"

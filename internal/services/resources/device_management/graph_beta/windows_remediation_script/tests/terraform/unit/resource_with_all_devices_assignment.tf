@@ -1,7 +1,7 @@
 resource "microsoft365_graph_beta_device_management_windows_remediation_script" "all_devices_assignment" {
-  display_name                = "Test All Devices Assignment Windows Remediation Script - Unique"
-  description                 = ""
-  publisher                   = "Terraform Provider Test"
+  display_name               = "Test All Devices Assignment Windows Remediation Script - Unique"
+  description                = ""
+  publisher                  = "Terraform Provider Test"
   run_as_account             = "system"
   detection_script_content   = "# Detection script with all devices assignment\nWrite-Host 'Detection complete'\nexit 0"
   remediation_script_content = "# Remediation script with all devices assignment\nWrite-Host 'Remediation complete'\nexit 0"

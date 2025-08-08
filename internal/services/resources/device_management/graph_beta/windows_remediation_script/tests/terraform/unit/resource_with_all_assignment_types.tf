@@ -1,10 +1,10 @@
 resource "microsoft365_graph_beta_device_management_windows_remediation_script" "all_assignment_types" {
-  display_name         = "Test All Assignment Types Windows Remediation Script - Unique"
-  description          = "Windows remediation script with all assignment types for unit testing"
-  publisher            = "Terraform Provider Test"
-  run_as_account       = "system"
-  run_as_32_bit        = false
-  enforce_signature_check = false
+  display_name               = "Test All Assignment Types Windows Remediation Script - Unique"
+  description                = "Windows remediation script with all assignment types for unit testing"
+  publisher                  = "Terraform Provider Test"
+  run_as_account             = "system"
+  run_as_32_bit              = false
+  enforce_signature_check    = false
   detection_script_content   = "# Comprehensive detection script with all assignment types\nWrite-Host 'Detection complete for all assignment types'\nexit 0"
   remediation_script_content = "# Comprehensive remediation script with all assignment types\nWrite-Host 'Remediation complete for all assignment types'\nexit 0"
 

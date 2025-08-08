@@ -183,7 +183,7 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# {resource_id}
-terraform import microsoft365_graph_beta_device_and_app_management_role_assignment.example role-assignment-id
+# {resource_id/role_definition_id}
+terraform import microsoft365_graph_beta_device_and_app_management_role_assignment.example role-assignment-id/role-definition-id
 ```
 

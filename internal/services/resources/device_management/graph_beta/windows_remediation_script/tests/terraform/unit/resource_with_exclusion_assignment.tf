@@ -1,7 +1,7 @@
 resource "microsoft365_graph_beta_device_management_windows_remediation_script" "exclusion_assignment" {
-  display_name                = "Test Exclusion Assignment Windows Remediation Script - Unique"
-  description                 = ""
-  publisher                   = "Terraform Provider Test"
+  display_name               = "Test Exclusion Assignment Windows Remediation Script - Unique"
+  description                = ""
+  publisher                  = "Terraform Provider Test"
   run_as_account             = "system"
   detection_script_content   = "# Detection script with exclusion assignment\nWrite-Host 'Detection complete'\nexit 0"
   remediation_script_content = "# Remediation script with exclusion assignment\nWrite-Host 'Remediation complete'\nexit 0"

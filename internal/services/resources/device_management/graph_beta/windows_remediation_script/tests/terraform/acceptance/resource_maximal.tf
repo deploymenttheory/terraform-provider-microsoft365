@@ -19,7 +19,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
         exit 0
     }
   EOT
-  
+
   remediation_script_content = <<-EOT
     # Comprehensive remediation script for acceptance testing
     $logPath = "C:\temp\remediation.log"
@@ -43,6 +43,6 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
     Write-Host "Remediation completed successfully"
     exit 0
   EOT
-  
+
   role_scope_tag_ids = ["0", "1"]
 }

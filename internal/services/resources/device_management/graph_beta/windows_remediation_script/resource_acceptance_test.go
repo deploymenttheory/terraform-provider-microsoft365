@@ -145,20 +145,21 @@ func TestAccWindowsRemediationScriptResource_InvalidValues(t *testing.T) {
 }
 
 func testAccWindowsRemediationScriptConfig_minimal() string {
-	config := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsRemediationScriptConfig_maximal() string {
-	config := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsRemediationScriptConfig_withAssignments() string {
 	groups := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
 	roleScopeTags := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	config := mocks.LoadLocalTerraformConfig("resource_with_assignments.tf")
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + config)
+	assignmentFilters := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
+	accTestConfig := mocks.LoadLocalTerraformConfig("resource_with_assignments.tf")
+	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + accTestConfig)
 }
 
 func testAccWindowsRemediationScriptConfig_missingDisplayName() string {

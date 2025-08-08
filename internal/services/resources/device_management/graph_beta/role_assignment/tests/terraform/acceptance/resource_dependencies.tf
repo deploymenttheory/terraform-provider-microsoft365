@@ -73,10 +73,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
 output "test_group_ids" {
   description = "Group IDs for use in role assignment tests"
   value = {
-    policy_managers      = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    policy_managers       = microsoft365_graph_beta_groups_group.acc_test_group_1.id
     device_administrators = microsoft365_graph_beta_groups_group.acc_test_group_2.id
-    application_managers = microsoft365_graph_beta_groups_group.acc_test_group_3.id
-    security_operators   = microsoft365_graph_beta_groups_group.acc_test_group_4.id
+    application_managers  = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+    security_operators    = microsoft365_graph_beta_groups_group.acc_test_group_4.id
   }
 }
 

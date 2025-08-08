@@ -1,6 +1,6 @@
 resource "microsoft365_graph_beta_device_management_windows_update_ring" "all_assignment_types" {
-  display_name         = "Test All Assignment Types Windows Update Ring - Unique"
-  description          = "Windows update ring with all assignment types for unit testing"
+  display_name                            = "Test All Assignment Types Windows Update Ring - Unique"
+  description                             = "Windows update ring with all assignment types for unit testing"
   microsoft_update_service_allowed        = true
   drivers_excluded                        = false
   quality_updates_deferral_period_in_days = 7
