@@ -1,11 +1,9 @@
 package graphBetaWindowsUpdateRing_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -19,15 +17,36 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func setupMockEnvironment() (*windowsUpdateRingMocks.WindowsUpdateRingMock, *windowsUpdateRingMocks.WindowsUpdateRingMock) {
+// setupMockEnvironment sets up the mock environment using centralized mocks
+func setupMockEnvironment() (*mocks.Mocks, *windowsUpdateRingMocks.WindowsUpdateRingMock) {
+	// Activate httpmock
 	httpmock.Activate()
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	errorMock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	return mock, errorMock
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register local mocks directly
+	windowsUpdateRingMock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
+	windowsUpdateRingMock.RegisterMocks()
+
+	return mockClient, windowsUpdateRingMock
 }
 
-func setupTestEnvironment(t *testing.T) {
-	// Set up any test-specific environment variables or configurations here if needed
+// setupErrorMockEnvironment sets up the mock environment for error testing
+func setupErrorMockEnvironment() (*mocks.Mocks, *windowsUpdateRingMocks.WindowsUpdateRingMock) {
+	// Activate httpmock
+	httpmock.Activate()
+
+	// Create a new Mocks instance and register authentication mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	// Register error mocks
+	windowsUpdateRingMock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
+	windowsUpdateRingMock.RegisterErrorMocks()
+
+	return mockClient, windowsUpdateRingMock
 }
 
 // testCheckExists is a basic check to ensure the resource exists in the state
@@ -35,342 +54,369 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+// resourceMinimalUnitTestData returns the minimal tf configuration for testing
+func resourceMinimalUnitTestData() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
 	if err != nil {
 		return ""
 	}
 	return string(content)
 }
 
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
+// resourceMaximalUnitTestData returns the maximal tf configuration for testing
+func resourceMaximalUnitTestData() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
 	if err != nil {
 		return ""
 	}
 	return string(content)
 }
 
-// Helper function to get maximal config with a custom resource name
-func testConfigMaximalWithResourceName(resourceName string) string {
-	// Read the maximal config
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-
-	// Replace the resource name
-	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-
-	// Fix the display name to match test expectations
-	updated = strings.Replace(updated, "Test Maximal Windows Update Ring - Unique", "Test Maximal Windows Update Ring", 1)
-
-	return updated
-}
-
-// Helper function to get minimal config with a custom resource name
-func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_management_windows_update_ring" "%s" {
-  display_name                             = "Test Minimal Windows Update Ring"
-  microsoft_update_service_allowed         = true
-  drivers_excluded                         = false
-  quality_updates_deferral_period_in_days  = 0
-  feature_updates_deferral_period_in_days  = 0
-  allow_windows11_upgrade                  = true
-  skip_checks_before_restart               = false
-  automatic_update_mode                    = "userDefined"
-  feature_updates_rollback_window_in_days  = 10
-  
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-}`, resourceName)
-}
-
-// TestUnitWindowsUpdateRingResource_Create_Minimal tests the creation of a Windows update ring with minimal configuration
-func TestUnitWindowsUpdateRingResource_Create_Minimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+// TestWindowsUpdateRingResource_Schema validates the resource schema
+func TestWindowsUpdateRingResource_Schema(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: resourceMinimalUnitTestData(),
+				Check: resource.ComposeTestCheckFunc(
+					// Check required attributes
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "display_name", "Test Minimal Windows Update Ring - Unique"),
+
+					// Check computed attributes are set
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "role_scope_tag_ids.*", "0"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_Minimal tests basic CRUD operations
+func TestWindowsUpdateRingResource_Minimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create and Read testing
+			{
+				Config: resourceMinimalUnitTestData(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "display_name", "Test Minimal Windows Update Ring - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "microsoft_update_service_allowed", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "drivers_excluded", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "quality_updates_deferral_period_in_days", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "feature_updates_deferral_period_in_days", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "allow_windows11_upgrade", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "skip_checks_before_restart", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "automatic_update_mode", "userDefined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "feature_updates_rollback_window_in_days", "10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "role_scope_tag_ids.0", "0"),
 				),
 			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Create_Maximal tests the creation of a Windows update ring with maximal configuration
-func TestUnitWindowsUpdateRingResource_Create_Maximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "display_name", "Test Maximal Windows Update Ring - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "description", "Maximal Windows update ring for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "microsoft_update_service_allowed", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "drivers_excluded", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "quality_updates_deferral_period_in_days", "7"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "feature_updates_deferral_period_in_days", "14"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "allow_windows11_upgrade", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "skip_checks_before_restart", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "business_ready_updates_only", "businessReadyOnly"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "delivery_optimization_mode", "httpWithPeeringNat"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "prerelease_features", "settingsOnly"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "update_weeks", "firstWeek"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "active_hours_start", "09:00:00"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "active_hours_end", "17:00:00"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "user_pause_access", "disabled"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "feature_updates_rollback_window_in_days", "10"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "engaged_restart_deadline_in_days", "3"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "role_scope_tag_ids.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "role_scope_tag_ids.0", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "role_scope_tag_ids.1", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "deadline_settings.deadline_for_feature_updates_in_days", "7"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "assignments.0.type", "groupAssignmentTarget"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "assignments.0.group_id", "44444444-4444-4444-4444-444444444444"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitWindowsUpdateRingResource_Update_MinimalToMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Start with minimal configuration
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "display_name", "Test Minimal Windows Update Ring"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "automatic_update_mode", "userDefined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.#", "1"),
-				),
-			},
-			// Update to maximal configuration (with the same resource name)
-			{
-				Config: testConfigMaximalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "display_name", "Test Maximal Windows Update Ring"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "description", "Maximal Windows update ring for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "business_ready_updates_only", "businessReadyOnly"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitWindowsUpdateRingResource_Update_MaximalToMinimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Start with maximal configuration
-			{
-				Config: testConfigMaximalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "display_name", "Test Maximal Windows Update Ring"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "business_ready_updates_only", "businessReadyOnly"),
-				),
-			},
-			// Update to minimal configuration (with the same resource name)
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "display_name", "Test Minimal Windows Update Ring"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "automatic_update_mode", "userDefined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Delete_Minimal tests deleting a Windows update ring with minimal configuration
-func TestUnitWindowsUpdateRingResource_Delete_Minimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.minimal"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Delete_Maximal tests deleting a Windows update ring with maximal configuration
-func TestUnitWindowsUpdateRingResource_Delete_Maximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.maximal"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitWindowsUpdateRingResource_Import tests importing a Windows update ring
-func TestUnitWindowsUpdateRingResource_Import(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &windowsUpdateRingMocks.WindowsUpdateRingMock{}
-	mock.RegisterMocks()
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.minimal"),
-				),
-			},
+			// ImportState testing
 			{
 				ResourceName:      "microsoft365_graph_beta_device_management_windows_update_ring.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			// Update and Read testing
+			{
+				Config: resourceMaximalUnitTestData(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "display_name", "Test Maximal Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "description", "Maximal Windows update ring for testing with all features"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "role_scope_tag_ids.#", "2"),
+				),
+			},
 		},
 	})
 }
 
-// TestUnitWindowsUpdateRingResource_Error tests error handling
-func TestUnitWindowsUpdateRingResource_Error(t *testing.T) {
-	// Set up mock environment
-	_, errorMock := setupMockEnvironment()
+// TestWindowsUpdateRingResource_UpdateInPlace tests in-place updates
+func TestWindowsUpdateRingResource_UpdateInPlace(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the error mocks
-	errorMock.RegisterErrorMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
-				ExpectError: regexp.MustCompile("Validation error: Invalid display name"),
+				Config: resourceMinimalUnitTestData(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.minimal", "display_name", "Test Minimal Windows Update Ring - Unique"),
+				),
+			},
+			{
+				Config: resourceMaximalUnitTestData(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "display_name", "Test Maximal Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "description", "Maximal Windows update ring for testing with all features"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.maximal", "role_scope_tag_ids.#", "2"),
+				),
 			},
 		},
 	})
+}
+
+// TestWindowsUpdateRingResource_RequiredFields tests required field validation
+func TestWindowsUpdateRingResource_RequiredFields(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "test" {
+  # Missing display_name
+  microsoft_update_service_allowed = true
+  drivers_excluded = false
+}
+`,
+				ExpectError: regexp.MustCompile(`The argument "display_name" is required`),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_ErrorHandling tests error scenarios
+func TestWindowsUpdateRingResource_ErrorHandling(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupErrorMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "test" {
+  display_name = "Test Windows Update Ring"
+  microsoft_update_service_allowed = true
+  drivers_excluded = false
+  quality_updates_deferral_period_in_days = 0
+  feature_updates_deferral_period_in_days = 0
+  allow_windows11_upgrade = true
+  skip_checks_before_restart = false
+  automatic_update_mode = "userDefined"
+  feature_updates_rollback_window_in_days = 10
+}
+`,
+				ExpectError: regexp.MustCompile(`Invalid Windows update ring data|BadRequest`),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_RoleScopeTags tests role scope tags handling
+func TestWindowsUpdateRingResource_RoleScopeTags(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "test" {
+  display_name = "Test Windows Update Ring"
+  microsoft_update_service_allowed = true
+  drivers_excluded = false
+  quality_updates_deferral_period_in_days = 0
+  feature_updates_deferral_period_in_days = 0
+  allow_windows11_upgrade = true
+  skip_checks_before_restart = false
+  automatic_update_mode = "userDefined"
+  feature_updates_rollback_window_in_days = 10
+  role_scope_tag_ids = ["0", "1", "2"]
+}
+`,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.#", "3"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.*", "0"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.*", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_update_ring.test", "role_scope_tag_ids.*", "2"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_GroupAssignments tests group assignment functionality
+func TestWindowsUpdateRingResource_GroupAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigGroupAssignments(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.group_assignments"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.group_assignments", "display_name", "Test Group Assignments Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.group_assignments", "assignments.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.group_assignments", "assignments.0.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.group_assignments", "assignments.1.type", "groupAssignmentTarget"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_AllUsersAssignment tests all licensed users assignment functionality
+func TestWindowsUpdateRingResource_AllUsersAssignment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigAllUsersAssignment(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.all_users_assignment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_users_assignment", "display_name", "Test All Users Assignment Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_users_assignment", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_users_assignment", "assignments.0.type", "allLicensedUsersAssignmentTarget"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_AllDevicesAssignment tests all devices assignment functionality
+func TestWindowsUpdateRingResource_AllDevicesAssignment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigAllDevicesAssignment(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.all_devices_assignment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_devices_assignment", "display_name", "Test All Devices Assignment Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_devices_assignment", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_devices_assignment", "assignments.0.type", "allDevicesAssignmentTarget"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_ExclusionAssignment tests exclusion group assignment functionality
+func TestWindowsUpdateRingResource_ExclusionAssignment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigExclusionAssignment(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.exclusion_assignment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.exclusion_assignment", "display_name", "Test Exclusion Assignment Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.exclusion_assignment", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.exclusion_assignment", "assignments.0.type", "exclusionGroupAssignmentTarget"),
+				),
+			},
+		},
+	})
+}
+
+// TestWindowsUpdateRingResource_AllAssignmentTypes tests all assignment types together
+func TestWindowsUpdateRingResource_AllAssignmentTypes(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsUpdateRingMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsUpdateRingMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigAllAssignmentTypes(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "display_name", "Test All Assignment Types Windows Update Ring - Unique"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "assignments.#", "5"),
+					// Verify all assignment types are present
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "assignments.*", map[string]string{"type": "groupAssignmentTarget"}),
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "assignments.*", map[string]string{"type": "allLicensedUsersAssignmentTarget"}),
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_update_ring.all_assignment_types", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
+				),
+			},
+		},
+	})
+}
+
+// testConfigGroupAssignments returns the group assignments configuration for testing
+func testConfigGroupAssignments() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_group_assignments.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// testConfigAllUsersAssignment returns the all users assignment configuration for testing
+func testConfigAllUsersAssignment() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_users_assignment.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// testConfigAllDevicesAssignment returns the all devices assignment configuration for testing
+func testConfigAllDevicesAssignment() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_devices_assignment.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// testConfigExclusionAssignment returns the exclusion assignment configuration for testing
+func testConfigExclusionAssignment() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_exclusion_assignment.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// testConfigAllAssignmentTypes returns the all assignment types configuration for testing
+func testConfigAllAssignmentTypes() string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_assignment_types.tf"))
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }

@@ -3,9 +3,12 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -23,10 +26,16 @@ func init() {
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+
+	// Register with global registry
+	mocks.GlobalRegistry.Register("windows_update_ring", &WindowsUpdateRingMock{})
 }
 
 // WindowsUpdateRingMock provides mock responses for Windows update ring operations
 type WindowsUpdateRingMock struct{}
+
+// Ensure WindowsUpdateRingMock implements MockRegistrar interface
+var _ mocks.MockRegistrar = (*WindowsUpdateRingMock)(nil)
 
 // RegisterMocks registers HTTP mock responses for Windows update ring operations
 func (m *WindowsUpdateRingMock) RegisterMocks() {
@@ -64,7 +73,26 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Windows update ring not found"}}`), nil
+				// Check for special test IDs
+				switch {
+				case strings.Contains(ringId, "minimal"):
+					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_update_ring_minimal.json"))
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					response["id"] = ringId
+					return factories.SuccessResponse(200, response)(req)
+				case strings.Contains(ringId, "maximal"):
+					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_update_ring_maximal.json"))
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					response["id"] = ringId
+					return factories.SuccessResponse(200, response)(req)
+				default:
+					errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_update_ring_not_found.json"))
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
 			}
 
 			// Create response copy
@@ -230,80 +258,39 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Windows update ring not found"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_update_ring_not_found.json"))
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
 			// Parse request body
 			var requestBody map[string]interface{}
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_update_ring_error.json"))
+				return httpmock.NewJsonResponse(400, errorResponse)
 			}
 
-			// Update ring data
-			mockState.Lock()
-			
-			// Handle optional fields that might be removed (like going from maximal to minimal)
-			// Check for specific field patterns to simulate real API behavior
-			
-			// For optional fields, if they're not in the request, remove them
-			optionalFields := []string{"description", "businessReadyUpdatesOnly", "deliveryOptimizationMode", "prereleaseFeatures", "updateWeeks", "installationSchedule", "userPauseAccess", "userWindowsUpdateScanAccess", "updateNotificationLevel", "engagedRestartDeadlineInDays", "engagedRestartSnoozeScheduleInDays", "engagedRestartTransitionScheduleInDays", "autoRestartNotificationDismissal", "scheduleRestartWarningInHours", "scheduleImminentRestartWarningInMinutes", "featureUpdatesWillBeRolledBack", "qualityUpdatesWillBeRolledBack", "deadlineForFeatureUpdatesInDays", "deadlineForQualityUpdatesInDays", "deadlineGracePeriodInDays", "postponeRebootUntilAfterDeadline"}
-			for _, field := range optionalFields {
-				if _, hasField := requestBody[field]; !hasField {
-					delete(ringData, field)
-				}
+			// Load update template
+			updatedRing, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_windows_update_ring_updated.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 			}
-			
-			for key, value := range requestBody {
-				if value == nil {
-					// If value is explicitly null, remove the field from the stored state
-					delete(ringData, key)
-				} else {
-					ringData[key] = value
-				}
+
+			// Start with existing data
+			for k, v := range ringData {
+				updatedRing[k] = v
 			}
-			
-			// Handle individual field mappings for nested objects
-			if featureUpdatesWillBeRolledBack, exists := requestBody["featureUpdatesWillBeRolledBack"]; exists {
-				ringData["featureUpdatesWillBeRolledBack"] = featureUpdatesWillBeRolledBack
+
+			// Apply updates from request body
+			for k, v := range requestBody {
+				updatedRing[k] = v
 			}
-			if qualityUpdatesWillBeRolledBack, exists := requestBody["qualityUpdatesWillBeRolledBack"]; exists {
-				ringData["qualityUpdatesWillBeRolledBack"] = qualityUpdatesWillBeRolledBack
-			}
-			if deadlineForFeatureUpdatesInDays, exists := requestBody["deadlineForFeatureUpdatesInDays"]; exists {
-				ringData["deadlineForFeatureUpdatesInDays"] = deadlineForFeatureUpdatesInDays
-			}
-			if deadlineForQualityUpdatesInDays, exists := requestBody["deadlineForQualityUpdatesInDays"]; exists {
-				ringData["deadlineForQualityUpdatesInDays"] = deadlineForQualityUpdatesInDays
-			}
-			if deadlineGracePeriodInDays, exists := requestBody["deadlineGracePeriodInDays"]; exists {
-				ringData["deadlineGracePeriodInDays"] = deadlineGracePeriodInDays
-			}
-			if postponeRebootUntilAfterDeadline, exists := requestBody["postponeRebootUntilAfterDeadline"]; exists {
-				ringData["postponeRebootUntilAfterDeadline"] = postponeRebootUntilAfterDeadline
-			}
-			// Handle installation schedule for active hours  
-			if installationSchedule, exists := requestBody["installationSchedule"]; exists {
-				if schedule, ok := installationSchedule.(map[string]interface{}); ok {
-					if activeHoursStart, hasStart := schedule["activeHoursStart"]; hasStart {
-						ringData["installationSchedule"] = map[string]interface{}{
-							"@odata.type":     "#microsoft.graph.windowsUpdateActiveHoursInstall",
-							"activeHoursStart": activeHoursStart,
-						}
-						if activeHoursEnd, hasEnd := schedule["activeHoursEnd"]; hasEnd {
-							ringData["installationSchedule"].(map[string]interface{})["activeHoursEnd"] = activeHoursEnd
-						}
-					}
-				}
-			}
-			// Ensure the ID and @odata.type are preserved and update timestamp
-			ringData["id"] = ringId
-			ringData["@odata.type"] = "#microsoft.graph.windowsUpdateForBusinessConfiguration"
-			ringData["lastModifiedDateTime"] = "2024-01-01T01:00:00Z"
-			mockState.windowsUpdateRings[ringId] = ringData
+
+			// Store updated state
+			mockState.windowsUpdateRings[ringId] = updatedRing
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, ringData)
+			return factories.SuccessResponse(200, updatedRing)(req)
 		})
 
 	// Register DELETE for removing Windows update ring
@@ -320,7 +307,8 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Windows update ring not found"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_update_ring_not_found.json"))
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -397,6 +385,30 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 	// Dynamic mocks will handle all test cases
 }
 
+// CleanupMockState clears the mock state for clean test runs
+func (m *WindowsUpdateRingMock) CleanupMockState() {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	// Clear all stored Windows update rings
+	for id := range mockState.windowsUpdateRings {
+		delete(mockState.windowsUpdateRings, id)
+	}
+}
+
+// loadJSONResponse loads a JSON response from a file
+func (m *WindowsUpdateRingMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
+	var response map[string]interface{}
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return response, err
+	}
+
+	err = json.Unmarshal(content, &response)
+	return response, err
+}
+
 // RegisterErrorMocks registers HTTP mock responses for error scenarios
 func (m *WindowsUpdateRingMock) RegisterErrorMocks() {
 	// Register GET for listing Windows update rings (needed for uniqueness check)
@@ -411,9 +423,15 @@ func (m *WindowsUpdateRingMock) RegisterErrorMocks() {
 
 	// Register error response for creating Windows update ring with invalid data
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
-		factories.ErrorResponse(400, "BadRequest", "Validation error: Invalid display name"))
+		func(req *http.Request) (*http.Response, error) {
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_update_ring_error.json"))
+			return httpmock.NewJsonResponse(400, errorResponse)
+		})
 
 	// Register error response for Windows update ring not found
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/not-found-ring",
-		factories.ErrorResponse(404, "ResourceNotFound", "Windows update ring not found"))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_update_ring_not_found.json"))
+			return httpmock.NewJsonResponse(404, errorResponse)
+		})
 }

@@ -78,7 +78,7 @@ func constructResource(ctx context.Context, data *RoleAssignmentResourceModel) (
 	if !data.RoleDefinitionId.IsNull() && !data.RoleDefinitionId.IsUnknown() {
 		roleDefId := data.RoleDefinitionId.ValueString()
 		additionalData := map[string]interface{}{
-			"roleDefinition@odata.bind": fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('%s')", roleDefId),
+			"roleDefinition@odata.bind": fmt.Sprintf("https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions/%s", roleDefId),
 		}
 		requestBody.SetAdditionalData(additionalData)
 	}

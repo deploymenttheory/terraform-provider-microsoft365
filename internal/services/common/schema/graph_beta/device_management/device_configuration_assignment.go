@@ -31,7 +31,7 @@ func DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema() schema.SetNeste
 					},
 				},
 				"group_id": schema.StringAttribute{
-					Required:            true,
+					Optional:            true,
 					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(
@@ -88,7 +88,7 @@ func DeviceConfigurationWithAllGroupAssignmentsSchema() schema.SetNestedAttribut
 					},
 				},
 				"group_id": schema.StringAttribute{
-					Required:            true,
+					Optional:            true,
 					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(

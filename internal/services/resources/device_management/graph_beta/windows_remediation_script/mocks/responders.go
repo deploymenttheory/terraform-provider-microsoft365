@@ -3,9 +3,12 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -23,10 +26,16 @@ func init() {
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+
+	// Register with global registry
+	mocks.GlobalRegistry.Register("windows_remediation_script", &WindowsRemediationScriptMock{})
 }
 
 // WindowsRemediationScriptMock provides mock responses for Windows remediation script operations
 type WindowsRemediationScriptMock struct{}
+
+// Ensure WindowsRemediationScriptMock implements MockRegistrar interface
+var _ mocks.MockRegistrar = (*WindowsRemediationScriptMock)(nil)
 
 // RegisterMocks registers HTTP mock responses for Windows remediation script operations
 func (m *WindowsRemediationScriptMock) RegisterMocks() {
@@ -91,7 +100,26 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"The specified device health script was not found"}}`), nil
+				// Check for special test IDs
+				switch {
+				case strings.Contains(id, "minimal"):
+					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_remediation_script_minimal.json"))
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				case strings.Contains(id, "maximal"):
+					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_remediation_script_maximal.json"))
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				default:
+					errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
 			}
 
 			// Create response copy
@@ -189,49 +217,39 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			var requestBody map[string]interface{}
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_remediation_script_error.json"))
+				return httpmock.NewJsonResponse(400, errorResponse)
+			}
+
+			// Load update template
+			updatedScript, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_windows_remediation_script_updated.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 			}
 
 			mockState.Lock()
 			script, exists := mockState.windowsRemediationScripts[id]
 			if !exists {
 				mockState.Unlock()
-				return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"The specified device health script was not found"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
-			// For optional fields that can be null, we need to explicitly remove them if they're not in the PATCH request
-			// This simulates how Microsoft Graph API handles PATCH requests for optional fields
-			optionalFields := []string{"description"}
-
-			// Check if optional fields are missing from the request and remove them from the stored state
-			for _, field := range optionalFields {
-				if _, exists := requestBody[field]; !exists {
-					if _, existsInState := script[field]; existsInState {
-						delete(script, field)
-					}
-				}
+			// Start with existing data
+			for k, v := range script {
+				updatedScript[k] = v
 			}
 
-			// Update the script with new values
-			for key, value := range requestBody {
-				if value == nil {
-					// If value is explicitly null, remove the field from the stored state
-					delete(script, key)
-				} else {
-					script[key] = value
-				}
-			}
-			script["lastModifiedDateTime"] = "2024-01-01T00:00:00Z"
-
-			// Ensure @odata.type is present
-			if _, hasODataType := script["@odata.type"]; !hasODataType {
-				script["@odata.type"] = "#microsoft.graph.deviceHealthScript"
+			// Apply updates from request body
+			for k, v := range requestBody {
+				updatedScript[k] = v
 			}
 
-			mockState.windowsRemediationScripts[id] = script
+			// Store updated state
+			mockState.windowsRemediationScripts[id] = updatedScript
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, script)
+			return factories.SuccessResponse(200, updatedScript)(req)
 		})
 
 	// Register DELETE for Windows remediation script
@@ -249,7 +267,8 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"The specified device health script was not found"}}`), nil
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -379,6 +398,30 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 		})
 }
 
+// CleanupMockState clears the mock state for clean test runs
+func (m *WindowsRemediationScriptMock) CleanupMockState() {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	// Clear all stored Windows remediation scripts
+	for id := range mockState.windowsRemediationScripts {
+		delete(mockState.windowsRemediationScripts, id)
+	}
+}
+
+// loadJSONResponse loads a JSON response from a file
+func (m *WindowsRemediationScriptMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
+	var response map[string]interface{}
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return response, err
+	}
+
+	err = json.Unmarshal(content, &response)
+	return response, err
+}
+
 // RegisterErrorMocks registers mock responses that simulate error conditions
 func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	// Reset the state when registering error mocks
@@ -398,11 +441,17 @@ func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 
 	// Register error response for creating Windows remediation script with invalid data
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
-		factories.ErrorResponse(400, "BadRequest", "Validation error: Invalid display name"))
+		func(req *http.Request) (*http.Response, error) {
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_remediation_script_error.json"))
+			return httpmock.NewJsonResponse(400, errorResponse)
+		})
 
 	// Register error response for Windows remediation script not found
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts/not-found-script",
-		factories.ErrorResponse(404, "ResourceNotFound", "Device health script not found"))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceHealthScripts/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+			return httpmock.NewJsonResponse(404, errorResponse)
+		})
 }
 
 func getOptionalBool(data map[string]interface{}, key string, defaultValue bool) bool {

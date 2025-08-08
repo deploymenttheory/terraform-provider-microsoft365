@@ -1,0 +1,53 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows 365"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [unifiedRoleDefinition resource type (beta)](https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition?view=graph-rest-beta)
+- [Create roleDefinition (beta)](https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `RoleManagement.ReadWrite.CloudPC`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.25.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_windows_365_cloud_pc_role_definition/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Cloud PC Role Management**: This resource manages custom role definitions for Windows 365 Cloud PC administration.
+- **Permission Control**: Defines granular permissions for Cloud PC operations, device management, and administrative functions.
+- **Built-in Roles**: Cannot modify built-in roles such as "Cloud PC Administrator" and "Cloud PC Reader".
+- **Role Permissions**: Supports Cloud PC-specific permissions starting with "Microsoft.CloudPC/".
+- **Administrative Scope**: Role definitions apply to Windows 365 Cloud PC management within the tenant.
+- **Security Model**: Integrates with Entra ID (Azure AD) role-based access control for secure permission management.
+- **Permission Validation**: All specified permissions are validated against available Cloud PC operations.
+- **Custom Roles**: Enables creation of custom roles tailored to specific organizational needs and responsibilities.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_windows_365_cloud_pc_role_definition/import.sh" }}

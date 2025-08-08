@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Windows update ring data: Display name cannot be null or empty",
+    "details": [
+      {
+        "code": "ValidationError",
+        "message": "Display name is required",
+        "target": "displayName"
+      }
+    ]
+  }
+}

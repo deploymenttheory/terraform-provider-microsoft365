@@ -270,12 +270,12 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 
 func testAccAssignmentFilterConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccAssignmentFilterConfig_maximal() string {
 	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccAssignmentFilterConfig_platform(platform string) string {
@@ -301,17 +301,17 @@ func testAccAssignmentFilterConfig_platform(platform string) string {
 	}
 
 	config := mocks.LoadTerraformTemplateFile("resource_platform_template.tf", data)
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccAssignmentFilterConfig_complexRule() string {
 	config := mocks.LoadTerraformConfigFile("resource_complex_rule.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccAssignmentFilterConfig_roleScopeTags() string {
 	config := mocks.LoadTerraformConfigFile("resource_role_scope_tags.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccAssignmentFilterConfig_managementType(managementType string) string {
@@ -332,5 +332,5 @@ func testAccAssignmentFilterConfig_managementType(managementType string) string 
 	}
 
 	config := mocks.LoadTerraformTemplateFile("resource_management_type_template.tf", data)
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
