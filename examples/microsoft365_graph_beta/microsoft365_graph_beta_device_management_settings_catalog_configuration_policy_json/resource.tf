@@ -351,33 +351,50 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     ]
   })
 
-  assignments = {
-    all_devices = false
-    # all_devices_filter_type = "exclude"
-    # all_devices_filter_id   = "11111111-2222-3333-4444-555555555555"
-
-    all_users = false
-    # all_users_filter_type = "include"
-    # all_users_filter_id   = "11111111-2222-3333-4444-555555555555"
-
-    include_groups = [
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "include"
-        include_groups_filter_id   = "11111111-2222-3333-4444-555555555555"
-      },
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "include"
-        include_groups_filter_id   = "11111111-2222-3333-4444-555555555555"
-      },
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555",
-    ]
-  }
+  assignments = [
+    # Optional: Assignment targeting all devices with inlcude filter
+    {
+      type        = "allDevicesAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting all licensed users with exclude filter
+    {
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting a specific group with exclude filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   timeouts = {
     create = "1m"

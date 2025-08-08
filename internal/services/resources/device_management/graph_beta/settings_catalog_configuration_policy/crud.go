@@ -67,33 +67,25 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -136,7 +128,6 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
-	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -197,7 +188,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	assignmentsResponse, err = r.client.
+	assignmentsResponse, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
@@ -209,7 +200,9 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
+	if assignmentsResponse != nil {
+		MapAssignmentsToTerraform(ctx, &object, assignmentsResponse.GetValue())
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -326,33 +319,25 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := ConstructConfigurationPolicyAssignment(ctx, plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

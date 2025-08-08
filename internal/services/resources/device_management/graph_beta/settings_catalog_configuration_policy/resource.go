@@ -114,6 +114,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"template_reference": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Policy template reference information",
 				Attributes: map[string]schema.Attribute{
 					"template_id": schema.StringAttribute{
@@ -230,7 +231,7 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
