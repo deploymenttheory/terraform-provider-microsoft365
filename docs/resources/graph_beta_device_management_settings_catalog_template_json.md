@@ -212,7 +212,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_template" "
     ]
   })
 
- assignments = [
+  assignments = [
     # Optional: Assignment targeting all devices with inlcude filter
     {
       type        = "allDevicesAssignmentTarget"
