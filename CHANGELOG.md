@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.24.0-alpha...v0.25.0-alpha) (2025-08-08)
+
+
+### Features
+
+* added cloud_pc_role_definition with acc and unit tests ([62df1c6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/62df1c6adb9262f815d885c4ef85651212c0daf6))
+* added more unit tests and updated testing pattern ([b4e6a6d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b4e6a6dc3dea4735bd9e8ab6ca811131293f3a7e))
+* added unit and acc tests ([f7dd14f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f7dd14faec64e3d7641e42d10528120f79e46d89))
+* added unit and acc tests for assignment filters , role scope tags and device categories ([#653](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/653)) ([affc09a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/affc09a166792006bdc34e3dcf2adbeba069a6e8))
+* added unit tests and bug fixes ([5146459](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5146459e08e24f80145fd0db8931c0a5a99730c6))
+* migrated settings catalog resources to the new pattern for assignments ([80693ed](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/80693ed0a29f49e86b50b982232692934cac8179))
+* migrated settings catalog resources to the new pattern for assignments ([#665](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/665)) ([f08713e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f08713ead36e297ffd9698e1b96835a8e93ef338))
+* refined test harness for windows_remediation_scripts and windows_update_ring ([d01f3fa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d01f3fab38affcceb131fa5832490132ab4c5dd6))
+* unit and acc tests for terms and conditions ([1cff2ee](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1cff2ee8e98a2c14a32bafe915081738201dc70c))
+* updated testing pattern with centralised tf resources and external tf provider dependancies ([#664](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/664)) ([b5cab67](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b5cab67bcc1be9e5e108f1dd2d5ba6af2d8d5f88))
+
+
+### Bug Fixes
+
+* added unit and acc tests for role_assignments ([#661](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/661)) ([46bcbf5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/46bcbf5e70558ab7650563945afe221956b3949a))
+* changed file path. cant be bothered ([befa30c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/befa30cf8b72c3c0a0f958f11c67e0fbe25ddbee))
+* for role definitions ([eb7f4e6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/eb7f4e6e450c46760c1a82f770040b98d9488cee))
+* for role_definitions ([83dcd6e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/83dcd6ef99f20e51114698e5785f7e268f938124))
+* for role_definitions and tests ([#660](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/660)) ([ad8c5fc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad8c5fc8c59077928c4e4b3cae671590ff53e512))
+* for unit tests ([b7ad6ea](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b7ad6ea3da16f41fa44cd2bd8d85a15cd8b37699))
+* initital unit and acc tests for settings catalog ([c53c4a3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c53c4a3ff3908198719a83c340eacb9d7507b57f))
+* restructured file paths ([a000b35](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a000b3560663c1ef003e2e8acf107752afcf414b))
+* settings catalog unit tests ([#667](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/667)) ([9acd789](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9acd7892809bb5b98ab62921b9cdeaf93e1da4f7))
+
 ## [0.24.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.23.0-alpha...v0.24.0-alpha) (2025-08-01)
 
 
