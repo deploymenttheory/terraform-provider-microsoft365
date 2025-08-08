@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.25.0-alpha...v0.25.1-alpha) (2025-08-08)
+
+
+### Bug Fixes
+
+* for pipeline ([adc888e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/adc888e6e082f9b28a439a58b4b78f5128f016b0))
+* for pipeline runner ([#671](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/671)) ([3987281](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/39872811eb2b35a1362599ec5389434ea5e468ef))
+
 ## [0.25.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.24.0-alpha...v0.25.0-alpha) (2025-08-08)
 
 
