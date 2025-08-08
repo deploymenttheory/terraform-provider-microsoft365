@@ -13,10 +13,7 @@ import (
 func constructResource(ctx context.Context, data *WindowsAutopilotDeviceIdentityResourceModel, forUpdate bool) (graphmodels.WindowsAutopilotDeviceIdentityable, error) {
 	resource := graphmodels.NewWindowsAutopilotDeviceIdentity()
 
-	// Required properties
 	convert.FrameworkToGraphString(data.SerialNumber, resource.SetSerialNumber)
-
-	// Optional properties
 	convert.FrameworkToGraphString(data.GroupTag, resource.SetGroupTag)
 	convert.FrameworkToGraphString(data.PurchaseOrderIdentifier, resource.SetPurchaseOrderIdentifier)
 	convert.FrameworkToGraphString(data.ProductKey, resource.SetProductKey)

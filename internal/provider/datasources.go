@@ -5,7 +5,7 @@ import (
 
 	// Graph Beta - Windows 365 datasources
 	graphBetaWindows365CloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_audit_event"
-	graphBetaWindows365CloudPcDeviceImages "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_images"
+	graphBetaWindows365CloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_image"
 	graphBetaWindows365CloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_frontline_service_plan"
 	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
 	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
@@ -90,7 +90,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaWindows365CloudPcAuditEvent.NewCloudPcAuditEventDataSource,
 		graphBetaWindows365CloudPcFrontlineServicePlan.NewCloudPcFrontlineServicePlanDataSource,
 		graphBetaWindows365CloudPcGalleryImage.NewCloudPcGalleryImageDataSource,
-		graphBetaWindows365CloudPcDeviceImages.NewCloudPcDeviceImagesDataSource,
+		graphBetaWindows365CloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 		graphBetaWindows365CloudPcs.NewCloudPcsDataSource,
 		graphBetaWindows365CloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
 		// Graph v1.0 - Directory Management datasources

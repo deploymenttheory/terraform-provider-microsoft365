@@ -13,28 +13,50 @@ resource "microsoft365_graph_beta_device_management_linux_platform_script" "exam
 
   role_scope_tag_ids = ["0"]
 
-  # Optional: Assignments
-  assignments = {
-    all_devices = false
-
-    all_users = false
-
-    include_groups = [
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "none"
-      },
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "none"
-      },
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555",
-    ]
-  }
+  assignments = [
+    # Optional: Assignment targeting all devices with inlcude filter
+    {
+      type        = "allDevicesAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting all licensed users with exclude filter
+    {
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting a specific group with exclude filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   # Optional: Custom timeouts
   timeouts = {

@@ -219,7 +219,7 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 }
 
 // Main entry point to construct the intune settings catalog profile resource for the Terraform provider.
-func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
+func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel) (graphmodels.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewDeviceManagementConfigurationPolicy()
@@ -251,7 +251,7 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogPr
 
 // setTemplateContext sets the template specific settings for the device management template.
 // It sets the platform, technologies, and template id reference.
-func setTemplateContext(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, requestBody graphmodels.DeviceManagementConfigurationPolicyable) error {
+func setTemplateContext(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, requestBody graphmodels.DeviceManagementConfigurationPolicyable) error {
 	config, exists := policyConfigMap[data.SettingsCatalogTemplateType.ValueString()]
 	if !exists {
 		tflog.Error(ctx, "Invalid settings catalog template type", map[string]interface{}{

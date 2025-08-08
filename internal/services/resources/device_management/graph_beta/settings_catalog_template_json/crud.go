@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
@@ -15,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -34,25 +33,22 @@ import (
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
 func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object sharedmodels.SettingsCatalogProfileResourceModel
+	var plan sharedmodels.SettingsCatalogJsonResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	deadline, _ := ctx.Deadline()
-	retryTimeout := time.Until(deadline) - time.Second
-
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -71,40 +67,30 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 		return
 	}
 
-	object.ID = types.StringValue(*createdResource.GetId())
+	plan.ID = types.StringValue(*createdResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		err = retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
-
-			_, err := r.client.
-				DeviceManagement().
-				ConfigurationPolicies().
-				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-				Assign().
-				Post(ctx, requestAssignment, nil)
-
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to create assignment: %s", err))
-			}
-			return nil
-		})
-
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -142,9 +128,8 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
 func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object sharedmodels.SettingsCatalogProfileResourceModel
+	var object sharedmodels.SettingsCatalogJsonResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
-	var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -171,7 +156,11 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetQueryParameters{
+				Expand: []string{"assignments"},
+			},
+		})
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -206,20 +195,6 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 
 	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
 
-	assignmentsResponse, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	sharedstater.StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -242,8 +217,8 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
 func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan sharedmodels.SettingsCatalogProfileResourceModel
-	var state sharedmodels.SettingsCatalogProfileResourceModel
+	var plan sharedmodels.SettingsCatalogJsonResourceModel
+	var state sharedmodels.SettingsCatalogJsonResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -285,6 +260,27 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 		return
 	}
 
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
+	}
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
@@ -313,7 +309,7 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
 func (r *DeviceManagementTemplateJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object sharedmodels.SettingsCatalogProfileResourceModel
+	var object sharedmodels.SettingsCatalogJsonResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

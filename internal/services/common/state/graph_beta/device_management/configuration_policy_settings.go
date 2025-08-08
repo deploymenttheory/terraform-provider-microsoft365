@@ -21,7 +21,7 @@ import (
 //
 // The function maps the remote state to Terraform state while maintaining the array structure
 // and normalizing the JSON format for consistent state representation.
-func StateConfigurationPolicySettings(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, resp []byte) {
+func StateConfigurationPolicySettings(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, resp []byte) {
 	data.Settings = types.StringValue(normalizeSettingsCatalogJSONArray(ctx, data.Settings.ValueString(), resp))
 }
 

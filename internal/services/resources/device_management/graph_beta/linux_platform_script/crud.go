@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
@@ -68,27 +67,25 @@ func (r *LinuxPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	if object.Assignments != nil {
-		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -130,7 +127,7 @@ func (r *LinuxPlatformScriptResource) Create(ctx context.Context, req resource.C
 // of the resource's current configuration on the server.
 func (r *LinuxPlatformScriptResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object LinuxPlatformScriptResourceModel
-	var settingsObject sharedmodels.SettingsCatalogProfileResourceModel
+	var settingsObject sharedmodels.SettingsCatalogJsonResourceModel
 	// var assignmentsResponse models.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -193,19 +190,21 @@ func (r *LinuxPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 
 	sharedstater.StateConfigurationPolicySettings(ctx, &settingsObject, settingsResponse)
 
-	// assignmentsResponse, err = r.client.
-	// 	DeviceManagement().
-	// 	ConfigurationPolicies().
-	// 	ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-	// 	Assignments().
-	// 	Get(ctx, nil)
+	assignmentsResponse, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
 
-	// if err != nil {
-	// 	errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
-	// 	return
-	// }
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
 
-	// sharedstater.StateConfigurationPolicyAssignment(ctx, object.Assignments, assignmentsResponse)
+	if assignmentsResponse != nil {
+		MapAssignmentsToTerraform(ctx, &object, assignmentsResponse.GetValue())
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -272,27 +271,25 @@ func (r *LinuxPlatformScriptResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := construct.ConstructConfigurationPolicyAssignment(ctx, plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

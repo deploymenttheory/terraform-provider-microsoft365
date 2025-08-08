@@ -189,7 +189,7 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				},
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("1")},
 			},
-			"assignments": commonschemagraphbeta.ConfigurationPolicyAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}

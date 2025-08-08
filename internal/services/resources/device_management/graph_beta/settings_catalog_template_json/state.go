@@ -13,7 +13,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform states the base properties of a DeviceManagementTemplateResourceModel to a Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.SettingsCatalogProfileResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, remoteResource graphmodels.DeviceManagementConfigurationPolicyable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -40,8 +40,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 		data.Technologies = DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(*technologies)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+	assignments := remoteResource.GetAssignments()
+	if len(assignments) == 0 {
+		data.Assignments = types.SetNull(SettingsCatalogConfigurationPolicyAssignmentType())
+	} else {
+		MapAssignmentsToTerraform(ctx, data, assignments)
+	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
 func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(technologies graphmodels.DeviceManagementConfigurationTechnologies) types.List {

@@ -28,6 +28,7 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.14.1-alpha | Experimental | Initial release |
+| v0.25.0-alpha | Testing | Updated to use new settings catalog assignment schema |
 
 ## Example Usage
 
@@ -47,28 +48,50 @@ resource "microsoft365_graph_beta_device_management_linux_platform_script" "exam
 
   role_scope_tag_ids = ["0"]
 
-  # Optional: Assignments
-  assignments = {
-    all_devices = false
-
-    all_users = false
-
-    include_groups = [
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "none"
-      },
-      {
-        group_id                   = "11111111-2222-3333-4444-555555555555"
-        include_groups_filter_type = "none"
-      },
-    ]
-
-    exclude_group_ids = [
-      "11111111-2222-3333-4444-555555555555",
-      "11111111-2222-3333-4444-555555555555",
-    ]
-  }
+  assignments = [
+    # Optional: Assignment targeting all devices with inlcude filter
+    {
+      type        = "allDevicesAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting all licensed users with exclude filter
+    {
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "include"
+    },
+    # Optional: Assignment targeting a specific group with exclude filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Assignment targeting a specific group with include filter
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = "00000000-0000-0000-0000-000000000000"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_type = "exclude"
+    },
+    # Optional: Exclusion group assignments
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
 
   # Optional: Custom timeouts
   timeouts = {
@@ -93,7 +116,7 @@ resource "microsoft365_graph_beta_device_management_linux_platform_script" "exam
 
 ### Optional
 
-- `assignments` (Attributes) The assignment configuration for this Windows Settings Catalog profile. (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description for the linux device management script.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -107,38 +130,15 @@ resource "microsoft365_graph_beta_device_management_linux_platform_script" "exam
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
-Optional:
-
-- `all_devices` (Boolean) Specifies whether this assignment applies to all devices. When set to `true`, the assignment targets all devices in the organization.Can be used in conjuction with `all_devices_filter_type` or `all_devices_filter_id`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_users` and `all_users_filter_type` or `all_users_filter_id`.
-- `all_devices_filter_id` (String) The ID of the device group filter to apply when `all_devices` is set to `true`. This should be a valid GUID of an existing device group filter.
-- `all_devices_filter_type` (String) The filter type for all devices assignment. Valid values are:
-- `include`: Apply the assignment to devices that match the filter.
-- `exclude`: Do not apply the assignment to devices that match the filter.
-- `none`: No filter applied.
-- `all_users` (Boolean) Specifies whether this assignment applies to all users. When set to `true`, the assignment targets all licensed users within the organization.Can be used in conjuction with `all_users_filter_type` or `all_users_filter_id`.Can be used as an alternative to `include_groups`.Can be used in conjuction with `all_devices` and `all_devices_filter_type` or `all_devices_filter_id`.
-- `all_users_filter_id` (String) The ID of the filter to apply when `all_users` is set to `true`. This should be a valid GUID of an existing filter.
-- `all_users_filter_type` (String) The filter type for all users assignment. Valid values are:
-- `include`: Apply the assignment to users that match the filter.
-- `exclude`: Do not apply the assignment to users that match the filter.
-- `none`: No filter applied.
-- `exclude_group_ids` (List of String) A list of group IDs to exclude from the assignment. These groups will not receive the assignment, even if they match other inclusion criteria.
-- `include_groups` (Attributes Set) A set of entra id group Id's to include in the assignment. Each group can have its own filter type and filter ID. (see [below for nested schema](#nestedatt--assignments--include_groups))
-
-<a id="nestedatt--assignments--include_groups"></a>
-### Nested Schema for `assignments.include_groups`
-
 Required:
 
-- `group_id` (String) The entra ID group ID of the group to include in the assignment. This should be a valid GUID of an existing group.
+- `type` (String) Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.
 
 Optional:
 
-- `include_groups_filter_id` (String) The Entra ID Group ID of the filter to apply to the included group. This should be a valid GUID of an existing filter.
-- `include_groups_filter_type` (String) The device group filter type for the included group. Valid values are:
-- `include`: Apply the assignment to group members that match the filter.
-- `exclude`: Do not apply the assignment to group members that match the filter.
-- `none`: No filter applied.
-
+- `filter_id` (String) ID of the filter to apply to the assignment.
+- `filter_type` (String) Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>
