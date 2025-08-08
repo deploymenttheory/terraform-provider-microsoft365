@@ -20,8 +20,31 @@ func EnsureField(data map[string]interface{}, fieldName string, defaultValue int
 // LoadTerraformConfigFile reads a terraform configuration file from the localised
 // acceptance test directory in services/<resource>/<resource_type>/tests/terraform/acceptance
 // folder.
+// Deprecated: Use LoadLocalTerraformConfig instead for better clarity
 func LoadTerraformConfigFile(filename string) string {
 	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
+	if err != nil {
+		// Fallback to empty string if file cannot be read
+		return ""
+	}
+	return string(content)
+}
+
+// LoadLocalTerraformConfig reads a terraform configuration file from the local test directory
+// in services/<resource>/<resource_type>/tests/terraform/acceptance folder.
+func LoadLocalTerraformConfig(filename string) string {
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
+	if err != nil {
+		// Fallback to empty string if file cannot be read
+		return ""
+	}
+	return string(content)
+}
+
+// LoadCentralizedTerraformConfig reads a terraform configuration file from centralized dependencies
+// This is used for loading shared dependency files from the acceptance/terraform_dependencies directory
+func LoadCentralizedTerraformConfig(filepath string) string {
+	content, err := os.ReadFile(filepath)
 	if err != nil {
 		// Fallback to empty string if file cannot be read
 		return ""

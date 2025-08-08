@@ -12,12 +12,16 @@ func ProviderConfig() string {
 provider "microsoft365" {
   # Configuration from environment variables
 }
+
+provider "random" {
+  # Random provider for generating unique resource names in tests
+}
 `
 }
 
-// ProviderConfigWithExplicitValues returns the provider configuration with explicit values
+// M365ProviderBlock returns the provider configuration with explicit values
 // for cases where environment variables need to be overridden
-func ProviderConfigWithExplicitValues(tenantID, clientID, clientSecret, authMethod, cloud string) string {
+func M365ProviderBlock(tenantID, clientID, clientSecret, authMethod, cloud string) string {
 	return fmt.Sprintf(`
 provider "microsoft365" {
   tenant_id    = "%s"
@@ -28,11 +32,15 @@ provider "microsoft365" {
     client_secret = "%s"
   }
 }
+
+provider "random" {
+  # Random provider for generating unique resource names in tests
+}
 `, tenantID, authMethod, cloud, clientID, clientSecret)
 }
 
-// ProviderConfigForCurrentEnv returns the provider configuration using current environment variables
-func ProviderConfigForCurrentEnv() string {
+// M365ProviderBlockValueInjection returns the provider configuration using current environment variables
+func M365ProviderBlockValueInjection() string {
 	tenantID := os.Getenv("M365_TENANT_ID")
 	clientID := os.Getenv("M365_CLIENT_ID")
 	clientSecret := os.Getenv("M365_CLIENT_SECRET")
@@ -44,10 +52,11 @@ func ProviderConfigForCurrentEnv() string {
 		return ProviderConfig()
 	}
 
-	return ProviderConfigWithExplicitValues(tenantID, clientID, clientSecret, authMethod, cloud)
+	return M365ProviderBlock(tenantID, clientID, clientSecret, authMethod, cloud)
 }
 
-// ConfigWithProvider prefixes any terraform configuration with the provider block
-func ConfigWithProvider(config string) string {
-	return ProviderConfigForCurrentEnv() + config
+// ConfiguredM365ProviderBlock prefixes any terraform configuration with a configured
+// M365 provider block.
+func ConfiguredM365ProviderBlock(config string) string {
+	return M365ProviderBlockValueInjection() + config
 }

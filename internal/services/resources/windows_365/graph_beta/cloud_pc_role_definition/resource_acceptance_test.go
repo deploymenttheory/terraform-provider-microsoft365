@@ -130,15 +130,15 @@ func TestAccRoleDefinitionResource_Description(t *testing.T) {
 // Test configuration functions
 func testAccRoleDefinitionConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccRoleDefinitionConfig_maximal() string {
 	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccRoleDefinitionConfig_description() string {
 	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }

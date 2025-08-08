@@ -143,22 +143,22 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 // Test configuration functions
 func testAccRoleScopeTagConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccRoleScopeTagConfig_maximal() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }
 
 func testAccRoleScopeTagConfig_description() string {
 	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfigWithProvider(config)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccRoleScopeTagConfig_assignments() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_assignments.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }

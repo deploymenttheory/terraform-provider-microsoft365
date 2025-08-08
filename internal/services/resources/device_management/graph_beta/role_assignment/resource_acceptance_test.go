@@ -178,29 +178,29 @@ func TestAccRoleAssignmentResource_AllUsersScope(t *testing.T) {
 func testAccRoleAssignmentConfig_minimal() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }
 
 func testAccRoleAssignmentConfig_maximal() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }
 
 func testAccRoleAssignmentConfig_resourceScopes() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_resource_scopes.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }
 
 func testAccRoleAssignmentConfig_allDevices() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_all_devices.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }
 
 func testAccRoleAssignmentConfig_allUsers() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_all_users.tf")
-	return acceptance.ConfigWithProvider(dependencies + "\n" + config)
+	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }

@@ -1,0 +1,48 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdateForBusinessConfiguration",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "displayName": "Test Updated Windows Update Ring",
+  "description": "Updated description for Windows update ring",
+  "microsoftUpdateServiceAllowed": true,
+  "driversExcluded": false,
+  "qualityUpdatesDeferralPeriodInDays": 5,
+  "featureUpdatesDeferralPeriodInDays": 10,
+  "allowWindows11Upgrade": true,
+  "skipChecksBeforeRestart": false,
+  "automaticUpdateMode": "autoInstallAtMaintenanceTime",
+  "businessReadyUpdatesOnly": "businessReadyOnly",
+  "deliveryOptimizationMode": "httpWithPeeringPrivateGroup",
+  "prereleaseFeatures": "settingsAndExperimentations",
+  "updateWeeks": "secondWeek",
+  "installationSchedule": {
+    "@odata.type": "#microsoft.graph.windowsUpdateActiveHoursInstall",
+    "activeHoursStart": "08:00:00",
+    "activeHoursEnd": "18:00:00"
+  },
+  "userPauseAccess": "enabled",
+  "userWindowsUpdateScanAccess": "enabled",
+  "updateNotificationLevel": "restartWarningsOnly",
+  "featureUpdatesRollbackWindowInDays": 15,
+  "engagedRestartDeadlineInDays": 5,
+  "engagedRestartSnoozeScheduleInDays": 2,
+  "engagedRestartTransitionScheduleInDays": 3,
+  "autoRestartNotificationDismissal": "notConfigured",
+  "scheduleRestartWarningInHours": 6,
+  "scheduleImminentRestartWarningInMinutes": 30,
+  "deadlineForFeatureUpdatesInDays": 10,
+  "deadlineForQualityUpdatesInDays": 3,
+  "deadlineGracePeriodInDays": 2,
+  "postponeRebootUntilAfterDeadline": false,
+  "roleScopeTagIds": ["0", "2"],
+  "assignments": [
+    {
+      "id": "assignment-id-2",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "55555555-5555-5555-5555-555555555555"
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z"
+}

@@ -1,0 +1,34 @@
+{
+  "@odata.type": "#microsoft.graph.deviceHealthScript",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "displayName": "Test Updated Windows Remediation Script",
+  "description": "Updated description for Windows remediation script",
+  "publisher": "Updated Publisher Name",
+  "runAs32Bit": true,
+  "runAsAccount": "user",
+  "enforceSignatureCheck": true,
+  "detectionScriptContent": "# Updated detection script\nWrite-Host 'Updated detection logic'\nexit 0",
+  "remediationScriptContent": "# Updated remediation script\nWrite-Host 'Updated remediation logic'\nexit 0",
+  "version": "1.0",
+  "isGlobalScript": false,
+  "deviceHealthScriptType": "deviceHealthScript",
+  "roleScopeTagIds": ["0", "2"],
+  "assignments": [
+    {
+      "id": "assignment-id-updated",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "55555555-5555-5555-5555-555555555555"
+      },
+      "runSchedule": {
+        "@odata.type": "#microsoft.graph.deviceHealthScriptDailySchedule",
+        "interval": 1,
+        "time": "08:00:00",
+        "useUtc": true
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "highestAvailableVersion": "1.0"
+}

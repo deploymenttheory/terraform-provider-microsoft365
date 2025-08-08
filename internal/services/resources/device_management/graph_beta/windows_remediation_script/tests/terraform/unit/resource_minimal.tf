@@ -1,5 +1,6 @@
 resource "microsoft365_graph_beta_device_management_windows_remediation_script" "minimal" {
   display_name               = "Test Minimal Windows Remediation Script - Unique"
+  description                = ""
   publisher                  = "Terraform Provider Test"
   run_as_account             = "system"
   detection_script_content   = "# Simple detection script\nWrite-Host 'Detection complete'\nexit 0"
