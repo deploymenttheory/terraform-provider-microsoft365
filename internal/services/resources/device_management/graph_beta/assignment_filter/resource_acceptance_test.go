@@ -48,15 +48,23 @@ func testAccCheckAssignmentFilterDestroy(s *terraform.State) error {
 		}
 
 		// Attempt to get the assignment filter by ID
-		_, err := graphClient.DeviceManagement().AssignmentFilters().ByDeviceAndAppManagementAssignmentFilterId(rs.Primary.ID).Get(ctx, nil)
+		_, err := graphClient.
+			DeviceManagement().
+			AssignmentFilters().
+			ByDeviceAndAppManagementAssignmentFilterId(rs.Primary.ID).
+			Get(ctx, nil)
+
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
+			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
+				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
+
 			if errorInfo.StatusCode == 404 ||
 				errorInfo.ErrorCode == "ResourceNotFound" ||
 				errorInfo.ErrorCode == "ItemNotFound" {
+				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
 				continue // Resource successfully destroyed
 			}
-			// If we get any other error, something went wrong
 			return fmt.Errorf("error checking if assignment filter %s was destroyed: %v", rs.Primary.ID, err)
 		}
 

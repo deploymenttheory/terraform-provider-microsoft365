@@ -31,44 +31,6 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
-// testAccCheckRoleScopeTagDestroy verifies that role scope tags have been destroyed
-func testAccCheckRoleScopeTagDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_role_scope_tag" {
-			continue
-		}
-
-		// Attempt to get the role scope tag by ID
-		_, err := graphClient.
-			DeviceManagement().
-			RoleScopeTags().
-			ByRoleScopeTagId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if role scope tag %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("role scope tag %s still exists", rs.Primary.ID)
-	}
-
-	return nil
-}
-
 func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -161,4 +123,46 @@ func testAccRoleScopeTagConfig_assignments() string {
 	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
 	config := mocks.LoadTerraformConfigFile("resource_assignments.tf")
 	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
+}
+
+// testAccCheckRoleScopeTagDestroy verifies that role scope tags have been destroyed
+func testAccCheckRoleScopeTagDestroy(s *terraform.State) error {
+	graphClient, err := acceptance.TestGraphClient()
+	if err != nil {
+		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
+	}
+
+	ctx := context.Background()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "microsoft365_graph_beta_device_management_role_scope_tag" {
+			continue
+		}
+
+		// Attempt to get the role scope tag by ID
+		_, err := graphClient.
+			DeviceManagement().
+			RoleScopeTags().
+			ByRoleScopeTagId(rs.Primary.ID).
+			Get(ctx, nil)
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
+				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
+
+			if errorInfo.StatusCode == 404 ||
+				errorInfo.ErrorCode == "ResourceNotFound" ||
+				errorInfo.ErrorCode == "ItemNotFound" {
+				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
+				continue // Resource successfully destroyed
+			}
+			return fmt.Errorf("error checking if role scope tag %s was destroyed: %v", rs.Primary.ID, err)
+		}
+
+		// If we can still get the resource, it wasn't destroyed
+		return fmt.Errorf("role scope tag %s still exists", rs.Primary.ID)
+	}
+
+	return nil
 }

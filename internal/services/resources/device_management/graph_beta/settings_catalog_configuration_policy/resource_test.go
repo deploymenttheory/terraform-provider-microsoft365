@@ -8,6 +8,8 @@ import (
 )
 
 func TestUnitSettingsCatalogConfigurationPolicyResource(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -97,30 +99,58 @@ func TestUnitSettingsCatalogConfigurationPolicyResource(t *testing.T) {
 
 // Test configuration functions
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_minimal() string {
-	return mocks.LoadLocalTerraformConfig("resource_minimal.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
+	if config == "" {
+		panic("minimal config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_maximal() string {
-	return mocks.LoadLocalTerraformConfig("resource_maximal.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
+	if config == "" {
+		panic("maximal config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_allAssignmentTypes() string {
-	return mocks.LoadLocalTerraformConfig("resource_with_all_assignment_types.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_with_all_assignment_types.tf")
+	if config == "" {
+		panic("all assignment types config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_groupAssignments() string {
-	return mocks.LoadLocalTerraformConfig("resource_with_group_assignments.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_with_group_assignments.tf")
+	if config == "" {
+		panic("group assignments config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_allDevicesAssignment() string {
-	return mocks.LoadLocalTerraformConfig("resource_with_all_devices_assignment.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_with_all_devices_assignment.tf")
+	if config == "" {
+		panic("all devices assignment config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_allUsersAssignment() string {
-	return mocks.LoadLocalTerraformConfig("resource_with_all_users_assignment.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_with_all_users_assignment.tf")
+	if config == "" {
+		panic("all users assignment config is empty")
+	}
+	return config
 }
 
 func testUnitSettingsCatalogConfigurationPolicyResourceConfig_exclusionAssignment() string {
-	return mocks.LoadLocalTerraformConfig("resource_with_exclusion_assignment.tf")
+	config := mocks.LoadLocalTerraformConfig("resource_with_exclusion_assignment.tf")
+	if config == "" {
+		panic("exclusion assignment config is empty")
+	}
+	return config
 }
 

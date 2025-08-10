@@ -26,7 +26,7 @@ func TestAccAndroidManagedMobileAppResource_Create_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -60,7 +60,7 @@ func TestAccAndroidManagedMobileAppResource_Create_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.maximal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -95,7 +95,7 @@ func TestAccAndroidManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +138,7 @@ func TestAccAndroidManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -180,7 +180,7 @@ func TestAccAndroidManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -223,7 +223,7 @@ func TestAccAndroidManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.maximal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -266,7 +266,7 @@ func TestAccAndroidManagedMobileAppResource_Import(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
@@ -285,24 +285,6 @@ func TestAccAndroidManagedMobileAppResource_Import(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Helper functions for acceptance tests
-
-func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"M365_CLIENT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_TENANT_ID",
-		"TEST_MANAGED_APP_PROTECTION_ID_1",
-	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
-	}
 }
 
 func testAccCheckAndroidManagedMobileAppExists(resourceName string) resource.TestCheckFunc {
