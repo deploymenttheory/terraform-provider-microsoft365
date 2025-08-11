@@ -121,7 +121,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_RequiredFields(t *testing
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy:             testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_missingName(),
@@ -145,7 +145,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_InvalidValues(t *testing.
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy:             testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_invalidPlatform(),
@@ -154,7 +154,6 @@ func TestAccSettingsCatalogConfigurationPolicyResource_InvalidValues(t *testing.
 		},
 	})
 }
-
 
 // testAccCheckSettingsCatalogConfigurationPolicyDestroy verifies that settings catalog configuration policies have been destroyed
 func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) error {
@@ -179,11 +178,11 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
-			
+
 			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 ||  // Microsoft Graph sometimes returns 400 for deleted resources
 				errorInfo.ErrorCode == "ResourceNotFound" ||
 				errorInfo.ErrorCode == "ItemNotFound" {
+				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
 				continue // Resource successfully destroyed
 			}
 			return fmt.Errorf("error checking if settings catalog configuration policy %s was destroyed: %v", rs.Primary.ID, err)
@@ -219,7 +218,6 @@ func testAccSettingsCatalogConfigurationPolicyConfig_missingName() string {
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   platforms = "windows10"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }
@@ -232,7 +230,6 @@ func testAccSettingsCatalogConfigurationPolicyConfig_missingPlatforms() string {
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   name = "Test Policy"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }
@@ -246,7 +243,6 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   name      = "Test Policy"
   platforms = "invalid"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -91,9 +92,10 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Intune Settings Catalog policies using the `/deviceManagement/configurationPolicies` endpoint. " +
 			"Settings Catalog provides a unified configuration experience for Windows, macOS, iOS/iPadOS, and Android devices through a modern, " +
-			"simplified interface that replaces traditional device configuration profiles. You can simplify the hcl creation process by using the " +
-			"`Export-IntuneSettingsCatalogConfigurationByIdToHCL.ps1` [https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/powershell/Export-IntuneSettingsCatalogConfigurationByIdToHCL.ps1] " +
-			"script to export the settings catalog configuration by ID. This will build the hcl representation of the settings catalog configuration automatically.",
+			"simplified interface that replaces traditional device configuration profiles and legacy Intune configuration templates. You can simplify the hcl creation process by using the " +
+			"`Export-IntuneSettingsCatalogConfigurationToHCL.ps1` [https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/powershell/Export-IntuneSettingsCatalogConfigurationToHCL.ps1] " +
+			"script to export the settings catalog and settings catalog templates. You can export by a singular resource ID or by exporting all policies. " +
+			"This will build the hcl representation of the settings catalog configuration programmatically.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -113,12 +115,13 @@ func (r *SettingsCatalogResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Optional description for the settings catalog policy.",
 			},
 			"template_reference": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				MarkdownDescription: "Policy template reference information",
 				Attributes: map[string]schema.Attribute{
 					"template_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+						Default:             stringdefault.StaticString(""),
 						MarkdownDescription: "Template ID to reference. This is a UUID that identifies a specific template in Microsoft Intune.",
 					},
 					"template_family": schema.StringAttribute{
