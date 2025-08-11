@@ -20,12 +20,16 @@ func TestAccPreCheck(t *testing.T) {
 		"M365_TENANT_ID",
 		"M365_AUTH_METHOD",
 		"M365_CLOUD",
-		"TF_ACC",
 	}
 
 	for _, envVar := range requiredEnvVars {
 		if v := os.Getenv(envVar); v == "" {
 			t.Fatalf("%s must be set for acceptance tests", envVar)
 		}
+	}
+
+	// TF_ACC must be specifically set to "1" to enable acceptance tests
+	if tfAcc := os.Getenv("TF_ACC"); tfAcc != "1" {
+		t.Fatalf("TF_ACC must be set to '1' for acceptance tests (got: '%s')", tfAcc)
 	}
 }

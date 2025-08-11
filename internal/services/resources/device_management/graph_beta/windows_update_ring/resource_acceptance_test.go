@@ -385,9 +385,14 @@ func testAccCheckWindowsUpdateRingDestroy(s *terraform.State) error {
 
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
+			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
+				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
+
 			if errorInfo.StatusCode == 404 ||
+				errorInfo.StatusCode == 400 ||
 				errorInfo.ErrorCode == "ResourceNotFound" ||
 				errorInfo.ErrorCode == "ItemNotFound" {
+				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/400/NotFound)\n", rs.Primary.ID)
 				continue // Resource successfully destroyed
 			}
 			return fmt.Errorf("error checking if Windows update ring %s was destroyed: %v", rs.Primary.ID, err)

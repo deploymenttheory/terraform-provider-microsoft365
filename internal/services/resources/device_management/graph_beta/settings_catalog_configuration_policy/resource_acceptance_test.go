@@ -41,6 +41,10 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Lifecycle(t *testing.T) {
 				ResourceName:      "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// Ignore secret password field as Microsoft Graph returns different UUIDs for security
+				ImportStateVerifyIgnore: []string{
+					"configuration_policy.settings.0.setting_instance.group_setting_collection_value.0.children.6.simple_setting_value.value",
+				},
 			},
 		},
 	})
@@ -62,11 +66,11 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Maximal(t *testing.T) {
 			{
 				Config: testAccSettingsCatalogConfigurationPolicyConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings", "name", "macos mdm filevault2 settings"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings", "description", "Configure the FileVault payload to manage FileVault disk encryption settings on devices."),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings", "platforms", "macOS"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.macos_mdm_filevault2_settings", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.test", "name", "Test Acceptance Settings Catalog Policy - Updated"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.test", "description", "Updated description for acceptance testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.test", "platforms", "macOS"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.test", "role_scope_tag_ids.#", "2"),
 				),
 			},
 		},
@@ -111,7 +115,13 @@ func TestAccSettingsCatalogConfigurationPolicyResource_RequiredFields(t *testing
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_missingName(),
@@ -129,7 +139,13 @@ func TestAccSettingsCatalogConfigurationPolicyResource_InvalidValues(t *testing.
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_invalidPlatform(),
@@ -138,7 +154,6 @@ func TestAccSettingsCatalogConfigurationPolicyResource_InvalidValues(t *testing.
 		},
 	})
 }
-
 
 // testAccCheckSettingsCatalogConfigurationPolicyDestroy verifies that settings catalog configuration policies have been destroyed
 func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) error {
@@ -163,9 +178,11 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
+
 			if errorInfo.StatusCode == 404 ||
 				errorInfo.ErrorCode == "ResourceNotFound" ||
 				errorInfo.ErrorCode == "ItemNotFound" {
+				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
 				continue // Resource successfully destroyed
 			}
 			return fmt.Errorf("error checking if settings catalog configuration policy %s was destroyed: %v", rs.Primary.ID, err)
@@ -174,7 +191,6 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 		// If we can still get the resource, it wasn't destroyed
 		return fmt.Errorf("settings catalog configuration policy %s still exists", rs.Primary.ID)
 	}
-
 	return nil
 }
 
@@ -198,38 +214,38 @@ func testAccSettingsCatalogConfigurationPolicyConfig_assignments() string {
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_missingName() string {
-	return `
+	config := `
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   platforms = "windows10"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }
 `
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_missingPlatforms() string {
-	return `
+	config := `
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   name = "Test Policy"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }
 `
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_invalidPlatform() string {
-	return `
+	config := `
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   name      = "Test Policy"
   platforms = "invalid"
   configuration_policy = {
-    name = "Test Policy Settings"
     settings = []
   }
 }
 `
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }

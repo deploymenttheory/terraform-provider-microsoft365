@@ -39,6 +39,7 @@ jobs:
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
         cache: true
+        cache-dependency-path: 'go.sum'
         go-version-file: 'go.mod'
       id: go
 
@@ -61,6 +62,9 @@ jobs:
     - name: Go build
       run: |
         go build -v .
+      env:
+        CGO_ENABLED: 0
+        GOMAXPROCS: 4
 
   # Release for Partner and Community Providers
   # https://goreleaser.com/cmd/goreleaser_release/#see-also

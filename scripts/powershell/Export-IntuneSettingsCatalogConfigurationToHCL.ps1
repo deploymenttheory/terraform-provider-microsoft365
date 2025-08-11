@@ -15,16 +15,20 @@ param (
     [ValidateNotNullOrEmpty()]
     [string]$ClientSecret,
 
-    [Parameter(Mandatory=$true,
+    [Parameter(Mandatory=$false,
     HelpMessage="Specify the ID of the settings catalog policy to retrieve")]
     [ValidateNotNullOrEmpty()]
     [string]$SettingsCatalogItemId,
     
-    [Parameter(Mandatory=$true,
+    [Parameter(Mandatory=$false,
+    HelpMessage="Export all settings catalog policies (alternative to providing -SettingsCatalogItemId)")]
+    [bool]$ExportAll = $false,
+    
+    [Parameter(Mandatory=$false,
     HelpMessage="Export results to JSON file (optional)")]
     [bool]$ExportToJson = $false,
     
-    [Parameter(Mandatory=$true,
+    [Parameter(Mandatory=$false,
     HelpMessage="Export results to HCL/Terraform file (optional)")]
     [bool]$ExportToHcl = $false,
     
@@ -39,6 +43,7 @@ param (
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToHcl $true
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToJson $true -ExportToHcl $true
 # .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -SettingsCatalogItemId "policy-id" -ExportToHcl $true -EnableDebug $true
+# .\Get-SettingsCatalogPolicy.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-client-secret" -ExportAll $true -ExportToJson $true -ExportToHcl $true
 
 Import-Module Microsoft.Graph.Authentication
 
@@ -56,6 +61,31 @@ function Write-DebugInfo {
             Write-Host "   Data: $($Data | ConvertTo-Json -Depth 2 -Compress)" -ForegroundColor Gray
         }
     }
+}
+
+function Escape-HclString {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$InputString
+    )
+    # Build escaped string so that:
+    # - Each single backslash \ becomes \\ in HCL (escaped once)
+    # - Double quotes are escaped as \"
+    if ($null -eq $InputString) { return "" }
+    $builder = New-Object System.Text.StringBuilder
+    $length = $InputString.Length
+    
+    for ($i = 0; $i -lt $length; $i++) {
+        $ch = $InputString[$i]
+        if ($ch -eq '"') {
+            [void]$builder.Append('\"')
+        } elseif ($ch -eq '\') {
+            [void]$builder.Append('\\')
+        } else {
+            [void]$builder.Append($ch)
+        }
+    }
+    return $builder.ToString()
 }
 
 function Get-PaginatedResults {
@@ -159,7 +189,8 @@ function Get-SettingsCatalogPolicy {
             "settingCount" = $policy.settingCount
         }
         
-        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$PolicyId/settings"
+        # Retrieve settings with definitions expanded for full fidelity (required for template-based policies)
+        $settingsUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$PolicyId/settings?$expand=settingDefinitions&$top=1000"
         Write-Host "   Settings Endpoint: $settingsUri" -ForegroundColor Gray
         
         $allSettings = Get-PaginatedResults -InitialUri $settingsUri
@@ -228,6 +259,19 @@ function Get-SettingsCatalogPolicy {
         
         # Add formatted settings to policy object
         $policy | Add-Member -NotePropertyName 'settings' -NotePropertyValue $formattedSettings -Force
+
+        # If this policy is based on a template, also retrieve the setting templates for completeness
+        if ($policy.templateReference -and $policy.templateReference.templateId) {
+            try {
+                $policyTemplateId = $policy.templateReference.templateId
+                $settingTemplatesUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicyTemplates('$policyTemplateId')/settingTemplates?$expand=settingDefinitions&$top=1000"
+                Write-Host "   Setting Templates Endpoint: $settingTemplatesUri" -ForegroundColor Gray
+                $settingTemplates = Get-PaginatedResults -InitialUri $settingTemplatesUri
+                $policy | Add-Member -NotePropertyName 'settingTemplates' -NotePropertyValue $settingTemplates -Force
+            } catch {
+                Write-Host "   ⚠️ Unable to retrieve setting templates for templateId ${policyTemplateId}: $_" -ForegroundColor Yellow
+            }
+        }
         
         Write-Host "   ✅ Settings processed: $($formattedSettings.Count) setting(s)" -ForegroundColor Green
         Write-Host ""
@@ -281,7 +325,7 @@ function Export-PolicyToHcl {
         $filePath = Join-Path -Path $outputDir -ChildPath $fileName
         
         $hclContent = Convert-PolicyToHcl -Policy $Policy
-        $hclContent | Out-File -FilePath $filePath -Encoding UTF8
+        $hclContent | Out-File -LiteralPath $filePath -Encoding UTF8
         
         Write-Host "💾 Exported policy to HCL: $filePath" -ForegroundColor Green
         return $filePath
@@ -304,7 +348,10 @@ function Convert-PolicyToHcl {
         $resourceName = "policy_$resourceName"
     }
     
-    $description = if ($Policy.description) { $Policy.description } else { "" }
+    # Escape description for HCL: convert newlines to \n, escape backslashes and quotes
+    $description = if ($Policy.description) {
+        ($Policy.description -replace '\\','\\\\' -replace '"','\"' -replace "(\r\n|\n|\r)", "\n")
+    } else { "" }
     
     # Handle technologies as array
     $technologies = if ($Policy.technologies) {
@@ -411,7 +458,12 @@ function Convert-SettingInstanceToHcl {
     
     # Handle settingInstanceTemplateReference
     if ($SettingInstance.settingInstanceTemplateReference) {
-        $hcl += "`n$indent" + "setting_instance_template_reference = `"$($SettingInstance.settingInstanceTemplateReference)`""
+        $ref = $SettingInstance.settingInstanceTemplateReference
+        $hcl += "`n$indent" + "setting_instance_template_reference = {"
+        if ($ref.settingInstanceTemplateId) {
+            $hcl += "`n$indent  " + "setting_instance_template_id = `"$($ref.settingInstanceTemplateId)`""
+        }
+        $hcl += "`n$indent" + "}"
     } else {
         $hcl += "`n$indent" + "setting_instance_template_reference = null"
     }
@@ -474,10 +526,13 @@ function Convert-SettingInstanceToHcl {
     # Check for any unsupported patterns
     $supportedProperties = @('@odata.type', 'settingDefinitionId', 'settingInstanceTemplateReference', 
                             'simpleSettingValue', 'choiceSettingValue', 'groupSettingCollectionValue', 
-                            'simpleSettingCollectionValue', 'groupSettingValue')
+                            'simpleSettingCollectionValue', 'groupSettingValue','IsReadOnly','IsFixedSize','IsSynchronized','Keys','Values','SyncRoot')
     
+    # Ignore common .NET collection members that can appear on adapted objects
+    $ignoredProperties = @('Count')
+
     foreach ($property in $SettingInstance.PSObject.Properties.Name) {
-        if ($property -notin $supportedProperties) {
+        if ($property -notin $supportedProperties -and $property -notin $ignoredProperties) {
             Write-Warning "🚨 Unsupported property detected: $property in SettingInstance"
             Write-DebugInfo "Unsupported property" @{
                 "property" = $property
@@ -505,7 +560,15 @@ function Convert-SimpleSettingValueToHcl {
     }
     
     if ($SimpleSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = `"$($SimpleSettingValue.settingValueTemplateReference)`""
+        $ref = $SimpleSettingValue.settingValueTemplateReference
+        $hcl += "`n$indent" + "setting_value_template_reference = {"
+        if ($ref.settingValueTemplateId) {
+            $hcl += "`n$indent  " + "setting_value_template_id = `"$($ref.settingValueTemplateId)`""
+        }
+        if ($null -ne $ref.useTemplateDefault) {
+            $hcl += "`n$indent  " + "use_template_default = $($ref.useTemplateDefault.ToString().ToLower())"
+        }
+        $hcl += "`n$indent" + "}"
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -521,8 +584,8 @@ function Convert-SimpleSettingValueToHcl {
         } elseif ($SimpleSettingValue.'@odata.type' -match 'Boolean') {
             $hcl += "`n$indent" + "value = $($SimpleSettingValue.value.ToString().ToLower())"
         } else {
-            # Escape quotes in string values
-            $escapedValue = $SimpleSettingValue.value -replace '"', '\"'
+            # Escape string with UNC-aware handling
+            $escapedValue = Escape-HclString -InputString $SimpleSettingValue.value
             $hcl += "`n$indent" + "value = `"$escapedValue`""
         }
     }
@@ -542,7 +605,15 @@ function Convert-ChoiceSettingValueToHcl {
     $hcl = ""
     
     if ($ChoiceSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = `"$($ChoiceSettingValue.settingValueTemplateReference)`""
+        $ref = $ChoiceSettingValue.settingValueTemplateReference
+        $hcl += "`n$indent" + "setting_value_template_reference = {"
+        if ($ref.settingValueTemplateId) {
+            $hcl += "`n$indent  " + "setting_value_template_id = `"$($ref.settingValueTemplateId)`""
+        }
+        if ($null -ne $ref.useTemplateDefault) {
+            $hcl += "`n$indent  " + "use_template_default = $($ref.useTemplateDefault.ToString().ToLower())"
+        }
+        $hcl += "`n$indent" + "}"
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -561,7 +632,8 @@ function Convert-ChoiceSettingValueToHcl {
     }
     
     if ($ChoiceSettingValue.value) {
-        $hcl += "`n$indent" + "value = `"$($ChoiceSettingValue.value)`""
+        $escapedChoice = Escape-HclString -InputString $ChoiceSettingValue.value
+        $hcl += "`n$indent" + "value = `"$escapedChoice`""
     }
     
     return $hcl
@@ -579,7 +651,15 @@ function Convert-GroupSettingValueToHcl {
     $hcl = ""
     
     if ($GroupSettingValue.settingValueTemplateReference) {
-        $hcl += "`n$indent" + "setting_value_template_reference = `"$($GroupSettingValue.settingValueTemplateReference)`""
+        $ref = $GroupSettingValue.settingValueTemplateReference
+        $hcl += "`n$indent" + "setting_value_template_reference = {"
+        if ($ref.settingValueTemplateId) {
+            $hcl += "`n$indent  " + "setting_value_template_id = `"$($ref.settingValueTemplateId)`""
+        }
+        if ($null -ne $ref.useTemplateDefault) {
+            $hcl += "`n$indent  " + "use_template_default = $($ref.useTemplateDefault.ToString().ToLower())"
+        }
+        $hcl += "`n$indent" + "}"
     } else {
         $hcl += "`n$indent" + "setting_value_template_reference = null"
     }
@@ -623,7 +703,7 @@ function Export-PolicyToJson {
         $filePath = Join-Path -Path $outputDir -ChildPath $fileName
         
         $jsonFormatted = $Policy | ConvertTo-Json -Depth 100
-        $jsonFormatted | Out-File -FilePath $filePath -Encoding UTF8
+        $jsonFormatted | Out-File -LiteralPath $filePath -Encoding UTF8
         
         Write-Host "💾 Exported policy to: $filePath" -ForegroundColor Green
         return $filePath
@@ -778,50 +858,94 @@ try {
         Write-Host ""
     }
     
-    $policyData = Get-SettingsCatalogPolicy -PolicyId $SettingsCatalogItemId
-    
-    if ($null -ne $policyData) {
-        $exportPaths = @()
-        
-        if ($ExportToJson) {
-            $jsonPath = Export-PolicyToJson -Policy $policyData -PolicyId $SettingsCatalogItemId
-            if ($jsonPath) {
-                $exportPaths += $jsonPath
-            }
+    if ($ExportAll) {
+        if ($SettingsCatalogItemId) {
+            Write-Host "ℹ️  Both -ExportAll and -SettingsCatalogItemId were provided. Proceeding with -ExportAll and ignoring -SettingsCatalogItemId." -ForegroundColor Yellow
         }
-        
-        if ($ExportToHcl) {
-            $hclPath = Export-PolicyToHcl -Policy $policyData -PolicyId $SettingsCatalogItemId
-            if ($hclPath) {
-                $exportPaths += $hclPath
-            }
-        }
-        
-        if ($exportPaths.Count -gt 0) {
-            Write-Host ""
-        }
-        
-        # Always show policy details unless only exporting
-        if (-not $ExportToJson -and -not $ExportToHcl) {
-            # No export requested, show full details
-            Show-PolicyDetails -Policy $policyData
+
+        $listUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+        Write-Host "🔎 Listing all settings catalog policies..." -ForegroundColor Cyan
+        $allPolicies = Get-PaginatedResults -InitialUri $listUri
+        $total = if ($allPolicies) { $allPolicies.Count } else { 0 }
+        Write-Host "   ✅ Found $total policy item(s)" -ForegroundColor Green
+
+        if ($total -eq 0) {
+            Write-Host "📊 No settings catalog policies found." -ForegroundColor Yellow
         } else {
-            # Export requested, show summary and full details
-            Write-Host "📋 Policy Summary:" -ForegroundColor Cyan
-            Write-Host "   • Name: $($policyData.name)" -ForegroundColor Green
-            Write-Host "   • ID: $($policyData.id)" -ForegroundColor Green
-            Write-Host "   • Platform: $($policyData.platforms)" -ForegroundColor Green
-            Write-Host "   • Settings Count: $($policyData.settings.Count)" -ForegroundColor Green
-            Write-Host "   • Technologies: $($policyData.technologies)" -ForegroundColor Green
-            Write-Host ""
-            
-            # Also show full details
-            Show-PolicyDetails -Policy $policyData
+            $index = 0
+            foreach ($p in $allPolicies) {
+                $index++
+                Write-Host "➡️  [$index/$total] Processing policy: $($p.name) ($($p.id))" -ForegroundColor Cyan
+
+                $policyData = Get-SettingsCatalogPolicy -PolicyId $p.id
+                if ($null -eq $policyData) { continue }
+
+                $exportPaths = @()
+
+                if ($ExportToJson) {
+                    $jsonPath = Export-PolicyToJson -Policy $policyData -PolicyId $p.id
+                    if ($jsonPath) { $exportPaths += $jsonPath }
+                }
+
+                if ($ExportToHcl) {
+                    $hclPath = Export-PolicyToHcl -Policy $policyData -PolicyId $p.id
+                    if ($hclPath) { $exportPaths += $hclPath }
+                }
+
+                if (-not $ExportToJson -and -not $ExportToHcl) {
+                    Show-PolicyDetails -Policy $policyData
+                }
+            }
+
+            Write-Host "🎉 Completed processing all policies." -ForegroundColor Green
         }
+    }
+    else {
+        $policyData = Get-SettingsCatalogPolicy -PolicyId $SettingsCatalogItemId
         
-        Write-Host "🎉 Operation completed successfully!" -ForegroundColor Green
-    } else {
-        Write-Host "📊 No data found for the specified settings catalog policy ID" -ForegroundColor Yellow
+        if ($null -ne $policyData) {
+            $exportPaths = @()
+            
+            if ($ExportToJson) {
+                $jsonPath = Export-PolicyToJson -Policy $policyData -PolicyId $SettingsCatalogItemId
+                if ($jsonPath) {
+                    $exportPaths += $jsonPath
+                }
+            }
+            
+            if ($ExportToHcl) {
+                $hclPath = Export-PolicyToHcl -Policy $policyData -PolicyId $SettingsCatalogItemId
+                if ($hclPath) {
+                    $exportPaths += $hclPath
+                }
+            }
+            
+            if ($exportPaths.Count -gt 0) {
+                Write-Host "" 
+            }
+            
+            # Always show policy details unless only exporting
+            if (-not $ExportToJson -and -not $ExportToHcl) {
+                # No export requested, show full details
+                Show-PolicyDetails -Policy $policyData
+            } else {
+                # Export requested, show summary and full details
+                Write-Host "📋 Policy Summary:" -ForegroundColor Cyan
+                Write-Host "   • Name: $($policyData.name)" -ForegroundColor Green
+                Write-Host "   • ID: $($policyData.id)" -ForegroundColor Green
+                Write-Host "   • Platform: $($policyData.platforms)" -ForegroundColor Green
+                Write-Host "   • Settings Count: $($policyData.settings.Count)" -ForegroundColor Green
+                Write-Host "   • Technologies: $($policyData.technologies)" -ForegroundColor Green
+                Write-Host ""
+                
+                # Also show full details
+                Show-PolicyDetails -Policy $policyData
+            }
+            
+            Write-Host "🎉 Operation completed successfully!" -ForegroundColor Green
+        } else {
+            Write-Host "📊 No data found for the specified settings catalog policy ID" -ForegroundColor Yellow
+        }
     }
 }
 catch {
