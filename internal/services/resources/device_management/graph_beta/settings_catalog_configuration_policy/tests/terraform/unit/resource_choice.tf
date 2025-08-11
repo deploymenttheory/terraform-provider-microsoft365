@@ -3,11 +3,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   description  = "Testing choice setting type from Edge security settings"
   platforms    = "macOS"
   technologies = ["mdm"]
-  
+
   template_reference = {
     template_id = ""
   }
-  
+
   configuration_policy = {
     settings = [
       {

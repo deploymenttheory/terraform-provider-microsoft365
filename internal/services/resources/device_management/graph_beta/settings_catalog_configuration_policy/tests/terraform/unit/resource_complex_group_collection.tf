@@ -3,11 +3,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   description  = "Testing complex group collection with nested simple collection from System Preferences"
   platforms    = "macOS"
   technologies = ["mdm"]
-  
+
   template_reference = {
     template_id = ""
   }
-  
+
   configuration_policy = {
     settings = [
       {
