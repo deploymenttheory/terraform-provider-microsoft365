@@ -17,10 +17,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
   visibility       = "Private"
 
   timeouts = {
-    create = "60s"   # Increased slightly for reliability
-    read   = "30s"   # Keep original
-    update = "30s"   # Keep original  
-    delete = "60s"   # Increased for cleanup
+    create = "60s" # Increased slightly for reliability
+    read   = "30s" # Keep original
+    update = "30s" # Keep original  
+    delete = "60s" # Increased for cleanup
   }
 }
 
@@ -34,10 +34,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
   visibility       = "Private"
 
   timeouts = {
-    create = "60s"   # Increased slightly for reliability
-    read   = "30s"   # Keep original
-    update = "30s"   # Keep original  
-    delete = "60s"   # Increased for cleanup
+    create = "60s" # Increased slightly for reliability
+    read   = "30s" # Keep original
+    update = "30s" # Keep original  
+    delete = "60s" # Increased for cleanup
   }
 }
 
@@ -51,10 +51,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {
   visibility       = "Private"
 
   timeouts = {
-    create = "60s"   # Increased slightly for reliability
-    read   = "30s"   # Keep original
-    update = "30s"   # Keep original  
-    delete = "60s"   # Increased for cleanup
+    create = "60s" # Increased slightly for reliability
+    read   = "30s" # Keep original
+    update = "30s" # Keep original  
+    delete = "60s" # Increased for cleanup
   }
 }
 
@@ -68,10 +68,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
   visibility       = "Private"
 
   timeouts = {
-    create = "60s"   # Increased slightly for reliability
-    read   = "30s"   # Keep original
-    update = "30s"   # Keep original  
-    delete = "60s"   # Increased for cleanup
+    create = "60s" # Increased slightly for reliability
+    read   = "30s" # Keep original
+    update = "30s" # Keep original  
+    delete = "60s" # Increased for cleanup
   }
 }
 
@@ -85,10 +85,10 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_5" {
   visibility       = "Private"
 
   timeouts = {
-    create = "60s"   # Increased slightly for reliability
-    read   = "30s"   # Keep original
-    update = "30s"   # Keep original  
-    delete = "60s"   # Increased for cleanup
+    create = "60s" # Increased slightly for reliability
+    read   = "30s" # Keep original
+    update = "30s" # Keep original  
+    delete = "60s" # Increased for cleanup
   }
 }
 
