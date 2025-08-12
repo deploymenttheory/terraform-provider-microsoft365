@@ -9,7 +9,6 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_2.id
   ]
 
-
   template_reference = {
     template_id = ""
   }
@@ -269,10 +268,10 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 
 
   timeouts = {
-    create = "180s"  
-    read   = "30s"  
-    update = "30s"  
-    delete = "90s"
+    create = "900s"   
+    read   = "900s"   
+    update = "900s"   
+    delete = "900s"
   }
 }
 

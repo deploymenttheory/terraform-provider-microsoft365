@@ -230,7 +230,6 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 		fmt.Printf("ERROR: Failed to create Graph client for CheckDestroy: %v\n", err)
 		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
 	}
-	fmt.Printf("SUCCESS: Graph client created for destroy check\n")
 
 	ctx := context.Background()
 	resourceCount := 0
@@ -251,7 +250,6 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 		}
 
 		fmt.Printf("--- Checking resource destruction: %s ---\n", rs.Primary.ID)
-		fmt.Printf("INFO: Attempting GET request to verify resource deletion\n")
 
 		// Build the API URL for logging
 		apiUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/%s", rs.Primary.ID)
@@ -265,38 +263,7 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 			Get(ctx, nil)
 
 		if err != nil {
-			fmt.Printf("INFO: GET request returned error (expected for destroyed resources)\n")
 			errorInfo := errors.GraphError(ctx, err)
-
-			fmt.Printf("INFO: Error analysis:\n")
-			fmt.Printf("  - Raw error: %v\n", err)
-			fmt.Printf("  - Status Code: %d\n", errorInfo.StatusCode)
-			fmt.Printf("  - Error Code: %s\n", errorInfo.ErrorCode)
-			fmt.Printf("  - Error Message: %s\n", errorInfo.ErrorMessage)
-			fmt.Printf("  - Target: %s\n", errorInfo.Target)
-			fmt.Printf("  - Category: %s\n", errorInfo.Category)
-			fmt.Printf("  - Is OData Error: %t\n", errorInfo.IsODataError)
-			fmt.Printf("  - Request ID: %s\n", errorInfo.RequestID)
-			fmt.Printf("  - Client Request ID: %s\n", errorInfo.ClientRequestID)
-			fmt.Printf("  - Correlation ID: %s\n", errorInfo.CorrelationID)
-			fmt.Printf("  - Error Date: %s\n", errorInfo.ErrorDate)
-			fmt.Printf("  - Retry After: %s\n", errorInfo.RetryAfter)
-			fmt.Printf("  - Throttled Reason: %s\n", errorInfo.ThrottledReason)
-			if len(errorInfo.InnerErrors) > 0 {
-				fmt.Printf("  - Inner Errors Count: %d\n", len(errorInfo.InnerErrors))
-				for i, inner := range errorInfo.InnerErrors {
-					fmt.Printf("    [%d] Code: %s, Message: %s, RequestID: %s\n", i, inner.Code, inner.Message, inner.RequestID)
-				}
-			}
-			if len(errorInfo.ErrorDetails) > 0 {
-				fmt.Printf("  - Error Details Count: %d\n", len(errorInfo.ErrorDetails))
-				for i, detail := range errorInfo.ErrorDetails {
-					fmt.Printf("    [%d] Code: %s, Message: %s, Target: %s\n", i, detail.Code, detail.Message, detail.Target)
-				}
-			}
-			if errorInfo.RequestDetails != "" {
-				fmt.Printf("  - Request Headers: %s\n", errorInfo.RequestDetails)
-			}
 
 			// Accept multiple error conditions that indicate successful deletion
 			if errorInfo.StatusCode == 404 ||
@@ -365,9 +332,9 @@ func testAccSettingsCatalogConfigurationPolicyConfig_assignments() string {
 	groups := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
 	roleScopeTags := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
 	// Use local assignment filters with proper dependency management to preserve the correct destroy order
-	assignmentFilters := mocks.LoadLocalTerraformConfig("assignment_filters_with_dependencies.tf")
+	//assignmentFilters := mocks.LoadLocalTerraformConfig("assignment_filters_with_dependencies.tf")
 	accTestConfig := mocks.LoadLocalTerraformConfig("resource_assignments.tf")
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + accTestConfig)
+	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_missingName() string {
@@ -399,6 +366,9 @@ func testAccSettingsCatalogConfigurationPolicyConfig_invalidPlatform() string {
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "test" {
   name      = "Test Policy"
   platforms = "invalid"
+	template_reference = {
+    template_id = ""
+  }
   configuration_policy = {
     settings = []
   }
