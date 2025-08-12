@@ -30,7 +30,6 @@ jobs:
         with:
           go-version-file: .go-version
           cache: true
-          go-version: stable
 
       - name: Install dependencies
         run: go mod download
