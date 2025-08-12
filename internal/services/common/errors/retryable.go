@@ -60,32 +60,20 @@ func IsRetryableReadError(errorInfo *GraphErrorInfo) bool {
 	}
 
 	switch errorInfo.StatusCode {
-	case 404, 409, 423, 429: // Resource availability, conflicts, locked resources, rate limiting
+	case 404, 409, 423, 429: // Rate limiting and service unavailable errors
 		return true
 	case 500, 503, 502, 504: // Internal server errors might be retryable
 		return true
-		
 	default:
 		// Check specific error codes that might be retryable
 		retryableErrorCodes := map[string]bool{
-			// Propagation and availability
-			"NotFound":            true,
-			"ResourceNotFound":    true,
-			
-			// Rate limiting and throttling
-			"RequestThrottled":    true,
-			"TooManyRequests":     true,
-			
-			// Server errors
 			"ServiceUnavailable":  true,
+			"RequestThrottled":    true,
 			"RequestTimeout":      true,
 			"InternalServerError": true,
 			"BadGateway":          true,
 			"GatewayTimeout":      true,
-			
-			// Network errors
-			"NetworkError":        true,
-			"ConnectionTimeout":   true,
+			"NotFound":            true, // Resource propagation
 		}
 		return retryableErrorCodes[errorInfo.ErrorCode]
 	}
@@ -102,24 +90,17 @@ func IsNonRetryableReadError(errorInfo *GraphErrorInfo) bool {
 		return true
 	case 400, 401, 403, 405, 406, 410, 422: // Client errors that won't change on retry
 		return true
-	// Note: 409 is NOT here because it's retryable for reads (resource conflicts during propagation)
-	// Note: 404 is NOT here because it's retryable for reads (propagation after create/update)
-		
+	case 409: // Conflict - typically permanent for reads too
+		return true
 	default:
 		// Check specific error codes that are permanent failures
 		nonRetryableErrorCodes := map[string]bool{
-			// Authentication and authorization
+			"BadRequest":          true,
 			"Unauthorized":        true,
 			"Forbidden":           true,
-			"AccessDenied":        true,
-			
-			// Client request errors
-			"BadRequest":          true,
-			"ValidationError":     true,
-			"UnprocessableEntity": true,
 			"Conflict":            true,
 			"Gone":                true,
-			
+			"UnprocessableEntity": true,
 			// Note: "NotFound" is NOT here because it's retryable for reads (propagation)
 		}
 		return nonRetryableErrorCodes[errorInfo.ErrorCode]
