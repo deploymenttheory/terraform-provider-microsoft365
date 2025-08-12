@@ -26,7 +26,7 @@ func TestAccGroupSettingsResource_Create_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccGroupSettingsResource_Create_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -106,7 +106,7 @@ func TestAccGroupSettingsResource_Update_MinimalToMaximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -144,7 +144,7 @@ func TestAccGroupSettingsResource_Update_MaximalToMinimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -182,7 +182,7 @@ func TestAccGroupSettingsResource_Delete_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -220,7 +220,7 @@ func TestAccGroupSettingsResource_Delete_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -262,7 +262,7 @@ func TestAccGroupSettingsResource_Import(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_groups_group_settings.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupSettingsDestroy,
 		Steps: []resource.TestStep{
@@ -290,22 +290,6 @@ func TestAccGroupSettingsResource_Import(t *testing.T) {
 }
 
 // Helper functions
-
-func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"M365_TENANT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_CLIENT_ID",
-		"MS365_TEST_GROUP_ID",
-	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
-	}
-}
 
 func testAccCheckGroupSettingsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

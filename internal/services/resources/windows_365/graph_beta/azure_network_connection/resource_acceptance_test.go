@@ -60,7 +60,7 @@ func TestAccAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_windows_365_azure_network_connection.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -135,7 +135,7 @@ func TestAccAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_windows_365_azure_network_connection.maximal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -209,7 +209,7 @@ func TestAccAzureNetworkConnectionResource_Update_MinimalToMaximal(t *testing.T)
 	resourceName := "microsoft365_graph_beta_windows_365_azure_network_connection.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -281,7 +281,7 @@ func TestAccAzureNetworkConnectionResource_Delete_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_windows_365_azure_network_connection.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -354,7 +354,7 @@ func TestAccAzureNetworkConnectionResource_Import(t *testing.T) {
 	resourceName := "microsoft365_graph_beta_windows_365_azure_network_connection.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -379,28 +379,6 @@ func TestAccAzureNetworkConnectionResource_Import(t *testing.T) {
 }
 
 // Helper functions for acceptance tests
-
-func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"M365_TENANT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_CLIENT_ID",
-		"TEST_SUBSCRIPTION_ID",
-		"TEST_RESOURCE_GROUP_ID",
-		"TEST_SUBNET_ID",
-		"TEST_VIRTUAL_NETWORK_ID",
-		"TEST_DOMAIN_NAME",
-		"TEST_DOMAIN_USERNAME",
-		"TEST_DOMAIN_PASSWORD",
-	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
-	}
-}
 
 func testAccCheckAzureNetworkConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

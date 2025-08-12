@@ -1,7 +1,6 @@
 package graphBetaCloudPcProvisioningPolicy_test
 
 import (
-	"os"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 
 func TestAccCloudPcProvisioningPolicyResource_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
@@ -61,7 +60,7 @@ func TestAccCloudPcProvisioningPolicyResource_Complete(t *testing.T) {
 
 func TestAccCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with assignments
@@ -80,7 +79,7 @@ func TestAccCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
 
 func TestAccCloudPcProvisioningPolicyResource_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -93,18 +92,6 @@ func TestAccCloudPcProvisioningPolicyResource_RequiredFields(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccPreCheck(t *testing.T) {
-	if os.Getenv("M365_TENANT_ID") == "" {
-		t.Skip("M365_TENANT_ID must be set for acceptance tests")
-	}
-	if os.Getenv("M365_CLIENT_ID") == "" {
-		t.Skip("M365_CLIENT_ID must be set for acceptance tests")
-	}
-	if os.Getenv("M365_CLIENT_SECRET") == "" {
-		t.Skip("M365_CLIENT_SECRET must be set for acceptance tests")
-	}
 }
 
 func testAccCloudPcProvisioningPolicyConfig_minimal() string {

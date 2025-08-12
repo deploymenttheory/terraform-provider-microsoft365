@@ -20,7 +20,7 @@ func TestAccM365AppsInstallationOptionsResource_Create_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
@@ -49,7 +49,7 @@ func TestAccM365AppsInstallationOptionsResource_Create_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.maximal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
@@ -78,7 +78,7 @@ func TestAccM365AppsInstallationOptionsResource_Update_MinimalToMaximal(t *testi
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
@@ -115,7 +115,7 @@ func TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal(t *testi
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
@@ -150,7 +150,7 @@ func TestAccM365AppsInstallationOptionsResource_Delete_Minimal(t *testing.T) {
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -186,7 +186,7 @@ func TestAccM365AppsInstallationOptionsResource_Delete_Maximal(t *testing.T) {
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.maximal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -222,7 +222,7 @@ func TestAccM365AppsInstallationOptionsResource_Import(t *testing.T) {
 	resourceName := "microsoft365_graph_m365_admin_m365_apps_installation_options.minimal"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create
@@ -244,21 +244,6 @@ func TestAccM365AppsInstallationOptionsResource_Import(t *testing.T) {
 }
 
 // Helper functions for acceptance tests
-
-func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"M365_TENANT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_CLIENT_ID",
-	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
-	}
-}
 
 func testAccCheckM365AppsInstallationOptionsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

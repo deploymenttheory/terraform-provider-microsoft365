@@ -22,7 +22,7 @@ func TestAccGroupLifecyclePolicyResource_Create_Minimal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccGroupLifecyclePolicyResource_Create_Maximal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -79,7 +79,7 @@ func TestAccGroupLifecyclePolicyResource_Update_MinimalToMaximal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -117,7 +117,7 @@ func TestAccGroupLifecyclePolicyResource_Update_MaximalToMinimal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -155,7 +155,7 @@ func TestAccGroupLifecyclePolicyResource_Delete_Minimal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -195,7 +195,7 @@ func TestAccGroupLifecyclePolicyResource_Delete_Maximal(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -235,7 +235,7 @@ func TestAccGroupLifecyclePolicyResource_Import(t *testing.T) {
 	uniqueSuffix := generateUniqueNameSuffix()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
@@ -261,21 +261,6 @@ func TestAccGroupLifecyclePolicyResource_Import(t *testing.T) {
 }
 
 // Helper functions
-
-func testAccPreCheck(t *testing.T) {
-	// Check for required environment variables
-	requiredEnvVars := []string{
-		"MS365_CLIENT_ID",
-		"MS365_CLIENT_SECRET",
-		"MS365_TENANT_ID",
-	}
-
-	for _, envVar := range requiredEnvVars {
-		if os.Getenv(envVar) == "" {
-			t.Skipf("Environment variable %s is required for acceptance tests", envVar)
-		}
-	}
-}
 
 func testAccCheckGroupLifecyclePolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

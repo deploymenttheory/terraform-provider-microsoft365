@@ -1,7 +1,6 @@
 package graphBetaCloudPcOrganizationSettings_test
 
 import (
-	"os"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 
 func TestAccCloudPcOrganizationSettingsResource_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
@@ -38,7 +37,7 @@ func TestAccCloudPcOrganizationSettingsResource_Complete(t *testing.T) {
 
 func TestAccCloudPcOrganizationSettingsResource_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -51,18 +50,6 @@ func TestAccCloudPcOrganizationSettingsResource_RequiredFields(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccPreCheck(t *testing.T) {
-	if os.Getenv("M365_TENANT_ID") == "" {
-		t.Skip("M365_TENANT_ID must be set for acceptance tests")
-	}
-	if os.Getenv("M365_CLIENT_ID") == "" {
-		t.Skip("M365_CLIENT_ID must be set for acceptance tests")
-	}
-	if os.Getenv("M365_CLIENT_SECRET") == "" {
-		t.Skip("M365_CLIENT_SECRET must be set for acceptance tests")
-	}
 }
 
 func testAccCloudPcOrganizationSettingsConfig_maximal() string {

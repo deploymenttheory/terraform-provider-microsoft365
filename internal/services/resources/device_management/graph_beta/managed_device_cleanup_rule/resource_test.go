@@ -286,9 +286,7 @@ func TestAccManagedDeviceCleanupRuleResource_Basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -313,9 +311,7 @@ func TestAccManagedDeviceCleanupRuleResource_Minimal(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -339,9 +335,7 @@ func TestAccManagedDeviceCleanupRuleResource_Maximal(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -366,9 +360,7 @@ func TestAccManagedDeviceCleanupRuleResource_Update(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -400,9 +392,7 @@ func TestAccManagedDeviceCleanupRuleResource_FullLifecycle(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -518,20 +508,5 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		return nil
-	}
-}
-
-func testAccPreCheck(t *testing.T) {
-	// Check required environment variables for acceptance tests
-	envVars := []string{
-		"MICROSOFT365_CLIENT_ID",
-		"MICROSOFT365_CLIENT_SECRET",
-		"MICROSOFT365_TENANT_ID",
-	}
-
-	for _, envVar := range envVars {
-		if os.Getenv(envVar) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", envVar)
-		}
 	}
 }
