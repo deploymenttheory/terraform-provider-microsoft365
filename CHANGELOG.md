@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.26.1-alpha...v0.26.2-alpha) (2025-08-12)
+
+
+### Bug Fixes
+
+* release pipelines ([6d7444b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6d7444b5dd26358b5e6164bb06cac404806ca485))
+* release pipelines ([#690](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/690)) ([09fb398](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/09fb398d928d463eebaee8a5421a1afc49a2dab3))
+
 ## [0.26.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.26.0-alpha...v0.26.1-alpha) (2025-08-12)
 
 
