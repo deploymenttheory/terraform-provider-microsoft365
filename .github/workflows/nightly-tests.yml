@@ -33,6 +33,8 @@ jobs:
         run: go mod download
 
       - name: Run unit tests
+        env:
+          TF_ACC: 0
         run: |
           echo "Running unit tests..."
           go mod tidy

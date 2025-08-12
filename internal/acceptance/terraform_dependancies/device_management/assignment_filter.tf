@@ -21,10 +21,10 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   role_scope_tags                   = ["0"]
 
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "60s"   # Reduced for faster test execution
+    read   = "60s"   # Reduced for faster test execution
+    update = "60s"   # Reduced for faster test execution
+    delete = "180s"  # Keep longer for cleanup
   }
 }
 
@@ -40,10 +40,10 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   role_scope_tags                   = ["0"]
 
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "60s"   # Reduced for faster test execution
+    read   = "60s"   # Reduced for faster test execution
+    update = "60s"   # Reduced for faster test execution
+    delete = "180s"  # Keep longer for cleanup
   }
 }
 
@@ -56,10 +56,10 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   role_scope_tags                   = ["0"]
 
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "60s"   # Reduced for faster test execution
+    read   = "60s"   # Reduced for faster test execution
+    update = "60s"   # Reduced for faster test execution
+    delete = "180s"  # Keep longer for cleanup
   }
 }
 
@@ -72,10 +72,10 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   role_scope_tags                   = ["0"]
 
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "60s"   # Reduced for faster test execution
+    read   = "60s"   # Reduced for faster test execution
+    update = "60s"   # Reduced for faster test execution
+    delete = "180s"  # Keep longer for cleanup
   }
 }
 
@@ -88,9 +88,9 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   role_scope_tags                   = ["0"]
 
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "60s"   # Reduced for faster test execution
+    read   = "60s"   # Reduced for faster test execution
+    update = "60s"   # Reduced for faster test execution
+    delete = "180s"  # Keep longer for cleanup
   }
 }

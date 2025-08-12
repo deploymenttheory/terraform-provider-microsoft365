@@ -106,23 +106,6 @@ func HandleGraphError(ctx context.Context, err error, resp interface{}, operatio
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
-	// case 400:
-	// 	if operation == "Read" {
-	// 		// Check if context has expired - only remove from state if timeout reached
-	// 		if deadline, hasDeadline := ctx.Deadline(); hasDeadline && time.Now().After(deadline) {
-	// 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response) and context expired, removing from state")
-	// 			removeResourceFromState(ctx, resp)
-	// 			return
-	// 		} else {
-	// 			tflog.Debug(ctx, "Resource appears to no longer exist (400 Response), but context not expired - will retry")
-	// 			addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
-	// 				constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
-	// 			return
-	// 		}
-	// 	}
-	// 	addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
-	// 		constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
-
 	case 401, 403:
 		tflog.Warn(ctx, fmt.Sprintf("Permission error on %s operation, check required Graph permissions", operation))
 		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
@@ -726,27 +709,6 @@ func logErrorDetails(ctx context.Context, errorInfo *GraphErrorInfo) {
 	}
 
 	tflog.Debug(ctx, "Comprehensive error details", details)
-}
-
-// IsRetryableError determines if an error is retryable based on status code and error information
-func IsRetryableError(errorInfo *GraphErrorInfo) bool {
-	switch errorInfo.StatusCode {
-	case 429, 503, 502, 504: // Rate limiting and service unavailable errors
-		return true
-	case 500: // Internal server errors might be retryable
-		return true
-	default:
-		// Check specific error codes that might be retryable
-		retryableErrorCodes := map[string]bool{
-			"ServiceUnavailable":  true,
-			"RequestThrottled":    true,
-			"RequestTimeout":      true,
-			"InternalServerError": true,
-			"BadGateway":          true,
-			"GatewayTimeout":      true,
-		}
-		return retryableErrorCodes[errorInfo.ErrorCode]
-	}
 }
 
 // GetRetryDelay calculates the appropriate retry delay based on error information

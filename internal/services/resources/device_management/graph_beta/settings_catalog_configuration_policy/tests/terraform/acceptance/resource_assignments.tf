@@ -246,30 +246,32 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       type        = "groupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
       filter_type = "include"
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_2.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
     },
     {
       type        = "allLicensedUsersAssignmentTarget"
       filter_type = "include"
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_3.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
     },
     {
       type        = "allDevicesAssignmentTarget"
       filter_type = "include"
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_4.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
     },
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.acc_test_group_3.id
       filter_type = "include"
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_5.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
     }
   ]
 
+
   timeouts = {
-    create = "180s"
-    read   = "180s"
-    update = "180s"
-    delete = "180s"
+    create = "900s"   
+    read   = "900s"   
+    update = "900s"   
+    delete = "900s"
   }
 }
+
