@@ -1,0 +1,7 @@
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1jN2wzSXo5M2c3dHdoYVNuT2hqZXJZVm1sUSJ9.mock_token_payload",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "ext_expires_in": 3600,
+  "scope": "https://graph.microsoft.com/.default"
+}

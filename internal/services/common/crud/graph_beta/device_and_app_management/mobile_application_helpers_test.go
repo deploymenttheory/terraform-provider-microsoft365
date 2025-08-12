@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
+	"runtime"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -329,23 +329,27 @@ func TestCleanupTempFile(t *testing.T) {
 	})
 
 	t.Run("Handle file with insufficient permissions", func(t *testing.T) {
+		// Skip on Windows as permission handling is different
+		if runtime.GOOS == "windows" {
+			t.Skip("Skipping permission test on Windows")
+		}
+
 		// Create a temporary file in a directory
 		tempDir, err := os.MkdirTemp("", "test-cleanup-dir-*")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer func() {
+			// Restore full permissions before cleanup
+			os.Chmod(tempDir, 0755)
+			os.RemoveAll(tempDir)
+		}()
 
 		tempFile := filepath.Join(tempDir, "test-file.tmp")
 		err = os.WriteFile(tempFile, []byte("test"), 0644)
 		require.NoError(t, err)
 
-		// Remove write permissions from directory (on Unix systems)
-		if strings.Contains(strings.ToLower(os.Getenv("GOOS")), "windows") {
-			t.Skip("Skipping permission test on Windows")
-		}
-
-		err = os.Chmod(tempDir, 0444) // Read-only
+		// Remove write permissions from directory but keep read+execute for stat to work
+		err = os.Chmod(tempDir, 0555) // Read and execute only, no write
 		require.NoError(t, err)
-		defer os.Chmod(tempDir, 0755) // Restore permissions for cleanup
 
 		fileInfo := TempFileInfo{
 			FilePath:      tempFile,
@@ -355,12 +359,10 @@ func TestCleanupTempFile(t *testing.T) {
 		// Should handle permission error gracefully (logs warning but doesn't panic)
 		CleanupTempFile(ctx, fileInfo)
 
-		// File should still exist due to permission error
+		// File should still exist due to permission error - we can stat it since directory has execute permission
 		_, err = os.Stat(tempFile)
-		if !os.IsNotExist(err) {
-			// File exists, which is expected due to permission error
-			assert.NoError(t, err)
-		}
+		// File should still exist because we couldn't delete it due to write permission
+		assert.NoError(t, err, "File should still exist due to permission error preventing deletion")
 	})
 }
 
