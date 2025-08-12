@@ -3,7 +3,6 @@ package graphBetaRoleDefinition_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
@@ -12,24 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-// testAccPreCheck verifies necessary test prerequisites
-func testAccPreCheck(t *testing.T) {
-	// Check for required environment variables
-	requiredEnvVars := []string{
-		"M365_CLIENT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_TENANT_ID",
-		"M365_AUTH_METHOD",
-		"M365_CLOUD",
-	}
-
-	for _, envVar := range requiredEnvVars {
-		if v := os.Getenv(envVar); v == "" {
-			t.Fatalf("%s must be set for acceptance tests", envVar)
-		}
-	}
-}
 
 // testAccCheckRoleDefinitionDestroy verifies that role definitions have been destroyed
 func testAccCheckRoleDefinitionDestroy(s *terraform.State) error {
@@ -72,7 +53,7 @@ func testAccCheckRoleDefinitionDestroy(s *terraform.State) error {
 
 func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -111,7 +92,7 @@ func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
 
 func TestAccRoleDefinitionResource_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckRoleDefinitionDestroy,
 		Steps: []resource.TestStep{

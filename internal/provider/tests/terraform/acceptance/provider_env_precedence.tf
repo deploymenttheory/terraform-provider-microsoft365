@@ -10,7 +10,7 @@ provider "microsoft365" {
   auth_method      = "client_secret"
   debug_mode       = false
   telemetry_optout = false
-  
+
   entra_id_options = {
     client_id     = "hcl-client-id"
     client_secret = "hcl-client-secret"

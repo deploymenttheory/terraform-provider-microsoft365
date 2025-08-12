@@ -368,19 +368,3 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 		return nil
 	}
 }
-
-// Helper function for acceptance test prechecks
-func testAccPreCheck(t *testing.T) {
-	// Check for required environment variables for acceptance tests
-	requiredEnvVars := []string{
-		"M365_TENANT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_CLIENT_ID",
-	}
-
-	for _, v := range requiredEnvVars {
-		if os.Getenv(v) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", v)
-		}
-	}
-}

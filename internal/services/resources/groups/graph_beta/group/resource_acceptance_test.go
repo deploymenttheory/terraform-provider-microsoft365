@@ -23,7 +23,7 @@ func TestAccGroupResource_Create_Minimal(t *testing.T) {
 	mailNickname := fmt.Sprintf("tfacctest-minimal-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccGroupResource_Create_Maximal(t *testing.T) {
 	mailNickname := fmt.Sprintf("tfacctest-maximal-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -96,7 +96,7 @@ func TestAccGroupResource_Update_MinimalToMaximal(t *testing.T) {
 	updatedDisplayName := fmt.Sprintf("tfacctest-updated-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -144,7 +144,7 @@ func TestAccGroupResource_Update_MaximalToMinimal(t *testing.T) {
 	updatedDisplayName := fmt.Sprintf("tfacctest-minimal-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -186,7 +186,7 @@ func TestAccGroupResource_Delete_Minimal(t *testing.T) {
 	mailNickname := fmt.Sprintf("tfacctest-delete-min-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -226,7 +226,7 @@ func TestAccGroupResource_Delete_Maximal(t *testing.T) {
 	mailNickname := fmt.Sprintf("tfacctest-delete-max-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -266,7 +266,7 @@ func TestAccGroupResource_Import(t *testing.T) {
 	mailNickname := fmt.Sprintf("tfacctest-import-%s", uniqueSuffix)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
@@ -288,21 +288,6 @@ func TestAccGroupResource_Import(t *testing.T) {
 }
 
 // Helper functions for acceptance tests
-
-func testAccPreCheck(t *testing.T) {
-	// Verify required environment variables are set
-	requiredEnvVars := []string{
-		"M365_TENANT_ID",
-		"M365_CLIENT_SECRET",
-		"M365_CLIENT_ID",
-	}
-
-	for _, env := range requiredEnvVars {
-		if os.Getenv(env) == "" {
-			t.Fatalf("%s environment variable must be set for acceptance tests", env)
-		}
-	}
-}
 
 func testAccCheckGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

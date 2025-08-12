@@ -467,7 +467,7 @@ package graphBetaConditionalAccessPolicy_test
 // 	}
 
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 // 		Steps: []resource.TestStep{
 // 			{
@@ -508,7 +508,7 @@ package graphBetaConditionalAccessPolicy_test
 // 	}
 
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 // 		Steps: []resource.TestStep{
 // 			{
@@ -553,7 +553,7 @@ package graphBetaConditionalAccessPolicy_test
 // 	}
 
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 // 		Steps: []resource.TestStep{
 // 			// Start with minimal configuration
@@ -596,7 +596,7 @@ package graphBetaConditionalAccessPolicy_test
 // 		t.Skip("TEST_DOMAIN environment variable must be set for acceptance tests")
 // 	}
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 // 		Steps: []resource.TestStep{
 // 			// Start with maximal configuration
@@ -626,7 +626,7 @@ package graphBetaConditionalAccessPolicy_test
 // // TestAccConditionalAccessPolicyResource_Import tests the import functionality
 // func TestAccConditionalAccessPolicyResource_Import(t *testing.T) {
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 // 		Steps: []resource.TestStep{
 // 			{
@@ -642,20 +642,4 @@ package graphBetaConditionalAccessPolicy_test
 // 			},
 // 		},
 // 	})
-// }
-
-// // testAccPreCheck validates the necessary test API credentials exist
-// func testAccPreCheck(t *testing.T) {
-// 	// Check for required environment variables for acceptance testing
-// 	requiredEnvVars := []string{
-// 		"MS365_TENANT_ID",
-// 		"MS365_CLIENT_ID",
-// 		"MS365_CLIENT_SECRET",
-// 	}
-
-// 	for _, envVar := range requiredEnvVars {
-// 		if os.Getenv(envVar) == "" {
-// 			t.Fatalf("%s must be set for acceptance tests", envVar)
-// 		}
-// 	}
 // }
