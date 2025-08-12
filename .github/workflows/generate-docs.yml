@@ -4,14 +4,6 @@ on:
   schedule:
     # Run weekly on Sunday at 3 AM UTC
     - cron: '0 3 * * 0'
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '.github/**/*'
-      - 'scripts/**/*'
-      - './.golangci.yml'
-  workflow_dispatch:
 
 permissions:
   contents: write  # Required to update documentation in the repo
