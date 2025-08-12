@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.25.1-alpha...v0.26.0-alpha) (2025-08-12)
+
+
+### Features
+
+* delete/read with retry based on status codes ([347f874](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/347f874aa64a139fdf04f18066bb6238bb8a5886))
+* export settings catalog templates via powershell with an export all option added too. ([e28ec4d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e28ec4dee789bd1a5e549f7c8d7fdbb94fe34135))
+* moved goreleaser to ubuntu runner and pipeline fixes ([420e342](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/420e3420c6e96194d69c6033bcc3db39d23f6ca6))
+
+
+### Bug Fixes
+
+* added unit tests for mobile app helpers ([664aa35](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/664aa350fef960595e41979e05949aef2155e962))
+* bug fixing assignments ([9b71c8f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9b71c8f47977202f0e8406b313433b96a2eada54))
+* for http methods ([c99cd96](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c99cd9676d2f1f1bca3acd25b76ab55557100692))
+* for settings catalog unit test timeouts ([#682](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/682)) ([8a8cbc4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8a8cbc4ba15d651e2a25a4323778f5820d24c555))
+* various bug fixes for pipelines and settings catalog, with improved exporter. ([#673](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/673)) ([7b101ff](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7b101ff8cf42424b3ae7ab10beccc5d85fe24797))
+
 ## [0.25.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.25.0-alpha...v0.25.1-alpha) (2025-08-08)
 
 
