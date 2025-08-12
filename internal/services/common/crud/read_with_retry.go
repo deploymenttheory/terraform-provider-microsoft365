@@ -3,8 +3,11 @@ package crud
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -85,6 +88,79 @@ func extractResourceID(ctx context.Context, state tfsdk.State) (result string) {
 		return "unknown"
 	}
 	return idValue.ValueString()
+}
+
+// extractErrorFromDiagnostics analyzes Terraform diagnostics to extract HTTP error information
+// for intelligent retry decisions
+func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) errors.GraphErrorInfo {
+	if !diagnostics.HasError() {
+		return errors.GraphErrorInfo{}
+	}
+
+	// Iterate through diagnostics to find HTTP error information
+	for _, d := range diagnostics.Errors() {
+		summary := d.Summary()
+		detail := d.Detail()
+		
+		// Combine summary and detail for analysis
+		errorText := summary + " " + detail
+		errorTextLower := strings.ToLower(errorText)
+
+		// Try to extract status code patterns from error messages
+		if strings.Contains(errorTextLower, "404") || strings.Contains(errorTextLower, "not found") {
+			return errors.GraphErrorInfo{StatusCode: 404, ErrorCode: "NotFound"}
+		}
+		if strings.Contains(errorTextLower, "400") || strings.Contains(errorTextLower, "bad request") {
+			return errors.GraphErrorInfo{StatusCode: 400, ErrorCode: "BadRequest"}
+		}
+		if strings.Contains(errorTextLower, "401") || strings.Contains(errorTextLower, "unauthorized") {
+			return errors.GraphErrorInfo{StatusCode: 401, ErrorCode: "Unauthorized"}
+		}
+		if strings.Contains(errorTextLower, "403") || strings.Contains(errorTextLower, "forbidden") {
+			return errors.GraphErrorInfo{StatusCode: 403, ErrorCode: "Forbidden"}
+		}
+		if strings.Contains(errorTextLower, "409") || strings.Contains(errorTextLower, "conflict") {
+			return errors.GraphErrorInfo{StatusCode: 409, ErrorCode: "Conflict"}
+		}
+		if strings.Contains(errorTextLower, "423") || strings.Contains(errorTextLower, "locked") {
+			return errors.GraphErrorInfo{StatusCode: 423, ErrorCode: "Locked"}
+		}
+		if strings.Contains(errorTextLower, "429") || strings.Contains(errorTextLower, "too many requests") || strings.Contains(errorTextLower, "throttl") {
+			return errors.GraphErrorInfo{StatusCode: 429, ErrorCode: "TooManyRequests"}
+		}
+		if strings.Contains(errorTextLower, "500") || strings.Contains(errorTextLower, "internal server error") {
+			return errors.GraphErrorInfo{StatusCode: 500, ErrorCode: "InternalServerError"}
+		}
+		if strings.Contains(errorTextLower, "502") || strings.Contains(errorTextLower, "bad gateway") {
+			return errors.GraphErrorInfo{StatusCode: 502, ErrorCode: "BadGateway"}
+		}
+		if strings.Contains(errorTextLower, "503") || strings.Contains(errorTextLower, "service unavailable") {
+			return errors.GraphErrorInfo{StatusCode: 503, ErrorCode: "ServiceUnavailable"}
+		}
+		if strings.Contains(errorTextLower, "504") || strings.Contains(errorTextLower, "gateway timeout") {
+			return errors.GraphErrorInfo{StatusCode: 504, ErrorCode: "GatewayTimeout"}
+		}
+		
+		// Look for specific Graph API error patterns
+		if strings.Contains(errorTextLower, "service unavailable") {
+			return errors.GraphErrorInfo{StatusCode: 503, ErrorCode: "ServiceUnavailable"}
+		}
+		if strings.Contains(errorTextLower, "request throttled") {
+			return errors.GraphErrorInfo{StatusCode: 429, ErrorCode: "RequestThrottled"}
+		}
+		if strings.Contains(errorTextLower, "resource not found") {
+			return errors.GraphErrorInfo{StatusCode: 404, ErrorCode: "ResourceNotFound"}
+		}
+		if strings.Contains(errorTextLower, "network error") {
+			return errors.GraphErrorInfo{StatusCode: 500, ErrorCode: "NetworkError"}
+		}
+		if strings.Contains(errorTextLower, "timeout") {
+			return errors.GraphErrorInfo{StatusCode: 504, ErrorCode: "RequestTimeout"}
+		}
+	}
+
+	// Return empty error info if no patterns match
+	return errors.GraphErrorInfo{}
 }
 
 // ReadWithRetry executes a read operation with retry logic within the context timeout
@@ -176,16 +252,60 @@ func ReadWithRetry(
 		lastErr = fmt.Errorf("error reading resource state after %s method on attempt %d: %s",
 			opts.Operation, attempt+1, readResp.Diagnostics.Errors())
 
-		if attempt < opts.MaxRetries {
-			tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d, waiting %s before retry", attempt+1, opts.RetryInterval), map[string]interface{}{
+		// Analyze diagnostics to extract error information
+		errorInfo := extractErrorFromDiagnostics(readResp.Diagnostics)
+
+		// Check for non-retryable errors first (permanent failures or success)
+		if errors.IsNonRetryableReadError(&errorInfo) {
+			tflog.Error(ctx, fmt.Sprintf("Read failed on attempt %d (non-retryable error)", attempt+1), map[string]interface{}{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
+				"status_code":   errorInfo.StatusCode,
+				"error_code":    errorInfo.ErrorCode,
+				"diagnostics":   readResp.Diagnostics.Errors(),
 			})
+			return fmt.Errorf("read operation failed with non-retryable error: %w", lastErr)
+		}
 
-			select {
-			case <-time.After(opts.RetryInterval):
-			case <-ctx.Done():
-				return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
+		// Check if this error should trigger a retry
+		if errors.IsRetryableReadError(&errorInfo) {
+			if attempt < opts.MaxRetries {
+				tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]interface{}{
+					"resource_id":   resourceID,
+					"resource_type": resourceType,
+					"status_code":   errorInfo.StatusCode,
+					"error_code":    errorInfo.ErrorCode,
+					"diagnostics":   readResp.Diagnostics.Errors(),
+				})
+
+				select {
+				case <-time.After(opts.RetryInterval):
+				case <-ctx.Done():
+					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
+				}
+			} else {
+				tflog.Error(ctx, fmt.Sprintf("Read failed on final attempt %d", attempt+1), map[string]interface{}{
+					"resource_id":   resourceID,
+					"resource_type": resourceType,
+					"status_code":   errorInfo.StatusCode,
+					"error_code":    errorInfo.ErrorCode,
+					"diagnostics":   readResp.Diagnostics.Errors(),
+				})
+			}
+		} else {
+			// Unknown error type, use old behavior for safety
+			if attempt < opts.MaxRetries {
+				tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d (unknown error type, continuing retry)", attempt+1), map[string]interface{}{
+					"resource_id":   resourceID,
+					"resource_type": resourceType,
+					"diagnostics":   readResp.Diagnostics.Errors(),
+				})
+
+				select {
+				case <-time.After(opts.RetryInterval):
+				case <-ctx.Done():
+					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
+				}
 			}
 		}
 	}

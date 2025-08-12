@@ -269,10 +269,10 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 
 
   timeouts = {
-    create = "60s"  
+    create = "180s"  
     read   = "30s"  
     update = "30s"  
-    delete = "20s"
+    delete = "90s"
   }
 }
 

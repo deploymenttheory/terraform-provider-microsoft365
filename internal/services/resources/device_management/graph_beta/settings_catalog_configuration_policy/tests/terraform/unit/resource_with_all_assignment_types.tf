@@ -4,6 +4,10 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   platforms    = "macOS"
   technologies = ["mdm", "appleRemoteManagement"]
 
+   template_reference = {
+    template_id = ""
+  }
+
   configuration_policy = {
     name     = "Test All Assignment Types Settings Catalog Policy Configuration - Unit"
     settings = []

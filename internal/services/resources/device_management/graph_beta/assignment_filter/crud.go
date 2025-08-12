@@ -195,8 +195,12 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the resource from the API
-//   - Cleans up by removing the resource from Terraform state
+//   - DeleteWithRetry attempts the delete operation
+//   - If it fails, it extracts error info with errors.GraphError()
+//   - Uses errors.IsNonRetryableError() to exit early on permanent failures (404, 409, etc.)
+//   - Uses errors.IsRetryableError() to retry on temporary issues (429, 500, 5001, etc.)
+//   - If all retries are exhausted, returns the error
+//   - The Delete method then passes that error to errors.HandleGraphError for final processing
 func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AssignmentFilterResourceModel
 
@@ -213,11 +217,17 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		AssignmentFilters().
-		ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	deleteOptions := crud.DefaultDeleteWithRetryOptions()
+	deleteOptions.ResourceTypeName = ResourceName
+	deleteOptions.ResourceID = object.ID.ValueString()
+
+	err := crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
+		return r.client.
+			DeviceManagement().
+			AssignmentFilters().
+			ByDeviceAndAppManagementAssignmentFilterId(object.ID.ValueString()).
+			Delete(ctx, nil)
+	}, deleteOptions)
 
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)

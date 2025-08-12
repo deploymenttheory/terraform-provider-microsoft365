@@ -711,27 +711,6 @@ func logErrorDetails(ctx context.Context, errorInfo *GraphErrorInfo) {
 	tflog.Debug(ctx, "Comprehensive error details", details)
 }
 
-// IsRetryableError determines if an error is retryable based on status code and error information
-func IsRetryableError(errorInfo *GraphErrorInfo) bool {
-	switch errorInfo.StatusCode {
-	case 429, 503, 502, 504: // Rate limiting and service unavailable errors
-		return true
-	case 500: // Internal server errors might be retryable
-		return true
-	default:
-		// Check specific error codes that might be retryable
-		retryableErrorCodes := map[string]bool{
-			"ServiceUnavailable":  true,
-			"RequestThrottled":    true,
-			"RequestTimeout":      true,
-			"InternalServerError": true,
-			"BadGateway":          true,
-			"GatewayTimeout":      true,
-		}
-		return retryableErrorCodes[errorInfo.ErrorCode]
-	}
-}
-
 // GetRetryDelay calculates the appropriate retry delay based on error information
 func GetRetryDelay(errorInfo *GraphErrorInfo, attempt int) time.Duration {
 	// Use Retry-After header if available
