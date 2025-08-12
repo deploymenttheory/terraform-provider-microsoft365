@@ -74,6 +74,8 @@ func IsRetryableReadError(errorInfo *GraphErrorInfo) bool {
 			"BadGateway":          true,
 			"GatewayTimeout":      true,
 			"NotFound":            true, // Resource propagation
+			"ResourceNotFound":    true, // Resource propagation
+			"NetworkError":        true, // Network connectivity issues
 		}
 		return retryableErrorCodes[errorInfo.ErrorCode]
 	}
@@ -90,8 +92,7 @@ func IsNonRetryableReadError(errorInfo *GraphErrorInfo) bool {
 		return true
 	case 400, 401, 403, 405, 406, 410, 422: // Client errors that won't change on retry
 		return true
-	case 409: // Conflict - typically permanent for reads too
-		return true
+	// Note: 409 Conflict is retryable for reads (removed from here)
 	default:
 		// Check specific error codes that are permanent failures
 		nonRetryableErrorCodes := map[string]bool{
@@ -101,6 +102,7 @@ func IsNonRetryableReadError(errorInfo *GraphErrorInfo) bool {
 			"Conflict":            true,
 			"Gone":                true,
 			"UnprocessableEntity": true,
+			"ValidationError":     true,
 			// Note: "NotFound" is NOT here because it's retryable for reads (propagation)
 		}
 		return nonRetryableErrorCodes[errorInfo.ErrorCode]

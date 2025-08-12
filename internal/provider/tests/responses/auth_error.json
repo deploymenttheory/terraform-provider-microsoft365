@@ -1,0 +1,8 @@
+{
+  "error": "invalid_client",
+  "error_description": "AADSTS7000215: Invalid client secret is provided. Trace ID: 12345678-1234-1234-1234-123456789012 Correlation ID: 12345678-1234-1234-1234-123456789012 Timestamp: 2023-01-01 12:00:00Z",
+  "error_codes": [7000215],
+  "timestamp": "2023-01-01 12:00:00Z",
+  "trace_id": "12345678-1234-1234-1234-123456789012",
+  "correlation_id": "12345678-1234-1234-1234-123456789012"
+}

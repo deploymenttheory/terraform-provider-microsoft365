@@ -13,6 +13,13 @@ func SetupUnitTestEnvironment(t *testing.T) {
 
 // TestAccPreCheck verifies necessary test prerequisites
 func TestAccPreCheck(t *testing.T) {
+	// Skip if not running acceptance tests
+	tfAcc := os.Getenv("TF_ACC")
+	if tfAcc != "1" {
+		t.Skipf("Acceptance tests skipped unless env 'TF_ACC' set to '1' (current value: %q)", tfAcc)
+		return
+	}
+
 	// Check for required environment variables
 	requiredEnvVars := []string{
 		"M365_CLIENT_ID",
@@ -26,10 +33,5 @@ func TestAccPreCheck(t *testing.T) {
 		if v := os.Getenv(envVar); v == "" {
 			t.Fatalf("%s must be set for acceptance tests", envVar)
 		}
-	}
-
-	// TF_ACC must be specifically set to "1" to enable acceptance tests
-	if tfAcc := os.Getenv("TF_ACC"); tfAcc != "1" {
-		t.Fatalf("TF_ACC must be set to '1' for acceptance tests (got: '%s')", tfAcc)
 	}
 }

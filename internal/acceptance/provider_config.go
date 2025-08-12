@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // ProviderConfig returns the provider configuration block for acceptance tests
@@ -56,7 +57,11 @@ func M365ProviderBlockValueInjection() string {
 }
 
 // ConfiguredM365ProviderBlock prefixes any terraform configuration with a configured
-// M365 provider block.
+// M365 provider block only if the config doesn't already contain a provider block.
 func ConfiguredM365ProviderBlock(config string) string {
+	// If the config already contains a provider block, just return it as-is
+	if strings.Contains(config, `provider "microsoft365"`) {
+		return config
+	}
 	return M365ProviderBlockValueInjection() + config
 }

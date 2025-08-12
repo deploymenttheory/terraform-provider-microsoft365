@@ -161,6 +161,7 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 }
 
 func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

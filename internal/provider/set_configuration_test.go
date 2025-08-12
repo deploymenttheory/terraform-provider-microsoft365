@@ -12,9 +12,44 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// clearM365EnvVarsWithRestore clears only M365-related environment variables temporarily and restores them after the test
+func clearM365EnvVarsWithRestore(t *testing.T) {
+	m365EnvVars := []string{
+		"M365_CLOUD",
+		"M365_TENANT_ID", 
+		"M365_CLIENT_ID",
+		"M365_CLIENT_SECRET",
+		"M365_AUTH_METHOD",
+		"M365_REDIRECT_URL",
+		"M365_USE_PROXY",
+		"M365_PROXY_URL",
+		"M365_ENABLE_CHAOS",
+		"M365_TELEMETRY_OPTOUT",
+		"M365_DEBUG_MODE",
+	}
+	
+	// Save current values
+	savedValues := make(map[string]string)
+	for _, envVar := range m365EnvVars {
+		savedValues[envVar] = os.Getenv(envVar)
+		os.Unsetenv(envVar)
+	}
+	
+	// Restore environment variables after test
+	t.Cleanup(func() {
+		for envVar, value := range savedValues {
+			if value != "" {
+				os.Setenv(envVar, value)
+			} else {
+				os.Unsetenv(envVar)
+			}
+		}
+	})
+}
+
 func TestSetProviderConfiguration_EmptyConfig(t *testing.T) {
-	// Clear environment variables
-	os.Clearenv()
+	// Clear M365 environment variables only
+	clearM365EnvVarsWithRestore(t)
 
 	// Create an empty config
 	config := M365ProviderModel{
@@ -41,7 +76,7 @@ func TestSetProviderConfiguration_EmptyConfig(t *testing.T) {
 
 func TestSetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
 	// Clear environment and set test variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 	os.Setenv("M365_CLOUD", "dod")
 	os.Setenv("M365_TENANT_ID", "env-tenant-id")
 	os.Setenv("M365_AUTH_METHOD", "device_code")
@@ -73,7 +108,7 @@ func TestSetProviderConfiguration_EnvVarsOverrideConfig(t *testing.T) {
 
 func TestSetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
 	// Clear environment and set only some variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 	os.Setenv("M365_CLOUD", "gcc")
 	// Intentionally not setting TENANT_ID
 	os.Setenv("M365_AUTH_METHOD", "client_certificate")
@@ -105,7 +140,7 @@ func TestSetProviderConfiguration_MixedEnvAndConfig(t *testing.T) {
 
 func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 	// Clear environment variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 
 	// Set environment variables
 	os.Setenv("M365_CLIENT_ID", "env-client-id")
@@ -174,7 +209,7 @@ func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 
 func TestSetClientOptions_DefaultsAndOverrides(t *testing.T) {
 	// Clear environment variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 
 	// Set environment variables
 	os.Setenv("M365_USE_PROXY", "true")
@@ -251,7 +286,7 @@ func TestSetClientOptions_DefaultsAndOverrides(t *testing.T) {
 
 func TestSetEntraIDOptions_EmptyConfig(t *testing.T) {
 	// Clear environment variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 
 	// Create null config (testing defaults)
 	nullConfig := types.ObjectNull(map[string]attr.Type{})
@@ -264,7 +299,7 @@ func TestSetEntraIDOptions_EmptyConfig(t *testing.T) {
 
 func TestSetEntraIDOptions_BooleanEnvVars(t *testing.T) {
 	// Clear environment variables
-	os.Clearenv()
+	clearM365EnvVarsWithRestore(t)
 
 	// Set boolean environment variables with different formats
 	os.Setenv("M365_SEND_CERTIFICATE_CHAIN", "true")
@@ -343,7 +378,7 @@ func TestGetEnvBool_Variants(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.envValue, func(t *testing.T) {
-			os.Clearenv()
+			clearM365EnvVarsWithRestore(t)
 			if tc.envValue != "" { // Skip setting for empty string test
 				os.Setenv("TEST_BOOL", tc.envValue)
 			}

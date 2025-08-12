@@ -26,13 +26,17 @@ func SetInstallerSourcePath(ctx context.Context, metadataObj types.Object) (stri
 	var fileInfo TempFileInfo
 	var metadata sharedmodels.MobileAppMetaDataResourceModel
 
-	if !metadataObj.IsNull() {
-		diags := metadataObj.As(ctx, &metadata, basetypes.ObjectAsOptions{})
-		if diags.HasError() {
-			tflog.Warn(ctx, "Failed to parse app_installer, proceeding with empty struct", map[string]interface{}{
-				"errors": diags.Errors(),
-			})
-		}
+	if metadataObj.IsNull() {
+		tflog.Debug(ctx, "Metadata object is null - skipping")
+		return "", fileInfo, nil
+	}
+
+	diags := metadataObj.As(ctx, &metadata, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		tflog.Warn(ctx, "Failed to parse app_installer, proceeding with empty struct", map[string]interface{}{
+			"errors": diags.Errors(),
+		})
+		return "", fileInfo, nil
 	}
 
 	tflog.Debug(ctx, "setInstallerSourcePath input", map[string]interface{}{
