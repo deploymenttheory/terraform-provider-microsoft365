@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-            # Step 1: Identify all changed packages
+      # Step 1: Identify all changed packages
       - name: Identify changed packages
         id: changed-packages
         run: |
@@ -91,7 +91,7 @@ jobs:
             elif [[ "$pkg" == *"/shared_models/"* ]]; then
               echo "Skipping test requirement check for shared_models directory: $pkg"
               continue
-            elif [[ "$pkg" == *"/internal/acceptance/"* ]]; then
+            elif [[ "$pkg" == *"internal/acceptance"* ]]; then
               echo "Skipping test requirement check for acceptance directory: $pkg"
               continue
             fi
