@@ -1,4 +1,4 @@
-name: Unit Tests
+name: PR Unit Tests
 
 permissions:
   contents: read

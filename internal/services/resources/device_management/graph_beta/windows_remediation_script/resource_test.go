@@ -2,10 +2,10 @@ package graphBetaWindowsRemediationScript_test
 
 import (
 	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	windowsRemediationScriptMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -52,24 +52,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *windowsRemediationScriptMocks.W
 // testCheckExists is a basic check to ensure the resource exists in the state
 func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
 }
 
 // TestWindowsRemediationScriptResource_Schema validates the resource schema
@@ -336,47 +318,64 @@ func TestWindowsRemediationScriptResource_AllAssignmentTypes(t *testing.T) {
 	})
 }
 
+func testConfigMinimal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+	if err != nil {
+		panic("failed to load minimal config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+// testConfigMaximal returns the maximal configuration for testing
+func testConfigMaximal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
+	if err != nil {
+		panic("failed to load maximal config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
 // testConfigGroupAssignments returns the group assignments configuration for testing
 func testConfigGroupAssignments() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_group_assignments.tf"))
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_group_assignments.tf")
 	if err != nil {
-		return ""
+		panic("failed to load group assignments config: " + err.Error())
 	}
-	return string(content)
+	return unitTestConfig
 }
 
 // testConfigAllUsersAssignment returns the all users assignment configuration for testing
 func testConfigAllUsersAssignment() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_users_assignment.tf"))
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_users_assignment.tf")
 	if err != nil {
-		return ""
+		panic("failed to load all users assignment config: " + err.Error())
 	}
-	return string(content)
+	return unitTestConfig
 }
 
 // testConfigAllDevicesAssignment returns the all devices assignment configuration for testing
 func testConfigAllDevicesAssignment() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_devices_assignment.tf"))
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_devices_assignment.tf")
 	if err != nil {
-		return ""
+		panic("failed to load all devices assignment config: " + err.Error())
 	}
-	return string(content)
+	return unitTestConfig
 }
 
 // testConfigExclusionAssignment returns the exclusion assignment configuration for testing
 func testConfigExclusionAssignment() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_exclusion_assignment.tf"))
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_exclusion_assignment.tf")
 	if err != nil {
-		return ""
+		panic("failed to load exclusion assignment config: " + err.Error())
 	}
-	return string(content)
+	return unitTestConfig
 }
 
 // testConfigAllAssignmentTypes returns the all assignment types configuration for testing
 func testConfigAllAssignmentTypes() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_with_all_assignment_types.tf"))
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_assignment_types.tf")
 	if err != nil {
-		return ""
+		panic("failed to load all assignment types config: " + err.Error())
 	}
-	return string(content)
+	return unitTestConfig
 }

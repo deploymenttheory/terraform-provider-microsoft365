@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Windows Quality Update Policy data."
+  }
+}
+
+
