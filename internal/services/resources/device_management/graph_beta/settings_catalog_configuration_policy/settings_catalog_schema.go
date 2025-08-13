@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-const maxSchemaDepth = 15
-
 // DeviceConfigV2Schema returns the Terraform schema for device configuration settings catalog
 func DeviceConfigV2Schema() schema.Schema {
 	return schema.Schema{
@@ -156,7 +154,7 @@ func choiceSettingAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	// Only add children if we haven't exceeded max depth
-	if depth < maxSchemaDepth {
+	if depth < getMaxSchemaDepth() {
 		attrs["children"] = schema.ListNestedAttribute{
 			Description: "Child elements of the choice setting",
 			Optional:    true,
@@ -200,7 +198,7 @@ func choiceSettingChildAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	// Only add recursive choice and group settings if we haven't exceeded max depth
-	if depth < maxSchemaDepth {
+	if depth < getMaxSchemaDepth() {
 		attrs["choice_setting_value"] = schema.SingleNestedAttribute{
 			Description: "Nested choice setting value",
 			Optional:    true,
@@ -240,7 +238,7 @@ func choiceSettingCollectionAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	// Only add children if we haven't exceeded max depth
-	if depth < maxSchemaDepth {
+	if depth < getMaxSchemaDepth() {
 		attrs["children"] = schema.ListNestedAttribute{
 			Description: "Child elements of the choice setting collection",
 			Optional:    true,
@@ -295,7 +293,7 @@ func groupSettingCollectionAttributes(depth int) map[string]schema.Attribute {
 	}
 
 	// Only add children if we haven't exceeded max depth
-	if depth < maxSchemaDepth {
+	if depth < getMaxSchemaDepth() {
 		attrs["children"] = schema.ListNestedAttribute{
 			Description: "Child elements of the group setting collection",
 			Optional:    true,
@@ -339,7 +337,7 @@ func groupSettingCollectionChildAttributes(depth int) map[string]schema.Attribut
 	}
 
 	// Only add recursive choice and group settings if we haven't exceeded max depth
-	if depth < maxSchemaDepth {
+	if depth < getMaxSchemaDepth() {
 		attrs["choice_setting_value"] = schema.SingleNestedAttribute{
 			Description: "Choice setting value",
 			Optional:    true,

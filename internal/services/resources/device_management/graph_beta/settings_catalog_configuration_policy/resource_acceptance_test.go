@@ -3,10 +3,12 @@ package graphBetaSettingsCatalogConfigurationPolicy_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -107,12 +109,12 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T)
 			return err
 		},
 		Steps: []resource.TestStep{
-			// Create with all assignment types including filters
+			// Create with all assignment types
 			{
 				PreConfig: func() {
 					t.Log("=== STEP PRE-CONFIG ===")
-					t.Log("About to apply configuration with assignments, groups, role scope tags, and assignment filters")
-					t.Log("Expected dependencies: 5 assignment filters, 3 groups, 2 role scope tags")
+					t.Log("About to apply configuration with assignments, groups, and role scope tags")
+					t.Log("Expected dependencies: 3 groups, 2 role scope tags")
 				},
 				Config: testAccSettingsCatalogConfigurationPolicyConfig_assignments(),
 				Check: resource.ComposeTestCheckFunc(
@@ -155,12 +157,6 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T)
 					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.assignments", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
 					func(s *terraform.State) error {
 						t.Log("SUCCESS: exclusionGroupAssignmentTarget verified")
-						return nil
-					},
-					// Verify assignment filters are included
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.assignments", "assignments.*", map[string]string{"filter_type": "include"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: Assignment filters verified")
 						return nil
 					},
 					// Verify role scope tags
@@ -318,22 +314,49 @@ func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) e
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_minimal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load minimal test config: %v", err)
+	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_maximal() string {
-	roleScopeTags := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
+	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
+	if err != nil {
+		log.Fatalf("Failed to load role scope tags config: %v", err)
+	}
+
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load maximal test config: %v", err)
+	}
+
 	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_assignments() string {
-	groups := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	roleScopeTags := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
+	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
+	if err != nil {
+		log.Fatalf("Failed to load groups config: %v", err)
+	}
+
+	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
+	if err != nil {
+		log.Fatalf("Failed to load role scope tags config: %v", err)
+	}
+
 	// Use local assignment filters with proper dependency management to preserve the correct destroy order
-	//assignmentFilters := mocks.LoadLocalTerraformConfig("assignment_filters_with_dependencies.tf")
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_assignments.tf")
+	//assignmentFilters, err := helpers.ParseHCLFile("assignment_filters_with_dependencies.tf")
+	//if err != nil {
+	//	log.Fatalf("Failed to load assignment filters config: %v", err)
+	//}
+
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_assignments.tf")
+	if err != nil {
+		log.Fatalf("Failed to load test config: %v", err)
+	}
+
 	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
 }
 

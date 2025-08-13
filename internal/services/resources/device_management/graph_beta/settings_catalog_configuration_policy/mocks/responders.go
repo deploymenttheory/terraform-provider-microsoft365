@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -216,12 +217,65 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 				policy["roleScopeTagIds"] = []string{"0"} // Default value
 			}
 			if templateReference, exists := requestBody["templateReference"]; exists {
-				policy["templateReference"] = templateReference
+				if templateRefMap, ok := templateReference.(map[string]interface{}); ok {
+					// Ensure all required fields are present with defaults
+					templateRef := map[string]interface{}{
+						"templateId":             "",
+						"templateFamily":         "none",
+						"templateDisplayName":    "",
+						"templateDisplayVersion": "",
+					}
+					// Override with any provided values
+					for k, v := range templateRefMap {
+						templateRef[k] = v
+					}
+					// Set default templateFamily if not provided or empty
+					if templateFamily, hasFamily := templateRef["templateFamily"]; !hasFamily || templateFamily == "" {
+						templateRef["templateFamily"] = "none"
+					}
+					policy["templateReference"] = templateRef
+				} else {
+					// Fallback for invalid template reference
+					policy["templateReference"] = map[string]interface{}{
+						"templateId":             "",
+						"templateFamily":         "none",
+						"templateDisplayName":    "",
+						"templateDisplayVersion": "",
+					}
+				}
+			} else {
+				// Provide a default template reference for minimal cases
+				policy["templateReference"] = map[string]interface{}{
+					"templateId":             "",
+					"templateFamily":         "none",
+					"templateDisplayName":    "",
+					"templateDisplayVersion": "",
+				}
 			}
 			if settings, exists := requestBody["settings"]; exists {
-				policy["settings"] = settings
 				if settingsList, ok := settings.([]interface{}); ok {
-					policy["settingsCount"] = len(settingsList)
+					// Ensure each setting has an ID for proper state mapping
+					processedSettings := make([]interface{}, 0, len(settingsList))
+					for i, setting := range settingsList {
+						if settingMap, ok := setting.(map[string]interface{}); ok {
+							// Create a copy of the setting
+							settingCopy := make(map[string]interface{})
+							for k, v := range settingMap {
+								settingCopy[k] = v
+							}
+							// Ensure the setting has an ID if it doesn't already
+							if _, hasId := settingCopy["id"]; !hasId {
+								settingCopy["id"] = strconv.Itoa(i)
+							}
+							processedSettings = append(processedSettings, settingCopy)
+						} else {
+							processedSettings = append(processedSettings, setting)
+						}
+					}
+					policy["settings"] = processedSettings
+					policy["settingsCount"] = len(processedSettings)
+				} else {
+					policy["settings"] = settings
 				}
 			}
 
@@ -234,6 +288,83 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(201, policy)
+		})
+
+	// Register PUT for updating configuration policy using custom URL format configurationPolicies('id')
+	httpmock.RegisterResponder("PUT", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[^']+'\)$`,
+		func(req *http.Request) (*http.Response, error) {
+			// Extract ID between configurationPolicies('...')
+			path := req.URL.Path
+			startMarker := "configurationPolicies('"
+			startIdx := strings.Index(path, startMarker)
+			if startIdx == -1 {
+				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL format"}}`), nil
+			}
+			startIdx += len(startMarker)
+			endIdx := strings.Index(path[startIdx:], "')")
+			if endIdx == -1 {
+				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL format"}}`), nil
+			}
+			id := path[startIdx : startIdx+endIdx]
+
+			// Decode request body
+			var requestBody map[string]interface{}
+			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			}
+
+			// Update stored state if exists
+			mockState.Lock()
+			defer mockState.Unlock()
+			if existing, ok := mockState.settingsCatalogConfigurationPolicies[id]; ok {
+				// Preserve or assign IDs to settings if provided in request
+				if settings, hasSettings := requestBody["settings"]; hasSettings {
+					if settingsList, okList := settings.([]interface{}); okList {
+						processedSettings := make([]interface{}, 0, len(settingsList))
+						var existingSettings []interface{}
+						if ex, okEx := existing["settings"].([]interface{}); okEx {
+							existingSettings = ex
+						}
+						for i, setting := range settingsList {
+							if settingMap, okMap := setting.(map[string]interface{}); okMap {
+								settingCopy := make(map[string]interface{})
+								for k, v := range settingMap {
+									settingCopy[k] = v
+								}
+								// If id missing, try to carry over from existing by index, else assign index
+								if _, hasId := settingCopy["id"]; !hasId {
+									assignedId := strconv.Itoa(i)
+									if i < len(existingSettings) {
+										if exMap, okExMap := existingSettings[i].(map[string]interface{}); okExMap {
+											if exId, okExId := exMap["id"].(string); okExId && exId != "" {
+												assignedId = exId
+											}
+										}
+									}
+									settingCopy["id"] = assignedId
+								}
+								processedSettings = append(processedSettings, settingCopy)
+							} else {
+								processedSettings = append(processedSettings, setting)
+							}
+						}
+						requestBody["settings"] = processedSettings
+					}
+				}
+
+				// Merge request body into existing policy
+				for k, v := range requestBody {
+					existing[k] = v
+				}
+				mockState.settingsCatalogConfigurationPolicies[id] = existing
+			} else {
+				// If not found, return 404 consistent with other responders
+				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_settings_catalog_configuration_policy_not_found.json"))
+				return httpmock.NewJsonResponse(404, errorResponse)
+			}
+
+			// Custom PUT expects 204 No Content on success
+			return httpmock.NewStringResponse(204, ""), nil
 		})
 
 	// Register PATCH for updating configuration policy
@@ -304,6 +435,9 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 
 			return httpmock.NewStringResponse(204, ""), nil
 		})
+
+	// Register settings-related endpoints
+	m.registerSettingsMocks()
 
 	// Register assignment-related endpoints
 	m.registerAssignmentMocks()
@@ -425,6 +559,43 @@ func (m *SettingsCatalogConfigurationPolicyMock) registerAssignmentMocks() {
 			response := map[string]interface{}{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/assignments",
 				"value":          assignments,
+			}
+
+			return httpmock.NewJsonResponse(200, response)
+		})
+}
+
+// registerSettingsMocks registers mock responses for settings operations
+func (m *SettingsCatalogConfigurationPolicyMock) registerSettingsMocks() {
+	// GET settings for a configuration policy
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+/settings$`,
+		func(req *http.Request) (*http.Response, error) {
+			urlParts := strings.Split(req.URL.Path, "/")
+			id := urlParts[len(urlParts)-2]
+
+			mockState.Lock()
+			policyData, exists := mockState.settingsCatalogConfigurationPolicies[id]
+			mockState.Unlock()
+
+			if !exists {
+				response := map[string]interface{}{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
+					"value":          []map[string]interface{}{},
+				}
+				return httpmock.NewJsonResponse(200, response)
+			}
+
+			// Get settings from stored policy data
+			settings := []interface{}{}
+			if storedSettings, hasSettings := policyData["settings"]; hasSettings {
+				if settingsArray, ok := storedSettings.([]interface{}); ok {
+					settings = settingsArray
+				}
+			}
+
+			response := map[string]interface{}{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
+				"value":          settings,
 			}
 
 			return httpmock.NewJsonResponse(200, response)

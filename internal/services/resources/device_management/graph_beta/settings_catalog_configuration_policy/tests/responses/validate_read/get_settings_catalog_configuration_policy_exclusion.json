@@ -17,9 +17,9 @@
       "source": "direct",
       "target": {
         "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
-        "groupId": "7777777-7777-7777-7777-777777777777"
+        "groupId": "77777777-7777-7777-7777-777777777777"
       },
-      "entraObjectId": "7777777-7777-7777-7777-777777777777",
+      "entraObjectId": "77777777-7777-7777-7777-777777777777",
       "collectionId": "group-exclusion",
       "sourceId": "group-exclusion",
       "deviceAndAppManagementAssignmentFilterId": "8888888-8888-8888-8888-888888888888",
