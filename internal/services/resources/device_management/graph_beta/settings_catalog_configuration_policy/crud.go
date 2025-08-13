@@ -40,6 +40,12 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	// Cache dcv2 config depth for dynamic schema build depth optimization
+	if object.ConfigurationPolicy != nil && len(object.ConfigurationPolicy.Settings) > 0 {
+		configContent := fmt.Sprintf("%+v", object.ConfigurationPolicy)
+		ResolveDCV2ConfigurationDepth(object.Name.ValueString(), configContent)
+	}
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -285,6 +291,12 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Cache dcv2 config depth for dynamic schema build depth optimization
+	if plan.ConfigurationPolicy != nil && len(plan.ConfigurationPolicy.Settings) > 0 {
+		configContent := fmt.Sprintf("%+v", plan.ConfigurationPolicy)
+		ResolveDCV2ConfigurationDepth(plan.Name.ValueString(), configContent)
 	}
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
