@@ -3,11 +3,10 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
@@ -103,21 +102,31 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 				// Check for special test IDs
 				switch {
 				case strings.Contains(id, "minimal"):
-					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_remediation_script_minimal.json"))
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/get_windows_remediation_script_minimal.json")
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
 					response["id"] = id
 					return factories.SuccessResponse(200, response)(req)
 				case strings.Contains(id, "maximal"):
-					response, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_windows_remediation_script_maximal.json"))
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/get_windows_remediation_script_maximal.json")
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
 					response["id"] = id
 					return factories.SuccessResponse(200, response)(req)
 				default:
-					errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
+					var errorResponse map[string]interface{}
+					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 					return httpmock.NewJsonResponse(404, errorResponse)
 				}
 			}
@@ -217,21 +226,29 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			var requestBody map[string]interface{}
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_remediation_script_error.json"))
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_remediation_script_error.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(400, errorResponse)
 			}
 
 			// Load update template
-			updatedScript, err := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_windows_remediation_script_updated.json"))
+			jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/get_windows_remediation_script_updated.json")
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var updatedScript map[string]interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &updatedScript); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 			}
 
 			mockState.Lock()
 			script, exists := mockState.windowsRemediationScripts[id]
 			if !exists {
 				mockState.Unlock()
-				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -267,7 +284,9 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -409,18 +428,7 @@ func (m *WindowsRemediationScriptMock) CleanupMockState() {
 	}
 }
 
-// loadJSONResponse loads a JSON response from a file
-func (m *WindowsRemediationScriptMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
-	var response map[string]interface{}
-
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return response, err
-	}
-
-	err = json.Unmarshal(content, &response)
-	return response, err
-}
+// Removed legacy JSON loader in favor of helpers.ParseJSONFile
 
 // RegisterErrorMocks registers mock responses that simulate error conditions
 func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
@@ -442,14 +450,18 @@ func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	// Register error response for creating Windows remediation script with invalid data
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_remediation_script_error.json"))
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_remediation_script_error.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
 
 	// Register error response for Windows remediation script not found
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceHealthScripts/([^/]+)$`,
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_windows_remediation_script_not_found.json"))
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(404, errorResponse)
 		})
 }
