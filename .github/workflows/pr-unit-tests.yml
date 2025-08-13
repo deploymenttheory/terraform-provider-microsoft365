@@ -91,8 +91,8 @@ jobs:
             elif [[ "$pkg" == *"/shared_models/"* ]]; then
               echo "Skipping test requirement check for shared_models directory: $pkg"
               continue
-            elif [[ "$pkg" == *"/common/"* ]]; then
-              echo "Skipping test requirement check for common directory: $pkg"
+            elif [[ "$pkg" == *"/internal/acceptance/"* ]]; then
+              echo "Skipping test requirement check for acceptance directory: $pkg"
               continue
             fi
             
