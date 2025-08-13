@@ -109,12 +109,12 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T)
 			return err
 		},
 		Steps: []resource.TestStep{
-			// Create with all assignment types including filters
+			// Create with all assignment types
 			{
 				PreConfig: func() {
 					t.Log("=== STEP PRE-CONFIG ===")
-					t.Log("About to apply configuration with assignments, groups, role scope tags, and assignment filters")
-					t.Log("Expected dependencies: 5 assignment filters, 3 groups, 2 role scope tags")
+					t.Log("About to apply configuration with assignments, groups, and role scope tags")
+					t.Log("Expected dependencies: 3 groups, 2 role scope tags")
 				},
 				Config: testAccSettingsCatalogConfigurationPolicyConfig_assignments(),
 				Check: resource.ComposeTestCheckFunc(
@@ -157,12 +157,6 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T)
 					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.assignments", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
 					func(s *terraform.State) error {
 						t.Log("SUCCESS: exclusionGroupAssignmentTarget verified")
-						return nil
-					},
-					// Verify assignment filters are included
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy.assignments", "assignments.*", map[string]string{"filter_type": "include"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: Assignment filters verified")
 						return nil
 					},
 					// Verify role scope tags

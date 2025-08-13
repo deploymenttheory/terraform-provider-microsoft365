@@ -237,22 +237,22 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 
   assignments = [
     {
-      type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
     },
     {
-      type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
     },
     {
-      type        = "allLicensedUsersAssignmentTarget"
+      type = "allLicensedUsersAssignmentTarget"
     },
     {
-      type        = "allDevicesAssignmentTarget"
+      type = "allDevicesAssignmentTarget"
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
     }
   ]
 
