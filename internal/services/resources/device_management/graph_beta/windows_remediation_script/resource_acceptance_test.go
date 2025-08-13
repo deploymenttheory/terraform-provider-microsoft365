@@ -3,10 +3,12 @@ package graphBetaWindowsRemediationScript_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -145,20 +147,42 @@ func TestAccWindowsRemediationScriptResource_InvalidValues(t *testing.T) {
 }
 
 func testAccWindowsRemediationScriptConfig_minimal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load minimal test config: %v", err)
+	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsRemediationScriptConfig_maximal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load maximal test config: %v", err)
+	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsRemediationScriptConfig_withAssignments() string {
-	groups := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	roleScopeTags := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	assignmentFilters := mocks.LoadCentralizedTerraformConfig("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_with_assignments.tf")
+	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
+	if err != nil {
+		log.Fatalf("Failed to load groups config: %v", err)
+	}
+
+	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
+	if err != nil {
+		log.Fatalf("Failed to load role scope tags config: %v", err)
+	}
+
+	assignmentFilters, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
+	if err != nil {
+		log.Fatalf("Failed to load assignment filters config: %v", err)
+	}
+
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
+	if err != nil {
+		log.Fatalf("Failed to load assignments test config: %v", err)
+	}
+
 	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + accTestConfig)
 }
 
