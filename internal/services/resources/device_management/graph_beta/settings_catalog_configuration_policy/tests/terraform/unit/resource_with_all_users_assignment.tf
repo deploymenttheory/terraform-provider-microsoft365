@@ -1,5 +1,6 @@
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "all_users_assignment" {
   name         = "Test All Users Assignment Settings Catalog Policy - Unit"
+  description  = ""
   platforms    = "macOS"
   technologies = ["mdm", "appleRemoteManagement"]
 
@@ -8,6 +9,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   }
 
   configuration_policy = {
+    name     = "Test All Users Assignment Settings Catalog Policy Configuration - Unit"
     settings = []
   }
 
@@ -15,7 +17,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     {
       type        = "allLicensedUsersAssignmentTarget"
       filter_type = "include"
-      filter_id   = "5555555-5555-5555-5555-555555555555"
+      filter_id   = "55555555-5555-5555-5555-555555555555"
     }
   ]
 

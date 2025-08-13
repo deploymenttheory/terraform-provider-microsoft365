@@ -2,133 +2,315 @@ package helpers
 
 import (
 	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestParseJSONFile(t *testing.T) {
-	// Create a temporary directory for test files
-	tempDir, err := os.MkdirTemp("", "json-test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+// TestParseJSONFile_EmptyPath tests the empty path validation unit
+func TestParseJSONFile_EmptyPath(t *testing.T) {
+	content, err := ParseJSONFile("")
+	
+	assert.Error(t, err, "Expected error for empty file path")
+	assert.Empty(t, content, "Expected empty content for empty path")
+	assert.Contains(t, err.Error(), "file path for json file cannot be empty")
+}
+
+// TestParseJSONFile_ValidExtensions tests the file extension validation unit
+func TestParseJSONFile_ValidExtensions(t *testing.T) {
+	testCases := []struct {
+		name        string
+		filename    string
+		shouldPass  bool
+		expectedErr string
+	}{
+		{
+			name:       "valid json extension",
+			filename:   "test.json",
+			shouldPass: true,
+		},
+		{
+			name:       "valid uppercase json extension",
+			filename:   "test.JSON",
+			shouldPass: true,
+		},
+		{
+			name:        "invalid txt extension",
+			filename:    "test.txt",
+			shouldPass:  false,
+			expectedErr: "invalid file extension",
+		},
+		{
+			name:        "invalid js extension",
+			filename:    "test.js",
+			shouldPass:  false,
+			expectedErr: "invalid file extension",
+		},
+		{
+			name:        "invalid yaml extension",
+			filename:    "test.yaml",
+			shouldPass:  false,
+			expectedErr: "invalid file extension",
+		},
+		{
+			name:        "no extension",
+			filename:    "test",
+			shouldPass:  false,
+			expectedErr: "invalid file extension",
+		},
 	}
-	defer os.RemoveAll(tempDir)
 
-	t.Run("valid JSON file", func(t *testing.T) {
-		// Create a temporary JSON file
-		jsonContent := `{"name": "test", "value": 123}`
-		jsonPath := filepath.Join(tempDir, "valid.json")
-		err := os.WriteFile(jsonPath, []byte(jsonContent), 0644)
-		if err != nil {
-			t.Fatalf("Failed to write test JSON file: %v", err)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.shouldPass {
+				// Create a valid test file for valid extensions
+				testContent := `{"name": "test", "value": 42}`
+				require.NoError(t, os.WriteFile(tc.filename, []byte(testContent), 0644))
+				defer func() {
+					assert.NoError(t, os.Remove(tc.filename))
+				}()
 
-		// Test parsing the file
-		result := ParseJSONFile(t, jsonPath)
-		assert.Equal(t, jsonContent, result, "Should return the correct JSON content")
-	})
-
-	// Note: We can't effectively test the error case for ParseJSONFile
-	// because it calls t.Fatalf() which terminates the test immediately
+				content, err := ParseJSONFile(tc.filename)
+				assert.NoError(t, err, "Expected success for %s", tc.filename)
+				assert.Equal(t, testContent, content, "Content mismatch for %s", tc.filename)
+			} else {
+				// Test invalid extension (file doesn't need to exist)
+				content, err := ParseJSONFile(tc.filename)
+				assert.Error(t, err, "Expected error for %s", tc.filename)
+				assert.Empty(t, content, "Expected empty content for %s", tc.filename)
+				assert.Contains(t, err.Error(), tc.expectedErr, "Expected error containing '%s' for %s", tc.expectedErr, tc.filename)
+			}
+		})
+	}
 }
 
-func TestPrettyJSON(t *testing.T) {
-	t.Run("valid struct", func(t *testing.T) {
-		data := struct {
-			Name  string `json:"name"`
-			Value int    `json:"value"`
-		}{
-			Name:  "test",
-			Value: 123,
-		}
+// TestParseJSONFile_FileExistence tests the file existence validation unit
+func TestParseJSONFile_FileExistence(t *testing.T) {
+	t.Run("non-existent file", func(t *testing.T) {
+		nonExistentFile := "nonexistent.json"
 
-		expected := `{
-  "name": "test",
-  "value": 123
-}`
-
-		result, err := PrettyJSON(data)
-		assert.NoError(t, err, "Should not return an error for valid struct")
-		assert.Equal(t, expected, result, "Should return correctly formatted JSON")
-	})
-
-	t.Run("valid map", func(t *testing.T) {
-		data := map[string]interface{}{
-			"name":    "test",
-			"value":   123,
-			"enabled": true,
-		}
-
-		result, err := PrettyJSON(data)
-		assert.NoError(t, err, "Should not return an error for valid map")
-
-		// Since map iteration order is not guaranteed, we'll parse the result back and compare
-		var parsed map[string]interface{}
-		err = ParseJSON(result, &parsed)
-		assert.NoError(t, err, "Should parse the generated JSON")
-		assert.Equal(t, data["name"], parsed["name"], "Should have correct name value")
-		// When unmarshaling JSON, numbers become float64
-		assert.Equal(t, float64(123), parsed["value"], "Should have correct numeric value")
-		assert.Equal(t, data["enabled"], parsed["enabled"], "Should have correct boolean value")
-	})
-
-	t.Run("invalid data", func(t *testing.T) {
-		// Create a circular reference that can't be marshaled to JSON
-		type Circular struct {
-			Self *Circular
-		}
-		circular := &Circular{}
-		circular.Self = circular
-
-		result, err := PrettyJSON(circular)
-		assert.Error(t, err, "Should return an error for data that can't be marshaled")
-		assert.Empty(t, result, "Result should be empty for invalid data")
+		content, err := ParseJSONFile(nonExistentFile)
+		
+		assert.Error(t, err, "Expected error for non-existent file")
+		assert.Empty(t, content, "Expected empty content for non-existent file")
+		assert.Contains(t, err.Error(), "json file does not exist")
 	})
 }
 
-func TestParseJSON(t *testing.T) {
-	t.Run("valid JSON to struct", func(t *testing.T) {
-		jsonStr := `{"name": "test", "value": 123}`
-		var result struct {
-			Name  string `json:"name"`
-			Value int    `json:"value"`
-		}
+// TestParseJSONFile_FileTypeValidation tests the regular file validation unit
+func TestParseJSONFile_FileTypeValidation(t *testing.T) {
+	t.Run("directory instead of file", func(t *testing.T) {
+		dirPath := "fake_dir.json"
+		require.NoError(t, os.MkdirAll(dirPath, 0755))
+		defer func() {
+			assert.NoError(t, os.RemoveAll(dirPath))
+		}()
 
-		err := ParseJSON(jsonStr, &result)
-		assert.NoError(t, err, "Should not return an error for valid JSON")
-		assert.Equal(t, "test", result.Name, "Should parse name correctly")
-		assert.Equal(t, 123, result.Value, "Should parse value correctly")
+		content, err := ParseJSONFile(dirPath)
+		
+		assert.Error(t, err, "Expected error when trying to read directory")
+		assert.Empty(t, content, "Expected empty content when reading directory")
+		assert.Contains(t, err.Error(), "supplied path does not resolve to a file")
+	})
+}
+
+// TestParseJSONFile_FileSizeValidation tests the file size limit validation unit
+func TestParseJSONFile_FileSizeValidation(t *testing.T) {
+	t.Run("file size within limit", func(t *testing.T) {
+		testFile := "small.json"
+		testContent := `{"comments": ["` + strings.Repeat("small json content ", 100) + `"]}`
+		
+		require.NoError(t, os.WriteFile(testFile, []byte(testContent), 0644))
+		defer func() {
+			assert.NoError(t, os.Remove(testFile))
+		}()
+
+		content, err := ParseJSONFile(testFile)
+		
+		assert.NoError(t, err, "ParseJSONFile should not fail for small file")
+		assert.Equal(t, testContent, content, "Content should match for small file")
 	})
 
-	t.Run("valid JSON to map", func(t *testing.T) {
-		jsonStr := `{"name": "test", "value": 123, "enabled": true}`
-		var result map[string]interface{}
+	t.Run("file size exceeds limit", func(t *testing.T) {
+		testFile := "large.json"
+		// Create file larger than 10MB limit (create ~12MB file)
+		largeArray := strings.Repeat(`"This is a long string that will be repeated to create a large JSON file",`, 200000)
+		largeContent := `{"data": [` + largeArray[:len(largeArray)-1] + `]}`
+		
+		require.NoError(t, os.WriteFile(testFile, []byte(largeContent), 0644))
+		defer func() {
+			assert.NoError(t, os.Remove(testFile))
+		}()
 
-		err := ParseJSON(jsonStr, &result)
-		assert.NoError(t, err, "Should not return an error for valid JSON")
-		assert.Equal(t, "test", result["name"], "Should parse name correctly")
-		assert.Equal(t, float64(123), result["value"], "Should parse value correctly")
-		assert.Equal(t, true, result["enabled"], "Should parse boolean correctly")
+		content, err := ParseJSONFile(testFile)
+		
+		assert.Error(t, err, "Expected error for oversized file")
+		assert.Empty(t, content, "Expected empty content for oversized file")
+		assert.Contains(t, err.Error(), "file too large")
 	})
+}
 
-	t.Run("invalid JSON", func(t *testing.T) {
-		jsonStr := `{"name": "test", "value": 123,}` // Invalid JSON with trailing comma
-		var result map[string]interface{}
+// TestParseJSONFile_PathTraversalSecurity tests the path traversal prevention unit
+func TestParseJSONFile_PathTraversalSecurity(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+	}{
+		{
+			name: "simple path traversal",
+			path: "../../../etc/config.json",
+		},
+		{
+			name: "complex path traversal",
+			path: "../../../../../../usr/local/config.json",
+		},
+		{
+			name: "mixed path traversal",
+			path: "./../../sensitive/data.json",
+		},
+	}
 
-		err := ParseJSON(jsonStr, &result)
-		assert.Error(t, err, "Should return an error for invalid JSON")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			content, err := ParseJSONFile(tc.path)
+			
+			assert.Error(t, err, "Expected error for path traversal attempt: %s", tc.path)
+			assert.Empty(t, content, "Expected empty content for path traversal")
+
+			// Should either fail at file existence or security validation
+			hasExpectedError := strings.Contains(err.Error(), "json file does not exist") ||
+				strings.Contains(err.Error(), "access denied") ||
+				strings.Contains(err.Error(), "path outside project boundaries")
+
+			assert.True(t, hasExpectedError, "Expected security-related error for %s, got: %v", tc.path, err)
+		})
+	}
+}
+
+// TestParseJSONFile_EmptyFileContent tests handling of empty files unit
+func TestParseJSONFile_EmptyFileContent(t *testing.T) {
+	t.Run("empty file", func(t *testing.T) {
+		emptyFile := "empty.json"
+		require.NoError(t, os.WriteFile(emptyFile, []byte(""), 0644))
+		defer func() {
+			assert.NoError(t, os.Remove(emptyFile))
+		}()
+
+		content, err := ParseJSONFile(emptyFile)
+		
+		assert.NoError(t, err, "ParseJSONFile should not fail for empty file")
+		assert.Empty(t, content, "Expected empty content for empty file")
 	})
+}
 
-	t.Run("JSON type mismatch", func(t *testing.T) {
-		jsonStr := `{"name": "test", "value": "not-a-number"}`
-		var result struct {
-			Name  string `json:"name"`
-			Value int    `json:"value"` // Expecting an int but getting a string
-		}
+// TestParseJSONFile_ValidFileContent tests successful file reading unit
+func TestParseJSONFile_ValidFileContent(t *testing.T) {
+	testCases := []struct {
+		name     string
+		filename string
+		content  string
+	}{
+		{
+			name:     "simple json object",
+			filename: "simple.json",
+			content: `{
+  "name": "test-resource",
+  "type": "example",
+  "value": 42,
+  "enabled": true
+}`,
+		},
+		{
+			name:     "json array",
+			filename: "array.json",
+			content: `[
+  {"id": 1, "name": "first"},
+  {"id": 2, "name": "second"},
+  {"id": 3, "name": "third"}
+]`,
+		},
+		{
+			name:     "nested json structure",
+			filename: "nested.json",
+			content: `{
+  "metadata": {
+    "version": "1.0",
+    "author": "test"
+  },
+  "config": {
+    "settings": {
+      "debug": true,
+      "timeout": 30
+    },
+    "features": ["auth", "logging"]
+  }
+}`,
+		},
+		{
+			name:     "file with special characters",
+			filename: "special.json",
+			content:  `{"description": "JSON with special chars: åæø, 中文, 🎉", "test": true}`,
+		},
+		{
+			name:     "compact json",
+			filename: "compact.json",
+			content:  `{"compact":true,"noSpaces":42,"array":[1,2,3]}`,
+		},
+	}
 
-		err := ParseJSON(jsonStr, &result)
-		assert.Error(t, err, "Should return an error for type mismatch")
-	})
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, os.WriteFile(tc.filename, []byte(tc.content), 0644))
+			defer func() {
+				assert.NoError(t, os.Remove(tc.filename))
+			}()
+
+			content, err := ParseJSONFile(tc.filename)
+			
+			assert.NoError(t, err, "ParseJSONFile should not fail for valid content")
+			assert.Equal(t, tc.content, content, "Content should match exactly")
+		})
+	}
+}
+
+// TestParseJSONFile_MalformedJSON tests that the parser loads malformed JSON (validation is not its responsibility)
+func TestParseJSONFile_MalformedJSON(t *testing.T) {
+	testCases := []struct {
+		name     string
+		filename string
+		content  string
+	}{
+		{
+			name:     "invalid json syntax",
+			filename: "invalid.json",
+			content:  `{"name": "test", "value": 42,}`, // trailing comma
+		},
+		{
+			name:     "unclosed bracket",
+			filename: "unclosed.json",
+			content:  `{"name": "test"`, // missing closing brace
+		},
+		{
+			name:     "not json at all",
+			filename: "notjson.json",
+			content:  `This is not JSON content at all`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, os.WriteFile(tc.filename, []byte(tc.content), 0644))
+			defer func() {
+				assert.NoError(t, os.Remove(tc.filename))
+			}()
+
+			// The parser should load the content successfully - JSON validation is not its responsibility
+			content, err := ParseJSONFile(tc.filename)
+			
+			assert.NoError(t, err, "ParseJSONFile should load malformed JSON (validation is not its responsibility)")
+			assert.Equal(t, tc.content, content, "Content should match exactly even if malformed")
+		})
+	}
 }

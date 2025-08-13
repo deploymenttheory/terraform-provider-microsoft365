@@ -9,29 +9,28 @@ import (
 	"strings"
 )
 
-// ParseJSONFile securely loads a JSON file from the specified path.
+// ParseHCLFile securely loads a Terraform configuration file from the specified path.
 // Security measures:
-// - Validates file extensions (.json)
+// - Validates file extensions (.tf, .hcl)
 // - Prevents path traversal attacks
 // - Restricts access to files within the project directory
 // - Comprehensive error logging and validation
-func ParseJSONFile(filePath string) (string, error) {
+func ParseHCLFile(filePath string) (string, error) {
 	if filePath == "" {
-		err := fmt.Errorf("file path for json file cannot be empty")
+		err := fmt.Errorf("file path for terraform file cannot be empty")
 		return "", err
 	}
 
 	// Security: Validate file extension
 	ext := strings.ToLower(filepath.Ext(filePath))
-	if ext != ".json" {
-		err := fmt.Errorf("invalid file extension: %s (only .json files allowed)", ext)
+	if ext != ".tf" && ext != ".hcl" {
+		err := fmt.Errorf("invalid file extension: %s (only .tf and .hcl files allowed)", ext)
 		return "", err
 	}
 
 	// Clean the path to normalize separators and remove redundant elements
 	cleanPath := filepath.Clean(filePath)
 
-	// Security: Get the calling file's directory to establish a safe base directory
 	_, callerFile, _, ok := runtime.Caller(1)
 	if !ok {
 		err := fmt.Errorf("unable to determine calling file's directory to establish a safe base directory")
@@ -77,11 +76,11 @@ func ParseJSONFile(filePath string) (string, error) {
 	// Verify file exists and get info
 	fileInfo, err := os.Stat(absPath)
 	if os.IsNotExist(err) {
-		err := fmt.Errorf("json file does not exist: %s", absPath)
+		err := fmt.Errorf("terraform file does not exist: %s", absPath)
 		return "", err
 	}
 	if err != nil {
-		err := fmt.Errorf("failed to access json file %s: %w", absPath, err)
+		err := fmt.Errorf("failed to access terraform file %s: %w", absPath, err)
 		return "", err
 	}
 
@@ -91,7 +90,7 @@ func ParseJSONFile(filePath string) (string, error) {
 	}
 
 	// Limit file size to prevent memory exhaustion attacks
-	maxSize := int64(10 * 1024 * 1024) // 10MB limit
+	maxSize := int64(1 * 1024 * 1024) // 1MB limit
 	if fileInfo.Size() > maxSize {
 		err := fmt.Errorf("file too large: %d bytes (max: %d bytes)", fileInfo.Size(), maxSize)
 		return "", err
@@ -99,14 +98,42 @@ func ParseJSONFile(filePath string) (string, error) {
 
 	content, err := os.ReadFile(absPath)
 	if err != nil {
-		err := fmt.Errorf("failed to read json file %s: %w", absPath, err)
+		err := fmt.Errorf("failed to read terraform file %s: %w", absPath, err)
 		return "", err
 	}
 
 	if len(content) == 0 {
-		log.Printf("[WARN] json file is empty: %s", absPath)
+		log.Printf("[WARN] terraform file is empty: %s", absPath)
 	}
 
-	log.Printf("[DEBUG] json file successfully loaded: %s (%d bytes)", absPath, len(content))
+	log.Printf("[DEBUG] terraform file successfully loaded: %s (%d bytes)", absPath, len(content))
 	return string(content), nil
+}
+
+// findProjectRoot searches upward from the given directory to find the project root
+// by looking for go.mod file or .git directory
+func findProjectRoot(startDir string) string {
+	dir := startDir
+	for {
+		// Check for go.mod file
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			return dir
+		}
+
+		// Check for .git directory as fallback
+		gitPath := filepath.Join(dir, ".git")
+		if info, err := os.Stat(gitPath); err == nil && info.IsDir() {
+			return dir
+		}
+
+		// Move up one directory
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root
+			break
+		}
+		dir = parent
+	}
+	return ""
 }
