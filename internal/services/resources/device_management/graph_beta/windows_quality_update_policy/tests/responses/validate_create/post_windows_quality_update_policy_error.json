@@ -1,7 +1,11 @@
 {
   "error": {
     "code": "BadRequest",
-    "message": "Invalid Windows Quality Update Policy data."
+    "message": "Invalid Windows Quality Update Policy data.",
+    "innerError": {
+      "date": "2024-01-01T00:02:00",
+      "request-id": "00000000-0000-0000-0000-000000000888"
+    }
   }
 }
 
