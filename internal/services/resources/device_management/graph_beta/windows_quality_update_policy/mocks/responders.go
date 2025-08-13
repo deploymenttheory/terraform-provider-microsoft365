@@ -61,6 +61,30 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			policy, ok := mockState.qualityPolicies[id]
 			mockState.Unlock()
 			if !ok {
+				// For convenience during unit tests, return predefined JSON shapes
+				if strings.Contains(id, "minimal") {
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/get_windows_quality_update_policy_minimal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var resp map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &resp); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					resp["id"] = id
+					return factories.SuccessResponse(200, resp)(req)
+				} else if strings.Contains(id, "maximal") {
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/get_windows_quality_update_policy_maximal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var resp map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &resp); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					resp["id"] = id
+					return factories.SuccessResponse(200, resp)(req)
+				}
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_quality_update_policy_not_found.json")
 				var errObj map[string]interface{}
 				_ = json.Unmarshal([]byte(jsonStr), &errObj)
@@ -130,7 +154,18 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			}
 			mockState.qualityPolicies[id] = existing
 			mockState.Unlock()
-			return factories.SuccessResponse(200, existing)(req)
+			jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/get_windows_quality_update_policy_updated.json")
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var updated map[string]interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &updated); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+			}
+			for k, v := range existing {
+				updated[k] = v
+			}
+			return factories.SuccessResponse(200, updated)(req)
 		})
 
 	// Assign
