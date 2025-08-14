@@ -7,11 +7,13 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource constructs and returns a ManagedDeviceCleanupRule
-func constructResource(ctx context.Context, data ManagedDeviceCleanupRuleResourceModel) (graphmodels.ManagedDeviceCleanupRuleable, error) {
+// Performs uniqueness validation per platform before returning the object
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data ManagedDeviceCleanupRuleResourceModel, isUpdate bool) (graphmodels.ManagedDeviceCleanupRuleable, error) {
 	tflog.Debug(ctx, "Starting managed device cleanup rule construction")
 
 	rule := graphmodels.NewManagedDeviceCleanupRule()
@@ -31,6 +33,17 @@ func constructResource(ctx context.Context, data ManagedDeviceCleanupRuleResourc
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error setting device cleanup rule platform type: %v", err)
+		}
+		// Perform uniqueness validation against tenant for this platform
+		if client != nil && rule.GetDeviceCleanupRulePlatformType() != nil {
+			var excludeResourceID *string
+			if isUpdate && !data.ID.IsNull() && !data.ID.IsUnknown() {
+				id := data.ID.ValueString()
+				excludeResourceID = &id
+			}
+			if err := validateRequest(ctx, client, *rule.GetDeviceCleanupRulePlatformType(), excludeResourceID); err != nil {
+				return nil, err
+			}
 		}
 	}
 

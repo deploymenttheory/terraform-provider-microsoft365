@@ -37,7 +37,7 @@ func (r *ManagedDeviceCleanupRuleResource) Create(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, object)
+	requestBody, err := constructResource(ctx, r.client, object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -159,7 +159,7 @@ func (r *ManagedDeviceCleanupRuleResource) Update(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, plan)
+	requestBody, err := constructResource(ctx, r.client, plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",

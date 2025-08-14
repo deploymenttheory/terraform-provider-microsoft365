@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "InternalServerError",
+    "message": "A cleanup rule already exists for the specified platform type"
+  }
+}
+
+

@@ -1,0 +1,7 @@
+{
+  "displayName": "Test Minimal Managed Device Cleanup Rule - Unique",
+  "deviceCleanupRulePlatformType": "windows",
+  "deviceInactivityBeforeRetirementInDays": 30
+}
+
+

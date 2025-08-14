@@ -3,142 +3,245 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
-	"regexp"
+	"strings"
+	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
+	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
+
+// mockState tracks the state of managed device cleanup rules for consistent responses
+var mockState struct {
+	sync.Mutex
+	managedDeviceCleanupRules map[string]map[string]interface{}
+}
+
+func init() {
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+
+	// Default 404 for unmatched requests
+	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+
+	// Register with global registry
+	mocks.GlobalRegistry.Register("managed_device_cleanup_rule", &ManagedDeviceCleanupRuleMock{})
+}
 
 // ManagedDeviceCleanupRuleMock provides mock responses for managed device cleanup rule operations
 type ManagedDeviceCleanupRuleMock struct{}
 
+// Ensure ManagedDeviceCleanupRuleMock implements MockRegistrar
+var _ mocks.MockRegistrar = (*ManagedDeviceCleanupRuleMock)(nil)
+
 // RegisterMocks registers HTTP mock responses for managed device cleanup rule operations
 func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
-	// GET Read - Basic/Default rule
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000001",
+	mockState.Lock()
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+	mockState.Unlock()
+
+	// List rules
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
 		func(req *http.Request) (*http.Response, error) {
+			mockState.Lock()
+			rules := make([]map[string]interface{}, 0, len(mockState.managedDeviceCleanupRules))
+			for _, r := range mockState.managedDeviceCleanupRules {
+				rules = append(rules, r)
+			}
+			mockState.Unlock()
+
 			response := map[string]interface{}{
-				"id":                                     "00000000-0000-0000-0000-000000000001",
-				"displayName":                            "Test Cleanup Rule",
-				"description":                            "Test description",
-				"deviceCleanupRulePlatformType":          "windows",
-				"deviceInactivityBeforeRetirementInDays": 90,
-				"lastModifiedDateTime":                   "2023-11-01T10:30:00.0000000Z",
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDeviceCleanupRules",
+				"value":          rules,
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	// GET Read - Updated rule
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000003",
+	// Get rule by ID
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"id":                                     "00000000-0000-0000-0000-000000000003",
-				"displayName":                            "Updated Cleanup Rule",
-				"description":                            "Updated description",
-				"deviceCleanupRulePlatformType":          "macOS",
-				"deviceInactivityBeforeRetirementInDays": 120,
-				"lastModifiedDateTime":                   "2023-11-02T15:45:00.0000000Z",
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			mockState.Lock()
+			rule, exists := mockState.managedDeviceCleanupRules[id]
+			mockState.Unlock()
+
+			if !exists {
+				switch {
+				case strings.Contains(id, "minimal"):
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_managed_device_cleanup_rule_minimal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				case strings.Contains(id, "maximal"):
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_managed_device_cleanup_rule_maximal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				default:
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+					var errorResponse map[string]interface{}
+					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
 			}
-			return httpmock.NewJsonResponse(200, response)
+
+			// Ensure assignments or other optional arrays are returned consistently if needed (none for this resource)
+			return httpmock.NewJsonResponse(200, rule)
 		})
 
-	// GET Read - Minimal rule
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000005",
-		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"id":                                     "00000000-0000-0000-0000-000000000005",
-				"displayName":                            "Minimal Cleanup Rule",
-				"deviceCleanupRulePlatformType":          "all",
-				"deviceInactivityBeforeRetirementInDays": 30,
-				"lastModifiedDateTime":                   "2023-11-01T10:30:00.0000000Z",
-			}
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// GET Read - Maximal rule
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000006",
-		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"id":                                     "00000000-0000-0000-0000-000000000006",
-				"displayName":                            "Maximal Cleanup Rule",
-				"description":                            "This is a comprehensive cleanup rule with all fields populated",
-				"deviceCleanupRulePlatformType":          "ios",
-				"deviceInactivityBeforeRetirementInDays": 180,
-				"lastModifiedDateTime":                   "2023-11-01T10:30:00.0000000Z",
-			}
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// POST Create
+	// Create rule
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
-			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-				return httpmock.NewStringResponse(400, "Invalid request body"), nil
+			var body map[string]interface{}
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 
-			// Generate a response based on the request
-			id := "00000000-0000-0000-0000-000000000001" // Default ID
-			displayName := requestBody["displayName"].(string)
+			// Enforce uniqueness by deviceCleanupRulePlatformType (API returns 500 on duplicate)
+			platform := ""
+			if v, ok := body["deviceCleanupRulePlatformType"].(string); ok {
+				platform = v
+			}
+			mockState.Lock()
+			for _, existing := range mockState.managedDeviceCleanupRules {
+				if p, ok := existing["deviceCleanupRulePlatformType"].(string); ok && p == platform {
+					mockState.Unlock()
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_duplicate_platform.json")
+					var errorResponse map[string]interface{}
+					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+					return httpmock.NewJsonResponse(500, errorResponse)
+				}
+			}
+			mockState.Unlock()
 
-			// Assign different IDs based on display name for different test cases
-			if displayName == "Minimal Cleanup Rule" {
-				id = "00000000-0000-0000-0000-000000000005"
-			} else if displayName == "Maximal Cleanup Rule" {
-				id = "00000000-0000-0000-0000-000000000006"
-			} else if displayName == "Updated Cleanup Rule" {
-				id = "00000000-0000-0000-0000-000000000003"
+			id := uuid.New().String()
+
+			rule := map[string]interface{}{
+				"id":                                     id,
+				"displayName":                            body["displayName"],
+				"description":                            body["description"],
+				"deviceCleanupRulePlatformType":          body["deviceCleanupRulePlatformType"],
+				"deviceInactivityBeforeRetirementInDays": body["deviceInactivityBeforeRetirementInDays"],
+				"lastModifiedDateTime":                   "2024-01-01T00:00:00Z",
 			}
 
-			// Create response with the same fields as the request plus ID and dates
-			response := requestBody
-			response["id"] = id
-			response["lastModifiedDateTime"] = "2023-11-01T10:30:00.0000000Z"
+			mockState.Lock()
+			mockState.managedDeviceCleanupRules[id] = rule
+			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(201, response)
+			return httpmock.NewJsonResponse(201, rule)
 		})
 
-	// PATCH Update
-	httpmock.RegisterRegexpResponder("PATCH", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
+	// Update rule
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
-			// Parse the request body to get the updated fields
-			var requestBody map[string]interface{}
-			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-				return httpmock.NewStringResponse(400, "Invalid request body"), nil
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			var body map[string]interface{}
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+				return httpmock.NewJsonResponse(400, errorResponse)
 			}
 
-			// Return success with no content
-			return httpmock.NewStringResponse(204, ""), nil
+			mockState.Lock()
+			existing, exists := mockState.managedDeviceCleanupRules[id]
+			if !exists {
+				mockState.Unlock()
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+				return httpmock.NewJsonResponse(404, errorResponse)
+			}
+			// Load update template and merge
+			if jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/patch_managed_device_cleanup_rule_minimal.json"); err == nil {
+				var base map[string]interface{}
+				if json.Unmarshal([]byte(jsonStr), &base) == nil {
+					for k, v := range existing {
+						base[k] = v
+					}
+					for k, v := range body {
+						base[k] = v
+					}
+					existing = base
+				}
+			} else {
+				for k, v := range body {
+					existing[k] = v
+				}
+			}
+			// Simulate server updating last modified time
+			existing["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
+			mockState.managedDeviceCleanupRules[id] = existing
+			mockState.Unlock()
+
+			return factories.SuccessResponse(200, existing)(req)
 		})
 
-	// DELETE
-	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
+	// Delete rule
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(204, ""), nil
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			mockState.Lock()
+			if _, exists := mockState.managedDeviceCleanupRules[id]; exists {
+				delete(mockState.managedDeviceCleanupRules, id)
+				mockState.Unlock()
+				return httpmock.NewStringResponse(204, ""), nil
+			}
+			mockState.Unlock()
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		})
 }
 
-// RegisterErrorMocks registers HTTP mock responses that return errors
+// RegisterErrorMocks registers error responses to simulate failures
 func (m *ManagedDeviceCleanupRuleMock) RegisterErrorMocks() {
-	// Register mocks that return errors
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules/00000000-0000-0000-0000-000000000001",
-		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+	mockState.Lock()
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+	mockState.Unlock()
 
-	// POST Create with error
+	// Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
-		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+			return httpmock.NewJsonResponse(400, errorResponse)
+		})
 
-	// PATCH Update with error
-	httpmock.RegisterRegexpResponder("PATCH", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
-		factories.ErrorResponse(403, "Forbidden", "Access denied"))
-
-	// DELETE with error
-	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[0-9a-f-]+`),
-		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+	// Get by id not found
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+			return httpmock.NewJsonResponse(404, errorResponse)
+		})
 }
 
-func init() {
-	// Register with the global registry
-	mocks.GlobalRegistry.Register("managed_device_cleanup_rule", &ManagedDeviceCleanupRuleMock{})
+// CleanupMockState clears the mock state for clean test runs
+func (m *ManagedDeviceCleanupRuleMock) CleanupMockState() {
+	mockState.Lock()
+	defer mockState.Unlock()
+	for id := range mockState.managedDeviceCleanupRules {
+		delete(mockState.managedDeviceCleanupRules, id)
+	}
 }

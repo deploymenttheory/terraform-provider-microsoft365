@@ -1,0 +1,15 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Validation error: Invalid display name",
+    "details": [
+      {
+        "code": "ValidationError",
+        "message": "The display name cannot be empty or contain invalid characters",
+        "target": "displayName"
+      }
+    ]
+  }
+}
+
+

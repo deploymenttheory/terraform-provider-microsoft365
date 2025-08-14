@@ -1,0 +1,10 @@
+{
+  "id": "mock-rule-id-minimal",
+  "displayName": "Test Minimal Managed Device Cleanup Rule - Unique",
+  "description": null,
+  "deviceCleanupRulePlatformType": "windows",
+  "deviceInactivityBeforeRetirementInDays": 30,
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
+
+
