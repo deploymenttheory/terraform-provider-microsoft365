@@ -27,26 +27,43 @@ func TestAccWindowsFeatureUpdateProfileResource_Lifecycle(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsFeatureUpdateProfileConfig_minimal(),
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows10_22h2(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "display_name", "Acceptance - Windows Feature Update Profile"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "feature_update_version", "Windows 11, version 23H2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "install_feature_updates_optional", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "install_latest_windows10_on_windows11_ineligible_device", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "role_scope_tag_ids.*", "0"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "display_name", "Acceptance - Windows 10 22H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "feature_update_version", "Windows 10, version 22H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "install_feature_updates_optional", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "install_latest_windows10_on_windows11_ineligible_device", "false"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_windows_feature_update_profile.test", ImportState: true, ImportStateVerify: true},
+			{ResourceName: "microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", ImportState: true, ImportStateVerify: true},
 			{
-				Config: testAccWindowsFeatureUpdateProfileConfig_maximal(),
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_22h2(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "display_name", "Acceptance - Windows Feature Update Profile - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "install_feature_updates_optional", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test", "install_latest_windows10_on_windows11_ineligible_device", "true"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "display_name", "Acceptance - Windows 11 22H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "feature_update_version", "Windows 11, version 22H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "install_feature_updates_optional", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "install_latest_windows10_on_windows11_ineligible_device", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
+				),
+			},
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_23h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "display_name", "Acceptance - Windows 11 23H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "feature_update_version", "Windows 11, version 23H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
+				),
+			},
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_24h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "display_name", "Acceptance - Windows 11 24H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "feature_update_version", "Windows 11, version 24H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
 				),
 			},
 		},
@@ -79,21 +96,58 @@ func TestAccWindowsFeatureUpdateProfileResource_Assignments(t *testing.T) {
 	})
 }
 
-func testAccWindowsFeatureUpdateProfileConfig_minimal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func TestAccWindowsFeatureUpdateProfileResource_AllFeatureVersions(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckWindowsFeatureUpdateProfileDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_24h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "display_name", "Acceptance - Windows 11 24H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "feature_update_version", "Windows 11, version 24H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_24h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
+				),
+			},
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_23h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "display_name", "Acceptance - Windows 11 23H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "feature_update_version", "Windows 11, version 23H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_23h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
+				),
+			},
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows11_22h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "display_name", "Acceptance - Windows 11 22H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "feature_update_version", "Windows 11, version 22H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_22h2", "rollout_settings.offer_start_date_time_in_utc", "2029-08-01T00:00:00Z"),
+				),
+			},
+			{
+				Config: testAccWindowsFeatureUpdateProfileConfig_windows10_22h2(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "display_name", "Acceptance - Windows 10 22H2 Feature Update Profile"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "feature_update_version", "Windows 10, version 22H2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_feature_update_profile.test_win10_22h2", "install_feature_updates_optional", "false"),
+				),
+			},
+		},
+	})
 }
 
-func testAccWindowsFeatureUpdateProfileConfig_maximal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
 
 func testAccWindowsFeatureUpdateProfileConfig_withAssignments() string {
 	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
@@ -109,6 +163,38 @@ func testAccWindowsFeatureUpdateProfileConfig_withAssignments() string {
 		log.Fatalf("Failed to load assignments test config: %v", err)
 	}
 	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+}
+
+func testAccWindowsFeatureUpdateProfileConfig_windows11_24h2() string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_windows11_24h2.tf")
+	if err != nil {
+		log.Fatalf("Failed to load Windows 11 24H2 test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+}
+
+func testAccWindowsFeatureUpdateProfileConfig_windows11_23h2() string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_windows11_23h2.tf")
+	if err != nil {
+		log.Fatalf("Failed to load Windows 11 23H2 test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+}
+
+func testAccWindowsFeatureUpdateProfileConfig_windows11_22h2() string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_windows11_22h2.tf")
+	if err != nil {
+		log.Fatalf("Failed to load Windows 11 22H2 test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+}
+
+func testAccWindowsFeatureUpdateProfileConfig_windows10_22h2() string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_windows10_22h2.tf")
+	if err != nil {
+		log.Fatalf("Failed to load Windows 10 22H2 test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccCheckWindowsFeatureUpdateProfileDestroy(s *terraform.State) error {

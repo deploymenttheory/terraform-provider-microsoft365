@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -623,4 +624,83 @@ func RequiredOneOfWhen(dependentField string, triggerValue string, allowedValues
 		triggerValue:   triggerValue,
 		allowedValues:  allowedValues,
 	}
+}
+
+//---------------------------------------------------
+
+// rolloutDateTimeValidator validates that a datetime string is within the valid rollout window
+type rolloutDateTimeValidator struct {
+	minDaysFromNow int
+	maxDaysFromNow int
+}
+
+// Description describes the validation in plain text formatting.
+func (v rolloutDateTimeValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("datetime must be between %d and %d days from now", v.minDaysFromNow, v.maxDaysFromNow)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v rolloutDateTimeValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v rolloutDateTimeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+	
+	// Parse the datetime string (expecting RFC3339 format like "2025-05-01T00:00:00Z")
+	parsedTime, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid DateTime Format",
+			fmt.Sprintf("DateTime must be in RFC3339 format (e.g., '2025-05-01T00:00:00Z'). Got: %s. Error: %s", value, err.Error()),
+		)
+		return
+	}
+
+	// Calculate the valid date range
+	now := time.Now().UTC()
+	minDate := now.AddDate(0, 0, v.minDaysFromNow)
+	maxDate := now.AddDate(0, 0, v.maxDaysFromNow)
+
+	// Check if the parsed time is within the valid range
+	if parsedTime.Before(minDate) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"DateTime Too Early",
+			fmt.Sprintf("DateTime must be at least %d days in the future. Minimum allowed: %s, provided: %s", 
+				v.minDaysFromNow, minDate.Format("01/02/2006"), parsedTime.Format("01/02/2006")),
+		)
+		return
+	}
+
+	if parsedTime.After(maxDate) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"DateTime Too Late",
+			fmt.Sprintf("DateTime must be within %d days from now. Maximum allowed: %s, provided: %s", 
+				v.maxDaysFromNow, maxDate.Format("01/02/2006"), parsedTime.Format("01/02/2006")),
+		)
+	}
+}
+
+// RolloutDateTime returns a string validator which ensures that the datetime string
+// is within the specified rollout window (minimum and maximum days from current UTC time).
+func RolloutDateTime(minDaysFromNow, maxDaysFromNow int) validator.String {
+	return &rolloutDateTimeValidator{
+		minDaysFromNow: minDaysFromNow,
+		maxDaysFromNow: maxDaysFromNow,
+	}
+}
+
+// FutureDateTime returns a string validator which ensures that the datetime string
+// is in the future relative to the current UTC time (at least 1 day).
+func FutureDateTime() validator.String {
+	return RolloutDateTime(1, 365) // At least 1 day in future, max 1 year
 }
