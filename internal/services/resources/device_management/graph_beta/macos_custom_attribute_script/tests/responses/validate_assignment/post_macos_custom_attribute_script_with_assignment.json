@@ -1,0 +1,21 @@
+{
+  "id": "mock-script-id-assignment",
+  "displayName": "Test macOS Custom Attribute Script - Assignment",
+  "customAttributeName": "TestAssignmentAttribute",
+  "customAttributeType": "string",
+  "fileName": "test_assignment.sh",
+  "scriptContent": "#!/bin/bash\necho 'Assignment Test Value'\nexit 0",
+  "runAsAccount": "system",
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": [
+    {
+      "id": "assignment-id-456",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "11111111-1111-1111-1111-111111111111"
+      }
+    }
+  ]
+}

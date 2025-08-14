@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -23,10 +25,17 @@ func init() {
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+
+	// Register with global registry
+	mocks.GlobalRegistry.Register("macos_custom_attribute_script", &MacOSCustomAttributeScriptMock{})
 }
+
 
 // MacOSCustomAttributeScriptMock provides mock responses for macOS custom attribute script operations
 type MacOSCustomAttributeScriptMock struct{}
+
+// Ensure MacOSCustomAttributeScriptMock implements MockRegistrar interface
+var _ mocks.MockRegistrar = (*MacOSCustomAttributeScriptMock)(nil)
 
 // RegisterMocks registers HTTP mock responses for macOS custom attribute script operations
 func (m *MacOSCustomAttributeScriptMock) RegisterMocks() {
@@ -54,43 +63,73 @@ func (m *MacOSCustomAttributeScriptMock) RegisterMocks() {
 		})
 
 	// Register GET for individual custom attribute script
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
+			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
+			id := urlParts[len(urlParts)-1]
 
 			mockState.Lock()
-			scriptData, exists := mockState.customAttributeScripts[scriptId]
+			script, exists := mockState.customAttributeScripts[id]
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Custom attribute script not found"}}`), nil
+				// Check for special test IDs
+				switch {
+				case strings.Contains(id, "minimal"):
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_macos_custom_attribute_script_minimal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				case strings.Contains(id, "maximal"):
+					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_macos_custom_attribute_script_maximal.json")
+					if err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					}
+					var response map[string]interface{}
+					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+					}
+					response["id"] = id
+					return factories.SuccessResponse(200, response)(req)
+				default:
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+					var errorResponse map[string]interface{}
+					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
 			}
 
 			// Create response copy
-			responseCopy := make(map[string]interface{})
-			for k, v := range scriptData {
-				responseCopy[k] = v
+			scriptCopy := make(map[string]interface{})
+			for k, v := range script {
+				scriptCopy[k] = v
 			}
 
 			// Check if expand=assignments is requested
 			expandParam := req.URL.Query().Get("$expand")
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the script data
-				if assignments, hasAssignments := scriptData["assignments"]; hasAssignments && assignments != nil {
+				if assignments, hasAssignments := script["assignments"]; hasAssignments && assignments != nil {
 					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
-						responseCopy["assignments"] = assignments
+						scriptCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
+						scriptCopy["assignments"] = []interface{}{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
+					scriptCopy["assignments"] = []interface{}{}
 				}
 			}
 
-			return httpmock.NewJsonResponse(200, responseCopy)
+			return httpmock.NewJsonResponse(200, scriptCopy)
 		})
 
 	// Register POST for creating custom attribute script
@@ -143,79 +182,90 @@ func (m *MacOSCustomAttributeScriptMock) RegisterMocks() {
 		})
 
 	// Register PATCH for updating custom attribute script
-	httpmock.RegisterResponder("PATCH", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
+			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
+			id := urlParts[len(urlParts)-1]
 
-			mockState.Lock()
-			scriptData, exists := mockState.customAttributeScripts[scriptId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Custom attribute script not found"}}`), nil
-			}
-
-			// Parse request body
 			var requestBody map[string]interface{}
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+				return httpmock.NewJsonResponse(400, errorResponse)
 			}
 
-			// Update custom attribute script data
+			// Load update template
+			jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/patch_macos_custom_attribute_script_minimal.json")
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var updatedScript map[string]interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &updatedScript); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+			}
+
 			mockState.Lock()
-			
-			// Handle optional fields that might be removed (like going from maximal to minimal)
-			// Check for specific field patterns to simulate real API behavior
-			
-			// For optional fields, if they're not in the request, remove them
-			optionalFields := []string{"description"}
-			for _, field := range optionalFields {
-				if _, hasField := requestBody[field]; !hasField {
-					delete(scriptData, field)
-				}
+			script, exists := mockState.customAttributeScripts[id]
+			if !exists {
+				mockState.Unlock()
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
-			
-			for key, value := range requestBody {
-				if value == nil {
-					// If value is explicitly null, remove the field from the stored state
-					delete(scriptData, key)
-				} else {
-					scriptData[key] = value
-				}
+
+			// Start with existing data
+			for k, v := range script {
+				updatedScript[k] = v
 			}
-			// Ensure the ID is preserved and update timestamp
-			scriptData["id"] = scriptId
-			scriptData["lastModifiedDateTime"] = "2024-01-01T01:00:00Z"
-			mockState.customAttributeScripts[scriptId] = scriptData
+
+			// Apply updates from request body
+			for k, v := range requestBody {
+				updatedScript[k] = v
+			}
+
+			// Store updated state
+			mockState.customAttributeScripts[id] = updatedScript
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, scriptData)
+			return factories.SuccessResponse(200, updatedScript)(req)
 		})
 
-	// Register DELETE for removing custom attribute script
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
+	// Register DELETE for custom attribute script
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
+			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
+			id := urlParts[len(urlParts)-1]
 
 			mockState.Lock()
-			_, exists := mockState.customAttributeScripts[scriptId]
+			_, exists := mockState.customAttributeScripts[id]
 			if exists {
-				delete(mockState.customAttributeScripts, scriptId)
+				delete(mockState.customAttributeScripts, id)
 			}
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Custom attribute script not found"}}`), nil
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+				var errorResponse map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 
-	// Register POST for assignments
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+/assign$`,
+	// Register assignment-related endpoints
+	m.registerAssignmentMocks()
+}
+
+// registerAssignmentMocks registers mock responses for assignment operations
+func (m *MacOSCustomAttributeScriptMock) registerAssignmentMocks() {
+	// POST assignment for a script
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+/assign$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			scriptId := urlParts[len(urlParts)-2] // deviceCustomAttributeShellScripts/{id}/assign
@@ -242,7 +292,6 @@ func (m *MacOSCustomAttributeScriptMock) RegisterMocks() {
 									assignmentId := uuid.New().String()
 									
 									// Create assignment in the format the API returns
-									// The API returns the target exactly as submitted but with additional metadata
 									targetCopy := make(map[string]interface{})
 									for k, v := range target {
 										targetCopy[k] = v
@@ -272,21 +321,59 @@ func (m *MacOSCustomAttributeScriptMock) RegisterMocks() {
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 
-	// Register GET for assignments
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+/assignments$`,
+	// GET assignments for a script
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCustomAttributeShellScripts/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
+			urlParts := strings.Split(req.URL.Path, "/")
+			id := urlParts[len(urlParts)-2]
+
+			mockState.Lock()
+			scriptData, exists := mockState.customAttributeScripts[id]
+			mockState.Unlock()
+
+			if !exists {
+				response := map[string]interface{}{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCustomAttributeShellScripts('" + id + "')/assignments",
+					"value":          []map[string]interface{}{},
+				}
+				return httpmock.NewJsonResponse(200, response)
 			}
+
+			// Get assignments from stored script data
+			assignments := []interface{}{}
+			if storedAssignments, hasAssignments := scriptData["assignments"]; hasAssignments {
+				if assignmentArray, ok := storedAssignments.([]interface{}); ok {
+					assignments = assignmentArray
+				}
+			}
+
+			response := map[string]interface{}{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCustomAttributeShellScripts('" + id + "')/assignments",
+				"value":          assignments,
+			}
+
 			return httpmock.NewJsonResponse(200, response)
 		})
-
-	// Dynamic mocks will handle all test cases
 }
 
-// RegisterErrorMocks registers HTTP mock responses for error scenarios
+// CleanupMockState clears the mock state for clean test runs
+func (m *MacOSCustomAttributeScriptMock) CleanupMockState() {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	// Clear all stored custom attribute scripts
+	for id := range mockState.customAttributeScripts {
+		delete(mockState.customAttributeScripts, id)
+	}
+}
+
+// RegisterErrorMocks registers mock responses that simulate error conditions
 func (m *MacOSCustomAttributeScriptMock) RegisterErrorMocks() {
+	// Reset the state when registering error mocks
+	mockState.Lock()
+	mockState.customAttributeScripts = make(map[string]map[string]interface{})
+	mockState.Unlock()
+
 	// Register GET for listing custom attribute scripts (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts",
 		func(req *http.Request) (*http.Response, error) {
@@ -299,9 +386,19 @@ func (m *MacOSCustomAttributeScriptMock) RegisterErrorMocks() {
 
 	// Register error response for creating custom attribute script with invalid data
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts",
-		factories.ErrorResponse(400, "BadRequest", "Validation error: Invalid display name"))
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+			return httpmock.NewJsonResponse(400, errorResponse)
+		})
 
 	// Register error response for custom attribute script not found
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/not-found-script",
-		factories.ErrorResponse(404, "ResourceNotFound", "Custom attribute script not found"))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCustomAttributeShellScripts/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
+			var errorResponse map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+			return httpmock.NewJsonResponse(404, errorResponse)
+		})
 }
