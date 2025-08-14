@@ -126,15 +126,14 @@ func (r *ManagedDeviceCleanupRuleResource) Schema(ctx context.Context, req resou
 						"macOS",
 						"windows",
 						"windowsHolographic",
-						"unknownFutureValue",
 					),
 				},
 			},
 			"device_inactivity_before_retirement_in_days": schema.Int32Attribute{
 				Required:            true,
-				MarkdownDescription: "Number of days when the device has not contacted Intune before it gets automatically removed. Valid values are 0 to 2147483647.",
+				MarkdownDescription: "Number of days when the device has not contacted Intune before it gets automatically removed. Valid values are 30 to 270.",
 				Validators: []validator.Int32{
-					int32validator.Between(0, 2147483647),
+					int32validator.Between(30, 270),
 				},
 			},
 			"last_modified_date_time": schema.StringAttribute{

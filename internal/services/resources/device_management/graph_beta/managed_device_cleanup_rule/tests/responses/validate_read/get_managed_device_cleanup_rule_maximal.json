@@ -1,0 +1,10 @@
+{
+  "id": "mock-rule-id-maximal",
+  "displayName": "Test Maximal Managed Device Cleanup Rule - Unique",
+  "description": "Maximal managed device cleanup rule for testing",
+  "deviceCleanupRulePlatformType": "windows",
+  "deviceInactivityBeforeRetirementInDays": 365,
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
+
+
