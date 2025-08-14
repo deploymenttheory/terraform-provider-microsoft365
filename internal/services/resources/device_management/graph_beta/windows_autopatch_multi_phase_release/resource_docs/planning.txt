@@ -1,0 +1,209 @@
+Request URL
+https://services.autopatch.microsoft.com/update-management/v2/WindowsFeatureUpdates/releases
+Request Method
+POST
+
+{
+  "plan":"Starter",
+  "name":"test",
+  "description":"test",
+  "target":"Windows 11, version 24H2",
+  "endOfSupportDate":"2027-10-12T00:00:00+00:00",
+  "timezoneOffset":-60,
+  "phases":[
+    {
+      "name":"Phase 1",
+      "start":"2025-08-24T23:00:00.000Z",
+      "subgroups":0,
+      "groups":[
+        {
+        "autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e",
+        "groupId":"e7acdbca-81e8-4d69-84a5-c927b82dbf2b"
+        }
+      ]
+    },
+    {
+      "name":"Phase 2",
+      "start":"2025-10-27T00:00:00.000Z",
+      "subgroups":0,
+      "groups":[
+        {
+          "autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e",
+          "groupId":"3e923eeb-9a6e-45ec-a39a-122848c80ae9"
+        }
+      ]
+    },
+    {
+      "name":"Phase 3",
+      "start":"2025-11-24T00:00:00.000Z",
+      "subgroups":0,"groups":[
+        {
+          "autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e",
+          "groupId":"bb1eaf1c-4271-4ee3-953d-9e8448ac7787"
+        }
+      ]
+    },
+    {
+      "name":"Phase 4",
+      "start":"2025-12-22T00:00:00.000Z",
+      "subgroups":0,
+      "groups":[
+        {
+          "autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e",
+          "groupId":"efff769e-1bd7-4038-ae77-ab6378c05fcb"
+        }
+      ]
+    },
+    {
+      "name":"Phase 5",
+      "start":"2026-01-26T00:00:00.000Z",
+      "subgroups":0,
+      "groups":[
+        {
+          "autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e",
+          "groupId":"20a81ae9-ac3e-48d7-aa04-b3501f80e46e"
+        }
+      ]
+    }
+  ],
+  "scopeTags":[0],
+  "installLatestWindows10OnWindows11IneligibleDevice":true
+}
+
+Request URL
+https://services.autopatch.microsoft.com/update-management/v2/WindowsFeatureUpdates/releases/92c8843e-f330-4de2-b1d8-db8138b794a0?updatePolicySync=true
+Request Method
+PUT
+
+{"plan":"Starter","name":"test","description":"test","target":"Windows 11, version 24H2","endOfSupportDate":"2027-10-12T00:00:00+00:00","timezoneOffset":-60,"phases":[{"name":"Phase 1","phaseId":"772f3c0f-23b9-49c1-8f40-d1216d2142b2","start":"2025-08-24T23:00:00.000Z","subgroups":0,"groups":[{"autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e","groupId":"e7acdbca-81e8-4d69-84a5-c927b82dbf2b"}]},{"name":"Phase 2","phaseId":"0cfcd8a8-72ca-4a76-9898-b9b10ea0ecd4","start":"2025-10-27T00:00:00.000Z","subgroups":0,"groups":[{"autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e","groupId":"3e923eeb-9a6e-45ec-a39a-122848c80ae9"}]},{"name":"Phase 3","phaseId":"45088224-016d-4ade-a7b5-fc17b5e6b933","start":"2025-11-24T00:00:00.000Z","subgroups":0,"groups":[{"autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e","groupId":"bb1eaf1c-4271-4ee3-953d-9e8448ac7787"}]},{"name":"Phase 4","phaseId":"c1c37e6e-a0b3-4ebb-bf89-abf3c70a5905","start":"2025-12-22T00:00:00.000Z","subgroups":0,"groups":[{"autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e","groupId":"efff769e-1bd7-4038-ae77-ab6378c05fcb"}]},{"name":"Phase 5","phaseId":"a66facf0-cffc-4b17-90db-3a6fd0ac34a8","start":"2026-01-26T00:00:00.000Z","subgroups":0,"groups":[{"autopatchGroupId":"4aa9b805-9494-4eed-a04b-ed51ec9e631e","groupId":"20a81ae9-ac3e-48d7-aa04-b3501f80e46e"}]}],"scopeTags":[0],"installLatestWindows10OnWindows11IneligibleDevice":true,"installFeatureUpdatesOptional":true}
+
+Request URL
+https://services.autopatch.microsoft.com/update-management/v2/WindowsFeatureUpdates/releasesSummary?planType=WindowsAutopatch&syncPolicies=true
+Request Method
+GET
+
+[{id: "92c8843e-f330-4de2-b1d8-db8138b794a0", plan: "Starter", name: "test", description: "test",…},…]
+0
+: 
+{id: "92c8843e-f330-4de2-b1d8-db8138b794a0", plan: "Starter", name: "test", description: "test",…}
+allowedToDeleteRelease
+: 
+true
+allowedToUpdateRelease
+: 
+true
+allowedToUpdateReleaseName
+: 
+false
+autopatchGroupIds
+: 
+["4aa9b805-9494-4eed-a04b-ed51ec9e631e"]
+createdDateTime
+: 
+"2025-08-14T04:33:10.6665326Z"
+description
+: 
+"test"
+endOfSupportDate
+: 
+"2027-10-12T00:00:00+00:00"
+id
+: 
+"92c8843e-f330-4de2-b1d8-db8138b794a0"
+installFeatureUpdatesOptional
+: 
+true
+installLatestWindows10OnWindows11IneligibleDevice
+: 
+true
+name
+: 
+"test"
+phases
+: 
+[,…]
+plan
+: 
+"Starter"
+scopeTags
+: 
+[0]
+start
+: 
+"2025-08-24T23:00:00+00:00"
+state
+: 
+"Scheduled"
+target
+: 
+"Windows 11, version 24H2"
+targetCompletionDate
+: 
+"2026-01-26T00:00:00+00:00"
+timezoneOffset
+: 
+0
+1
+: 
+{id: "dc6f5523-8f7f-45e5-aa32-4a3f2b566321", plan: "Starter", name: "Default Release", description: "",…}
+allowedToDeleteRelease
+: 
+true
+allowedToUpdateRelease
+: 
+true
+allowedToUpdateReleaseName
+: 
+false
+autopatchGroupIds
+: 
+["4aa9b805-9494-4eed-a04b-ed51ec9e631e"]
+createdDateTime
+: 
+"2024-01-19T08:35:51.8662652Z"
+description
+: 
+""
+endOfSupportDate
+: 
+"2025-10-14T00:00:00"
+id
+: 
+"dc6f5523-8f7f-45e5-aa32-4a3f2b566321"
+name
+: 
+"Default Release"
+phases
+: 
+[,…]
+plan
+: 
+"Starter"
+scopeTags
+: 
+[0]
+start
+: 
+"2024-01-19T08:33:34.5188152+00:00"
+state
+: 
+"Active"
+target
+: 
+"Windows 10, version 22H2"
+targetCompletionDate
+: 
+"2024-02-12T08:33:34.4074579+00:00"
+timezoneOffset
+: 
+0
+
+Request URL
+https://graph.microsoft.com/beta/deviceManagement/windowsFeatureUpdateProfiles?$expand=assignments
+Request Method
+GET
+
+Request URL
+https://services.autopatch.microsoft.com/update-management/v2/WindowsFeatureUpdates/release/92c8843e-f330-4de2-b1d8-db8138b794a0?planType=Starter&deleteRelease=true
+Request Method
+DELETE

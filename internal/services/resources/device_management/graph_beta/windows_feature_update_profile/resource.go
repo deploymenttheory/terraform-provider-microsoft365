@@ -8,6 +8,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -143,15 +144,17 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The last supported date for a feature update",
 			},
 			"install_latest_windows10_on_windows11_ineligible_device": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.",
+				Optional: true,
+				MarkdownDescription: "Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10" +
+					" feature updates. Changes to this field require the resource to be replaced.",
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.NewRequiresReplaceIfChangedBool(),
 				},
 			},
 			"install_feature_updates_optional": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "If true, the Windows 11 update will become optional",
+				Optional: true,
+				MarkdownDescription: "If true, the Windows 11 update will become available to users as an optional update. " +
+					"If false, the Windows 11 update will become available to users as a required update",
 			},
 			"rollout_settings": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -159,7 +162,7 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 				Attributes: map[string]schema.Attribute{
 					"offer_start_date_time_in_utc": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "The UTC offer start date time of the rollout.",
+						MarkdownDescription: "The UTC offer start date time of the rollout. Must be in RFC3339 format (e.g., '2025-05-01T00:00:00Z').",
 					},
 					"offer_end_date_time_in_utc": schema.StringAttribute{
 						Optional:            true,
@@ -167,7 +170,10 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 					},
 					"offer_interval_in_days": schema.Int32Attribute{
 						Optional:            true,
-						MarkdownDescription: "The number of days between each set of offers.",
+						MarkdownDescription: "The number of days between each set of offers. The value must be between 1 and 14.",
+						Validators: []validator.Int32{
+							int32validator.Between(1, 14),
+						},
 					},
 				},
 			},
