@@ -1,0 +1,22 @@
+{
+  "id": "mock-script-id-67890",
+  "displayName": "Test Maximal macOS Custom Attribute Script - Unit",
+  "description": "Comprehensive test configuration with maximal settings",
+  "customAttributeName": "TestMaximalAttribute",
+  "customAttributeType": "string",
+  "fileName": "test_maximal.sh",
+  "scriptContent": "#!/bin/bash\necho 'Maximal Test Value'\ndate\necho $USER\nexit 0",
+  "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "assignments": [
+    {
+      "id": "assignment-id-123",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "44444444-4444-4444-4444-444444444444"
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "mock-script-id-12345",
+  "displayName": "Test Maximal macOS Custom Attribute Script - Unit",
+  "description": "Comprehensive test configuration with maximal settings",
+  "customAttributeName": "TestMaximalAttribute",
+  "customAttributeType": "string",
+  "fileName": "test_maximal.sh",
+  "scriptContent": "#!/bin/bash\necho 'Maximal Test Value'\ndate\necho $USER\nexit 0",
+  "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "assignments": []
+}

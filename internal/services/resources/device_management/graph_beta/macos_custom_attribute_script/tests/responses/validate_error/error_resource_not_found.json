@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Custom attribute script not found",
+    "details": [
+      {
+        "code": "ResourceNotFound",
+        "message": "The specified custom attribute script was not found",
+        "target": "id"
+      }
+    ]
+  }
+}

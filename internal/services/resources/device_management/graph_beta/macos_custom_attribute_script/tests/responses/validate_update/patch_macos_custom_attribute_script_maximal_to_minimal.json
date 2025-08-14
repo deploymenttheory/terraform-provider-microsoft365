@@ -1,0 +1,13 @@
+{
+  "id": "mock-script-id-67890",
+  "displayName": "Test Minimal macOS Custom Attribute Script - Unit",
+  "customAttributeName": "TestMinimalAttribute",
+  "customAttributeType": "string",
+  "fileName": "test_minimal.sh",
+  "scriptContent": "#!/bin/bash\necho 'Minimal Test Value'\nexit 0",
+  "runAsAccount": "system",
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "assignments": []
+}
