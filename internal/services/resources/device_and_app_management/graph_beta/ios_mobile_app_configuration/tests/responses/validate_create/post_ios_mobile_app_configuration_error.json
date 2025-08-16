@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid iOS mobile app configuration data",
+    "details": [
+      {
+        "code": "InvalidRequest",
+        "message": "The request is invalid"
+      }
+    ]
+  }
+}

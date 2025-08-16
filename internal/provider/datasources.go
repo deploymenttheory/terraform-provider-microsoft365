@@ -39,6 +39,10 @@ import (
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site_list"
 
+	// Graph Beta - Multitenant Management datasources
+	graphBetaMultitenantManagementAggregatedPolicyCompliances "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/aggregated_policy_compliances"
+	graphBetaMultitenantManagementAuditEvents "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/audit_events"
+
 	// Graph v1.0 - Directory Management datasources
 	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
 
@@ -65,6 +69,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryDataSource,
 		graphBetaDeviceAndAppManagementMobileApp.NewMobileAppDataSource,
 		graphBetaDeviceAndAppManagementMobileAppRelationship.NewMobileAppRelationshipDataSource,
+
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
@@ -86,6 +91,9 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
+		// Graph Beta - Multitenant Management datasources
+		graphBetaMultitenantManagementAggregatedPolicyCompliances.NewAggregatedPolicyCompliancesDataSource,
+		graphBetaMultitenantManagementAuditEvents.NewAuditEventsDataSource,
 		// Graph Beta - Windows 365 datasources
 		graphBetaWindows365CloudPcAuditEvent.NewCloudPcAuditEventDataSource,
 		graphBetaWindows365CloudPcFrontlineServicePlan.NewCloudPcFrontlineServicePlanDataSource,

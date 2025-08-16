@@ -1,0 +1,33 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsDriverUpdateProfiles/$entity",
+  "@odata.type": "#microsoft.graph.windowsDriverUpdateProfile",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "Test Windows Driver Update Profile - With Assignments",
+  "description": "Test description for Windows Driver Update Profile with assignments",
+  "approvalType": "manual",
+  "deviceReporting": 0,
+  "newUpdates": 0,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "inventorySyncStatus": {
+    "lastSuccessfulSyncDateTime": "2024-01-01T00:00:00Z",
+    "driverInventorySyncState": "completed"
+  },
+  "assignments": [
+    {
+      "id": "00000000-0000-0000-0000-000000000101",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000201"
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000102",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000202"
+      }
+    }
+  ]
+}

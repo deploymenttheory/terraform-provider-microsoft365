@@ -59,6 +59,8 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
+		
+		// Return the stored profile as-is (it was created with the right fields)
 		c := map[string]interface{}{}
 		for k, v := range profile {
 			c[k] = v
@@ -69,10 +71,24 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsFeatureUpdateProfiles", func(req *http.Request) (*http.Response, error) {
 		var body map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_feature_update_profile_error.json")
+			var errObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(400, errObj)
 		}
+		
 		id := uuid.New().String()
-		profile := map[string]interface{}{"@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile", "id": id, "displayName": body["displayName"], "featureUpdateVersion": body["featureUpdateVersion"]}
+		profile := map[string]interface{}{
+			"@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile",
+			"id": id,
+			"displayName": body["displayName"],
+			"featureUpdateVersion": body["featureUpdateVersion"],
+			"createdDateTime": "2024-01-01T00:00:00Z",
+			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
+			"assignments": []interface{}{},
+		}
+		
+		// Only add optional fields if they were provided in the request
 		if v, ok := body["description"]; ok {
 			profile["description"] = v
 		}
@@ -90,7 +106,7 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 		if v, ok := body["rolloutSettings"]; ok {
 			profile["rolloutSettings"] = v
 		}
-		profile["assignments"] = []interface{}{}
+		
 		mockState.Lock()
 		mockState.featureProfiles[id] = profile
 		mockState.Unlock()
@@ -116,12 +132,35 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
-		for k, v := range body {
-			existing[k] = v
+		
+		// Use success JSON file as template for updates
+		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/patch_windows_feature_update_profile_success.json")
+		if err != nil {
+			// Fallback to dynamic response if file not found
+			for k, v := range body {
+				existing[k] = v
+			}
+			mockState.featureProfiles[id] = existing
+			mockState.Unlock()
+			return factories.SuccessResponse(200, existing)(req)
 		}
-		mockState.featureProfiles[id] = existing
+		
+		var templateObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonStr), &templateObj)
+		
+		// Start with existing data
+		for k, v := range existing {
+			templateObj[k] = v
+		}
+		
+		// Apply updates from request
+		for k, v := range body {
+			templateObj[k] = v
+		}
+		
+		mockState.featureProfiles[id] = templateObj
 		mockState.Unlock()
-		return factories.SuccessResponse(200, existing)(req)
+		return factories.SuccessResponse(200, templateObj)(req)
 	})
 
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/windowsFeatureUpdateProfiles/[^/]+/assign$`, func(req *http.Request) (*http.Response, error) {
