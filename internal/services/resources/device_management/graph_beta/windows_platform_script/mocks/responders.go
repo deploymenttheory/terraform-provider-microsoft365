@@ -6,301 +6,291 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
 
-// mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
 	platformScripts map[string]map[string]interface{}
 }
 
 func init() {
-	// Initialize mockState
 	mockState.platformScripts = make(map[string]map[string]interface{})
-
-	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	mocks.GlobalRegistry.Register("windows_platform_script", &WindowsPlatformScriptMock{})
 }
 
-// WindowsPlatformScriptMock provides mock responses for Windows platform script operations
 type WindowsPlatformScriptMock struct{}
 
-// RegisterMocks registers HTTP mock responses for Windows platform script operations
+var _ mocks.MockRegistrar = (*WindowsPlatformScriptMock)(nil)
+
 func (m *WindowsPlatformScriptMock) RegisterMocks() {
-	// Reset the state when registering mocks
 	mockState.Lock()
 	mockState.platformScripts = make(map[string]map[string]interface{})
 	mockState.Unlock()
 
-	// Register GET for listing platform scripts
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts",
-		func(req *http.Request) (*http.Response, error) {
-			mockState.Lock()
-			scripts := make([]map[string]interface{}, 0, len(mockState.platformScripts))
-			for _, script := range mockState.platformScripts {
-				scripts = append(scripts, script)
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
+		mockState.Lock()
+		defer mockState.Unlock()
+
+		if len(mockState.platformScripts) == 0 {
+			// Return empty list if no scripts exist
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
+			var responseObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
+			responseObj["value"] = []interface{}{}
+			return httpmock.NewJsonResponse(200, responseObj)
+		}
+
+		// Return list of existing scripts
+		list := make([]map[string]interface{}, 0, len(mockState.platformScripts))
+		for _, v := range mockState.platformScripts {
+			c := map[string]interface{}{}
+			for k, vv := range v {
+				c[k] = vv
 			}
+			list = append(list, c)
+		}
+
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
+		var responseObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
+		responseObj["value"] = list
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-1]
+		mockState.Lock()
+		script, ok := mockState.platformScripts[id]
+		mockState.Unlock()
+		if !ok {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
+			var errObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(404, errObj)
+		}
+
+		// Get the appropriate template based on script type
+		var jsonTemplate string
+		if script["runAsAccount"] == "user" {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_script_user.json")
+			jsonTemplate = jsonStr
+		} else if len(script["assignments"].([]interface{})) > 0 {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_script_with_assignments.json")
+			jsonTemplate = jsonStr
+		} else {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_script.json")
+			jsonTemplate = jsonStr
+		}
+
+		var responseObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
+
+		// Override template values with actual script values
+		for k, v := range script {
+			responseObj[k] = v
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
+		var body map[string]interface{}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+
+		id := uuid.New().String()
+
+		// Choose the appropriate response template
+		var jsonTemplate string
+		if body["runAsAccount"] == "user" {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_user_success.json")
+			jsonTemplate = jsonStr
+		} else {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_system_success.json")
+			jsonTemplate = jsonStr
+		}
+
+		var responseObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
+
+		// Only include fields that were provided in the request
+		responseObj["id"] = id
+		if v, ok := body["displayName"]; ok {
+			responseObj["displayName"] = v
+		}
+		if v, ok := body["runAsAccount"]; ok {
+			responseObj["runAsAccount"] = v
+		}
+		if v, ok := body["description"]; ok {
+			responseObj["description"] = v
+		}
+		if v, ok := body["fileName"]; ok {
+			responseObj["fileName"] = v
+		}
+		if v, ok := body["scriptContent"]; ok {
+			responseObj["scriptContent"] = v
+		}
+		if v, ok := body["enforceSignatureCheck"]; ok {
+			responseObj["enforceSignatureCheck"] = v
+		}
+		if v, ok := body["runAs32Bit"]; ok {
+			responseObj["runAs32Bit"] = v
+		}
+		if v, ok := body["roleScopeTagIds"]; ok {
+			responseObj["roleScopeTagIds"] = v
+		} else {
+			responseObj["roleScopeTagIds"] = []string{"0"}
+		}
+		
+		// Assignments are handled separately via the /assign endpoint
+		// Always start with empty assignments for new resources
+		responseObj["assignments"] = []interface{}{}
+
+		// Store in mock state
+		mockState.Lock()
+		mockState.platformScripts[id] = responseObj
+		mockState.Unlock()
+
+		return httpmock.NewJsonResponse(201, responseObj)
+	})
+
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-1]
+		var body map[string]interface{}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_error.json")
+			var errObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(400, errObj)
+		}
+
+		mockState.Lock()
+		existing, ok := mockState.platformScripts[id]
+		if !ok {
 			mockState.Unlock()
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
+			var errObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(404, errObj)
+		}
 
-			response := map[string]interface{}{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts",
-				"value":          scripts,
+		// Choose the appropriate response template based on what's being updated
+		var jsonTemplate string
+		if _, hasRoleScopeTagIds := body["roleScopeTagIds"]; hasRoleScopeTagIds {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_update/patch_windows_platform_script_tags_success.json")
+			jsonTemplate = jsonStr
+		} else {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_update/patch_windows_platform_script_success.json")
+			jsonTemplate = jsonStr
+		}
+
+		var responseObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
+
+		// Override with existing values
+		for k, v := range existing {
+			responseObj[k] = v
+		}
+
+		// Apply updates
+		for k, v := range body {
+			responseObj[k] = v
+			existing[k] = v
+		}
+
+		// Update last modified time
+		responseObj["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
+		existing["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
+
+		mockState.platformScripts[id] = existing
+		mockState.Unlock()
+
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+/assign$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-2]
+		var body map[string]interface{}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_assign/post_windows_platform_script_assign_error.json")
+			var errObj map[string]interface{}
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(400, errObj)
+		}
+
+		mockState.Lock()
+		if existing, ok := mockState.platformScripts[id]; ok {
+			// The assignment constructor sends assignments via deviceManagementScriptAssignments field
+			assignments, ok := body["deviceManagementScriptAssignments"].([]interface{})
+			if !ok {
+				// Fallback to assignments field for compatibility
+				assignments, _ = body["assignments"].([]interface{})
 			}
-
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// Register GET for individual platform script
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			scriptData, exists := mockState.platformScripts[scriptId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Platform script not found"}}`), nil
+			if assignments == nil {
+				assignments = []interface{}{}
 			}
+			existing["assignments"] = assignments
+			mockState.platformScripts[id] = existing
+		}
+		mockState.Unlock()
 
-			// Create response copy
-			responseCopy := make(map[string]interface{})
-			for k, v := range scriptData {
-				responseCopy[k] = v
-			}
+		// Return empty success response
+		return httpmock.NewStringResponse(204, ""), nil
+	})
 
-			// Check if expand=assignments is requested
-			expandParam := req.URL.Query().Get("$expand")
-			if strings.Contains(expandParam, "assignments") {
-				// Include assignments if they exist in the script data
-				if assignments, hasAssignments := scriptData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
-						responseCopy["assignments"] = assignments
-					} else {
-						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
-					}
-				} else {
-					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
-				}
-			}
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-1]
+		mockState.Lock()
+		delete(mockState.platformScripts, id)
+		mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, responseCopy)
-		})
-
-	// Register POST for creating platform script
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts",
-		func(req *http.Request) (*http.Response, error) {
-			// Parse request body
-			var requestBody map[string]interface{}
-			err := json.NewDecoder(req.Body).Decode(&requestBody)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Generate new platform script ID
-			scriptId := uuid.New().String()
-
-			// Create platform script data - only include fields that were provided or have defaults
-			scriptData := map[string]interface{}{
-				"id":           scriptId,
-				"displayName":  requestBody["displayName"],
-				"fileName":     requestBody["fileName"],
-				"scriptContent": requestBody["scriptContent"],
-				"runAsAccount": requestBody["runAsAccount"],
-			}
-
-			// Add optional fields only if provided in request
-			if description, exists := requestBody["description"]; exists {
-				scriptData["description"] = description
-			}
-			if roleScopeTagIds, exists := requestBody["roleScopeTagIds"]; exists {
-				scriptData["roleScopeTagIds"] = roleScopeTagIds
-			} else {
-				scriptData["roleScopeTagIds"] = []string{"0"} // Default value
-			}
-			if enforceSignatureCheck, exists := requestBody["enforceSignatureCheck"]; exists {
-				scriptData["enforceSignatureCheck"] = enforceSignatureCheck
-			}
-			if runAs32Bit, exists := requestBody["runAs32Bit"]; exists {
-				scriptData["runAs32Bit"] = runAs32Bit
-			}
-
-			// Initialize assignments as empty array
-			scriptData["assignments"] = []interface{}{}
-
-			// Store in mock state
-			mockState.Lock()
-			mockState.platformScripts[scriptId] = scriptData
-			mockState.Unlock()
-
-			return httpmock.NewJsonResponse(201, scriptData)
-		})
-
-	// Register PATCH for updating platform script
-	httpmock.RegisterResponder("PATCH", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			scriptData, exists := mockState.platformScripts[scriptId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Platform script not found"}}`), nil
-			}
-
-			// Parse request body
-			var requestBody map[string]interface{}
-			err := json.NewDecoder(req.Body).Decode(&requestBody)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Update platform script data
-			mockState.Lock()
-			
-			// Handle optional fields that might be removed (like going from maximal to minimal)
-			// Check for specific field patterns to simulate real API behavior
-			
-			// For optional fields, if they're not in the request, remove them
-			optionalFields := []string{"description", "enforceSignatureCheck", "runAs32Bit"}
-			for _, field := range optionalFields {
-				if _, hasField := requestBody[field]; !hasField {
-					delete(scriptData, field)
-				}
-			}
-			
-			for key, value := range requestBody {
-				if value == nil {
-					// If value is explicitly null, remove the field from the stored state
-					delete(scriptData, key)
-				} else {
-					scriptData[key] = value
-				}
-			}
-			// Ensure the ID is preserved
-			scriptData["id"] = scriptId
-			mockState.platformScripts[scriptId] = scriptData
-			mockState.Unlock()
-
-			return httpmock.NewJsonResponse(200, scriptData)
-		})
-
-	// Register DELETE for removing platform script
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			_, exists := mockState.platformScripts[scriptId]
-			if exists {
-				delete(mockState.platformScripts, scriptId)
-			}
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Platform script not found"}}`), nil
-			}
-
-			return httpmock.NewStringResponse(204, ""), nil
-		})
-
-	// Register POST for assignments
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/[^/]+/assign$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			scriptId := urlParts[len(urlParts)-2] // deviceManagementScripts/{id}/assign
-
-			// Parse request body to get assignments
-			var requestBody map[string]interface{}
-			err := json.NewDecoder(req.Body).Decode(&requestBody)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Store assignments in the script
-			mockState.Lock()
-			if scriptData, exists := mockState.platformScripts[scriptId]; exists {
-				if assignments, hasAssignments := requestBody["deviceManagementScriptAssignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
-					if len(assignmentList) > 0 {
-						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
-						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
-									// Generate a unique assignment ID
-									assignmentId := uuid.New().String()
-									
-									// Create assignment in the format the API returns
-									// The API returns the target exactly as submitted but with additional metadata
-									targetCopy := make(map[string]interface{})
-									for k, v := range target {
-										targetCopy[k] = v
-									}
-									
-									graphAssignment := map[string]interface{}{
-										"id": assignmentId,
-										"target": targetCopy,
-									}
-									graphAssignments = append(graphAssignments, graphAssignment)
-								}
-							}
-						}
-						scriptData["assignments"] = graphAssignments
-					} else {
-						// Set empty assignments array instead of deleting
-						scriptData["assignments"] = []interface{}{}
-					}
-				} else {
-					// Set empty assignments array instead of deleting
-					scriptData["assignments"] = []interface{}{}
-				}
-				mockState.platformScripts[scriptId] = scriptData
-			}
-			mockState.Unlock()
-
-			return httpmock.NewStringResponse(204, ""), nil
-		})
-
-	// Register GET for assignments
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/[^/]+/assignments$`,
-		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
-			}
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// Dynamic mocks will handle all test cases
+		// Return empty success response
+		return httpmock.NewStringResponse(204, ""), nil
+	})
 }
 
-// RegisterErrorMocks registers HTTP mock responses for error scenarios
 func (m *WindowsPlatformScriptMock) RegisterErrorMocks() {
-	// Register GET for listing platform scripts (needed for uniqueness check)
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts",
-		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
-			}
-			return httpmock.NewJsonResponse(200, response)
-		})
+	mockState.Lock()
+	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.Unlock()
 
-	// Register error response for creating platform script with invalid data
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts",
-		factories.ErrorResponse(400, "BadRequest", "Validation error: Invalid display name"))
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
+		var responseObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
+		responseObj["value"] = []interface{}{}
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
 
-	// Register error response for platform script not found
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/not-found-script",
-		factories.ErrorResponse(404, "ResourceNotFound", "Platform script not found"))
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_error.json")
+		var errObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonStr), &errObj)
+		return httpmock.NewJsonResponse(400, errObj)
+	})
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
+		var errObj map[string]interface{}
+		_ = json.Unmarshal([]byte(jsonStr), &errObj)
+		return httpmock.NewJsonResponse(404, errObj)
+	})
+}
+
+func (m *WindowsPlatformScriptMock) CleanupMockState() {
+	mockState.Lock()
+	defer mockState.Unlock()
+	for id := range mockState.platformScripts {
+		delete(mockState.platformScripts, id)
+	}
 }

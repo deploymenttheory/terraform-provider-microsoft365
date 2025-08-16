@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid assignment data for Windows Platform Script",
+    "details": [
+      {
+        "code": "ValidationError",
+        "message": "The provided assignment data is invalid"
+      }
+    ]
+  }
+}

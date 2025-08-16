@@ -1,0 +1,5 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts",
+  "@odata.count": 0,
+  "value": []
+}
