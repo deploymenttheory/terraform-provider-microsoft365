@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsDriverUpdateProfiles/$entity",
+  "@odata.type": "#microsoft.graph.windowsDriverUpdateProfile",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Test Windows Driver Update Profile",
+  "description": "Test description for Windows Driver Update Profile",
+  "approvalType": "manual",
+  "deviceReporting": 0,
+  "newUpdates": 0,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "inventorySyncStatus": {
+    "lastSuccessfulSyncDateTime": "2024-01-01T00:00:00Z",
+    "driverInventorySyncState": "completed"
+  },
+  "assignments": []
+}

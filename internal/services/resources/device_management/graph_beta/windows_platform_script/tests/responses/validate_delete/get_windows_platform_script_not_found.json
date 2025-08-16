@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "The Windows Platform Script was not found",
+    "details": [
+      {
+        "code": "NotFound",
+        "message": "The requested script does not exist"
+      }
+    ]
+  }
+}

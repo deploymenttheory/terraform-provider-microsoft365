@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "NotFound",
+    "message": "iOS mobile app configuration not found",
+    "details": [
+      {
+        "code": "NotFound",
+        "message": "The specified iOS mobile app configuration was not found"
+      }
+    ]
+  }
+}

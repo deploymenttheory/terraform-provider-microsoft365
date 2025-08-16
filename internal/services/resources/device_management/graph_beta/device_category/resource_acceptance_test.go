@@ -3,9 +3,11 @@ package graphBetaDeviceCategory_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -147,21 +149,33 @@ func testAccCheckDeviceCategoryDestroy(s *terraform.State) error {
 // Test configuration functions
 
 func testAccDeviceCategoryConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load minimal test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccDeviceCategoryConfig_maximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
+	if err != nil {
+		log.Fatalf("Failed to load maximal test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccDeviceCategoryConfig_roleScopeTags() string {
-	config := mocks.LoadTerraformConfigFile("resource_role_scope_tags.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_role_scope_tags.tf")
+	if err != nil {
+		log.Fatalf("Failed to load role scope tags test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccDeviceCategoryConfig_description() string {
-	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_description.tf")
+	if err != nil {
+		log.Fatalf("Failed to load description test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }

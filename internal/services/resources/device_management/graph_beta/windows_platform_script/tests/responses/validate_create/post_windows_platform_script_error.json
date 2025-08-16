@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Windows Platform Script data",
+    "details": [
+      {
+        "code": "ValidationError",
+        "message": "The provided script data is invalid"
+      }
+    ]
+  }
+}

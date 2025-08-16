@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceComplianceScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceComplianceScript",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Updated Windows Device Compliance Script",
+  "description": "Updated description for Windows Device Compliance Script",
+  "publisher": "Updated Publisher",
+  "version": "1.1",
+  "detectionScriptContent": "R2V0LVNlcnZpY2U=",
+  "runAsAccount": "system",
+  "enforceSignatureCheck": false,
+  "runAs32Bit": false,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "assignments": []
+}

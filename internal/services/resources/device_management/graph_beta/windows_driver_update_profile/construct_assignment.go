@@ -36,7 +36,7 @@ func constructAssignment(ctx context.Context, data *WindowsDriverUpdateProfileRe
 			"index": idx,
 		})
 
-		graphAssignment := graphmodels.NewWindowsQualityUpdateProfileAssignment()
+		graphAssignment := graphmodels.NewWindowsDriverUpdateProfileAssignment()
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
 			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{

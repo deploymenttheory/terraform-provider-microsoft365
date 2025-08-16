@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -130,6 +131,13 @@ func SetGraphBetaClientForResource(ctx context.Context, req resource.ConfigureRe
 // SetGraphBetaClientForDataSource is a helper function to retrieve and validate the Graph Beta client for data sources.
 func SetGraphBetaClientForDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse, dataSourceName string) *msgraphbetasdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, dataSourceName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
+		return clients.GetKiotaGraphBetaClient()
+	})
+}
+
+// SetGraphBetaClientForEphemeralResource is a helper function to retrieve and validate the Graph Beta client for ephemeral resources.
+func SetGraphBetaClientForEphemeralResource(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse, ephemeralResourceName string) *msgraphbetasdk.GraphServiceClient {
+	return getClient(ctx, req.ProviderData, resp, ephemeralResourceName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
 		return clients.GetKiotaGraphBetaClient()
 	})
 }
