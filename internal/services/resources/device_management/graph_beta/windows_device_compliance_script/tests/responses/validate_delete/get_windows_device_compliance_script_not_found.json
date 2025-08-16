@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "The Windows Device Compliance Script was not found",
+    "details": [
+      {
+        "code": "NotFound",
+        "message": "The requested script does not exist"
+      }
+    ]
+  }
+}

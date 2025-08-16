@@ -1,0 +1,6 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceComplianceScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceComplianceScript",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
