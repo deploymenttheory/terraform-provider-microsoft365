@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "minimal" {
-  name     = "Test Minimal Settings Catalog Policy - JSON Unit"
+  name      = "Test Minimal Settings Catalog Policy - JSON Unit"
   platforms = "macOS"
 
   settings = jsonencode({

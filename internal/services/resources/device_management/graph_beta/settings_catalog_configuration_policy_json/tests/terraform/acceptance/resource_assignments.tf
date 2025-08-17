@@ -10,17 +10,17 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         "id" = "0",
         "settingInstance" = {
-          "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId"                  = "com.apple.mcx.filevault2_com.apple.mcx.filevault2",
-          "settingInstanceTemplateReference"     = null,
+          "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+          "settingDefinitionId"              = "com.apple.mcx.filevault2_com.apple.mcx.filevault2",
+          "settingInstanceTemplateReference" = null,
           "groupSettingCollectionValue" = [
             {
               "settingValueTemplateReference" = null,
               "children" = [
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_enable",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_enable",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],

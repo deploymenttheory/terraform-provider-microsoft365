@@ -10,17 +10,17 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         "id" = "0",
         "settingInstance" = {
-          "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
-          "settingDefinitionId"                  = "com.apple.mcx.filevault2_com.apple.mcx.filevault2",
-          "settingInstanceTemplateReference"     = null,
+          "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+          "settingDefinitionId"              = "com.apple.mcx.filevault2_com.apple.mcx.filevault2",
+          "settingInstanceTemplateReference" = null,
           "groupSettingCollectionValue" = [
             {
               "settingValueTemplateReference" = null,
               "children" = [
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_defer",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_defer",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -28,9 +28,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_deferdontaskatuserlogout",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_deferdontaskatuserlogout",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -38,19 +38,19 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_deferforceatuserloginmaxbypassattempts",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_deferforceatuserloginmaxbypassattempts",
+                  "settingInstanceTemplateReference" = null,
                   "simpleSettingValue" = {
-                    "@odata.type"                       = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
-                    "settingValueTemplateReference"     = null,
-                    "value"                             = 0
+                    "@odata.type"                   = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
+                    "settingValueTemplateReference" = null,
+                    "value"                         = 0
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_enable",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_enable",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -58,9 +58,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_forceenableinsetupassistant",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_forceenableinsetupassistant",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -68,30 +68,30 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_outputpath",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_outputpath",
+                  "settingInstanceTemplateReference" = null,
                   "simpleSettingValue" = {
-                    "@odata.type"                       = "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "settingValueTemplateReference"     = null,
-                    "value"                             = "/output/path"
+                    "@odata.type"                   = "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                    "settingValueTemplateReference" = null,
+                    "value"                         = "/output/path"
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_password",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_password",
+                  "settingInstanceTemplateReference" = null,
                   "simpleSettingValue" = {
-                    "@odata.type"                       = "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
-                    "settingValueTemplateReference"     = null,
-                    "valueState"                        = "notEncrypted",
-                    "value"                             = "3669d68b-ea40-4682-abc9-9445f3f6fc7e"
+                    "@odata.type"                   = "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
+                    "settingValueTemplateReference" = null,
+                    "valueState"                    = "notEncrypted",
+                    "value"                         = "3669d68b-ea40-4682-abc9-9445f3f6fc7e"
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_recoverykeyrotationinmonths",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_recoverykeyrotationinmonths",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -99,9 +99,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_showrecoverykey",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_showrecoverykey",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -109,9 +109,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_usekeychain",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_usekeychain",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -119,9 +119,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_userecoverykey",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_userecoverykey",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -129,9 +129,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_userentersmissinginfo",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_userentersmissinginfo",
+                  "settingInstanceTemplateReference" = null,
                   "choiceSettingValue" = {
                     "settingValueTemplateReference" = null,
                     "children"                      = [],
@@ -139,13 +139,13 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
                   }
                 },
                 {
-                  "@odata.type"                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-                  "settingDefinitionId"                  = "com.apple.mcx.filevault2_username",
-                  "settingInstanceTemplateReference"     = null,
+                  "@odata.type"                      = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                  "settingDefinitionId"              = "com.apple.mcx.filevault2_username",
+                  "settingInstanceTemplateReference" = null,
                   "simpleSettingValue" = {
-                    "@odata.type"                       = "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-                    "settingValueTemplateReference"     = null,
-                    "value"                             = "username"
+                    "@odata.type"                   = "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                    "settingValueTemplateReference" = null,
+                    "value"                         = "username"
                   }
                 }
               ]

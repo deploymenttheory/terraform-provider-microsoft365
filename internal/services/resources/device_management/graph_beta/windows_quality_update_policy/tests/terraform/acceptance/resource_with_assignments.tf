@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_windows_quality_update_policy" "test_assignments" {
-  display_name = "Acceptance - Windows Quality Update Policy with Assignments"
+  display_name     = "Acceptance - Windows Quality Update Policy with Assignments"
   hotpatch_enabled = false
 
   assignments = [

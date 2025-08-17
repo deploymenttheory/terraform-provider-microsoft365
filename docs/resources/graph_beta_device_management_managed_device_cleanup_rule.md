@@ -101,7 +101,7 @@ resource "microsoft365_graph_beta_device_management_managed_device_cleanup_rule"
 ### Required
 
 - `device_cleanup_rule_platform_type` (String) The managed device platform for which the admin wants to create the device cleanup rule. Possible values are: `all`, `androidAOSP`, `androidDeviceAdministrator`, `androidDedicatedAndFullyManagedCorporateOwnedWorkProfile`, `chromeOS`, `androidPersonallyOwnedWorkProfile`, `ios`, `macOS`, `windows`, `windowsHolographic`, `unknownFutureValue`.
-- `device_inactivity_before_retirement_in_days` (Number) Number of days when the device has not contacted Intune before it gets automatically removed. Valid values are 0 to 2147483647.
+- `device_inactivity_before_retirement_in_days` (Number) Number of days when the device has not contacted Intune before it gets automatically removed. Valid values are 30 to 270.
 - `display_name` (String) The display name of the device cleanup rule.
 
 ### Optional
