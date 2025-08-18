@@ -2,6 +2,7 @@ package graphBetaAndroidEnrollmentNotifications
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -13,15 +14,6 @@ import (
 func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnrollmentNotificationsResourceModel, templates []graphmodels.NotificationMessageTemplateable, templateTypes []string) {
 	if len(templates) == 0 {
 		tflog.Debug(ctx, "No templates provided for localized message mapping")
-		data.LocalizedNotificationMessages = types.SetNull(types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"locale":           types.StringType,
-				"subject":          types.StringType,
-				"message_template": types.StringType,
-				"template_type":    types.StringType,
-				"is_default":       types.BoolType,
-			},
-		})
 		return
 	}
 
@@ -37,20 +29,8 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnroll
 		// Get localized messages from the template
 		messages := template.GetLocalizedNotificationMessages()
 		if messages == nil {
-			tflog.Debug(ctx, "No localized messages found for template", map[string]interface{}{
-				"templateIndex": i,
-				"templateType":  templateTypes[i],
-				"resourceId":    data.ID.ValueString(),
-			})
 			continue
 		}
-
-		tflog.Debug(ctx, "Processing localized messages for template", map[string]interface{}{
-			"templateIndex": i,
-			"templateType":  templateTypes[i],
-			"messageCount":  len(messages),
-			"resourceId":    data.ID.ValueString(),
-		})
 
 		for _, message := range messages {
 			if message == nil {
@@ -63,19 +43,17 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnroll
 			isDefault := message.GetIsDefault()
 
 			if locale == nil || subject == nil || messageTemplate == nil {
-				tflog.Debug(ctx, "Skipping incomplete localized message", map[string]interface{}{
-					"templateIndex": i,
-					"templateType":  templateTypes[i],
-					"hasLocale":     locale != nil,
-					"hasSubject":    subject != nil,
-					"hasTemplate":   messageTemplate != nil,
-					"resourceId":    data.ID.ValueString(),
-				})
 				continue
 			}
 
+			// Normalize locale to match what's required in the request. e.g. "en-us" to "en-US"
+			normalizedLocale := *locale
+			if parts := strings.Split(*locale, "-"); len(parts) == 2 {
+				normalizedLocale = parts[0] + "-" + strings.ToUpper(parts[1])
+			}
+
 			localizedMsg := LocalizedNotificationMessageModel{
-				Locale:          types.StringValue(*locale),
+				Locale:          types.StringValue(normalizedLocale),
 				Subject:         types.StringValue(*subject),
 				MessageTemplate: types.StringValue(*messageTemplate),
 				TemplateType:    types.StringValue(templateTypes[i]),
@@ -88,14 +66,6 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnroll
 			}
 
 			localizedMessages = append(localizedMessages, localizedMsg)
-			tflog.Debug(ctx, "Added localized message to collection", map[string]interface{}{
-				"locale":          *locale,
-				"subject":         *subject,
-				"messageTemplate": *messageTemplate,
-				"templateType":    templateTypes[i],
-				"isDefault":       isDefault,
-				"resourceId":      data.ID.ValueString(),
-			})
 		}
 	}
 
@@ -112,22 +82,10 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnroll
 		localizedMessagesValue, diags := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: attrTypes}, localizedMessages)
 		if !diags.HasError() {
 			data.LocalizedNotificationMessages = localizedMessagesValue
-			tflog.Debug(ctx, "Successfully set localized notification messages in state", map[string]interface{}{
-				"messageCount":      len(localizedMessages),
-				"resourceId":        data.ID.ValueString(),
-				"finalStateValues":  localizedMessages,
-			})
 		} else {
-			tflog.Warn(ctx, "Failed to set localized notification messages in state", map[string]interface{}{
-				"errors":     diags.Errors(),
-				"resourceId": data.ID.ValueString(),
-			})
 			data.LocalizedNotificationMessages = types.SetNull(types.ObjectType{AttrTypes: attrTypes})
 		}
 	} else {
-		tflog.Debug(ctx, "No valid localized messages found, setting to null", map[string]interface{}{
-			"resourceId": data.ID.ValueString(),
-		})
 		attrTypes := map[string]attr.Type{
 			"locale":           types.StringType,
 			"subject":          types.StringType,

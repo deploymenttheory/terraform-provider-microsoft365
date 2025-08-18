@@ -519,6 +519,7 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
