@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [androidEnrollmentNotificationConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentnotificationconfiguration?view=graph-rest-beta)
+- [Create androidEnrollmentNotificationConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentnotificationconfiguration-create?view=graph-rest-beta&tabs=http)
+- [Update androidEnrollmentNotificationConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentnotificationconfiguration-update?view=graph-rest-beta&tabs=http)
+- [Delete androidEnrollmentNotificationConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentnotificationconfiguration-delete?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+
+## Example Usage
+
+{{ tffile "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_android_enrollment_notifications/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.27.0-alpha | Experimental | Initial release |
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_android_enrollment_notifications/import.sh" }}

@@ -45,3 +45,10 @@ type PlatformScriptAssignmentModel struct {
 	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 }
+
+// AndroidNotificationAssignmentModel defines the schema for a Android Notification assignment.
+type AndroidNotificationAssignmentModel struct {
+	// Target assignment fields - only one should be used at a time
+	Type    types.String `tfsdk:"type"`     // "allLicensedUsersAssignmentTarget", "groupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+}

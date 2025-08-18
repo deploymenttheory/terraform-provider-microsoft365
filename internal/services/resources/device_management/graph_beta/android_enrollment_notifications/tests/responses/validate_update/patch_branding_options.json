@@ -1,0 +1,9 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates/$entity",
+  "@odata.type": "#microsoft.graph.notificationMessageTemplate",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "displayName": "Email Template",
+  "defaultLocale": "en-us",
+  "brandingOptions": "includeCompanyLogo,includeCompanyName,includeContactInformation,includeCompanyPortalLink,includeDeviceDetails",
+  "lastModifiedDateTime": "2023-10-01T13:00:00Z"
+}
