@@ -8,6 +8,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -589,16 +590,22 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 					guidPart = templateID
 				}
 
-				// Try to create/update the localized message
+				// Update the existing localized message using custom PATCH request with specific message ID
+				// Message ID format: {templateGuid}_{locale}
+				messageId := guidPart + "_" + msg.Locale.ValueString()
+				
 				time.Sleep(2 * time.Second) // Delay to avoid rate limiting
 
-				_, err = r.client.
-					DeviceManagement().
-					NotificationMessageTemplates().
-					ByNotificationMessageTemplateId(guidPart).
-					LocalizedNotificationMessages().
-					Post(ctx, messageRequestBody, nil)
+				// Use custom request to properly construct the URL path
+				config := customrequests.PatchRequestConfig{
+					APIVersion:        customrequests.GraphAPIBeta,
+					Endpoint:          fmt.Sprintf("deviceManagement/notificationMessageTemplates/%s/localizedNotificationMessages", guidPart),
+					ResourceID:        messageId,
+					ResourceIDPattern: "/{id}",
+					RequestBody:       messageRequestBody,
+				}
 
+				err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 				if err != nil {
 					errors.HandleGraphError(ctx, err, resp, "Update localized message", r.WritePermissions)
 					return

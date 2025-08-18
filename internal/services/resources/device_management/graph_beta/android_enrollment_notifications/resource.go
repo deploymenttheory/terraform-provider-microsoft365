@@ -208,7 +208,10 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 					Attributes: map[string]schema.Attribute{
 						"locale": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The locale for the notification message (e.g., 'en-US').",
+							MarkdownDescription: "The locale for the notification message (e.g., 'en-us'). Must be in lowercase format.",
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.EnsureLowerCaseString(),
+							},
 						},
 						"subject": schema.StringAttribute{
 							Required:            true,

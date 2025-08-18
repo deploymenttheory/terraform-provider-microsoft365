@@ -156,6 +156,37 @@ func CaseInsensitiveString() StringModifier {
 	}
 }
 
+// ensureLowerCaseString validates that strings contain only lowercase characters
+type ensureLowerCaseString struct {
+	stringModifier
+}
+
+func (m ensureLowerCaseString) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+
+	value := req.PlanValue.ValueString()
+	if value != strings.ToLower(value) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid string format",
+			"String must be in lowercase format",
+		)
+		return
+	}
+}
+
+// EnsureLowerCaseString returns a plan modifier that validates string values are lowercase
+func EnsureLowerCaseString() StringModifier {
+	return ensureLowerCaseString{
+		stringModifier: stringModifier{
+			description:         "Validates string is lowercase",
+			markdownDescription: "Validates string is lowercase",
+		},
+	}
+}
+
 // RequiresOtherAttributeEnabled returns a plan modifier that ensures an attribute
 // can only be used when another specified attribute is enabled (set to true).
 func RequiresOtherAttributeEnabled(dependencyPath path.Path) planmodifier.String {

@@ -46,11 +46,8 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *AndroidEnroll
 				continue
 			}
 
-			// Normalize locale to match what's required in the request. e.g. "en-us" to "en-US"
-			normalizedLocale := *locale
-			if parts := strings.Split(*locale, "-"); len(parts) == 2 {
-				normalizedLocale = parts[0] + "-" + strings.ToUpper(parts[1])
-			}
+			// Normalize locale to lowercase to match schema normalization and api response behaviour
+			normalizedLocale := strings.ToLower(*locale)
 
 			localizedMsg := LocalizedNotificationMessageModel{
 				Locale:          types.StringValue(normalizedLocale),
