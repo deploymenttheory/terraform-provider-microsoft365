@@ -15,12 +15,4 @@ resource "microsoft365_graph_beta_device_management_android_enrollment_notificat
     delete = "30m"
   }
 
-  lifecycle {
-    ignore_changes = [
-      role_scope_tag_ids,
-      created_date_time,
-      last_modified_date_time,
-      version
-    ]
-  }
 }

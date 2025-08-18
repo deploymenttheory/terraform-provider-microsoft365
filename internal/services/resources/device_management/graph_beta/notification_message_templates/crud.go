@@ -210,6 +210,7 @@ func (r *NotificationMessageTemplateResource) Delete(ctx context.Context, req re
 		NotificationMessageTemplates().
 		ByNotificationMessageTemplateId(state.ID.ValueString()).
 		Delete(ctx, nil)
+
 	if err != nil {
 		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return

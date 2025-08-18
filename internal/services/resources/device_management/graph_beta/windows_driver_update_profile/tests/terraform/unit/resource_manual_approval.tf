@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_device_management_windows_driver_update_profil
   display_name  = "Test Manual Approval Windows Driver Update Profile - Unique"
   approval_type = "manual"
   description   = "Test description for manual approval driver update profile"
-  
+
   role_scope_tag_ids = ["0"]
 
   timeouts = {

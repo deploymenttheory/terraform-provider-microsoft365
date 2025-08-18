@@ -182,21 +182,6 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 				Computed:            true,
 				MarkdownDescription: "The priority of the notification configuration.",
 			},
-			"created_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The date and time when the notification configuration was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The date and time when the notification configuration was last modified.",
-			},
-			"version": schema.Int32Attribute{
-				Computed:            true,
-				MarkdownDescription: "The version of the notification configuration.",
-			},
 			"device_enrollment_configuration_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The type of device enrollment configuration.",

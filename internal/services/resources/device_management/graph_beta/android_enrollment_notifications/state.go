@@ -67,9 +67,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidEnrollmentNotif
 	}
 
 	data.Priority = convert.GraphToFrameworkInt32(remoteResource.GetPriority())
-	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
-	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
-	data.Version = convert.GraphToFrameworkInt32(remoteResource.GetVersion())
 	data.DeviceEnrollmentConfigurationType = convert.GraphToFrameworkEnum(remoteResource.GetDeviceEnrollmentConfigurationType())
 
 	// Note: Assignments are handled separately in the Read function via dedicated API call

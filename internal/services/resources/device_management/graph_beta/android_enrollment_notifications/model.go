@@ -15,9 +15,6 @@ type AndroidEnrollmentNotificationsResourceModel struct {
 	BrandingOptions                   types.Set      `tfsdk:"branding_options"`
 	NotificationTemplates             types.Set      `tfsdk:"notification_templates"`
 	Priority                          types.Int32    `tfsdk:"priority"`
-	CreatedDateTime                   types.String   `tfsdk:"created_date_time"`
-	LastModifiedDateTime              types.String   `tfsdk:"last_modified_date_time"`
-	Version                           types.Int32    `tfsdk:"version"`
 	DeviceEnrollmentConfigurationType types.String   `tfsdk:"device_enrollment_configuration_type"`
 	LocalizedNotificationMessages     types.Set      `tfsdk:"localized_notification_messages"`
 	Assignments                       types.Set      `tfsdk:"assignments"`

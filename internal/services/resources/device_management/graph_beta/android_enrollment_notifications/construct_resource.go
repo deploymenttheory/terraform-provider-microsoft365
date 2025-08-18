@@ -3,6 +3,7 @@ package graphBetaAndroidEnrollmentNotifications
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -11,7 +12,7 @@ import (
 )
 
 // constructResource maps the Terraform schema to the SDK model for Device Enrollment Notification Configuration.
-func constructResource(ctx context.Context, data *AndroidEnrollmentNotificationsResourceModel, isForCreate bool) (graphmodels.DeviceEnrollmentConfigurationable, error) {
+func constructResource(ctx context.Context, data *AndroidEnrollmentNotificationsResourceModel, isForCreate bool, currentTemplateGUIDs ...[]string) (graphmodels.DeviceEnrollmentConfigurationable, error) {
 	tflog.Debug(ctx, "Constructing DeviceEnrollmentNotificationConfiguration resource from Terraform state")
 
 	requestBody := graphmodels.NewDeviceEnrollmentNotificationConfiguration()
@@ -38,22 +39,48 @@ func constructResource(ctx context.Context, data *AndroidEnrollmentNotifications
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	// Transform notification template schema values to expected api format
+	// api expects email_00000000-0000-0000-0000-000000000000 and push_00000000-0000-0000-0000-000000000000 for
+	// create operations. Intune then updates the zero's to the actual template GUIDs.
+	// For update operations, you must use the actual template GUIDs else it causes a 400 error.
 	if !data.NotificationTemplates.IsNull() && !data.NotificationTemplates.IsUnknown() {
 		templateValues := make([]string, 0)
-		for _, templateType := range data.NotificationTemplates.Elements() {
-			templateTypeStr := templateType.String()
-			templateTypeStr = templateTypeStr[1 : len(templateTypeStr)-1]
 
-			switch templateTypeStr {
-			case "email":
-				templateValues = append(templateValues, "email_00000000-0000-0000-0000-000000000000")
-			case "push":
-				templateValues = append(templateValues, "push_00000000-0000-0000-0000-000000000000")
-			default:
-				return nil, fmt.Errorf("unsupported notification template type: %s", templateTypeStr)
+		if isForCreate {
+			// For create operations, use blank GUIDs. Intune will update the GUIDs to the actual template GUIDs.
+			for _, templateType := range data.NotificationTemplates.Elements() {
+				templateTypeStr := templateType.String()
+				templateTypeStr = templateTypeStr[1 : len(templateTypeStr)-1]
+
+				switch templateTypeStr {
+				case "email":
+					templateValues = append(templateValues, "email_00000000-0000-0000-0000-000000000000")
+				case "push":
+					templateValues = append(templateValues, "push_00000000-0000-0000-0000-000000000000")
+				default:
+					return nil, fmt.Errorf("unsupported notification template type: %s", templateTypeStr)
+				}
 			}
+		} else if len(currentTemplateGUIDs) > 0 {
+			// For update operations, use actual template GUIDs
+			planTemplateTypes := make(map[string]bool)
+			for _, templateType := range data.NotificationTemplates.Elements() {
+				templateTypeStr := templateType.String()
+				templateTypeStr = templateTypeStr[1 : len(templateTypeStr)-1] // Remove quotes
+				planTemplateTypes[templateTypeStr] = true
+			}
+
+			// Filter current template GUIDs to only include those specified in the plan
+			for _, currentTemplate := range currentTemplateGUIDs[0] {
+				if strings.Contains(strings.ToLower(currentTemplate), "email") && planTemplateTypes["email"] {
+					templateValues = append(templateValues, currentTemplate)
+				} else if strings.Contains(strings.ToLower(currentTemplate), "push") && planTemplateTypes["push"] {
+					templateValues = append(templateValues, currentTemplate)
+				}
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Using template GUIDs for update: %v", templateValues))
 		}
+
 		requestBody.SetNotificationTemplates(templateValues)
 	}
 

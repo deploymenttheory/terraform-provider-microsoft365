@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_device_management_windows_driver_update_profil
   display_name  = "Test Exclusion Assignment Windows Driver Update Profile - Unique"
   approval_type = "manual"
   description   = "Test description for driver update profile with exclusion assignment"
-  
+
   role_scope_tag_ids = ["0"]
 
   assignments = [

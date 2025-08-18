@@ -1,7 +1,7 @@
 resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "with_assignments" {
-  display_name  = "Unit Test - Android Enrollment Notifications with Assignments"
-  description   = "Configuration for unit testing with assignments"
-  platform_type = "androidForWork"
+  display_name   = "Unit Test - Android Enrollment Notifications with Assignments"
+  description    = "Configuration for unit testing with assignments"
+  platform_type  = "androidForWork"
   default_locale = "en-US"
 
   notification_templates = ["email", "push"]
@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_management_android_enrollment_notificat
       group_id = "12345678-1234-1234-1234-123456789abc"
     },
     {
-      type     = "allLicensedUsersAssignmentTarget"
+      type = "allLicensedUsersAssignmentTarget"
     }
   ]
 

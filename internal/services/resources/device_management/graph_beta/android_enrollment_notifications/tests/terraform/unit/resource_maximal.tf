@@ -3,20 +3,20 @@ resource "microsoft365_graph_beta_device_management_android_enrollment_notificat
   description      = "Complete configuration for unit testing with all features"
   platform_type    = "androidForWork"
   default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
+  branding_options = ["includeCompanyLogo"]
 
   notification_templates = ["email", "push"]
 
   localized_notification_messages = [
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Device Enrollment Required"
       message_template = "Please enroll your device to access corporate resources."
       is_default       = true
       template_type    = "email"
     },
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Device Enrollment"
       message_template = "Enroll your device now"
       is_default       = true

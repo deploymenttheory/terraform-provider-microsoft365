@@ -30,7 +30,9 @@ var _ mocks.MockRegistrar = (*AndroidEnrollmentNotificationsMock)(nil)
 
 func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.enrollmentNotifications = make(map[string]map[string]interface{})
+	if mockState.enrollmentNotifications == nil {
+		mockState.enrollmentNotifications = make(map[string]map[string]interface{})
+	}
 	mockState.Unlock()
 
 	// GET /deviceManagement/deviceEnrollmentConfigurations (list)
@@ -61,12 +63,17 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		mockState.Lock()
 		defer mockState.Unlock()
 
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/create_android_enrollment_notifications.json")
+		// Ensure map is initialized
+		if mockState.enrollmentNotifications == nil {
+			mockState.enrollmentNotifications = make(map[string]map[string]interface{})
+		}
+
+		jsonStr, _ := helpers.ParseJSONFile("tests/responses/validate_create/create_android_enrollment_notifications.json")
 		var responseObj map[string]interface{}
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Generate a new ID for the created resource
-		newID := uuid.New().String()
+		newID := uuid.New().String() + "_EnrollmentNotificationsConfiguration"
 		responseObj["id"] = newID
 
 		// Parse request body to get the actual values
@@ -79,6 +86,29 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		}
 		if description, ok := requestBody["description"].(string); ok {
 			responseObj["description"] = description
+		}
+		if platformType, ok := requestBody["platformType"].(string); ok {
+			responseObj["platformType"] = platformType
+		}
+		if defaultLocale, ok := requestBody["defaultLocale"].(string); ok {
+			responseObj["defaultLocale"] = defaultLocale
+		}
+
+		// Simulate API behavior: convert placeholder template GUIDs to actual ones
+		if notificationTemplates, ok := requestBody["notificationTemplates"].([]interface{}); ok {
+			actualTemplates := make([]string, 0, len(notificationTemplates))
+			for _, template := range notificationTemplates {
+				if templateStr, ok := template.(string); ok {
+					if strings.Contains(templateStr, "email_00000000") {
+						actualTemplates = append(actualTemplates, "Email_"+uuid.New().String())
+					} else if strings.Contains(templateStr, "push_00000000") {
+						actualTemplates = append(actualTemplates, "Push_"+uuid.New().String())
+					} else {
+						actualTemplates = append(actualTemplates, templateStr)
+					}
+				}
+			}
+			responseObj["notificationTemplates"] = actualTemplates
 		}
 
 		// Store in mock state
@@ -170,7 +200,16 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		mockState.Lock()
 		defer mockState.Unlock()
 
-		if _, exists := mockState.enrollmentNotifications[id]; exists {
+		if resource, exists := mockState.enrollmentNotifications[id]; exists {
+			// Parse the assignment request body
+			var assignmentBody map[string]interface{}
+			_ = json.NewDecoder(req.Body).Decode(&assignmentBody)
+			
+			// Store assignments in the resource (use a special key to avoid conflicts)
+			if assignments, ok := assignmentBody["enrollmentConfigurationAssignments"].([]interface{}); ok {
+				resource["_assignments"] = assignments
+			}
+			
 			return httpmock.NewStringResponse(200, ""), nil
 		}
 
@@ -187,15 +226,67 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		return httpmock.NewStringResponse(200, ""), nil
 	})
 
-	// POST /deviceManagement/notificationMessageTemplates/{id}/localizedNotificationMessages (localized messages)
+	// GET /deviceManagement/deviceEnrollmentConfigurations/{id}/assignments (get assignments)
+	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/([^/]+)/assignments$`), func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-2]
+
+		mockState.Lock()
+		defer mockState.Unlock()
+
+		if resource, exists := mockState.enrollmentNotifications[id]; exists {
+			// Check if this resource has assignments by looking at the stored assignments
+			if assignments, hasAssignments := resource["_assignments"]; hasAssignments {
+				return httpmock.NewJsonResponse(200, map[string]interface{}{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceEnrollmentConfigurations('" + id + "')/assignments",
+					"value":          assignments,
+				})
+			}
+		}
+
+		// Return empty assignments if none exist
+		return httpmock.NewJsonResponse(200, map[string]interface{}{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceEnrollmentConfigurations('" + id + "')/assignments",
+			"value":          []interface{}{},
+		})
+	})
+
+	// GET /deviceManagement/notificationMessageTemplates/{id}/localizedNotificationMessages (get localized messages for update)
+	httpmock.RegisterRegexpResponder("GET", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/([^/]+)/localizedNotificationMessages$`), func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		templateId := parts[len(parts)-2]
+		
+		return httpmock.NewJsonResponse(200, map[string]interface{}{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates('" + templateId + "')/localizedNotificationMessages",
+			"value": []map[string]interface{}{
+				{
+					"id":              templateId + "_en-us",
+					"locale":          "en-us",
+					"subject":         "Test Subject",
+					"messageTemplate": "Test Message",
+					"isDefault":       true,
+				},
+			},
+		})
+	})
+
+	// POST /deviceManagement/notificationMessageTemplates/{id}/localizedNotificationMessages (create localized messages)
 	httpmock.RegisterRegexpResponder("POST", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/([^/]+)/localizedNotificationMessages$`), func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		templateId := parts[len(parts)-2]
+		
 		return httpmock.NewJsonResponse(201, map[string]interface{}{
-			"id":              uuid.New().String(),
-			"locale":          "en-US",
+			"id":              templateId + "_en-us",
+			"locale":          "en-us",
 			"subject":         "Test Subject",
 			"messageTemplate": "Test Message",
 			"isDefault":       true,
 		})
+	})
+
+	// PATCH /deviceManagement/notificationMessageTemplates/{templateId}/localizedNotificationMessages/{messageId} (update localized messages)
+	httpmock.RegisterRegexpResponder("PATCH", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/([^/]+)/localizedNotificationMessages/([^/]+)$`), func(req *http.Request) (*http.Response, error) {
+		return httpmock.NewStringResponse(204, ""), nil
 	})
 }
 
@@ -245,5 +336,11 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterErrorMocks() {
 func (m *AndroidEnrollmentNotificationsMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
+	if mockState.enrollmentNotifications != nil {
+		for k := range mockState.enrollmentNotifications {
+			delete(mockState.enrollmentNotifications, k)
+		}
+	}
 	mockState.enrollmentNotifications = make(map[string]map[string]interface{})
+	httpmock.Reset()
 }

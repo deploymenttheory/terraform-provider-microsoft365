@@ -1,6 +1,6 @@
 {
   "@odata.type": "#microsoft.graph.deviceEnrollmentNotificationConfiguration",
-  "id": "12345678-1234-1234-1234-123456789012",
+  "id": "12345678-1234-1234-1234-123456789012_EnrollmentNotificationsConfiguration",
   "displayName": "Unit Test - Android Enrollment Notifications",
   "description": "Minimal configuration for unit testing",
   "priority": 1,
@@ -13,11 +13,10 @@
   "platformType": "androidForWork",
   "defaultLocale": "en-US",
   "notificationTemplates": [
-    "email_00000000-0000-0000-0000-000000000000",
-    "push_00000000-0000-0000-0000-000000000000"
+    "Email_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "Push_f7e6d5c4-b3a2-1098-7654-321fedcba987"
   ],
   "roleScopeTagIds": [
     "0"
-  ],
-  "assignments": []
+  ]
 }

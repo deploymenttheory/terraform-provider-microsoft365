@@ -505,8 +505,27 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 	}
 	defer cancel()
 
-	// Step 1: Update the base enrollment notification configuration
-	requestBody, err := constructResource(ctx, &plan, false)
+	// Step 1: Get current resource to extract existing notification template GUIDs
+	currentResource, err := r.client.
+		DeviceManagement().
+		DeviceEnrollmentConfigurations().
+		ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleGraphError(ctx, err, resp, "Read current resource for update", r.ReadPermissions)
+		return
+	}
+
+	// Extract current notification templates to preserve actual GUIDs
+	var currentNotificationTemplates []string
+	if currentEnrollmentConfig, ok := currentResource.(graphmodels.DeviceEnrollmentNotificationConfigurationable); ok {
+		currentNotificationTemplates = currentEnrollmentConfig.GetNotificationTemplates()
+		tflog.Debug(ctx, fmt.Sprintf("Current notification templates: %v", currentNotificationTemplates))
+	}
+
+	// Step 2: Update the base enrollment notification configuration with actual template GUIDs
+	requestBody, err := constructResource(ctx, &plan, false, currentNotificationTemplates)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update",
@@ -515,33 +534,28 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 		return
 	}
 
-	baseResource, err := r.client.
+	baseUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations/%s", state.ID.ValueString())
+	tflog.Debug(ctx, fmt.Sprintf("Performing PATCH request to update base resource: %s", baseUrl))
+
+	_, err = r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
+		tflog.Error(ctx, fmt.Sprintf("Failed PATCH request to: %s - Error: %s", baseUrl, err.Error()))
 		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Updated base resource: %s", state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Completed PATCH request to update base resource: %s", baseUrl))
 
-	// Step 2: Extract notification templates from the updated response
-	var notificationTemplates []string
-	if enrollmentNotificationConfig, ok := baseResource.(graphmodels.DeviceEnrollmentNotificationConfigurationable); ok {
-		notificationTemplates = enrollmentNotificationConfig.GetNotificationTemplates()
-		tflog.Debug(ctx, fmt.Sprintf("Retrieved notification templates: %v", notificationTemplates))
-	} else {
-		resp.Diagnostics.AddError(
-			"Error extracting notification templates",
-			fmt.Sprintf("Could not extract notification templates from response for %s", ResourceName),
-		)
-		return
-	}
+	// Step 3: Use the current notification templates (already retrieved in Step 1)
+	notificationTemplates := currentNotificationTemplates
+	tflog.Debug(ctx, fmt.Sprintf("Using current notification templates for localized message updates: %v", notificationTemplates))
 
-	// Step 3: Update localized notification messages for each template type if specified
+	// Step 4: Update localized notification messages for each template type if specified
 	if !plan.LocalizedNotificationMessages.IsNull() && !plan.LocalizedNotificationMessages.IsUnknown() {
 		tflog.Debug(ctx, "Updating localized notification messages")
 
@@ -571,8 +585,8 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 					continue
 				}
 
-				// Construct the localized notification message
-				messageRequestBody, err := constructLocalizedNotificationMessage(ctx, msg)
+				// Construct the localized notification message for update (exclude locale and isDefault)
+				messageRequestBody, err := constructLocalizedNotificationMessage(ctx, msg, true)
 				if err != nil {
 					resp.Diagnostics.AddError(
 						"Error constructing localized notification message",
@@ -605,18 +619,22 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 					RequestBody:       messageRequestBody,
 				}
 
+				localizedMessageUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/notificationMessageTemplates/%s/localizedNotificationMessages/%s", guidPart, messageId)
+				tflog.Debug(ctx, fmt.Sprintf("Performing custom PATCH request to update localized message: %s", localizedMessageUrl))
+
 				err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 				if err != nil {
+					tflog.Error(ctx, fmt.Sprintf("Failed custom PATCH request to: %s - Error: %s", localizedMessageUrl, err.Error()))
 					errors.HandleGraphError(ctx, err, resp, "Update localized message", r.WritePermissions)
 					return
 				}
 
-				tflog.Debug(ctx, fmt.Sprintf("Updated localized notification message for template %s", templateID))
+				tflog.Debug(ctx, fmt.Sprintf("Completed custom PATCH request to update localized message: %s", localizedMessageUrl))
 			}
 		}
 	}
 
-	// Step 4: Update branding options for the notification templates
+	// Step 5: Update branding options for the notification templates
 	brandingTemplate, err := constructBrandingOptions(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -638,7 +656,8 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 				guidPart = templateID
 			}
 
-			tflog.Debug(ctx, fmt.Sprintf("Updating branding options for template ID: %s", guidPart))
+			brandingUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/notificationMessageTemplates/%s", guidPart)
+			tflog.Debug(ctx, fmt.Sprintf("Performing PATCH request to update branding options: %s", brandingUrl))
 
 			time.Sleep(1 * time.Second) // Delay to avoid rate limiting
 
@@ -649,15 +668,16 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 				Patch(ctx, brandingTemplate, nil)
 
 			if err != nil {
+				tflog.Error(ctx, fmt.Sprintf("Failed PATCH request to: %s - Error: %s", brandingUrl, err.Error()))
 				errors.HandleGraphError(ctx, err, resp, "Update branding options", r.WritePermissions)
 				return
 			}
 
-			tflog.Debug(ctx, fmt.Sprintf("Successfully updated branding options for template %s", guidPart))
+			tflog.Debug(ctx, fmt.Sprintf("Completed PATCH request to update branding options: %s", brandingUrl))
 		}
 	}
 
-	// Step 5: Update assignments if specified
+	// Step 6: Update assignments if specified
 	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
 		assignmentRequestBody, err := constructAssignments(ctx, &plan)
 		if err != nil {
@@ -668,6 +688,9 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 			return
 		}
 
+		assignmentUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations/%s/assign", state.ID.ValueString())
+		tflog.Debug(ctx, fmt.Sprintf("Performing POST request to update assignments: %s", assignmentUrl))
+
 		err = r.client.
 			DeviceManagement().
 			DeviceEnrollmentConfigurations().
@@ -676,11 +699,12 @@ func (r *AndroidEnrollmentNotificationsResource) Update(ctx context.Context, req
 			Post(ctx, assignmentRequestBody, nil)
 
 		if err != nil {
+			tflog.Error(ctx, fmt.Sprintf("Failed POST request to: %s - Error: %s", assignmentUrl, err.Error()))
 			errors.HandleGraphError(ctx, err, resp, "Update assignments", r.WritePermissions)
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Successfully updated assignments for configuration %s", state.ID.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("Completed POST request to update assignments: %s", assignmentUrl))
 	}
 
 	// Set the plan state and call Read to get the latest state from API
