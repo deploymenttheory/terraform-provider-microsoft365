@@ -14,11 +14,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupMockEnvironment() (*platformScriptMocks.MacOSPlatformScriptMock, *platformScriptMocks.MacOSPlatformScriptMock) {
 	httpmock.Activate()
 	mock := &platformScriptMocks.MacOSPlatformScriptMock{}
@@ -63,7 +58,7 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 
 	// Replace the resource name
 	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-	
+
 	// Fix the display name to match test expectations
 	updated = strings.Replace(updated, "Test Maximal macOS Platform Script - Unique", "Test Maximal macOS Platform Script", 1)
 

@@ -12,11 +12,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupMockEnvironment() (*cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock, *cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock) {
 	httpmock.Activate()
 	mock := &cloudPcOrganizationSettingsMocks.CloudPcOrganizationSettingsMock{}

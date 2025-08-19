@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.macOSTrustedRootCertificate",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/$entity",
+  "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "displayName": "unit-test-macOS-trusted-root-certificate-example",
+  "description": "Install company root certificate for secure connections",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTagIds": ["00000000-0000-0000-0000-000000000001"],
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "supportsScopeTags": true,
+  "deploymentChannel": "deviceChannel",
+  "certFileName": "MicrosoftRootCertificateAuthority2011.cer",
+  "trustedRootCertificate": "MIIEEjCCAvqgAwIBAgIHByK+5eegAAIwDQYJKoZIhvcNAQELBQAwgYsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQHDAdSZWRtb25kMR4wHAYDVQQKDBVNaWNyb3NvZnQgQ29ycG9yYXRpb24xNTAzBgNVBAMMLEZvcnRlc3QgVGVzdCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0eSAyMDEwMB4XDTEwMDQwNzIyNDYzMFoXDTMwMDQwNzIyNTYzMFowgYsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQHDAdSZWRtb25kMR4wHAYDVQQKDBVNaWNyb3NvZnQgQ29ycG9yYXRpb24xNTAzBgNVBAMMLEZvcnRlc3QgVGVzdCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0eSAyMDEwMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwUdHPiQnlDCtmBxPMP2PiIxXBSuLMYUzDQ9GiKKF8/PibM1NG+8j+Dqy4bKnqZj4qEQpF8jYWF9NkV6JF8Kv5+OPKO0RMFD9+gx9n3tN0ZBZ9V0LGfmUyrmk5aQJ0LB9hGMuJ8JXV5L2r3Sd7EiS/qPmO3WMHo3lzRWOoYmwUt7eN/qR3mLxNvUxKQ9J+V6L/7FqNJzaHo0wW3mKON5kx7XlGjPnmVZL8p9zqFJuYlztT8yxOYgT0U2yzK+CgN7sLq8wz3AJ6T7F7bnzpP0oZwzHlc+4W7fzz8YfgT5Q6BKqTWlTqLJqTyP9VrUYU6WoG8I/uI2zwJIXUzTWEHYzGQIDAQABo1AwTjAdBgNVHQ4EFgQUhufq/w3nPOzHa0SWME+DYG8OJ7kwHwYDVR0jBBgwFoAUhufq/w3nPOzHa0SWME+DYG8OJ7kwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAFoQ6p9HiJt7V7Mh8WcUyt6RUUiS0Tz9XyS1VTQMG2N4QXDLx6wEp8N2q+DnMJ3hUJ8K5bYOQGj3xFrZ1nIGoQ1Vy2jFX/uM7iUON2P4qR5s1J4L3wLk3qN6jJy5+nOJN3Mq2/tQS8G8mQ1M9h5Y0yF5XQ8hE7Y3w8kY3uLCcW5dE4F3gqrQH5n7+N8S5zq3Rm7z4J5Q6QZKqF9N0wLq2WqJ7z4Zp6QzXnUqF1X+4uF2A6U7gNqIH5f5oN0pEr4P9dOJX0A1aX1nFv7XQsXF5KQJ7lE5aN3Y3o9Q1z3s3z3E5YkI9dF5I6q4x9I8U1K6q6Ks0LHfv9K4q3F8KGwAAAA=="
+}

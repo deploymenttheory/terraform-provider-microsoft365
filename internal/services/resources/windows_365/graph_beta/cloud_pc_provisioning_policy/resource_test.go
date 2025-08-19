@@ -14,11 +14,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupMockEnvironment() (*provisioningPolicyMocks.CloudPcProvisioningPolicyMock, *provisioningPolicyMocks.CloudPcProvisioningPolicyMock) {
 	httpmock.Activate()
 	mock := &provisioningPolicyMocks.CloudPcProvisioningPolicyMock{}
@@ -63,7 +58,7 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 
 	// Replace the resource name
 	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-	
+
 	// Fix the display name to match test expectations
 	updated = strings.Replace(updated, "Test Maximal Provisioning Policy - Unique", "Test Maximal Provisioning Policy", 1)
 

@@ -13,11 +13,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupUnitTestEnvironment() {
 	// Set environment variables for testing
 	os.Setenv("TF_ACC", "0")

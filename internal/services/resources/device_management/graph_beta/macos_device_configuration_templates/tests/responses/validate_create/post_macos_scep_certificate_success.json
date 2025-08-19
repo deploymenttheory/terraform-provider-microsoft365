@@ -1,0 +1,67 @@
+{
+  "@odata.type": "#microsoft.graph.macOSScepCertificateProfile",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/$entity",
+  "id": "ffffffff-eeee-dddd-cccc-bbbbbbbbbbbb",
+  "displayName": "unit-test-macOS-scep-certificate-example",
+  "description": "SCEP certificate profile for device authentication",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTagIds": ["00000000-0000-0000-0000-000000000001"],
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "supportsScopeTags": true,
+  "deploymentChannel": "deviceChannel",
+  "renewalThresholdPercentage": 20,
+  "certificateStore": "machine",
+  "certificateValidityPeriodScale": "years",
+  "certificateValidityPeriodValue": 2,
+  "subjectNameFormat": "custom",
+  "subjectNameFormatString": "CN={{DeviceName}},O=Example Corp,C=US",
+  "rootCertificate": {
+    "@odata.id": "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('87654321-4321-4321-4321-210987654321')"
+  },
+  "keySize": "size2048",
+  "keyUsage": ["digitalSignature", "keyEncipherment"],
+  "customSubjectAlternativeNames": [
+    {
+      "sanType": "userPrincipalName",
+      "name": "some-upn"
+    },
+    {
+      "sanType": "emailAddress",
+      "name": "some-email"
+    },
+    {
+      "sanType": "domainNameService",
+      "name": "some-dns"
+    },
+    {
+      "sanType": "universalResourceIdentifier",
+      "name": "some-uri"
+    }
+  ],
+  "extendedKeyUsages": [
+    {
+      "name": "Any Purpose",
+      "objectIdentifier": "2.5.29.37.0"
+    },
+    {
+      "name": "Client Authentication",
+      "objectIdentifier": "1.3.6.1.5.5.7.3.2"
+    },
+    {
+      "name": "Secure Email",
+      "objectIdentifier": "1.3.6.1.5.5.7.3.4"
+    },
+    {
+      "name": "custom",
+      "objectIdentifier": "7.01.4"
+    }
+  ],
+  "scepServerUrls": [
+    "https://something.com",
+    "https://something2.com"
+  ],
+  "allowAllAppsAccess": true
+}

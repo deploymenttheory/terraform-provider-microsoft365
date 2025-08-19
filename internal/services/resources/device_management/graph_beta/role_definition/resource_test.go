@@ -12,11 +12,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupUnitTestEnvironment() {
 	// Set environment variables for testing
 	os.Setenv("TF_ACC", "0")
@@ -38,7 +33,6 @@ func setupMockEnvironment() (*mocks.Mocks, *roleDefinitionMocks.RoleDefinitionMo
 
 	return mockClient, roleDefinitionMock
 }
-
 
 // testCheckExists is a basic check to ensure the resource exists in the state
 func testCheckExists(resourceName string) resource.TestCheckFunc {
@@ -62,7 +56,6 @@ func testConfigMaximal() string {
 	}
 	return string(content)
 }
-
 
 // TestRoleDefinitionResource_Schema validates the resource schema
 func TestRoleDefinitionResource_Schema(t *testing.T) {

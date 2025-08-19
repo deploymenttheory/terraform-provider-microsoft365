@@ -14,11 +14,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupMockEnvironment() (*cloudPcDeviceImageMocks.CloudPcDeviceImageMock, *cloudPcDeviceImageMocks.CloudPcDeviceImageMock) {
 	httpmock.Activate()
 	mock := &cloudPcDeviceImageMocks.CloudPcDeviceImageMock{}
