@@ -1,0 +1,9 @@
+{
+  "@odata.type": "#microsoft.graph.notificationMessageTemplate",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates/$entity",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "Email Template",
+  "brandingOptions": "none",
+  "defaultLocale": "en-US",
+  "localizedNotificationMessages": []
+}

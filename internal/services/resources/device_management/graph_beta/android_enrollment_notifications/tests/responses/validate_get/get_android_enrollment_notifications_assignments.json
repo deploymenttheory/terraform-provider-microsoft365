@@ -1,0 +1,15 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceEnrollmentConfigurations('11111111-1111-1111-1111-111111111111')/assignments",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.enrollmentConfigurationAssignment",
+      "id": "33333333-3333-3333-3333-333333333333",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "deviceAndAppManagementAssignmentFilterId": null,
+        "deviceAndAppManagementAssignmentFilterType": "none",
+        "groupId": "00000000-0000-0000-0000-000000000001"
+      }
+    }
+  ]
+}

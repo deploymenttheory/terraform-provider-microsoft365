@@ -9,11 +9,11 @@
 - AndroidManagedStoreAppConfigurationSchemas
 - ApplePushNotificationCertificate
 - AppleUserInitiatedEnrollmentProfiles
-- AssignmentFilters
+- AssignmentFilters [Done]
 - AuditEvents
 - AutopilotEvents
 - CartToClassAssociations
-- Categories
+- Categories [Done]
 - CertificateConnectorDetails
 - ChromeOSOnboardingSettings
 - CloudCertificationAuthority
@@ -23,35 +23,35 @@
 - ComanagementEligibleDevices
 - ComplianceCategories
 - ComplianceManagementPartners
-- CompliancePolicies
-- ComplianceSettings
+- CompliancePolicies 
+- ComplianceSettings 
 - ConditionalAccessSettings
 - ConfigManagerCollections
 - ConfigurationCategories
-- ConfigurationPolicies
-- ConfigurationPolicyTemplates
-- ConfigurationSettings
+- ConfigurationPolicies [Done]
+- ConfigurationPolicyTemplates [Done]
+- ConfigurationSettings [Done]
 - DataSharingConsents
 - DepOnboardingSettings
 - DerivedCredentials
 - DetectedApps
 - DeviceCategories
-- DeviceCompliancePolicies
+- DeviceCompliancePolicies [Done]
 - DeviceCompliancePolicyDeviceStateSummary
 - DeviceCompliancePolicySettingStateSummaries
-- DeviceComplianceScripts
+- DeviceComplianceScripts [Done]
 - DeviceConfigurationConflictSummary
 - DeviceConfigurationDeviceStateSummaries
 - DeviceConfigurationRestrictedAppsViolations
 - DeviceConfigurations
 - DeviceConfigurationsAllManagedDeviceCertificateStates
 - DeviceConfigurationUserStateSummaries
-- DeviceCustomAttributeShellScripts
+- DeviceCustomAttributeShellScripts [Done]
 - DeviceEnrollmentConfigurations
-- DeviceHealthScripts
+- DeviceHealthScripts [Done]
 - DeviceManagementPartners
-- DeviceManagementScripts
-- DeviceShellScripts
+- DeviceManagementScripts [Done]
+- DeviceShellScripts [Done]
 - DomainJoinConnectors
 - ElevationRequests
 - EmbeddedSIMActivationCodePools
@@ -86,10 +86,10 @@
 - ImportedDeviceIdentities
 - ImportedWindowsAutopilotDeviceIdentities
 - Intents
-- IntuneBrandingProfiles
+- IntuneBrandingProfiles [WIP]
 - IosUpdateStatuses
 - MacOSSoftwareUpdateAccountSummaries
-- ManagedDeviceCleanupRules
+- ManagedDeviceCleanupRules [WIP] - broken removals
 - ManagedDeviceEncryptionStates
 - ManagedDeviceOverview
 - ManagedDevices
@@ -116,8 +116,8 @@
 - ReusablePolicySettings
 - ReusableSettings
 - RoleAssignments
-- RoleDefinitions - Complete
-- RoleScopeTags - Complete
+- RoleDefinitions [Done]
+- RoleScopeTags [Done]
 - ScopedForResourceWithResource
 - SendCustomNotificationToCompanyPortal
 - ServiceNowConnections
@@ -128,7 +128,7 @@
 - Templates
 - TemplateSettings
 - TenantAttachRBAC
-- TermsAndConditions
+- TermsAndConditions [Done]
 - TroubleshootingEvents
 - UserExperienceAnalyticsAnomaly
 - UserExperienceAnalyticsAnomalyCorrelationGroupOverview
@@ -182,14 +182,14 @@
 - WindowsAutopilotDeploymentProfiles
 - WindowsAutopilotDeviceIdentities
 - WindowsAutopilotSettings
-- WindowsDriverUpdateProfiles - Complete
-- WindowsFeatureUpdateProfiles - Complete
+- WindowsDriverUpdateProfiles [Done]
+- WindowsFeatureUpdateProfiles [Done]
 - WindowsInformationProtectionAppLearningSummaries
 - WindowsInformationProtectionNetworkLearningSummaries
 - WindowsMalwareInformation
-- WindowsQualityUpdatePolicies - Complete
-- WindowsQualityUpdateProfiles - Complete
-- WindowsUpdateCatalogItems
+- WindowsQualityUpdatePolicies [Done]
+- WindowsQualityUpdateProfiles [Done]
+- WindowsUpdateCatalogItems [Done]
 - ZebraFotaArtifacts
 - ZebraFotaConnector
 - ZebraFotaDeployments
