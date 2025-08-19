@@ -2,7 +2,6 @@ package graphBetaWindowsFeatureUpdateProfile_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -12,11 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
-
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
 
 func setupMockEnvironment() (*mocks.Mocks, *featureMocks.WindowsFeatureUpdateProfileMock) {
 	httpmock.Activate()
@@ -155,7 +149,7 @@ func TestWindowsFeatureUpdateProfileResource_AllFeatureUpdateVersions(t *testing
 
 	featureVersions := []string{
 		"Windows 11, version 24H2",
-		"Windows 11, version 23H2", 
+		"Windows 11, version 23H2",
 		"Windows 11, version 22H2",
 		"Windows 10, version 22H2",
 	}
@@ -202,7 +196,6 @@ func testConfigMinimal() string {
 	}
 	return unitTestConfig
 }
-
 
 func testConfigScheduledRollout() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_gradual_rollout.tf")

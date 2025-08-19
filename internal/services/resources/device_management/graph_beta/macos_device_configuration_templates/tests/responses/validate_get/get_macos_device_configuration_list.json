@@ -1,0 +1,46 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
+  "@odata.count": 5,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.macOSCustomConfiguration",
+      "id": "12345678-1234-1234-1234-123456789012",
+      "displayName": "unit-test-macOS-custom-configuration-example",
+      "description": "Example custom configuration template for macOS devices",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.macOSCustomAppConfiguration",
+      "id": "87654321-4321-4321-4321-210987654321",
+      "displayName": "unit-test-macOS-preference-file-example",
+      "description": "Configure Safari browser settings via preference file",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.macOSTrustedRootCertificate",
+      "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "displayName": "unit-test-macOS-trusted-root-certificate-example",
+      "description": "Install company root certificate for secure connections",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.macOSScepCertificateProfile",
+      "id": "ffffffff-eeee-dddd-cccc-bbbbbbbbbbbb",
+      "displayName": "unit-test-macOS-scep-certificate-example",
+      "description": "SCEP certificate profile for device authentication",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.macOSPkcsCertificateProfile",
+      "id": "11111111-2222-3333-4444-555555555555",
+      "displayName": "unit-test-macOS-pkcs-certificate-example",
+      "description": "PKCS certificate profile for user authentication",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    }
+  ]
+}

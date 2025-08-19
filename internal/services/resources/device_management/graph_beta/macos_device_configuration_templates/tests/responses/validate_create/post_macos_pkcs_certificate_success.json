@@ -1,0 +1,51 @@
+{
+  "@odata.type": "#microsoft.graph.macOSPkcsCertificateProfile",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/$entity",
+  "id": "11111111-2222-3333-4444-555555555555",
+  "displayName": "unit-test-macOS-pkcs-certificate-example",
+  "description": "PKCS certificate profile for user authentication",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTagIds": ["00000000-0000-0000-0000-000000000001"],
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "supportsScopeTags": true,
+  "deploymentChannel": "userChannel",
+  "renewalThresholdPercentage": 30,
+  "certificateStore": "user",
+  "certificateValidityPeriodScale": "months",
+  "certificateValidityPeriodValue": 12,
+  "subjectNameFormat": "commonNameIncludingEmail",
+  "subjectNameFormatString": "CN={{UserName}},E={{EmailAddress}},O=Example Corp",
+  "certificationAuthority": "ExampleCA\\ExampleCA-CA",
+  "certificationAuthorityName": "ExampleCA-CA",
+  "certificateTemplateName": "UserAuthentication",
+  "customSubjectAlternativeNames": [
+    {
+      "sanType": "emailAddress",
+      "name": "some-email"
+    },
+    {
+      "sanType": "userPrincipalName",
+      "name": "some-upn"
+    },
+    {
+      "sanType": "domainNameService",
+      "name": "some-dns"
+    },
+    {
+      "sanType": "universalResourceIdentifier",
+      "name": "some-uri"
+    },
+    {
+      "sanType": "customAzureADAttribute",
+      "name": "some-custom-att"
+    },
+    {
+      "sanType": "emailAddress",
+      "name": "some-other-email"
+    }
+  ],
+  "allowAllAppsAccess": true
+}

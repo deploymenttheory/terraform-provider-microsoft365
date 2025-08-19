@@ -14,11 +14,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 func setupMockEnvironment() (*cloudPcAlertRuleMocks.CloudPcAlertRuleMock, *cloudPcAlertRuleMocks.CloudPcAlertRuleMock) {
 	httpmock.Activate()
 	mock := &cloudPcAlertRuleMocks.CloudPcAlertRuleMock{}

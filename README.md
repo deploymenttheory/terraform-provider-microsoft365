@@ -1,5 +1,7 @@
 # Community Terraform Provider for Microsoft 365
 
+[![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
+
 The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Microsoft Intune](https://www.microsoft.com/en-us/security/business/endpoint-management/microsoft-intune), [Microsoft 365](https://www.microsoft.com/en-us/microsoft-365), [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software), and [Microsoft Defender](https://www.microsoft.com/en-us/security/business/microsoft-defender).
 
 > [!WARNING]
@@ -10,12 +12,6 @@ The community Microsoft 365 Terraform Provider allows managing environments and 
 > This is a community-driven project and is not officially supported by Microsoft.
 > If you need help, want to ask questions, or connect with other users and contributors, join our community
 > [Discord](https://discord.gg/Uq8zG6g7WE)
-
-## Code Coverage
-
-The code coverage for the terraform provider is available on Codecov.
-
-[![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
 
 ## Overview
 
@@ -62,6 +58,41 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 - **Proxy and Network Configuration**: Allows configuration of HTTP proxy settings, custom user agents, request timeouts, and retry/redirect/compression policies.
 - **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
 - **Microsoft Graph SDK Adoption**: The provider leverages the Microsoft Graph API through the Kiota-generated graphSDKs, allowing for a strongly typed development experience.
+
+## Project Status in light of terraform-provider-msgraph
+
+In July 2025 microsoft released the [terraform-provider-msgraph](https://github.com/hashicorp/terraform-provider-msgraph) partner provider. This provider is developed by Microsoft and is the official provider for Microsoft Graph API. However there are some distinct differences between the two projects and the approaches taken for interacting with Microsoft M365.
+
+### Scope
+
+This projects aim and scope is to cover all aspects of Microsoft 365 workloads including:
+
+- msgraph
+- teams.microsoft.com
+- exchange.microsoft.com
+- sharepointonline.com
+- security.microsoft.com
+- undocumented api endpoints / related microsoft microservices
+- utilities for handing metadata useful for resource lifecycle creation and lifecycle
+
+Out of scope for this project are:
+
+- entra ID (it's managed by the azureAD provider)
+- operations taken by a secondary service upon primary service (e.g. defining security configuration for managed devices via Defender for Endpoint. When intune handles it.)
+
+As such the scope is broader than the terraform-provider-msgraph provider.
+
+### Api Interactions
+
+The terraform-provider-msgraph provider uses a thin wrapper around the Microsoft Graph API directly. This provider uses the Kiota-generated graphSDKs built from microsofts schema to interact with the Microsoft Graph API.
+
+For other api's (or when the sdk doesn't have a resource) the provider uses the REST API directly via custom requests instead.
+
+Additionally, this provider allows for the use of multiple api calls per CRUD operation. This means that for complex resources, which can require multiple api calls to create/ update and then to read the resource in it's entirety for stating, can be handled end to end and abstracted away from the user by the provider. This approach seeks to mimick gui operations, in a predictable manner, without requiring the user to know or understand the underlying api calls and their intricacies. It also means that additional tf modules are less necessary to handle complex resources using this approach. However, for simple resources, the terraform-provider-msgraph provider may be an equally valid choice.
+
+### Support
+
+One of the primary distinctions between the two providers is that the support for the terraform-provider-msgraph provider is provided by Microsoft. This provider is community supported and is not officially supported by Microsoft. Depending on your use case, and the support you require, this may be a consideration in your choice of provider. However, there's nothing to stop a tf configuration containing both depending on your use case.
 
 ## Community Contributions
 

@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.macOSCustomAppConfiguration",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/$entity",
+  "id": "87654321-4321-4321-4321-210987654321",
+  "displayName": "unit-test-macOS-preference-file-example",
+  "description": "Configure Safari browser settings via preference file",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTagIds": ["00000000-0000-0000-0000-000000000001"],
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "supportsScopeTags": true,
+  "bundleId": "com.apple.Safari",
+  "fileName": "com.apple.Safari.plist",
+  "configurationXml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHBsaXN0IFBVQkxJQyAiLS8vQXBwbGUvL0RURCBQTElTVCAxLjAvL0VOIiAiaHR0cDovL3d3dy5hcHBsZS5jb20vRFREcy9Qcm9wZXJ0eUxpc3QtMS4wLmR0ZCI+CjxwbGlzdCB2ZXJzaW9uPSIxLjAiPgo8ZGljdD4KICAgIDxrZXk+SG9tZVBhZ2U8L2tleT4KICAgIDxzdHJpbmc+aHR0cHM6Ly93d3cuZXhhbXBsZS5jb208L3N0cmluZz4KICAgIDxrZXk+QXV0b09wZW5TYWZlRG93bmxvYWRzPC9rZXk+CiAgICA8ZmFsc2UvPgogICAgPGtleT5EZWZhdWx0QnJvd3NlclByb21wdGluZ1N0YXRlPC9rZXk+CiAgICA8aW50ZWdlcj4yPC9pbnRlZ2VyPgo8L2RpY3Q+CjwvcGxpc3Q+Cg=="
+}

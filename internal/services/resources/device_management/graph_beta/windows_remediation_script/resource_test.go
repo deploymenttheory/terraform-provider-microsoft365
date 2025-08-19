@@ -1,7 +1,6 @@
 package graphBetaWindowsRemediationScript_test
 
 import (
-	"os"
 	"regexp"
 	"testing"
 
@@ -11,11 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
-
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
 
 // setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *windowsRemediationScriptMocks.WindowsRemediationScriptMock) {

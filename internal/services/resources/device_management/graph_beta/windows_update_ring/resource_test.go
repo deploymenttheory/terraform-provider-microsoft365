@@ -12,11 +12,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
 // setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *windowsUpdateRingMocks.WindowsUpdateRingMock) {
 	// Activate httpmock
