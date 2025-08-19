@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -90,6 +90,11 @@ func (r *AndroidEnrollmentNotificationsResource) Configure(ctx context.Context, 
 // ImportState imports the resource state.
 func (r *AndroidEnrollmentNotificationsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+	// Set a default value for branding_options since it's a required field for requests, but
+	// it's not returned returned by any api resp.
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("branding_options"),
+		types.SetValueMust(types.StringType, []attr.Value{types.StringValue("none")}))...)
 }
 
 // Schema defines the schema for the resource.
@@ -144,10 +149,11 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 				},
 			},
 			"branding_options": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails",
+				ElementType: types.StringType,
+				Required:    true,
+				MarkdownDescription: "The branding options for the message template. Possible values are: none, " +
+					"includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, " +
+					"includeDeviceDetails. Defaults to ['none'].",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(stringvalidator.OneOf(
 						"none",
@@ -158,7 +164,6 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 						"includeDeviceDetails",
 					)),
 				},
-				Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{types.StringValue("none")})),
 			},
 			"notification_templates": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -176,6 +181,7 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("email"), types.StringValue("push")},
 					),
+					setplanmodifier.RequiresReplace(),
 				},
 			},
 			"priority": schema.Int32Attribute{
@@ -187,7 +193,7 @@ func (r *AndroidEnrollmentNotificationsResource) Schema(ctx context.Context, _ r
 				MarkdownDescription: "The type of device enrollment configuration.",
 			},
 			"localized_notification_messages": schema.SetNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "The localized notification messages for the configuration.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

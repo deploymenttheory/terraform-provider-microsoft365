@@ -28,33 +28,100 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "example" {
-  display_name   = "Android Enrollment Notifications"
-  description    = "Android Enrollment Notification example"
-  platform_type  = "androidForWork" // Options are: "androidForWork" , "android"
-  default_locale = "en-US"          // This is the default locale for the notification messages.
-  branding_options = [              // These branding optional apply to email notifications only.
-    "includeCompanyLogo",
+resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "email_minimal" {
+  display_name     = "email minimal"
+  description      = "minimal configuration for email"
+  platform_type    = "androidForWork" // "androidForWork" , "android"
+  default_locale   = "en-US"
+  branding_options = ["none"]
+
+  notification_templates = ["email"]
+
+  localized_notification_messages = [
+    {
+      locale           = "en-us"
+      subject          = "Device Enrollment Required"
+      message_template = "Please enroll your device into Intune using the Company Portal to access corporate resources."
+      is_default       = true
+      template_type    = "email"
+    },
+  ]
+
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    }
+  ]
+
+  role_scope_tag_ids = ["0", "1"]
+
+  timeouts = {
+    create = "10m"
+    read   = "5m"
+    update = "10m"
+    delete = "5m"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "email_maximal" {
+  display_name   = "email maximal"
+  description    = "Complete configuration withall features"
+  platform_type  = "androidForWork" // "androidForWork" , "android"
+  default_locale = "en-US"
+  branding_options = ["includeCompanyLogo",
     "includeCompanyName",
     "includeCompanyPortalLink",
     "includeContactInformation",
     "includeDeviceDetails"
   ]
 
-  notification_templates = ["email", "push"]
+  notification_templates = ["email"]
 
   localized_notification_messages = [
-    // Optional localized notification messages.
-    // These need to match the notification templates defined.
     {
-      locale           = "en-us" // should match the default_locale but be in lowercase
+      locale           = "en-us"
       subject          = "Device Enrollment Required"
       message_template = "Please enroll your device into Intune using the Company Portal to access corporate resources."
       is_default       = true
       template_type    = "email"
     },
+  ]
+
+  assignments = [
     {
-      locale           = "en-us" // should match the default_locale but be in lowercase
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    }
+  ]
+
+  role_scope_tag_ids = ["0", "1"]
+
+  timeouts = {
+    create = "10m"
+    read   = "5m"
+    update = "10m"
+    delete = "5m"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "push_maximal" {
+  display_name           = "push maximal"
+  description            = "Complete push configuration"
+  platform_type          = "androidForWork" // "androidForWork" , "android"
+  default_locale         = "en-US"
+  branding_options       = ["none"] // no branding options for push
+  notification_templates = ["push"]
+
+  localized_notification_messages = [
+    {
+      locale           = "en-us"
       subject          = "Device Enrollment Required"
       message_template = "Please enroll your device into Intune using the Company Portal to access corporate resources."
       is_default       = true
@@ -65,14 +132,65 @@ resource "microsoft365_graph_beta_device_management_android_enrollment_notificat
   assignments = [
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
     },
-    # {
-    #   type     = "allLicensedUsersAssignmentTarget"
-    # }
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    }
   ]
 
-  role_scope_tag_ids = ["0"]
+  role_scope_tag_ids = ["0", "1"]
+
+  timeouts = {
+    create = "10m"
+    read   = "5m"
+    update = "10m"
+    delete = "5m"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_android_enrollment_notifications" "all" {
+  display_name   = "configuration with all enrollment notification features"
+  description    = "Complete configuration with all features"
+  platform_type  = "androidForWork" // "androidForWork" , "android"
+  default_locale = "en-US"
+  branding_options = ["includeCompanyLogo",
+    "includeCompanyName",
+    "includeCompanyPortalLink",
+    "includeContactInformation",
+    "includeDeviceDetails"
+  ]
+
+  notification_templates = ["email", "push"]
+
+  localized_notification_messages = [
+    {
+      locale           = "en-us"
+      subject          = "Device Enrollment Required"
+      message_template = "Please enroll your device into Intune using the Company Portal to access corporate resources."
+      is_default       = true
+      template_type    = "email"
+    },
+    {
+      locale           = "en-us"
+      subject          = "Device Enrollment Required"
+      message_template = "Please enroll your device into Intune using the Company Portal to access corporate resources."
+      is_default       = true
+      template_type    = "push"
+    }
+  ]
+
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    }
+  ]
+
+  role_scope_tag_ids = ["0", "1"]
 
   timeouts = {
     create = "10m"
@@ -88,40 +206,25 @@ resource "microsoft365_graph_beta_device_management_android_enrollment_notificat
 
 ### Required
 
+- `branding_options` (Set of String) The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails. Defaults to ['none'].
 - `display_name` (String) The display name for the Android Enterprise notification configuration.
+- `localized_notification_messages` (Attributes Set) The localized notification messages for the configuration. (see [below for nested schema](#nestedatt--localized_notification_messages))
 - `platform_type` (String) The platform type for the notification configuration. Must be either 'androidForWork' for Android Enterprise or 'android' for Android device andministrator.
 
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `branding_options` (Set of String) The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails
 - `default_locale` (String) The default locale for the notification configuration (e.g., 'en-US').
 - `description` (String) The description for the Android Enterprise notification configuration.
-- `localized_notification_messages` (Attributes Set) The localized notification messages for the configuration. (see [below for nested schema](#nestedatt--localized_notification_messages))
 - `notification_templates` (Set of String) The notification template types for this configuration. Can be 'email', 'push', or both. Defaults to ['email', 'push'].
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Android Enterprise Notification configuration.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `created_date_time` (String) The date and time when the notification configuration was created.
 - `device_enrollment_configuration_type` (String) The type of device enrollment configuration.
 - `id` (String) The unique identifier for the Android Enterprise notification configuration.
-- `last_modified_date_time` (String) The date and time when the notification configuration was last modified.
 - `priority` (Number) The priority of the notification configuration.
-- `version` (Number) The version of the notification configuration.
-
-<a id="nestedatt--assignments"></a>
-### Nested Schema for `assignments`
-
-Required:
-
-- `type` (String) Type of assignment target. Must be one of: 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget'.
-
-Optional:
-
-- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget'.
-
 
 <a id="nestedatt--localized_notification_messages"></a>
 ### Nested Schema for `localized_notification_messages`
@@ -136,6 +239,18 @@ Required:
 Optional:
 
 - `is_default` (Boolean) Whether this is the default notification message.
+
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget'.
+
+Optional:
+
+- `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>

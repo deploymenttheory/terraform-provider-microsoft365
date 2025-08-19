@@ -3,6 +3,7 @@ package graphBetaAndroidEnrollmentNotifications
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -27,8 +28,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidEnrollmentNotif
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
-	// For DeviceEnrollmentNotificationConfiguration, we set a fixed platform type
-	data.PlatformType = types.StringValue("androidForWork")
+	// Platform type is not returned by the API response but is required for configuration
+	// we let the create function set the platform type and leave it as is.
 
 	// Set default locale - this is a fixed value for this resource type
 	data.DefaultLocale = types.StringValue("en-US")
@@ -39,10 +40,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidEnrollmentNotif
 			templateValues := make([]attr.Value, 0, len(templates))
 			for _, template := range templates {
 				// Transform from API format back to user-friendly format
-				switch template {
-				case "email_00000000-0000-0000-0000-000000000000":
+				// Template IDs come in format like "Email_GUID" or "Push_GUID"
+				if strings.Contains(strings.ToLower(template), "email") {
 					templateValues = append(templateValues, types.StringValue("email"))
-				case "push_00000000-0000-0000-0000-000000000000":
+				} else if strings.Contains(strings.ToLower(template), "push") {
 					templateValues = append(templateValues, types.StringValue("push"))
 				}
 			}
@@ -68,6 +69,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidEnrollmentNotif
 
 	data.Priority = convert.GraphToFrameworkInt32(remoteResource.GetPriority())
 	data.DeviceEnrollmentConfigurationType = convert.GraphToFrameworkEnum(remoteResource.GetDeviceEnrollmentConfigurationType())
+
+	// Note: BrandingOptions are handled separately in the Read function via notification templates API call
 
 	// Note: Assignments are handled separately in the Read function via dedicated API call
 

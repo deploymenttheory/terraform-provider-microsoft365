@@ -69,19 +69,36 @@ func constructResource(ctx context.Context, data *AndroidEnrollmentNotifications
 				planTemplateTypes[templateTypeStr] = true
 			}
 
-			// Filter current template GUIDs to only include those specified in the plan
+			// Include existing template GUIDs for types that are still wanted
+			existingTypes := make(map[string]bool)
 			for _, currentTemplate := range currentTemplateGUIDs[0] {
 				if strings.Contains(strings.ToLower(currentTemplate), "email") && planTemplateTypes["email"] {
 					templateValues = append(templateValues, currentTemplate)
+					existingTypes["email"] = true
 				} else if strings.Contains(strings.ToLower(currentTemplate), "push") && planTemplateTypes["push"] {
 					templateValues = append(templateValues, currentTemplate)
+					existingTypes["push"] = true
 				}
 			}
 
-			tflog.Debug(ctx, fmt.Sprintf("Using template GUIDs for update: %v", templateValues))
+			// Add zero GUIDs for new template types that don't exist yet
+			for templateType := range planTemplateTypes {
+				if !existingTypes[templateType] {
+					switch templateType {
+					case "email":
+						templateValues = append(templateValues, "email_00000000-0000-0000-0000-000000000000")
+					case "push":
+						templateValues = append(templateValues, "push_00000000-0000-0000-0000-000000000000")
+					}
+				}
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Using template GUIDs for update (existing + new): %v", templateValues))
 		}
 
-		requestBody.SetNotificationTemplates(templateValues)
+		if len(templateValues) > 0 {
+			requestBody.SetNotificationTemplates(templateValues)
+		}
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

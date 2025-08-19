@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.group",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Mock Test Group 1",
+  "description": "Mock group for unit testing",
+  "mailNickname": "mock-test-group-1",
+  "mailEnabled": false,
+  "securityEnabled": true,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "visibility": "Private",
+  "isAssignableToRole": false,
+  "membershipRuleProcessingState": "Paused"
+}

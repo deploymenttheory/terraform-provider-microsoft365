@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates('22222222-2222-2222-2222-222222222222')/localizedNotificationMessages",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.localizedNotificationMessage",
+      "id": "22222222-2222-2222-2222-222222222222_en-us",
+      "locale": "en-us",
+      "subject": "Device Enrollment Required",
+      "messageTemplate": "Please enroll your device into Intune using the Company Portal to access corporate resources.",
+      "isDefault": true,
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
