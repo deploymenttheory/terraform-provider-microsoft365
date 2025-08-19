@@ -4,17 +4,17 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "pkcs-cert"
 
   pkcs_certificate = {
-    deployment_channel                  = "deviceChannel"
-    renewal_threshold_percentage        = 20
-    certificate_store                   = "machine"
-    certificate_validity_period_scale   = "years"
-    certificate_validity_period_value   = 1
-    subject_name_format                 = "custom"
-    subject_name_format_string          = "CN={{AAD_Device_ID}}"
-    certification_authority             = "some-auth"
-    certification_authority_name        = "some-name"
-    certificate_template_name           = "some-template-name"
-    
+    deployment_channel                = "deviceChannel"
+    renewal_threshold_percentage      = 20
+    certificate_store                 = "machine"
+    certificate_validity_period_scale = "years"
+    certificate_validity_period_value = 1
+    subject_name_format               = "custom"
+    subject_name_format_string        = "CN={{AAD_Device_ID}}"
+    certification_authority           = "some-auth"
+    certification_authority_name      = "some-name"
+    certificate_template_name         = "some-template-name"
+
     custom_subject_alternative_names = [
       {
         san_type = "emailAddress"
@@ -41,7 +41,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         name     = "some-other-email"
       }
     ]
-    
+
     allow_all_apps_access = true
   }
 
@@ -61,12 +61,12 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       filter_type = "exclude"
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_4.id
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_4.id
     }
   ]
 

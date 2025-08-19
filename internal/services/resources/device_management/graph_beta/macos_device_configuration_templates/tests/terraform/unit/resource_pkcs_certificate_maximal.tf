@@ -4,17 +4,17 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "PKCS certificate profile for user authentication"
 
   pkcs_certificate = {
-    deployment_channel                  = "userChannel"
-    renewal_threshold_percentage        = 30
-    certificate_store                   = "user"
-    certificate_validity_period_scale   = "months"
-    certificate_validity_period_value   = 12
-    subject_name_format                 = "commonNameIncludingEmail"
-    subject_name_format_string          = "CN={{UserName}},E={{EmailAddress}},O=Example Corp"
-    certification_authority             = "ExampleCA\\ExampleCA-CA"
-    certification_authority_name        = "ExampleCA-CA"
-    certificate_template_name           = "UserAuthentication"
-    
+    deployment_channel                = "userChannel"
+    renewal_threshold_percentage      = 30
+    certificate_store                 = "user"
+    certificate_validity_period_scale = "months"
+    certificate_validity_period_value = 12
+    subject_name_format               = "commonNameIncludingEmail"
+    subject_name_format_string        = "CN={{UserName}},E={{EmailAddress}},O=Example Corp"
+    certification_authority           = "ExampleCA\\ExampleCA-CA"
+    certification_authority_name      = "ExampleCA-CA"
+    certificate_template_name         = "UserAuthentication"
+
     custom_subject_alternative_names = [
       {
         san_type = "emailAddress"
@@ -41,7 +41,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         name     = "some-other-email"
       }
     ]
-    
+
     allow_all_apps_access = true
   }
 

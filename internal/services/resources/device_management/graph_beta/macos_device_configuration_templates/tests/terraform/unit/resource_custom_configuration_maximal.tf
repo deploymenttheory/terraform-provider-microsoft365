@@ -4,9 +4,9 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "Example custom configuration template for macOS devices"
 
   custom_configuration = {
-    deployment_channel  = "deviceChannel"
-    payload_file_name   = "com.example.custom.mobileconfig"
-    payload_name        = "Custom Configuration Example"
+    deployment_channel = "deviceChannel"
+    payload_file_name  = "com.example.custom.mobileconfig"
+    payload_name       = "Custom Configuration Example"
     payload            = <<-EOT
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -42,7 +42,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       </dict>
       </plist>
     EOT
-  
+
   }
 
   role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001"]
@@ -61,12 +61,12 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       filter_type = "exclude"
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000002"
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000002"
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000002"
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000002"
     }
   ]
 

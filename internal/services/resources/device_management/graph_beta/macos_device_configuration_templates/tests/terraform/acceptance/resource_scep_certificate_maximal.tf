@@ -4,17 +4,17 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "scep-example"
 
   scep_certificate = {
-    deployment_channel                  = "deviceChannel"
-    renewal_threshold_percentage        = 20
-    certificate_store                   = "machine"
-    certificate_validity_period_scale   = "years"
-    certificate_validity_period_value   = 1
-    subject_name_format                 = "custom"
-    subject_name_format_string          = "CN={{AAD_Device_ID}}"
-    root_certificate_odata_bind         = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('afeb20c3-48a0-4bbd-8191-c9c9f2fd62d2')"
-    key_size                           = "size4096"
-    key_usage                          = ["digitalSignature", "keyEncipherment"]
-    
+    deployment_channel                = "deviceChannel"
+    renewal_threshold_percentage      = 20
+    certificate_store                 = "machine"
+    certificate_validity_period_scale = "years"
+    certificate_validity_period_value = 1
+    subject_name_format               = "custom"
+    subject_name_format_string        = "CN={{AAD_Device_ID}}"
+    root_certificate_odata_bind       = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('afeb20c3-48a0-4bbd-8191-c9c9f2fd62d2')"
+    key_size                          = "size4096"
+    key_usage                         = ["digitalSignature", "keyEncipherment"]
+
     custom_subject_alternative_names = [
       {
         san_type = "userPrincipalName"
@@ -33,7 +33,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         name     = "some-uri"
       }
     ]
-    
+
     extended_key_usages = [
       {
         name              = "Any Purpose"
@@ -52,12 +52,12 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         object_identifier = "7.01.4"
       }
     ]
-    
+
     scep_server_urls = [
       "https://something.com",
       "https://something2.com"
     ]
-    
+
     allow_all_apps_access = true
   }
 
@@ -77,12 +77,12 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       filter_type = "exclude"
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
     },
     {
-      type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_4.id
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_4.id
     }
   ]
 

@@ -4,7 +4,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "Install company root certificate for secure connections"
 
   trusted_certificate = {
-    deployment_channel        = "deviceChannel"
+    deployment_channel       = "deviceChannel"
     cert_file_name           = "MicrosoftRootCertificateAuthority2011.cer"
     trusted_root_certificate = filebase64("MicrosoftRootCertificateAuthority2011.cer")
   }

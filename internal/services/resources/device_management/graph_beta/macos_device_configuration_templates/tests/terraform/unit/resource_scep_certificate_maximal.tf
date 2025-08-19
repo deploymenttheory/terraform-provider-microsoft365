@@ -4,17 +4,17 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   description  = "SCEP certificate profile for device authentication"
 
   scep_certificate = {
-    deployment_channel                  = "deviceChannel"
-    renewal_threshold_percentage        = 20
-    certificate_store                   = "machine"
-    certificate_validity_period_scale   = "years"
-    certificate_validity_period_value   = 2
-    subject_name_format                 = "custom"
-    subject_name_format_string          = "CN={{DeviceName}},O=Example Corp,C=US"
-    root_certificate_odata_bind         = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('87654321-4321-4321-4321-210987654321')"
-    key_size                           = "size2048"
-    key_usage                          = ["digitalSignature", "keyEncipherment"]
-    
+    deployment_channel                = "deviceChannel"
+    renewal_threshold_percentage      = 20
+    certificate_store                 = "machine"
+    certificate_validity_period_scale = "years"
+    certificate_validity_period_value = 2
+    subject_name_format               = "custom"
+    subject_name_format_string        = "CN={{DeviceName}},O=Example Corp,C=US"
+    root_certificate_odata_bind       = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('87654321-4321-4321-4321-210987654321')"
+    key_size                          = "size2048"
+    key_usage                         = ["digitalSignature", "keyEncipherment"]
+
     custom_subject_alternative_names = [
       {
         san_type = "userPrincipalName"
@@ -33,7 +33,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         name     = "some-uri"
       }
     ]
-    
+
     extended_key_usages = [
       {
         name              = "Any Purpose"
@@ -52,16 +52,16 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
         object_identifier = "7.01.4"
       }
     ]
-    
+
     scep_server_urls = [
       "https://something.com",
       "https://something2.com"
     ]
-    
+
     allow_all_apps_access = true
   }
 
- role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001"]
+  role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001"]
 
   assignments = [
     {
