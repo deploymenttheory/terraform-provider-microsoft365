@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.26.3-alpha...v0.27.0-alpha) (2025-08-19)
+
+
+### Features
+
+* added android_enrollment_notifications with unit and acc tests ([#708](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/708)) ([6c67540](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6c675408d743e204b1b3449148ec0264256c6829))
+* added dynamic dcv2 settings catalogue build depth ([1a5e24a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1a5e24ac3a51c6496ca62081ec19bfc498c18b32))
+* added dynamic dcv2 settings catalogue build depth ([#697](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/697)) ([ad3db91](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad3db9182376c8f2ca758dd17b7db44cd672a583))
+* added notifcation messages ([3d0f75b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3d0f75bb9df75eb0d97b264abd31a2a6b546368a))
+* added unit and acc tests for windows_driver_update_profile ([db51ffc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/db51ffc7f13aad931732c91e8573dcab97326645))
+* added unit and acc tests for windows_feature_update_profile ([cb16457](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cb164573b68d20d0cd8af602f21390faa6969443))
+* added unit and acc tests for windows_feature_update_profile ([#700](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/700)) ([782efa5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/782efa517847d8abc15e9f1db0285bfc2e6f5828))
+* added unit and acc tests for windows_quality_update_expedite_policy ([76b4ccf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/76b4ccf9228160b1ceb6b419439c20a4ec8cb030))
+* added unit and acc tests for windows_quality_update_expedite_policy ([#699](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/699)) ([a8fd98d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a8fd98d8b8e6536c29c0d483e1a7405a985486cd))
+* added unit tests for string validators ([ce6e13b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ce6e13b18d65bacf7dd04d5b81b4033b8ce68f44))
+* added unit tests for string validators ([#702](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/702)) ([1c9f3ce](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1c9f3ced4edc7b7c1eb0bb5881eac263a920a696))
+* device clean up rule validators and refactored acc and unit tests ([#704](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/704)) ([3de342d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3de342d59b62c9492b3d14f561d3116e2521c48a))
+* implemented macos_device_configuration_templates with examples ([eec3d36](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/eec3d36febabd24c15eac93afa6edce9759e4423))
+* implemented macos_device_configuration_templates with examples ([#715](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/715)) ([25fc4e6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/25fc4e66a1de7f12ec800afbedd6b101add098c3))
+* implemented notification messages with fully passing test suite ([faaa4a0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/faaa4a0ff93829e8838a8584493f5468c6886e05))
+* implemented notification messages with fully passing test suite ([#711](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/711)) ([43be9ac](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/43be9ac5d41a51da4658b9d08375b978e033fe7d))
+* new acc and unit tests for provider config ([fa62672](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fa626726850d749f8991c29ff4d25322f8cdd058))
+* new acc and unit tests for provider config ([#694](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/694)) ([2071cc1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2071cc1ad85bb9b8cacab88f14a9923d0e0b31dc))
+* refactored unit and acc tests for macos_custom script atts ([a413905](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a41390594edfd085b7687942f72f0ef752725d80))
+* refactored unit and acc tests for macos_custom script atts ([#703](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/703)) ([ad05c51](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad05c511103a9987d2ad0d1022c7be02c6eebd9c))
+* settings catalog json unit and acc tests ([8d6a6e5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8d6a6e5b2612d6633325c1c88dc2a9cb34a6704c))
+
+
+### Bug Fixes
+
+* added new pattern unit and acc tests for various windows script types ([#706](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/706)) ([095ed32](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/095ed32d99a0a6381dee555b9f59e7e839c0a546))
+* added unit and acc tests for device compliance scripts ([20f0990](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/20f099087c570f5ea094090af93e25f425d85f14))
+* added unit and acc tests for windows expedite policy ([109836c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/109836ca7c88b9ff36939a51fb1f516f91bc6b3a))
+* added unit tests for utilities ([c991a4d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c991a4d63b3d75330f2c2e20490a8c7994af5d36))
+* added validator for singular resource uniqueness for managed_device_cleanup_rule ([6591dfc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6591dfc371c33313e67eba0c5999a0530e5c0768))
+* device clean up rule acc and unit tests ([e6ca94f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e6ca94f524d15d469d83649fa7c92c8b36fea564))
+* exclusions ([a0d0aa4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a0d0aa46de70af27651aedbcbd603aa0209cb332))
+* for acc tests for win quality updates ([5b746b4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5b746b43482b01a15f5125d21e0a0ba8f3dbeaf3))
+* for locales to lower case ([5f99f57](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5f99f57461cf76383d3fdd9b72afcb72039c7e8e))
+* for notification messages and testing ([5266ba0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5266ba0c90f138fcd76ec7ff51a7c3b0e29490b0))
+* for update logic ([19815a3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/19815a34382d8cfb4840823d6063df9e35df6972))
+* for windows_feature_update acc and unit tests ([ca83357](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ca833579f6b0036992a182d2108738894f539cf3))
+* for windows_feature_update acc and unit tests ([#701](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/701)) ([75549e0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/75549e0a74351305d9edc754ed607ed2870668b1))
+* migrated to new unit test pattern ([776faab](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/776faab6119f55d8bf756a73be754b57bc69fceb))
+* migrated to new unit test pattern ([#698](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/698)) ([dcf641d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dcf641d8267470ef71da8b0853570e34fc3c7199))
+* numerous unit test fixes for settings catalog for schema recursion depth ([80ef819](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/80ef8198c3d762540c9fc5b0eacc407c5392852e))
+
 ## [0.26.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.26.2-alpha...v0.26.3-alpha) (2025-08-12)
 
 
