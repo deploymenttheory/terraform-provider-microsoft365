@@ -1,53 +1,25 @@
-# Example: Basic Notification Message Template
-resource "microsoft365_graph_beta_device_management_notification_message_template" "basic" {
-  display_name     = "Basic Compliance Notification"
-  description      = "Basic notification template for device compliance violations"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
+# Example: Multilingual Notification Message Template
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "multilingual" {
+  display_name     = "Multilingual Compliance Notification"
+  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
   role_scope_tag_ids = ["0"]
 
   localized_notification_messages = [
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Device Compliance Issue Detected"
       message_template = "Hello {UserName},\n\nYour device '{DeviceName}' has been found to be non-compliant with company policies. Please take action to resolve the following issues:\n\n{ComplianceReasons}\n\nFor assistance, please contact IT support.\n\nThank you,\nIT Security Team"
       is_default       = true
-    }
-  ]
-
-  timeouts = {
-    create = "10m"
-    read   = "5m"
-    update = "10m"
-    delete = "5m"
-  }
-}
-
-# Example: Multi-language Notification Message Template
-resource "microsoft365_graph_beta_device_management_notification_message_template" "multilingual" {
-  display_name     = "Multi-language Compliance Notification"
-  description      = "Notification template with multiple language support"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
-
-  role_scope_tag_ids = ["0"]
-
-  localized_notification_messages = [
-    {
-      locale           = "en-US"
-      subject          = "Device Compliance Issue"
-      message_template = "Hello {UserName},\n\nYour device '{DeviceName}' is not compliant. Please resolve: {ComplianceReasons}\n\nContact IT for help.\n\nIT Security Team"
-      is_default       = true
     },
     {
-      locale           = "es-ES"
+      locale           = "fr-fr"
       subject          = "Problema de Cumplimiento del Dispositivo"
       message_template = "Hola {UserName},\n\nTu dispositivo '{DeviceName}' no cumple las normas. Por favor resuelve: {ComplianceReasons}\n\nContacta con IT para ayuda.\n\nEquipo de Seguridad IT"
       is_default       = false
     },
     {
-      locale           = "fr-FR"
+      locale           = "fr-fr"
       subject          = "Problème de Conformité de l'Appareil"
       message_template = "Bonjour {UserName},\n\nVotre appareil '{DeviceName}' n'est pas conforme. Veuillez résoudre: {ComplianceReasons}\n\nContactez l'IT pour aide.\n\nÉquipe de Sécurité IT"
       is_default       = false
@@ -62,18 +34,16 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
   }
 }
 
-# Example: Advanced Notification Template with Full Branding
-resource "microsoft365_graph_beta_device_management_notification_message_template" "advanced" {
-  display_name     = "Advanced Compliance Notification"
-  description      = "Advanced notification template with comprehensive branding and device details"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
+# Example: English Notification Template with Full Branding
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "english" {
+  display_name     = "English Compliance Notification"
+  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
   role_scope_tag_ids = ["0", "1"]
 
   localized_notification_messages = [
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Immediate Action Required: Device Compliance"
       message_template = <<-EOT
         Dear {UserName},
@@ -115,20 +85,4 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
     update = "15m"
     delete = "5m"
   }
-}
-
-# Output examples
-output "basic_template_id" {
-  description = "ID of the basic notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.basic.id
-}
-
-output "multilingual_template_id" {
-  description = "ID of the multi-language notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.multilingual.id
-}
-
-output "advanced_template_id" {
-  description = "ID of the advanced notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.advanced.id
 }

@@ -1,12 +1,12 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_notification_message_template Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_device_compliance_notifications Resource - terraform-provider-microsoft365"
 subcategory: "Device Management"
 
 description: |-
   Manages an Intune notification message template for compliance notifications
 ---
 
-# microsoft365_graph_beta_device_management_notification_message_template (Resource)
+# microsoft365_graph_beta_device_management_windows_device_compliance_notifications (Resource)
 
 Manages an Intune notification message template for compliance notifications
 
@@ -19,59 +19,31 @@ The following API permissions are required in order to use this resource.
 
 - **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
 
-## Example Usage
+## Example Usage    
 
 ```terraform
-# Example: Basic Notification Message Template
-resource "microsoft365_graph_beta_device_management_notification_message_template" "basic" {
-  display_name     = "Basic Compliance Notification"
-  description      = "Basic notification template for device compliance violations"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
+# Example: Multilingual Notification Message Template
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "multilingual" {
+  display_name     = "Multilingual Compliance Notification"
+  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
   role_scope_tag_ids = ["0"]
 
   localized_notification_messages = [
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Device Compliance Issue Detected"
       message_template = "Hello {UserName},\n\nYour device '{DeviceName}' has been found to be non-compliant with company policies. Please take action to resolve the following issues:\n\n{ComplianceReasons}\n\nFor assistance, please contact IT support.\n\nThank you,\nIT Security Team"
       is_default       = true
-    }
-  ]
-
-  timeouts = {
-    create = "10m"
-    read   = "5m"
-    update = "10m"
-    delete = "5m"
-  }
-}
-
-# Example: Multi-language Notification Message Template
-resource "microsoft365_graph_beta_device_management_notification_message_template" "multilingual" {
-  display_name     = "Multi-language Compliance Notification"
-  description      = "Notification template with multiple language support"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
-
-  role_scope_tag_ids = ["0"]
-
-  localized_notification_messages = [
-    {
-      locale           = "en-US"
-      subject          = "Device Compliance Issue"
-      message_template = "Hello {UserName},\n\nYour device '{DeviceName}' is not compliant. Please resolve: {ComplianceReasons}\n\nContact IT for help.\n\nIT Security Team"
-      is_default       = true
     },
     {
-      locale           = "es-ES"
+      locale           = "fr-fr"
       subject          = "Problema de Cumplimiento del Dispositivo"
       message_template = "Hola {UserName},\n\nTu dispositivo '{DeviceName}' no cumple las normas. Por favor resuelve: {ComplianceReasons}\n\nContacta con IT para ayuda.\n\nEquipo de Seguridad IT"
       is_default       = false
     },
     {
-      locale           = "fr-FR"
+      locale           = "fr-fr"
       subject          = "Problème de Conformité de l'Appareil"
       message_template = "Bonjour {UserName},\n\nVotre appareil '{DeviceName}' n'est pas conforme. Veuillez résoudre: {ComplianceReasons}\n\nContactez l'IT pour aide.\n\nÉquipe de Sécurité IT"
       is_default       = false
@@ -86,18 +58,16 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
   }
 }
 
-# Example: Advanced Notification Template with Full Branding
-resource "microsoft365_graph_beta_device_management_notification_message_template" "advanced" {
-  display_name     = "Advanced Compliance Notification"
-  description      = "Advanced notification template with comprehensive branding and device details"
-  default_locale   = "en-US"
-  branding_options = "includeCompanyLogo"
+# Example: English Notification Template with Full Branding
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "english" {
+  display_name     = "English Compliance Notification"
+  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
   role_scope_tag_ids = ["0", "1"]
 
   localized_notification_messages = [
     {
-      locale           = "en-US"
+      locale           = "en-us"
       subject          = "Immediate Action Required: Device Compliance"
       message_template = <<-EOT
         Dear {UserName},
@@ -140,22 +110,6 @@ resource "microsoft365_graph_beta_device_management_notification_message_templat
     delete = "5m"
   }
 }
-
-# Output examples
-output "basic_template_id" {
-  description = "ID of the basic notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.basic.id
-}
-
-output "multilingual_template_id" {
-  description = "ID of the multi-language notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.multilingual.id
-}
-
-output "advanced_template_id" {
-  description = "ID of the advanced notification message template"
-  value       = microsoft365_graph_beta_device_management_notification_message_template.advanced.id
-}
 ```
 
 <!-- schema generated by tfplugindocs -->
@@ -163,19 +117,18 @@ output "advanced_template_id" {
 
 ### Required
 
-- `default_locale` (String) The default locale to fallback onto when the requested locale is not available
+- `branding_options` (Set of String) The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails. Defaults to ['none'].
 - `display_name` (String) Display name for the notification message template
+- `localized_notification_messages` (Attributes Set) The list of localized notification messages for this template (see [below for nested schema](#nestedatt--localized_notification_messages))
 
 ### Optional
 
-- `branding_options` (String) The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails
-- `description` (String) Description of the notification message template
-- `localized_notification_messages` (Attributes Set) The list of localized notification messages for this template (see [below for nested schema](#nestedatt--localized_notification_messages))
 - `role_scope_tag_ids` (Set of String) List of scope tag IDs for this notification message template
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
+- `default_locale` (String) The default locale to fallback onto when the requested locale is not available
 - `id` (String) Manages notification message templates in Microsoft Intune using the `/deviceManagement/notificationMessageTemplates` endpoint. Notification message templates define the content and branding of compliance notifications sent to users.
 - `last_modified_date_time` (String) DateTime the notification message template was last modified
 
@@ -184,18 +137,14 @@ output "advanced_template_id" {
 
 Required:
 
-- `locale` (String) The locale for the notification message (e.g., en-US, es-ES)
+- `is_default` (Boolean) Indicates if this is the default message for the template
+- `locale` (String) The locale for the notification message (e.g., 'en-us'). Must be in lowercase format.
 - `message_template` (String) The message template text that can include tokens like {DeviceName}, {UserName}, etc.
 - `subject` (String) The subject of the notification message
-
-Optional:
-
-- `is_default` (Boolean) Indicates if this is the default message for the template
 
 Read-Only:
 
 - `id` (String) Unique identifier for the localized notification message
-- `last_modified_date_time` (String) DateTime the localized message was last modified
 
 
 <a id="nestedatt--timeouts"></a>
@@ -213,6 +162,7 @@ Optional:
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.25.0-alpha | Experimental | Initial release |
+| v0.27.0-alpha | Testing | renamed from microsoft365_graph_beta_device_management_notification_message_template to microsoft365_graph_beta_device_management_windows_device_compliance_notifications |
 
 ## Import
 

@@ -1,4 +1,4 @@
-package graphBetaNotificationMessageTemplates
+package graphBetaWindowsDeviceComplianceNotifications
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_notification_message_template"
+	ResourceName  = "graph_beta_device_management_windows_device_compliance_notifications"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -28,20 +29,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &NotificationMessageTemplateResource{}
+	_ resource.Resource = &WindowsDeviceComplianceNotificationsResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &NotificationMessageTemplateResource{}
+	_ resource.ResourceWithConfigure = &WindowsDeviceComplianceNotificationsResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &NotificationMessageTemplateResource{}
+	_ resource.ResourceWithImportState = &WindowsDeviceComplianceNotificationsResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &NotificationMessageTemplateResource{}
+	_ resource.ResourceWithModifyPlan = &WindowsDeviceComplianceNotificationsResource{}
 )
 
-func NewNotificationMessageTemplateResource() resource.Resource {
-	return &NotificationMessageTemplateResource{
+func NewWindowsDeviceComplianceNotificationsResource() resource.Resource {
+	return &WindowsDeviceComplianceNotificationsResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
 		},
@@ -52,7 +53,7 @@ func NewNotificationMessageTemplateResource() resource.Resource {
 	}
 }
 
-type NotificationMessageTemplateResource struct {
+type WindowsDeviceComplianceNotificationsResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -62,24 +63,24 @@ type NotificationMessageTemplateResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *NotificationMessageTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsDeviceComplianceNotificationsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
-func (r *NotificationMessageTemplateResource) FullTypeName() string {
+func (r *WindowsDeviceComplianceNotificationsResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
-func (r *NotificationMessageTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsDeviceComplianceNotificationsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
-func (r *NotificationMessageTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsDeviceComplianceNotificationsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsDeviceComplianceNotificationsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an Intune notification message template for compliance notifications",
 		Attributes: map[string]schema.Attribute{
@@ -94,27 +95,25 @@ func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req re
 				Required:            true,
 				MarkdownDescription: "Display name for the notification message template",
 			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Description of the notification message template",
-			},
 			"default_locale": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The default locale to fallback onto when the requested locale is not available",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-			},
-			"branding_options": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The branding options for the message template. Possible values are: none, includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, includeDeviceDetails",
-				Validators: []validator.String{
-					stringvalidator.OneOf("none", "includeCompanyLogo", "includeCompanyName", "includeContactInformation", "includeCompanyPortalLink", "includeDeviceDetails"),
-				},
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.DefaultValueString("none"),
+				MarkdownDescription: "The default locale to fallback onto when the requested locale is not available",
+			},
+			"branding_options": schema.SetAttribute{
+				ElementType: types.StringType,
+				Required:    true,
+				MarkdownDescription: "The branding options for the message template. Possible values are: none, " +
+					"includeCompanyLogo, includeCompanyName, includeContactInformation, includeCompanyPortalLink, " +
+					"includeDeviceDetails. Defaults to ['none'].",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(stringvalidator.OneOf(
+						"none",
+						"includeCompanyLogo",
+						"includeCompanyName",
+						"includeContactInformation",
+						"includeCompanyPortalLink",
+						"includeDeviceDetails",
+					)),
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -133,7 +132,7 @@ func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "DateTime the notification message template was last modified",
 			},
 			"localized_notification_messages": schema.SetNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "The list of localized notification messages for this template",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -143,9 +142,9 @@ func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req re
 						},
 						"locale": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The locale for the notification message (e.g., en-US, es-ES)",
-							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(2),
+							MarkdownDescription: "The locale for the notification message (e.g., 'en-us'). Must be in lowercase format.",
+							PlanModifiers: []planmodifier.String{
+								planmodifiers.EnsureLowerCaseString(),
 							},
 						},
 						"subject": schema.StringAttribute{
@@ -163,13 +162,8 @@ func (r *NotificationMessageTemplateResource) Schema(ctx context.Context, req re
 							},
 						},
 						"is_default": schema.BoolAttribute{
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							MarkdownDescription: "Indicates if this is the default message for the template",
-						},
-						"last_modified_date_time": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "DateTime the localized message was last modified",
 						},
 					},
 				},

@@ -40,7 +40,7 @@ The following API permissions are required in order to use this resource.
 # Example 1: macOS Custom Configuration Template
 resource "microsoft365_graph_beta_device_management_macos_device_configuration_templates" "custom_configuration_example" {
   display_name = "macos custom mobileconfig example"
-  description  = "macos custom mobileconfig example"
+  description  = "Example custom configuration template for macOS devices"
 
   custom_configuration = {
     deployment_channel = "deviceChannel"
@@ -120,7 +120,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
 # Example 2: macOS Preference File Configuration
 resource "microsoft365_graph_beta_device_management_macos_device_configuration_templates" "preference_file_example" {
   display_name = "macos preference file example"
-  description  = "macos preference file example"
+  description  = "Configure Safari browser settings via preference file"
 
   preference_file = {
     file_name         = "com.apple.Safari.plist"
@@ -182,8 +182,8 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
 
   trusted_certificate = {
     deployment_channel       = "deviceChannel"
-    cert_file_name           = "MicrosoftRootCertificateAuthority2011.cer"
-    trusted_root_certificate = filebase64("MicrosoftRootCertificateAuthority2011.cer")
+    cert_file_name           = "MicrosoftRootCertificateAuthority2030.cer"
+    trusted_root_certificate = filebase64("path/to/your/cert.cer")
   }
 
   role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"]
@@ -232,7 +232,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
     certificate_validity_period_value = 1
     subject_name_format               = "custom"
     subject_name_format_string        = "CN={{AAD_Device_ID}}"
-    root_certificate_odata_bind       = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('00000000-0000-0000-0000-000000000001')"
+    root_certificate_odata_bind       = microsoft365_graph_beta_device_management_macos_device_configuration_templates.trusted_cert_example.id
     key_size                          = "size4096"
     key_usage                         = ["digitalSignature", "keyEncipherment"]
 
