@@ -6,7 +6,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   trusted_certificate = {
     deployment_channel       = "deviceChannel"
     cert_file_name           = "MicrosoftRootCertificateAuthority2011.cer"
-    trusted_root_certificate = filebase64("MicrosoftRootCertificateAuthority2011.cer")
+    trusted_root_certificate = filebase64("tests/terraform/acceptance/MicrosoftRootCertificateAuthority2011.cer")
   }
 
   role_scope_tag_ids = [microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id]

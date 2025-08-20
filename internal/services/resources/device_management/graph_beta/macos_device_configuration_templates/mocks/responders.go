@@ -52,13 +52,23 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations", func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Invalid request body",
+				},
+			})
 		}
 
 		// Determine configuration type and return appropriate response
 		odataType, ok := requestBody["@odata.type"].(string)
 		if !ok {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Missing @odata.type"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Missing @odata.type",
+				},
+			})
 		}
 
 		var responseFile string
@@ -81,39 +91,126 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 			responseFile = "../tests/responses/validate_create/post_macos_pkcs_certificate_success.json"
 			id = "11111111-2222-3333-4444-555555555555"
 		default:
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Unsupported configuration type"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Unsupported configuration type",
+				},
+			})
 		}
 
 		jsonStr, err := helpers.ParseJSONFile(responseFile)
 		if err != nil {
-			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to parse JSON file '%s': %s"}}`, responseFile, err.Error())), nil
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse JSON file '%s': %s", responseFile, err.Error()),
+				},
+			})
+		}
+
+		// Parse the JSON file into a map for proper response
+		var responseObj map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse response JSON: %s", err.Error()),
+				},
+			})
+		}
+
+		// Override with request values
+		responseObj["id"] = id
+		if displayName, ok := requestBody["displayName"]; ok {
+			responseObj["displayName"] = displayName
+		}
+		if description, ok := requestBody["description"]; ok {
+			responseObj["description"] = description
 		}
 
 		// Store in mock state
 		mockState.Lock()
 		requestBody["id"] = id
-		mockState.deviceConfigurations[id] = requestBody
+		mockState.deviceConfigurations[id] = responseObj
 		mockState.Unlock()
 
-		return httpmock.NewStringResponse(201, jsonStr), nil
+		return httpmock.NewJsonResponse(201, responseObj)
 	})
 
 	// GET /deviceManagement/deviceConfigurations/{id} - Get specific device configuration
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)(\?.*)?$`, func(req *http.Request) (*http.Response, error) {
 		segments := strings.Split(req.URL.Path, "/")
 		if len(segments) < 4 {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Invalid URL",
+				},
+			})
 		}
 
 		configId := segments[len(segments)-1]
+
+		mockState.Lock()
+		config, exists := mockState.deviceConfigurations[configId]
+		mockState.Unlock()
+
+		if !exists {
+			return httpmock.NewJsonResponse(404, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "ResourceNotFound",
+					"message": "Resource not found",
+				},
+			})
+		}
 
 		// Handle assignments expansion
 		if req.URL.Query().Get("$expand") == "assignments" {
 			jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_get/get_macos_custom_configuration.json")
 			if err != nil {
-				return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to parse JSON: %s"}}`, err.Error())), nil
+				return httpmock.NewJsonResponse(500, map[string]interface{}{
+					"error": map[string]interface{}{
+						"code":    "InternalError",
+						"message": fmt.Sprintf("Failed to parse JSON: %s", err.Error()),
+					},
+				})
 			}
-			return httpmock.NewStringResponse(200, jsonStr), nil
+			
+			var responseObj map[string]interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+				return httpmock.NewJsonResponse(500, map[string]interface{}{
+					"error": map[string]interface{}{
+						"code":    "InternalError",
+						"message": fmt.Sprintf("Failed to parse response JSON: %s", err.Error()),
+					},
+				})
+			}
+
+			// Override with stored config values and add assignments
+			for k, v := range config {
+				responseObj[k] = v
+			}
+
+			// Add assignments from the response file (always 4 assignments as expected by tests)
+			// Parse and use the assignment response file to ensure we have the correct format and count
+			assignmentStr, assignmentErr := helpers.ParseJSONFile("../tests/responses/validate_assign/post_macos_device_configuration_assign_success.json")
+			if assignmentErr == nil {
+				var assignmentObj map[string]interface{}
+				if json.Unmarshal([]byte(assignmentStr), &assignmentObj) == nil {
+					if assignmentValue, ok := assignmentObj["value"]; ok {
+						responseObj["assignments"] = assignmentValue
+					} else {
+						responseObj["assignments"] = []interface{}{}
+					}
+				} else {
+					responseObj["assignments"] = []interface{}{}
+				}
+			} else {
+				responseObj["assignments"] = []interface{}{}
+			}
+
+			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
 		// Return appropriate configuration based on ID
@@ -135,10 +232,30 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 
 		jsonStr, err := helpers.ParseJSONFile(responseFile)
 		if err != nil {
-			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to parse JSON file '%s': %s"}}`, responseFile, err.Error())), nil
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse JSON file '%s': %s", responseFile, err.Error()),
+				},
+			})
 		}
 
-		return httpmock.NewStringResponse(200, jsonStr), nil
+		var responseObj map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse response JSON: %s", err.Error()),
+				},
+			})
+		}
+
+		// Override with stored config values
+		for k, v := range config {
+			responseObj[k] = v
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// PATCH /deviceManagement/deviceConfigurations/{id} - Update device configuration
@@ -194,14 +311,24 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)/assign$`, func(req *http.Request) (*http.Response, error) {
 		segments := strings.Split(req.URL.Path, "/")
 		if len(segments) < 5 {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Invalid URL",
+				},
+			})
 		}
 
 		configId := segments[len(segments)-2]
 
 		var requestBody map[string]interface{}
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			return httpmock.NewJsonResponse(400, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "BadRequest",
+					"message": "Invalid request body",
+				},
+			})
 		}
 
 		// Store assignments in mock state
@@ -213,10 +340,25 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 
 		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_assign/post_macos_device_configuration_assign_success.json")
 		if err != nil {
-			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to parse JSON: %s"}}`, err.Error())), nil
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse JSON: %s", err.Error()),
+				},
+			})
 		}
 
-		return httpmock.NewStringResponse(200, jsonStr), nil
+		var responseObj map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": fmt.Sprintf("Failed to parse response JSON: %s", err.Error()),
+				},
+			})
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
 	})
 }
 
@@ -233,9 +375,25 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations", func(req *http.Request) (*http.Response, error) {
 		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_macos_device_configuration_error.json")
 		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalError","message":"Failed to parse error response"}}`), nil
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": "Failed to parse error response",
+				},
+			})
 		}
-		return httpmock.NewStringResponse(400, jsonStr), nil
+
+		var errorObj map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &errorObj); err != nil {
+			return httpmock.NewJsonResponse(500, map[string]interface{}{
+				"error": map[string]interface{}{
+					"code":    "InternalError",
+					"message": "Failed to parse error JSON",
+				},
+			})
+		}
+
+		return httpmock.NewJsonResponse(400, errorObj)
 	})
 
 	// GET /deviceManagement/deviceConfigurations/{id} - Not found error

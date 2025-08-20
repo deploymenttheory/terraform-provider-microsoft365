@@ -6,7 +6,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
   trusted_certificate = {
     deployment_channel       = "deviceChannel"
     cert_file_name           = "MicrosoftRootCertificateAuthority2011.cer"
-    trusted_root_certificate = filebase64("MicrosoftRootCertificateAuthority2011.cer")
+    trusted_root_certificate = filebase64("tests/terraform/unit/MicrosoftRootCertificateAuthority2011.cer")
   }
 
   role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001"]
@@ -27,14 +27,10 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "include"
     },
     {
       type        = "exclusionGroupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "exclude"
+      group_id    = "00000000-0000-0000-0000-000000000004"
     }
   ]
 
