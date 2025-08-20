@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.1-alpha...v0.27.2-alpha) (2025-08-20)
+
+
+### Bug Fixes
+
+* refactored WindowsDeviceComplianceNotifications ([c63f934](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c63f934ed694ab291c66ec72457d12a249902961))
+* refactored WindowsDeviceComplianceNotifications ([#718](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/718)) ([2bcac69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2bcac697ed9349ab456da0914e713911decfb98a))
+
 ## [0.27.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.0-alpha...v0.27.1-alpha) (2025-08-20)
 
 
