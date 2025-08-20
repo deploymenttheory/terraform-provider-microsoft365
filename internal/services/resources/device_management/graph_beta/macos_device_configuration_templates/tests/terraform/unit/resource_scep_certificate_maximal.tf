@@ -58,7 +58,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       "https://something2.com"
     ]
 
-    allow_all_apps_access = true
+    allow_all_apps_access = false
   }
 
   role_scope_tag_ids = ["00000000-0000-0000-0000-000000000001"]
@@ -79,16 +79,13 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "include"
     },
     {
       type        = "exclusionGroupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "exclude"
+      group_id    = "00000000-0000-0000-0000-000000000004"
     }
   ]
+
 
   timeouts = {
     create = "30m"

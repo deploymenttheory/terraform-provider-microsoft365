@@ -6,8 +6,8 @@
       "id": "assign-1111-1111-1111-1111",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "22222222-2222-2222-2222-222222222222",
-        "deviceAndAppManagementAssignmentFilterId": "filter-1111-1111-1111-1111",
+        "groupId": "00000000-0000-0000-0000-000000000002",
+        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000003",
         "deviceAndAppManagementAssignmentFilterType": "include"
       }
     },
@@ -16,8 +16,8 @@
       "id": "assign-2222-2222-2222-2222",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "33333333-3333-3333-3333-333333333333",
-        "deviceAndAppManagementAssignmentFilterId": "filter-2222-2222-2222-2222",
+        "groupId": "00000000-0000-0000-0000-000000000002",
+        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000003",
         "deviceAndAppManagementAssignmentFilterType": "exclude"
       }
     },
@@ -26,9 +26,7 @@
       "id": "assign-3333-3333-3333-3333",
       "target": {
         "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
-        "groupId": "44444444-4444-4444-4444-444444444444",
-        "deviceAndAppManagementAssignmentFilterId": "filter-3333-3333-3333-3333",
-        "deviceAndAppManagementAssignmentFilterType": "include"
+        "groupId": "00000000-0000-0000-0000-000000000002"
       }
     },
     {
@@ -36,9 +34,7 @@
       "id": "assign-4444-4444-4444-4444",
       "target": {
         "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
-        "groupId": "55555555-5555-5555-5555-555555555555",
-        "deviceAndAppManagementAssignmentFilterId": "filter-4444-4444-4444-4444",
-        "deviceAndAppManagementAssignmentFilterType": "exclude"
+        "groupId": "00000000-0000-0000-0000-000000000004"
       }
     }
   ]

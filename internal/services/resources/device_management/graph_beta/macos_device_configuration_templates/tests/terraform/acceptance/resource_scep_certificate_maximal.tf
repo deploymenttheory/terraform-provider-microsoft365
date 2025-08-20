@@ -1,7 +1,7 @@
 
 resource "microsoft365_graph_beta_device_management_macos_device_configuration_templates" "scep_cert_example" {
-  display_name = "scep-example"
-  description  = "scep-example"
+  display_name = "acc-test-macOS-scep-certificate-example"
+  description  = "SCEP certificate profile for device authentication"
 
   scep_certificate = {
     deployment_channel                = "deviceChannel"
@@ -11,7 +11,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
     certificate_validity_period_value = 1
     subject_name_format               = "custom"
     subject_name_format_string        = "CN={{AAD_Device_ID}}"
-    root_certificate_odata_bind       = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('afeb20c3-48a0-4bbd-8191-c9c9f2fd62d2')"
+    root_certificate_odata_bind       = microsoft365_graph_beta_device_management_macos_device_configuration_templates.trusted_cert_example.id
     key_size                          = "size4096"
     key_usage                         = ["digitalSignature", "keyEncipherment"]
 

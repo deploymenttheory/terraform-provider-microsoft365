@@ -1,14 +1,14 @@
 
 resource "microsoft365_graph_beta_device_management_macos_device_configuration_templates" "pkcs_cert_example" {
-  display_name = "pkcs-cert"
-  description  = "pkcs-cert"
+  display_name = "acc-test-macOS-pkcs-certificate-example"
+  description  = "PKCS certificate profile for user authentication"
 
   pkcs_certificate = {
     deployment_channel                = "deviceChannel"
     renewal_threshold_percentage      = 20
     certificate_store                 = "machine"
-    certificate_validity_period_scale = "years"
-    certificate_validity_period_value = 1
+    certificate_validity_period_scale = "months"
+    certificate_validity_period_value = 12
     subject_name_format               = "custom"
     subject_name_format_string        = "CN={{AAD_Device_ID}}"
     certification_authority           = "some-auth"

@@ -18,11 +18,8 @@
   "certificateValidityPeriodValue": 2,
   "subjectNameFormat": "custom",
   "subjectNameFormatString": "CN={{DeviceName}},O=Example Corp,C=US",
-  "rootCertificate": {
-    "@odata.id": "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('87654321-4321-4321-4321-210987654321')"
-  },
   "keySize": "size2048",
-  "keyUsage": ["digitalSignature", "keyEncipherment"],
+  "keyUsage": "digitalSignature,keyEncipherment",
   "customSubjectAlternativeNames": [
     {
       "sanType": "userPrincipalName",
@@ -63,5 +60,5 @@
     "https://something.com",
     "https://something2.com"
   ],
-  "allowAllAppsAccess": true
+  "allowAllAppsAccess": false
 }

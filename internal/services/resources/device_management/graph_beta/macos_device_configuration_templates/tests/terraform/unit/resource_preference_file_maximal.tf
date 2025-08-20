@@ -40,14 +40,10 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "include"
     },
     {
       type        = "exclusionGroupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000002"
-      filter_id   = "00000000-0000-0000-0000-000000000003"
-      filter_type = "exclude"
+      group_id    = "00000000-0000-0000-0000-000000000004"
     }
   ]
 
