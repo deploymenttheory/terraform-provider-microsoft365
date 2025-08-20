@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "NotFound",
+    "message": "The requested resource was not found",
+    "details": [
+      {
+        "code": "ResourceNotFound",
+        "message": "Notification message template not found",
+        "target": "notificationMessageTemplate"
+      }
+    ]
+  }
+}

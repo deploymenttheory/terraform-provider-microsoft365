@@ -1,15 +1,31 @@
-# Example: Multilingual Notification Message Template
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "multilingual" {
-  display_name     = "Multilingual Compliance Notification"
-  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
+resource "random_integer" "acc_test_suffix" {
+  min = 1000
+  max = 9999
+}
 
-  role_scope_tag_ids = ["0"]
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "maximal" {
+  display_name     = "Acc Test Maximal - ${random_integer.acc_test_suffix.result}"
+  branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation", "includeCompanyPortalLink", "includeDeviceDetails"]
+
+  role_scope_tag_ids = [microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id]
 
   localized_notification_messages = [
     {
       locale           = "en-us"
       subject          = "Device Compliance Issue Detected"
-      message_template = "Hello {UserName},\n\nYour device '{DeviceName}' has been found to be non-compliant with company policies. Please take action to resolve the following issues:\n\n{ComplianceReasons}\n\nFor assistance, please contact IT support.\n\nThank you,\nIT Security Team"
+      message_template = <<-EOT
+        Dear {UserName},
+
+        Your device '{DeviceName}' has been found to be non-compliant with company policies. 
+        Please take action to resolve the following issues:
+
+        {ComplianceReasons}
+
+        For assistance, please contact IT support.
+
+        Thank you,
+        IT Security Team
+      EOT
       is_default       = true
     },
     {
@@ -27,9 +43,9 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_no
   ]
 
   timeouts = {
-    create = "10m"
+    create = "15m"
     read   = "5m"
-    update = "10m"
+    update = "15m"
     delete = "5m"
   }
 }

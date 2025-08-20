@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Windows Device Compliance Notification data",
+    "details": [
+      {
+        "code": "InvalidRequest",
+        "message": "The request is invalid",
+        "target": "displayName"
+      }
+    ]
+  }
+}

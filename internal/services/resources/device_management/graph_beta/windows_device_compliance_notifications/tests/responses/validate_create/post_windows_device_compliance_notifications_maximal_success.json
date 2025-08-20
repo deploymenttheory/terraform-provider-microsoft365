@@ -1,0 +1,10 @@
+{
+  "@odata.type": "#microsoft.graph.notificationMessageTemplate",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates/$entity",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "Multilingual Compliance Notification",
+  "brandingOptions": "includeCompanyLogo,includeCompanyName,includeContactInformation",
+  "defaultLocale": "en-us",
+  "roleScopeTagIds": ["0"],
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
