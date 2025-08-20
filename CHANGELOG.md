@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.0-alpha...v0.27.1-alpha) (2025-08-20)
+
+
+### Bug Fixes
+
+* for unit and acc tests ([a9ecc32](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a9ecc32f0c462bacbfba35426f0074b8afa9c3c3))
+* for unit and acc tests ([#716](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/716)) ([c9859f2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c9859f2fd18669cf8d9b72ffaf9bd860877243df))
+
 ## [0.27.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.26.3-alpha...v0.27.0-alpha) (2025-08-19)
 
 
