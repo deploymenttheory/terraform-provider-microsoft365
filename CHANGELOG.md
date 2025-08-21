@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.6-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.5-alpha...v0.27.6-alpha) (2025-08-21)
+
+
+### Bug Fixes
+
+* trying parallelism 1 with ubuntu-22.04-arm-4c-l ([#727](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/727)) ([57f40cc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/57f40cc73ecdfb916be1fe7c5223b5dcfab75eec))
+
 ## [0.27.5-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.4-alpha...v0.27.5-alpha) (2025-08-21)
 
 
