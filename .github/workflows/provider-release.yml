@@ -21,7 +21,7 @@ permissions:
 jobs:
   pre-release-checks:
     name: '🚦 Pre-release Validation'
-    runs-on: ubuntu-24.04-arm-4c-l
+    runs-on: ubuntu-22.04-arm-4c-l
     timeout-minutes: 60
     steps:
     - name: Harden Runner
