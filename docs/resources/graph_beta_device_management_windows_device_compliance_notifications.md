@@ -1,12 +1,12 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_device_compliance_notifications Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_device_compliance_notification_templates Resource - terraform-provider-microsoft365"
 subcategory: "Device Management"
 
 description: |-
   Manages an Intune notification message template for compliance notifications
 ---
 
-# microsoft365_graph_beta_device_management_windows_device_compliance_notifications (Resource)
+# microsoft365_graph_beta_device_management_device_compliance_notification_templates (Resource)
 
 Manages an Intune notification message template for compliance notifications
 
@@ -23,7 +23,7 @@ The following API permissions are required in order to use this resource.
 
 ```terraform
 # Example: Multilingual Notification Message Template
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "multilingual" {
+resource "microsoft365_graph_beta_device_management_device_compliance_notification_templates" "multilingual" {
   display_name     = "Multilingual Compliance Notification"
   branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
@@ -59,7 +59,7 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_no
 }
 
 # Example: English Notification Template with Full Branding
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_notifications" "english" {
+resource "microsoft365_graph_beta_device_management_device_compliance_notification_templates" "english" {
   display_name     = "English Compliance Notification"
   branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 
@@ -162,7 +162,7 @@ Optional:
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.25.0-alpha | Experimental | Initial release |
-| v0.27.0-alpha | Testing | renamed from microsoft365_graph_beta_device_management_notification_message_template to microsoft365_graph_beta_device_management_windows_device_compliance_notifications |
+| v0.27.0-alpha | Testing | renamed from microsoft365_graph_beta_device_management_notification_message_template to microsoft365_graph_beta_device_management_device_compliance_notification_templates |
 
 ## Import
 

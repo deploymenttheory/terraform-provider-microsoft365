@@ -46,12 +46,11 @@
 - DeviceConfigurations
 - DeviceConfigurationsAllManagedDeviceCertificateStates
 - DeviceConfigurationUserStateSummaries
-- DeviceCustomAttributeShellScripts [Done]
-- DeviceEnrollmentConfigurations
-- DeviceHealthScripts [Done]
-- DeviceManagementPartners
-- DeviceManagementScripts [Done]
-- DeviceShellScripts [Done]
+- DeviceCustomAttributeShellScripts [Done] - as macos_custom_attribute_script
+- DeviceEnrollmentConfigurations [Done] - as windows_enrollment_status_page
+- DeviceHealthScripts [Done] - as windows_remediation_script
+- DeviceManagementScripts [Done] - as windows_platform_script
+- DeviceShellScripts [Done] - macos_platform_script
 - DomainJoinConnectors
 - ElevationRequests
 - EmbeddedSIMActivationCodePools
