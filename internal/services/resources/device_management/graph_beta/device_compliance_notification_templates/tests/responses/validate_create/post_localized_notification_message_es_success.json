@@ -1,0 +1,10 @@
+{
+  "@odata.type": "#microsoft.graph.localizedNotificationMessage",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates('22222222-2222-2222-2222-222222222222')/localizedNotificationMessages/$entity",
+  "id": "22222222-2222-2222-2222-222222222222_es-es",
+  "locale": "es-es",
+  "subject": "Problema de Cumplimiento del Dispositivo",
+  "messageTemplate": "Hola {UserName},\n\nTu dispositivo '{DeviceName}' no cumple las normas. Por favor resuelve: {ComplianceReasons}\n\nContacta con IT para ayuda.\n\nEquipo de Seguridad IT",
+  "isDefault": false,
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}

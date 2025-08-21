@@ -1,0 +1,3 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_windows_enrollment_status_page.example windows-enrollment-status-page-id
+

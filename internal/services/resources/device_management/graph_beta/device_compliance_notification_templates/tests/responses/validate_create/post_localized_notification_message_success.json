@@ -1,0 +1,10 @@
+{
+  "@odata.type": "#microsoft.graph.localizedNotificationMessage",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates('11111111-1111-1111-1111-111111111111')/localizedNotificationMessages/$entity",
+  "id": "11111111-1111-1111-1111-111111111111_en-us",
+  "locale": "en-us",
+  "subject": "Immediate Action Required: Device Compliance",
+  "messageTemplate": "Dear {UserName},\n\nYour device '{DeviceName}' (Serial: {DeviceSerialNumber}) has been identified as non-compliant with our security policies.\n\nCompliance Issues:\n{ComplianceReasons}\n\nRequired Actions:\n1. Update your device to the latest security patches\n2. Enable BitLocker encryption if not already enabled\n3. Ensure Windows Defender is active and up-to-date\n4. Contact IT support if you need assistance\n\nDevice Details:\n- Device Name: {DeviceName}\n- Operating System: {DeviceOSVersion}\n- Last Check-in: {LastCheckInTime}\n\nFailure to address these issues within 24 hours may result in restricted access to company resources.\n\nFor immediate assistance, contact:\n- IT Helpdesk: +1-555-0123\n- Email: it-support@company.com\n- Portal: https://company.com/it-support\n\nBest regards,\nIT Security Team\nCompany Name",
+  "isDefault": true,
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
