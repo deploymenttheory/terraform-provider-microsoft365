@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteStateToTerraform maps the base properties of a DeviceComplianceNotificationTemplatesResourceModel to a Terraform state.
-func MapRemoteStateToTerraform(ctx context.Context, data *DeviceComplianceNotificationTemplatesResourceModel, remoteResource graphmodels.NotificationMessageTemplateable) {
+// MapRemoteStateToTerraform maps the base properties of a DeviceComplianceNotificationTemplateResourceModel to a Terraform state.
+func MapRemoteStateToTerraform(ctx context.Context, data *DeviceComplianceNotificationTemplateResourceModel, remoteResource graphmodels.NotificationMessageTemplateable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

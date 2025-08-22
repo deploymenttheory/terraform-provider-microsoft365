@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 // validateRequest validates that exactly one localized message has is_default = true
-func validateRequest(ctx context.Context, data *DeviceComplianceNotificationTemplatesResourceModel) error {
+func validateRequest(ctx context.Context, data *DeviceComplianceNotificationTemplateResourceModel) error {
 	// Validate that exactly one localized notification message has is_default = true
 	if !data.LocalizedNotificationMessages.IsNull() && !data.LocalizedNotificationMessages.IsUnknown() {
 		var localizedMessages []LocalizedNotificationMessageModel

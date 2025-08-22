@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // constructResource builds the base resource request body.
-func constructResource(ctx context.Context, data *DeviceComplianceNotificationTemplatesResourceModel) (*graphmodels.NotificationMessageTemplate, error) {
+func constructResource(ctx context.Context, data *DeviceComplianceNotificationTemplateResourceModel) (*graphmodels.NotificationMessageTemplate, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing base %s template from model", ResourceName))
 
 	if err := validateRequest(ctx, data); err != nil {

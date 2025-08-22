@@ -1,5 +1,5 @@
 # Example: Multilingual Notification Message Template
-resource "microsoft365_graph_beta_device_management_device_compliance_notification_templates" "multilingual" {
+resource "microsoft365_graph_beta_device_management_device_compliance_notification_template" "multilingual" {
   display_name     = "Multilingual Compliance Notification"
   branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 

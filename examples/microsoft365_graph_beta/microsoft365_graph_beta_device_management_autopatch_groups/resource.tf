@@ -34,7 +34,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
       }
     },
     {
-      name   = "auto-patch-group - Ring1"
+      name = "auto-patch-group - Ring1"
       user_managed_aad_groups = [
         {
           id   = "00000000-0000-0000-0000-000000000000"

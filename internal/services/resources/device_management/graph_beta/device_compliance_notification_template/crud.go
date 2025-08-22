@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"context"
@@ -17,8 +17,8 @@ import (
 )
 
 // Create handles the resource creation
-func (r *DeviceComplianceNotificationTemplatesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan DeviceComplianceNotificationTemplatesResourceModel
+func (r *DeviceComplianceNotificationTemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan DeviceComplianceNotificationTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -181,8 +181,8 @@ func (r *DeviceComplianceNotificationTemplatesResource) Create(ctx context.Conte
 }
 
 // Read handles the resource read
-func (r *DeviceComplianceNotificationTemplatesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state DeviceComplianceNotificationTemplatesResourceModel
+func (r *DeviceComplianceNotificationTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state DeviceComplianceNotificationTemplateResourceModel
 
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -238,9 +238,9 @@ func (r *DeviceComplianceNotificationTemplatesResource) Read(ctx context.Context
 }
 
 // Update handles the resource update
-func (r *DeviceComplianceNotificationTemplatesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan DeviceComplianceNotificationTemplatesResourceModel
-	var state DeviceComplianceNotificationTemplatesResourceModel
+func (r *DeviceComplianceNotificationTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan DeviceComplianceNotificationTemplateResourceModel
+	var state DeviceComplianceNotificationTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting update method for: %s", ResourceName))
 
@@ -441,8 +441,8 @@ func (r *DeviceComplianceNotificationTemplatesResource) Update(ctx context.Conte
 }
 
 // Delete handles the resource deletion
-func (r *DeviceComplianceNotificationTemplatesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state DeviceComplianceNotificationTemplatesResourceModel
+func (r *DeviceComplianceNotificationTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state DeviceComplianceNotificationTemplateResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

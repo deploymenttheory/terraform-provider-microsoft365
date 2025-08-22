@@ -1,5 +1,5 @@
 # Example: English Notification Template with Full Branding
-resource "microsoft365_graph_beta_device_management_device_compliance_notification_templates" "english" {
+resource "microsoft365_graph_beta_device_management_device_compliance_notification_template" "english" {
   display_name     = "English Compliance Notification"
   branding_options = ["includeCompanyLogo", "includeCompanyName", "includeContactInformation"]
 

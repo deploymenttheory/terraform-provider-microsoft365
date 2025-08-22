@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_device_compliance_notification_templates"
+	ResourceName  = "graph_beta_device_management_device_compliance_notification_template"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -29,20 +29,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &DeviceComplianceNotificationTemplatesResource{}
+	_ resource.Resource = &DeviceComplianceNotificationTemplateResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &DeviceComplianceNotificationTemplatesResource{}
+	_ resource.ResourceWithConfigure = &DeviceComplianceNotificationTemplateResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &DeviceComplianceNotificationTemplatesResource{}
+	_ resource.ResourceWithImportState = &DeviceComplianceNotificationTemplateResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceComplianceNotificationTemplatesResource{}
+	_ resource.ResourceWithModifyPlan = &DeviceComplianceNotificationTemplateResource{}
 )
 
-func NewDeviceComplianceNotificationTemplatesResource() resource.Resource {
-	return &DeviceComplianceNotificationTemplatesResource{
+func NewDeviceComplianceNotificationTemplateResource() resource.Resource {
+	return &DeviceComplianceNotificationTemplateResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
 		},
@@ -53,7 +53,7 @@ func NewDeviceComplianceNotificationTemplatesResource() resource.Resource {
 	}
 }
 
-type DeviceComplianceNotificationTemplatesResource struct {
+type DeviceComplianceNotificationTemplateResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -63,25 +63,25 @@ type DeviceComplianceNotificationTemplatesResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *DeviceComplianceNotificationTemplatesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DeviceComplianceNotificationTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
-func (r *DeviceComplianceNotificationTemplatesResource) FullTypeName() string {
+func (r *DeviceComplianceNotificationTemplateResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
-func (r *DeviceComplianceNotificationTemplatesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DeviceComplianceNotificationTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
-func (r *DeviceComplianceNotificationTemplatesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DeviceComplianceNotificationTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DeviceComplianceNotificationTemplatesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DeviceComplianceNotificationTemplateResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an Intune notification message template for compliance notifications",
 		Attributes: map[string]schema.Attribute{
