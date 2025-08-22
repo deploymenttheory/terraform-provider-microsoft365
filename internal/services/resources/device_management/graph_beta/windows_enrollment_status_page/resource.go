@@ -50,11 +50,13 @@ func NewWindowsEnrollmentStatusPageResource() resource.Resource {
 	return &WindowsEnrollmentStatusPageResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
-			"DeviceManagementServiceConfig.ReadWrite.All",
+			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementServiceConfig.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
 		},
+		ResourcePath: "/deviceManagement/deviceEnrollmentConfigurations",
 	}
 }
 
@@ -87,18 +89,10 @@ func (r *WindowsEnrollmentStatusPageResource) ImportState(ctx context.Context, r
 
 func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune.\n\n" +
+		MarkdownDescription: "Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune." +
+			" Using the `/deviceManagement/deviceEnrollmentConfigurations/{deviceEnrollmentConfigurationId}` endpoint." +
 			"The Enrollment Status Page (ESP) displays the progress of the device setup process during " +
-			"Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.\n\n" +
-			"## API Documentation\n\n" +
-			"- [Graph API Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-windows10enrollmentcompletionpageconfiguration?view=graph-rest-beta)\n\n" +
-			"## Permissions\n\n" +
-			"The following API permissions are required:\n\n" +
-			"### Read\n" +
-			"- `DeviceManagementServiceConfig.Read.All`\n" +
-			"- `DeviceManagementServiceConfig.ReadWrite.All`\n\n" +
-			"### Write\n" +
-			"- `DeviceManagementServiceConfig.ReadWrite.All`",
+			"Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

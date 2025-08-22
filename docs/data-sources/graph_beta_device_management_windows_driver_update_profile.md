@@ -29,7 +29,7 @@ The following API permissions are required in order to use this data source.
 data "microsoft365_graph_beta_device_management_windows_driver_update_profile" "by_id" {
   id = "00000000-0000-0000-0000-000000000000" # Replace with your actual profile ID
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }
@@ -38,7 +38,7 @@ data "microsoft365_graph_beta_device_management_windows_driver_update_profile" "
 data "microsoft365_graph_beta_device_management_windows_driver_update_profile" "by_name" {
   display_name = "Windows 11 Driver Updates" # Replace with your actual profile name
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }

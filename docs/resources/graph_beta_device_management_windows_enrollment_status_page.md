@@ -3,38 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_windows_enrollment_status
 subcategory: "Device Management"
 
 description: |-
-  Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune.
-  The Enrollment Status Page (ESP) displays the progress of the device setup process during Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.
-  API Documentation
-  Graph API Documentation https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-windows10enrollmentcompletionpageconfiguration?view=graph-rest-beta
-  Permissions
-  The following API permissions are required:
-  Read
-  DeviceManagementServiceConfig.Read.AllDeviceManagementServiceConfig.ReadWrite.All
-  Write
-  DeviceManagementServiceConfig.ReadWrite.All
+  Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune. Using the /deviceManagement/deviceEnrollmentConfigurations/{deviceEnrollmentConfigurationId} endpoint.The Enrollment Status Page (ESP) displays the progress of the device setup process during Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.
 ---
 
 # microsoft365_graph_beta_device_management_windows_enrollment_status_page (Resource)
 
-Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune.
-
-The Enrollment Status Page (ESP) displays the progress of the device setup process during Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.
-
-## API Documentation
-
-- [Graph API Documentation](https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-windows10enrollmentcompletionpageconfiguration?view=graph-rest-beta)
-
-## Permissions
-
-The following API permissions are required:
-
-### Read
-- `DeviceManagementServiceConfig.Read.All`
-- `DeviceManagementServiceConfig.ReadWrite.All`
-
-### Write
-- `DeviceManagementServiceConfig.ReadWrite.All`
+Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune. Using the `/deviceManagement/deviceEnrollmentConfigurations/{deviceEnrollmentConfigurationId}` endpoint.The Enrollment Status Page (ESP) displays the progress of the device setup process during Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.
 
 
 ## API Permissions
@@ -54,79 +28,44 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_management_windows_driver_update_profile" "manual_example" {
-  display_name       = "Windows Driver Updates - Production x"
-  description        = "Driver update profile for production machines"
-  approval_type      = "manual"
-  role_scope_tag_ids = [8, 9]
+resource "microsoft365_graph_beta_device_management_windows_enrollment_status_page" "with_assignments" {
+  display_name                                  = "acc-test-windows-enrollment-status-page-assignments-${random_string.test_suffix.result}"
+  description                                   = "Test enrollment status page with group assignments"
+  show_installation_progress                    = true
+  block_device_setup_retry_by_user              = false
+  allow_device_reset_on_install_failure         = true
+  allow_log_collection_on_install_failure       = true
+  allow_device_use_on_install_failure           = false
+  track_install_progress_for_autopilot_only     = true
+  disable_user_status_tracking_after_first_user = false
+  custom_error_message                          = "Contact IT support for device enrollment assistance"
+  install_progress_timeout_in_minutes           = 120
 
-  // Optional assignment blocks
   assignments = [
-    # Assignment targeting a specific group
+    {
+      type = "allDevicesAssignmentTarget"
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    },
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
       group_id = "00000000-0000-0000-0000-000000000000"
     }
   ]
 
   timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "10m"
+    create = "10m"
+    read   = "5m"
+    update = "10m"
+    delete = "5m"
   }
 }
 
-resource "microsoft365_graph_beta_device_management_windows_driver_update_profile" "automatic_example" {
-  display_name                = "Windows Driver Updates - Production y"
-  description                 = "Driver update profile for production machines"
-  approval_type               = "automatic"
-  deployment_deferral_in_days = 14
-  role_scope_tag_ids          = [8, 9]
-
-  // Optional assignment blocks
-  assignments = [
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    }
-  ]
-
-  timeouts = {
-    create = "30m"
-    read   = "10m"
-    update = "30m"
-    delete = "10m"
-  }
+resource "random_string" "test_suffix" {
+  length  = 8
+  upper   = false
+  special = false
 }
 ```
 
