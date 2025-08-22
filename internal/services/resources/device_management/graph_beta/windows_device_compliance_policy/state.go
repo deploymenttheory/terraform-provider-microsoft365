@@ -71,69 +71,36 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
-// WindowsRemediationScriptAssignmentType returns the object type for WindowsRemediationScriptAssignmentModel
-func WindowsDeviceCompliancePolicyAssignmentType() attr.Type {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"type":        types.StringType,
-			"group_id":    types.StringType,
-			"filter_id":   types.StringType,
-			"filter_type": types.StringType,
-		},
-	}
-}
-
-// mapWindows10CompliancePolicyToState is a responder function that maps Windows 10 compliance policy properties.
-func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
-	// Map common properties
-	data.OsMinimumVersion = convert.GraphToFrameworkString(policy.GetOsMinimumVersion())
-	data.OsMaximumVersion = convert.GraphToFrameworkString(policy.GetOsMaximumVersion())
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
-	data.PasswordRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
-
-	// Map Windows 10-specific settings
-	mapWindows10SettingsToState(ctx, data, policy)
-}
-
 // mapWindows10SettingsToState maps Windows 10 specific settings using SDK getters.
-func mapWindows10SettingsToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
-	data.PasswordRequired = convert.GraphToFrameworkBool(policy.GetPasswordRequired())
-	data.PasswordBlockSimple = convert.GraphToFrameworkBool(policy.GetPasswordBlockSimple())
-	data.PasswordRequiredToUnlockFromIdle = convert.GraphToFrameworkBool(policy.GetPasswordRequiredToUnlockFromIdle())
-	data.PasswordMinutesOfInactivityBeforeLock = convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock())
-	data.PasswordExpirationDays = convert.GraphToFrameworkInt32(policy.GetPasswordExpirationDays())
-	data.PasswordMinimumLength = convert.GraphToFrameworkInt32(policy.GetPasswordMinimumLength())
-	data.PasswordMinimumCharacterSetCount = convert.GraphToFrameworkInt32(policy.GetPasswordMinimumCharacterSetCount())
-	data.PasswordRequiredType = convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType())
-	data.PasswordPreviousPasswordBlockCount = convert.GraphToFrameworkInt32(policy.GetPasswordPreviousPasswordBlockCount())
-	data.RequireHealthyDeviceReport = convert.GraphToFrameworkBool(policy.GetRequireHealthyDeviceReport())
-	data.EarlyLaunchAntiMalwareDriverEnabled = convert.GraphToFrameworkBool(policy.GetEarlyLaunchAntiMalwareDriverEnabled())
-	data.BitLockerEnabled = convert.GraphToFrameworkBool(policy.GetBitLockerEnabled())
-	data.SecureBootEnabled = convert.GraphToFrameworkBool(policy.GetSecureBootEnabled())
-	data.CodeIntegrityEnabled = convert.GraphToFrameworkBool(policy.GetCodeIntegrityEnabled())
-	data.MemoryIntegrityEnabled = convert.GraphToFrameworkBool(policy.GetMemoryIntegrityEnabled())
-	data.KernelDmaProtectionEnabled = convert.GraphToFrameworkBool(policy.GetKernelDmaProtectionEnabled())
-	data.VirtualizationBasedSecurityEnabled = convert.GraphToFrameworkBool(policy.GetVirtualizationBasedSecurityEnabled())
-	data.FirmwareProtectionEnabled = convert.GraphToFrameworkBool(policy.GetFirmwareProtectionEnabled())
-	data.StorageRequireEncryption = convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption())
-	data.ActiveFirewallRequired = convert.GraphToFrameworkBool(policy.GetActiveFirewallRequired())
-	data.DefenderEnabled = convert.GraphToFrameworkBool(policy.GetDefenderEnabled())
-	data.DefenderVersion = convert.GraphToFrameworkString(policy.GetDefenderVersion())
-	data.SignatureOutOfDate = convert.GraphToFrameworkBool(policy.GetSignatureOutOfDate())
-	data.RtpEnabled = convert.GraphToFrameworkBool(policy.GetRtpEnabled())
-	data.AntivirusRequired = convert.GraphToFrameworkBool(policy.GetAntivirusRequired())
-	data.AntiSpywareRequired = convert.GraphToFrameworkBool(policy.GetAntiSpywareRequired())
-	data.DeviceThreatProtectionEnabled = convert.GraphToFrameworkBool(policy.GetDeviceThreatProtectionEnabled())
-	data.DeviceThreatProtectionRequiredSecurityLevel = convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel())
-	data.ConfigurationManagerComplianceRequired = convert.GraphToFrameworkBool(policy.GetConfigurationManagerComplianceRequired())
-	data.TpmRequired = convert.GraphToFrameworkBool(policy.GetTpmRequired())
+func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
 
-	// Version and OS properties - already mapped in mapWindows10CompliancePolicyToState
-	data.MobileOsMinimumVersion = convert.GraphToFrameworkString(policy.GetMobileOsMinimumVersion())
-	data.MobileOsMaximumVersion = convert.GraphToFrameworkString(policy.GetMobileOsMaximumVersion())
+	// all of these fields are now deprecated.
+	// data.RequireHealthyDeviceReport = convert.GraphToFrameworkBool(policy.GetRequireHealthyDeviceReport())
+	// data.EarlyLaunchAntiMalwareDriverEnabled = convert.GraphToFrameworkBool(policy.GetEarlyLaunchAntiMalwareDriverEnabled())
+	// data.MemoryIntegrityEnabled = convert.GraphToFrameworkBool(policy.GetMemoryIntegrityEnabled())
+	// data.KernelDmaProtectionEnabled = convert.GraphToFrameworkBool(policy.GetKernelDmaProtectionEnabled())
+	// data.VirtualizationBasedSecurityEnabled = convert.GraphToFrameworkBool(policy.GetVirtualizationBasedSecurityEnabled())
+	// data.FirmwareProtectionEnabled = convert.GraphToFrameworkBool(policy.GetFirmwareProtectionEnabled())
 
-	// Map valid operating system build ranges
-	data.ValidOperatingSystemBuildRanges = mapValidOperatingSystemVersionRange(ctx, policy.GetValidOperatingSystemBuildRanges())
+	// Map device_health object only if it was configured by the user
+	if !data.DeviceHealth.IsNull() && !data.DeviceHealth.IsUnknown() {
+		mapDeviceHealthToState(ctx, data, policy)
+	}
+
+	// Map system_security object only if it was configured by the user
+	if !data.SystemSecurity.IsNull() && !data.SystemSecurity.IsUnknown() {
+		mapSystemSecurityToState(ctx, data, policy)
+	}
+
+	// Map microsoft_defender_for_endpoint object only if it was configured by the user
+	if !data.MicrosoftDefenderForEndpoint.IsNull() && !data.MicrosoftDefenderForEndpoint.IsUnknown() {
+		mapMicrosoftDefenderForEndpointToState(ctx, data, policy)
+	}
+
+	// Map device_properties object only if it was configured by the user
+	if !data.DeviceProperties.IsNull() && !data.DeviceProperties.IsUnknown() {
+		mapDevicePropertiesToState(ctx, data, policy)
+	}
 
 	data.WslDistributions = mapWslDistribution(ctx, policy.GetWslDistributions())
 
@@ -186,7 +153,6 @@ func mapWindows10SettingsToState(ctx context.Context, data *DeviceCompliancePoli
 func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable) (types.List, error) {
 	scheduledActionType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"rule_name": types.StringType,
 			"scheduled_action_configurations": types.SetType{ElemType: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"action_type":                  types.StringType,
@@ -224,7 +190,6 @@ func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []g
 		}
 
 		actionAttrs := map[string]attr.Value{
-			"rule_name":                       convert.GraphToFrameworkString(action.GetRuleName()),
 			"scheduled_action_configurations": mappedConfigs,
 		}
 
@@ -246,7 +211,7 @@ func mapScheduledActionConfigurationsToState(ctx context.Context, configurations
 			"action_type":                  types.StringType,
 			"grace_period_hours":           types.Int32Type,
 			"notification_template_id":     types.StringType,
-			"notification_message_cc_list": types.SetType{ElemType: types.StringType},
+			"notification_message_cc_list": types.ListType{ElemType: types.StringType},
 		},
 	}
 
@@ -309,16 +274,17 @@ func mapWslDistribution(ctx context.Context, wslDistributions []graphmodels.WslD
 }
 
 // mapValidOperatingSystemVersionRange maps valid operating system build ranges from SDK to state.
-func mapValidOperatingSystemVersionRange(ctx context.Context, buildRanges []graphmodels.OperatingSystemVersionRangeable) types.List {
+func mapValidOperatingSystemVersionRange(ctx context.Context, buildRanges []graphmodels.OperatingSystemVersionRangeable) types.Set {
 	validOSBuildRangeType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"low_os_version":  types.StringType,
 			"high_os_version": types.StringType,
+			"description":     types.StringType,
 		},
 	}
 
 	if len(buildRanges) == 0 {
-		return types.ListNull(validOSBuildRangeType)
+		return types.SetNull(validOSBuildRangeType)
 	}
 
 	buildRangeValues := make([]attr.Value, 0, len(buildRanges))
@@ -327,311 +293,111 @@ func mapValidOperatingSystemVersionRange(ctx context.Context, buildRanges []grap
 		buildRangeAttrs := map[string]attr.Value{
 			"low_os_version":  convert.GraphToFrameworkString(buildRange.GetLowestVersion()),
 			"high_os_version": convert.GraphToFrameworkString(buildRange.GetHighestVersion()),
+			"description":     convert.GraphToFrameworkString(buildRange.GetDescription()),
 		}
 
 		buildRangeValue, _ := types.ObjectValue(validOSBuildRangeType.AttrTypes, buildRangeAttrs)
 		buildRangeValues = append(buildRangeValues, buildRangeValue)
 	}
 
-	list, diags := types.ListValue(validOSBuildRangeType, buildRangeValues)
+	set, diags := types.SetValue(validOSBuildRangeType, buildRangeValues)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create valid operating system build ranges list from SDK", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create valid operating system build ranges set from SDK", map[string]interface{}{
 			"error": diags.Errors(),
 		})
-		return types.ListNull(validOSBuildRangeType)
+		return types.SetNull(validOSBuildRangeType)
 	}
-	return list
+	return set
 }
 
-// MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
-func MapAssignmentsToTerraform(ctx context.Context, data *DeviceCompliancePolicyResourceModel, assignments []graphmodels.DeviceCompliancePolicyAssignmentable) {
-	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = types.SetNull(WindowsDeviceCompliancePolicyAssignmentType())
-		return
-	}
-
-	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
-		"assignmentCount": len(assignments),
-		"resourceId":      data.ID.ValueString(),
+// mapDeviceHealthToState maps device health properties from SDK to state
+func mapDeviceHealthToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
+	data.DeviceHealth, _ = types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"bit_locker_enabled":     types.BoolType,
+		"secure_boot_enabled":    types.BoolType,
+		"code_integrity_enabled": types.BoolType,
+	}, DeviceHealthModel{
+		BitLockerEnabled:     convert.GraphToFrameworkBool(policy.GetBitLockerEnabled()),
+		SecureBootEnabled:    convert.GraphToFrameworkBool(policy.GetSecureBootEnabled()),
+		CodeIntegrityEnabled: convert.GraphToFrameworkBool(policy.GetCodeIntegrityEnabled()),
 	})
+}
 
-	assignmentValues := []attr.Value{}
-
-	for i, assignment := range assignments {
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		target := assignment.GetTarget()
-		if target == nil {
-			tflog.Warn(ctx, "Assignment target is nil, skipping assignment", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			continue
-		}
-
-		odataType := target.GetOdataType()
-		if odataType == nil {
-			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			continue
-		}
-
-		tflog.Debug(ctx, "Processing assignment target", map[string]interface{}{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"targetType":      *odataType,
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		assignmentObj := map[string]attr.Value{
-			"type":        types.StringNull(),
-			"group_id":    types.StringNull(),
-			"filter_id":   types.StringNull(),
-			"filter_type": types.StringNull(),
-		}
-
-		switch *odataType {
-		case "#microsoft.graph.allDevicesAssignmentTarget":
-			tflog.Debug(ctx, "Mapping allDevicesAssignmentTarget", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["type"] = types.StringValue("allDevicesAssignmentTarget")
-			assignmentObj["group_id"] = types.StringNull()
-
-		case "#microsoft.graph.allLicensedUsersAssignmentTarget":
-			tflog.Debug(ctx, "Mapping allLicensedUsersAssignmentTarget", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["type"] = types.StringValue("allLicensedUsersAssignmentTarget")
-			assignmentObj["group_id"] = types.StringNull()
-
-		case "#microsoft.graph.groupAssignmentTarget":
-			tflog.Debug(ctx, "Mapping groupAssignmentTarget", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
-
-			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
-				groupId := groupTarget.GetGroupId()
-				if groupId != nil && *groupId != "" {
-					tflog.Debug(ctx, "Setting group ID for group assignment target", map[string]interface{}{
-						"assignmentIndex": i,
-						"assignmentId":    assignment.GetId(),
-						"groupId":         *groupId,
-						"resourceId":      data.ID.ValueString(),
-					})
-					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
-				} else {
-					tflog.Warn(ctx, "Group ID is nil/empty for group assignment target", map[string]interface{}{
-						"assignmentIndex": i,
-						"assignmentId":    assignment.GetId(),
-						"resourceId":      data.ID.ValueString(),
-					})
-					assignmentObj["group_id"] = types.StringNull()
-				}
-			} else {
-				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["group_id"] = types.StringNull()
-			}
-
-		case "#microsoft.graph.exclusionGroupAssignmentTarget":
-			tflog.Debug(ctx, "Mapping exclusionGroupAssignmentTarget", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["type"] = types.StringValue("exclusionGroupAssignmentTarget")
-
-			if groupTarget, ok := target.(graphmodels.ExclusionGroupAssignmentTargetable); ok {
-				groupId := groupTarget.GetGroupId()
-				if groupId != nil && *groupId != "" {
-					tflog.Debug(ctx, "Setting group ID for exclusion group assignment target", map[string]interface{}{
-						"assignmentIndex": i,
-						"assignmentId":    assignment.GetId(),
-						"groupId":         *groupId,
-						"resourceId":      data.ID.ValueString(),
-					})
-					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
-				} else {
-					tflog.Warn(ctx, "Group ID is nil/empty for exclusion group assignment target", map[string]interface{}{
-						"assignmentIndex": i,
-						"assignmentId":    assignment.GetId(),
-						"resourceId":      data.ID.ValueString(),
-					})
-					assignmentObj["group_id"] = types.StringNull()
-				}
-			} else {
-				tflog.Error(ctx, "Failed to cast target to ExclusionGroupAssignmentTargetable", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["group_id"] = types.StringNull()
-			}
-
-		default:
-			tflog.Warn(ctx, "Unknown target type encountered", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"targetType":      *odataType,
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["group_id"] = types.StringNull()
-		}
-
-		tflog.Debug(ctx, "Processing assignment filters", map[string]interface{}{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
-		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
-			tflog.Debug(ctx, "Assignment has meaningful filter ID", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"filterId":        *filterID,
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
-		} else {
-			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using schema default", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
-		}
-
-		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
-		if filterType != nil {
-			tflog.Debug(ctx, "Processing filter type", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"filterType":      *filterType,
-				"resourceId":      data.ID.ValueString(),
-			})
-
-			switch *filterType {
-			case graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
-				tflog.Debug(ctx, "Setting filter type to include", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["filter_type"] = types.StringValue("include")
-			case graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
-				tflog.Debug(ctx, "Setting filter type to exclude", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["filter_type"] = types.StringValue("exclude")
-			case graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
-				tflog.Debug(ctx, "Setting filter type to none", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["filter_type"] = types.StringValue("none")
-			default:
-				tflog.Debug(ctx, "Unknown filter type, using schema default", map[string]interface{}{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"filterType":      *filterType,
-					"resourceId":      data.ID.ValueString(),
-				})
-				assignmentObj["filter_type"] = types.StringValue("none")
-			}
-		} else {
-			tflog.Debug(ctx, "No filter type specified, using schema default", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentObj["filter_type"] = types.StringValue("none")
-		}
-
-		tflog.Debug(ctx, "Processing assignment schedule", map[string]interface{}{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		tflog.Debug(ctx, "Creating assignment object value", map[string]interface{}{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		objValue, diags := types.ObjectValue(WindowsDeviceCompliancePolicyAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
-		if !diags.HasError() {
-			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentValues = append(assignmentValues, objValue)
-		} else {
-			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"errors":          diags.Errors(),
-				"resourceId":      data.ID.ValueString(),
-			})
-		}
-	}
-
-	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
-		"processedAssignments": len(assignmentValues),
-		"originalAssignments":  len(assignments),
-		"resourceId":           data.ID.ValueString(),
+// mapDevicePropertiesToState maps device properties from SDK to state
+func mapDevicePropertiesToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
+	data.DeviceProperties, _ = types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"os_minimum_version":        types.StringType,
+		"os_maximum_version":        types.StringType,
+		"mobile_os_minimum_version": types.StringType,
+		"mobile_os_maximum_version": types.StringType,
+		"valid_operating_system_build_ranges": types.SetType{ElemType: types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"low_os_version":  types.StringType,
+				"high_os_version": types.StringType,
+				"description":     types.StringType,
+			},
+		}},
+	}, DevicePropertiesModel{
+		OsMinimumVersion:                convert.GraphToFrameworkString(policy.GetOsMinimumVersion()),
+		OsMaximumVersion:                convert.GraphToFrameworkString(policy.GetOsMaximumVersion()),
+		MobileOsMinimumVersion:          convert.GraphToFrameworkString(policy.GetMobileOsMinimumVersion()),
+		MobileOsMaximumVersion:          convert.GraphToFrameworkString(policy.GetMobileOsMaximumVersion()),
+		ValidOperatingSystemBuildRanges: mapValidOperatingSystemVersionRange(ctx, policy.GetValidOperatingSystemBuildRanges()),
 	})
+}
 
-	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(WindowsDeviceCompliancePolicyAssignmentType(), assignmentValues)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
-				"errors":     diags.Errors(),
-				"resourceId": data.ID.ValueString(),
-			})
-			data.Assignments = types.SetNull(WindowsDeviceCompliancePolicyAssignmentType())
-		} else {
-			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
-				"assignmentCount": len(assignmentValues),
-				"resourceId":      data.ID.ValueString(),
-			})
-			data.Assignments = setVal
-		}
-	} else {
-		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
-			"resourceId": data.ID.ValueString(),
-		})
-		data.Assignments = types.SetNull(WindowsDeviceCompliancePolicyAssignmentType())
+// mapSystemSecurityToState maps system security settings to state
+func mapSystemSecurityToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
+	systemSecurityType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"active_firewall_required":                  types.BoolType,
+			"anti_spyware_required":                     types.BoolType,
+			"antivirus_required":                        types.BoolType,
+			"configuration_manager_compliance_required": types.BoolType,
+			"defender_enabled":                          types.BoolType,
+			"defender_version":                          types.StringType,
+			"password_block_simple":                     types.BoolType,
+			"password_minimum_character_set_count":      types.Int32Type,
+			"password_required":                         types.BoolType,
+			"password_required_to_unlock_from_idle":     types.BoolType,
+			"password_required_type":                    types.StringType,
+			"rtp_enabled":                               types.BoolType,
+			"signature_out_of_date":                     types.BoolType,
+			"storage_require_encryption":                types.BoolType,
+			"tpm_required":                              types.BoolType,
+		},
 	}
 
-	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{
-		"finalAssignmentCount": len(assignmentValues),
-		"originalAssignments":  len(assignments),
-		"resourceId":           data.ID.ValueString(),
+	data.SystemSecurity, _ = types.ObjectValue(systemSecurityType.AttrTypes, map[string]attr.Value{
+		"active_firewall_required":                  convert.GraphToFrameworkBool(policy.GetActiveFirewallRequired()),
+		"anti_spyware_required":                     convert.GraphToFrameworkBool(policy.GetAntiSpywareRequired()),
+		"antivirus_required":                        convert.GraphToFrameworkBool(policy.GetAntivirusRequired()),
+		"configuration_manager_compliance_required": convert.GraphToFrameworkBool(policy.GetConfigurationManagerComplianceRequired()),
+		"defender_enabled":                          convert.GraphToFrameworkBool(policy.GetDefenderEnabled()),
+		"defender_version":                          convert.GraphToFrameworkString(policy.GetDefenderVersion()),
+		"password_block_simple":                     convert.GraphToFrameworkBool(policy.GetPasswordBlockSimple()),
+		"password_minimum_character_set_count":      convert.GraphToFrameworkInt32(policy.GetPasswordMinimumCharacterSetCount()),
+		"password_required":                         convert.GraphToFrameworkBool(policy.GetPasswordRequired()),
+		"password_required_to_unlock_from_idle":     convert.GraphToFrameworkBool(policy.GetPasswordRequiredToUnlockFromIdle()),
+		"password_required_type":                    convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType()),
+		"rtp_enabled":                               convert.GraphToFrameworkBool(policy.GetRtpEnabled()),
+		"signature_out_of_date":                     convert.GraphToFrameworkBool(policy.GetSignatureOutOfDate()),
+		"storage_require_encryption":                convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
+		"tpm_required":                              convert.GraphToFrameworkBool(policy.GetTpmRequired()),
+	})
+}
+
+// mapMicrosoftDefenderForEndpointToState maps Microsoft Defender for Endpoint settings to state
+func mapMicrosoftDefenderForEndpointToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
+	microsoftDefenderType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"device_threat_protection_enabled":                 types.BoolType,
+			"device_threat_protection_required_security_level": types.StringType,
+		},
+	}
+
+	data.MicrosoftDefenderForEndpoint, _ = types.ObjectValue(microsoftDefenderType.AttrTypes, map[string]attr.Value{
+		"device_threat_protection_enabled":                 convert.GraphToFrameworkBool(policy.GetDeviceThreatProtectionEnabled()),
+		"device_threat_protection_required_security_level": convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
 	})
 }

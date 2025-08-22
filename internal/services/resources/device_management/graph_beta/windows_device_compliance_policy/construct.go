@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -60,57 +61,86 @@ func constructResource(ctx context.Context, data *DeviceCompliancePolicyResource
 
 // constructWindows10CompliancePolicy handles Windows 10 specific settings using SDK setters
 func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) error {
-	convert.FrameworkToGraphBool(data.PasswordRequired, policy.SetPasswordRequired)
-	convert.FrameworkToGraphBool(data.PasswordBlockSimple, policy.SetPasswordBlockSimple)
-	convert.FrameworkToGraphBool(data.PasswordRequiredToUnlockFromIdle, policy.SetPasswordRequiredToUnlockFromIdle)
-	convert.FrameworkToGraphInt32(data.PasswordMinutesOfInactivityBeforeLock, policy.SetPasswordMinutesOfInactivityBeforeLock)
-	convert.FrameworkToGraphInt32(data.PasswordExpirationDays, policy.SetPasswordExpirationDays)
-	convert.FrameworkToGraphInt32(data.PasswordMinimumLength, policy.SetPasswordMinimumLength)
-	convert.FrameworkToGraphInt32(data.PasswordMinimumCharacterSetCount, policy.SetPasswordMinimumCharacterSetCount)
-	convert.FrameworkToGraphInt32(data.PasswordPreviousPasswordBlockCount, policy.SetPasswordPreviousPasswordBlockCount)
+	// all of these fields are now deprecated.
 
-	if err := convert.FrameworkToGraphEnum(data.PasswordRequiredType,
-		graphmodels.ParseRequiredPasswordType, policy.SetPasswordRequiredType); err != nil {
-		return fmt.Errorf("failed to set password required type: %s", err)
-	}
+	//convert.FrameworkToGraphBool(data.RequireHealthyDeviceReport, policy.SetRequireHealthyDeviceReport)
+	//convert.FrameworkToGraphBool(data.EarlyLaunchAntiMalwareDriverEnabled, policy.SetEarlyLaunchAntiMalwareDriverEnabled)
+	// convert.FrameworkToGraphBool(data.MemoryIntegrityEnabled, policy.SetMemoryIntegrityEnabled)
+	// convert.FrameworkToGraphBool(data.KernelDmaProtectionEnabled, policy.SetKernelDmaProtectionEnabled)
+	// convert.FrameworkToGraphBool(data.VirtualizationBasedSecurityEnabled, policy.SetVirtualizationBasedSecurityEnabled)
+	// convert.FrameworkToGraphBool(data.FirmwareProtectionEnabled, policy.SetFirmwareProtectionEnabled)
 
-	convert.FrameworkToGraphBool(data.RequireHealthyDeviceReport, policy.SetRequireHealthyDeviceReport)
-	convert.FrameworkToGraphBool(data.EarlyLaunchAntiMalwareDriverEnabled, policy.SetEarlyLaunchAntiMalwareDriverEnabled)
-	convert.FrameworkToGraphBool(data.BitLockerEnabled, policy.SetBitLockerEnabled)
-	convert.FrameworkToGraphBool(data.SecureBootEnabled, policy.SetSecureBootEnabled)
-	convert.FrameworkToGraphBool(data.CodeIntegrityEnabled, policy.SetCodeIntegrityEnabled)
-	convert.FrameworkToGraphBool(data.MemoryIntegrityEnabled, policy.SetMemoryIntegrityEnabled)
-	convert.FrameworkToGraphBool(data.KernelDmaProtectionEnabled, policy.SetKernelDmaProtectionEnabled)
-	convert.FrameworkToGraphBool(data.VirtualizationBasedSecurityEnabled, policy.SetVirtualizationBasedSecurityEnabled)
-	convert.FrameworkToGraphBool(data.FirmwareProtectionEnabled, policy.SetFirmwareProtectionEnabled)
-	convert.FrameworkToGraphBool(data.StorageRequireEncryption, policy.SetStorageRequireEncryption)
-	convert.FrameworkToGraphBool(data.ActiveFirewallRequired, policy.SetActiveFirewallRequired)
-	convert.FrameworkToGraphBool(data.DefenderEnabled, policy.SetDefenderEnabled)
-	convert.FrameworkToGraphString(data.DefenderVersion, policy.SetDefenderVersion)
-	convert.FrameworkToGraphBool(data.SignatureOutOfDate, policy.SetSignatureOutOfDate)
-	convert.FrameworkToGraphBool(data.RtpEnabled, policy.SetRtpEnabled)
-	convert.FrameworkToGraphBool(data.AntivirusRequired, policy.SetAntivirusRequired)
-	convert.FrameworkToGraphBool(data.AntiSpywareRequired, policy.SetAntiSpywareRequired)
-	convert.FrameworkToGraphBool(data.DeviceThreatProtectionEnabled, policy.SetDeviceThreatProtectionEnabled)
-	convert.FrameworkToGraphBool(data.ConfigurationManagerComplianceRequired, policy.SetConfigurationManagerComplianceRequired)
-	convert.FrameworkToGraphBool(data.TpmRequired, policy.SetTpmRequired)
-
-	if err := convert.FrameworkToGraphEnum(data.DeviceThreatProtectionRequiredSecurityLevel,
-		graphmodels.ParseDeviceThreatProtectionLevel, policy.SetDeviceThreatProtectionRequiredSecurityLevel); err != nil {
-		return fmt.Errorf("failed to set device threat protection required security level: %s", err)
-	}
-
-	convert.FrameworkToGraphString(data.OsMinimumVersion, policy.SetOsMinimumVersion)
-	convert.FrameworkToGraphString(data.OsMaximumVersion, policy.SetOsMaximumVersion)
-	convert.FrameworkToGraphString(data.MobileOsMinimumVersion, policy.SetMobileOsMinimumVersion)
-	convert.FrameworkToGraphString(data.MobileOsMaximumVersion, policy.SetMobileOsMaximumVersion)
-
-	if !data.ValidOperatingSystemBuildRanges.IsNull() && !data.ValidOperatingSystemBuildRanges.IsUnknown() {
-		buildRanges, err := constructValidOperatingSystemBuildRanges(ctx, data.ValidOperatingSystemBuildRanges)
-		if err != nil {
-			return fmt.Errorf("failed to construct valid operating system build ranges: %s", err)
+	// Handle device_health object
+	if !data.DeviceHealth.IsNull() && !data.DeviceHealth.IsUnknown() {
+		var deviceHealth DeviceHealthModel
+		diags := data.DeviceHealth.As(ctx, &deviceHealth, basetypes.ObjectAsOptions{})
+		if !diags.HasError() {
+			convert.FrameworkToGraphBool(deviceHealth.BitLockerEnabled, policy.SetBitLockerEnabled)
+			convert.FrameworkToGraphBool(deviceHealth.SecureBootEnabled, policy.SetSecureBootEnabled)
+			convert.FrameworkToGraphBool(deviceHealth.CodeIntegrityEnabled, policy.SetCodeIntegrityEnabled)
 		}
-		policy.SetValidOperatingSystemBuildRanges(buildRanges)
+	}
+
+	// Handle system_security object
+	if !data.SystemSecurity.IsNull() && !data.SystemSecurity.IsUnknown() {
+		var systemSecurity SystemSecurityModel
+		diags := data.SystemSecurity.As(ctx, &systemSecurity, basetypes.ObjectAsOptions{})
+		if !diags.HasError() {
+			convert.FrameworkToGraphBool(systemSecurity.StorageRequireEncryption, policy.SetStorageRequireEncryption)
+			convert.FrameworkToGraphBool(systemSecurity.ActiveFirewallRequired, policy.SetActiveFirewallRequired)
+			convert.FrameworkToGraphBool(systemSecurity.DefenderEnabled, policy.SetDefenderEnabled)
+			convert.FrameworkToGraphString(systemSecurity.DefenderVersion, policy.SetDefenderVersion)
+			convert.FrameworkToGraphBool(systemSecurity.SignatureOutOfDate, policy.SetSignatureOutOfDate)
+			convert.FrameworkToGraphBool(systemSecurity.RtpEnabled, policy.SetRtpEnabled)
+			convert.FrameworkToGraphBool(systemSecurity.AntivirusRequired, policy.SetAntivirusRequired)
+			convert.FrameworkToGraphBool(systemSecurity.AntiSpywareRequired, policy.SetAntiSpywareRequired)
+			convert.FrameworkToGraphBool(systemSecurity.ConfigurationManagerComplianceRequired, policy.SetConfigurationManagerComplianceRequired)
+			convert.FrameworkToGraphBool(systemSecurity.TpmRequired, policy.SetTpmRequired)
+			convert.FrameworkToGraphBool(systemSecurity.PasswordRequired, policy.SetPasswordRequired)
+			convert.FrameworkToGraphBool(systemSecurity.PasswordBlockSimple, policy.SetPasswordBlockSimple)
+			convert.FrameworkToGraphBool(systemSecurity.PasswordRequiredToUnlockFromIdle, policy.SetPasswordRequiredToUnlockFromIdle)
+			convert.FrameworkToGraphInt32(systemSecurity.PasswordMinimumCharacterSetCount, policy.SetPasswordMinimumCharacterSetCount)
+
+			if err := convert.FrameworkToGraphEnum(systemSecurity.PasswordRequiredType,
+				graphmodels.ParseRequiredPasswordType, policy.SetPasswordRequiredType); err != nil {
+				return fmt.Errorf("failed to set password required type: %s", err)
+			}
+
+		}
+	}
+
+	// Handle microsoft_defender_for_endpoint object
+	if !data.MicrosoftDefenderForEndpoint.IsNull() && !data.MicrosoftDefenderForEndpoint.IsUnknown() {
+		var microsoftDefender MicrosoftDefenderForEndpointModel
+		diags := data.MicrosoftDefenderForEndpoint.As(ctx, &microsoftDefender, basetypes.ObjectAsOptions{})
+		if !diags.HasError() {
+			convert.FrameworkToGraphBool(microsoftDefender.DeviceThreatProtectionEnabled, policy.SetDeviceThreatProtectionEnabled)
+
+			if err := convert.FrameworkToGraphEnum(microsoftDefender.DeviceThreatProtectionRequiredSecurityLevel,
+				graphmodels.ParseDeviceThreatProtectionLevel, policy.SetDeviceThreatProtectionRequiredSecurityLevel); err != nil {
+				return fmt.Errorf("failed to set device threat protection required security level: %s", err)
+			}
+		}
+	}
+
+	// Handle device_properties object
+	if !data.DeviceProperties.IsNull() && !data.DeviceProperties.IsUnknown() {
+		var deviceProperties DevicePropertiesModel
+		diags := data.DeviceProperties.As(ctx, &deviceProperties, basetypes.ObjectAsOptions{})
+		if !diags.HasError() {
+			convert.FrameworkToGraphString(deviceProperties.OsMinimumVersion, policy.SetOsMinimumVersion)
+			convert.FrameworkToGraphString(deviceProperties.OsMaximumVersion, policy.SetOsMaximumVersion)
+			convert.FrameworkToGraphString(deviceProperties.MobileOsMinimumVersion, policy.SetMobileOsMinimumVersion)
+			convert.FrameworkToGraphString(deviceProperties.MobileOsMaximumVersion, policy.SetMobileOsMaximumVersion)
+
+			if !deviceProperties.ValidOperatingSystemBuildRanges.IsNull() && !deviceProperties.ValidOperatingSystemBuildRanges.IsUnknown() {
+				buildRanges, err := constructValidOperatingSystemBuildRanges(ctx, deviceProperties.ValidOperatingSystemBuildRanges)
+				if err != nil {
+					return fmt.Errorf("failed to construct valid operating system build ranges from device_properties: %s", err)
+				}
+				policy.SetValidOperatingSystemBuildRanges(buildRanges)
+			}
+		}
 	}
 
 	if !data.WslDistributions.IsNull() && !data.WslDistributions.IsUnknown() {
@@ -185,8 +215,8 @@ func constructWslDistributions(ctx context.Context, wslDistributionsData types.S
 	return wslDistributions, nil
 }
 
-// constructValidOperatingSystemBuildRanges converts Terraform List to Graph SDK model using proper SDK types
-func constructValidOperatingSystemBuildRanges(ctx context.Context, buildRangesData types.List) ([]graphmodels.OperatingSystemVersionRangeable, error) {
+// constructValidOperatingSystemBuildRanges converts Terraform Set to Graph SDK model using proper SDK types
+func constructValidOperatingSystemBuildRanges(ctx context.Context, buildRangesData types.Set) ([]graphmodels.OperatingSystemVersionRangeable, error) {
 	var buildRangeModels []ValidOperatingSystemBuildRangeModel
 	diags := buildRangesData.ElementsAs(ctx, &buildRangeModels, false)
 	if diags.HasError() {
@@ -199,6 +229,7 @@ func constructValidOperatingSystemBuildRanges(ctx context.Context, buildRangesDa
 
 		convert.FrameworkToGraphString(buildRange.LowOSVersion, versionRange.SetLowestVersion)
 		convert.FrameworkToGraphString(buildRange.HighOSVersion, versionRange.SetHighestVersion)
+		convert.FrameworkToGraphString(buildRange.Description, versionRange.SetDescription)
 
 		buildRanges = append(buildRanges, versionRange)
 	}
@@ -211,10 +242,10 @@ func constructScheduledActionsForPolicyCreation(ctx context.Context, scheduledAc
 	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, 1)
 	scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
 
-	if !scheduledActionData.RuleName.IsNull() && !scheduledActionData.RuleName.IsUnknown() {
-		ruleName := scheduledActionData.RuleName.ValueString()
-		scheduledAction.SetRuleName(&ruleName)
-	}
+	// Always set rule name to "PasswordRequired" - API requirement but not user configurable
+	// value is never returned by the API
+	ruleName := "PasswordRequired"
+	scheduledAction.SetRuleName(&ruleName)
 
 	if !scheduledActionData.ScheduledActionConfigurations.IsNull() && !scheduledActionData.ScheduledActionConfigurations.IsUnknown() {
 		configs, err := constructScheduledActionItem(ctx, scheduledActionData.ScheduledActionConfigurations)

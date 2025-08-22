@@ -13,14 +13,15 @@ import (
 )
 
 // constructDeviceComplianceScheduledActionForRulesWithPatchMethod creates the request body for the scheduleActionsForRules API call
+// during resource updates this function is required to specifically update the section of the resource.
 func constructDeviceComplianceScheduledActionForRulesWithPatchMethod(ctx context.Context, scheduledActionsData ScheduledActionForRuleModel) (devicemanagement.DeviceCompliancePoliciesItemScheduleActionsForRulesPostRequestBodyable, error) {
 	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, 1)
 	scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
 
-	if !scheduledActionsData.RuleName.IsNull() && !scheduledActionsData.RuleName.IsUnknown() {
-		ruleName := scheduledActionsData.RuleName.ValueString()
-		scheduledAction.SetRuleName(&ruleName)
-	}
+	// Always set rule name to "PasswordRequired" - API requirement but not user configurable
+	// value is never returned by the API
+	ruleName := "PasswordRequired"
+	scheduledAction.SetRuleName(&ruleName)
 
 	if !scheduledActionsData.ScheduledActionConfigurations.IsNull() && !scheduledActionsData.ScheduledActionConfigurations.IsUnknown() {
 		configs, err := constructScheduledActionItem(ctx, scheduledActionsData.ScheduledActionConfigurations)

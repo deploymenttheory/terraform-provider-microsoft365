@@ -4,105 +4,91 @@ import (
 	"context"
 	"fmt"
 
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-// ValidateAssignments validates the assignments according to the following rules:
-// 1. If all_devices is set, no other group assignments are allowed
-// 2. If all_users is set, no other group assignments can be set
-// 3. All_devices and all_users cannot be set at the same time
-// 4. Exclude assignments can always be set regardless
-// 5. A group can only be defined once across all include and exclude assignments
-// 6. Each assignment must have exactly one schedule type defined (or none for exclusions)
-// 7. group_id must be provided for groupAssignmentTarget and exclusionGroupAssignmentTarget
-func ValidateAssignments(ctx context.Context, data *DeviceCompliancePolicyResourceModel) diag.Diagnostics {
+// validateRequest validates the request data, specifically checking if notification_message_cc_list group IDs exist
+func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *DeviceCompliancePolicyResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if data.Assignments.IsNull() || data.Assignments.IsUnknown() {
+	if data.ScheduledActionsForRule.IsNull() || data.ScheduledActionsForRule.IsUnknown() {
 		return diags
 	}
 
-	var assignments []sharedmodels.DeviceCompliancePolicyAssignmentResourceModel
-	diags.Append(data.Assignments.ElementsAs(ctx, &assignments, false)...)
-	if diags.HasError() {
+	var scheduledActionsModels []ScheduledActionForRuleModel
+	convertDiags := data.ScheduledActionsForRule.ElementsAs(ctx, &scheduledActionsModels, false)
+	if convertDiags.HasError() {
+		diags.Append(convertDiags...)
 		return diags
 	}
 
-	// Track group IDs to detect duplicates
-	groupIDs := make(map[string]bool)
-
-	for i, assignment := range assignments {
-		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			diags.AddError(
-				"Invalid Assignment Configuration",
-				fmt.Sprintf("Assignment at index %d is missing a target type", i),
-			)
+	for _, scheduledAction := range scheduledActionsModels {
+		if scheduledAction.ScheduledActionConfigurations.IsNull() || scheduledAction.ScheduledActionConfigurations.IsUnknown() {
 			continue
 		}
 
-		targetType := assignment.Type.ValueString()
+		var configModels []ScheduledActionConfigurationModel
+		convertDiags := scheduledAction.ScheduledActionConfigurations.ElementsAs(ctx, &configModels, false)
+		if convertDiags.HasError() {
+			diags.Append(convertDiags...)
+			return diags
+		}
 
-		if targetType == "groupAssignmentTarget" || targetType == "exclusionGroupAssignmentTarget" {
-			if assignment.GroupId.IsNull() || assignment.GroupId.IsUnknown() || assignment.GroupId.ValueString() == "" {
-				diags.AddError(
-					"Invalid Assignment Configuration",
-					fmt.Sprintf("Assignment at index %d has target type '%s' but is missing a group_id", i, targetType),
-				)
-			} else {
-				groupID := assignment.GroupId.ValueString()
+		for _, config := range configModels {
+			if config.NotificationMessageCcList.IsNull() || config.NotificationMessageCcList.IsUnknown() {
+				continue
+			}
 
-				if groupID == "00000000-0000-0000-0000-000000000000" {
+			var groupIds []string
+			convertDiags := config.NotificationMessageCcList.ElementsAs(ctx, &groupIds, false)
+			if convertDiags.HasError() {
+				diags.Append(convertDiags...)
+				return diags
+			}
+
+			// Validate each group ID
+			for _, groupId := range groupIds {
+				if groupId == "" {
+					continue // Skip empty group IDs
+				}
+
+				tflog.Debug(ctx, "Validating Microsoft 365 group ID", map[string]interface{}{
+					"groupId": groupId,
+				})
+
+				group, err := client.
+					Groups().
+					ByGroupId(groupId).
+					Get(ctx, nil)
+
+				if err != nil {
 					diags.AddError(
-						"Invalid Assignment Configuration",
-						fmt.Sprintf("Assignment at index %d has target type '%s' but group_id cannot be the default value '00000000-0000-0000-0000-000000000000'", i, targetType),
+						"Invalid Group ID in notification_message_cc_list",
+						fmt.Sprintf("The group ID '%s' in notification_message_cc_list is invalid or is not accessible. "+
+							"Please verify the group ID is correct and your provider authentication method has the necessary permissions to read Microsoft 365 groups. "+
+							"Error: %s", groupId, err.Error()),
 					)
 				} else {
-					if _, exists := groupIDs[groupID]; exists {
+					// Check if the group is mail-enabled
+					if group.GetMailEnabled() == nil || !*group.GetMailEnabled() {
 						diags.AddError(
-							"Duplicate Group Assignment",
-							fmt.Sprintf("Group ID '%s' is assigned multiple times. Each group can only be assigned once.", groupID),
+							"Invalid Group Type in notification_message_cc_list",
+							fmt.Sprintf("The group ID '%s' in notification_message_cc_list is not mail-enabled. "+
+								"Only mail-enabled groups can receive notification messages. "+
+								"Please use a Microsoft 365 group or distribution group that has mail enabled.", groupId),
 						)
 					} else {
-						groupIDs[groupID] = true
+						tflog.Debug(ctx, "Successfully validated mail-enabled Microsoft 365 group", map[string]interface{}{
+							"groupId":     groupId,
+							"mailEnabled": *group.GetMailEnabled(),
+							"displayName": group.GetDisplayName(),
+						})
 					}
 				}
 			}
-		} else {
-			// For allDevicesAssignmentTarget and allLicensedUsersAssignmentTarget, group_id should not be set
-			if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
-				diags.AddError(
-					"Invalid Assignment Configuration",
-					fmt.Sprintf("Assignment at index %d has target type '%s' but should not have a group_id", i, targetType),
-				)
-			}
 		}
-
-		if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() && assignment.FilterId.ValueString() != "" && assignment.FilterId.ValueString() != "00000000-0000-0000-0000-000000000000" {
-			if assignment.FilterType.IsNull() || assignment.FilterType.IsUnknown() || assignment.FilterType.ValueString() == "" || assignment.FilterType.ValueString() == "none" {
-				diags.AddError(
-					"Invalid Assignment Configuration",
-					fmt.Sprintf("Assignment at index %d has a filter_id but filter_type must be 'include' or 'exclude' (not 'none' or empty)", i),
-				)
-			} else {
-				filterType := assignment.FilterType.ValueString()
-				if filterType != "include" && filterType != "exclude" {
-					diags.AddError(
-						"Invalid Assignment Configuration",
-						fmt.Sprintf("Assignment at index %d has an invalid filter_type '%s'. Must be 'include' or 'exclude' when filter_id is provided", i, filterType),
-					)
-				}
-			}
-		}
-	}
-
-	if diags.HasError() {
-		tflog.Error(ctx, "Assignment validation failed", map[string]interface{}{
-			"errors": diags.Errors(),
-		})
-	} else {
-		tflog.Debug(ctx, "Assignment validation passed")
 	}
 
 	return diags

@@ -35,6 +35,10 @@ const (
 	// Example: "1.0.0.0"
 	VersionRegex = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
 
+	// OSVersionRegex matches an operating system version string in the format "X.Y.Z.W" with any number of digits.
+	// Example: "10.0.22631.9999" or "1.1.1.1"
+	OSVersionRegex = `^\d+\.\d+\.\d+\.\d+$`
+
 	// TimeFormatUTCTimeStampRegex matches a UTC timestamp in the format "YYYY-MM-DDTHH:MM:SSZ".
 	// Example: "2023-05-01T13:45:30Z"
 	TimeFormatUTCTimeStampRegex = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"

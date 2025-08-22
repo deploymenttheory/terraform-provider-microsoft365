@@ -414,56 +414,47 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
 ### Required
 
 - `display_name` (String) The display name of the device compliance policy
+- `scheduled_actions_for_rule` (Attributes List) The list of scheduled action for this rule (see [below for nested schema](#nestedatt--scheduled_actions_for_rule))
 
 ### Optional
 
-- `active_firewall_required` (Boolean) Require active firewall on Windows devices
-- `anti_spyware_required` (Boolean) Require any AntiSpyware solution registered with Windows Security Center to be on and monitoring
-- `antivirus_required` (Boolean) Require any Antivirus solution registered with Windows Security Center to be on and monitoring
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `bit_locker_enabled` (Boolean) Require devices to be reported healthy by Windows Device Health Attestation - bit locker is enabled
-- `code_integrity_enabled` (Boolean) Require devices to be reported as healthy by Windows Device Health Attestation
-- `configuration_manager_compliance_required` (Boolean) Require to consider SCCM Compliance state into consideration for Intune Compliance State
 - `custom_compliance_required` (Boolean) Indicates whether custom compliance is required
-- `defender_enabled` (Boolean) Require Windows Defender Antimalware on Windows devices
-- `defender_version` (String) Require Windows Defender Antimalware minimum version on Windows devices
 - `description` (String) Admin provided description of the Device Configuration
 - `device_compliance_policy_script` (Attributes) Device compliance policy script for custom compliance. When wsl block is set, this block is computed and should not be set. (see [below for nested schema](#nestedatt--device_compliance_policy_script))
-- `device_threat_protection_enabled` (Boolean) Require that devices have enabled device threat protection
-- `device_threat_protection_required_security_level` (String) Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet
-- `early_launch_anti_malware_driver_enabled` (Boolean) Require devices to be reported as healthy by Windows Device Health Attestation - early launch antimalware driver is enabled
-- `firmware_protection_enabled` (Boolean) Require Firmware protection to be reported as healthy
-- `kernel_dma_protection_enabled` (Boolean) Require Kernel DMA Protection to be reported as healthy
-- `memory_integrity_enabled` (Boolean) Require Memory Integrity (HVCI) to be reported as healthy
-- `mobile_os_maximum_version` (String) Maximum Windows Phone version
-- `mobile_os_minimum_version` (String) Minimum Windows Phone version
-- `os_maximum_version` (String) Maximum Windows version
-- `os_minimum_version` (String) Minimum Windows version
-- `password_block_simple` (Boolean) Indicates whether or not to block simple password
-- `password_expiration_days` (Number) The password expiration in days
-- `password_minimum_character_set_count` (Number) The number of character sets required in the password
-- `password_minimum_length` (Number) The minimum password length
-- `password_minutes_of_inactivity_before_lock` (Number) Minutes of inactivity before a password is required
-- `password_previous_password_block_count` (Number) The number of previous passwords to prevent re-use of
-- `password_required` (Boolean) Require a password to unlock Windows device
-- `password_required_to_unlock_from_idle` (Boolean) Require a password to unlock an idle device
-- `password_required_type` (String) The required password type. Possible values are: deviceDefault, alphanumeric, numeric
-- `require_healthy_device_report` (Boolean) Require devices to be reported as healthy by Windows Device Health Attestation
+- `device_health` (Attributes) Microsoft Attestation Service evaluation settings. Use these settings to confirm that a device has protective measures enabled at boot time.Learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows?WT.mc_id=Portal-Microsoft_Intune_DeviceSettings#device-health' (see [below for nested schema](#nestedatt--device_health))
+- `device_properties` (Attributes) Device operating system version requirements and build ranges for compliance evaluation (see [below for nested schema](#nestedatt--device_properties))
+- `microsoft_defender_for_endpoint` (Attributes) Microsoft Defender for Endpoint device threat protection settings (see [below for nested schema](#nestedatt--microsoft_defender_for_endpoint))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
-- `rtp_enabled` (Boolean) Require Windows Defender Antimalware Real-Time Protection on Windows devices
-- `scheduled_actions_for_rule` (Attributes List) The list of scheduled action for this rule (see [below for nested schema](#nestedatt--scheduled_actions_for_rule))
-- `secure_boot_enabled` (Boolean) Require devices to be reported as healthy by Windows Device Health Attestation - secure boot is enabled
-- `signature_out_of_date` (Boolean) Require Windows Defender Antimalware Signature to be up to date on Windows devices
-- `storage_require_encryption` (Boolean) Require encryption on windows devices
+- `system_security` (Attributes) System security settings for device compliance including firewall, antivirus, TPM, and encryption requirements (see [below for nested schema](#nestedatt--system_security))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `tpm_required` (Boolean) Require Trusted Platform Module(TPM) to be present
-- `valid_operating_system_build_ranges` (Attributes List) The valid operating system build ranges on Windows devices (see [below for nested schema](#nestedatt--valid_operating_system_build_ranges))
-- `virtualization_based_security_enabled` (Boolean) Require Virtualization-based Security to be reported as healthy
 - `wsl_distributions` (Attributes Set) Windows Subsystem for Linux distributions configuration (see [below for nested schema](#nestedatt--wsl_distributions))
 
 ### Read-Only
 
 - `id` (String) The id of the driver.
+
+<a id="nestedatt--scheduled_actions_for_rule"></a>
+### Nested Schema for `scheduled_actions_for_rule`
+
+Required:
+
+- `scheduled_action_configurations` (Attributes Set) The list of scheduled action configurations for this compliance policy (see [below for nested schema](#nestedatt--scheduled_actions_for_rule--scheduled_action_configurations))
+
+<a id="nestedatt--scheduled_actions_for_rule--scheduled_action_configurations"></a>
+### Nested Schema for `scheduled_actions_for_rule.scheduled_action_configurations`
+
+Required:
+
+- `action_type` (String) What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.
+- `grace_period_hours` (Number) Number of hours to wait till the action will be enforced. Value must be between 0 and 365
+
+Optional:
+
+- `notification_message_cc_list` (List of String) A list of group GUIDs to specify who to CC this notification message to
+- `notification_template_id` (String) What notification Message template to use
+
+
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
@@ -488,30 +479,70 @@ Optional:
 - `rules_content` (String) The base64 encoded rules content of the compliance script
 
 
-<a id="nestedatt--scheduled_actions_for_rule"></a>
-### Nested Schema for `scheduled_actions_for_rule`
-
-Required:
-
-- `scheduled_action_configurations` (Attributes Set) The list of scheduled action configurations for this compliance policy (see [below for nested schema](#nestedatt--scheduled_actions_for_rule--scheduled_action_configurations))
+<a id="nestedatt--device_health"></a>
+### Nested Schema for `device_health`
 
 Optional:
 
-- `rule_name` (String) Name of the scheduled action rule
+- `bit_locker_enabled` (Boolean) Windows BitLocker Drive Encryption encrypts all data stored on the Windows operating system volume. BitLocker uses the Trusted Platform Module (TPM) to help protect the Windows operating system and user data. It also helps confirm that a computer isn't tampered with, even if its left unattended, lost, or stolen. If the computer is equipped with a compatible TPM, BitLocker uses the TPM to lock the encryption keys that protect the data. As a result, the keys can't be accessed until the TPM verifies the state of the computer. Not configured (default) - This setting isn't evaluated for compliance or non-compliance. Require - The device can protect data that's stored on the drive from unauthorized access when the system is off, or hibernates.
+- `code_integrity_enabled` (Boolean) Require code integrity: Code integrity is a feature that validates the integrity of a driver or system file each time it's loaded into memory.Not configured (default) - This setting isn't evaluated for compliance or non-compliance.Require - Require code integrity, which detects if an unsigned driver or system file is being loaded into the kernel. It also detects if a system file is changed by malicious software or run by a user account with administrator privileges.
+- `secure_boot_enabled` (Boolean) Require Secure Boot to be enabled on the device:Not configured (default) - This setting isn't evaluated for compliance or non-compliance. Require - The system is forced to boot to a factory trusted state. The core components that are used to boot the machine must have correct cryptographic signatures that are trusted by the organization that manufactured the device. The UEFI firmware verifies the signature before it lets the machine start. If any files are tampered with, which breaks their signature, the system doesn't boot.
 
-<a id="nestedatt--scheduled_actions_for_rule--scheduled_action_configurations"></a>
-### Nested Schema for `scheduled_actions_for_rule.scheduled_action_configurations`
 
-Required:
-
-- `action_type` (String) What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.
+<a id="nestedatt--device_properties"></a>
+### Nested Schema for `device_properties`
 
 Optional:
 
-- `grace_period_hours` (Number) Number of hours to wait till the action will be enforced
-- `notification_message_cc_list` (List of String) A list of group GUIDs to specify who to CC this notification message to
-- `notification_template_id` (String) What notification Message template to use
+- `mobile_os_maximum_version` (String) Enter the maximum allowed version, in the major.minor.build number. When a device is using an OS version later than the version entered, access to organization resources is blocked. The end user is asked to contact their IT administrator. The device can't access organization resources until the rule is changed to allow the OS version.
+- `mobile_os_minimum_version` (String) Enter the minimum allowed version, in the major.minor.build number format. When a device has an earlier version that the OS version you enter, it's reported as noncompliant. A link with information on how to upgrade is shown. The end user can choose to upgrade their device. After they upgrade, they can access company resources.
+- `os_maximum_version` (String) Maximum OS version:Enter the maximum allowed version, in the major.minor.build.revision number format. To get the correct value, open a command prompt, and type ver. The ver command returns the version in the following format: Microsoft Windows [Version 10.0.17134.1] When a device is using an OS version later than the version entered, access to organization resources is blocked. The end user is asked to contact their IT administrator. The device can't access organization resources until the rule is changed to allow the OS version.
+- `os_minimum_version` (String) Minimum OS version. Enter the minimum allowed version in the major.minor.build.revision number format. To get the correct value, open a command prompt, and type ver. The ver command returns the version in the following format: Microsoft Windows [Version 10.0.17134.1] When a device has an earlier version than the OS version you enter, it's reported as noncompliant. A link with information on how to upgrade is shown. The end user can choose to upgrade their device. After they upgrade, they can access company resources.
+- `valid_operating_system_build_ranges` (Attributes Set) The valid operating system build ranges on Windows devices (see [below for nested schema](#nestedatt--device_properties--valid_operating_system_build_ranges))
 
+<a id="nestedatt--device_properties--valid_operating_system_build_ranges"></a>
+### Nested Schema for `device_properties.valid_operating_system_build_ranges`
+
+Required:
+
+- `high_os_version` (String) The maximum allowed OS version for this build range
+- `low_os_version` (String) The minimum allowed OS version for this build range
+
+Optional:
+
+- `description` (String) Description for this valid operating system build range
+
+
+
+<a id="nestedatt--microsoft_defender_for_endpoint"></a>
+### Nested Schema for `microsoft_defender_for_endpoint`
+
+Optional:
+
+- `device_threat_protection_enabled` (Boolean) Require that devices have enabled device threat protection
+- `device_threat_protection_required_security_level` (String) Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet
+
+
+<a id="nestedatt--system_security"></a>
+### Nested Schema for `system_security`
+
+Optional:
+
+- `active_firewall_required` (Boolean) Require active firewall on Windows devices
+- `anti_spyware_required` (Boolean) Require any AntiSpyware solution registered with Windows Security Center to be on and monitoring
+- `antivirus_required` (Boolean) Require any Antivirus solution registered with Windows Security Center to be on and monitoring
+- `configuration_manager_compliance_required` (Boolean) Require to consider SCCM Compliance state into consideration for Intune Compliance State
+- `defender_enabled` (Boolean) Require Windows Defender Antimalware on Windows devices
+- `defender_version` (String) Require Windows Defender Antimalware minimum version on Windows devices
+- `password_block_simple` (Boolean) Indicates whether or not to block simple password
+- `password_minimum_character_set_count` (Number) The number of character sets required in the password
+- `password_required` (Boolean) Require a password to unlock Windows device
+- `password_required_to_unlock_from_idle` (Boolean) Require a password to unlock an idle device
+- `password_required_type` (String) The required password type. Possible values are: deviceDefault, alphanumeric, numeric
+- `rtp_enabled` (Boolean) Require Windows Defender Antimalware Real-Time Protection on Windows devices
+- `signature_out_of_date` (Boolean) Require Windows Defender Antimalware Signature to be up to date on Windows devices
+- `storage_require_encryption` (Boolean) Require encryption on windows devices
+- `tpm_required` (Boolean) Require Trusted Platform Module(TPM) to be present
 
 
 <a id="nestedatt--timeouts"></a>
@@ -523,15 +554,6 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-
-
-<a id="nestedatt--valid_operating_system_build_ranges"></a>
-### Nested Schema for `valid_operating_system_build_ranges`
-
-Required:
-
-- `high_os_version` (String) The maximum allowed OS version
-- `low_os_version` (String) The minimum allowed OS version
 
 
 <a id="nestedatt--wsl_distributions"></a>
