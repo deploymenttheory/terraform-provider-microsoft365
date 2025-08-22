@@ -1,4 +1,4 @@
-package graphBetaDeviceComplianceNotificationTemplates_test
+package graphBetaDeviceComplianceNotificationTemplate_test
 
 import (
 	"context"
@@ -29,24 +29,24 @@ func TestAccWindowsDeviceComplianceNotificationsResource_Minimal(t *testing.T) {
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "display_name", func(value string) error {
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "id"),
+					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "display_name", func(value string) error {
 						if len(value) == 0 {
 							return fmt.Errorf("display_name should not be empty")
 						}
 						return nil
 					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "branding_options.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "branding_options.*", "includeCompanyLogo"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "localized_notification_messages.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "localized_notification_messages.*", map[string]string{
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "branding_options.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "branding_options.*", "includeCompanyLogo"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "localized_notification_messages.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "localized_notification_messages.*", map[string]string{
 						"locale":     "en-us",
 						"subject":    "Device Compliance Required",
 						"is_default": "true",
 					}),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", ImportState: true, ImportStateVerify: true},
+			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", ImportState: true, ImportStateVerify: true},
 		},
 	})
 }
@@ -66,36 +66,36 @@ func TestAccWindowsDeviceComplianceNotificationsResource_Maximal(t *testing.T) {
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "display_name", func(value string) error {
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "id"),
+					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "display_name", func(value string) error {
 						if len(value) == 0 {
 							return fmt.Errorf("display_name should not be empty")
 						}
 						return nil
 					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "branding_options.#", "5"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "branding_options.*", "includeCompanyLogo"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "branding_options.*", "includeCompanyName"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "branding_options.*", "includeContactInformation"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "localized_notification_messages.#", "3"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "localized_notification_messages.*", map[string]string{
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "branding_options.#", "5"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "branding_options.*", "includeCompanyLogo"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "branding_options.*", "includeCompanyName"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "branding_options.*", "includeContactInformation"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "localized_notification_messages.#", "3"),
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "localized_notification_messages.*", map[string]string{
 						"locale":     "en-us",
 						"subject":    "Device Compliance Issue Detected",
 						"is_default": "true",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "localized_notification_messages.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "localized_notification_messages.*", map[string]string{
 						"locale":     "es-es",
 						"subject":    "Problema de Cumplimiento del Dispositivo",
 						"is_default": "false",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", "localized_notification_messages.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", "localized_notification_messages.*", map[string]string{
 						"locale":     "fr-fr",
 						"subject":    "Problème de Conformité de l'Appareil",
 						"is_default": "false",
 					}),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_templates.maximal", ImportState: true, ImportStateVerify: true},
+			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_template.maximal", ImportState: true, ImportStateVerify: true},
 		},
 	})
 }
@@ -115,20 +115,20 @@ func TestAccWindowsDeviceComplianceNotificationsResource_BrandingOptions(t *test
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_brandingTest(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "display_name", func(value string) error {
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "id"),
+					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "display_name", func(value string) error {
 						if len(value) == 0 {
 							return fmt.Errorf("display_name should not be empty")
 						}
 						return nil
 					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "branding_options.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "branding_options.*", "includeCompanyLogo"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "branding_options.*", "includeCompanyName"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "branding_options.*", "includeContactInformation"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.#", "3"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.*", "includeCompanyLogo"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.*", "includeCompanyName"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.*", "includeContactInformation"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", ImportState: true, ImportStateVerify: true},
+			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", ImportState: true, ImportStateVerify: true},
 		},
 	})
 }
@@ -148,18 +148,18 @@ func TestAccWindowsDeviceComplianceNotificationsResource_Update(t *testing.T) {
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.minimal", "branding_options.#", "1"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "branding_options.#", "1"),
 				),
 			},
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_brandingTest(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", "branding_options.#", "3"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.#", "3"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_templates.branding_test", ImportState: true, ImportStateVerify: true},
+			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", ImportState: true, ImportStateVerify: true},
 		},
 	})
 }
@@ -208,7 +208,7 @@ func testAccCheckWindowsDeviceComplianceNotificationsDestroy(s *terraform.State)
 	}
 	ctx := context.Background()
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_device_compliance_notification_templates" {
+		if rs.Type != "microsoft365_graph_beta_device_management_device_compliance_notification_template" {
 			continue
 		}
 		_, err := graphClient.

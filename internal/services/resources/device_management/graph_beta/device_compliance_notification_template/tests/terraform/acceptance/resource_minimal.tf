@@ -3,7 +3,7 @@ resource "random_integer" "acc_test_suffix" {
   max = 9999
 }
 
-resource "microsoft365_graph_beta_device_management_device_compliance_notification_templates" "minimal" {
+resource "microsoft365_graph_beta_device_management_device_compliance_notification_template" "minimal" {
   display_name     = "Acc Test Minimal - ${random_integer.acc_test_suffix.result}"
   branding_options = ["includeCompanyLogo"]
 

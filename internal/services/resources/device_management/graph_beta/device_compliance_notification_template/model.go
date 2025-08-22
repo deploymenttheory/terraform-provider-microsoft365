@@ -1,13 +1,13 @@
 // REF: https://learn.microsoft.com/en-au/graph/api/resources/intune-notification-notificationmessagetemplate?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-au/graph/api/intune-notification-notificationmessagetemplate-create?view=graph-rest-beta
-package graphBetaDeviceComplianceNotificationTemplates
+package graphBetaDeviceComplianceNotificationTemplate
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type DeviceComplianceNotificationTemplatesResourceModel struct {
+type DeviceComplianceNotificationTemplateResourceModel struct {
 	ID                            types.String   `tfsdk:"id"`
 	DisplayName                   types.String   `tfsdk:"display_name"`
 	DefaultLocale                 types.String   `tfsdk:"default_locale"`

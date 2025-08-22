@@ -105,7 +105,7 @@ This document tracks the implementation status of Microsoft Graph Beta Device Ma
 | `/deviceManagement/mobileThreatDefenseConnectors` | - | ❌ Not Implemented | - |
 | `/deviceManagement/monitoring` | - | ❌ Not Implemented | - |
 | `/deviceManagement/ndesConnectors` | - | ❌ Not Implemented | - |
-| `/deviceManagement/notificationMessageTemplates` | `microsoft365_graph_beta_device_management_device_compliance_notification_templates` | ✅ Implemented | - |
+| `/deviceManagement/notificationMessageTemplates` | `microsoft365_graph_beta_device_management_device_compliance_notification_template` | ✅ Implemented | - |
 | `/deviceManagement/operationApprovalPolicies` | `microsoft365_graph_beta_device_management_operation_approval_policy` | ✅ Implemented | TBD |
 | `/deviceManagement/operationApprovalRequests` | - | ❌ Not Implemented | - |
 | `/deviceManagement/privilegeManagementElevations` | - | ❌ Not Implemented | - |
