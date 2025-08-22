@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.6-alpha...v0.28.0-alpha) (2025-08-22)
+
+
+### Features
+
+* windows_device_compliance_policy ([5894296](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/58942963c1233ac047872b7b5f22ece85cbda471))
+
+
+### Bug Fixes
+
+* missnamed resource and docs ([#731](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/731)) ([5f92828](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5f92828186f5440b2150a901ed4535c29317631a))
+* tidy up docs and removed old resources ([#729](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/729)) ([4f6dfd1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f6dfd1f6dfda2f6284ee33337fda2227a1c8032))
+* windows_device_compliance_policy refactor ([#732](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/732)) ([a3082b3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a3082b3dd708ca89ecb89e205938de3f592866f0))
+
 ## [0.27.6-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.5-alpha...v0.27.6-alpha) (2025-08-21)
 
 
