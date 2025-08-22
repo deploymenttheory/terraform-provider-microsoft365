@@ -31,6 +31,12 @@ func (r *WindowsDeviceCompliancePolicyResource) Create(ctx context.Context, req 
 	}
 	defer cancel()
 
+	// Validate request data, specifically notification_message_cc_list group IDs
+	resp.Diagnostics.Append(validateRequest(ctx, r.client, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -128,7 +134,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Read(ctx context.Context, req re
 		ByDeviceCompliancePolicyId(object.ID.ValueString()).
 		Get(ctx, &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
+				Expand: []string{"assignments", "scheduledActionsForRule($expand=scheduledActionConfigurations)"},
 			},
 		})
 
@@ -165,6 +171,12 @@ func (r *WindowsDeviceCompliancePolicyResource) Update(ctx context.Context, req 
 		return
 	}
 	defer cancel()
+
+	// Validate request data, specifically notification_message_cc_list group IDs
+	resp.Diagnostics.Append(validateRequest(ctx, r.client, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
@@ -220,8 +232,8 @@ func (r *WindowsDeviceCompliancePolicyResource) Update(ctx context.Context, req 
 				return
 			}
 
-			tflog.Debug(ctx, fmt.Sprintf("Successfully scheduled actions for rule '%s' for policy ID: %s",
-				scheduledAction.RuleName.ValueString(), state.ID.ValueString()))
+			tflog.Debug(ctx, fmt.Sprintf("Successfully scheduled actions for policy ID: %s",
+				state.ID.ValueString()))
 		}
 	}
 
