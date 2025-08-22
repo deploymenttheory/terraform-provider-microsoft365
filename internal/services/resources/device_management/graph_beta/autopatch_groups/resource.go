@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 )
 
 const (
@@ -86,7 +87,7 @@ func (r *AutopatchGroupsResource) ImportState(ctx context.Context, req resource.
 // Schema returns the schema for the resource.
 func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopatch groups using the `/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.",
+		MarkdownDescription: "Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -183,8 +184,10 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"aad_id": schema.StringAttribute{
-							Required:            true,
+							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "The Azure AD group ID for this deployment group",
+							Default:             stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
 						},
 						"name": schema.StringAttribute{
 							Required:            true,
@@ -195,7 +198,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 							MarkdownDescription: "Distribution percentage for this deployment group",
 						},
 						"failed_prerequisite_check_count": schema.Int64Attribute{
-							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "Number of failed prerequisite checks",
 						},
 						"user_managed_aad_groups": schema.SetNestedAttribute{
@@ -212,8 +215,10 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 										MarkdownDescription: "The name of the Azure AD group",
 									},
 									"type": schema.Int64Attribute{
-										Required:            true,
+										Optional:            true,
+										Computed:            true,
 										MarkdownDescription: "The type of the group",
+										Default:             int64default.StaticInt64(0),
 									},
 								},
 							},
@@ -286,13 +291,13 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 				},
 			},
 			"scope_tags": schema.SetAttribute{
-				ElementType:         types.Int64Type,
+				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Set of scope tag IDs for this Autopatch group.",
 				PlanModifiers: []planmodifier.Set{
 					planmodifiers.DefaultSetValue(
-						[]attr.Value{types.Int64Value(0)},
+						[]attr.Value{types.StringValue("0")},
 					),
 				},
 			},

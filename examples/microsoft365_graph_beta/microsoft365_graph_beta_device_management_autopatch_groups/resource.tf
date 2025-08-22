@@ -2,7 +2,6 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
   name        = "auto-patch-group"
   description = ""
 
-  # Global User Managed AAD Groups (empty in the example)
   global_user_managed_aad_groups = []
 
   # Deployment Groups
@@ -11,8 +10,8 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
       name = "auto-patch-group - Test"
       user_managed_aad_groups = [
         {
-          id   = "410a28bd-9c9f-403f-b1b2-4a0bd04e98d9"
-          name = "[Azure]-[ConditonalAccess]-[Prod]-[CAD003-PolicyExclude]-[UG]"
+          id   = "00000000-0000-0000-0000-000000000000"
+          name = "group-name-01"
         }
       ]
       deployment_group_policy_settings = {
@@ -35,12 +34,11 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
       }
     },
     {
-      aad_id = "00000000-0000-0000-0000-000000000000"
       name   = "auto-patch-group - Ring1"
       user_managed_aad_groups = [
         {
-          id   = "35d09841-af73-43e6-a59f-024fef1b6b95"
-          name = "[Azure]-[ConditonalAccess]-[Prod]-[CAD002-PolicyExclude]-[UG]"
+          id   = "00000000-0000-0000-0000-000000000000"
+          name = "group-name-02"
           type = 0
         }
       ]
@@ -67,8 +65,8 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
       name = "auto-patch-group - Last"
       user_managed_aad_groups = [
         {
-          id   = "48fe6d79-f045-448a-bd74-716db27f0783"
-          name = "[Azure]-[ConditonalAccess]-[Prod]-[CAD005-PolicyExclude]-[UG]"
+          id   = "00000000-0000-0000-0000-000000000000"
+          name = "group-name-03"
         }
       ]
       deployment_group_policy_settings = {

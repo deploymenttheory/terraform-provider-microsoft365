@@ -4,123 +4,185 @@ Request Method
 POST
 
 request
-
 {
-  "name":"auto-patch-group",
-  "description":"",
-  "globalUserManagedAadGroups":[],
-  "deploymentGroups":[
-    {"aadId":"00000000-0000-0000-0000-000000000000",
-    "name":"auto-patch-group - Test",
-    "userManagedAadGroups":[
-      {"name":"[Azure]-[ConditonalAccess]-[Prod]-[CAD003-PolicyExclude]-[UG]",
-      "id":"410a28bd-9c9f-403f-b1b2-4a0bd04e98d9","type":0}
-      ],
-      "failedPreRequisiteCheckCount":0,
-      "deploymentGroupPolicySettings":
+  "name": "auto-patch-group",
+  "description": "",
+  "globalUserManagedAadGroups": [],
+  "deploymentGroups": [
+    {
+      "aadId": "00000000-0000-0000-0000-000000000000",
+      "name": "auto-patch-group - Test",
+      "userManagedAadGroups": [
         {
-          "aadGroupName":"auto-patch-group - Test",
-          "isUpdateSettingsModified":false,
-          "deviceConfigurationSetting":
-            {"policyId":"000",
-            "updateBehavior":"AutoInstallAndRestart",
-            "notificationSetting":"DefaultNotifications",
-            "qualityDeploymentSettings":
-            {
-              "deadline":1,
-              "deferral":0,
-              "gracePeriod":0
-            },
-            "featureDeploymentSettings":
-            {
-              "deadline":5,
-              "deferral":0
-            },
-            "updateFrequencyUI":null,
-            "installDays":null,
-            "installTime":null,
-            "activeHourEndTime":null,
-            "activeHourStartTime":null
-            },
-            "dnfUpdateCloudSetting":
-            {
-              "policyId":"000",
-              "approvalType":"Automatic",
-              "deploymentDeferralInDays":0
-            },
-            "officeDCv2Setting":
-            {
-              "policyId":"000",
-              "deadline":1,
-              "deferral":0,"
-              hideUpdateNotifications":false,
-              "targetChannel":"MonthlyEnterprise"
-              },
-              "edgeDCv2Setting":
-              {"policyId":"000",
-              "targetChannel":"Beta"
-              },
-              "featureUpdateAnchorCloudSetting":
-              {
-                "targetOSVersion":"Windows 11, version 24H2",
-              "installLatestWindows10OnWindows11IneligibleDevice":true}}},
-              {"name":"auto-patch-group - Ring1",
-              "userManagedAadGroups":[
-                {"name":"[Azure]-[ConditonalAccess]-[Prod]-[CAD002-PolicyExclude]-[UG]",
-                "id":"35d09841-af73-43e6-a59f-024fef1b6b95","type":0}],
-                "aadId":"00000000-0000-0000-0000-000000000000",
-                "deploymentGroupPolicySettings":
-                {
-                  "aadGroupName":"auto-patch-group - Ring1",
-                  "isUpdateSettingsModified":false,
-                  "deviceConfigurationSetting":
-                  {
-                    "policyId":"000",
-                    "updateBehavior":"AutoInstallAndRestart",
-                    "notificationSetting":"DefaultNotifications",
-                    "qualityDeploymentSettings":
-                    {
-                      "deadline":2,
-                      "deferral":1,
-                      "gracePeriod":2},
-                      "featureDeploymentSettings":
-                      {
-                        "deadline":5,"deferral":0},
-                        "updateFrequencyUI":null,
-                        "installDays":null,
-                        "installTime":null,
-                        "activeHourEndTime":null,
-                        "activeHourStartTime":null},
-                        "dnfUpdateCloudSetting":
-                        {
-                          "policyId":"000",
-                          "approvalType":"Automatic",
-                          "deploymentDeferralInDays":1},
-                          "officeDCv2Setting":
-                          {
-                            "policyId":"000",
-                            "deadline":2,
-                            "deferral":1,
-                            "hideUpdateNotifications":false,
-                            "targetChannel":"MonthlyEnterprise"},
-                            "edgeDCv2Setting":
-                            {
-                              "policyId":"000",
-                              "targetChannel":"Stable"},
-                              "featureUpdateAnchorCloudSetting":
-                              {
-                                "targetOSVersion":"Windows 11, version 24H2",
-                                "installLatestWindows10OnWindows11IneligibleDevice":true
-                                }
-                              }
-                            },
-                            {"aadId":"00000000-0000-0000-0000-000000000000",
-                            "name":"auto-patch-group - Last","userManagedAadGroups":[
-                              {"name":"[Azure]-[ConditonalAccess]-[Prod]-[CAD005-PolicyExclude]-[UG]",
-                              "id":"48fe6d79-f045-448a-bd74-716db27f0783","type":0
-                              }
-                            ],
-                            "failedPreRequisiteCheckCount":0,"deploymentGroupPolicySettings":{"aadGroupName":"auto-patch-group - Last","isUpdateSettingsModified":false,"deviceConfigurationSetting":{"policyId":"000","updateBehavior":"AutoInstallAndRestart","notificationSetting":"DefaultNotifications","qualityDeploymentSettings":{"deadline":3,"deferral":5,"gracePeriod":2},"featureDeploymentSettings":{"deadline":5,"deferral":0},"updateFrequencyUI":null,"installDays":null,"installTime":null,"activeHourEndTime":null,"activeHourStartTime":null},"dnfUpdateCloudSetting":{"policyId":"000","approvalType":"Automatic","deploymentDeferralInDays":5},"officeDCv2Setting":{"policyId":"000","deadline":3,"deferral":5,"hideUpdateNotifications":false,"targetChannel":"MonthlyEnterprise"},"edgeDCv2Setting":{"policyId":"000","targetChannel":"Stable"},"featureUpdateAnchorCloudSetting":{"targetOSVersion":"Windows 11, version 24H2","installLatestWindows10OnWindows11IneligibleDevice":true}}}],"windowsUpdateSettings":[],"status":"Unknown","type":"Unknown","distributionType":"Unknown","driverUpdateSettings":[],"enableDriverUpdate":true,"scopeTags":[0],"enabledContentTypes":31}
+          "name": "[Azure]-[ConditonalAccess]-[Prod]-[CAD003-PolicyExclude]-[UG]",
+          "id": "410a28bd-9c9f-403f-b1b2-4a0bd04e98d9",
+          "type": 0
+        }
+      ],
+      "failedPreRequisiteCheckCount": 0,
+      "deploymentGroupPolicySettings": {
+        "aadGroupName": "auto-patch-group - Test",
+        "isUpdateSettingsModified": false,
+        "deviceConfigurationSetting": {
+          "policyId": "000",
+          "updateBehavior": "AutoInstallAndRestart",
+          "notificationSetting": "DefaultNotifications",
+          "qualityDeploymentSettings": {
+            "deadline": 1,
+            "deferral": 0,
+            "gracePeriod": 0
+          },
+          "featureDeploymentSettings": {
+            "deadline": 5,
+            "deferral": 0
+          },
+          "updateFrequencyUI": null,
+          "installDays": null,
+          "installTime": null,
+          "activeHourEndTime": null,
+          "activeHourStartTime": null
+        },
+        "dnfUpdateCloudSetting": {
+          "policyId": "000",
+          "approvalType": "Automatic",
+          "deploymentDeferralInDays": 0
+        },
+        "officeDCv2Setting": {
+          "policyId": "000",
+          "deadline": 1,
+          "deferral": 0,
+          "hideUpdateNotifications": false,
+          "targetChannel": "MonthlyEnterprise"
+        },
+        "edgeDCv2Setting": {
+          "policyId": "000",
+          "targetChannel": "Beta"
+        },
+        "featureUpdateAnchorCloudSetting": {
+          "targetOSVersion": "Windows 11, version 24H2",
+          "installLatestWindows10OnWindows11IneligibleDevice": true
+        }
+      }
+    },
+    {
+      "name": "auto-patch-group - Ring1",
+      "userManagedAadGroups": [
+        {
+          "name": "[Azure]-[ConditonalAccess]-[Prod]-[CAD002-PolicyExclude]-[UG]",
+          "id": "35d09841-af73-43e6-a59f-024fef1b6b95",
+          "type": 0
+        }
+      ],
+      "aadId": "00000000-0000-0000-0000-000000000000",
+      "deploymentGroupPolicySettings": {
+        "aadGroupName": "auto-patch-group - Ring1",
+        "isUpdateSettingsModified": false,
+        "deviceConfigurationSetting": {
+          "policyId": "000",
+          "updateBehavior": "AutoInstallAndRestart",
+          "notificationSetting": "DefaultNotifications",
+          "qualityDeploymentSettings": {
+            "deadline": 2,
+            "deferral": 1,
+            "gracePeriod": 2
+          },
+          "featureDeploymentSettings": {
+            "deadline": 5,
+            "deferral": 0
+          },
+          "updateFrequencyUI": null,
+          "installDays": null,
+          "installTime": null,
+          "activeHourEndTime": null,
+          "activeHourStartTime": null
+        },
+        "dnfUpdateCloudSetting": {
+          "policyId": "000",
+          "approvalType": "Automatic",
+          "deploymentDeferralInDays": 1
+        },
+        "officeDCv2Setting": {
+          "policyId": "000",
+          "deadline": 2,
+          "deferral": 1,
+          "hideUpdateNotifications": false,
+          "targetChannel": "MonthlyEnterprise"
+        },
+        "edgeDCv2Setting": {
+          "policyId": "000",
+          "targetChannel": "Stable"
+        },
+        "featureUpdateAnchorCloudSetting": {
+          "targetOSVersion": "Windows 11, version 24H2",
+          "installLatestWindows10OnWindows11IneligibleDevice": true
+        }
+      }
+    },
+    {
+      "aadId": "00000000-0000-0000-0000-000000000000",
+      "name": "auto-patch-group - Last",
+      "userManagedAadGroups": [
+        {
+          "name": "[Azure]-[ConditonalAccess]-[Prod]-[CAD005-PolicyExclude]-[UG]",
+          "id": "48fe6d79-f045-448a-bd74-716db27f0783",
+          "type": 0
+        }
+      ],
+      "failedPreRequisiteCheckCount": 0,
+      "deploymentGroupPolicySettings": {
+        "aadGroupName": "auto-patch-group - Last",
+        "isUpdateSettingsModified": false,
+        "deviceConfigurationSetting": {
+          "policyId": "000",
+          "updateBehavior": "AutoInstallAndRestart",
+          "notificationSetting": "DefaultNotifications",
+          "qualityDeploymentSettings": {
+            "deadline": 3,
+            "deferral": 5,
+            "gracePeriod": 2
+          },
+          "featureDeploymentSettings": {
+            "deadline": 5,
+            "deferral": 0
+          },
+          "updateFrequencyUI": null,
+          "installDays": null,
+          "installTime": null,
+          "activeHourEndTime": null,
+          "activeHourStartTime": null
+        },
+        "dnfUpdateCloudSetting": {
+          "policyId": "000",
+          "approvalType": "Automatic",
+          "deploymentDeferralInDays": 5
+        },
+        "officeDCv2Setting": {
+          "policyId": "000",
+          "deadline": 3,
+          "deferral": 5,
+          "hideUpdateNotifications": false,
+          "targetChannel": "MonthlyEnterprise"
+        },
+        "edgeDCv2Setting": {
+          "policyId": "000",
+          "targetChannel": "Stable"
+        },
+        "featureUpdateAnchorCloudSetting": {
+          "targetOSVersion": "Windows 11, version 24H2",
+          "installLatestWindows10OnWindows11IneligibleDevice": true
+        }
+      }
+    }
+  ],
+  "windowsUpdateSettings": [],
+  "status": "Unknown",
+  "type": "Unknown",
+  "distributionType": "Unknown",
+  "driverUpdateSettings": [],
+  "enableDriverUpdate": true,
+  "scopeTags": [0],
+  "enabledContentTypes": 31
+}
 
 response - n/a
 
