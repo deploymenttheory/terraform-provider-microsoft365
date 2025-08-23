@@ -89,6 +89,7 @@ func testAccCheckWindowsDeviceComplianceScriptDestroy(s *terraform.State) error 
 			DeviceComplianceScripts().
 			ByDeviceComplianceScriptId(rs.Primary.ID).
 			Get(ctx, nil)
+
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
 			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {

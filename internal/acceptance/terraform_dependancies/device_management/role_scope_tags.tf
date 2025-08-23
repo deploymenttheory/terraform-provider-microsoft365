@@ -1,14 +1,14 @@
 # Role Scope Tags used for acceptance testing
 # These role scope tags serve as dependencies.
 
-resource "random_string" "suffix" {
+resource "random_string" "scope_tag_suffix" {
   length  = 8
   special = false
   upper   = false
 }
 
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_role_scope_tag_1" {
-  display_name = "acc-test-role-scope-tag-1-${random_string.suffix.result}"
+  display_name = "acc-test-role-scope-tag-1-${random_string.scope_tag_suffix.result}"
   description  = "Test role scope tag for acceptance testing"
 
   timeouts = {

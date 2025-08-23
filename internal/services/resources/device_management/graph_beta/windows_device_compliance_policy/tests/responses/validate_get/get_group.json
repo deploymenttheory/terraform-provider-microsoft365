@@ -1,13 +1,11 @@
 {
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
-  "id": "33333333-3333-3333-3333-333333333333",
+  "@odata.type": "#microsoft.graph.group",
+  "id": "00000000-0000-0000-0000-000000000002",
   "displayName": "Test Group",
-  "description": "Test group for assignments",
-  "createdDateTime": "2024-01-01T00:00:00Z",
-  "groupTypes": ["Unified"],
-  "mail": "test-group@example.com",
+  "description": "Test group for unit tests",
+  "groupTypes": [],
   "mailEnabled": true,
-  "mailNickname": "test-group",
-  "securityEnabled": false,
-  "visibility": "Private"
+  "mailNickname": "testgroup",
+  "securityEnabled": true
 }

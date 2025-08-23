@@ -75,13 +75,14 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
   }
 }
 
-# Test Group 5 - DevOps Team
-resource "microsoft365_graph_beta_groups_group" "acc_test_group_5" {
-  display_name     = "Acceptance Test Dependency - ${random_string.group_suffix.result}"
+# Test Group 5 - Microsoft 365 Group - mail-enabled
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_5_mail_enabled" {
+  display_name     = "acc-test-group-5-mail-enabled-${random_string.group_suffix.result}"
   description      = "Test group for m365 tf provider acceptance tests"
   mail_nickname    = "acc-test-${random_string.group_suffix.result}"
-  mail_enabled     = false
-  security_enabled = true
+  mail_enabled     = true
+  security_enabled = false
+  group_types      = ["Unified"]
   visibility       = "Private"
 
   timeouts = {
@@ -101,6 +102,6 @@ output "test_group_ids" {
     group_2 = microsoft365_graph_beta_groups_group.acc_test_group_2.id
     group_3 = microsoft365_graph_beta_groups_group.acc_test_group_3.id
     group_4 = microsoft365_graph_beta_groups_group.acc_test_group_4.id
-    group_5 = microsoft365_graph_beta_groups_group.acc_test_group_5.id
+    group_5 = microsoft365_graph_beta_groups_group.acc_test_group_5_mail_enabled.id
   }
 }

@@ -1,4 +1,4 @@
-package graphBetaWindowsDeviceCompliancePolicies
+package graphBetaWindowsDeviceCompliancePolicy
 
 import (
 	"context"
@@ -94,7 +94,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` " +
 			"endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security " +
-			"requirements.",
+			"requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -273,10 +273,12 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 						Default:             booldefault.StaticBool(false),
 					},
 					"configuration_manager_compliance_required": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Require to consider SCCM Compliance state into consideration for Intune Compliance State",
-						Default:             booldefault.StaticBool(false),
+						Optional: true,
+						Computed: true,
+						MarkdownDescription: "Require device compliance from Configuration Manager: " +
+							"Not configured (default) - Intune doesn't check for any of the Configuration Manager settings for compliance. " +
+							"Require - Require all settings (configuration items) in Configuration Manager to be compliant.",
+						Default: booldefault.StaticBool(false),
 					},
 					"defender_enabled": schema.BoolAttribute{
 						Optional:            true,

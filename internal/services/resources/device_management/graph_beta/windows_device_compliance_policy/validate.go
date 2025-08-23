@@ -1,4 +1,4 @@
-package graphBetaWindowsDeviceCompliancePolicies
+package graphBetaWindowsDeviceCompliancePolicy
 
 import (
 	"context"
