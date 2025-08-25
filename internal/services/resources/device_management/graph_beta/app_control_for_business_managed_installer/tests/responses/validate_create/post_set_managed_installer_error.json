@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "InternalServerError",
+    "message": "Failed to set managed installer status",
+    "innerError": {
+      "date": "2024-01-01T12:00:00",
+      "request-id": "12345678-1234-1234-1234-123456789abc"
+    }
+  }
+}
