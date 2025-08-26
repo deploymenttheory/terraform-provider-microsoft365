@@ -23,7 +23,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go v1.84.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/sassoftware/relic/v8 v8.2.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	golang.org/x/text v0.28.0
 	software.sslmate.com/src/go-pkcs12 v0.6.0
