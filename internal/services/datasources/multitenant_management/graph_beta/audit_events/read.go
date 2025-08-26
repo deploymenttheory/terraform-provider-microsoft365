@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -43,7 +43,7 @@ func (d *AuditEventsDataSource) Read(ctx context.Context, req datasource.ReadReq
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -56,7 +56,7 @@ func (d *AuditEventsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		// Initialize request parameters for audit events
 		requestParameters := &tenantrelationships.ManagedTenantsAuditEventsRequestBuilderGetRequestConfiguration{
-			Headers: headers,
+			Headers:         headers,
 			QueryParameters: &tenantrelationships.ManagedTenantsAuditEventsRequestBuilderGetQueryParameters{},
 		}
 
@@ -98,7 +98,7 @@ func (d *AuditEventsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -117,7 +117,7 @@ func (d *AuditEventsDataSource) Read(ctx context.Context, req datasource.ReadReq
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 

@@ -10,7 +10,7 @@ import (
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -94,7 +94,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 	}
@@ -134,7 +134,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 		contentVersion, err := contentBuilder.Post(ctx, content, nil)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
@@ -159,7 +159,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 			Post(ctx, contentFile, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Content file resource created with ID: %s", *createdFile.GetId()))
@@ -200,7 +200,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 			return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", state.String()))
 		})
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -214,13 +214,13 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
 		if fileStatus.GetAzureStorageUri() == nil {
 			tflog.Debug(ctx, "Azure Storage URI is nil in the retrieved file status")
-			errors.HandleGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -234,7 +234,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		err = construct.UploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), encryptedFilePath)
 		if err != nil {
 			tflog.Debug(ctx, fmt.Sprintf("Failed to upload to Azure Storage: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -301,7 +301,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 			Patch(ctx, updatePayload, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -377,7 +377,7 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -410,7 +410,7 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", r.ReadPermissions)
 			return
 		}
 
@@ -505,7 +505,7 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -522,7 +522,7 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 
 		err = construct.AssignMobileAppCategories(ctx, r.client, plan.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}
@@ -597,7 +597,7 @@ func (r *Win32LobAppResource) Delete(ctx context.Context, req resource.DeleteReq
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

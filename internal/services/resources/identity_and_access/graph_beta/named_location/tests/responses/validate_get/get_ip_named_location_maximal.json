@@ -1,0 +1,31 @@
+{
+  "@odata.type": "#microsoft.graph.ipNamedLocation",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/namedLocations/$entity",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "displayName": "unit-test-ip-named-location-maximal",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-01T00:00:00Z",
+  "isTrusted": true,
+  "ipRanges": [
+    {
+      "@odata.type": "#microsoft.graph.iPv4CidrRange",
+      "cidrAddress": "192.168.0.0/16"
+    },
+    {
+      "@odata.type": "#microsoft.graph.iPv4CidrRange",
+      "cidrAddress": "172.16.0.0/12"
+    },
+    {
+      "@odata.type": "#microsoft.graph.iPv6CidrRange",
+      "cidrAddress": "2001:db8::/32"
+    },
+    {
+      "@odata.type": "#microsoft.graph.iPv6CidrRange",
+      "cidrAddress": "fe80::/10"
+    },
+    {
+      "@odata.type": "#microsoft.graph.iPv6CidrRange",
+      "cidrAddress": "2001:4860:4860::/48"
+    }
+  ]
+}

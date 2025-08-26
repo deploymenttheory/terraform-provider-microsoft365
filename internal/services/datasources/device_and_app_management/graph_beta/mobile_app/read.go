@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -50,7 +50,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 			Get(ctx, requestParameters)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -117,7 +117,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -135,7 +135,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 

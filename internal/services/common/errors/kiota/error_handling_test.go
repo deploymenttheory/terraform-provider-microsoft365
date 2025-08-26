@@ -319,8 +319,8 @@ func TestHTTPMockErrorResponses(t *testing.T) {
 	}
 }
 
-// TestHandleGraphError_WithSimpleErrors tests HandleGraphError with simple error types
-func TestHandleGraphError_WithSimpleErrors(t *testing.T) {
+// TestHandleKiotaGraphError_WithSimpleErrors tests HandleKiotaGraphError with simple error types
+func TestHandleKiotaGraphError_WithSimpleErrors(t *testing.T) {
 	ctx := context.Background()
 
 	testCases := []struct {
@@ -360,7 +360,7 @@ func TestHandleGraphError_WithSimpleErrors(t *testing.T) {
 			err := fmt.Errorf("error with status code %d", tc.statusCode)
 
 			// Process the error
-			HandleGraphError(ctx, err, resp, tc.operation, []string{"User.Read"})
+			HandleKiotaGraphError(ctx, err, resp, tc.operation, []string{"User.Read"})
 
 			// Check if diagnostics were added
 			assert.Equal(t, tc.expectDiagnostics, resp.Diagnostics.HasError(), "Diagnostics error state should match expectation")

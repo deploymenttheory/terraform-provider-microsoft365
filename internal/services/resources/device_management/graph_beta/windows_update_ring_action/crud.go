@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	custom_requests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -60,7 +60,7 @@ func (r *WindowsUpdateRingActionResource) Create(ctx context.Context, req resour
 
 		err := r.performAction(ctx, object.UpdateRingId.ValueString(), action.ActionType)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 
@@ -142,7 +142,7 @@ func (r *WindowsUpdateRingActionResource) Update(ctx context.Context, req resour
 
 		err := r.performAction(ctx, plan.UpdateRingId.ValueString(), action.ActionType)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 

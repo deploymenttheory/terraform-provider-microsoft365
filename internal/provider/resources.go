@@ -72,6 +72,7 @@ import (
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
+	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -194,6 +195,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,

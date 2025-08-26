@@ -64,7 +64,7 @@ This guide describes the recommended workflow and best practices for developing 
              ResourceTemplates().
              Post(ctx, requestBody, nil)
          if err != nil {
-             errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
              return
          }
          plan.ID = types.StringValue(*resource.GetId())
@@ -102,7 +102,7 @@ This guide describes the recommended workflow and best practices for developing 
              ByDeviceAndAppManagementResourceTemplateId(state.ID.ValueString()).
              Get(ctx, nil)
          if err != nil {
-             errors.HandleGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, "Read", r.ReadPermissions)
              return
          }
          mapRemoteStateToTerraform(ctx, &state, resource)
@@ -135,7 +135,7 @@ This guide describes the recommended workflow and best practices for developing 
              Patch(ctx, requestBody, nil)
 
          if err != nil {
-             errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
              return
          }
 
@@ -172,7 +172,7 @@ This guide describes the recommended workflow and best practices for developing 
              ByDeviceAndAppManagementResourceTemplateId(data.ID.ValueString()).
              Delete(ctx, nil)
          if err != nil {
-             errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
              return
          }
          resp.State.RemoveResource(ctx)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -52,7 +52,7 @@ func (r *AssignmentFilterResource) Create(ctx context.Context, req resource.Crea
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (r *AssignmentFilterResource) Read(ctx context.Context, req resource.ReadRe
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -168,7 +168,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -200,7 +200,7 @@ func (r *AssignmentFilterResource) Update(ctx context.Context, req resource.Upda
 //   - Uses errors.IsNonRetryableError() to exit early on permanent failures (404, 409, etc.)
 //   - Uses errors.IsRetryableError() to retry on temporary issues (429, 500, 5001, etc.)
 //   - If all retries are exhausted, returns the error
-//   - The Delete method then passes that error to errors.HandleGraphError for final processing
+//   - The Delete method then passes that error to errors.HandleKiotaGraphError for final processing
 func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AssignmentFilterResourceModel
 
@@ -230,7 +230,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}, deleteOptions)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

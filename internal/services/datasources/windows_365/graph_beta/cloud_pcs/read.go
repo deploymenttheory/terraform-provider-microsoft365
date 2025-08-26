@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -42,7 +42,7 @@ func (d *CloudPcsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	case "id":
 		singlePC, err := d.getCloudPcById(ctx, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -53,14 +53,14 @@ func (d *CloudPcsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	case "odata":
 		cloudPCs, err = d.getCloudPcsWithOData(ctx, object)
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
 	default:
 		cloudPCs, err = d.listCloudPcs(ctx, filterType, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 	}

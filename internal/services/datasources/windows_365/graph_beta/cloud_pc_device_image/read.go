@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -51,7 +51,7 @@ func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.
 
 		singleImage, err := d.getDeviceImageById(ctx, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -71,14 +71,14 @@ func (d *CloudPcDeviceImageDataSource) Read(ctx context.Context, req datasource.
 
 		deviceImages, err = d.listDeviceImages(ctx, filterType, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
 	case "all":
 		deviceImages, err = d.listDeviceImages(ctx, filterType, "")
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 

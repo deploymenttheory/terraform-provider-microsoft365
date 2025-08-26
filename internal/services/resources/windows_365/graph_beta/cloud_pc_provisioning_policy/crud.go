@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -47,7 +47,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 			Post(ctx, assignBody, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "CreateAssignments", r.WritePermissions)
 			return
 		}
 
@@ -152,7 +152,7 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 		})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -204,7 +204,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -230,7 +230,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		Post(ctx, assignBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "UpdateAssignments", r.WritePermissions)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 				Post(ctx, applyBody, nil)
 
 			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "ApplySingleSignOn", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "ApplySingleSignOn", r.WritePermissions)
 				return
 			}
 
@@ -278,7 +278,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 				Post(ctx, applyBody, nil)
 
 			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "ApplyRegion", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "ApplyRegion", r.WritePermissions)
 				return
 			}
 
@@ -307,7 +307,7 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 				Post(ctx, applyBody, nil)
 
 			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "ApplyRegionToSelected", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "ApplyRegionToSelected", r.WritePermissions)
 				return
 			}
 
@@ -379,7 +379,7 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 		Post(ctx, assignBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
@@ -395,7 +395,7 @@ func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req reso
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

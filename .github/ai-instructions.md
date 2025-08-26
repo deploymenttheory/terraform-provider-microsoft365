@@ -160,7 +160,7 @@ Each resource directory MUST contain:
   - Status codes and enum values used across the provider
 
 - **Error Handling:** Leverage the error handling utilities defined in `internal/resources/common/errors` for consistent error management across all resources and data sources:
-- Always use `errors.HandleGraphError(ctx, err, resp, <operation>, <permissions>)` to process and report errors from Microsoft Graph API calls in CRUD operations. This ensures:
+- Always use `errors.HandleKiotaGraphError(ctx, err, resp, <operation>, <permissions>)` to process and report errors from Microsoft Graph API calls in CRUD operations. This ensures:
   - Standardized extraction and categorization of error details (status code, error code, message, etc.).
   - Automatic logging of error context and details using `tflog`.
   - Proper handling of special cases (e.g., 404 removes resource from state, 401/403 provides permission hints, 429/503 handles throttling and service unavailability).

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -120,7 +120,7 @@ func DeleteWithRetry(
 
 		// Extract error information and check if retryable
 		errorInfo := errors.GraphError(ctx, err)
-		
+
 		// Check for non-retryable errors first (permanent failures or success)
 		if errors.IsNonRetryableDeleteError(&errorInfo) {
 			tflog.Error(ctx, fmt.Sprintf("Delete failed on attempt %d (non-retryable error)", attempt+1), map[string]interface{}{
@@ -175,4 +175,3 @@ func DeleteWithRetry(
 
 	return fmt.Errorf("failed to delete resource %s after %d attempts", resourceType, opts.MaxRetries+1)
 }
-

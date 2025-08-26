@@ -7,7 +7,7 @@ import (
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
@@ -48,7 +48,7 @@ func WaitForFileCommitCompletion(
 
 		if err != nil {
 			tflog.Debug(ctx, fmt.Sprintf("Error retrieving file status: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "WaitForFileCommitCompletion", permissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "WaitForFileCommitCompletion", permissions)
 			return err
 		}
 
