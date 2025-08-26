@@ -1,4 +1,4 @@
-package graphBetaWindowsDeviceCompliancePolicies
+package graphBetaWindowsDeviceCompliancePolicy
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -52,7 +52,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Create(ctx context.Context, req 
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Create(ctx context.Context, req 
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Read(ctx context.Context, req re
 		})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -194,7 +194,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Update(ctx context.Context, req 
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Update(ctx context.Context, req 
 				Post(ctx, scheduleRequestBody, nil)
 
 			if err != nil {
-				errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 				return
 			}
 
@@ -255,7 +255,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Update(ctx context.Context, req 
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 		return
 	}
 
@@ -302,7 +302,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Delete(ctx context.Context, req 
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

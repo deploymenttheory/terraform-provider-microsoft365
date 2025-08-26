@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -61,7 +61,7 @@ func (r *LinuxPlatformScriptResource) Create(ctx context.Context, req resource.C
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -84,7 +84,7 @@ func (r *LinuxPlatformScriptResource) Create(ctx context.Context, req resource.C
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (r *LinuxPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -184,7 +184,7 @@ func (r *LinuxPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 	)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (r *LinuxPlatformScriptResource) Read(ctx context.Context, req resource.Rea
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -267,7 +267,7 @@ func (r *LinuxPlatformScriptResource) Update(ctx context.Context, req resource.U
 		putRequest)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -288,7 +288,7 @@ func (r *LinuxPlatformScriptResource) Update(ctx context.Context, req resource.U
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -342,7 +342,7 @@ func (r *LinuxPlatformScriptResource) Delete(ctx context.Context, req resource.D
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

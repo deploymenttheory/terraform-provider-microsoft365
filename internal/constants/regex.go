@@ -66,4 +66,12 @@ const (
 	// TimeFormatHHMMSSRegex matches a time string in the format "HH:MM:SS" (24-hour clock).
 	// Example: "23:59:59"
 	TimeFormatHHMMSSRegex = "^([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)$"
+
+	// IPv4CIDRRegex matches a valid IPv4 CIDR range.
+	// Example: "192.168.1.0/24"
+	IPv4CIDRRegex = `^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/(3[0-2]|[12]?[0-9])$`
+
+	// IPv6CIDRRegex matches a valid IPv6 CIDR range.
+	// Example: "2001:db8::/32"
+	IPv6CIDRRegex = `^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$`
 )

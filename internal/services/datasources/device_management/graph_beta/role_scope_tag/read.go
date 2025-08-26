@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -54,7 +54,7 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -68,7 +68,7 @@ func (d *RoleScopeTagDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 

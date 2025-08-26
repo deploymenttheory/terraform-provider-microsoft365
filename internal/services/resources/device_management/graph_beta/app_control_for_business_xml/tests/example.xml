@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Microsoft Application Control for Business (WDAC) Policy Configuration
+    Using ApplicationControl CSP (Configuration Service Provider)
+    
+    This example demonstrates a comprehensive App Control for Business policy
+    configuration via MDM/Intune using the ApplicationControl CSP.
+    
+    Reference: https://learn.microsoft.com/en-us/windows/client-management/mdm/applicationcontrol-csp
+    
+    Key Features Demonstrated:
+    - Base policy deployment with enforcement mode
+    - Supplemental policy for additional applications
+    - Managed installer configuration
+    - Token-based application authorization
+    - Policy metadata and status tracking
+-->
+
+<SyncML xmlns="SYNCML:SYNCML1.2">
+    <SyncHdr>
+        <VerDTD>1.2</VerDTD>
+        <VerProto>DM/1.2</VerProto>
+        <SessionID>12345</SessionID>
+        <MsgID>1</MsgID>
+        <Target>
+            <LocURI>./Vendor/MSFT/ApplicationControl</LocURI>
+        </Target>
+        <Source>
+            <LocURI>https://intune.microsoft.com</LocURI>
+        </Source>
+    </SyncHdr>
+    <SyncBody>
+        
+        <!-- 1. Deploy Base Application Control Policy -->
+        <Add>
+            <CmdID>1</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/Policy</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">b64</Format>
+                    <Type xmlns="syncml:metinf">application/octet-stream</Type>
+                </Meta>
+                <Data>
+                    <!-- Base64 encoded policy binary would go here -->
+                    <!-- This is a placeholder - actual policy would be generated using ConvertFrom-CIPolicy -->
+                    UEsDBAoAAAAAAHpbVVMAAAAAAAAAAAAAAAAUABwAW0NvbnRlbnRfVHlwZXNdLnhtbFVUCQADqhJYXaoSWF11eAsAAQT1AQAA
+                    BBQAAABQSwMEFAAAAAgAeltVU5QqNZiRAQAAhAIAAAsAHABfcmVscy8ucmVsc1VUCQADqhJYXaoSWF11eAsAAQT1AQAABBQA
+                    AADNkstqwzAQRfeF/gPRvpbl2E7SsC5pKYF2k5LdIMQYT+yJrNEjhPTvK/uRQkMIXYmZ+917ZqTk7/tRTpPHxqBBNlx1
+                    Xol03AjapKnGdlVdWTqFPt85ZSrFOcJGQdoiHoxG0YKWCfaWKSUOoCJ0MbsKqxSSkXd2kk1G4rqCvVOzBbL8WL93d1rn
+                    k6T3Q9HMGrX4VdHcJfTl99q9JnGP3xBgpV7XYZTBk5zMT8K4hLNhYp9wMJPHLIk1RqjVPHJFVHa1H7G3Ldt+MnWEU0hL
+                    Oc6VZgxFVJlC8mVNRGlJq7WYC6XKnxwX4vMLyXt4KZvkuD2JlcP2lLMiHhHHNMNGqz
+                </Data>
+            </Item>
+        </Add>
+
+        <!-- 2. Set Base Policy Information -->
+        <Add>
+            <CmdID>2</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/BasePolicyId</LocURI>
+                </Target>
+                <Data>{A244370E-44C9-4C06-B551-F6016E563076}</Data>
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>3</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/FriendlyName</LocURI>
+                </Target>
+                <Data>Corporate Base Application Control Policy</Data>
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>4</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/IsBasePolicy</LocURI>
+                </Target>
+                <Data>True</Data>
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>5</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/PolicyOptions</LocURI>
+                </Target>
+                <Data>0</Data>
+                <!-- PolicyOptions values:
+                     0 = Enforcement mode (blocks untrusted applications)
+                     1 = Audit mode (logs but allows untrusted applications)
+                     2 = Enabled:Advanced Boot Options Menu
+                     3 = Enabled:Boot Menu Protection
+                     4 = Enabled:HVCI
+                     8 = Enabled:Unsigned System Integrity Policy
+                     9 = Allow Supplemental Policies
+                     16 = Disable Script Enforcement
+                     17 = Require EV Signers
+                     18 = Enabled:Boot Audit on Failure
+                     19 = Disabled:Flight Signing
+                -->
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>6</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/Version</LocURI>
+                </Target>
+                <Data>1.0.0.0</Data>
+            </Item>
+        </Add>
+
+        <!-- 3. Deploy Supplemental Policy for Additional Applications -->
+        <Add>
+            <CmdID>7</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{B355480F-55D0-4D07-C662-G7027F674187}/Policy</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">b64</Format>
+                    <Type xmlns="syncml:metinf">application/octet-stream</Type>
+                </Meta>
+                <Data>
+                    <!-- Base64 encoded supplemental policy binary -->
+                    <!-- This supplemental policy would allow additional trusted applications -->
+                    VEsDBAoAAAAAAIpbVVMAAAAAAAAAAAAAAAAUABwAW0NvbnRlbnRfVHlwZXNdLnhtbFVUCQADqhJYXaoSWF11eAsAAQT1AQAA
+                    BBQAAABQSwMEFAAAAAgAiltVU6QqNZiRAQAAhAIAAAsAHABfcmVscy8ucmVsc1VUCQADqhJYXaoSWF11eAsAAQT1AQAABBQA
+                    AADNkstqwzAQRfeF/gPRvpbl2E7SsC5pKYF2k5LdIMQYT+yJrNEjhPTvK/uRQkMIXYmZ+917ZqTk7/tRTpPHxqBBNlx1
+                    Xol03AjapKnGdlVdWTqFPt85ZSrFOcJGQdoiHoxG0YKWCfaWKSUOoCJ0MbsKqxSSkXd2kk1G4rqCvVOzBbL8WL93d1rn
+                    k6T3Q9HMGrX4VdHcJfTl99q9JnGP3xBgpV7XYZTBk5zMT8K4hLNhYp9wMJPHLIk1RqjVPHJFVHa1H7G3Ldt+MnWEU0hL
+                    Oc6VZgxFVJlC8mVNRGlJq7WYC6XKnxwX4vMLyXt4KZvkuD2JlcP2lLMiHhHHNMNGqz
+                </Data>
+            </Item>
+        </Add>
+
+        <!-- 4. Set Supplemental Policy Information -->
+        <Add>
+            <CmdID>8</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{B355480F-55D0-4D07-C662-G7027F674187}/PolicyInfo/BasePolicyId</LocURI>
+                </Target>
+                <Data>{A244370E-44C9-4C06-B551-F6016E563076}</Data>
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>9</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{B355480F-55D0-4D07-C662-G7027F674187}/PolicyInfo/FriendlyName</LocURI>
+                </Target>
+                <Data>Line of Business Applications Supplemental Policy</Data>
+            </Item>
+        </Add>
+
+        <Add>
+            <CmdID>10</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{B355480F-55D0-4D07-C662-G7027F674187}/PolicyInfo/IsBasePolicy</LocURI>
+                </Target>
+                <Data>False</Data>
+            </Item>
+        </Add>
+
+        <!-- 5. Configure Token-based Application Authorization -->
+        <Add>
+            <CmdID>11</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Tokens/{C466590A-66E1-4E08-A773-H8138G785298}/Token</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">b64</Format>
+                    <Type xmlns="syncml:metinf">application/octet-stream</Type>
+                </Meta>
+                <Data>
+                    <!-- Base64 encoded token for specific application authorization -->
+                    <!-- This would be generated for applications that need token-based trust -->
+                    WEsDBAoAAAAAAJpbVVMAAAAAAAAAAAAAAAAUABwAW0NvbnRlbnRfVHlwZXNdLnhtbFVUCQADqhJYXaoSWF11eAsAAQT1AQAA
+                    BBQAAABQSwMEFAAAAAgAmlxVU7QqNZiRAQAAhAIAAAsAHABfcmVscy8ucmVsc1VUCQADqhJYXaoSWF11eAsAAQT1AQAABBQA
+                    AADNkstqwzAQRfeF/gPRvpbl2E7SsC5pKYF2k5LdIMQYT+yJrNEjhPTvK/uRQkMIXYmZ+917ZqTk7/tRTpPHxqBBNlx1
+                </Data>
+            </Item>
+        </Add>
+
+        <!-- 6. Query Policy Status (GET operations) -->
+        <Get>
+            <CmdID>12</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/IsAuthorized</LocURI>
+                </Target>
+            </Item>
+        </Get>
+
+        <Get>
+            <CmdID>13</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/IsDeployed</LocURI>
+                </Target>
+            </Item>
+        </Get>
+
+        <Get>
+            <CmdID>14</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/IsEffective</LocURI>
+                </Target>
+            </Item>
+        </Get>
+
+        <Get>
+            <CmdID>15</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/PolicyInfo/Status</LocURI>
+                </Target>
+            </Item>
+        </Get>
+
+        <!-- 7. Managed Installer Configuration (related to Intune Management Extension) -->
+        <!-- Note: This would typically be configured through the windowsManagementApp endpoint -->
+        <!-- But shown here for completeness of the Application Control ecosystem -->
+        
+        <!-- 8. Policy Update Example (Replace existing policy) -->
+        <Replace>
+            <CmdID>16</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{A244370E-44C9-4C06-B551-F6016E563076}/Policy</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">b64</Format>
+                    <Type xmlns="syncml:metinf">application/octet-stream</Type>
+                </Meta>
+                <Data>
+                    <!-- Updated Base64 encoded policy binary -->
+                    YEsDBAoAAAAAAKpbVVMAAAAAAAAAAAAAAAAUABwAW0NvbnRlbnRfVHlwZXNdLnhtbFVUCQADqhJYXaoSWF11eAsAAQT1AQAA
+                    BBQAAABQSwMEFAAAAAgAqlxVU8QqNZiRAQAAhAIAAAsAHABfcmVscy8ucmVsc1VUCQADqhJYXaoSWF11eAsAAQT1AQAABBQA
+                    AADNkstqwzAQRfeF/gPRvpbl2E7SsC5pKYF2k5LdIMQYT+yJrNEjhPTvK/uRQkMIXYmZ+917ZqTk7/tRTpPHxqBBNlx1
+                </Data>
+            </Item>
+        </Replace>
+
+        <!-- 9. Policy Removal Example (Delete policy) -->
+        <Delete>
+            <CmdID>17</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Policies/{B355480F-55D0-4D07-C662-G7027F674187}</LocURI>
+                </Target>
+            </Item>
+        </Delete>
+
+        <!-- 10. Token Removal Example -->
+        <Delete>
+            <CmdID>18</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>./Vendor/MSFT/ApplicationControl/Tokens/{C466590A-66E1-4E08-A773-H8138G785298}</LocURI>
+                </Target>
+            </Item>
+        </Delete>
+
+        <Final />
+    </SyncBody>
+</SyncML>
+
+<!--
+    Configuration Notes:
+    
+    1. Policy GUIDs:
+       - Base Policy: {A244370E-44C9-4C06-B551-F6016E563076}
+       - Supplemental Policy: {B355480F-55D0-4D07-C662-G7027F674187}
+       - Token: {C466590A-66E1-4E08-A773-H8138G785298}
+    
+    2. Policy Options (can be combined using bitwise OR):
+       - 0: Enforcement mode (default)
+       - 1: Audit mode only
+       - 2: Advanced Boot Options Menu
+       - 3: Boot Menu Protection
+       - 4: HVCI (Hypervisor-protected Code Integrity)
+       - 8: Unsigned System Integrity Policy
+       - 9: Allow Supplemental Policies
+       - 16: Disable Script Enforcement
+       - 17: Require EV Signers
+       - 18: Boot Audit on Failure
+       - 19: Disable Flight Signing
+    
+    3. Policy Status Values:
+       - IsAuthorized: True/False - Policy signature validation
+       - IsDeployed: True/False - Policy deployed to system
+       - IsEffective: True/False - Policy active and enforcing
+       - Status: Numeric status code
+    
+    4. Deployment Considerations:
+       - Policies require no reboot for deployment (Windows 10 1903+)
+       - Base policies must be deployed before supplemental policies
+       - Token-based authorization supports per-application trust
+       - Managed installer integration works with Intune Management Extension
+    
+    5. Common Use Cases:
+       - Corporate application allowlisting
+       - Line of business application deployment
+       - Developer workstation configuration
+       - Secure browsing environments
+       - IoT and kiosk device lockdown
+    
+    6. Integration Points:
+       - Microsoft Intune for enterprise deployment
+       - PowerShell for local policy management
+       - Microsoft Defender for Endpoint for monitoring
+       - Windows Security app for user visibility
+-->

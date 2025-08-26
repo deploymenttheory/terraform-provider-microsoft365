@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/tenantrelationships"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/tenantrelationships"
 )
 
 // Ensure the implementation satisfies the expected interfaces
@@ -179,7 +179,7 @@ func (r *AuditEventsEphemeralResource) Open(ctx context.Context, req ephemeral.O
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Open", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Open", r.ReadPermissions)
 			return
 		}
 
@@ -192,7 +192,7 @@ func (r *AuditEventsEphemeralResource) Open(ctx context.Context, req ephemeral.O
 
 		// Initialize request parameters for audit events
 		requestParameters := &tenantrelationships.ManagedTenantsAuditEventsRequestBuilderGetRequestConfiguration{
-			Headers: headers,
+			Headers:         headers,
 			QueryParameters: &tenantrelationships.ManagedTenantsAuditEventsRequestBuilderGetQueryParameters{},
 		}
 
@@ -234,7 +234,7 @@ func (r *AuditEventsEphemeralResource) Open(ctx context.Context, req ephemeral.O
 
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
-			errors.HandleGraphError(ctx, err, resp, "Open", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Open", r.ReadPermissions)
 			return
 		}
 
@@ -253,7 +253,7 @@ func (r *AuditEventsEphemeralResource) Open(ctx context.Context, req ephemeral.O
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Open", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Open", r.ReadPermissions)
 			return
 		}
 
@@ -335,26 +335,26 @@ func (r *AuditEventsEphemeralResource) ValidateConfig(ctx context.Context, req e
 // Close is called when the ephemeral resource is no longer needed
 func (r *AuditEventsEphemeralResource) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
 	tflog.Debug(ctx, "Closing audit events ephemeral resource")
-	
+
 	// For audit events, we don't maintain any persistent connections, tokens, or resources
 	// that need explicit cleanup. The Graph client is managed by the provider.
 	// This is a no-op cleanup since audit events are read-only and stateless.
-	
+
 	tflog.Info(ctx, "Audit events ephemeral resource session closed - no cleanup required")
 }
 
 // Renew is called when the ephemeral resource needs to be renewed
 func (r *AuditEventsEphemeralResource) Renew(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
 	tflog.Debug(ctx, "Renewing audit events ephemeral resource")
-	
+
 	// According to the Terraform ephemeral resource framework documentation:
-	// "Renew cannot return new result data for the ephemeral resource instance, so this logic 
-	// is only appropriate for remote objects like HashiCorp Vault leases, which can be renewed 
+	// "Renew cannot return new result data for the ephemeral resource instance, so this logic
+	// is only appropriate for remote objects like HashiCorp Vault leases, which can be renewed
 	// without changing their data."
 	//
 	// Since audit events are read-only data queries (not leases or tokens that need renewal),
 	// this is a no-op. If fresh audit event data is needed, a new ephemeral resource instance
 	// should be created instead.
-	
+
 	tflog.Info(ctx, "Audit events do not require renewal - data is read-only")
 }

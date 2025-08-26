@@ -9,7 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -49,7 +49,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Create(ctx context.Contex
 		Post(ctx, baseTemplate, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -223,7 +223,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Read(ctx context.Context,
 		})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -273,7 +273,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Update(ctx context.Contex
 		Patch(ctx, baseTemplate, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -370,7 +370,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Update(ctx context.Contex
 			err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 			if err != nil {
 				tflog.Error(ctx, fmt.Sprintf("Failed custom PATCH request to: %s - Error: %s", localizedMessageUrl, err.Error()))
-				errors.HandleGraphError(ctx, err, resp, "Update localized message", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "Update localized message", r.WritePermissions)
 				return
 			}
 
@@ -464,7 +464,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Delete(ctx context.Contex
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

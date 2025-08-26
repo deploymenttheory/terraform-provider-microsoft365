@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -46,7 +46,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Create(ctx context.Context, r
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Create(ctx context.Context, r
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Read(ctx context.Context, req
 		})
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -192,7 +192,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, r
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -214,7 +214,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Update(ctx context.Context, r
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update - Assignments", r.WritePermissions)
 		return
 	}
 
@@ -265,7 +265,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Delete(ctx context.Context, r
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -89,6 +89,7 @@ func testAccCheckWindowsDeviceComplianceScriptDestroy(s *terraform.State) error 
 			DeviceComplianceScripts().
 			ByDeviceComplianceScriptId(rs.Primary.ID).
 			Get(ctx, nil)
+
 		if err != nil {
 			errorInfo := errors.GraphError(ctx, err)
 			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {

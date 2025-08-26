@@ -1,0 +1,11 @@
+{
+  "@odata.type": "#microsoft.graph.countryNamedLocation",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/namedLocations/$entity",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "unit-test-country-named-location-minimal",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-01T00:00:00Z",
+  "countryLookupMethod": "clientIpAddress",
+  "includeUnknownCountriesAndRegions": false,
+  "countriesAndRegions": ["US"]
+}

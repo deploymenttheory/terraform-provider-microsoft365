@@ -23,6 +23,8 @@ import (
 	// Graph Beta - Device management
 	graphBetaDeviceManagementAndroidDeviceOwnerCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/android_device_owner_compliance_policy"
 	graphBetaDeviceManagementAospDeviceOwnerCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/aosp_device_owner_compliance_policy"
+	graphBetaDeviceManagementAppControlForBusinessBuiltInControls "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls"
+	graphBetaDeviceManagementAppControlForBusinessManagedInstaller "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/app_control_for_business_managed_installer"
 	graphBetaDeviceManagementAppleUserInitiatedEnrollmentProfileAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/apple_user_initiated_enrollment_profile_assignment"
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementAutopatchGroups "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/autopatch_groups"
@@ -70,6 +72,7 @@ import (
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
+	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -143,6 +146,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAndroidDeviceOwnerCompliancePolicy.NewAndroidDeviceOwnerCompliancePolicyResource,
 		graphBetaDeviceManagementAospDeviceOwnerCompliancePolicy.NewAospDeviceOwnerCompliancePolicyResource,
+		graphBetaDeviceManagementAppControlForBusinessBuiltInControls.NewAppControlForBusinessResourceBuiltInControlsResource,
+		graphBetaDeviceManagementAppControlForBusinessManagedInstaller.NewAppControlForBusinessManagedInstallerResource,
 		graphBetaDeviceManagementAppleUserInitiatedEnrollmentProfileAssignment.NewAppleUserInitiatedEnrollmentProfileAssignmentResource,
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterResource,
 		graphBetaDeviceManagementAutopatchGroups.NewAutopatchGroupsResource,
@@ -190,6 +195,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,

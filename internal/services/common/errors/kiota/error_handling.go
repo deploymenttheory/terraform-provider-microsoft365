@@ -73,8 +73,8 @@ const (
 	CategoryUnknown        ErrorCategory = "unknown"
 )
 
-// HandleGraphError processes Graph API errors and dispatches them appropriately
-func HandleGraphError(ctx context.Context, err error, resp interface{}, operation string, requiredPermissions []string) {
+// HandleKiotaGraphError processes Graph API errors and dispatches them appropriately
+func HandleKiotaGraphError(ctx context.Context, err error, resp interface{}, operation string, requiredPermissions []string) {
 	errorInfo := GraphError(ctx, err)
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
 

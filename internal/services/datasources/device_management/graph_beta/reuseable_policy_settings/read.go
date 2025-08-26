@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -66,7 +66,7 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 			})
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
@@ -84,7 +84,7 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 			})
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 

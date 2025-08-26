@@ -7,7 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -53,7 +53,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (r *RoleScopeTagResource) Create(ctx context.Context, req resource.CreateRe
 			PostAsAssignPostResponse(ctx, requestAssignment, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 			return
 		}
 	}
@@ -147,7 +147,7 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -161,7 +161,7 @@ func (r *RoleScopeTagResource) Read(ctx context.Context, req resource.ReadReques
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -217,7 +217,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -240,7 +240,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 			PostAsAssignPostResponse(ctx, requestAssignment, nil)
 
 		if err != nil {
-			errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}
@@ -294,7 +294,7 @@ func (r *RoleScopeTagResource) Delete(ctx context.Context, req resource.DeleteRe
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

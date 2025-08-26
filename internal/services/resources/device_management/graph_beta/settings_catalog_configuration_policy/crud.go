@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -67,7 +67,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -90,7 +90,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -178,7 +178,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 
 	allSettings, err := r.getAllPolicySettingsWithPageIterator(ctx, object.ID.ValueString())
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -327,7 +327,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		putRequest)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -348,7 +348,7 @@ func (r *SettingsCatalogResource) Update(ctx context.Context, req resource.Updat
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -402,7 +402,7 @@ func (r *SettingsCatalogResource) Delete(ctx context.Context, req resource.Delet
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

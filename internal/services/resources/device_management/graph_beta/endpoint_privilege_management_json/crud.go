@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -62,7 +62,7 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (r *EndpointPrivilegeManagementResource) Create(ctx context.Context, req re
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -184,7 +184,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 	)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -267,7 +267,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		putRequest)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
 
@@ -288,7 +288,7 @@ func (r *EndpointPrivilegeManagementResource) Update(ctx context.Context, req re
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
@@ -342,7 +342,7 @@ func (r *EndpointPrivilegeManagementResource) Delete(ctx context.Context, req re
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

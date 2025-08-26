@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -101,7 +101,7 @@ func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) errors.GraphError
 	for _, d := range diagnostics.Errors() {
 		summary := d.Summary()
 		detail := d.Detail()
-		
+
 		// Combine summary and detail for analysis
 		errorText := summary + " " + detail
 		errorTextLower := strings.ToLower(errorText)
@@ -140,7 +140,7 @@ func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) errors.GraphError
 		if strings.Contains(errorTextLower, "504") || strings.Contains(errorTextLower, "gateway timeout") {
 			return errors.GraphErrorInfo{StatusCode: 504, ErrorCode: "GatewayTimeout"}
 		}
-		
+
 		// Look for specific Graph API error patterns
 		if strings.Contains(errorTextLower, "service unavailable") {
 			return errors.GraphErrorInfo{StatusCode: 503, ErrorCode: "ServiceUnavailable"}

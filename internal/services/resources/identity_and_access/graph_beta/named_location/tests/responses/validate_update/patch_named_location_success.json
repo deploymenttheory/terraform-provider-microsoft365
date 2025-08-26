@@ -1,0 +1,15 @@
+{
+  "@odata.type": "#microsoft.graph.ipNamedLocation",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/namedLocations/$entity",
+  "id": "55555555-5555-5555-5555-555555555555",
+  "displayName": "Updated Named Location",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-02T00:00:00Z",
+  "isTrusted": true,
+  "ipRanges": [
+    {
+      "@odata.type": "#microsoft.graph.iPv4CidrRange",
+      "cidrAddress": "10.0.0.0/8"
+    }
+  ]
+}

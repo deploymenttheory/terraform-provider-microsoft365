@@ -1,15 +1,5 @@
 {
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies",
-  "value": [
-    {
-      "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
-      "id": "11111111-1111-1111-1111-111111111111",
-      "displayName": "Test Windows Device Compliance Policy",
-      "description": "Test policy for Windows device compliance",
-      "createdDateTime": "2024-01-01T00:00:00Z",
-      "lastModifiedDateTime": "2024-01-01T00:00:00Z",
-      "roleScopeTagIds": ["0"],
-      "version": 1
-    }
-  ]
+  "@odata.count": 1,
+  "value": []
 }

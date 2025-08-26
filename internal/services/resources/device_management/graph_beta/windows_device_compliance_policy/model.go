@@ -2,7 +2,7 @@
 // REF: https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-custom-json
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-devicecompliancepolicyscript?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-wsldistributionconfiguration?view=graph-rest-beta
-package graphBetaWindowsDeviceCompliancePolicies
+package graphBetaWindowsDeviceCompliancePolicy
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
