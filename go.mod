@@ -3,7 +3,7 @@ module github.com/deploymenttheory/terraform-provider-microsoft365
 go 1.24.5
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.2
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.11.0
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/google/uuid v1.6.0
