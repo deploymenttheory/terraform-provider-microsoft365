@@ -1,0 +1,17 @@
+{
+    "id": "00000000-0000-0000-0000-000000000000",
+    "displayName": "test authentication strength policy",
+    "description": "test description",
+    "policyType": "custom",
+    "requirementsSatisfied": "mfa",
+    "createdDateTime": "2024-01-01T00:00:00Z",
+    "modifiedDateTime": "2024-01-01T00:00:00Z",
+    "allowedCombinations": [
+        "password,sms",
+        "password,voice",
+        "password,hardwareOath",
+        "password,softwareOath",
+        "password,microsoftAuthenticatorPush"
+    ],
+    "combinationConfigurations": []
+}

@@ -45,6 +45,7 @@ func NewConditionalAccessPolicyResource() resource.Resource {
 		ReadPermissions: []string{
 			"Policy.Read.All",
 			"Policy.Read.ConditionalAccess",
+			"Directory.Read.All", // for validation of roles
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",
@@ -98,7 +99,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(constants.GuidRegex),
-						"must be a valid GUID",
+						"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 					),
 				},
 			},
@@ -186,12 +187,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_applications": schema.SetAttribute{
 								MarkdownDescription: "Applications to exclude from the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID",
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
 									),
 								},
@@ -199,7 +200,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_user_actions": schema.SetAttribute{
 								MarkdownDescription: "User actions to include in the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf(
@@ -211,7 +212,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_authentication_context_class_references": schema.SetAttribute{
 								MarkdownDescription: "Authentication context class references to include in the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
@@ -247,7 +248,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_users": schema.SetAttribute{
 								MarkdownDescription: "Users to include in the policy. Can use special values like 'All', 'None', or 'GuestsOrExternalUsers'.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -263,7 +264,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_users": schema.SetAttribute{
 								MarkdownDescription: "Users to exclude from the policy. Can use special values like 'GuestsOrExternalUsers'.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -279,12 +280,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_groups": schema.SetAttribute{
 								MarkdownDescription: "Groups to include in the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID",
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
 									),
 								},
@@ -292,12 +293,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_groups": schema.SetAttribute{
 								MarkdownDescription: "Groups to exclude from the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID",
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
 									),
 								},
@@ -305,25 +306,25 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_roles": schema.SetAttribute{
 								MarkdownDescription: "Roles to include in the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID",
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
 									),
 								},
 							},
 							"exclude_roles": schema.SetAttribute{
-								MarkdownDescription: "Roles to exclude from the policy.",
+								MarkdownDescription: "Microsoft Entra tenant roles to exclude from the policy.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID",
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
 									),
 								},
@@ -331,31 +332,49 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_guests_or_external_users": schema.SingleNestedAttribute{
 								MarkdownDescription: "Configuration for including guests or external users.",
 								Optional:            true,
+								Computed:            true,
 								Attributes: map[string]schema.Attribute{
-									"guest_or_external_user_types": schema.StringAttribute{
-										MarkdownDescription: "Types of guests or external users to include. Possible values are: internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider.",
-										Required:            true,
+									"guest_or_external_user_types": schema.SetAttribute{
+										MarkdownDescription: "Types of guests or external users to include. Possible values are: InternalGuest, B2bCollaborationGuest, B2bCollaborationMember, B2bDirectConnectUser, OtherExternalUser, ServiceProvider.",
+										ElementType:         types.StringType,
+										Optional:            true,
+										Computed:            true,
+										Validators: []validator.Set{
+											setvalidator.ValueStringsAre(
+												stringvalidator.OneOf(
+													"B2bCollaborationGuest",
+													"B2bCollaborationMember",
+													"B2bDirectConnectUser",
+													"InternalGuest",
+													"ServiceProvider",
+													"OtherExternalUser",
+												),
+											),
+										},
 									},
 									"external_tenants": schema.SingleNestedAttribute{
 										MarkdownDescription: "Configuration for external tenants.",
-										Required:            true,
+										Optional:            true,
+										Computed:            true,
 										Attributes: map[string]schema.Attribute{
 											"membership_kind": schema.StringAttribute{
 												MarkdownDescription: "Kind of membership. Possible values are: all, enumerated, unknownFutureValue.",
-												Required:            true,
+												Optional:            true,
+												Computed:            true,
 												Validators: []validator.String{
 													stringvalidator.OneOf("all", "enumerated", "unknownFutureValue"),
 												},
 											},
 											"members": schema.SetAttribute{
-												MarkdownDescription: "The list of tenant IDs for external tenants.",
+												MarkdownDescription: "The list of Microsoft Entra organization tenant IDs for external tenants to exclude from the CA policy.",
 												ElementType:         types.StringType,
-												Required:            true,
+												Optional:            true,
+												Computed:            true,
 												Validators: []validator.Set{
 													setvalidator.ValueStringsAre(
 														stringvalidator.RegexMatches(
 															regexp.MustCompile(constants.GuidRegex),
-															"must be a valid GUID",
+															"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 														),
 													),
 												},
@@ -367,18 +386,35 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_guests_or_external_users": schema.SingleNestedAttribute{
 								MarkdownDescription: "Configuration for excluding guests or external users.",
 								Optional:            true,
+								Computed:            true,
 								Attributes: map[string]schema.Attribute{
-									"guest_or_external_user_types": schema.StringAttribute{
-										MarkdownDescription: "Types of guests or external users to exclude. Possible values are: internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider.",
-										Required:            true,
+									"guest_or_external_user_types": schema.SetAttribute{
+										MarkdownDescription: "Types of guests or external users to exclude. Possible values are: InternalGuest, B2bCollaborationGuest, B2bCollaborationMember, B2bDirectConnectUser, OtherExternalUser, ServiceProvider.",
+										ElementType:         types.StringType,
+										Optional:            true,
+										Computed:            true,
+										Validators: []validator.Set{
+											setvalidator.ValueStringsAre(
+												stringvalidator.OneOf(
+													"B2bCollaborationGuest",
+													"B2bCollaborationMember",
+													"B2bDirectConnectUser",
+													"InternalGuest",
+													"ServiceProvider",
+													"OtherExternalUser",
+												),
+											),
+										},
 									},
 									"external_tenants": schema.SingleNestedAttribute{
 										MarkdownDescription: "Configuration for external tenants.",
-										Required:            true,
+										Optional:            true,
+										Computed:            true,
 										Attributes: map[string]schema.Attribute{
 											"membership_kind": schema.StringAttribute{
 												MarkdownDescription: "Kind of membership. Possible values are: all, enumerated, unknownFutureValue.",
-												Required:            true,
+												Optional:            true,
+												Computed:            true,
 												Validators: []validator.String{
 													stringvalidator.OneOf("all", "enumerated", "unknownFutureValue"),
 												},
@@ -386,12 +422,13 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 											"members": schema.SetAttribute{
 												MarkdownDescription: "The list of tenant IDs for external tenants.",
 												ElementType:         types.StringType,
-												Required:            true,
+												Optional:            true,
+												Computed:            true,
 												Validators: []validator.Set{
 													setvalidator.ValueStringsAre(
 														stringvalidator.RegexMatches(
 															regexp.MustCompile(constants.GuidRegex),
-															"must be a valid GUID",
+															"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 														),
 													),
 												},
@@ -469,7 +506,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_locations": schema.SetAttribute{
 								MarkdownDescription: "Locations to exclude from the policy. Can use special values like 'AllTrusted'.",
 								ElementType:         types.StringType,
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -670,7 +707,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 					"built_in_controls": schema.SetAttribute{
 						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, unknownFutureValue.",
 						ElementType:         types.StringType,
-						Optional:            true,
+						Required:            true,
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -689,7 +726,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 					"custom_authentication_factors": schema.SetAttribute{
 						MarkdownDescription: "Custom authentication factors for granting access.",
 						ElementType:         types.StringType,
-						Optional:            true,
+						Required:            true,
 					},
 					"terms_of_use": schema.SetAttribute{
 						MarkdownDescription: "Terms of use required for granting access.",
@@ -706,7 +743,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(
 										regexp.MustCompile(constants.GuidRegex),
-										"must be a valid GUID",
+										"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 									),
 								},
 							},

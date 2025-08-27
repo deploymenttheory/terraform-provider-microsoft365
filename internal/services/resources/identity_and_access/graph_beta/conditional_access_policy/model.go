@@ -49,19 +49,19 @@ type ConditionalAccessApplications struct {
 
 // ConditionalAccessUsers represents the users condition
 type ConditionalAccessUsers struct {
-	IncludeUsers                 types.Set                               `tfsdk:"include_users"`
-	ExcludeUsers                 types.Set                               `tfsdk:"exclude_users"`
-	IncludeGroups                types.Set                               `tfsdk:"include_groups"`
-	ExcludeGroups                types.Set                               `tfsdk:"exclude_groups"`
-	IncludeRoles                 types.Set                               `tfsdk:"include_roles"`
-	ExcludeRoles                 types.Set                               `tfsdk:"exclude_roles"`
-	IncludeGuestsOrExternalUsers *ConditionalAccessGuestsOrExternalUsers `tfsdk:"include_guests_or_external_users"`
-	ExcludeGuestsOrExternalUsers *ConditionalAccessGuestsOrExternalUsers `tfsdk:"exclude_guests_or_external_users"`
+	IncludeUsers                 types.Set    `tfsdk:"include_users"`
+	ExcludeUsers                 types.Set    `tfsdk:"exclude_users"`
+	IncludeGroups                types.Set    `tfsdk:"include_groups"`
+	ExcludeGroups                types.Set    `tfsdk:"exclude_groups"`
+	IncludeRoles                 types.Set    `tfsdk:"include_roles"`
+	ExcludeRoles                 types.Set    `tfsdk:"exclude_roles"`
+	IncludeGuestsOrExternalUsers types.Object `tfsdk:"include_guests_or_external_users"`
+	ExcludeGuestsOrExternalUsers types.Object `tfsdk:"exclude_guests_or_external_users"`
 }
 
 // ConditionalAccessGuestsOrExternalUsers represents the guests or external users configuration
 type ConditionalAccessGuestsOrExternalUsers struct {
-	GuestOrExternalUserTypes types.String                      `tfsdk:"guest_or_external_user_types"`
+	GuestOrExternalUserTypes types.Set                         `tfsdk:"guest_or_external_user_types"`
 	ExternalTenants          *ConditionalAccessExternalTenants `tfsdk:"external_tenants"`
 }
 

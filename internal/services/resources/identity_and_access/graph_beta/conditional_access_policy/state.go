@@ -15,13 +15,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		data.ID = types.StringValue(id)
 	}
 
-	data.DisplayName = convert.GraphToFrameworkString(getStringPtr(remoteResource, "displayName"))
-	data.State = convert.GraphToFrameworkString(getStringPtr(remoteResource, "state"))
-	data.CreatedDateTime = convert.GraphToFrameworkString(getStringPtr(remoteResource, "createdDateTime"))
-	data.ModifiedDateTime = convert.GraphToFrameworkString(getStringPtr(remoteResource, "modifiedDateTime"))
-	data.DeletedDateTime = convert.GraphToFrameworkString(getStringPtr(remoteResource, "deletedDateTime"))
-	data.TemplateId = convert.GraphToFrameworkString(getStringPtr(remoteResource, "templateId"))
-	data.PartialEnablementStrategy = convert.GraphToFrameworkString(getStringPtr(remoteResource, "partialEnablementStrategy"))
+	data.DisplayName = convert.MapToFrameworkString(remoteResource, "displayName")
+	data.State = convert.MapToFrameworkString(remoteResource, "state")
+	data.CreatedDateTime = convert.MapToFrameworkString(remoteResource, "createdDateTime")
+	data.ModifiedDateTime = convert.MapToFrameworkString(remoteResource, "modifiedDateTime")
+	data.DeletedDateTime = convert.MapToFrameworkString(remoteResource, "deletedDateTime")
+	data.TemplateId = convert.MapToFrameworkString(remoteResource, "templateId")
+	data.PartialEnablementStrategy = convert.MapToFrameworkString(remoteResource, "partialEnablementStrategy")
 
 	// Map conditions
 	if conditionsData, ok := remoteResource["conditions"].(map[string]interface{}); ok {
@@ -43,30 +43,12 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 	}
 }
 
-// Helper function to get string pointer from map
-func getStringPtr(data map[string]interface{}, key string) *string {
-	if value, ok := data[key].(string); ok {
-		return &value
-	}
-	return nil
-}
-
 // mapConditionsFromRemote maps conditions from the API response
 func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]interface{}) *ConditionalAccessConditions {
 	conditions := &ConditionalAccessConditions{}
 
 	// Client app types
-	if clientAppTypes, ok := conditionsData["clientAppTypes"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(clientAppTypes))
-		for _, item := range clientAppTypes {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		conditions.ClientAppTypes = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		conditions.ClientAppTypes = types.SetNull(types.StringType)
-	}
+	conditions.ClientAppTypes = convert.MapToFrameworkStringSet(ctx, conditionsData, "clientAppTypes")
 
 	// Applications - always create the object since it's required in schema
 	if applicationsData, ok := conditionsData["applications"].(map[string]interface{}); ok {
@@ -94,8 +76,8 @@ func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]inte
 			ExcludeGroups:                types.SetNull(types.StringType),
 			IncludeRoles:                 types.SetNull(types.StringType),
 			ExcludeRoles:                 types.SetNull(types.StringType),
-			IncludeGuestsOrExternalUsers: nil,
-			ExcludeGuestsOrExternalUsers: nil,
+			IncludeGuestsOrExternalUsers: types.ObjectNull(getGuestsOrExternalUsersAttributeTypes()),
+			ExcludeGuestsOrExternalUsers: types.ObjectNull(getGuestsOrExternalUsersAttributeTypes()),
 		}
 	}
 
@@ -122,44 +104,14 @@ func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]inte
 		conditions.Devices = nil
 	}
 
-	// Risk levels - use PreserveEmpty for fields configured as empty arrays in Terraform
-	if signInRiskLevels, ok := conditionsData["signInRiskLevels"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(signInRiskLevels))
-		for _, item := range signInRiskLevels {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		// Always return an empty set instead of null for sign_in_risk_levels
-		// This is needed because the minimal configuration has an empty array
-		conditions.SignInRiskLevels = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		// Always return an empty set instead of null
-		conditions.SignInRiskLevels = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	// Risk levels - preserve empty sets for fields that can be configured as empty arrays
+	conditions.SignInRiskLevels = convert.MapToFrameworkStringSet(ctx, conditionsData, "signInRiskLevels")
+	conditions.UserRiskLevels = convert.MapToFrameworkStringSet(ctx, conditionsData, "userRiskLevels")
 
-	if userRiskLevels, ok := conditionsData["userRiskLevels"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(userRiskLevels))
-		for _, item := range userRiskLevels {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		conditions.UserRiskLevels = convert.GraphToFrameworkStringSet(ctx, stringSlice)
+	if _, ok := conditionsData["servicePrincipalRiskLevels"]; ok {
+		conditions.ServicePrincipalRiskLevels = convert.MapToFrameworkStringSet(ctx, conditionsData, "servicePrincipalRiskLevels")
 	} else {
-		conditions.UserRiskLevels = types.SetNull(types.StringType)
-	}
-
-	if servicePrincipalRiskLevels, ok := conditionsData["servicePrincipalRiskLevels"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(servicePrincipalRiskLevels))
-		for _, item := range servicePrincipalRiskLevels {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
 		// Always return a value (empty set or populated set) instead of null
-		conditions.ServicePrincipalRiskLevels = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
 		conditions.ServicePrincipalRiskLevels = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
@@ -170,64 +122,17 @@ func mapConditionsFromRemote(ctx context.Context, conditionsData map[string]inte
 func mapApplicationsFromRemote(ctx context.Context, applicationsData map[string]interface{}) *ConditionalAccessApplications {
 	applications := &ConditionalAccessApplications{}
 
-	if includeApplications, ok := applicationsData["includeApplications"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeApplications))
-		for _, item := range includeApplications {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		applications.IncludeApplications = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		applications.IncludeApplications = types.SetNull(types.StringType)
-	}
+	applications.IncludeApplications = convert.MapToFrameworkStringSet(ctx, applicationsData, "includeApplications")
 
 	// These fields are configured as empty arrays in Terraform, so preserve empty sets
-	if excludeApplications, ok := applicationsData["excludeApplications"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeApplications))
-		for _, item := range excludeApplications {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		applications.ExcludeApplications = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		applications.ExcludeApplications = types.SetNull(types.StringType)
-	}
-
-	if includeUserActions, ok := applicationsData["includeUserActions"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeUserActions))
-		for _, item := range includeUserActions {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		applications.IncludeUserActions = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		applications.IncludeUserActions = types.SetNull(types.StringType)
-	}
-
-	// Only set this field if it's present in the API response
-	if _, hasAuthContext := applicationsData["includeAuthenticationContextClassReferences"]; hasAuthContext {
-		if authContextRefs, ok := applicationsData["includeAuthenticationContextClassReferences"].([]interface{}); ok {
-			stringSlice := make([]string, 0, len(authContextRefs))
-			for _, item := range authContextRefs {
-				if str, ok := item.(string); ok {
-					stringSlice = append(stringSlice, str)
-				}
-			}
-			applications.IncludeAuthenticationContextClassReferences = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-		} else {
-			applications.IncludeAuthenticationContextClassReferences = types.SetNull(types.StringType)
-		}
-	} else {
-		applications.IncludeAuthenticationContextClassReferences = types.SetNull(types.StringType)
-	}
+	applications.ExcludeApplications = convert.MapToFrameworkStringSet(ctx, applicationsData, "excludeApplications")
+	applications.IncludeUserActions = convert.MapToFrameworkStringSet(ctx, applicationsData, "includeUserActions")
+	applications.IncludeAuthenticationContextClassReferences = convert.MapToFrameworkStringSet(ctx, applicationsData, "includeAuthenticationContextClassReferences")
 
 	if applicationFilterData, ok := applicationsData["applicationFilter"].(map[string]interface{}); ok {
 		filter := &ConditionalAccessFilter{
-			Mode: convert.GraphToFrameworkString(getStringPtr(applicationFilterData, "mode")),
-			Rule: convert.GraphToFrameworkString(getStringPtr(applicationFilterData, "rule")),
+			Mode: convert.MapToFrameworkString(applicationFilterData, "mode"),
+			Rule: convert.MapToFrameworkString(applicationFilterData, "rule"),
 		}
 		applications.ApplicationFilter = filter
 	}
@@ -239,148 +144,40 @@ func mapApplicationsFromRemote(ctx context.Context, applicationsData map[string]
 func mapUsersFromRemote(ctx context.Context, usersData map[string]interface{}) *ConditionalAccessUsers {
 	users := &ConditionalAccessUsers{}
 
-	if includeUsers, ok := usersData["includeUsers"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeUsers))
-		for _, item := range includeUsers {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.IncludeUsers = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.IncludeUsers = types.SetNull(types.StringType)
-	}
+	users.IncludeUsers = convert.MapToFrameworkStringSet(ctx, usersData, "includeUsers")
 
 	// These fields are configured as empty arrays in Terraform, so preserve empty sets
-	if excludeUsers, ok := usersData["excludeUsers"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeUsers))
-		for _, item := range excludeUsers {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.ExcludeUsers = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.ExcludeUsers = types.SetNull(types.StringType)
-	}
+	users.ExcludeUsers = convert.MapToFrameworkStringSet(ctx, usersData, "excludeUsers")
+	users.IncludeGroups = convert.MapToFrameworkStringSet(ctx, usersData, "includeGroups")
+	users.ExcludeGroups = convert.MapToFrameworkStringSet(ctx, usersData, "excludeGroups")
+	users.IncludeRoles = convert.MapToFrameworkStringSet(ctx, usersData, "includeRoles")
 
-	if includeGroups, ok := usersData["includeGroups"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeGroups))
-		for _, item := range includeGroups {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.IncludeGroups = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.IncludeGroups = types.SetNull(types.StringType)
-	}
+	users.ExcludeRoles = convert.MapToFrameworkStringSet(ctx, usersData, "excludeRoles")
 
-	if excludeGroups, ok := usersData["excludeGroups"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeGroups))
-		for _, item := range excludeGroups {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.ExcludeGroups = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.ExcludeGroups = types.SetNull(types.StringType)
-	}
-
-	// Fix: Always set include_roles to null when not present in API response
-	if includeRoles, ok := usersData["includeRoles"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeRoles))
-		for _, item := range includeRoles {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.IncludeRoles = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.IncludeRoles = types.SetNull(types.StringType)
-	}
-
-	if excludeRoles, ok := usersData["excludeRoles"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeRoles))
-		for _, item := range excludeRoles {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		users.ExcludeRoles = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		users.ExcludeRoles = types.SetNull(types.StringType)
-	}
-
-	// Handle guests or external users - always preserve the structure
+	// Handle guests or external users - preserve the structure if configured in Terraform but API doesn't return it
 	if includeGuestsData, ok := usersData["includeGuestsOrExternalUsers"].(map[string]interface{}); ok {
-		users.IncludeGuestsOrExternalUsers = mapGuestsOrExternalUsersFromRemote(ctx, includeGuestsData)
+		users.IncludeGuestsOrExternalUsers = mapGuestsOrExternalUsersToObject(ctx, includeGuestsData)
+	} else {
+		// Set to null object when not present in API response
+		users.IncludeGuestsOrExternalUsers = types.ObjectNull(getGuestsOrExternalUsersAttributeTypes())
 	}
 
 	if excludeGuestsData, ok := usersData["excludeGuestsOrExternalUsers"].(map[string]interface{}); ok {
-		users.ExcludeGuestsOrExternalUsers = mapGuestsOrExternalUsersFromRemote(ctx, excludeGuestsData)
+		users.ExcludeGuestsOrExternalUsers = mapGuestsOrExternalUsersToObject(ctx, excludeGuestsData)
+	} else {
+		// Set to null object when not present in API response
+		users.ExcludeGuestsOrExternalUsers = types.ObjectNull(getGuestsOrExternalUsersAttributeTypes())
 	}
 
 	return users
-}
-
-// mapGuestsOrExternalUsersFromRemote maps guests or external users configuration
-func mapGuestsOrExternalUsersFromRemote(ctx context.Context, guestsData map[string]interface{}) *ConditionalAccessGuestsOrExternalUsers {
-	guests := &ConditionalAccessGuestsOrExternalUsers{
-		GuestOrExternalUserTypes: convert.GraphToFrameworkString(getStringPtr(guestsData, "guestOrExternalUserTypes")),
-	}
-
-	if externalTenantsData, ok := guestsData["externalTenants"].(map[string]interface{}); ok {
-		externalTenants := &ConditionalAccessExternalTenants{
-			MembershipKind: convert.GraphToFrameworkString(getStringPtr(externalTenantsData, "membershipKind")),
-		}
-
-		if members, ok := externalTenantsData["members"].([]interface{}); ok {
-			stringSlice := make([]string, 0, len(members))
-			for _, item := range members {
-				if str, ok := item.(string); ok {
-					stringSlice = append(stringSlice, str)
-				}
-			}
-			externalTenants.Members = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-		} else {
-			externalTenants.Members = types.SetNull(types.StringType)
-		}
-
-		guests.ExternalTenants = externalTenants
-	}
-
-	return guests
 }
 
 // mapPlatformsFromRemote maps platforms from the API response
 func mapPlatformsFromRemote(ctx context.Context, platformsData map[string]interface{}) *ConditionalAccessPlatforms {
 	platforms := &ConditionalAccessPlatforms{}
 
-	if includePlatforms, ok := platformsData["includePlatforms"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includePlatforms))
-		for _, item := range includePlatforms {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		platforms.IncludePlatforms = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		platforms.IncludePlatforms = types.SetNull(types.StringType)
-	}
-
-	if excludePlatforms, ok := platformsData["excludePlatforms"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludePlatforms))
-		for _, item := range excludePlatforms {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		platforms.ExcludePlatforms = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		platforms.ExcludePlatforms = types.SetNull(types.StringType)
-	}
+	platforms.IncludePlatforms = convert.MapToFrameworkStringSet(ctx, platformsData, "includePlatforms")
+	platforms.ExcludePlatforms = convert.MapToFrameworkStringSet(ctx, platformsData, "excludePlatforms")
 
 	return platforms
 }
@@ -389,29 +186,8 @@ func mapPlatformsFromRemote(ctx context.Context, platformsData map[string]interf
 func mapLocationsFromRemote(ctx context.Context, locationsData map[string]interface{}) *ConditionalAccessLocations {
 	locations := &ConditionalAccessLocations{}
 
-	if includeLocations, ok := locationsData["includeLocations"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeLocations))
-		for _, item := range includeLocations {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		locations.IncludeLocations = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		locations.IncludeLocations = types.SetNull(types.StringType)
-	}
-
-	if excludeLocations, ok := locationsData["excludeLocations"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeLocations))
-		for _, item := range excludeLocations {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		locations.ExcludeLocations = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		locations.ExcludeLocations = types.SetNull(types.StringType)
-	}
+	locations.IncludeLocations = convert.MapToFrameworkStringSet(ctx, locationsData, "includeLocations")
+	locations.ExcludeLocations = convert.MapToFrameworkStringSet(ctx, locationsData, "excludeLocations")
 
 	return locations
 }
@@ -421,58 +197,18 @@ func mapDevicesFromRemote(ctx context.Context, devicesData map[string]interface{
 	devices := &ConditionalAccessDevices{}
 
 	// Fix: Use SetNull instead of empty sets for device fields when not present
-	if includeDevices, ok := devicesData["includeDevices"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeDevices))
-		for _, item := range includeDevices {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		devices.IncludeDevices = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		devices.IncludeDevices = types.SetNull(types.StringType)
-	}
+	devices.IncludeDevices = convert.MapToFrameworkStringSet(ctx, devicesData, "includeDevices")
 
-	if excludeDevices, ok := devicesData["excludeDevices"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeDevices))
-		for _, item := range excludeDevices {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		devices.ExcludeDevices = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		devices.ExcludeDevices = types.SetNull(types.StringType)
-	}
+	devices.ExcludeDevices = convert.MapToFrameworkStringSet(ctx, devicesData, "excludeDevices")
 
-	if includeDeviceStates, ok := devicesData["includeDeviceStates"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(includeDeviceStates))
-		for _, item := range includeDeviceStates {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		devices.IncludeDeviceStates = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		devices.IncludeDeviceStates = types.SetNull(types.StringType)
-	}
+	devices.IncludeDeviceStates = convert.MapToFrameworkStringSet(ctx, devicesData, "includeDeviceStates")
 
-	if excludeDeviceStates, ok := devicesData["excludeDeviceStates"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(excludeDeviceStates))
-		for _, item := range excludeDeviceStates {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		devices.ExcludeDeviceStates = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		devices.ExcludeDeviceStates = types.SetNull(types.StringType)
-	}
+	devices.ExcludeDeviceStates = convert.MapToFrameworkStringSet(ctx, devicesData, "excludeDeviceStates")
 
 	if deviceFilterData, ok := devicesData["deviceFilter"].(map[string]interface{}); ok {
 		filter := &ConditionalAccessFilter{
-			Mode: convert.GraphToFrameworkString(getStringPtr(deviceFilterData, "mode")),
-			Rule: convert.GraphToFrameworkString(getStringPtr(deviceFilterData, "rule")),
+			Mode: convert.MapToFrameworkString(deviceFilterData, "mode"),
+			Rule: convert.MapToFrameworkString(deviceFilterData, "rule"),
 		}
 		devices.DeviceFilter = filter
 	}
@@ -483,69 +219,27 @@ func mapDevicesFromRemote(ctx context.Context, devicesData map[string]interface{
 // mapGrantControlsFromRemote maps grant controls from the API response
 func mapGrantControlsFromRemote(ctx context.Context, grantControlsData map[string]interface{}) *ConditionalAccessGrantControls {
 	grantControls := &ConditionalAccessGrantControls{
-		Operator: convert.GraphToFrameworkString(getStringPtr(grantControlsData, "operator")),
+		Operator: convert.MapToFrameworkString(grantControlsData, "operator"),
 	}
 
-	if builtInControls, ok := grantControlsData["builtInControls"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(builtInControls))
-		for _, item := range builtInControls {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		grantControls.BuiltInControls = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		grantControls.BuiltInControls = types.SetNull(types.StringType)
-	}
+	grantControls.BuiltInControls = convert.MapToFrameworkStringSet(ctx, grantControlsData, "builtInControls")
 
-	// Fix: Use SetNull instead of empty sets for custom auth factors when not present
-	if customAuthFactors, ok := grantControlsData["customAuthenticationFactors"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(customAuthFactors))
-		for _, item := range customAuthFactors {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		grantControls.CustomAuthenticationFactors = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		grantControls.CustomAuthenticationFactors = types.SetNull(types.StringType)
-	}
-
-	// Fix: Use SetNull instead of empty sets for terms of use when not present
-	if termsOfUse, ok := grantControlsData["termsOfUse"].([]interface{}); ok {
-		stringSlice := make([]string, 0, len(termsOfUse))
-		for _, item := range termsOfUse {
-			if str, ok := item.(string); ok {
-				stringSlice = append(stringSlice, str)
-			}
-		}
-		grantControls.TermsOfUse = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-	} else {
-		grantControls.TermsOfUse = types.SetNull(types.StringType)
-	}
+	// These fields can be configured as empty arrays in Terraform, so preserve empty sets
+	grantControls.CustomAuthenticationFactors = convert.MapToFrameworkStringSet(ctx, grantControlsData, "customAuthenticationFactors")
+	grantControls.TermsOfUse = convert.MapToFrameworkStringSet(ctx, grantControlsData, "termsOfUse")
 
 	if authStrengthData, ok := grantControlsData["authenticationStrength"].(map[string]interface{}); ok {
 		authStrength := &ConditionalAccessAuthenticationStrength{
-			ID:                    convert.GraphToFrameworkString(getStringPtr(authStrengthData, "id")),
-			DisplayName:           convert.GraphToFrameworkString(getStringPtr(authStrengthData, "displayName")),
-			Description:           convert.GraphToFrameworkString(getStringPtr(authStrengthData, "description")),
-			PolicyType:            convert.GraphToFrameworkString(getStringPtr(authStrengthData, "policyType")),
-			RequirementsSatisfied: convert.GraphToFrameworkString(getStringPtr(authStrengthData, "requirementsSatisfied")),
-			CreatedDateTime:       convert.GraphToFrameworkString(getStringPtr(authStrengthData, "createdDateTime")),
-			ModifiedDateTime:      convert.GraphToFrameworkString(getStringPtr(authStrengthData, "modifiedDateTime")),
+			ID:                    convert.MapToFrameworkString(authStrengthData, "id"),
+			DisplayName:           convert.MapToFrameworkString(authStrengthData, "displayName"),
+			Description:           convert.MapToFrameworkString(authStrengthData, "description"),
+			PolicyType:            convert.MapToFrameworkString(authStrengthData, "policyType"),
+			RequirementsSatisfied: convert.MapToFrameworkString(authStrengthData, "requirementsSatisfied"),
+			CreatedDateTime:       convert.MapToFrameworkString(authStrengthData, "createdDateTime"),
+			ModifiedDateTime:      convert.MapToFrameworkString(authStrengthData, "modifiedDateTime"),
 		}
 
-		if allowedCombinations, ok := authStrengthData["allowedCombinations"].([]interface{}); ok {
-			stringSlice := make([]string, 0, len(allowedCombinations))
-			for _, item := range allowedCombinations {
-				if str, ok := item.(string); ok {
-					stringSlice = append(stringSlice, str)
-				}
-			}
-			authStrength.AllowedCombinations = convert.GraphToFrameworkStringSet(ctx, stringSlice)
-		} else {
-			authStrength.AllowedCombinations = types.SetNull(types.StringType)
-		}
+		authStrength.AllowedCombinations = convert.MapToFrameworkStringSet(ctx, authStrengthData, "allowedCombinations")
 
 		grantControls.AuthenticationStrength = authStrength
 	}
@@ -556,72 +250,99 @@ func mapGrantControlsFromRemote(ctx context.Context, grantControlsData map[strin
 // mapSessionControlsFromRemote maps session controls from the API response
 func mapSessionControlsFromRemote(ctx context.Context, sessionControlsData map[string]interface{}) *ConditionalAccessSessionControls {
 	sessionControls := &ConditionalAccessSessionControls{
-		DisableResilienceDefaults: convert.GraphToFrameworkBool(getBoolPtr(sessionControlsData, "disableResilienceDefaults")),
+		DisableResilienceDefaults: convert.MapToFrameworkBool(sessionControlsData, "disableResilienceDefaults"),
 	}
 
 	if appEnforcedData, ok := sessionControlsData["applicationEnforcedRestrictions"].(map[string]interface{}); ok {
 		sessionControls.ApplicationEnforcedRestrictions = &ConditionalAccessApplicationEnforcedRestrictions{
-			IsEnabled: convert.GraphToFrameworkBool(getBoolPtr(appEnforcedData, "isEnabled")),
+			IsEnabled: convert.MapToFrameworkBool(appEnforcedData, "isEnabled"),
 		}
 	}
 
 	if cloudAppSecData, ok := sessionControlsData["cloudAppSecurity"].(map[string]interface{}); ok {
 		sessionControls.CloudAppSecurity = &ConditionalAccessCloudAppSecurity{
-			IsEnabled:            convert.GraphToFrameworkBool(getBoolPtr(cloudAppSecData, "isEnabled")),
-			CloudAppSecurityType: convert.GraphToFrameworkString(getStringPtr(cloudAppSecData, "cloudAppSecurityType")),
+			IsEnabled:            convert.MapToFrameworkBool(cloudAppSecData, "isEnabled"),
+			CloudAppSecurityType: convert.MapToFrameworkString(cloudAppSecData, "cloudAppSecurityType"),
 		}
 	}
 
 	if signInFreqData, ok := sessionControlsData["signInFrequency"].(map[string]interface{}); ok {
 		signInFreq := &ConditionalAccessSignInFrequency{
-			IsEnabled: convert.GraphToFrameworkBool(getBoolPtr(signInFreqData, "isEnabled")),
-			Type:      convert.GraphToFrameworkString(getStringPtr(signInFreqData, "type")),
+			IsEnabled: convert.MapToFrameworkBool(signInFreqData, "isEnabled"),
+			Type:      convert.MapToFrameworkString(signInFreqData, "type"),
 		}
 
-		// Handle value conversion
-		if value, ok := signInFreqData["value"].(float64); ok {
-			signInFreq.Value = types.Int64Value(int64(value))
-		} else if value, ok := signInFreqData["value"].(int64); ok {
-			signInFreq.Value = types.Int64Value(value)
-		} else if value, ok := signInFreqData["value"].(int); ok {
-			signInFreq.Value = types.Int64Value(int64(value))
-		} else {
-			signInFreq.Value = types.Int64Null()
-		}
+		// Handle value conversion using helper
+		signInFreq.Value = convert.MapToFrameworkInt64(signInFreqData, "value")
 
 		// Always preserve authentication_type and frequency_interval from API response
-		signInFreq.AuthenticationType = convert.GraphToFrameworkString(getStringPtr(signInFreqData, "authenticationType"))
-		signInFreq.FrequencyInterval = convert.GraphToFrameworkString(getStringPtr(signInFreqData, "frequencyInterval"))
+		signInFreq.AuthenticationType = convert.MapToFrameworkString(signInFreqData, "authenticationType")
+		signInFreq.FrequencyInterval = convert.MapToFrameworkString(signInFreqData, "frequencyInterval")
 
 		sessionControls.SignInFrequency = signInFreq
 	}
 
 	if persistentBrowserData, ok := sessionControlsData["persistentBrowser"].(map[string]interface{}); ok {
 		sessionControls.PersistentBrowser = &ConditionalAccessPersistentBrowser{
-			IsEnabled: convert.GraphToFrameworkBool(getBoolPtr(persistentBrowserData, "isEnabled")),
-			Mode:      convert.GraphToFrameworkString(getStringPtr(persistentBrowserData, "mode")),
+			IsEnabled: convert.MapToFrameworkBool(persistentBrowserData, "isEnabled"),
+			Mode:      convert.MapToFrameworkString(persistentBrowserData, "mode"),
 		}
 	}
 
 	if caeData, ok := sessionControlsData["continuousAccessEvaluation"].(map[string]interface{}); ok {
 		sessionControls.ContinuousAccessEvaluation = &ConditionalAccessContinuousAccessEvaluation{
-			Mode: convert.GraphToFrameworkString(getStringPtr(caeData, "mode")),
+			Mode: convert.MapToFrameworkString(caeData, "mode"),
 		}
 	}
 
 	if secureSignInData, ok := sessionControlsData["secureSignInSession"].(map[string]interface{}); ok {
 		sessionControls.SecureSignInSession = &ConditionalAccessSecureSignInSession{
-			IsEnabled: convert.GraphToFrameworkBool(getBoolPtr(secureSignInData, "isEnabled")),
+			IsEnabled: convert.MapToFrameworkBool(secureSignInData, "isEnabled"),
 		}
 	}
 
 	return sessionControls
 }
 
-// Helper function to get bool pointer from map
-func getBoolPtr(data map[string]interface{}, key string) *bool {
-	if value, ok := data[key].(bool); ok {
-		return &value
+// getGuestsOrExternalUsersAttributeTypes returns the attribute types for the guests or external users object
+func getGuestsOrExternalUsersAttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"guest_or_external_user_types": types.SetType{ElemType: types.StringType},
+		"external_tenants": types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"membership_kind": types.StringType,
+				"members":         types.SetType{ElemType: types.StringType},
+			},
+		},
 	}
-	return nil
+}
+
+// mapGuestsOrExternalUsersToObject converts API data to types.Object
+func mapGuestsOrExternalUsersToObject(ctx context.Context, guestsData map[string]interface{}) types.Object {
+	attributes := make(map[string]attr.Value)
+
+	// Map guest_or_external_user_types
+	attributes["guest_or_external_user_types"] = convert.MapToFrameworkStringSet(ctx, guestsData, "guestOrExternalUserTypes")
+
+	// Map external_tenants
+	if externalTenantsData, ok := guestsData["externalTenants"].(map[string]interface{}); ok {
+		externalTenantsAttrs := map[string]attr.Value{
+			"membership_kind": convert.MapToFrameworkString(externalTenantsData, "membershipKind"),
+			"members":         convert.MapToFrameworkStringSet(ctx, externalTenantsData, "members"),
+		}
+		attributes["external_tenants"] = types.ObjectValueMust(
+			map[string]attr.Type{
+				"membership_kind": types.StringType,
+				"members":         types.SetType{ElemType: types.StringType},
+			},
+			externalTenantsAttrs,
+		)
+	} else {
+		attributes["external_tenants"] = types.ObjectNull(map[string]attr.Type{
+			"membership_kind": types.StringType,
+			"members":         types.SetType{ElemType: types.StringType},
+		})
+	}
+
+	return types.ObjectValueMust(getGuestsOrExternalUsersAttributeTypes(), attributes)
 }
