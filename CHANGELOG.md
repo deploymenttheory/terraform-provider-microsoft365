@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.6-alpha...v0.28.0-alpha) (2025-08-27)
+
+
+### Features
+
+* added app_control_for_business_managed_installer ([c7761b5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c7761b5a4ccda439565f778cee5e32b73c1fa486))
+* added graph error handling for non kiota http clients ([e41c7b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e41c7b82c87f49abc6fdf64972b67614f2d23d44))
+* added graph error handling for non kiota http clients ([#734](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/734)) ([c09ea43](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c09ea4363b4b861ee91bbe427a1c168079b85a67))
+* windows_device_compliance_policy ([5894296](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/58942963c1233ac047872b7b5f22ece85cbda471))
+
+
+### Bug Fixes
+
+* for conditional access ([fd2c0a7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fd2c0a7fac16431aa2466bf7b0cd5085554e92f3))
+* for conditional access ([#743](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/743)) ([90080b4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/90080b44570f28d29ba04060ee6aa110ba9de411))
+* missnamed resource and docs ([#731](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/731)) ([5f92828](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5f92828186f5440b2150a901ed4535c29317631a))
+* tidy up docs and removed old resources ([#729](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/729)) ([4f6dfd1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f6dfd1f6dfda2f6284ee33337fda2227a1c8032))
+* unit and acc tests for windows_compliance_policy ([83e1cb5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/83e1cb58b07264fa605e9197796e9a9e808fea33))
+* windows_device_compliance_policy refactor ([#732](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/732)) ([a3082b3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a3082b3dd708ca89ecb89e205938de3f592866f0))
+
 ## [0.27.6-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.5-alpha...v0.27.6-alpha) (2025-08-21)
 
 
