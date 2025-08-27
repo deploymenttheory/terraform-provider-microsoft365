@@ -1,6 +1,8 @@
 # Community Terraform Provider for Microsoft 365
 
 [![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/deploymenttheory/terraform-provider-microsoft365)](https://go.dev/)
+[![License](https://img.shields.io/github/license/deploymenttheory/terraform-provider-microsoft365)](LICENSE)
 
 The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Microsoft Intune](https://www.microsoft.com/en-us/security/business/endpoint-management/microsoft-intune), [Microsoft 365](https://www.microsoft.com/en-us/microsoft-365), [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software), and [Microsoft Defender](https://www.microsoft.com/en-us/security/business/microsoft-defender).
 

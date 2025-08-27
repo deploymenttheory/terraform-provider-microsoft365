@@ -71,6 +71,7 @@ import (
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessAuthenticationStrength "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength"
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
@@ -196,6 +197,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
+		graphBetaIdentityAndAccessAuthenticationStrength.NewAuthenticationStrengthResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,

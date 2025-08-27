@@ -1,0 +1,57 @@
+{
+    "id": "12345678-1234-1234-1234-123456789012",
+    "displayName": "unit-test-authentication-strength-with-configurations",
+    "description": "Unit test authentication strength policy with combination configurations",
+    "policyType": "custom",
+    "requirementsSatisfied": "mfa",
+    "createdDateTime": "2024-01-01T00:00:00Z",
+    "modifiedDateTime": "2024-01-01T00:00:00Z",
+    "allowedCombinations": [
+        "x509CertificateMultiFactor",
+        "x509CertificateSingleFactor",
+        "fido2"
+    ],
+    "combinationConfigurations": [
+        {
+            "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "appliesToCombinations": ["x509CertificateMultiFactor"],
+            "allowedIssuerSkis": [
+                "1A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
+                "2A4248C6AC8C2931AB2A86537818E92E7B6C97B7"
+            ],
+            "allowedIssuers": [
+                "CUSTOMIDENTIFIER:1A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
+                "CUSTOMIDENTIFIER:2A4248C6AC8C2931AB2A86537818E92E7B6C97B7"
+            ],
+            "allowedPolicyOIDs": [
+                "1.1.1.1",
+                "2.2.2.2"
+            ]
+        },
+        {
+            "@odata.type": "#microsoft.graph.fido2CombinationConfiguration",
+            "appliesToCombinations": ["fido2"],
+            "allowedAAGUIDs": [
+                "12345678-0000-0000-0000-123456780000",
+                "90a3ccdf-635c-4729-a248-9b709135078f",
+                "de1e552d-db1d-4423-a619-566b625cdc84"
+            ]
+        },
+        {
+            "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "appliesToCombinations": ["x509CertificateSingleFactor"],
+            "allowedIssuerSkis": [
+                "9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
+                "8A4248C6AC8C2931AB2A86537818E92E7B6C97B6"
+            ],
+            "allowedIssuers": [
+                "CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
+                "CUSTOMIDENTIFIER:8A4248C6AC8C2931AB2A86537818E92E7B6C97B6"
+            ],
+            "allowedPolicyOIDs": [
+                "1.1.1.1",
+                "2.2.2.2"
+            ]
+        }
+    ]
+}

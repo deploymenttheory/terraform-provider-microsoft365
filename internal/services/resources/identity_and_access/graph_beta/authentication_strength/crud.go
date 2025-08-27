@@ -1,4 +1,4 @@
-package graphBetaConditionalAccessPolicy
+package graphBetaAuthenticationStrength
 
 import (
 	"bytes"
@@ -16,20 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for Conditional Access Policy resources.
-//
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the conditional access policy
-//   - Captures the new resource ID from the response
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
-//
-// The function ensures the conditional access policy is created with all specified
-// conditions, grant controls, and session controls properly configured.
-func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object ConditionalAccessPolicyResourceModel
+// Create handles the Create operation for Authentication Strength Policy resources.
+func (r *AuthenticationStrengthResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object AuthenticationStrengthResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -44,7 +33,7 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &object)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -71,6 +60,9 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 		)
 		return
 	}
+
+	// Add required resource headers
+	httpReq.Header.Add("x-ms-command-name", "AuthenticationStrengths - AddCustomAuthStrength")
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
@@ -131,6 +123,8 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
 	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -144,17 +138,9 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Conditional Access Policy resources.
-//
-//   - Retrieves the current state from the read request
-//   - Gets the conditional access policy details from the API
-//   - Maps the policy details to Terraform state
-//
-// The function ensures that all components (conditions, grant controls, session controls)
-// are properly read and mapped into the Terraform state, providing a complete view
-// of the resource's current configuration on the server.
-func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object ConditionalAccessPolicyResourceModel
+// Read handles the Read operation for Authentication Strength Policy resources.
+func (r *AuthenticationStrengthResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object AuthenticationStrengthResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -216,11 +202,6 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	// Debug: Pretty print the raw API response
-	if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Raw API Response:\n%s", string(prettyJson)))
-	}
-
 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -231,25 +212,15 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Conditional Access Policy resources.
-//
-//   - Retrieves the planned changes from the update request
-//   - Constructs the resource request body from the plan
-//   - Sends PATCH request to update the conditional access policy
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
-//
-// The function ensures that the policy is updated with the new configuration
-// and the final state reflects the actual state of the resource on the server.
-func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan ConditionalAccessPolicyResourceModel
-	var state ConditionalAccessPolicyResourceModel
+// Update handles the Update operation for Authentication Strength Policy resources.
+func (r *AuthenticationStrengthResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan AuthenticationStrengthResourceModel
+	var state AuthenticationStrengthResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)   // desired state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // current state (for ID)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -260,7 +231,7 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &plan)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -287,6 +258,9 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		)
 		return
 	}
+
+	// Add required resource headers
+	httpReq.Header.Add("x-ms-command-name", "AuthenticationStrengths - EditAuthCombination")
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
@@ -318,6 +292,8 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
 	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -331,17 +307,9 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for Conditional Access Policy resources.
-//
-//   - Retrieves the current state from the delete request
-//   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the conditional access policy from the API
-//   - Cleans up by removing the resource from Terraform state
-//
-// The function ensures that the policy is completely removed from the
-// Microsoft Graph API and cleans up the Terraform state accordingly.
-func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object ConditionalAccessPolicyResourceModel
+// Delete handles the Delete operation for Authentication Strength Policy resources.
+func (r *AuthenticationStrengthResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object AuthenticationStrengthResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

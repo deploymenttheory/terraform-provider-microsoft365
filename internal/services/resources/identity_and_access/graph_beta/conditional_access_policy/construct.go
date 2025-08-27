@@ -5,19 +5,24 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // constructResource converts the Terraform resource model to a plain map for JSON marshaling
 // Returns a map[string]interface{} that can be directly JSON marshaled by the HTTP client
-func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourceModel) (map[string]interface{}, error) {
+func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessPolicyResourceModel) (map[string]interface{}, error) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	if err := validateRequest(ctx, httpClient, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
 	requestBody := make(map[string]interface{})
 
-	// Basic properties using convert helpers
 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
 		if val != nil {
 			requestBody["displayName"] = *val
@@ -63,7 +68,6 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 		requestBody["sessionControls"] = sessionControls
 	}
 
-	// Debug logging using plain JSON marshal
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
 		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]interface{}{
 			"json": "\n" + string(debugJSON),
@@ -83,7 +87,6 @@ func constructResource(ctx context.Context, data *ConditionalAccessPolicyResourc
 func constructConditions(ctx context.Context, data *ConditionalAccessConditions) (map[string]interface{}, error) {
 	conditions := make(map[string]interface{})
 
-	// Client app types using convert helper
 	if err := convert.FrameworkToGraphStringSet(ctx, data.ClientAppTypes, func(values []string) {
 		if len(values) > 0 {
 			conditions["clientAppTypes"] = values
@@ -92,7 +95,6 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		return nil, fmt.Errorf("failed to convert client app types: %w", err)
 	}
 
-	// Applications
 	if data.Applications != nil {
 		applications := make(map[string]interface{})
 
@@ -105,28 +107,19 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.ExcludeApplications, func(values []string) {
-			// Always include excludeApplications if the field is configured (even if empty)
-			if !data.Applications.ExcludeApplications.IsNull() {
-				applications["excludeApplications"] = values
-			}
+			applications["excludeApplications"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude applications: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeUserActions, func(values []string) {
-			// Always include includeUserActions if the field is configured (even if empty)
-			if !data.Applications.IncludeUserActions.IsNull() {
-				applications["includeUserActions"] = values
-			}
+			applications["includeUserActions"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include user actions: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeAuthenticationContextClassReferences, func(values []string) {
-			// Always include includeAuthenticationContextClassReferences if the field is configured (even if empty)
-			if !data.Applications.IncludeAuthenticationContextClassReferences.IsNull() {
-				applications["includeAuthenticationContextClassReferences"] = values
-			}
+			applications["includeAuthenticationContextClassReferences"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include auth context class refs: %w", err)
 		}
@@ -166,47 +159,153 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeUsers, func(values []string) {
-			// Always include excludeUsers if the field is configured (even if empty)
-			if !data.Users.ExcludeUsers.IsNull() {
-				users["excludeUsers"] = values
-			}
+			users["excludeUsers"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude users: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeGroups, func(values []string) {
-			// Always include includeGroups if the field is configured (even if empty)
-			if !data.Users.IncludeGroups.IsNull() {
-				users["includeGroups"] = values
-			}
+			users["includeGroups"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include groups: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeGroups, func(values []string) {
-			// Always include excludeGroups if the field is configured (even if empty)
-			if !data.Users.ExcludeGroups.IsNull() {
-				users["excludeGroups"] = values
-			}
+			users["excludeGroups"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude groups: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeRoles, func(values []string) {
-			// Always include includeRoles if the field is configured (even if empty)
-			if !data.Users.IncludeRoles.IsNull() {
-				users["includeRoles"] = values
-			}
+			users["includeRoles"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include roles: %w", err)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeRoles, func(values []string) {
-			if len(values) > 0 {
-				users["excludeRoles"] = values
-			}
+			users["excludeRoles"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude roles: %w", err)
+		}
+
+		// Handle include guests or external users - only process if it's not null and known
+		if !data.Users.IncludeGuestsOrExternalUsers.IsNull() && !data.Users.IncludeGuestsOrExternalUsers.IsUnknown() {
+			// Convert types.Object to map for processing
+			includeGuestsMap := data.Users.IncludeGuestsOrExternalUsers.Attributes()
+			includeGuestsOrExternalUsers := make(map[string]interface{})
+
+			// Handle guest_or_external_user_types
+			if guestTypesAttr, ok := includeGuestsMap["guest_or_external_user_types"]; ok {
+				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
+					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
+						if len(values) > 0 {
+							includeGuestsOrExternalUsers["guestOrExternalUserTypes"] = values
+						}
+					}); err != nil {
+						return nil, fmt.Errorf("failed to convert include guest or external user types: %w", err)
+					}
+				}
+			}
+
+			// Handle external_tenants
+			if externalTenantsAttr, ok := includeGuestsMap["external_tenants"]; ok {
+				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
+					externalTenantsMap := externalTenantsObj.Attributes()
+					externalTenants := make(map[string]interface{})
+
+					// Handle membership_kind
+					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
+						if membershipKindStr, ok := membershipKindAttr.(types.String); ok {
+							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
+								if value != nil {
+									externalTenants["membershipKind"] = *value
+								}
+							})
+						}
+					}
+
+					// Handle members
+					if membersAttr, ok := externalTenantsMap["members"]; ok {
+						if membersSet, ok := membersAttr.(types.Set); ok {
+							if err := convert.FrameworkToGraphStringSet(ctx, membersSet, func(values []string) {
+								if len(values) > 0 {
+									externalTenants["members"] = values
+								}
+							}); err != nil {
+								return nil, fmt.Errorf("failed to convert include external tenants members: %w", err)
+							}
+						}
+					}
+
+					if len(externalTenants) > 0 {
+						includeGuestsOrExternalUsers["externalTenants"] = externalTenants
+					}
+				}
+			}
+
+			if len(includeGuestsOrExternalUsers) > 0 {
+				users["includeGuestsOrExternalUsers"] = includeGuestsOrExternalUsers
+			}
+		}
+
+		// Handle exclude guests or external users - only process if it's not null and known
+		if !data.Users.ExcludeGuestsOrExternalUsers.IsNull() && !data.Users.ExcludeGuestsOrExternalUsers.IsUnknown() {
+			// Convert types.Object to map for processing
+			excludeGuestsMap := data.Users.ExcludeGuestsOrExternalUsers.Attributes()
+			excludeGuestsOrExternalUsers := make(map[string]interface{})
+
+			// Handle guest_or_external_user_types
+			if guestTypesAttr, ok := excludeGuestsMap["guest_or_external_user_types"]; ok {
+				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
+					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
+						if len(values) > 0 {
+							excludeGuestsOrExternalUsers["guestOrExternalUserTypes"] = values
+						}
+					}); err != nil {
+						return nil, fmt.Errorf("failed to convert exclude guest or external user types: %w", err)
+					}
+				}
+			}
+
+			// Handle external_tenants
+			if externalTenantsAttr, ok := excludeGuestsMap["external_tenants"]; ok {
+				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
+					externalTenantsMap := externalTenantsObj.Attributes()
+					externalTenants := make(map[string]interface{})
+
+					// Handle membership_kind
+					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
+						if membershipKindStr, ok := membershipKindAttr.(types.String); ok {
+							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
+								if value != nil {
+									externalTenants["membershipKind"] = *value
+								}
+							})
+						}
+					}
+
+					// Handle members
+					if membersAttr, ok := externalTenantsMap["members"]; ok {
+						if membersSet, ok := membersAttr.(types.Set); ok {
+							if err := convert.FrameworkToGraphStringSet(ctx, membersSet, func(values []string) {
+								if len(values) > 0 {
+									externalTenants["members"] = values
+								}
+							}); err != nil {
+								return nil, fmt.Errorf("failed to convert exclude external tenants members: %w", err)
+							}
+						}
+					}
+
+					if len(externalTenants) > 0 {
+						excludeGuestsOrExternalUsers["externalTenants"] = externalTenants
+					}
+				}
+			}
+
+			if len(excludeGuestsOrExternalUsers) > 0 {
+				users["excludeGuestsOrExternalUsers"] = excludeGuestsOrExternalUsers
+			}
 		}
 
 		if len(users) > 0 {
@@ -254,9 +353,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Locations.ExcludeLocations, func(values []string) {
-			if len(values) > 0 {
-				locations["excludeLocations"] = values
-			}
+			locations["excludeLocations"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert exclude locations: %w", err)
 		}
@@ -366,9 +463,7 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 	}); err != nil {
 		return nil, fmt.Errorf("failed to convert built-in controls: %w", err)
 	}
-	if len(builtInControls) > 0 {
-		grantControls["builtInControls"] = builtInControls
-	}
+	grantControls["builtInControls"] = builtInControls
 
 	var customAuthFactors []string
 	if err := convert.FrameworkToGraphStringSet(ctx, data.CustomAuthenticationFactors, func(values []string) {
@@ -376,10 +471,7 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 	}); err != nil {
 		return nil, fmt.Errorf("failed to convert custom auth factors: %w", err)
 	}
-	// Always include customAuthenticationFactors if configured (even if empty)
-	if !data.CustomAuthenticationFactors.IsNull() {
-		grantControls["customAuthenticationFactors"] = customAuthFactors
-	}
+	grantControls["customAuthenticationFactors"] = customAuthFactors
 
 	var termsOfUse []string
 	if err := convert.FrameworkToGraphStringSet(ctx, data.TermsOfUse, func(values []string) {
