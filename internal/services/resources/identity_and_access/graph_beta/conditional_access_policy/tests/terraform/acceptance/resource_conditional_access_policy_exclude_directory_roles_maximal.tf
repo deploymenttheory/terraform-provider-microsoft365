@@ -1,16 +1,23 @@
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "maximal_exclude_roles" {
-  display_name = "unit-test-conditional-access-policy-maximal-exclude-roles"
-  state        = "enabledForReportingButNotEnforced"
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "exclude_directory_roles_maximal" {
+  display_name = "unit-test-conditional-access-policy-exclude-directory-roles-maximal"
+  state        = "enabledForReportingButNotEnforced" // "disabled"
 
   conditions = {
     client_app_types = ["all"]
 
     applications = {
       include_applications                             = ["All"]
+      exclude_applications                             = []
+      include_user_actions                             = []
+      include_authentication_context_class_references = []
     }
 
     users = {
       include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = []
+      include_roles  = []
       exclude_roles  = [
         "d2562ede-74db-457e-a7b6-544e236ebb61",
         "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
@@ -137,22 +144,29 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
         "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d"
       ]
 
-      exclude_guests_or_external_users = {
-        guest_or_external_user_types = ["B2bCollaborationGuest","B2bCollaborationMember","B2bDirectConnectUser","InternalGuest","ServiceProvider","OtherExternalUser"]
-        external_tenants = {
-          membership_kind = "enumerated"
-          members         = ["2fd6bb84-ad40-4ec5-9369-a215b25c9952"]
-        }
-      }
+      # exclude_guests_or_external_users = {
+      #   guest_or_external_user_types = ["B2bCollaborationGuest","B2bCollaborationMember","B2bDirectConnectUser","InternalGuest","ServiceProvider","OtherExternalUser"]
+      #   external_tenants = {
+      #     membership_kind = "enumerated"
+      #     members         = []//["2fd6bb84-ad40-4ec5-9369-a215b25c9952"]
+      #   }
+      # }
     }
 
     locations = {
       include_locations = ["All"]
+      exclude_locations = []
     }
+
+    user_risk_levels              = []
+    sign_in_risk_levels           = []
+    //service_principal_risk_levels = []
   }
 
   grant_controls = {
-    operator                       = "AND"
+    operator                       = "OR"
+    built_in_controls              = []
+    custom_authentication_factors = []
     terms_of_use                  = ["79f28780-c502-49c4-8951-f53f6a239b60"]
   }
 }
