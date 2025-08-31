@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_windows_device_compliance
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows device compliance policies in Microsoft Intune using the /deviceManagement/deviceCompliancePolicies endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+  Manages Windows device compliance policies in Microsoft Intune using the /deviceManagement/deviceCompliancePolicies endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'.
 ---
 
 # microsoft365_graph_beta_device_management_windows_device_compliance_policy (Resource)
 
-Manages Windows device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+Manages Windows device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'.
 
 ## Microsoft Documentation
 
@@ -28,130 +28,11 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "basic" {
-  display_name = "Windows 10/11 - Basic Compliance Policy"
-  description  = "Basic Windows device compliance policy requiring BitLocker, Secure Boot and a password"
-
-  # Password requirements
-  password_required                          = true
-  password_block_simple                      = true
-  password_required_to_unlock_from_idle      = true
-  password_minimum_length                    = 8
-  password_minimum_character_set_count       = 3
-  password_required_type                     = "alphanumeric"
-  password_minutes_of_inactivity_before_lock = 15
-
-  # Security requirements
-  bit_locker_enabled         = true
-  secure_boot_enabled        = true
-  code_integrity_enabled     = true
-  storage_require_encryption = true
-
-  # Defender requirements
-  defender_enabled      = true
-  rtp_enabled           = true
-  antivirus_required    = true
-  anti_spyware_required = true
-
-  # OS version requirements
-  os_minimum_version = "10.0.19041.0"
-
-  # Role scope tags
-  role_scope_tag_ids = ["0"]
-
-  # Scheduled actions for rules
-  scheduled_actions_for_rule = [
-    {
-      rule_name = "PasswordRequired"
-      scheduled_action_configurations = [
-        {
-          action_type              = "retire"
-          grace_period_hours       = 1440
-          notification_template_id = ""
-        },
-        {
-          action_type              = "notification"
-          grace_period_hours       = 120
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = ["00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
-        },
-        {
-          action_type              = "block"
-          grace_period_hours       = 1152
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-        },
-        {
-          action_type              = "notification"
-          grace_period_hours       = 0
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = [
-            "00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
-        }
-      ]
-    }
-  ]
-
-
-  # Assignments
-  assignments = [
-    # Optional: Assignment targeting all devices with a daily schedule
-    {
-      type        = "allDevicesAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "include"
-    },
-    # Optional: Assignment targeting all licensed users with an hourly schedule
-    {
-      type        = "allLicensedUsersAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "exclude"
-    },
-    # Optional: Assignment targeting a specific group with include filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "include"
-
-    },
-    # Optional: Assignment targeting a specific group with exclude filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "exclude"
-    },
-    # Optional: Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-  ]
-}
-
+// Example 1: Custom Compliance Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "custom_compliance" {
-  display_name = "Windows 10/11 - Custom Compliance Policy"
-  description  = "Windows device compliance policy with custom compliance script"
-
-  # Password requirements
-  password_required                     = true
-  password_block_simple                 = true
-  password_required_to_unlock_from_idle = true
-  password_minimum_length               = 8
-  password_required_type                = "alphanumeric"
-
-  # Security requirements
-  storage_require_encryption = true
-  active_firewall_required   = true
-  tpm_required               = true
-  antivirus_required         = true
-  anti_spyware_required      = true
+  display_name       = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
+  description        = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
+  role_scope_tag_ids = ["0"]
 
   # Custom compliance script
   custom_compliance_required = true
@@ -220,148 +101,237 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
     })
   }
 
-  # Role scope tags
-  role_scope_tag_ids = ["0"]
 
-  # Non-compliance actions
   scheduled_actions_for_rule = [
     {
-      rule_name = "PasswordRequired"
       scheduled_action_configurations = [
         {
-          action_type              = "retire"
-          grace_period_hours       = 1440
-          notification_template_id = ""
+          action_type        = "block"
+          grace_period_hours = 12
         },
         {
-          action_type              = "notification"
-          grace_period_hours       = 120
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = ["00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
         },
         {
-          action_type              = "block"
-          grace_period_hours       = 1152
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
+          action_type        = "retire"
+          grace_period_hours = 48
         },
-        {
-          action_type              = "notification"
-          grace_period_hours       = 0
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = [
-            "00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
-        }
       ]
     }
   ]
 
-  # Assignments
-  assignments = [
-    # Optional: Assignment targeting all devices with a daily schedule
-    {
-      type        = "allDevicesAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "include"
-    },
-    # Optional: Assignment targeting all licensed users with an hourly schedule
-    {
-      type        = "allLicensedUsersAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "exclude"
-    },
-    # Optional: Assignment targeting a specific group with include filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "include"
-
-    },
-    # Optional: Assignment targeting a specific group with exclude filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
-      filter_type = "exclude"
-    },
-    # Optional: Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-  ]
 }
 
+// Example 2: Device Health Policy
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "device_health" {
+  display_name       = "tf-reg-windows-device-compliance-policy-device-health"
+  description        = "tf-reg-windows-device-compliance-policy-device-health"
+  role_scope_tag_ids = ["0"]
 
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "wsl" {
-  display_name = "Windows 10/11 - WSL Compliance Policy"
-  description  = "Windows device compliance policy with WSL distribution requirements"
+  # Device Health Settings
+  device_health = {
+    bit_locker_enabled     = true
+    secure_boot_enabled    = true
+    code_integrity_enabled = true
+  }
 
-  # Password requirements
-  password_required                     = true
-  password_block_simple                 = true
-  password_required_to_unlock_from_idle = true
-  password_minimum_length               = 8
-  password_minimum_character_set_count  = 3
-  password_required_type                = "alphanumeric"
+  scheduled_actions_for_rule = [
+    {
+      scheduled_action_configurations = [
+        {
+          action_type        = "block"
+          grace_period_hours = 12
+        },
+        {
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
+        },
+        {
+          action_type        = "retire"
+          grace_period_hours = 48
+        },
+      ]
+    }
+  ]
 
-  # Security requirements
-  bit_locker_enabled  = true
-  secure_boot_enabled = true
-  tpm_required        = true
+}
 
-  # WSL distributions
+// Example 3: Device Properties Policy
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "device_properties" {
+  display_name       = "tf-reg-windows-device-compliance-policy-device-properties"
+  description        = "tf-reg-windows-device-compliance-policy-device-properties"
+  role_scope_tag_ids = ["0"]
+
+  device_properties = {
+    os_minimum_version        = "10.0.22631.5768"
+    os_maximum_version        = "10.0.26100.9999"
+    mobile_os_minimum_version = "10.0.22631.5768"
+    mobile_os_maximum_version = "10.0.26100.9999"
+    valid_operating_system_build_ranges = [
+      {
+        description     = "Windows 11 24H2"
+        low_os_version  = "10.0.26100.4946"
+        high_os_version = "10.0.26100.9999"
+      },
+      {
+        description     = "Windows 11 23H2"
+        low_os_version  = "10.0.22631.5768"
+        high_os_version = "10.0.22631.9999"
+      },
+
+    ]
+  }
+
+  scheduled_actions_for_rule = [
+    {
+      scheduled_action_configurations = [
+        {
+          action_type        = "block"
+          grace_period_hours = 12
+        },
+        {
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
+        },
+        {
+          action_type        = "retire"
+          grace_period_hours = 48
+        },
+      ]
+    }
+  ]
+
+}
+
+// Example 4: Microsoft Defender for Endpoint Policy
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "microsoft_defender_for_endpoint" {
+  display_name       = "tf-reg-windows-device-compliance-policy-microsoft-defender-for-endpoint"
+  description        = "tf-reg-windows-device-compliance-policy-microsoft-defender-for-endpoint"
+  role_scope_tag_ids = ["0"]
+
+  # Microsoft Defender for Endpoint Settings
+  microsoft_defender_for_endpoint = {
+    device_threat_protection_enabled                 = true
+    device_threat_protection_required_security_level = "medium"
+  }
+
+  # Scheduled Actions for Rule
+  scheduled_actions_for_rule = [
+    {
+      scheduled_action_configurations = [
+        {
+          action_type        = "block"
+          grace_period_hours = 12
+        },
+        {
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
+        },
+        {
+          action_type        = "retire"
+          grace_period_hours = 48
+        },
+      ]
+    }
+  ]
+
+}
+
+// Example 5: System Security Policy
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "system_security" {
+  display_name       = "tf-reg-windows-device-compliance-policy-system-security"
+  description        = "tf-reg-windows-device-compliance-policy-system-security"
+  role_scope_tag_ids = ["0"]
+
+  # System Security Settings
+  system_security = {
+    active_firewall_required                         = true
+    anti_spyware_required                            = true
+    antivirus_required                               = true
+    configuration_manager_compliance_required        = true
+    defender_enabled                                 = true
+    defender_version                                 = "1.0.0.0"
+    device_threat_protection_enabled                 = true
+    device_threat_protection_required_security_level = "medium"
+    password_block_simple                            = true
+    password_minimum_character_set_count             = 4
+    password_required                                = true
+    password_required_to_unlock_from_idle            = true
+    password_required_type                           = "alphanumeric"
+    rtp_enabled                                      = true
+    signature_out_of_date                            = true
+    storage_require_encryption                       = true
+    tpm_required                                     = true
+  }
+
+  scheduled_actions_for_rule = [
+    {
+      scheduled_action_configurations = [
+        {
+          action_type        = "block"
+          grace_period_hours = 12
+        },
+        {
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
+        },
+        {
+          action_type        = "retire"
+          grace_period_hours = 48
+        },
+      ]
+    }
+  ]
+
+}
+
+// Example 6: WSL Policy with assignments
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "wsl_assignments" {
+  display_name       = "tf-reg-windows-device-compliance-policy-wsl-assignments"
+  description        = "tf-reg-windows-device-compliance-policy-wsl-assignments"
+  role_scope_tag_ids = ["0"]
+
   wsl_distributions = [
     {
       distribution       = "Ubuntu"
-      minimum_os_version = "20.04"
-      maximum_os_version = "22.04"
+      minimum_os_version = "1.0"
+      maximum_os_version = "1.0"
     },
     {
-      distribution       = "Debian"
-      minimum_os_version = "11.0"
-      maximum_os_version = "12.0"
+      distribution       = "redhat"
+      minimum_os_version = "1.0"
+      maximum_os_version = "1.0"
     }
   ]
 
-  # Role scope tags
-  role_scope_tag_ids = ["0"]
-
   scheduled_actions_for_rule = [
     {
-      rule_name = "PasswordRequired"
       scheduled_action_configurations = [
         {
-          action_type              = "retire"
-          grace_period_hours       = 1440
-          notification_template_id = ""
+          action_type        = "block"
+          grace_period_hours = 12
         },
         {
-          action_type              = "notification"
-          grace_period_hours       = 120
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = ["00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
+          action_type                  = "notification"
+          grace_period_hours           = 24
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
         },
         {
-          action_type              = "block"
-          grace_period_hours       = 1152
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
+          action_type        = "retire"
+          grace_period_hours = 48
         },
-        {
-          action_type              = "notification"
-          grace_period_hours       = 0
-          notification_template_id = "00000000-0000-0000-0000-000000000000"
-          notification_message_cc_list = [
-            "00000000-0000-0000-0000-000000000000",
-          "00000000-0000-0000-0000-000000000000"]
-        }
       ]
     }
   ]
@@ -371,40 +341,41 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
     # Optional: Assignment targeting all devices with a daily schedule
     {
       type        = "allDevicesAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
       filter_type = "include"
     },
     # Optional: Assignment targeting all licensed users with an hourly schedule
     {
       type        = "allLicensedUsersAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_2.id
       filter_type = "exclude"
     },
     # Optional: Assignment targeting a specific group with include filter
     {
       type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_3.id
       filter_type = "include"
 
     },
     # Optional: Assignment targeting a specific group with exclude filter
     {
       type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000000"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_4.id
       filter_type = "exclude"
     },
     # Optional: Exclusion group assignments
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
     },
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_4.id
     },
   ]
+
 }
 ```
 
@@ -531,7 +502,7 @@ Optional:
 - `active_firewall_required` (Boolean) Require active firewall on Windows devices
 - `anti_spyware_required` (Boolean) Require any AntiSpyware solution registered with Windows Security Center to be on and monitoring
 - `antivirus_required` (Boolean) Require any Antivirus solution registered with Windows Security Center to be on and monitoring
-- `configuration_manager_compliance_required` (Boolean) Require to consider SCCM Compliance state into consideration for Intune Compliance State
+- `configuration_manager_compliance_required` (Boolean) Require device compliance from Configuration Manager: Not configured (default) - Intune doesn't check for any of the Configuration Manager settings for compliance. Require - Require all settings (configuration items) in Configuration Manager to be compliant.
 - `defender_enabled` (Boolean) Require Windows Defender Antimalware on Windows devices
 - `defender_version` (String) Require Windows Defender Antimalware minimum version on Windows devices
 - `password_block_simple` (Boolean) Indicates whether or not to block simple password

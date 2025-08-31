@@ -1,8 +1,8 @@
 resource "microsoft365_graph_beta_identity_and_access_named_location" "country_client_ip_all" {
-  display_name                           = "unit-test-country-named-location-client-ip-all"
-  country_lookup_method                  = "clientIpAddress"
+  display_name                          = "unit-test-country-named-location-client-ip-all"
+  country_lookup_method                 = "clientIpAddress"
   include_unknown_countries_and_regions = true
-  
+
   countries_and_regions = [
     "AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU",
     "AT", "AZ", "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ",

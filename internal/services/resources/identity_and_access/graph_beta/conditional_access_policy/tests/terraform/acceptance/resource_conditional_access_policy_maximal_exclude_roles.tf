@@ -6,12 +6,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     client_app_types = ["all"]
 
     applications = {
-      include_applications                             = ["All"]
+      include_applications = ["All"]
     }
 
     users = {
-      include_users  = ["All"]
-      exclude_roles  = [
+      include_users = ["All"]
+      exclude_roles = [
         "d2562ede-74db-457e-a7b6-544e236ebb61",
         "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
         "cf1c38e5-3621-4004-a7cb-879624dced7c",
@@ -138,7 +138,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       ]
 
       exclude_guests_or_external_users = {
-        guest_or_external_user_types = ["B2bCollaborationGuest","B2bCollaborationMember","B2bDirectConnectUser","InternalGuest","ServiceProvider","OtherExternalUser"]
+        guest_or_external_user_types = ["B2bCollaborationGuest", "B2bCollaborationMember", "B2bDirectConnectUser", "InternalGuest", "ServiceProvider", "OtherExternalUser"]
         external_tenants = {
           membership_kind = "enumerated"
           members         = ["2fd6bb84-ad40-4ec5-9369-a215b25c9952"]
@@ -152,7 +152,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   }
 
   grant_controls = {
-    operator                       = "AND"
-    terms_of_use                  = ["79f28780-c502-49c4-8951-f53f6a239b60"]
+    operator     = "AND"
+    terms_of_use = ["79f28780-c502-49c4-8951-f53f6a239b60"]
   }
 }
