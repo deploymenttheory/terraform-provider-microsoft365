@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid assignment data",
+    "details": []
+  }
+}

@@ -149,9 +149,9 @@ func constructGroupChildren(ctx context.Context, data *AppControlForBusinessReso
 	var enableValue string
 	switch data.EnableAppControl.ValueString() {
 	case "audit":
-		enableValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_1"
-	case "enforce":
 		enableValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_0"
+	case "enforce":
+		enableValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_1"
 	default:
 		return nil, fmt.Errorf("invalid enable_app_control value: %s, must be 'audit' or 'enforce'", data.EnableAppControl.ValueString())
 	}

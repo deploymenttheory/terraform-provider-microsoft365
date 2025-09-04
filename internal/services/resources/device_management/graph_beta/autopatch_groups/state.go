@@ -102,33 +102,33 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 	}
 
 	// Numeric fields
-	if numberOfRegisteredDevices, ok := autopatchGroup["numberOfRegisteredDevices"].(float64); ok {
-		data.NumberOfRegisteredDevices = types.Int64Value(int64(numberOfRegisteredDevices))
+	if numberOfRegisteredDevices, ok := autopatchGroup["numberOfRegisteredDevices"].(float32); ok {
+		data.NumberOfRegisteredDevices = types.Int32Value(int32(numberOfRegisteredDevices))
 	} else {
-		data.NumberOfRegisteredDevices = types.Int64Null()
+		data.NumberOfRegisteredDevices = types.Int32Null()
 	}
 
-	if enabledContentTypes, ok := autopatchGroup["enabledContentTypes"].(float64); ok {
-		data.EnabledContentTypes = types.Int64Value(int64(enabledContentTypes))
+	if enabledContentTypes, ok := autopatchGroup["enabledContentTypes"].(float32); ok {
+		data.EnabledContentTypes = types.Int32Value(int32(enabledContentTypes))
 	} else {
-		data.EnabledContentTypes = types.Int64Null()
+		data.EnabledContentTypes = types.Int32Null()
 	}
 
 	// Scope Tags
 	if scopeTagsRaw, ok := autopatchGroup["scopeTags"].([]interface{}); ok {
 		scopeTagsValues := make([]attr.Value, 0, len(scopeTagsRaw))
 		for _, tagRaw := range scopeTagsRaw {
-			if tagFloat, ok := tagRaw.(float64); ok {
-				scopeTagsValues = append(scopeTagsValues, types.Int64Value(int64(tagFloat)))
+			if tagFloat, ok := tagRaw.(float32); ok {
+				scopeTagsValues = append(scopeTagsValues, types.StringValue(fmt.Sprintf("%.0f", tagFloat)))
 			}
 		}
 		if len(scopeTagsValues) > 0 {
-			data.ScopeTags = types.SetValueMust(types.Int64Type, scopeTagsValues)
+			data.ScopeTags = types.SetValueMust(types.StringType, scopeTagsValues)
 		} else {
-			data.ScopeTags = types.SetValueMust(types.Int64Type, []attr.Value{types.Int64Value(0)})
+			data.ScopeTags = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("0")})
 		}
 	} else {
-		data.ScopeTags = types.SetValueMust(types.Int64Type, []attr.Value{types.Int64Value(0)})
+		data.ScopeTags = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("0")})
 	}
 
 	// Global User Managed AAD Groups
@@ -140,14 +140,14 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 					"id":   types.StringNull(),
 					"type": types.StringNull(),
 				}
-				
+
 				if id, ok := groupMap["id"].(string); ok {
 					globalGroup["id"] = types.StringValue(id)
 				}
 				if groupType, ok := groupMap["type"].(string); ok {
 					globalGroup["type"] = types.StringValue(groupType)
 				}
-				
+
 				globalGroupsValues = append(globalGroupsValues, types.ObjectValueMust(
 					map[string]attr.Type{
 						"id":   types.StringType,
@@ -196,38 +196,38 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 		types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"aad_id":                          types.StringType,
-				"name":                           types.StringType,
-				"distribution":                   types.Int64Type,
-				"failed_prerequisite_check_count": types.Int64Type,
+				"name":                            types.StringType,
+				"distribution":                    types.Int32Type,
+				"failed_prerequisite_check_count": types.Int32Type,
 				"user_managed_aad_groups": types.SetType{
 					ElemType: types.ObjectType{
 						AttrTypes: map[string]attr.Type{
 							"id":   types.StringType,
 							"name": types.StringType,
-							"type": types.Int64Type,
+							"type": types.Int32Type,
 						},
 					},
 				},
 				"deployment_group_policy_settings": types.ObjectType{
 					AttrTypes: map[string]attr.Type{
-						"aad_group_name":               types.StringType,
+						"aad_group_name":              types.StringType,
 						"is_update_settings_modified": types.BoolType,
 						"device_configuration_setting": types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"policy_id":           types.StringType,
-								"update_behavior":     types.StringType,
+								"policy_id":            types.StringType,
+								"update_behavior":      types.StringType,
 								"notification_setting": types.StringType,
 								"quality_deployment_settings": types.ObjectType{
 									AttrTypes: map[string]attr.Type{
-										"deadline":     types.Int64Type,
-										"deferral":     types.Int64Type,
-										"grace_period": types.Int64Type,
+										"deadline":     types.Int32Type,
+										"deferral":     types.Int32Type,
+										"grace_period": types.Int32Type,
 									},
 								},
 								"feature_deployment_settings": types.ObjectType{
 									AttrTypes: map[string]attr.Type{
-										"deadline": types.Int64Type,
-										"deferral": types.Int64Type,
+										"deadline": types.Int32Type,
+										"deferral": types.Int32Type,
 									},
 								},
 							},
