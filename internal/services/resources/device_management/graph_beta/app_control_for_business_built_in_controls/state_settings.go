@@ -158,10 +158,11 @@ func extractEnableAppControlSetting(ctx context.Context, data *AppControlForBusi
 	}
 
 	switch *value {
-	case "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_1":
-		data.EnableAppControl = types.StringValue("enforce")
 	case "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_0":
 		data.EnableAppControl = types.StringValue("audit")
+	case "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_1":
+		data.EnableAppControl = types.StringValue("enforce")
+
 	default:
 		tflog.Warn(ctx, fmt.Sprintf("Unknown enable app control value: %s", *value))
 	}
@@ -178,6 +179,8 @@ func extractTrustAppsSetting(ctx context.Context, data *AppControlForBusinessRes
 
 	collectionValue := choiceCollectionInstance.GetChoiceSettingCollectionValue()
 	if collectionValue == nil {
+		// Set empty set instead of leaving as null
+		data.AdditionalRulesForTrustingApps = convert.GraphToFrameworkStringSet(ctx, []string{})
 		return nil
 	}
 
