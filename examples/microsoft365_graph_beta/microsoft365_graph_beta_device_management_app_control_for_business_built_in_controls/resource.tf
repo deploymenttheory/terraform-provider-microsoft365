@@ -2,11 +2,11 @@
 resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "advanced" {
   name        = "app control for business built in control policy"
   description = "app control for business built in control policy"
-  
+
   # App Control settings
-  enable_app_control = "audit"  # audit = logs but allows, enforce = blocks untrusted apps
-  additional_rules_for_trusting_apps = ["trust_apps_with_good_reputation", "trust_apps_from_managed_installers"]  # Both Microsoft Store and managed installer apps
-  
+  enable_app_control                 = "audit"                                                                   # audit = logs but allows, enforce = blocks untrusted apps
+  additional_rules_for_trusting_apps = ["trust_apps_with_good_reputation", "trust_apps_from_managed_installers"] # Both Microsoft Store and managed installer apps
+
   # Role scope tags for specific departments
   role_scope_tag_ids = ["0", "1", "2"]
 
@@ -26,7 +26,7 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_bui
       filter_type = "exclude"
     }
   ]
-  
+
   timeouts = {
     create = "15m"
     read   = "5m"

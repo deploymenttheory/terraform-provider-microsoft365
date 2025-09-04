@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_autopatch_groups Resource
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Autopatch groups using the https://services.autopatch.microsoft.com/device/v2/autopatchGroups endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.
+  Manages Windows Autopatch groups using the https://services.autopatch.microsoft.com/device/v2/autopatchGroups endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and  autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.
 ---
 
 # microsoft365_graph_beta_device_management_autopatch_groups (Resource)
 
-Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.
+Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and  autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.
 
 ## Undocumented
 
