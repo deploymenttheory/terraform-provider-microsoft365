@@ -6,9 +6,9 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     client_app_types = ["all"]
 
     applications = {
-      include_applications                             = ["All"]
-      exclude_applications                             = []
-      include_user_actions                             = []
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
       include_authentication_context_class_references = []
     }
 
@@ -18,7 +18,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       include_groups = []
       exclude_groups = []
       include_roles  = []
-      exclude_roles  = [
+      exclude_roles = [
         "d2562ede-74db-457e-a7b6-544e236ebb61",
         "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
         "cf1c38e5-3621-4004-a7cb-879624dced7c",
@@ -150,14 +150,14 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       exclude_locations = []
     }
 
-    user_risk_levels              = []
-    sign_in_risk_levels           = []
+    user_risk_levels    = []
+    sign_in_risk_levels = []
     //service_principal_risk_levels = []
   }
 
   grant_controls = {
-    operator                       = "OR"
-    built_in_controls              = []
+    operator                      = "OR"
+    built_in_controls             = []
     custom_authentication_factors = []
     terms_of_use                  = ["79f28780-c502-49c4-8951-f53f6a239b60"]
   }
