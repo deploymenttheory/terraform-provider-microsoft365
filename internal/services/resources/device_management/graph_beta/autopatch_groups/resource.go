@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -87,7 +87,11 @@ func (r *AutopatchGroupsResource) ImportState(ctx context.Context, req resource.
 // Schema returns the schema for the resource.
 func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.",
+		MarkdownDescription: "Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint." +
+			" Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings." +
+			"This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future." +
+			"There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and " +
+			" autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -128,7 +132,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 				Computed:            true,
 				MarkdownDescription: "Whether the group is read-only",
 			},
-			"number_of_registered_devices": schema.Int64Attribute{
+			"number_of_registered_devices": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The number of registered devices in the group",
 			},
@@ -157,7 +161,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 				Computed:            true,
 				MarkdownDescription: "Whether driver updates are enabled",
 			},
-			"enabled_content_types": schema.Int64Attribute{
+			"enabled_content_types": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Enabled content types bitmask",
@@ -193,11 +197,11 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 							Required:            true,
 							MarkdownDescription: "The name of the deployment group",
 						},
-						"distribution": schema.Int64Attribute{
+						"distribution": schema.Int32Attribute{
 							Optional:            true,
 							MarkdownDescription: "Distribution percentage for this deployment group",
 						},
-						"failed_prerequisite_check_count": schema.Int64Attribute{
+						"failed_prerequisite_check_count": schema.Int32Attribute{
 							Computed:            true,
 							MarkdownDescription: "Number of failed prerequisite checks",
 						},
@@ -214,11 +218,11 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 										Optional:            true,
 										MarkdownDescription: "The name of the Azure AD group",
 									},
-									"type": schema.Int64Attribute{
+									"type": schema.Int32Attribute{
 										Optional:            true,
 										Computed:            true,
 										MarkdownDescription: "The type of the group",
-										Default:             int64default.StaticInt64(0),
+										Default:             int32default.StaticInt32(0),
 									},
 								},
 							},
@@ -255,15 +259,15 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 											Optional:            true,
 											MarkdownDescription: "Quality update deployment settings",
 											Attributes: map[string]schema.Attribute{
-												"deadline": schema.Int64Attribute{
+												"deadline": schema.Int32Attribute{
 													Optional:            true,
 													MarkdownDescription: "Deadline in days",
 												},
-												"deferral": schema.Int64Attribute{
+												"deferral": schema.Int32Attribute{
 													Optional:            true,
 													MarkdownDescription: "Deferral in days",
 												},
-												"grace_period": schema.Int64Attribute{
+												"grace_period": schema.Int32Attribute{
 													Optional:            true,
 													MarkdownDescription: "Grace period in days",
 												},
@@ -273,11 +277,11 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 											Optional:            true,
 											MarkdownDescription: "Feature update deployment settings",
 											Attributes: map[string]schema.Attribute{
-												"deadline": schema.Int64Attribute{
+												"deadline": schema.Int32Attribute{
 													Optional:            true,
 													MarkdownDescription: "Deadline in days",
 												},
-												"deferral": schema.Int64Attribute{
+												"deferral": schema.Int32Attribute{
 													Optional:            true,
 													MarkdownDescription: "Deferral in days",
 												},
