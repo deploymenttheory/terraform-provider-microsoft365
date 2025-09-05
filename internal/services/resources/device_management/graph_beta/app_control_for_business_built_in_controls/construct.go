@@ -37,7 +37,6 @@ func constructResource(ctx context.Context, data *AppControlForBusinessResourceB
 	}
 	requestBody.SetSettings(settings)
 
-	// Create template reference with hardcoded values
 	templateReference := graphmodels.NewDeviceManagementConfigurationPolicyTemplateReference()
 	templateId := "4321b946-b76b-4450-8afd-769c08b16ffc_1"
 	templateFamily := graphmodels.ENDPOINTSECURITYAPPLICATIONCONTROL_DEVICEMANAGEMENTCONFIGURATIONTEMPLATEFAMILY
@@ -65,27 +64,22 @@ func constructAppControlSettings(ctx context.Context, data *AppControlForBusines
 
 	settings := make([]graphmodels.DeviceManagementConfigurationSettingable, 0)
 
-	// Create the main App Control setting
 	setting := graphmodels.NewDeviceManagementConfigurationSetting()
 
-	// Create the choice setting instance
 	settingInstance := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 	settingDefinitionId := "device_vendor_msft_policy_config_applicationcontrol_policies_{policyguid}_policiesoptions"
 	settingInstance.SetSettingDefinitionId(&settingDefinitionId)
 
-	// Create the choice setting value
 	choiceSettingValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
 	value := "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_selected"
 	choiceSettingValue.SetValue(&value)
 
-	// Create children settings for the built-in controls
 	children, err := constructBuiltInControlsChildren(ctx, data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct built-in controls children: %v", err)
 	}
 	choiceSettingValue.SetChildren(children)
 
-	// Set setting value template reference
 	settingValueTemplateReference := graphmodels.NewDeviceManagementConfigurationSettingValueTemplateReference()
 	settingValueTemplateId := "b28c7dc4-c7b2-4ce2-8f51-6ebfd3ea69d3"
 	settingValueTemplateReference.SetSettingValueTemplateId(&settingValueTemplateId)
@@ -93,7 +87,6 @@ func constructAppControlSettings(ctx context.Context, data *AppControlForBusines
 
 	settingInstance.SetChoiceSettingValue(choiceSettingValue)
 
-	// Set setting instance template reference
 	settingInstanceTemplateReference := graphmodels.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
 	settingInstanceTemplateId := "1de98212-6949-42dc-a89c-e0ff6e5da04b"
 	settingInstanceTemplateReference.SetSettingInstanceTemplateId(&settingInstanceTemplateId)
@@ -111,12 +104,10 @@ func constructBuiltInControlsChildren(ctx context.Context, data *AppControlForBu
 
 	children := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0)
 
-	// Create the group setting collection instance
 	groupSettingCollection := graphmodels.NewDeviceManagementConfigurationGroupSettingCollectionInstance()
 	settingDefinitionId := "device_vendor_msft_policy_config_applicationcontrol_built_in_controls"
 	groupSettingCollection.SetSettingDefinitionId(&settingDefinitionId)
 
-	// Create the group setting collection value
 	groupSettingCollectionValue := make([]graphmodels.DeviceManagementConfigurationGroupSettingValueable, 0)
 
 	groupSettingValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
@@ -140,7 +131,6 @@ func constructGroupChildren(ctx context.Context, data *AppControlForBusinessReso
 
 	children := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0)
 
-	// Add enable_app_control setting
 	enableAppControlSetting := graphmodels.NewDeviceManagementConfigurationChoiceSettingInstance()
 	enableAppControlDefId := "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control"
 	enableAppControlSetting.SetSettingDefinitionId(&enableAppControlDefId)
@@ -161,15 +151,6 @@ func constructGroupChildren(ctx context.Context, data *AppControlForBusinessReso
 	enableAppControlSetting.SetChoiceSettingValue(enableAppControlValue)
 	children = append(children, enableAppControlSetting)
 
-	// Add trust_apps setting
-	trustAppsSetting := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
-	trustAppsDefId := "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps"
-	trustAppsSetting.SetSettingDefinitionId(&trustAppsDefId)
-
-	trustAppsCollectionValue := make([]graphmodels.DeviceManagementConfigurationChoiceSettingValueable, 0)
-
-	// Convert trust apps from Terraform set to collection values.
-	// using custom field name for clarity.
 	if !data.AdditionalRulesForTrustingApps.IsNull() && !data.AdditionalRulesForTrustingApps.IsUnknown() {
 		var trustApps []string
 		diags := data.AdditionalRulesForTrustingApps.ElementsAs(ctx, &trustApps, false)
@@ -177,28 +158,36 @@ func constructGroupChildren(ctx context.Context, data *AppControlForBusinessReso
 			return nil, fmt.Errorf("failed to extract trust apps: %v", diags.Errors())
 		}
 
-		for _, trustApp := range trustApps {
-			trustAppValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
-			var appValue string
-			switch trustApp {
-			case "trust_apps_with_good_reputation":
-				appValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_0"
-			case "trust_apps_from_managed_installers":
-				appValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_1"
-			default:
-				tflog.Warn(ctx, "Unknown trust app value", map[string]interface{}{
-					"value": trustApp,
-				})
-				continue
+		if len(trustApps) > 0 {
+			trustAppsSetting := graphmodels.NewDeviceManagementConfigurationChoiceSettingCollectionInstance()
+			trustAppsDefId := "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps"
+			trustAppsSetting.SetSettingDefinitionId(&trustAppsDefId)
+
+			trustAppsCollectionValue := make([]graphmodels.DeviceManagementConfigurationChoiceSettingValueable, 0)
+
+			for _, trustApp := range trustApps {
+				trustAppValue := graphmodels.NewDeviceManagementConfigurationChoiceSettingValue()
+				var appValue string
+				switch trustApp {
+				case "trust_apps_with_good_reputation":
+					appValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_0"
+				case "trust_apps_from_managed_installers":
+					appValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_1"
+				default:
+					tflog.Warn(ctx, "Unknown trust app value", map[string]interface{}{
+						"value": trustApp,
+					})
+					continue
+				}
+				trustAppValue.SetValue(&appValue)
+				trustAppValue.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{})
+				trustAppsCollectionValue = append(trustAppsCollectionValue, trustAppValue)
 			}
-			trustAppValue.SetValue(&appValue)
-			trustAppValue.SetChildren([]graphmodels.DeviceManagementConfigurationSettingInstanceable{})
-			trustAppsCollectionValue = append(trustAppsCollectionValue, trustAppValue)
+
+			trustAppsSetting.SetChoiceSettingCollectionValue(trustAppsCollectionValue)
+			children = append(children, trustAppsSetting)
 		}
 	}
-
-	trustAppsSetting.SetChoiceSettingCollectionValue(trustAppsCollectionValue)
-	children = append(children, trustAppsSetting)
 
 	return children, nil
 }

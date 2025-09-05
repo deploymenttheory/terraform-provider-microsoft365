@@ -1,0 +1,24 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "createdDateTime": "2025-09-05T12:21:27.6363887Z",
+  "creationSource": null,
+  "description": "unit-test-app-control-policy-minimal",
+  "lastModifiedDateTime": "2025-09-05T12:21:27.6363887Z",
+  "name": "unit-test-app-control-policy-minimal",
+  "platforms": "windows10",
+  "priorityMetaData": null,
+  "roleScopeTagIds": [
+    "0",
+    "1",
+    "2"
+  ],
+  "settingCount": 1,
+  "technologies": "mdm",
+  "id": "19b03e97-aa42-4438-bf58-d3d20ff76067",
+  "templateReference": {
+    "templateId": "4321b946-b76b-4450-8afd-769c08b16ffc_1",
+    "templateFamily": "endpointSecurityApplicationControl",
+    "templateDisplayName": "App Control for Business",
+    "templateDisplayVersion": "Version 1"
+  }
+}

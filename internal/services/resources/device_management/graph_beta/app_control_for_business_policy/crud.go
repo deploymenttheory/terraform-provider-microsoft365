@@ -1,4 +1,4 @@
-package graphBetaAppControlForBusinessBuiltInControls
+package graphBetaAppControlForBusinessPolicy
 
 import (
 	"context"
@@ -14,11 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for App Control for Business resources.
-// Note: App Control for Business status entries are typically read-only resources
-// created by the system, so this might not be applicable for actual API usage.
-func (r *AppControlForBusinessResourceBuiltInControls) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object AppControlForBusinessResourceBuiltInControlsModel
+// Create handles the Create operation for App Control for Business Policy resources.
+func (r *AppControlForBusinessPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object AppControlForBusinessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -99,9 +97,9 @@ func (r *AppControlForBusinessResourceBuiltInControls) Create(ctx context.Contex
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for App Control for Business resources.
-func (r *AppControlForBusinessResourceBuiltInControls) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object AppControlForBusinessResourceBuiltInControlsModel
+// Read handles the Read operation for App Control for Business Policy resources.
+func (r *AppControlForBusinessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object AppControlForBusinessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -152,11 +150,11 @@ func (r *AppControlForBusinessResourceBuiltInControls) Read(ctx context.Context,
 
 	// Map settings to state
 	if settingsResponse != nil {
-		err = MapAppControlSettingsToTerraform(ctx, &object, settingsResponse)
+		err = MapAppControlPolicyXMLSettingsToTerraform(ctx, &object, settingsResponse)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error mapping settings state",
-				fmt.Sprintf("Could not map app control settings to Terraform state: %s", err.Error()),
+				fmt.Sprintf("Could not map app control XML settings to Terraform state: %s", err.Error()),
 			)
 			return
 		}
@@ -186,10 +184,10 @@ func (r *AppControlForBusinessResourceBuiltInControls) Read(ctx context.Context,
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for App Control for Business resources.
-func (r *AppControlForBusinessResourceBuiltInControls) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan AppControlForBusinessResourceBuiltInControlsModel
-	var state AppControlForBusinessResourceBuiltInControlsModel
+// Update handles the Update operation for App Control for Business Policy resources.
+func (r *AppControlForBusinessPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan AppControlForBusinessPolicyResourceModel
+	var state AppControlForBusinessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -271,9 +269,9 @@ func (r *AppControlForBusinessResourceBuiltInControls) Update(ctx context.Contex
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for App Control for Business resources.
-func (r *AppControlForBusinessResourceBuiltInControls) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object AppControlForBusinessResourceBuiltInControlsModel
+// Delete handles the Delete operation for App Control for Business Policy resources.
+func (r *AppControlForBusinessPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object AppControlForBusinessPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

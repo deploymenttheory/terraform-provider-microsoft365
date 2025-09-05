@@ -29,8 +29,7 @@ The following API permissions are required in order to use this resource.
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v0.14.1-alpha | Experimental | Initial release |
-| v0.28.0-alpha | Testing | Updated to use new settings catalog assignment schema |
+| v0.28.0-alpha | Testing | Initial release |
 
 ## Example Usage
 

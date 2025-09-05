@@ -24,7 +24,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_ro
   depends_on = [
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1
   ]
-  display_name = "acc-test-role-scope-tag-2-${random_string.suffix.result}"
+  display_name = "acc-test-role-scope-tag-2-${random_string.scope_tag_suffix.result}"
   description  = "Test role scope tag for acceptance testing"
 
   timeouts = {

@@ -1,7 +1,0 @@
-{
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.windowsManagementApp",
-  "id": "54fac284-7866-43e5-860a-9c8e10fa3d7d",
-  "availableVersion": "1.93.102.0",
-  "managedInstaller": "enabled",
-  "managedInstallerConfiguredDateTime": "2024-01-01T12:00:00Z"
-}

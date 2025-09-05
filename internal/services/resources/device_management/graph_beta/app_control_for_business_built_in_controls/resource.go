@@ -134,11 +134,6 @@ func (r *AppControlForBusinessResourceBuiltInControls) Schema(ctx context.Contex
 					"will be audited only in local client logs (if Audit only is selected), or blocked (if Enforce is selected) from running on devices. " +
 					"Can include: 'trust_apps_with_good_reputation' - allows reputable apps as defined by the Microsoft Intelligent Security Graph to run; " +
 					"'trust_apps_from_managed_installers' - allows apps deployed via authorized sources of application deployment (managed installers).",
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.DefaultSetValue(
-						[]attr.Value{},
-					),
-				},
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf(
