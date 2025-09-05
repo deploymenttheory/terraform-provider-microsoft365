@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -213,29 +214,22 @@ func (r *AppControlForBusinessResourceBuiltInControls) Update(ctx context.Contex
 		return
 	}
 
-	err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-		Delete(ctx, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
-		return
+	putRequest := customrequest.PutRequestConfig{
+		APIVersion:  customrequest.GraphAPIBeta,
+		Endpoint:    r.ResourcePath,
+		ResourceID:  state.ID.ValueString(),
+		RequestBody: requestBody,
 	}
 
-	// Recreate the policy with updated settings
-	baseResource, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		Post(ctx, requestBody, nil)
+	err = customrequest.PutRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		putRequest)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
 		return
 	}
-
-	// Update the ID in case it changed
-	plan.ID = types.StringValue(*baseResource.GetId())
 
 	requestAssignment, err := constructAssignment(ctx, &plan)
 	if err != nil {

@@ -12,6 +12,9 @@ import (
 
 // MapAppControlSettingsToTerraform maps App Control settings from Graph API response to Terraform state
 func MapAppControlSettingsToTerraform(ctx context.Context, data *AppControlForBusinessResourceBuiltInControlsModel, settingsResponse graphmodels.DeviceManagementConfigurationSettingCollectionResponseable) error {
+	// Initialize trust apps to empty set - will be updated if found in API response
+	data.AdditionalRulesForTrustingApps = convert.GraphToFrameworkStringSet(ctx, []string{})
+
 	if settingsResponse == nil {
 		tflog.Debug(ctx, "No settings response data to process")
 		return nil
