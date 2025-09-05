@@ -14,11 +14,11 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_bui
       type = "allLicensedUsersAssignmentTarget"
     },
     {
-      type        = "groupAssignmentTarget"
+      type     = "groupAssignmentTarget"
       group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
     },
     {
-      type        = "allDevicesAssignmentTarget"
+      type = "allDevicesAssignmentTarget"
     }
   ]
 
