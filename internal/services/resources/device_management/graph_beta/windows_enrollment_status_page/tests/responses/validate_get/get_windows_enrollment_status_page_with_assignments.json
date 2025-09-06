@@ -19,6 +19,8 @@
   "selectedMobileAppIds": [],
   "trackInstallProgressForAutopilotOnly": false,
   "disableUserStatusTrackingAfterFirstUser": false,
+  "installQualityUpdates": false,
+  "allowNonBlockingAppInstallation": false,
   "assignments": [
     {
       "id": "assignment1",

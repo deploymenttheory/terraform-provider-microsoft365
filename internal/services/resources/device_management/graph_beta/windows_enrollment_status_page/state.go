@@ -30,11 +30,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 	data.ID = convert.GraphToFrameworkString(enrollmentConfig.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(enrollmentConfig.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(enrollmentConfig.GetDescription())
-	data.Priority = convert.GraphToFrameworkInt32(enrollmentConfig.GetPriority())
 
 	// Map installation progress settings
 	data.ShowInstallationProgress = convert.GraphToFrameworkBool(enrollmentConfig.GetShowInstallationProgress())
-	data.BlockDeviceSetupRetryByUser = convert.GraphToFrameworkBool(enrollmentConfig.GetBlockDeviceSetupRetryByUser())
+	data.BlockDeviceUseUntilAllAppsAndProfilesAreInstalled = convert.GraphToFrameworkBool(enrollmentConfig.GetBlockDeviceSetupRetryByUser())
 	data.AllowDeviceResetOnInstallFailure = convert.GraphToFrameworkBool(enrollmentConfig.GetAllowDeviceResetOnInstallFailure())
 	data.AllowLogCollectionOnInstallFailure = convert.GraphToFrameworkBool(enrollmentConfig.GetAllowLogCollectionOnInstallFailure())
 	data.CustomErrorMessage = convert.GraphToFrameworkString(enrollmentConfig.GetCustomErrorMessage())
@@ -42,8 +41,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 	data.AllowDeviceUseOnInstallFailure = convert.GraphToFrameworkBool(enrollmentConfig.GetAllowDeviceUseOnInstallFailure())
 
 	// Map autopilot and user tracking settings
-	data.TrackInstallProgressForAutopilotOnly = convert.GraphToFrameworkBool(enrollmentConfig.GetTrackInstallProgressForAutopilotOnly())
-	data.DisableUserStatusTrackingAfterFirstUser = convert.GraphToFrameworkBool(enrollmentConfig.GetDisableUserStatusTrackingAfterFirstUser())
+	//data.TrackInstallProgressForAutopilotOnly = convert.GraphToFrameworkBool(enrollmentConfig.GetTrackInstallProgressForAutopilotOnly())
+	data.OnlyShowPageToDevicesProvisionedByOutOfBoxExperienceOobe = convert.GraphToFrameworkBool(enrollmentConfig.GetDisableUserStatusTrackingAfterFirstUser())
+
+	// Map app installation settings
+	data.OnlyFailSelectedBlockingAppsInTechnicianPhase = convert.GraphToFrameworkBool(enrollmentConfig.GetAllowNonBlockingAppInstallation())
+	data.InstallQualityUpdates = convert.GraphToFrameworkBool(enrollmentConfig.GetInstallQualityUpdates())
 
 	// Map selected mobile app IDs
 	data.SelectedMobileAppIds = convert.GraphToFrameworkStringSet(ctx, enrollmentConfig.GetSelectedMobileAppIds())

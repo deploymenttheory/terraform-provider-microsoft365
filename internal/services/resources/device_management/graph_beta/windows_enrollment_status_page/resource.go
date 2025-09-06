@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -96,83 +96,87 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Unique identifier for the enrollment status page configuration.",
-				Computed:    true,
+				MarkdownDescription: "Unique identifier for the enrollment status page configuration.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-
 			"display_name": schema.StringAttribute{
-				Description: "The display name of the enrollment status page configuration.",
-				Required:    true,
+				MarkdownDescription: "The display name of the enrollment status page configuration.",
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(1000),
 				},
 			},
-
 			"description": schema.StringAttribute{
-				Description: "The description of the enrollment status page configuration.",
-				Optional:    true,
+				MarkdownDescription: "The description of the enrollment status page configuration.",
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1000),
 				},
 			},
-
-			"priority": schema.Int32Attribute{
-				Description: "Priority is used when a user exists in multiple groups that are assigned enrollment " +
-					"configuration. Users are subject only to the configuration with the lowest priority value.",
-				Computed: true,
-			},
-
 			"show_installation_progress": schema.BoolAttribute{
-				Description: "Show or hide installation progress to user.",
-				Required:    true,
+				MarkdownDescription: "Show or hide installation progress to user.",
+				Required:            true,
 			},
-
-			"block_device_setup_retry_by_user": schema.BoolAttribute{
-				Description: "Allow the user to retry the setup on installation failure.",
-				Required:    true,
-			},
-
-			"allow_device_reset_on_install_failure": schema.BoolAttribute{
-				Description: "Allow or block device reset on installation failure.",
-				Required:    true,
-			},
-
-			"allow_log_collection_on_install_failure": schema.BoolAttribute{
-				Description: "Allow or block log collection on installation failure.",
-				Required:    true,
-			},
-
 			"custom_error_message": schema.StringAttribute{
-				Description: "Set custom error message to show upon installation failure.",
-				Optional:    true,
+				MarkdownDescription: "Set custom message when time limit or error occurs during initial device setup.",
+				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1000),
 				},
 			},
-
+			"install_quality_updates": schema.BoolAttribute{
+				MarkdownDescription: "Whether to install quality updates during the enrollment status page experience.",
+				Required:            true,
+			},
 			"install_progress_timeout_in_minutes": schema.Int32Attribute{
-				Description: "Set installation progress timeout in minutes. Valid values are 1 to 1440 (24 hours).",
-				Optional:    true,
-				Computed:    true,
-				Default:     int32default.StaticInt32(60),
+				MarkdownDescription: "Set installation progress timeout in minutes. Valid values are 1 to 1440 (24 hours).",
+				Required:            true,
 				Validators: []validator.Int32{
 					int32validator.Between(1, 1440),
 				},
 			},
-
-			"allow_device_use_on_install_failure": schema.BoolAttribute{
-				Description: "Allow the user to continue using the device on installation failure.",
-				Required:    true,
+			"allow_log_collection_on_install_failure": schema.BoolAttribute{
+				MarkdownDescription: "Allow or block log collection on installation failure.",
+				Required:            true,
 			},
-
+			"only_show_page_to_devices_provisioned_by_out_of_box_experience_oobe": schema.BoolAttribute{
+				MarkdownDescription: "Only show autopilot status page during initial device setup and during first user sign in to devices provisioned by oobe.",
+				Required:            true,
+			},
+			"block_device_use_until_all_apps_and_profiles_are_installed": schema.BoolAttribute{
+				MarkdownDescription: "Allow the user to retry the setup on installation failure.",
+				Required:            true,
+			},
+			"allow_device_reset_on_install_failure": schema.BoolAttribute{
+				MarkdownDescription: "Allow or block device reset on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.",
+				Required:            true,
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeTrueWhen(
+						"block_device_use_until_all_apps_and_profiles_are_installed",
+						false,
+						"allow_device_reset_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+					),
+				},
+			},
+			"allow_device_use_on_install_failure": schema.BoolAttribute{
+				MarkdownDescription: "Allow the user to continue using the device on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.",
+				Required:            true,
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeTrueWhen(
+						"block_device_use_until_all_apps_and_profiles_are_installed",
+						false,
+						"allow_device_use_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+					),
+				},
+			},
 			"selected_mobile_app_ids": schema.SetAttribute{
-				Description: "Selected applications to track the installation status. This collection can contain a maximum of 100 elements.",
-				ElementType: types.StringType,
-				Optional:    true,
+				MarkdownDescription: "Selected applications to track the installation status. This collection can contain a maximum of 100 elements. Can only be used effectively when block_device_use_until_all_apps_and_profiles_are_installed is true.",
+				ElementType:         types.StringType,
+				Optional:            true,
 				Validators: []validator.Set{
 					setvalidator.SizeAtMost(100),
 					setvalidator.ValueStringsAre(
@@ -181,19 +185,24 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
+					validators.SetRequiresBoolValue(
+						"block_device_use_until_all_apps_and_profiles_are_installed",
+						false,
+						"selected_mobile_app_ids can only be specified when block_device_use_until_all_apps_and_profiles_are_installed is false",
+					),
 				},
 			},
-
-			"track_install_progress_for_autopilot_only": schema.BoolAttribute{
-				Description: "Only show installation progress for Autopilot enrollment scenarios.",
-				Required:    true,
+			"only_fail_selected_blocking_apps_in_technician_phase": schema.BoolAttribute{
+				MarkdownDescription: "When this is true, only the selected blocking apps will be failed in the technician phase.",
+				Required:            true,
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeTrueWhen(
+						"block_device_use_until_all_apps_and_profiles_are_installed",
+						false,
+						"allow_device_use_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+					),
+				},
 			},
-
-			"disable_user_status_tracking_after_first_user": schema.BoolAttribute{
-				Description: "Only show installation progress for first user post enrollment.",
-				Required:    true,
-			},
-
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,

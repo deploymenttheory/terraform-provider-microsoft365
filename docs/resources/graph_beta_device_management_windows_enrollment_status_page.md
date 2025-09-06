@@ -24,22 +24,38 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.27.3-alpha | Experimental | Initial release |
+| v0.28.0-alpha | Testing | Test harness added, changed key names for clarity, added key validators, added changes from https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/whats-new#enrollment-status-page-support-for-installing-windows-security-updates-during-windows-oobe- |
 
 ## Example Usage
 
 ```terraform
 resource "microsoft365_graph_beta_device_management_windows_enrollment_status_page" "with_assignments" {
-  display_name                                  = "acc-test-windows-enrollment-status-page-assignments-${random_string.test_suffix.result}"
-  description                                   = "Test enrollment status page with group assignments"
-  show_installation_progress                    = true
-  block_device_setup_retry_by_user              = false
-  allow_device_reset_on_install_failure         = true
-  allow_log_collection_on_install_failure       = true
-  allow_device_use_on_install_failure           = false
-  track_install_progress_for_autopilot_only     = true
-  disable_user_status_tracking_after_first_user = false
-  custom_error_message                          = "Contact IT support for device enrollment assistance"
-  install_progress_timeout_in_minutes           = 120
+  display_name                                                        = "example-windows-enrollment-status-page-with-assignments"
+  description                                                         = "Test description for enrollment status page with assignments"
+  show_installation_progress                                          = true
+  custom_error_message                                                = "Contact IT support for assistance"
+  install_quality_updates                                             = true
+  install_progress_timeout_in_minutes                                 = 120
+  allow_log_collection_on_install_failure                             = true
+  only_show_page_to_devices_provisioned_by_out_of_box_experience_oobe = true
+
+  block_device_use_until_all_apps_and_profiles_are_installed = false // this set to false enables the fields below to work
+  allow_device_reset_on_install_failure                      = true  // can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false
+  allow_device_use_on_install_failure                        = true  // can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false
+
+
+  selected_mobile_app_ids = [ // if not set, this sets the field to 'all' in the gui. // can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false
+    "e4938228-aab3-493b-a9d5-8250aa8e9d55",
+    "e83d36e1-3ff2-4567-90d9-940919184ad5",
+    "cd4486df-05cc-42bd-8c34-67ac20e10166",
+  ]
+
+  only_fail_selected_blocking_apps_in_technician_phase = true // can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false and selected_mobile_app_ids is set
+
+  role_scope_tag_ids = [
+    microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id,
+    microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_2.id
+  ]
 
   assignments = [
     {
@@ -50,22 +66,19 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
     },
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
     }
   ]
-
   timeouts = {
-    create = "10m"
-    read   = "5m"
-    update = "10m"
-    delete = "5m"
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
   }
-}
-
-resource "random_string" "test_suffix" {
-  length  = 8
-  upper   = false
-  special = false
 }
 ```
 
@@ -74,29 +87,29 @@ resource "random_string" "test_suffix" {
 
 ### Required
 
-- `allow_device_reset_on_install_failure` (Boolean) Allow or block device reset on installation failure.
-- `allow_device_use_on_install_failure` (Boolean) Allow the user to continue using the device on installation failure.
+- `allow_device_reset_on_install_failure` (Boolean) Allow or block device reset on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.
+- `allow_device_use_on_install_failure` (Boolean) Allow the user to continue using the device on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.
 - `allow_log_collection_on_install_failure` (Boolean) Allow or block log collection on installation failure.
-- `block_device_setup_retry_by_user` (Boolean) Allow the user to retry the setup on installation failure.
-- `disable_user_status_tracking_after_first_user` (Boolean) Only show installation progress for first user post enrollment.
+- `block_device_use_until_all_apps_and_profiles_are_installed` (Boolean) Allow the user to retry the setup on installation failure.
 - `display_name` (String) The display name of the enrollment status page configuration.
+- `install_progress_timeout_in_minutes` (Number) Set installation progress timeout in minutes. Valid values are 1 to 1440 (24 hours).
+- `install_quality_updates` (Boolean) Whether to install quality updates during the enrollment status page experience.
+- `only_fail_selected_blocking_apps_in_technician_phase` (Boolean) When this is true, only the selected blocking apps will be failed in the technician phase.
+- `only_show_page_to_devices_provisioned_by_out_of_box_experience_oobe` (Boolean) Only show autopilot status page during initial device setup and during first user sign in to devices provisioned by oobe.
 - `show_installation_progress` (Boolean) Show or hide installation progress to user.
-- `track_install_progress_for_autopilot_only` (Boolean) Only show installation progress for Autopilot enrollment scenarios.
 
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `custom_error_message` (String) Set custom error message to show upon installation failure.
+- `custom_error_message` (String) Set custom message when time limit or error occurs during initial device setup.
 - `description` (String) The description of the enrollment status page configuration.
-- `install_progress_timeout_in_minutes` (Number) Set installation progress timeout in minutes. Valid values are 1 to 1440 (24 hours).
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
-- `selected_mobile_app_ids` (Set of String) Selected applications to track the installation status. This collection can contain a maximum of 100 elements.
+- `selected_mobile_app_ids` (Set of String) Selected applications to track the installation status. This collection can contain a maximum of 100 elements. Can only be used effectively when block_device_use_until_all_apps_and_profiles_are_installed is true.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `id` (String) Unique identifier for the enrollment status page configuration.
-- `priority` (Number) Priority is used when a user exists in multiple groups that are assigned enrollment configuration. Users are subject only to the configuration with the lowest priority value.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
