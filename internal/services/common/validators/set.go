@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -138,5 +139,81 @@ func BlockRequiresSetValue(setFieldName, requiredValue, blockFieldName string) v
 		setFieldName:   setFieldName,
 		requiredValue:  requiredValue,
 		blockFieldName: blockFieldName,
+	}
+}
+
+// setRequiresBoolValueValidator validates that a set can only have elements when a boolean field has a specific value
+type setRequiresBoolValueValidator struct {
+	boolFieldName     string
+	requiredBoolValue bool
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v setRequiresBoolValueValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+
+	requiredValueStr := "true"
+	if !v.requiredBoolValue {
+		requiredValueStr = "false"
+	}
+
+	return fmt.Sprintf("set can only contain elements when %s is %s", v.boolFieldName, requiredValueStr)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v setRequiresBoolValueValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateSet performs the validation.
+func (v setRequiresBoolValueValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+	// Skip validation if the set is null, unknown, or empty
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || len(req.ConfigValue.Elements()) == 0 {
+		return
+	}
+
+	// Get the boolean field value
+	var boolField types.Bool
+	diags := req.Config.GetAttribute(ctx, path.Root(v.boolFieldName), &boolField)
+	if diags.HasError() {
+		// If we can't find the field, skip validation
+		return
+	}
+
+	// Skip validation if the boolean field is null or unknown
+	if boolField.IsNull() || boolField.IsUnknown() {
+		return
+	}
+
+	// Check if the boolean field has the required value
+	if boolField.ValueBool() != v.requiredBoolValue {
+		requiredValueStr := "true"
+		if !v.requiredBoolValue {
+			requiredValueStr = "false"
+		}
+
+		errorMessage := v.validationMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("Set can only contain elements when %s is %s", v.boolFieldName, requiredValueStr)
+		}
+
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Set Configuration",
+			errorMessage,
+		)
+	}
+}
+
+// SetRequiresBoolValue returns a Set validator which ensures that a set can only have elements
+// when a boolean field has a specific value.
+func SetRequiresBoolValue(boolFieldName string, requiredBoolValue bool, validationMessage string) validator.Set {
+	return &setRequiresBoolValueValidator{
+		boolFieldName:     boolFieldName,
+		requiredBoolValue: requiredBoolValue,
+		validationMessage: validationMessage,
 	}
 }

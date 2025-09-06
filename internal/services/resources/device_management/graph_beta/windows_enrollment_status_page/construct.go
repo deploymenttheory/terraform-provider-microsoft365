@@ -24,20 +24,25 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 
 	convert.FrameworkToGraphString(plan.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(plan.Description, requestBody.SetDescription)
-	convert.FrameworkToGraphInt32(plan.Priority, requestBody.SetPriority)
 	convert.FrameworkToGraphBool(plan.ShowInstallationProgress, requestBody.SetShowInstallationProgress)
-	convert.FrameworkToGraphBool(plan.BlockDeviceSetupRetryByUser, requestBody.SetBlockDeviceSetupRetryByUser)
+	convert.FrameworkToGraphBool(plan.OnlyShowPageToDevicesProvisionedByOutOfBoxExperienceOobe, requestBody.SetDisableUserStatusTrackingAfterFirstUser) // using custom key name as dev was getting very confusing.
 	convert.FrameworkToGraphBool(plan.AllowDeviceResetOnInstallFailure, requestBody.SetAllowDeviceResetOnInstallFailure)
 	convert.FrameworkToGraphBool(plan.AllowLogCollectionOnInstallFailure, requestBody.SetAllowLogCollectionOnInstallFailure)
 	convert.FrameworkToGraphString(plan.CustomErrorMessage, requestBody.SetCustomErrorMessage)
 	convert.FrameworkToGraphInt32(plan.InstallProgressTimeoutInMinutes, requestBody.SetInstallProgressTimeoutInMinutes)
 	convert.FrameworkToGraphBool(plan.AllowDeviceUseOnInstallFailure, requestBody.SetAllowDeviceUseOnInstallFailure)
+	convert.FrameworkToGraphBool(plan.BlockDeviceUseUntilAllAppsAndProfilesAreInstalled, requestBody.SetBlockDeviceSetupRetryByUser) // using custom key name as dev was getting very confusing.
+	convert.FrameworkToGraphBool(plan.OnlyFailSelectedBlockingAppsInTechnicianPhase, requestBody.SetAllowNonBlockingAppInstallation) // using custom key name as dev was getting very confusing.
+	convert.FrameworkToGraphBool(plan.InstallQualityUpdates, requestBody.SetInstallQualityUpdates)
 
-	convert.FrameworkToGraphBool(plan.TrackInstallProgressForAutopilotOnly, requestBody.SetTrackInstallProgressForAutopilotOnly)
-	convert.FrameworkToGraphBool(plan.DisableUserStatusTrackingAfterFirstUser, requestBody.SetDisableUserStatusTrackingAfterFirstUser)
+	// Set selected_mobile_app_ids to empty array by default so that we can add and remove apps in updates.
+	BlockDeviceUseRequiredAppIds := []string{}
+	requestBody.SetSelectedMobileAppIds(BlockDeviceUseRequiredAppIds)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, plan.SelectedMobileAppIds, requestBody.SetSelectedMobileAppIds); err != nil {
-		return nil, fmt.Errorf("failed to convert selected mobile app IDs: %v", err)
+	if !plan.SelectedMobileAppIds.IsNull() && !plan.SelectedMobileAppIds.IsUnknown() {
+		if err := convert.FrameworkToGraphStringSet(ctx, plan.SelectedMobileAppIds, requestBody.SetSelectedMobileAppIds); err != nil {
+			return nil, fmt.Errorf("failed to convert selected mobile app IDs: %v", err)
+		}
 	}
 
 	if err := convert.FrameworkToGraphStringSet(ctx, plan.RoleScopeTagIds, requestBody.SetRoleScopeTagIds); err != nil {

@@ -37,22 +37,46 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 		// Return mock mobile apps that include the test app IDs used in unit tests
 		mockApps := map[string]interface{}{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
-			"@odata.count": 2,
+			"@odata.count":   5,
 			"value": []interface{}{
 				map[string]interface{}{
-					"@odata.type": "#microsoft.graph.win32LobApp",
-					"id": "12345678-1234-1234-1234-123456789012",
-					"displayName": "Test App 1",
-					"description": "Test application 1 for unit testing",
-					"publisher": "Test Publisher",
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "12345678-1234-1234-1234-123456789012",
+					"displayName":     "Test App 1",
+					"description":     "Test application 1 for unit testing",
+					"publisher":       "Test Publisher",
 					"publishingState": "published",
 				},
 				map[string]interface{}{
-					"@odata.type": "#microsoft.graph.winGetApp",
-					"id": "87654321-4321-4321-4321-210987654321",
-					"displayName": "Test App 2",
-					"description": "Test application 2 for unit testing",
-					"publisher": "Test Publisher",
+					"@odata.type":     "#microsoft.graph.winGetApp",
+					"id":              "87654321-4321-4321-4321-210987654321",
+					"displayName":     "Test App 2",
+					"description":     "Test application 2 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]interface{}{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "e4938228-aab3-493b-a9d5-8250aa8e9d55",
+					"displayName":     "Test App 3",
+					"description":     "Test application 3 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]interface{}{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "e83d36e1-3ff2-4567-90d9-940919184ad5",
+					"displayName":     "Test App 4",
+					"description":     "Test application 4 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]interface{}{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "cd4486df-05cc-42bd-8c34-67ac20e10166",
+					"displayName":     "Test App 5",
+					"description":     "Test application 5 for unit testing",
+					"publisher":       "Test Publisher",
 					"publishingState": "published",
 				},
 			},
@@ -146,61 +170,45 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 		}
 		if v, ok := body["priority"]; ok {
 			responseObj["priority"] = v
-		} else {
-			responseObj["priority"] = 0
 		}
 		if v, ok := body["showInstallationProgress"]; ok {
 			responseObj["showInstallationProgress"] = v
-		} else {
-			responseObj["showInstallationProgress"] = true
 		}
 		if v, ok := body["blockDeviceSetupRetryByUser"]; ok {
 			responseObj["blockDeviceSetupRetryByUser"] = v
-		} else {
-			responseObj["blockDeviceSetupRetryByUser"] = false
 		}
 		if v, ok := body["allowDeviceResetOnInstallFailure"]; ok {
 			responseObj["allowDeviceResetOnInstallFailure"] = v
-		} else {
-			responseObj["allowDeviceResetOnInstallFailure"] = false
 		}
 		if v, ok := body["allowLogCollectionOnInstallFailure"]; ok {
 			responseObj["allowLogCollectionOnInstallFailure"] = v
-		} else {
-			responseObj["allowLogCollectionOnInstallFailure"] = false
 		}
 		if v, ok := body["customErrorMessage"]; ok {
 			responseObj["customErrorMessage"] = v
 		}
 		if v, ok := body["installProgressTimeoutInMinutes"]; ok {
 			responseObj["installProgressTimeoutInMinutes"] = v
-		} else {
-			responseObj["installProgressTimeoutInMinutes"] = 60
 		}
 		if v, ok := body["allowDeviceUseOnInstallFailure"]; ok {
 			responseObj["allowDeviceUseOnInstallFailure"] = v
-		} else {
-			responseObj["allowDeviceUseOnInstallFailure"] = false
 		}
 		if v, ok := body["selectedMobileAppIds"]; ok {
 			responseObj["selectedMobileAppIds"] = v
-		} else {
-			responseObj["selectedMobileAppIds"] = []interface{}{}
 		}
 		if v, ok := body["trackInstallProgressForAutopilotOnly"]; ok {
 			responseObj["trackInstallProgressForAutopilotOnly"] = v
-		} else {
-			responseObj["trackInstallProgressForAutopilotOnly"] = false
 		}
 		if v, ok := body["disableUserStatusTrackingAfterFirstUser"]; ok {
 			responseObj["disableUserStatusTrackingAfterFirstUser"] = v
-		} else {
-			responseObj["disableUserStatusTrackingAfterFirstUser"] = false
+		}
+		if v, ok := body["installQualityUpdates"]; ok {
+			responseObj["installQualityUpdates"] = v
+		}
+		if v, ok := body["allowNonBlockingAppInstallation"]; ok {
+			responseObj["allowNonBlockingAppInstallation"] = v
 		}
 		if v, ok := body["roleScopeTagIds"]; ok {
 			responseObj["roleScopeTagIds"] = v
-		} else {
-			responseObj["roleScopeTagIds"] = []string{"0"}
 		}
 
 		// Handle assignments if provided
