@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.28.0-alpha...v0.28.1-alpha) (2025-09-06)
+
+
+### Bug Fixes
+
+* docs for authentication strength and named locations ([2fabdf8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2fabdf82c7c28d6e3f66653b8bee1f7eb9e88f44))
+* docs for authentication strength and named locations ([#751](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/751)) ([759a5fd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/759a5fde3f8173b56714b276c9a99907b4a3b618))
+
 ## [0.28.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.27.6-alpha...v0.28.0-alpha) (2025-09-06)
 
 
