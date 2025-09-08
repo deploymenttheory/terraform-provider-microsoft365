@@ -1,0 +1,2 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files.example 976886d5-f758-4cd9-9c80-b30b7355bfcb

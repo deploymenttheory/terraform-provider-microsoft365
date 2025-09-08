@@ -1,0 +1,34 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyUploadedDefinitionFiles(groupPolicyOperations())/$entity",
+    "displayName": null,
+    "description": null,
+    "languageCodes": ["en-US"],
+    "targetPrefix": "firefox",
+    "targetNamespace": "Mozilla.Policies.Firefox",
+    "policyType": "admxIngested",
+    "revision": null,
+    "fileName": "firefox.admx",
+    "id": "976886d5-f758-4cd9-9c80-b30b7355bfcb",
+    "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+    "status": "available",
+    "content": null,
+    "uploadDateTime": "2024-01-01T00:00:00Z",
+    "defaultLanguageCode": "en-US",
+    "groupPolicyUploadedLanguageFiles": [
+        {
+            "fileName": "firefox.adml",
+            "languageCode": "en-US",
+            "id": "11111111-2222-3333-4444-555555555555",
+            "content": null
+        }
+    ],
+    "groupPolicyOperations": [
+        {
+            "operationType": "upload",
+            "operationStatus": "succeeded",
+            "statusDetails": null,
+            "id": "834873f1-cafd-4aa3-aa92-080bdedfddca",
+            "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+        }
+    ]
+}

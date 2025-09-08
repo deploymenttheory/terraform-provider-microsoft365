@@ -1,0 +1,27 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyUploadedDefinitionFiles(groupPolicyOperations())/$entity",
+    "displayName": null,
+    "description": null,
+    "languageCodes": [],
+    "targetPrefix": null,
+    "targetNamespace": null,
+    "policyType": "admxIngested",
+    "revision": null,
+    "fileName": "firefox.admx",
+    "id": "976886d5-f758-4cd9-9c80-b30b7355bfcb",
+    "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+    "status": "uploadFailed",
+    "content": null,
+    "uploadDateTime": "2024-01-01T00:00:00Z",
+    "defaultLanguageCode": "en-US",
+    "groupPolicyUploadedLanguageFiles": [],
+    "groupPolicyOperations": [
+        {
+            "operationType": "upload",
+            "operationStatus": "failed",
+            "statusDetails": "ADMX file referenced not found NamespaceMissing:Microsoft.Policies.Windows. Please upload it first.",
+            "id": "834873f1-cafd-4aa3-aa92-080bdedfddca",
+            "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+        }
+    ]
+}

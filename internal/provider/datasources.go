@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
 	// Graph Beta - Windows 365 datasources
 	graphBetaWindows365CloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_audit_event"
 	graphBetaWindows365CloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_image"
@@ -10,7 +12,6 @@ import (
 	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
 	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
 	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
@@ -18,6 +19,7 @@ import (
 	graphBetaDeviceAndAppManagementMobileAppRelationship "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship"
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/device_category"
+	graphBetaDeviceManagementGroupPolicyCategories "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/group_policy_categories"
 	graphBetaDeviceManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/linux_platform_script"
 	graphBetaDeviceManagementManagedDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device"
 	graphBetaDeviceManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/reuseable_policy_settings"
@@ -73,6 +75,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
+		graphBetaDeviceManagementGroupPolicyCategories.NewGroupPolicyCategoryDataSource,
 		graphBetaDeviceManagementLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
 		graphBetaDeviceManagementManagedDevice.NewManagedDeviceDataSource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
@@ -86,6 +89,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
 		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,
+
 		// Graph Beta - Directory Management datasources
 		graphBetaDirectoryManagementDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
 		// Graph Beta - M365 Admin datasources
