@@ -1,0 +1,14 @@
+# Minimal Group Policy Uploaded Definition File configuration
+resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "minimal" {
+  file_name             = "unit-test-firefox.admx"
+  content               = "UEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWlCbGJtTnZaR2x1WnowaWRYUm1MVGdpUHo0S1BIQnZiR2xqZVVSbFptbHVhWFJwYjI1eklISmxkbWx6YVc5dVBTSTNMaklpSUhOamFHVnRZVlpsY25OcGIyNDlJakV1TUNJKwogIDx3b2xpY3lPYW1lc3BhY2VzPgogICAgPHRhcmdldCBwcmVmaXg9ImZpcmVmb3giIG5hbWVzcGFjZT0iTW96aWxsYS5Qb2xpY2llcy5GaXJlZm94Ii8+CiAgICA8dXNpbmcgcHJlZml4PSJNb3ppbGxhIiBuYW1lc3BhY2U9Ik1vemlsbGEuUG9saWNpZXMiLz4KICA8L3BvbGljeU5hbWVzcGFjZXM+CiAgPHJlc291cmNlcyBtaW5SZT4KICAgICAgICAgICAgICA8c3RyaW5nPnRvb2xiYXI8L3N0cmluZz4KICAgICAgICA8ZGVjaW1hbCB2YWx1ZT0iMSIvPgogICAgICA8L2VuYWJsZWRWYWx1ZT4KICAgICAgPGRpc2FibGVkVmFsdWU+CiAgICAgICAgPGRlY2ltYWwgdmFsdWU9IjAiLz4KICAgICAgPC9kaXNhYmxlZFZhbHVlPgogICAgPC9wb2xpY3k+CiAgPC9wb2xpY2llcz4KPC9wb2xpY3lEZWZpbml0aW9ucz4K"
+  default_language_code = "en-US"
+
+  group_policy_uploaded_language_files = [
+    {
+      file_name     = "firefox.adml"
+      language_code = "en-US"
+      content       = "UEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWlCbGJtTnZaR2x1WnowaWRYUm1MVGdpUHo0S1BIQnZiR2xqZVVSbFptbHVhWFJwYjI1U1pYTnZkWEpqWlhNZ2NtVjJhWE5wYjI0OUlqY3VNaUlnYzJOb1pXMWhWbVZ5YzJsdmJqMGlNUzR3SWo0S0lDQmtjMkJ2YVhOd2JHRjVUbUZ0WlM4K0NpQWdaR1Z6WTNKcGNIUnBiMjR2UGdvZ0lDQWdJQ0E4TDNCeVpYTmxiblJoZEdsdmJqNEtJQ0FnIDwvY0hKbGMyVnVkR0YwYVc5dVZHRmliR1UrQ2lBZ1BDOXlaWE52ZFhKalpYTStDanhpYjJSNUNqd3ZZbTlrZVQ0S1BDOXdiMnhwWTNsRVpXWnBibWwwYVc5dVVtVnpiM1Z5WTJWUD0="
+    }
+  ]
+}

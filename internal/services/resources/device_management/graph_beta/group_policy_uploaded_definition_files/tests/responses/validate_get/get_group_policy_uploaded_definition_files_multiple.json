@@ -1,0 +1,31 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyUploadedDefinitionFiles/$entity",
+    "displayName": null,
+    "description": null,
+    "languageCodes": ["en-US", "fr-FR"],
+    "targetPrefix": "msedge",
+    "targetNamespace": "Microsoft.Policies.Edge",
+    "policyType": "admxIngested",
+    "revision": null,
+    "fileName": "msedge.admx",
+    "id": "11111111-2222-3333-4444-555555555555",
+    "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+    "status": "available",
+    "content": null,
+    "uploadDateTime": "2024-01-01T00:00:00Z",
+    "defaultLanguageCode": "en-US",
+    "groupPolicyUploadedLanguageFiles": [
+        {
+            "fileName": "msedge.adml",
+            "languageCode": "en-US",
+            "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "content": null
+        },
+        {
+            "fileName": "msedge.adml",
+            "languageCode": "fr-FR",
+            "id": "ffffffff-eeee-dddd-cccc-bbbbbbbbbbbb",
+            "content": null
+        }
+    ]
+}

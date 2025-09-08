@@ -355,6 +355,8 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 
 `windows_anti_virus_security_experience`: This template allows you to configure the Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.
 
+`windows_imported_administrative_templates`: This template allows you to configure imported custom and third-party/partner ADMX and ADML templates into the Intune admin center. Once imported, you can create a device configuration policy using these settings, and then assign the policy to your managed devices..
+
 `windows_app_control_for_business`: Application control settings for Windows devices.
 
 `windows_attack_surface_reduction_app_and_browser_isolation`:This template allows you to configure the Microsoft Defender Application Guard (Application Guard) to help prevent old and newly emerging attacks to help keep employees productive. Using MSFT's unique hardware isolation approach, their goal is to destroy the playbook that attackers use by making current attack methods obsolete.
