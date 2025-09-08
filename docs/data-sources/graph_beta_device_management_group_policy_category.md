@@ -34,6 +34,12 @@ The following API permissions are required in order to use this data source.
 
 - **Application**: `DeviceManagementConfiguration.Read.All`
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.29.0-alpha | Experimental | Initial release |
+
 ## Example Usage
 
 ```terraform
