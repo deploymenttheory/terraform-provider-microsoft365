@@ -2,7 +2,7 @@
 data "microsoft365_graph_beta_device_management_group_policy_category" "wsl_networking" {
   setting_name = "Configure default networking mode" // Define the group policy item you wish to return
 
-  timeouts ={
+  timeouts = {
     read = "5m"
   }
 }
@@ -10,7 +10,7 @@ data "microsoft365_graph_beta_device_management_group_policy_category" "wsl_netw
 # Output the complete data structure
 output "wsl_networking_setting" {
   description = "Complete group policy setting information from all three API calls"
-  value = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking
+  value       = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking
 }
 
 # Access group policy top tier list 
@@ -49,14 +49,14 @@ output "definition_info" {
 output "presentation_info" {
   description = "Presentation configuration from the third API call - dropdown with options"
   value = {
-    presentation_id          = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].id
+    presentation_id         = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].id
     odata_type              = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].odata_type
     label                   = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].label
     required                = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].required
     last_modified_date_time = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].last_modified_date_time
-    
+
     # Dropdown-specific properties.
-    default_item            = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].default_item
-    available_options       = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].items
+    default_item      = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].default_item
+    available_options = data.microsoft365_graph_beta_device_management_group_policy_category.wsl_networking.presentations[0].items
   }
 }
