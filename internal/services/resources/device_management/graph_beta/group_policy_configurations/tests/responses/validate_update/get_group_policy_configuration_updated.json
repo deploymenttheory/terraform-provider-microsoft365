@@ -1,0 +1,8 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Test Group Policy Configuration - Updated",
+  "description": "Updated description for group policy configuration",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "roleScopeTagIds": ["0", "1"]
+}

@@ -1,0 +1,13 @@
+{
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationListBox",
+      "id": "b99443a7-9b59-4d5e-be9f-a2a1aaa626dd",
+      "explicitValue": false,
+      "valuePrefix": "",
+      "lastModifiedDateTime": "2025-02-20T17:45:51.0702198Z",
+      "label": "Allow automatic full screen on specified sites"
+    }
+  ],
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('ae12ff5b-40af-4af9-b986-04a4c988c033')/presentations"
+}

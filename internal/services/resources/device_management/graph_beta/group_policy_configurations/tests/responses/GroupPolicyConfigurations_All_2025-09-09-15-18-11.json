@@ -1,0 +1,12 @@
+{
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "displayName": "unit-test-group-policy-presentation-value-mixed",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/$entity",
+  "createdDateTime": "2025-09-09T13:28:51.0129134Z",
+  "id": "34d2dc2d-d7e7-4efa-81ef-32f411589d17",
+  "policyConfigurationIngestionType": "unknown",
+  "lastModifiedDateTime": "2025-09-09T13:33:01.6211547Z",
+  "description": "unit test for group policy with multiple boolean presentation values, text presentation value, and decimal presentation value"
+}
