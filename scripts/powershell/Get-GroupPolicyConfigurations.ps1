@@ -17,7 +17,7 @@ param (
     
     [Parameter(Mandatory=$false,
     HelpMessage="Specific Group Policy Configuration ID (if not provided, will list all configurations)")]
-    [string]$ConfigurationId,
+    [string]$PolicyId,
     
     [Parameter(Mandatory=$false,
     HelpMessage="Get definition values for a specific configuration")]
@@ -32,7 +32,7 @@ param (
 #./Get-GroupPolicyConfigurations.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-secret" -ExportToJson
 
 # Get specific configuration and its definition values with export
-#./Get-GroupPolicyConfigurations.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-secret" -ConfigurationId "specific-id" -GetDefinitionValuesForId "specific-id" -ExportToJson
+#./Get-GroupPolicyConfigurations.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-secret" -PolicyId "specific-id" -GetDefinitionValuesForId "specific-id" -ExportToJson
 
 # Get all configurations without export
 #./Get-GroupPolicyConfigurations.ps1 -TenantId "your-tenant-id" -ClientId "your-client-id" -ClientSecret "your-secret"
@@ -61,7 +61,10 @@ function Get-GroupPolicyConfigurations {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting Group Policy Configurations: $_" -ForegroundColor Red
@@ -81,7 +84,10 @@ function Get-GroupPolicyDefinitionValues {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting definition values: $_" -ForegroundColor Red
@@ -101,7 +107,10 @@ function Get-GroupPolicyConfigurationWithAssignments {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting configuration with assignments: $_" -ForegroundColor Red
@@ -121,7 +130,10 @@ function Get-GroupPolicyDefinitionPresentations {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting definition presentations: $_" -ForegroundColor Red
@@ -144,7 +156,10 @@ function Get-GroupPolicyPresentationValues {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting presentation values: $_" -ForegroundColor Red
@@ -171,12 +186,72 @@ function Get-GroupPolicyPresentationValueDetails {
         Write-Host "   Endpoint: $uri" -ForegroundColor Gray
         Write-Host ""
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-        return $response
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
     }
     catch {
         Write-Host "❌ Error getting presentation value details: $_" -ForegroundColor Red
         Write-Host ""
         return $null
+    }
+}
+
+function Get-GroupPolicyDefinitionDetails {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$DefinitionId
+    )
+    try {
+        $uri = "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$DefinitionId')"
+        Write-Host "🔍 Getting group policy definition details: $DefinitionId" -ForegroundColor Cyan
+        Write-Host "   Endpoint: $uri" -ForegroundColor Gray
+        Write-Host ""
+        $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+        return @{
+            Response = $response
+            Endpoint = $uri
+        }
+    }
+    catch {
+        Write-Host "❌ Error getting group policy definition details: $_" -ForegroundColor Red
+        Write-Host ""
+        return $null
+    }
+}
+
+function Add-ApiCallMetadata {
+    param (
+        [Parameter(Mandatory=$true)]
+        $Response,
+        [Parameter(Mandatory=$true)]
+        [string]$ApiEndpoint,
+        [Parameter(Mandatory=$true)]
+        [string]$HttpMethod,
+        [Parameter(Mandatory=$false)]
+        [string]$Description = ""
+    )
+    try {
+        $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ"
+        
+        # Create wrapper object with metadata and original response separate
+        $wrappedResponse = [ordered]@{
+            "_api_call_info" = [ordered]@{
+                "timestamp" = $timestamp
+                "http_method" = $HttpMethod.ToUpper()
+                "endpoint" = $ApiEndpoint
+                "description" = $Description
+                "graph_api_version" = "beta"
+            }
+            "response" = $Response
+        }
+        
+        return $wrappedResponse
+    }
+    catch {
+        Write-Host "⚠️ Warning: Could not add API metadata, returning original response: $_" -ForegroundColor Yellow
+        return $Response
     }
 }
 
@@ -186,6 +261,10 @@ function Save-ApiResponseToJson {
         $Response,
         [Parameter(Mandatory=$true)]
         [string]$FileName,
+        [Parameter(Mandatory=$true)]
+        [string]$ApiEndpoint,
+        [Parameter(Mandatory=$false)]
+        [string]$HttpMethod = "GET",
         [Parameter(Mandatory=$false)]
         [string]$Description = ""
     )
@@ -193,13 +272,17 @@ function Save-ApiResponseToJson {
         $timestamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
         $fullFileName = "$($FileName)_$timestamp.json"
         
-        $Response | ConvertTo-Json -Depth 15 | Out-File -FilePath $fullFileName -Encoding UTF8
+        # Add API call metadata to the response
+        $responseWithMetadata = Add-ApiCallMetadata -Response $Response -ApiEndpoint $ApiEndpoint -HttpMethod $HttpMethod -Description $Description
+        
+        $responseWithMetadata | ConvertTo-Json -Depth 15 | Out-File -FilePath $fullFileName -Encoding UTF8
         
         if ($Description) {
             Write-Host "📄 $Description saved to: $fullFileName" -ForegroundColor Green
         } else {
             Write-Host "📄 Response saved to: $fullFileName" -ForegroundColor Green
         }
+        Write-Host "   API Endpoint: $ApiEndpoint" -ForegroundColor Gray
         Write-Host ""
         
         return $fullFileName
@@ -321,52 +404,60 @@ try {
     Write-Host ""
 
     # Get configurations
-    $configurations = Get-GroupPolicyConfigurations -SpecificConfigurationId $ConfigurationId
+    $configurationsResult = Get-GroupPolicyConfigurations -SpecificConfigurationId $PolicyId
+    $configurations = $configurationsResult.Response
     
     if ($ExportToJson) {
         Write-Host "🚀 Starting comprehensive data model export..." -ForegroundColor Magenta
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
         
         # 1. Export main configurations
-        Save-ApiResponseToJson -Response $configurations -FileName "GroupPolicyConfigurations_All" -Description "All Group Policy Configurations"
+        Save-ApiResponseToJson -Response $configurations -FileName "GroupPolicyConfigurations_All" -ApiEndpoint $configurationsResult.Endpoint -Description "All Group Policy Configurations"
         
         # 2. If specific configuration, get detailed data
-        if ($ConfigurationId) {
+        if ($PolicyId) {
             # Get configuration with assignments
-            $configWithAssignments = Get-GroupPolicyConfigurationWithAssignments -ConfigurationId $ConfigurationId
-            if ($configWithAssignments) {
-                Save-ApiResponseToJson -Response $configWithAssignments -FileName "GroupPolicyConfiguration_WithAssignments_$ConfigurationId" -Description "Configuration with assignments"
-                Show-ConfigurationDetails -Configuration $configWithAssignments
+            $configWithAssignmentsResult = Get-GroupPolicyConfigurationWithAssignments -ConfigurationId $PolicyId
+            if ($configWithAssignmentsResult) {
+                Save-ApiResponseToJson -Response $configWithAssignmentsResult.Response -FileName "GroupPolicyConfiguration_WithAssignments_$PolicyId" -ApiEndpoint $configWithAssignmentsResult.Endpoint -Description "Configuration with assignments"
+                Show-ConfigurationDetails -Configuration $configWithAssignmentsResult.Response
             }
             
             # Get definition values
-            $definitionValues = Get-GroupPolicyDefinitionValues -ConfigurationId $ConfigurationId
-            if ($definitionValues) {
-                Save-ApiResponseToJson -Response $definitionValues -FileName "GroupPolicyDefinitionValues_$ConfigurationId" -Description "Definition values for configuration"
+            $definitionValuesResult = Get-GroupPolicyDefinitionValues -ConfigurationId $PolicyId
+            if ($definitionValuesResult) {
+                $definitionValues = $definitionValuesResult.Response
+                Save-ApiResponseToJson -Response $definitionValues -FileName "GroupPolicyDefinitionValues_$PolicyId" -ApiEndpoint $definitionValuesResult.Endpoint -Description "Definition values for configuration"
                 Show-DefinitionValuesDetails -DefinitionValues $definitionValues
                 
                 # Get presentations and presentation values for each definition
                 if ($definitionValues.value) {
                     foreach ($defValue in $definitionValues.value) {
                         if ($defValue.definition -and $defValue.definition.id) {
+                            # Get group policy definition details (including categoryPath)
+                            $definitionDetailsResult = Get-GroupPolicyDefinitionDetails -DefinitionId $defValue.definition.id
+                            if ($definitionDetailsResult) {
+                                Save-ApiResponseToJson -Response $definitionDetailsResult.Response -FileName "GroupPolicyDefinitionDetails_$($defValue.definition.id)" -ApiEndpoint $definitionDetailsResult.Endpoint -Description "Definition details for $($defValue.definition.displayName) including categoryPath"
+                            }
+                            
                             # Get available presentations
-                            $presentations = Get-GroupPolicyDefinitionPresentations -DefinitionId $defValue.definition.id
-                            if ($presentations) {
-                                Save-ApiResponseToJson -Response $presentations -FileName "GroupPolicyDefinitionPresentations_$($defValue.definition.id)" -Description "Presentations for definition $($defValue.definition.displayName)"
+                            $presentationsResult = Get-GroupPolicyDefinitionPresentations -DefinitionId $defValue.definition.id
+                            if ($presentationsResult) {
+                                Save-ApiResponseToJson -Response $presentationsResult.Response -FileName "GroupPolicyDefinitionPresentations_$($defValue.definition.id)" -ApiEndpoint $presentationsResult.Endpoint -Description "Presentations for definition $($defValue.definition.displayName)"
                             }
                             
                             # Get actual presentation values (current configuration)
                             if ($defValue.id) {
-                                $presentationValues = Get-GroupPolicyPresentationValues -ConfigurationId $ConfigurationId -DefinitionValueId $defValue.id
-                                if ($presentationValues -and $presentationValues.value) {
-                                    Save-ApiResponseToJson -Response $presentationValues -FileName "GroupPolicyPresentationValues_$($ConfigurationId)_$($defValue.id)" -Description "Current presentation values for $($defValue.definition.displayName)"
+                                $presentationValuesResult = Get-GroupPolicyPresentationValues -ConfigurationId $PolicyId -DefinitionValueId $defValue.id
+                                if ($presentationValuesResult -and $presentationValuesResult.Response.value) {
+                                    Save-ApiResponseToJson -Response $presentationValuesResult.Response -FileName "GroupPolicyPresentationValues_$($PolicyId)_$($defValue.id)" -ApiEndpoint $presentationValuesResult.Endpoint -Description "Current presentation values for $($defValue.definition.displayName)"
                                     
                                     # Get detailed presentation value information
-                                    foreach ($presValue in $presentationValues.value) {
+                                    foreach ($presValue in $presentationValuesResult.Response.value) {
                                         if ($presValue.id) {
-                                            $presValueDetails = Get-GroupPolicyPresentationValueDetails -ConfigurationId $ConfigurationId -DefinitionValueId $defValue.id -PresentationValueId $presValue.id
-                                            if ($presValueDetails) {
-                                                Save-ApiResponseToJson -Response $presValueDetails -FileName "GroupPolicyPresentationValueDetails_$($ConfigurationId)_$($defValue.id)_$($presValue.id)" -Description "Detailed info for presentation value $($presValue.id)"
+                                            $presValueDetailsResult = Get-GroupPolicyPresentationValueDetails -ConfigurationId $PolicyId -DefinitionValueId $defValue.id -PresentationValueId $presValue.id
+                                            if ($presValueDetailsResult) {
+                                                Save-ApiResponseToJson -Response $presValueDetailsResult.Response -FileName "GroupPolicyPresentationValueDetails_$($PolicyId)_$($defValue.id)_$($presValue.id)" -ApiEndpoint $presValueDetailsResult.Endpoint -Description "Detailed info for presentation value $($presValue.id)"
                                             }
                                         }
                                     }
@@ -387,38 +478,45 @@ try {
                     Write-Host "📋 Processing configuration: $($config.displayName) ($($config.id))" -ForegroundColor Yellow
                     
                     # Get configuration with assignments
-                    $configWithAssignments = Get-GroupPolicyConfigurationWithAssignments -ConfigurationId $config.id
-                    if ($configWithAssignments) {
-                        Save-ApiResponseToJson -Response $configWithAssignments -FileName "GroupPolicyConfiguration_WithAssignments_$($config.id)" -Description "Configuration with assignments for $($config.displayName)"
+                    $configWithAssignmentsResult = Get-GroupPolicyConfigurationWithAssignments -ConfigurationId $config.id
+                    if ($configWithAssignmentsResult) {
+                        Save-ApiResponseToJson -Response $configWithAssignmentsResult.Response -FileName "GroupPolicyConfiguration_WithAssignments_$($config.id)" -ApiEndpoint $configWithAssignmentsResult.Endpoint -Description "Configuration with assignments for $($config.displayName)"
                     }
                     
                     # Get definition values
-                    $definitionValues = Get-GroupPolicyDefinitionValues -ConfigurationId $config.id
-                    if ($definitionValues) {
-                        Save-ApiResponseToJson -Response $definitionValues -FileName "GroupPolicyDefinitionValues_$($config.id)" -Description "Definition values for $($config.displayName)"
+                    $definitionValuesResult = Get-GroupPolicyDefinitionValues -ConfigurationId $config.id
+                    if ($definitionValuesResult) {
+                        $definitionValues = $definitionValuesResult.Response
+                        Save-ApiResponseToJson -Response $definitionValues -FileName "GroupPolicyDefinitionValues_$($config.id)" -ApiEndpoint $definitionValuesResult.Endpoint -Description "Definition values for $($config.displayName)"
                         
                         # Get presentations and presentation values for each definition
                         if ($definitionValues.value) {
                             foreach ($defValue in $definitionValues.value) {
                                 if ($defValue.definition -and $defValue.definition.id) {
+                                    # Get group policy definition details (including categoryPath)
+                                    $definitionDetailsResult = Get-GroupPolicyDefinitionDetails -DefinitionId $defValue.definition.id
+                                    if ($definitionDetailsResult) {
+                                        Save-ApiResponseToJson -Response $definitionDetailsResult.Response -FileName "GroupPolicyDefinitionDetails_$($defValue.definition.id)" -ApiEndpoint $definitionDetailsResult.Endpoint -Description "Definition details for $($defValue.definition.displayName) including categoryPath"
+                                    }
+                                    
                                     # Get available presentations
-                                    $presentations = Get-GroupPolicyDefinitionPresentations -DefinitionId $defValue.definition.id
-                                    if ($presentations) {
-                                        Save-ApiResponseToJson -Response $presentations -FileName "GroupPolicyDefinitionPresentations_$($defValue.definition.id)" -Description "Presentations for definition $($defValue.definition.displayName)"
+                                    $presentationsResult = Get-GroupPolicyDefinitionPresentations -DefinitionId $defValue.definition.id
+                                    if ($presentationsResult) {
+                                        Save-ApiResponseToJson -Response $presentationsResult.Response -FileName "GroupPolicyDefinitionPresentations_$($defValue.definition.id)" -ApiEndpoint $presentationsResult.Endpoint -Description "Presentations for definition $($defValue.definition.displayName)"
                                     }
                                     
                                     # Get actual presentation values (current configuration)
                                     if ($defValue.id) {
-                                        $presentationValues = Get-GroupPolicyPresentationValues -ConfigurationId $config.id -DefinitionValueId $defValue.id
-                                        if ($presentationValues -and $presentationValues.value) {
-                                            Save-ApiResponseToJson -Response $presentationValues -FileName "GroupPolicyPresentationValues_$($config.id)_$($defValue.id)" -Description "Current presentation values for $($defValue.definition.displayName) in $($config.displayName)"
+                                        $presentationValuesResult = Get-GroupPolicyPresentationValues -ConfigurationId $config.id -DefinitionValueId $defValue.id
+                                        if ($presentationValuesResult -and $presentationValuesResult.Response.value) {
+                                            Save-ApiResponseToJson -Response $presentationValuesResult.Response -FileName "GroupPolicyPresentationValues_$($config.id)_$($defValue.id)" -ApiEndpoint $presentationValuesResult.Endpoint -Description "Current presentation values for $($defValue.definition.displayName) in $($config.displayName)"
                                             
                                             # Get detailed presentation value information
-                                            foreach ($presValue in $presentationValues.value) {
+                                            foreach ($presValue in $presentationValuesResult.Response.value) {
                                                 if ($presValue.id) {
-                                                    $presValueDetails = Get-GroupPolicyPresentationValueDetails -ConfigurationId $config.id -DefinitionValueId $defValue.id -PresentationValueId $presValue.id
-                                                    if ($presValueDetails) {
-                                                        Save-ApiResponseToJson -Response $presValueDetails -FileName "GroupPolicyPresentationValueDetails_$($config.id)_$($defValue.id)_$($presValue.id)" -Description "Detailed info for presentation value $($presValue.id) in $($config.displayName)"
+                                                    $presValueDetailsResult = Get-GroupPolicyPresentationValueDetails -ConfigurationId $config.id -DefinitionValueId $defValue.id -PresentationValueId $presValue.id
+                                                    if ($presValueDetailsResult) {
+                                                        Save-ApiResponseToJson -Response $presValueDetailsResult.Response -FileName "GroupPolicyPresentationValueDetails_$($config.id)_$($defValue.id)_$($presValue.id)" -ApiEndpoint $presValueDetailsResult.Endpoint -Description "Detailed info for presentation value $($presValue.id) in $($config.displayName)"
                                                     }
                                                 }
                                             }
@@ -437,12 +535,12 @@ try {
         }
         
         # Get definition values if specifically requested (and it's a different ID than already processed)
-        if ($GetDefinitionValuesForId -and $GetDefinitionValuesForId -ne "" -and $GetDefinitionValuesForId -ne $ConfigurationId) {
+        if ($GetDefinitionValuesForId -and $GetDefinitionValuesForId -ne "" -and $GetDefinitionValuesForId -ne $PolicyId) {
             Write-Host "📋 Processing additional definition values for ID: $GetDefinitionValuesForId" -ForegroundColor Yellow
-            $definitionValues = Get-GroupPolicyDefinitionValues -ConfigurationId $GetDefinitionValuesForId
-            if ($definitionValues) {
-                Save-ApiResponseToJson -Response $definitionValues -FileName "GroupPolicyDefinitionValues_$GetDefinitionValuesForId" -Description "Definition values for requested configuration"
-                Show-DefinitionValuesDetails -DefinitionValues $definitionValues
+            $definitionValuesResult = Get-GroupPolicyDefinitionValues -ConfigurationId $GetDefinitionValuesForId
+            if ($definitionValuesResult) {
+                Save-ApiResponseToJson -Response $definitionValuesResult.Response -FileName "GroupPolicyDefinitionValues_$GetDefinitionValuesForId" -ApiEndpoint $definitionValuesResult.Endpoint -Description "Definition values for requested configuration"
+                Show-DefinitionValuesDetails -DefinitionValues $definitionValuesResult.Response
             }
         }
         
@@ -452,7 +550,7 @@ try {
     }
 
     # Display configurations (only when not exporting)
-    if ($ConfigurationId) {
+    if ($PolicyId) {
         if ($configurations) {
             Show-ConfigurationDetails -Configuration $configurations
         }
@@ -475,9 +573,9 @@ try {
 
     # Get definition values if requested (only when not exporting)
     if ($GetDefinitionValuesForId) {
-        $definitionValues = Get-GroupPolicyDefinitionValues -ConfigurationId $GetDefinitionValuesForId
-        if ($definitionValues) {
-            Show-DefinitionValuesDetails -DefinitionValues $definitionValues
+        $definitionValuesResult = Get-GroupPolicyDefinitionValues -ConfigurationId $GetDefinitionValuesForId
+        if ($definitionValuesResult) {
+            Show-DefinitionValuesDetails -DefinitionValues $definitionValuesResult.Response
         }
     }
 

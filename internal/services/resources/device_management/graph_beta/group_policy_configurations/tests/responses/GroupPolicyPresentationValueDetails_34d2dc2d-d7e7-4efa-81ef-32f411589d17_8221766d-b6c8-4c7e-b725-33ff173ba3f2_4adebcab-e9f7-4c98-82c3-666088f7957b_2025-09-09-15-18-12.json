@@ -1,8 +1,0 @@
-{
-  "createdDateTime": "2025-09-09T13:28:51.5910134Z",
-  "@odata.type": "#microsoft.graph.groupPolicyPresentationValueDecimal",
-  "lastModifiedDateTime": "2025-09-09T13:28:51.5753666Z",
-  "id": "4adebcab-e9f7-4c98-82c3-666088f7957b",
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations('34d2dc2d-d7e7-4efa-81ef-32f411589d17')/definitionValues('8221766d-b6c8-4c7e-b725-33ff173ba3f2')/presentationValues(presentation())/$entity",
-  "value": 1024
-}
