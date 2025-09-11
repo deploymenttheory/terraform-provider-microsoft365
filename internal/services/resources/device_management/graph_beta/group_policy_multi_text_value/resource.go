@@ -82,14 +82,14 @@ func (r *GroupPolicyMultiTextValueResource) ImportState(ctx context.Context, req
 // Schema returns the schema for the resource.
 func (r *GroupPolicyMultiTextValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy presentation multi-text values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents multiple text values for group policy presentations such as multi-text boxes or list controls.",
+		MarkdownDescription: "Manages group policy presentation text values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents a text value for group policy presentations such as text boxes, combo boxes, or drop-down lists.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for the group policy presentation multi-text value",
+				MarkdownDescription: "The unique identifier for the group policy presentation text value",
 			},
 			"group_policy_configuration_id": schema.StringAttribute{
 				Required:            true,
@@ -105,25 +105,33 @@ func (r *GroupPolicyMultiTextValueResource) Schema(ctx context.Context, req reso
 				Required:            true,
 				MarkdownDescription: "The class type of the group policy definition. Must be 'user' or 'machine'",
 			},
+			"category_path": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The category path of the group policy definition (e.g., '\\FSLogix\\Profile Containers', '\\FSLogix\\ODFC Containers'). Used to distinguish between policies with the same name in different categories",
+			},
 			"presentation_index": schema.Int64Attribute{
 				Optional:            true,
-				MarkdownDescription: "The index of the presentation to use if multiple presentations exist for the policy (default: 0 - first suitable multi-text presentation)",
+				MarkdownDescription: "The index of the presentation to use if multiple presentations exist for the policy (default: 0 - first suitable text presentation)",
 			},
 
 			// Computed/resolved fields (for backward compatibility and state tracking)
 			"group_policy_definition_value_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The resolved unique identifier of the group policy definition value (computed from policy_name and class_type)",
+				MarkdownDescription: "The unique identifier of the group policy definition value instance within the configuration (resolved automatically from policy_name and class_type)",
 			},
 			"presentation_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The resolved unique identifier of the presentation (computed from the policy definition and presentation_index)",
+				MarkdownDescription: "The unique identifier of the group policy presentation template (resolved automatically from the policy definition and presentation_index)",
 			},
 
-			"values": schema.ListAttribute{
+			"enabled": schema.BoolAttribute{
+				Required:            true,
+				MarkdownDescription: "Whether the group policy setting is enabled or disabled",
+			},
+			"values": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Required:            true,
-				MarkdownDescription: "The list of text values for the associated presentation",
+				MarkdownDescription: "A set of text values for the multi-text group policy setting",
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,

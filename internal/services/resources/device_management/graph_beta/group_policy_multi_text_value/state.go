@@ -3,45 +3,33 @@ package graphBetaGroupPolicyMultiTextValue
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// mapRemoteStateToTerraform maps the Graph API response to the Terraform resource model
-func mapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, remoteResource interface {
-	GetId() *string
-	GetValues() []string
-	GetCreatedDateTime() *time.Time
-	GetLastModifiedDateTime() *time.Time
-}) {
+// MapRemoteStateToTerraform maps the remote GroupPolicyPresentationValueText and GroupPolicyDefinitionValue to the Terraform resource model
+func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, remoteResource graphmodels.GroupPolicyPresentationValueMultiTextable, definitionValue graphmodels.GroupPolicyDefinitionValueable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting to map remote state to Terraform for %s", ResourceName))
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+		"resourceId":     remoteResource.GetId(),
+		"resourceValues": remoteResource.GetValues(),
+	})
 
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
-
-	// Map the values array
-	values := remoteResource.GetValues()
-	if values != nil {
-		listValue, diags := types.ListValueFrom(ctx, types.StringType, values)
-		if !diags.HasError() {
-			data.Values = listValue
-		} else {
-			tflog.Error(ctx, "Failed to convert values array to Terraform list")
-			data.Values = types.ListNull(types.StringType)
-		}
-	} else {
-		data.Values = types.ListNull(types.StringType)
-	}
-
+	data.Values = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetValues())
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform for %s", ResourceName))
+	// Map the enabled state from the definition value
+	if definitionValue != nil {
+		data.Enabled = convert.GraphToFrameworkBool(definitionValue.GetEnabled())
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }

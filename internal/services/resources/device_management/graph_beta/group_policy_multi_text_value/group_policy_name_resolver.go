@@ -1,4 +1,4 @@
-package graphBetaGroupPolicyTextValue
+package graphBetaGroupPolicyMultiTextValue
 
 import (
 	"context"

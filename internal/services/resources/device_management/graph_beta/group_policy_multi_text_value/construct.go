@@ -4,100 +4,89 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform resource data to the Graph API request model
-func constructResource(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient) (models.GroupPolicyPresentationValueMultiTextable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+// constructResource constructs the updateDefinitionValues request for group policy text value operations
+func constructResource(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, operation string) (*devicemanagement.GroupPolicyConfigurationsItemUpdateDefinitionValuesPostRequestBody, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing updateDefinitionValues request for %s", ResourceName))
 
-	// Resolve IDs if using simplified input
-	err := resolveIDs(ctx, data, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve IDs: %w", err)
-	}
+	requestBody := devicemanagement.NewGroupPolicyConfigurationsItemUpdateDefinitionValuesPostRequestBody()
 
-	requestBody := models.NewGroupPolicyPresentationValueMultiText()
+	definitionValue := models.NewGroupPolicyDefinitionValue()
 
-	// Set the OData type
+	convert.FrameworkToGraphBool(data.Enabled, definitionValue.SetEnabled)
+
+	definitionID := data.GroupPolicyDefinitionValueID.ValueString() // This contains the definition ID after resolveIDs
+	definitionBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')", definitionID)
+
+	definitionValue.SetAdditionalData(map[string]interface{}{
+		"definition@odata.bind": definitionBindURL,
+	})
+
+	multiTextPresentationValue := models.NewGroupPolicyPresentationValueMultiText()
 	odataType := "#microsoft.graph.groupPolicyPresentationValueMultiText"
-	requestBody.SetOdataType(&odataType)
+	multiTextPresentationValue.SetOdataType(&odataType)
 
-	// Convert List to []string and set values
-	if !data.Values.IsNull() && !data.Values.IsUnknown() {
-		var stringValues []string
-		diags := data.Values.ElementsAs(ctx, &stringValues, false)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert values list to string slice")
+	convert.FrameworkToGraphStringSet(ctx, data.Values, multiTextPresentationValue.SetValues)
+
+	presentationID := data.PresentationID.ValueString()
+	presentationBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')/presentations('%s')", definitionID, presentationID)
+
+	multiTextPresentationValue.SetAdditionalData(map[string]interface{}{
+		"presentation@odata.bind": presentationBindURL,
+	})
+
+	presentationValues := []models.GroupPolicyPresentationValueable{multiTextPresentationValue}
+	definitionValue.SetPresentationValues(presentationValues)
+
+	// the request body supports add, update, and delete with distinct structures for each operation.
+	switch operation {
+	case "create":
+		addedValues := []models.GroupPolicyDefinitionValueable{definitionValue}
+		requestBody.SetAdded(addedValues)
+		requestBody.SetUpdated([]models.GroupPolicyDefinitionValueable{})
+		requestBody.SetDeletedIds([]string{})
+
+	case "update":
+		// For update, use template IDs for bindings and instance IDs for the update
+		// Get instance IDs from AdditionalData (set by the ID resolver)
+		definitionValueInstanceID, ok := data.AdditionalData["definitionValueInstanceID"].(string)
+		if !ok {
+			return nil, fmt.Errorf("missing definitionValueInstanceID in AdditionalData for update operation")
 		}
-		requestBody.SetValues(stringValues)
+
+		presentationValueInstanceID, ok := data.AdditionalData["presentationValueInstanceID"].(string)
+		if !ok {
+			return nil, fmt.Errorf("missing presentationValueInstanceID in AdditionalData for update operation")
+		}
+
+		definitionValue.SetId(&definitionValueInstanceID)
+
+		multiTextPresentationValue.SetId(&presentationValueInstanceID)
+
+		updatedValues := []models.GroupPolicyDefinitionValueable{definitionValue}
+		requestBody.SetAdded([]models.GroupPolicyDefinitionValueable{})
+		requestBody.SetUpdated(updatedValues)
+		requestBody.SetDeletedIds([]string{})
+
+	case "delete":
+		definitionValueInstanceID := data.GroupPolicyDefinitionValueID.ValueString()
+		requestBody.SetAdded([]models.GroupPolicyDefinitionValueable{})
+		requestBody.SetUpdated([]models.GroupPolicyDefinitionValueable{})
+		requestBody.SetDeletedIds([]string{definitionValueInstanceID})
 	}
 
-	// Set the presentation reference using resolved IDs
-	if !data.PresentationID.IsNull() && !data.PresentationID.IsUnknown() {
-		groupPolicyConfigurationID := data.GroupPolicyConfigurationID.ValueString()
-		groupPolicyDefinitionValueID := data.GroupPolicyDefinitionValueID.ValueString()
-
-		presentationBindURL := fmt.Sprintf(
-			"https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations('%s')/definitionValues('%s')/presentation",
-			groupPolicyConfigurationID,
-			groupPolicyDefinitionValueID,
-		)
-
-		additionalData := map[string]interface{}{
-			"presentation@odata.bind": presentationBindURL,
-		}
-		requestBody.SetAdditionalData(additionalData)
-
-		tflog.Debug(ctx, fmt.Sprintf("Set presentation@odata.bind to: %s", presentationBindURL))
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final updateDefinitionValues JSON for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing updateDefinitionValues request for %s", ResourceName))
 	return requestBody, nil
-}
-
-// resolveIDs resolves the definition value and presentation IDs from simplified input
-func resolveIDs(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient) error {
-	// Skip resolution if IDs are already set (backward compatibility)
-	if !data.GroupPolicyDefinitionValueID.IsNull() && !data.GroupPolicyDefinitionValueID.IsUnknown() &&
-		!data.PresentationID.IsNull() && !data.PresentationID.IsUnknown() {
-		tflog.Debug(ctx, "IDs already resolved, skipping lookup")
-		return nil
-	}
-
-	// Check if we have the required fields for lookup
-	if data.PolicyName.IsNull() || data.PolicyName.IsUnknown() ||
-		data.ClassType.IsNull() || data.ClassType.IsUnknown() {
-		return fmt.Errorf("either provide group_policy_definition_value_id and presentation_id, or provide policy_name and class_type for auto-discovery")
-	}
-
-	// Get presentation index (default to 0)
-	presentationIndex := int64(0)
-	if !data.PresentationIndex.IsNull() && !data.PresentationIndex.IsUnknown() {
-		presentationIndex = data.PresentationIndex.ValueInt64()
-	}
-
-	// Use lookup service to resolve IDs
-	lookupService := NewLookupService(client)
-	definitionValueID, presentationID, err := lookupService.ResolveDefinitionValueAndPresentation(
-		ctx,
-		data.GroupPolicyConfigurationID.ValueString(),
-		data.PolicyName.ValueString(),
-		data.ClassType.ValueString(),
-		presentationIndex,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	// Set the resolved IDs in the model
-	data.GroupPolicyDefinitionValueID = types.StringValue(definitionValueID)
-	data.PresentationID = types.StringValue(presentationID)
-
-	tflog.Debug(ctx, fmt.Sprintf("Resolved IDs - definitionValueID: %s, presentationID: %s", definitionValueID, presentationID))
-	return nil
 }

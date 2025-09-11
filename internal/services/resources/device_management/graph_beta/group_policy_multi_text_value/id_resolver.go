@@ -1,4 +1,4 @@
-package graphBetaGroupPolicyTextValue
+package graphBetaGroupPolicyMultiTextValue
 
 import (
 	"context"
@@ -31,7 +31,7 @@ import (
 // providing a single interface that handles the appropriate resolution strategy based on operation type.
 // Without this abstraction, each CRUD operation would need to understand and implement the
 // template-vs-instance ID resolution logic independently.
-func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) error {
+func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyMultiTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) error {
 	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: Starting %s operation", operation))
 
 	// Check if we have the required fields for lookup

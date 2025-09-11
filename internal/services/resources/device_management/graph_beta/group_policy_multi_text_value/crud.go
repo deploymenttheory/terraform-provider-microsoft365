@@ -9,11 +9,11 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation for Group Policy Multi-Text Value resources.
+// Create handles the Create operation for Group Policy Text Value resources.
 func (r *GroupPolicyMultiTextValueResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupPolicyMultiTextValueResourceModel
 
@@ -30,25 +30,32 @@ func (r *GroupPolicyMultiTextValueResource) Create(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, r.client)
+	// Resolve definition and presentation IDs for creation
+	err := groupPolicyIDResolver(ctx, &object, r.client, "create")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
+			"Error resolving IDs",
+			fmt.Sprintf("Could not resolve definition and presentation IDs: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	requestBody, err := constructResource(ctx, &object, "create")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing updateDefinitionValues request",
+			fmt.Sprintf("Could not construct updateDefinitionValues request: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
-	groupPolicyDefinitionValueID := object.GroupPolicyDefinitionValueID.ValueString()
 
-	baseResource, err := r.client.
+	err = r.client.
 		DeviceManagement().
 		GroupPolicyConfigurations().
 		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
-		DefinitionValues().
-		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
-		PresentationValues().
+		UpdateDefinitionValues().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -56,7 +63,15 @@ func (r *GroupPolicyMultiTextValueResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	object.ID = types.StringValue(*baseResource.GetId())
+	// After creating via updateDefinitionValues, we need to resolve again and return the instance IDs
+	err = groupPolicyIDResolver(ctx, &object, r.client, "read")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error resolving instance IDs after creation",
+			fmt.Sprintf("Could not resolve definition value and presentation value instance IDs after creation: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -82,7 +97,7 @@ func (r *GroupPolicyMultiTextValueResource) Create(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Group Policy Multi-Text Value resources.
+// Read handles the Read operation for Group Policy Text Value resources.
 func (r *GroupPolicyMultiTextValueResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupPolicyMultiTextValueResourceModel
 
@@ -100,7 +115,7 @@ func (r *GroupPolicyMultiTextValueResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with configuration ID: %s", ResourceName, object.GroupPolicyConfigurationID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -108,11 +123,29 @@ func (r *GroupPolicyMultiTextValueResource) Read(ctx context.Context, req resour
 	}
 	defer cancel()
 
+	// Resolve definition and presentation IDs for reading
+	err := groupPolicyIDResolver(ctx, &object, r.client, "read")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error resolving IDs during read",
+			fmt.Sprintf("Could not resolve definition and presentation IDs: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
 	groupPolicyDefinitionValueID := object.GroupPolicyDefinitionValueID.ValueString()
 	presentationValueID := object.ID.ValueString()
 
-	baseResource, err := r.client.
+	if presentationValueID == "" || groupPolicyDefinitionValueID == "" {
+		resp.Diagnostics.AddError(
+			"Resource not found",
+			fmt.Sprintf("Could not find %s resource in configuration", ResourceName),
+		)
+		return
+	}
+
+	presentationValue, err := r.client.
 		DeviceManagement().
 		GroupPolicyConfigurations().
 		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
@@ -127,18 +160,26 @@ func (r *GroupPolicyMultiTextValueResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	// Cast to the specific type
-	if multiTextValue, ok := baseResource.(interface {
-		GetId() *string
-		GetValues() []string
-		GetCreatedDateTime() *time.Time
-		GetLastModifiedDateTime() *time.Time
-	}); ok {
-		mapRemoteStateToTerraform(ctx, &object, multiTextValue)
+	definitionValue, err := r.client.
+		DeviceManagement().
+		GroupPolicyConfigurations().
+		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
+		DefinitionValues().
+		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	// Map the presentation value data
+	if multiTextValue, ok := presentationValue.(graphmodels.GroupPolicyPresentationValueMultiTextable); ok {
+		MapRemoteStateToTerraform(ctx, &object, multiTextValue, definitionValue)
 	} else {
 		resp.Diagnostics.AddError(
 			"Type assertion error",
-			fmt.Sprintf("Could not cast response to GroupPolicyPresentationValueMultiText for resource: %s", ResourceName),
+			fmt.Sprintf("Could not cast response to GroupPolicyPresentationValueText for resource: %s", ResourceName),
 		)
 		return
 	}
@@ -148,7 +189,7 @@ func (r *GroupPolicyMultiTextValueResource) Read(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Group Policy Multi-Text Value resources.
+// Update handles the Update operation for Group Policy Text Value resources.
 func (r *GroupPolicyMultiTextValueResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var object GroupPolicyMultiTextValueResourceModel
 
@@ -165,7 +206,18 @@ func (r *GroupPolicyMultiTextValueResource) Update(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, r.client)
+	// Resolve definition and presentation IDs for update
+	err := groupPolicyIDResolver(ctx, &object, r.client, "update")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error resolving IDs for update",
+			fmt.Sprintf("Could not resolve definition and presentation IDs: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	// Construct the updateDefinitionValues request for update
+	requestBody, err := constructResource(ctx, &object, "update")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update",
@@ -175,18 +227,14 @@ func (r *GroupPolicyMultiTextValueResource) Update(ctx context.Context, req reso
 	}
 
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
-	groupPolicyDefinitionValueID := object.GroupPolicyDefinitionValueID.ValueString()
-	presentationValueID := object.ID.ValueString()
 
-	_, err = r.client.
+	// Call updateDefinitionValues to update the definition value with presentation value
+	err = r.client.
 		DeviceManagement().
 		GroupPolicyConfigurations().
 		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
-		DefinitionValues().
-		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
-		PresentationValues().
-		ByGroupPolicyPresentationValueId(presentationValueID).
-		Patch(ctx, requestBody, nil)
+		UpdateDefinitionValues().
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -214,7 +262,7 @@ func (r *GroupPolicyMultiTextValueResource) Update(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for Group Policy Multi-Text Value resources.
+// Delete handles the Delete operation for Group Policy Text Value resources.
 func (r *GroupPolicyMultiTextValueResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupPolicyMultiTextValueResourceModel
 
@@ -232,18 +280,22 @@ func (r *GroupPolicyMultiTextValueResource) Delete(ctx context.Context, req reso
 	defer cancel()
 
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
-	groupPolicyDefinitionValueID := object.GroupPolicyDefinitionValueID.ValueString()
-	presentationValueID := object.ID.ValueString()
 
-	err := r.client.
+	requestBody, err := constructResource(ctx, &object, "delete")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing delete request",
+			fmt.Sprintf("Could not construct updateDefinitionValues delete request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	err = r.client.
 		DeviceManagement().
 		GroupPolicyConfigurations().
 		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
-		DefinitionValues().
-		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
-		PresentationValues().
-		ByGroupPolicyPresentationValueId(presentationValueID).
-		Delete(ctx, nil)
+		UpdateDefinitionValues().
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
