@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.28.1-alpha...v0.29.0-alpha) (2025-09-12)
+
+
+### Features
+
+* added 1st itteration of group_policy_configurations ([b2b8078](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b2b8078492e8b1cea411c905124d1ce322dc3799))
+* added centralised resolver logic and added docs ([46c4004](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/46c4004aa9e6ef48b9fd52e35757de9cbc6660a3))
+* added group_policy_boolean_value ([88b6b77](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/88b6b77a0ac6118d12d6676182570eeb42dbc307))
+* added group_policy_configuration, group_policy_boolean_value and group_policy_test_value as new resources ([#762](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/762)) ([33d3fc6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/33d3fc61229fb93e41e0c8d71dcad5319fa19ca1))
+* added group_policy_text_value ([b1900d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b1900d2e6605450aa4a80bb53bad6d78d3b94baa))
+* added group_policy_uploaded_definition_files ([5ecf420](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5ecf4202f434aef1ef47f539adad33724401b5d2))
+* added resource group_policy_uploaded_definition_files and datasource group_policy_category ([#753](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/753)) ([9ce3d0d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ce3d0d7097046a0f41f6c75505bf94275523e21))
+
+
+### Bug Fixes
+
+* map[string]interface{} -&gt; map[string]any ([fcd9a51](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fcd9a51dc63fd02f9d001caab20d2fa515374209))
+* numerous ([f74e41e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f74e41eb964e98eb66870f71d9f7e2cd0b3d3ace))
+
 ## [0.28.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.28.0-alpha...v0.28.1-alpha) (2025-09-06)
 
 
